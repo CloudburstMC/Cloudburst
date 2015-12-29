@@ -7,18 +7,22 @@ import cn.nukkit.item.Tool;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class SandStone extends Solid {
+public class Sandstone extends Solid {
     public static final int NORMAL = 0;
     public static final int CHISELED = 1;
     public static final int SMOOTH = 2;
 
-
-    public SandStone() {
+    public Sandstone() {
         this(0);
     }
 
-    public SandStone(int meta) {
-        super(SANDSTONE, meta);
+    public Sandstone(int meta) {
+        super(meta);
+    }
+
+    @Override
+    public int getId() {
+        return SANDSTONE;
     }
 
     @Override
