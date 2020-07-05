@@ -22,7 +22,7 @@ Links
 * __[News](https://cloudburstmc.org)__
 * __[Forums](https://cloudburstmc.org/forums)__
 * __[Discord](https://discord.gg/5PzMkyK)__
-* __[Download](https://ci.nukkitx.com/job/NukkitX/job/Nukkit/job/master)__
+* __[Download](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/)__
 * __[Plugins](https://cloudburstmc.org/resources/categories/nukkit-plugins.1)__
 * __[Wiki](https://cloudburstmc.org/wiki/nukkit)__
 
@@ -37,7 +37,7 @@ The compiled JAR can be found in the `target/` directory.
 
 Running
 -------------
-Simply run `java -jar nukkit-1.0-SNAPSHOT.jar`.
+Simply run `java -jar Nukkit.jar`.
 
 Plugin API
 -------------
