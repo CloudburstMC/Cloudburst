@@ -16,56 +16,53 @@ It has a few key advantages over other server software:
 
 Cloudburst is **under improvement** yet, we welcome contributions. 
 
-Links
+Quick Links
 --------------------
 
-* __[News](https://cloudburstmc.org)__
-* __[Forums](https://cloudburstmc.org/forums)__
+* __[News](https://cloudburstmc.org/articles/)__
+* __[Forums](https://cloudburstmc.org/forums/)__
 * __[Discord](https://discord.gg/5PzMkyK)__
 * __[Download](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/)__
-* __[Plugins](https://cloudburstmc.org/resources/categories/nukkit-plugins.1)__
+* __[Plugins](https://cloudburstmc.org/resources/categories/nukkit-plugins.1/)__
 * __[Wiki](https://cloudburstmc.org/wiki/nukkit)__
 
-Build JAR file
--------------
-- `git clone https://github.com/Cloudburst/Server`
-- `cd Server`
-- `git submodule update --init`
-- `./mvnw clean package`
+Getting Started
+--------------------
 
-The compiled JAR can be found in the `target/` directory.
+* __[Documentation](https://cloudburstmc.org/wiki/)__
+* __[Installation Instructions](https://cloudburstmc.org/wiki/nukkit-installation/)__
+* __[Download](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/)__
+* __[Plugins](https://cloudburstmc.org/resources/categories/nukkit-plugins.1)__
 
-Running
--------------
-Simply run `java -jar Nukkit.jar`.
+Discussion/Help
+--------------------
 
-Plugin API
--------------
-Information on Cloudburst's API can be found at the [wiki](https://cloudburstmc.org/wiki/nukkit/).
+* __[Forums](https://cloudburstmc.org/forums/)__
+* __[Discord](https://discord.gg/5PzMkyK)__
 
-Docker
--------------
+For Developers
+--------------------
 
-Running Nukkit in [Docker](https://www.docker.com/) (17.05+ or higher).
+* __[Building JAR File](BUILDING.md)__
+* __[Plugin API](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/javadoc/)__
+* __[Example Plugin](https://github.com/CloudburstMC/ExamplePlugin)__
+* __[Run In Docker](DOCKER.md)__
 
-Build image from source,
-
-```
-docker build -t nukkit .
-```
-
-Run once to generate the `/data` volume, default settings, and choose language,
-
-```
-docker run -it --rm -p 19132:19132 nukkit
-```
-
-Use [docker-compose](https://docs.docker.com/compose/overview/) to start server on port `19132` and with `./data` volume,
-
-```
-docker-compose up -d
-```
+Team
+------------
+| <a href="https://github.com/Creeperface01" target="_blank">**CreeperFace**</a> | <a href="https://github.com/DaMatrix" target="_blank">**DaPorkchop_**</a> | <a href="https://github.com/SupremeMortal" target="_blank">**SupremeMortal**</a> | 
+| :---: |:---:| :---:|
+| [![Creeperface01](https://avatars2.githubusercontent.com/u/10363500?s=200&u=587f351ba02f80dba2ef431f371ffdaff827e7b9&v=4)](https://github.com/Creeperface01)     | [![DaPorkchop_](https://avatars2.githubusercontent.com/u/11216106?s=200&u=da7373897113bed375ca307a81c7353f6f44cfdc&v=4)](https://github.com/DaMatrix) | [![SupremeMortal](https://avatars3.githubusercontent.com/u/6178101?s=200&u=4f6d8b803e7e2d3ce5ea1c56935b7d3a61632c06&v=4)](https://github.com/SupremeMortal)  |
+| <a href="https://github.com/Creeperface01" target="_blank">`github.com/Creeperface01`</a> | <a href="https://github.com/DaMatrix" target="_blank">`github.com/DaMatrix`</a> | <a href="https://github.com/SupremeMortal" target="_blank">`github.com/SupremeMortal`</a> |
 
 Contributing
 ------------
-Please read the [CONTRIBUTING](.github/CONTRIBUTING.md) guide before submitting any issue. Issues with insufficient information or in the wrong format will be closed and will not be reviewed.
+Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are greatly appreciated. Please read the [CONTRIBUTING](.github/CONTRIBUTING.md) guide before submitting any issues. Issues with insufficient information or in the wrong format will be closed and will not be reviewed.
+
+License
+------------
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
+
+Distributed under the GNU License. See [LICENSE](LICENSE) for more information. Cloudburst is not affiliated with Mojang Studios. All brands and trademarks belong to their respective owners. Cloudburst is not a Mojang-approved software, nor is it associated with Mojang Studios.
+
+Copyright NukkitX ©2017 CloudburstMC ©2020
