@@ -16,9 +16,9 @@ If it's an advice or a feature request:
   2. This feature is logical and clear-cut.
   3. It's you yourself who first came up with the idea.
  
-Cloudburst Server will create a bug report for EVERY exception and error detected, and there are some columns you need to fill out in the report. If multiple exceptions are triggered, you should combine the stacktrace into one report and then submit the report.
+Cloudburst will create a bug report for EVERY exception and error detected, and there are some columns you need to fill out in the report. If multiple exceptions are triggered, you should combine the stacktrace into one report and then submit the report.
 
-In the report, you can see if the error is caused by Cloudburst Server or a plugin. However, when "PLUGIN ERROR" is "false" and there are plugins running, it does not necessarily indicates that the error is caused by Cloudburst Server.
+In the report, you can see if the error is caused by Cloudburst or a plugin. However, when "PLUGIN ERROR" is "false" and there are plugins running, it does not necessarily indicates that the error is caused by Cloudburst.
  
 To sumbit bugs and problems, please upload the automaticly generated report. Make sure you have filled in all blanks in the template. Please provide **as much information as you could**, or our developers might got stuck or confused when looking into your issue. 
 
@@ -36,8 +36,8 @@ It seems that the player you are manipulating does not seem to be moving from ot
 I do not know because I have not logged in to anything other than my server, but it works normally with Wi-Fi multi.
 
 ### OS and Versions
-<!--- Use the 'version' command in Cloudburst Server -->
-* Cloudburst Server Version: https://github.com/Nukkit/Nukkit/pull/1517  <!--- Do not just write "latest" or "1.0dev" here. Write compile time is also fine. -->
+<!--- Use the 'version' command in Cloudburst -->
+* Cloudburst Version: https://github.com/Nukkit/Nukkit/pull/1517  <!--- Do not just write "latest" or "1.0dev" here. Write compile time is also fine. -->
 <!--- Use 'java -version' in command line -->
 * Java Version: 
 ```
@@ -51,7 +51,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 9+175, mixed mode)
 
 | Item | Value |
 |:----:|:-----:|
-| Host OS | Microsoft Windows [10.0.10240] |  <!-- What OS do you use to open Cloudburst Server in? Linux? Windows? Write it here -->
+| Host OS | Microsoft Windows [10.0.10240] |  <!-- What OS do you use to open Cloudburst in? Linux? Windows? Write it here -->
 | Memory(RAM) | 4 GB | <!-- Open your task manager in windows, or use command "top" in linux -->
 | Storage Size | 1 TB | <!-- Max size -->
 | Storage Type | SSD | <!-- SSD or HDD -->
@@ -74,8 +74,8 @@ It seems that the player you are manipulating does not seem to be moving from ot
 I do not know because I have not logged in to anything other than my server, but it works normally with Wi-Fi multi.
 
 ### OS and Versions
-<!--- Use the 'version' command in Cloudburst Server -->
-* Cloudburst Server Version: https://github.com/Nukkit/Nukkit/pull/1517  <!--- Do not just write "latest" or "1.0dev" here. Write compile time is also fine. -->
+<!--- Use the 'version' command in Cloudburst -->
+* Cloudburst Version: https://github.com/Nukkit/Nukkit/pull/1517  <!--- Do not just write "latest" or "1.0dev" here. Write compile time is also fine. -->
 <!--- Use 'java -version' in command line -->
 * Java Version: 
 
@@ -89,7 +89,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 9+175, mixed mode)
 
 | Item | Value |
 |:----:|:-----:|
-| Host OS | Microsoft Windows [10.0.10240] |  <!-- What OS do you use to open Cloudburst Server in? Linux? Windows? Write it here -->
+| Host OS | Microsoft Windows [10.0.10240] |  <!-- What OS do you use to open Cloudburst in? Linux? Windows? Write it here -->
 | Memory(RAM) | 4 GB | <!-- Open your task manager in windows, or use command "top" in linux -->
 | Storage Size | 1 TB | <!-- Max size -->
 | Storage Type | SSD | <!-- SSD or HDD -->
