@@ -2,7 +2,7 @@ package cn.nukkit.entity.data;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -132,13 +132,13 @@ public class SyncedEntityData {
         }
     }
 
-    public CompoundTag getTag(EntityData data) {
+    public NbtMap getTag(EntityData data) {
         return this.data.getTag(data);
     }
 
-    public void setTag(EntityData data, CompoundTag value) {
-        if (value == null) value = CompoundTag.EMPTY;
-        CompoundTag oldValue = getTag(data);
+    public void setTag(EntityData data, NbtMap value) {
+        if (value == null) value = NbtMap.EMPTY;
+        NbtMap oldValue = getTag(data);
         if (!Objects.equals(oldValue, value)) {
             this.data.putTag(data, value);
             this.dataChangeSet.putTag(data, value);

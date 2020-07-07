@@ -5,7 +5,7 @@ import cn.nukkit.pack.loader.DirectoryPackLoader;
 import cn.nukkit.pack.loader.PackLoader;
 import cn.nukkit.pack.loader.ZipPackLoader;
 import com.google.common.base.Preconditions;
-import com.nukkitx.protocol.bedrock.packet.ResourcePackDataInfoPacket;
+import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackStackPacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import lombok.extern.log4j.Log4j2;
@@ -207,7 +207,7 @@ public class PackManager implements Closeable {
         packStack.setExperimental(true); // Needed for custom blocks, items and entities
         packStack.setGameVersion("*");
         for (Pack pack : packs.values()) {
-            if (pack.getType() != ResourcePackDataInfoPacket.Type.BEHAVIOR) {
+            if (pack.getType() != ResourcePackType.BEHAVIOR) {
                 packsInfos.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(pack.getId().toString(),
                         pack.getVersion().toString(), pack.getSize(), "", "", "", false));
                 packStack.getResourcePacks().add(new ResourcePackStackPacket.Entry(pack.getId().toString(),

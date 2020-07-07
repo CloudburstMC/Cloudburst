@@ -12,8 +12,8 @@ import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemUtils;
 import cn.nukkit.level.Location;
 import cn.nukkit.level.MovingObjectPosition;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -69,17 +69,17 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForCompound("Trident", itemTag -> this.trident = ItemUtils.deserializeItem(itemTag));
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.tag(ItemUtils.serializeItem(this.trident).toBuilder().build("Trident"));
+        tag.putCompound("Trident", ItemUtils.serializeItem(this.trident));
     }
 
     @Override

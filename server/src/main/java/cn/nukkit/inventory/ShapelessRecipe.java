@@ -141,7 +141,7 @@ public class ShapelessRecipe implements CraftingRecipe {
             Item haveItem = haveItems.get(i);
             Item needItem = needItems.get(i);
 
-            if (needItem.equals(haveItem, needItem.hasMeta(), needItem.hasCompoundTag())) {
+            if (needItem.equals(haveItem, needItem.hasMeta(), needItem.hasNbtMap())) {
                 completed++;
             }
         }

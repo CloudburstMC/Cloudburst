@@ -15,8 +15,9 @@ import cn.nukkit.math.NukkitMath;
 import cn.nukkit.player.Player;
 import cn.nukkit.utils.Utils;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
@@ -113,22 +114,22 @@ public class Human extends EntityCreature implements InventoryHolder {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         if (!(this instanceof Player)) {
             tag.listenForString("NameTag", this::setNameTag);
 
 
-            if (tag.contains("Skin") && tag.get("Skin") instanceof CompoundTag) {
-                CompoundTag skinTag = tag.getCompound("Skin");
+            if (tag.containsKey("Skin") && tag.get("Skin") instanceof NbtMap) {
+                NbtMap skinTag = tag.getCompound("Skin");
 
                 SerializedSkin.Builder skin = SerializedSkin.builder();
 
                 skinTag.listenForString("ModelId", skin::skinId);
-                if (skinTag.contains("Data")) {
+                if (skinTag.containsKey("Data")) {
                     byte[] data = skinTag.getByteArray("Data");
-                    if (skinTag.contains("SkinImageWidth") && skinTag.contains("SkinImageHeight")) {
+                    if (skinTag.containsKey("SkinImageWidth") && skinTag.containsKey("SkinImageHeight")) {
                         int width = skinTag.getInt("SkinImageWidth");
                         int height = skinTag.getInt("SkinImageHeight");
                         skin.skinData(ImageData.of(width, height, data));
@@ -138,9 +139,9 @@ public class Human extends EntityCreature implements InventoryHolder {
                 }
 
                 skinTag.listenForString("CapeId", skin::capeId);
-                if (skinTag.contains("CapeData")) {
+                if (skinTag.containsKey("CapeData")) {
                     byte[] data = skinTag.getByteArray("CapeData");
-                    if (skinTag.contains("CapeImageWidth") && skinTag.contains("CapeImageHeight")) {
+                    if (skinTag.containsKey("CapeImageWidth") && skinTag.containsKey("CapeImageHeight")) {
                         int width = skinTag.getInt("CapeImageWidth");
                         int height = skinTag.getInt("CapeImageHeight");
                         skin.capeData(ImageData.of(width, height, data));
@@ -155,10 +156,10 @@ public class Human extends EntityCreature implements InventoryHolder {
                 skinTag.listenForBoolean("PremiumSkin", skin::premium);
                 skinTag.listenForBoolean("PersonaSkin", skin::persona);
                 skinTag.listenForBoolean("CapeOnClassicSkin", skin::capeOnClassic);
-                if (skinTag.contains("AnimatedImageData")) {
-                    List<CompoundTag> list = skinTag.getList("AnimatedImageData", CompoundTag.class);
+                if (skinTag.containsKey("AnimatedImageData")) {
+                    List<NbtMap> list = skinTag.getList("AnimatedImageData", NbtType.COMPOUND);
                     List<AnimationData> animations = new ArrayList<>();
-                    for (CompoundTag animationTag : list) {
+                    for (NbtMap animationTag : list) {
                         float frames = animationTag.getFloat("Frames");
                         int type = animationTag.getInt("Type");
                         byte[] image = animationTag.getByteArray("Image");
@@ -175,8 +176,8 @@ public class Human extends EntityCreature implements InventoryHolder {
                     .getSkinData().getImage(), this.getNameTag().getBytes(UTF_8));
         }
 
-        tag.listenForList("Inventory", CompoundTag.class, items -> {
-            for (CompoundTag itemTag : items) {
+        tag.listenForList("Inventory", NbtType.COMPOUND, items -> {
+            for (NbtMap itemTag : items) {
                 int slot = itemTag.getByte("Slot");
                 if (slot >= 0 && slot < 9) { //hotbar
                     //Old hotbar saving stuff, useless now
@@ -188,18 +189,18 @@ public class Human extends EntityCreature implements InventoryHolder {
             }
         });
 
-        tag.listenForList("EnderItems", CompoundTag.class, items -> {
-            for (CompoundTag itemTag : items) {
+        tag.listenForList("EnderItems", NbtType.COMPOUND, items -> {
+            for (NbtMap itemTag : items) {
                 this.enderChestInventory.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
             }
         });
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        List<CompoundTag> inventoryItems = new ArrayList<>();
+        List<NbtMap> inventoryItems = new ArrayList<>();
         int slotCount = PlayerInventory.SURVIVAL_SLOTS + 9;
         for (int slot = 9; slot < slotCount; ++slot) {
             Item item = this.inventory.getItem(slot - 9);
@@ -215,48 +216,48 @@ public class Human extends EntityCreature implements InventoryHolder {
             }
         }
 
-        tag.listTag("Inventory", CompoundTag.class, inventoryItems);
+        tag.putList("Inventory", NbtType.COMPOUND, inventoryItems);
 
-        List<CompoundTag> enderItems = new ArrayList<>();
+        List<NbtMap> enderItems = new ArrayList<>();
         for (int slot = 0; slot < 27; ++slot) {
             Item item = this.enderChestInventory.getItem(slot);
             if (item != null && !item.isNull()) {
                 enderItems.add(ItemUtils.serializeItem(item, slot));
             }
         }
-        tag.listTag("EnderItems", CompoundTag.class, enderItems);
+        tag.putList("EnderItems", NbtType.COMPOUND, enderItems);
 
         if (skin != null) {
-            CompoundTagBuilder skinTag = CompoundTag.builder()
-                    .byteArrayTag("Data", this.getSkin().getSkinData().getImage())
-                    .intTag("SkinImageWidth", this.getSkin().getSkinData().getWidth())
-                    .intTag("SkinImageHeight", this.getSkin().getSkinData().getHeight())
-                    .stringTag("ModelId", this.getSkin().getSkinId())
-                    .stringTag("CapeId", this.getSkin().getCapeId())
-                    .byteArrayTag("CapeData", this.getSkin().getCapeData().getImage())
-                    .intTag("CapeImageWidth", this.getSkin().getCapeData().getWidth())
-                    .intTag("CapeImageHeight", this.getSkin().getCapeData().getHeight())
-                    .byteArrayTag("SkinResourcePatch", this.getSkin().getSkinResourcePatch().getBytes(UTF_8))
-                    .byteArrayTag("GeometryData", this.getSkin().getGeometryData().getBytes(UTF_8))
-                    .byteArrayTag("AnimationData", this.getSkin().getAnimationData().getBytes(UTF_8))
-                    .booleanTag("PremiumSkin", this.getSkin().isPremium())
-                    .booleanTag("PersonaSkin", this.getSkin().isPersona())
-                    .booleanTag("CapeOnClassicSkin", this.getSkin().isCapeOnClassic());
+            NbtMapBuilder skinTag = NbtMap.builder()
+                    .putByteArray("Data", this.getSkin().getSkinData().getImage())
+                    .putInt("SkinImageWidth", this.getSkin().getSkinData().getWidth())
+                    .putInt("SkinImageHeight", this.getSkin().getSkinData().getHeight())
+                    .putString("ModelId", this.getSkin().getSkinId())
+                    .putString("CapeId", this.getSkin().getCapeId())
+                    .putByteArray("CapeData", this.getSkin().getCapeData().getImage())
+                    .putInt("CapeImageWidth", this.getSkin().getCapeData().getWidth())
+                    .putInt("CapeImageHeight", this.getSkin().getCapeData().getHeight())
+                    .putByteArray("SkinResourcePatch", this.getSkin().getSkinResourcePatch().getBytes(UTF_8))
+                    .putByteArray("GeometryData", this.getSkin().getGeometryData().getBytes(UTF_8))
+                    .putByteArray("AnimationData", this.getSkin().getAnimationData().getBytes(UTF_8))
+                    .putBoolean("PremiumSkin", this.getSkin().isPremium())
+                    .putBoolean("PersonaSkin", this.getSkin().isPersona())
+                    .putBoolean("CapeOnClassicSkin", this.getSkin().isCapeOnClassic());
             List<AnimationData> animations = this.getSkin().getAnimations();
             if (!animations.isEmpty()) {
-                List<CompoundTag> animationsTag = new ArrayList<>();
+                List<NbtMap> animationsTag = new ArrayList<>();
                 for (AnimationData animation : animations) {
-                    animationsTag.add(CompoundTag.builder()
-                            .floatTag("Frames", animation.getFrames())
-                            .intTag("Type", animation.getType())
-                            .intTag("ImageWidth", animation.getImage().getWidth())
-                            .intTag("ImageHeight", animation.getImage().getHeight())
-                            .byteArrayTag("Image", animation.getImage().getImage())
-                            .buildRootTag());
+                    animationsTag.add(NbtMap.builder()
+                            .putFloat("Frames", animation.getFrames())
+                            .putInt("Type", animation.getType())
+                            .putInt("ImageWidth", animation.getImage().getWidth())
+                            .putInt("ImageHeight", animation.getImage().getHeight())
+                            .putByteArray("Image", animation.getImage().getImage())
+                            .build());
                 }
-                skinTag.listTag("AnimationImageData", CompoundTag.class, animationsTag);
+                skinTag.putList("AnimationImageData", NbtType.COMPOUND, animationsTag);
             }
-            tag.tag(skinTag.build("Skin"));
+            tag.putCompound("Skin", skinTag.build());
         }
     }
 

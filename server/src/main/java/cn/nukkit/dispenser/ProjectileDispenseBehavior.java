@@ -8,7 +8,7 @@ import cn.nukkit.level.Location;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.registry.EntityRegistry;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 
 /**
  * @author CreeperFace
@@ -49,7 +49,7 @@ public class ProjectileDispenseBehavior implements DispenseBehavior {
      *
      * @param nbt tag
      */
-    protected void correctNBT(CompoundTag nbt) {
+    protected void correctNBT(NbtMap nbt) {
 
     }
 }

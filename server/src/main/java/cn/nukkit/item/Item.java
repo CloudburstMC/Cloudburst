@@ -14,11 +14,7 @@ import cn.nukkit.utils.Config;
 import cn.nukkit.utils.Identifier;
 import cn.nukkit.utils.Utils;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.StringTag;
+import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
@@ -50,7 +46,7 @@ public abstract class Item implements Cloneable {
     private final Short2ObjectMap<Enchantment> enchantments = new Short2ObjectOpenHashMap<>();
     private int damage;
     private String customName;
-    private CompoundTag tag = CompoundTag.EMPTY;
+    private NbtMap tag = NbtMap.EMPTY;
     private final Set<Identifier> canPlaceOn = new HashSet<>();
     private final Set<Identifier> canDestroy = new HashSet<>();
 
@@ -133,10 +129,10 @@ public abstract class Item implements Cloneable {
     }
 
     public static Item get(Identifier id, int meta, int count) {
-        return get(id, meta, count, CompoundTag.EMPTY);
+        return get(id, meta, count, NbtMap.EMPTY);
     }
 
-    public static Item get(Identifier id, int meta, int count, CompoundTag tag) {
+    public static Item get(Identifier id, int meta, int count, NbtMap tag) {
         Item item = Server.getInstance().getItemRegistry().getItem(id);
         item.setMeta(meta);
         item.setCount(count);
@@ -157,11 +153,11 @@ public abstract class Item implements Cloneable {
 
     @Deprecated
     public static Item get(int id, int meta, int count) {
-        return get(id, meta, count, CompoundTag.EMPTY);
+        return get(id, meta, count, NbtMap.EMPTY);
     }
 
     @Deprecated
-    public static Item get(int id, int meta, int count, CompoundTag tags) {
+    public static Item get(int id, int meta, int count, NbtMap tags) {
         ItemRegistry registry = Server.getInstance().getItemRegistry();
         Identifier identifier = registry.fromLegacy(id);
         return get(identifier, meta, count, tags);
@@ -204,15 +200,15 @@ public abstract class Item implements Cloneable {
             nbtBytes = Utils.parseHexBinary(nbt);
         }
 
-        CompoundTag tag;
+        NbtMap tag;
         if (nbtBytes != null) {
             try (NBTInputStream stream = NbtUtils.createReaderLE(new ByteArrayInputStream(Base64.getDecoder().decode(nbt)))) {
-                tag = (CompoundTag) stream.readTag();
+                tag = (NbtMap) stream.readTag();
             } catch (IOException e) {
                 throw new IllegalStateException("Unable to decode tag", e);
             }
         } else {
-            tag = CompoundTag.EMPTY;
+            tag = NbtMap.EMPTY;
         }
 
         return get(Utils.toInt(data.get("id")), Utils.toInt(data.getOrDefault("damage", 0)), Utils.toInt(data.getOrDefault("count", 1)), tag);
@@ -245,51 +241,39 @@ public abstract class Item implements Cloneable {
         int count = itemData.getCount();
         String[] canBreak = itemData.getCanBreak();
         String[] canPlace = itemData.getCanPlace();
-        com.nukkitx.nbt.tag.CompoundTag tag = itemData.getTag();
+        NbtMap tag = itemData.getTag();
         if (tag == null) {
-            tag = com.nukkitx.nbt.tag.CompoundTag.EMPTY;
+            tag = NbtMap.EMPTY;
         }
 
         if (canBreak.length > 0 || canPlace.length > 0) {
-            CompoundTagBuilder tagBuilder = tag.toBuilder();
+            NbtMapBuilder tagBuilder = tag.toBuilder();
 
             if (canBreak.length > 0) {
-                List<com.nukkitx.nbt.tag.StringTag> listTag = new ArrayList<>();
-                for (String blockName : canBreak) {
-                    listTag.add(new com.nukkitx.nbt.tag.StringTag("", blockName));
-                }
-                tagBuilder.listTag("CanDestroy", com.nukkitx.nbt.tag.StringTag.class, listTag);
+                List<String> listTag = new ArrayList<>(Arrays.asList(canBreak));
+                tagBuilder.putList("CanDestroy", NbtType.STRING, listTag);
             }
 
             if (canPlace.length > 0) {
-                List<com.nukkitx.nbt.tag.StringTag> listTag = new ArrayList<>();
-                for (String blockName : canPlace) {
-                    listTag.add(new com.nukkitx.nbt.tag.StringTag("", blockName));
-                }
-                tagBuilder.listTag("CanPlaceOn", com.nukkitx.nbt.tag.StringTag.class, listTag);
+                List<String> listTag = new ArrayList<>(Arrays.asList(canPlace));
+                tagBuilder.putList("CanPlaceOn", NbtType.STRING, listTag);
             }
-            tag = tagBuilder.buildRootTag();
+            tag = tagBuilder.build();
         }
 
         return Item.get(identifier, meta, count, tag);
     }
 
-    public void loadAdditionalData(CompoundTag tag) {
-        this.tag = this.tag.toBuilder().putAll(tag).buildRootTag();
+    public void loadAdditionalData(NbtMap tag) {
+        this.tag = tag;
 
         tag.listenForCompound("display", displayTag -> {
             displayTag.listenForString("Name", this::setCustomName);
-            displayTag.listenForList("Lore", StringTag.class, tags -> {
-                List<String> lines = new ArrayList<>();
-                for (StringTag line : tags) {
-                    lines.add(line.getValue());
-                }
-                setLore(lines);
-            });
+            displayTag.listenForList("Lore", NbtType.STRING, this::setLore);
         });
 
-        tag.listenForList("ench", CompoundTag.class, tags -> {
-            for (CompoundTag entry : tags) {
+        tag.listenForList("ench", NbtType.COMPOUND, tags -> {
+            for (NbtMap entry : tags) {
                 short id = entry.getShort("id");
                 int level = entry.getShort("lvl");
                 this.enchantments.put(id, Enchantment.getEnchantment(id).setLevel(level, false));
@@ -297,61 +281,56 @@ public abstract class Item implements Cloneable {
         });
     }
 
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         tag.putAll(this.getTag());
 
 
-        CompoundTagBuilder displayTag = CompoundTag.builder();
+        NbtMapBuilder displayTag = NbtMap.builder();
         if (this.customName != null) {
-            displayTag.stringTag("Name", this.customName);
-            tag.tag(displayTag.build("display"));
-        }
-        
-        if(!this.lore.isEmpty()){
-            List<StringTag> loreLinesTag = new ArrayList<>();
-            for(String line : this.lore){
-                loreLinesTag.add(new StringTag("", line));
-            }
-            displayTag.listTag("Lore", StringTag.class, loreLinesTag);
+            displayTag.putString("Name", this.customName);
         }
 
-        CompoundTag display = displayTag.build("display");
-        if(!display.getValue().isEmpty()){
-            tag.tag(display);
+        if (!this.lore.isEmpty()) {
+            displayTag.putList("Lore", NbtType.STRING, this.lore);
+        }
+
+        NbtMap display = displayTag.build();
+        if (!display.isEmpty()) {
+            tag.putCompound("display", display);
         }
 
         if (!this.canDestroy.isEmpty()) {
-            List<com.nukkitx.nbt.tag.StringTag> listTag = new ArrayList<>();
+            List<String> listTag = new ArrayList<>();
             for (Identifier blockName : this.canDestroy) {
-                listTag.add(new com.nukkitx.nbt.tag.StringTag("", blockName.toString()));
+                listTag.add(blockName.toString());
             }
-            tag.listTag("CanDestroy", com.nukkitx.nbt.tag.StringTag.class, listTag);
+            tag.putList("CanDestroy", NbtType.STRING, listTag);
         }
 
         if (!this.canPlaceOn.isEmpty()) {
-            List<com.nukkitx.nbt.tag.StringTag> listTag = new ArrayList<>();
+            List<String> listTag = new ArrayList<>();
             for (Identifier blockName : this.canPlaceOn) {
-                listTag.add(new com.nukkitx.nbt.tag.StringTag("", blockName.toString()));
+                listTag.add(blockName.toString());
             }
-            tag.listTag("CanPlaceOn", com.nukkitx.nbt.tag.StringTag.class, listTag);
+            tag.putList("CanPlaceOn", NbtType.STRING, listTag);
         }
 
         if (!this.enchantments.isEmpty()) {
-            List<CompoundTag> enchantmentTags = new ArrayList<>();
+            List<NbtMap> enchantmentTags = new ArrayList<>();
             for (Enchantment enchantment : this.enchantments.values()) {
-                enchantmentTags.add(CompoundTag.builder()
-                        .shortTag("id", (short) enchantment.getId())
-                        .shortTag("lvl", (short) enchantment.getLevel())
-                        .buildRootTag());
+                enchantmentTags.add(NbtMap.builder()
+                        .putShort("id", (short) enchantment.getId())
+                        .putShort("lvl", (short) enchantment.getLevel())
+                        .build());
             }
-            tag.listTag("ench", CompoundTag.class, enchantmentTags);
+            tag.putList("ench", NbtType.COMPOUND, enchantmentTags);
         }
     }
 
-    public CompoundTag createTag() {
-        CompoundTagBuilder tag = CompoundTag.builder();
+    public NbtMap createTag() {
+        NbtMapBuilder tag = NbtMap.builder();
         this.saveAdditionalData(tag);
-        return tag.buildRootTag();
+        return tag.build();
     }
 
     public boolean canPlaceOn(Identifier identifier) {
@@ -362,11 +341,11 @@ public abstract class Item implements Cloneable {
         return this.canDestroy.contains(identifier);
     }
 
-    public boolean hasCompoundTag() {
-        return !this.tag.getValue().isEmpty();
+    public boolean hasNbtMap() {
+        return !this.tag.isEmpty();
     }
 
-    public CompoundTag getTag() {
+    public NbtMap getTag() {
         return tag;
     }
 
@@ -374,12 +353,12 @@ public abstract class Item implements Cloneable {
         return getEnchantment((short) (id & 0xffff));
     }
 
-    public void setTag(CompoundTag tag) {
-        this.tag = tag == null ? CompoundTag.EMPTY : tag;
+    public void setTag(NbtMap tag) {
+        this.tag = tag == null ? NbtMap.EMPTY : tag;
     }
 
-    public Item addTag(CompoundTag compoundTag) {
-        this.tag = this.tag.toBuilder().putAll(compoundTag).buildRootTag();
+    public Item addTag(NbtMap tag) {
+        this.tag = this.tag.toBuilder().putCompound("", tag).build();
         return this;
     }
 
@@ -673,11 +652,11 @@ public abstract class Item implements Cloneable {
             if (!checkCompound) {
                 return true;
             }
-            CompoundTagBuilder thisTag = CompoundTag.builder();
-            CompoundTagBuilder thatTag = CompoundTag.builder();
+            NbtMapBuilder thisTag = NbtMap.builder();
+            NbtMapBuilder thatTag = NbtMap.builder();
             this.saveAdditionalData(thisTag);
             that.saveAdditionalData(thatTag);
-            return thisTag.buildRootTag().equals(thatTag.buildRootTag());
+            return thisTag.build().equals(thatTag.build());
         }
         return false;
     }
@@ -698,10 +677,10 @@ public abstract class Item implements Cloneable {
     public ItemData toNetwork() {
         int id = ItemRegistry.get().getRuntimeId(this.id);
 
-        CompoundTagBuilder tagBuilder = CompoundTag.builder();
+        NbtMapBuilder tagBuilder = NbtMap.builder();
         this.saveAdditionalData(tagBuilder);
-        CompoundTag tag = tagBuilder.buildRootTag();
-        if (tag.getValue().isEmpty()) tag = null;
+        NbtMap tag = tagBuilder.build();
+        if (tag.isEmpty()) tag = null;
 
         String[] canPlace = this.canPlaceOn.stream().map(Identifier::toString).toArray(String[]::new);
         String[] canBreak = this.canDestroy.stream().map(Identifier::toString).toArray(String[]::new);

@@ -1,9 +1,8 @@
 package cn.nukkit.player;
 
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.ByteTag;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -30,13 +29,13 @@ public class PlayerData {
     private GameMode gamemode;
     private InetAddress lastAddress;
 
-    public void loadData(CompoundTag tag) {
+    public void loadData(NbtMap tag) {
         tag.listenForLong(TAG_FIRST_PLAYED, this::setFirstPlayed);
         tag.listenForLong(TAG_LAST_PLAYED, this::setLastPlayed);
         tag.listenForString(TAG_LEVEL, this::setLevel);
         tag.listenForString(TAG_SPAWN_LEVEL, this::setSpawnLevel);
 
-        if (tag.contains(TAG_SPAWN_X) && tag.contains(TAG_SPAWN_Y) && tag.contains(TAG_SPAWN_Z)) {
+        if (tag.containsKey(TAG_SPAWN_X) && tag.containsKey(TAG_SPAWN_Y) && tag.containsKey(TAG_SPAWN_Z)) {
             this.setSpawnLocation(Vector3i.from(
                     tag.getInt(TAG_SPAWN_X),
                     tag.getInt(TAG_SPAWN_Y),
@@ -45,28 +44,28 @@ public class PlayerData {
         }
         tag.listenForInt(TAG_GAME_TYPE, gm -> setGamemode(GameMode.from(gm)));
         tag.listenForString(TAG_LAST_ADDRESS, this::setLastAddress);
-        tag.listenForCompound(TAG_ACHIEVEMENTS, achievementsTag -> {
+        /*tag.listenForCompound(TAG_ACHIEVEMENTS, achievementsTag -> {
             achievementsTag.getValue().forEach((achievement, tag1) -> {
                 if (tag1 instanceof ByteTag && ((ByteTag) tag1).getAsBoolean()) {
                     this.achievements.add(achievement);
                 }
             });
-        });
+        });*/
     }
 
-    public void saveData(CompoundTagBuilder tag) {
+    public void saveData(NbtMapBuilder tag) {
         if (this.firstPlayed > 0 && this.lastPlayed > 0) {
-            tag.longTag(TAG_FIRST_PLAYED, this.firstPlayed);
-            tag.longTag(TAG_LAST_PLAYED, this.lastPlayed);
+            tag.putLong(TAG_FIRST_PLAYED, this.firstPlayed);
+            tag.putLong(TAG_LAST_PLAYED, this.lastPlayed);
         }
         if (this.level != null) {
-            tag.stringTag(TAG_LEVEL, this.level);
+            tag.putString(TAG_LEVEL, this.level);
         }
         if (this.spawnLevel != null && spawnLocation != null) {
-            tag.stringTag(TAG_SPAWN_LEVEL, this.spawnLevel)
-                    .intTag(TAG_SPAWN_X, this.spawnLocation.getX())
-                    .intTag(TAG_SPAWN_Y, this.spawnLocation.getY())
-                    .intTag(TAG_SPAWN_Z, this.spawnLocation.getZ());
+            tag.putString(TAG_SPAWN_LEVEL, this.spawnLevel)
+                    .putInt(TAG_SPAWN_X, this.spawnLocation.getX())
+                    .putInt(TAG_SPAWN_Y, this.spawnLocation.getY())
+                    .putInt(TAG_SPAWN_Z, this.spawnLocation.getZ());
         }
 
     }

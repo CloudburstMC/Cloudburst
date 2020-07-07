@@ -8,10 +8,10 @@ import cn.nukkit.level.chunk.ChunkDataLoader;
 import cn.nukkit.level.provider.leveldb.LevelDBKey;
 import cn.nukkit.registry.BlockEntityRegistry;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NBTInputStream;
+import com.nukkitx.nbt.NBTOutputStream;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
 import lombok.RequiredArgsConstructor;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.WriteBatch;
@@ -33,11 +33,11 @@ public class BlockEntitySerializer {
             return;
         }
 
-        List<CompoundTag> blockEntityTags = new ArrayList<>();
+        List<NbtMap> blockEntityTags = new ArrayList<>();
         try (ByteArrayInputStream stream = new ByteArrayInputStream(value);
              NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
             while (stream.available() > 0) {
-                blockEntityTags.add((CompoundTag) nbtInputStream.readTag());
+                blockEntityTags.add((NbtMap) nbtInputStream.readTag());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -59,7 +59,7 @@ public class BlockEntitySerializer {
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
              NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
             for (BlockEntity entity : entities) {
-                nbtOutputStream.write(entity.getServerTag());
+                nbtOutputStream.writeTag(entity.getServerTag());
             }
             value = stream.toByteArray();
         } catch (IOException e) {
@@ -71,14 +71,14 @@ public class BlockEntitySerializer {
     @RequiredArgsConstructor
     private static class BlockEntityLoader implements ChunkDataLoader {
         private static final BlockEntityRegistry REGISTRY = BlockEntityRegistry.get();
-        private final List<CompoundTag> blockEntityTags;
+        private final List<NbtMap> blockEntityTags;
 
         @Override
         public boolean load(Chunk chunk) {
             boolean dirty = false;
-            for (CompoundTag tag : blockEntityTags) {
+            for (NbtMap tag : blockEntityTags) {
                 if (tag != null) {
-                    if (!tag.contains("id")) {
+                    if (!tag.containsKey("id")) {
                         dirty = true;
                         continue;
                     }

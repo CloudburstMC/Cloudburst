@@ -18,9 +18,10 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableSet;
+import com.nukkitx.nbt.NBTInputStream;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
@@ -42,7 +43,7 @@ public class EntityRegistry implements Registry {
     private static final EntityRegistry INSTANCE;
 
     private static final BiMap<String, Identifier> LEGACY_NAMES;
-    private static final List<CompoundTag> VANILLA_ENTITIES;
+    private static final List<NbtMap> VANILLA_ENTITIES;
 
     static {
         try (InputStream stream = RegistryUtils.getOrAssertResource("legacy/entity_names.json")) {
@@ -59,8 +60,8 @@ public class EntityRegistry implements Registry {
 
         try (InputStream stream = RegistryUtils.getOrAssertResource("entity_identifiers.dat");
              NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
-            CompoundTag tag = (CompoundTag) nbtInputStream.readTag();
-            VANILLA_ENTITIES = tag.getList("idlist", CompoundTag.class);
+            NbtMap tag = (NbtMap) nbtInputStream.readTag();
+            VANILLA_ENTITIES = tag.getList("idlist", NbtType.COMPOUND);
         } catch (IOException e) {
             throw new AssertionError("Unable to close resource stream", e);
         }
@@ -76,7 +77,7 @@ public class EntityRegistry implements Registry {
     private final int customEntityStart;
     private int runtimeTypeAllocator;
     private volatile boolean closed;
-    private CompoundTag entityIdentifiersPalette;
+    private NbtMap entityIdentifiersPalette;
 
     private EntityRegistry() {
         this.registerVanillaEntities();
@@ -189,7 +190,7 @@ public class EntityRegistry implements Registry {
         return LEGACY_NAMES.inverse().get(identifier);
     }
 
-    public CompoundTag getEntityIdentifiersPalette() {
+    public NbtMap getEntityIdentifiersPalette() {
         return entityIdentifiersPalette;
     }
 
@@ -215,26 +216,26 @@ public class EntityRegistry implements Registry {
 
         // generate cache
 
-        List<CompoundTag> entityIdentifiers = new ArrayList<>(VANILLA_ENTITIES);
+        List<NbtMap> entityIdentifiers = new ArrayList<>(VANILLA_ENTITIES);
 
         for (int id = customEntityStart; id < runtimeTypeAllocator; id++) {
             EntityType<?> type = this.runtimeTypeMap.get(id);
             EntityData<?> data = this.dataMap.get(type);
 
-            entityIdentifiers.add(CompoundTag.builder()
-                    .booleanTag("summonable", true) // TODO: 07/01/2020 This affects the summon command auto completion
-                    .booleanTag("hasSpawnEgg", data.hasSpawnEgg)
-                    .booleanTag("experimental", true) // If there are experimental features, we may as well enable them
-                    .stringTag("id", type.getIdentifier().toString())
-                    .stringTag("bid", "") // ???
-                    .intTag("rid", id)
-                    .buildRootTag()
+            entityIdentifiers.add(NbtMap.builder()
+                    .putBoolean("summonable", true) // TODO: 07/01/2020 This affects the summon command auto completion
+                    .putBoolean("hasSpawnEgg", data.hasSpawnEgg)
+                    .putBoolean("experimental", true) // If there are experimental features, we may as well enable them
+                    .putString("id", type.getIdentifier().toString())
+                    .putString("bid", "") // ???
+                    .putInt("rid", id)
+                    .build()
             );
         }
 
-        this.entityIdentifiersPalette = CompoundTag.builder()
-                .listTag("idlist", CompoundTag.class, entityIdentifiers)
-                .buildRootTag();
+        this.entityIdentifiersPalette = NbtMap.builder()
+                .putList("idlist", NbtType.COMPOUND, entityIdentifiers)
+                .build();
         this.closed = true;
     }
 

@@ -5,8 +5,8 @@ import cn.nukkit.entity.EntityType;
 import cn.nukkit.entity.impl.EntityCreature;
 import cn.nukkit.entity.passive.Villager;
 import cn.nukkit.level.Location;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.BABY;
@@ -57,17 +57,17 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForInt("Profession", this::setProfession);
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.intTag("Profession", this.getProfession());
+        tag.putInt("Profession", this.getProfession());
     }
 
     public int getProfession() {

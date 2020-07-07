@@ -8,9 +8,9 @@ import cn.nukkit.command.data.CommandParameter;
 import cn.nukkit.event.player.PlayerKickEvent;
 import cn.nukkit.locale.TranslationContainer;
 import cn.nukkit.player.Player;
+import com.nukkitx.nbt.NBTInputStream;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 
 import java.io.File;
@@ -69,17 +69,17 @@ public class BanIpCommand extends Command {
                 String name = value.toLowerCase();
                 String path = sender.getServer().getDataPath() + "players/";
                 File file = new File(path + name + ".dat");
-                CompoundTag nbt = CompoundTag.EMPTY;
+                NbtMap nbt = NbtMap.EMPTY;
                 if (file.exists()) {
                     try (FileInputStream fis = new FileInputStream(file);
                          NBTInputStream inputStream = NbtUtils.createGZIPReader(fis)) {
-                        nbt = (CompoundTag) inputStream.readTag();
+                        nbt = (NbtMap) inputStream.readTag();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }
 
-                if (nbt != null && nbt.contains("lastIP") && Pattern.matches("^(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])$", (value = nbt.getString("lastIP")))) {
+                if (nbt != null && nbt.containsKey("lastIP") && Pattern.matches("^(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])$", (value = nbt.getString("lastIP")))) {
                     this.processIPBan(value, sender, reason.toString());
 
                     CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.banip.success", value));

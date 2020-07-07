@@ -10,11 +10,7 @@ import cn.nukkit.utils.Identifier;
 import cn.nukkit.utils.LoadState;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,48 +55,48 @@ public class AnvilDataSerializer implements LevelDataSerializer {
     }
 
     private void saveData(LevelData data, Path levelDatPath) throws IOException {
-        CompoundTagBuilder tag = CompoundTag.builder()
-                .stringTag("LevelName", data.getName())
-                .stringTag("generatorOptions", Nukkit.JSON_MAPPER.writeValueAsString(data.getGeneratorOptions()))
-                .stringTag("generatorName", data.getGenerator().toString())
-                .intTag("thunderTime", data.getLightningTime())
-                .intTag("Difficulty", data.getDifficulty())
-                .intTag("GameType", data.getGameType())
-                .intTag("serverChunkTickRange", data.getServerChunkTickRange())
-                .intTag("NetherScale", data.getNetherScale())
-                .longTag("currentTick", data.getCurrentTick())
-                .longTag("LastPlayed", data.getLastPlayed())
-                .longTag("RandomSeed", data.getRandomSeed())
-                .longTag("Time", data.getTime())
-                .intTag("SpawnX", data.getSpawn().getX())
-                .intTag("SpawnY", data.getSpawn().getY())
-                .intTag("SpawnZ", data.getSpawn().getZ())
-                .intTag("Dimension", data.getDimension())
-                .intTag("rainTime", data.getRainTime())
-                .floatTag("rainLevel", data.getRainLevel())
-                .floatTag("thunderLevel", data.getLightningLevel())
-                .booleanTag("hardcore", data.isHardcore());
+        NbtMapBuilder tag = NbtMap.builder()
+                .putString("LevelName", data.getName())
+                .putString("generatorOptions", Nukkit.JSON_MAPPER.writeValueAsString(data.getGeneratorOptions()))
+                .putString("generatorName", data.getGenerator().toString())
+                .putInt("thunderTime", data.getLightningTime())
+                .putInt("Difficulty", data.getDifficulty())
+                .putInt("GameType", data.getGameType())
+                .putInt("serverChunkTickRange", data.getServerChunkTickRange())
+                .putInt("NetherScale", data.getNetherScale())
+                .putLong("currentTick", data.getCurrentTick())
+                .putLong("LastPlayed", data.getLastPlayed())
+                .putLong("RandomSeed", data.getRandomSeed())
+                .putLong("Time", data.getTime())
+                .putInt("SpawnX", data.getSpawn().getX())
+                .putInt("SpawnY", data.getSpawn().getY())
+                .putInt("SpawnZ", data.getSpawn().getZ())
+                .putInt("Dimension", data.getDimension())
+                .putInt("rainTime", data.getRainTime())
+                .putFloat("rainLevel", data.getRainLevel())
+                .putFloat("thunderLevel", data.getLightningLevel())
+                .putBoolean("hardcore", data.isHardcore());
 
-        CompoundTagBuilder gameRulesTag = CompoundTag.builder();
+        NbtMapBuilder gameRulesTag = NbtMap.builder();
         GameRuleMap gameRules = data.getGameRules();
         gameRules.forEach((gameRule, o) -> {
             String name = gameRule.getName();
-            gameRulesTag.stringTag(name, o.toString());
+            gameRulesTag.putString(name, o.toString());
         });
-        tag.tag(gameRulesTag.build("GameRules"));
+        tag.putCompound("GameRules", gameRulesTag.build());
 
         // Write
         try (NBTOutputStream stream = NbtUtils.createWriter(Files.newOutputStream(levelDatPath))) {
-            stream.write(CompoundTag.builder()
-                    .tag(tag.build("Data"))
-                    .buildRootTag());
+            stream.writeTag(NbtMap.builder()
+                    .putCompound("Data", tag.build())
+                    .build());
         }
     }
 
     private void loadData(LevelData data, Path levelDatPath) throws IOException {
-        CompoundTag tag;
+        NbtMap tag;
         try (NBTInputStream stream = NbtUtils.createReader(Files.newInputStream(levelDatPath))) {
-            tag = (CompoundTag) stream.readTag();
+            tag = (NbtMap) stream.readTag();
         }
 
         tag.listenForString("LevelName", data::setName);
@@ -115,7 +111,7 @@ public class AnvilDataSerializer implements LevelDataSerializer {
         tag.listenForLong("LastPlayed", data::setLastPlayed);
         tag.listenForLong("RandomSeed", data::setRandomSeed);
         tag.listenForLong("Time", data::setTime);
-        if (tag.contains("SpawnX") && tag.contains("SpawnY") && tag.contains("SpawnZ")) {
+        if (tag.containsKey("SpawnX") && tag.containsKey("SpawnY") && tag.containsKey("SpawnZ")) {
             int x = tag.getInt("SpawnX");
             int y = tag.getInt("SpawnY");
             int z = tag.getInt("SpawnZ");
@@ -127,7 +123,7 @@ public class AnvilDataSerializer implements LevelDataSerializer {
         tag.listenForFloat("thunderLevel", data::setLightningLevel);
         tag.listenForBoolean("hardcore", data::setHardcore);
 
-        CompoundTag gameRulesTag = tag.getCompound("GameRules");
+        NbtMap gameRulesTag = tag.getCompound("GameRules");
         GameRuleRegistry.get().getRules().forEach(rule -> {
             String value = gameRulesTag.getString(rule.getName());
             if (rule.getValueClass() == Boolean.class) {

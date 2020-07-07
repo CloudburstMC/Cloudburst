@@ -4,8 +4,8 @@ import cn.nukkit.block.Block;
 import cn.nukkit.level.Level;
 import cn.nukkit.player.Player;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 
 import javax.annotation.Nullable;
@@ -18,9 +18,9 @@ public interface BlockEntity {
 
     Level getLevel();
 
-    void loadAdditionalData(CompoundTag tag);
+    void loadAdditionalData(NbtMap tag);
 
-    void saveAdditionalData(CompoundTagBuilder tag);
+    void saveAdditionalData(NbtMapBuilder tag);
 
     /**
      * Gets the NBT for items with block entity data
@@ -28,7 +28,7 @@ public interface BlockEntity {
      *
      * @return block entity tag
      */
-    CompoundTag getItemTag();
+    NbtMap getItemTag();
 
     /**
      * Get the NBT for saving the block entity to disk
@@ -36,7 +36,7 @@ public interface BlockEntity {
      *
      * @return block entity tag
      */
-    CompoundTag getServerTag();
+    NbtMap getServerTag();
 
     /**
      * Get the NBT for saving sending to the client in {@link BlockEntityDataPacket}
@@ -44,7 +44,7 @@ public interface BlockEntity {
      *
      * @return block entity tag
      */
-    CompoundTag getClientTag();
+    NbtMap getClientTag();
 
     /**
      * Gets the block entity NBT that is sent in a chunk packet
@@ -52,7 +52,7 @@ public interface BlockEntity {
      *
      * @return block entity tag
      */
-    CompoundTag getChunkTag();
+    NbtMap getChunkTag();
 
     boolean isValid();
 
@@ -73,7 +73,7 @@ public interface BlockEntity {
 
     boolean isSpawnable();
 
-    boolean updateFromClient(CompoundTag tag, Player player);
+    boolean updateFromClient(NbtMap tag, Player player);
 
     Block getBlock();
 

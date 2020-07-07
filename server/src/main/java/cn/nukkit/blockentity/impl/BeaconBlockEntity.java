@@ -11,8 +11,8 @@ import cn.nukkit.potion.Effect;
 import cn.nukkit.registry.BlockRegistry;
 import cn.nukkit.utils.Identifier;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 
 import java.util.Map;
@@ -33,7 +33,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForInt("primary", this::setPrimaryEffect);
@@ -41,10 +41,10 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
-        tag.intTag("primary", this.getPrimaryEffect());
-        tag.intTag("secondary", this.getSecondaryEffect());
+        tag.putInt("primary", this.getPrimaryEffect());
+        tag.putInt("secondary", this.getSecondaryEffect());
     }
 
     @Override
@@ -200,7 +200,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
-    public boolean updateCompoundTag(CompoundTag nbt, Player player) {
+    public boolean updateNbtMap(NbtMap nbt, Player player) {
         this.setPrimaryEffect(nbt.getInt("primary"));
         this.setSecondaryEffect(nbt.getInt("secondary"));
 

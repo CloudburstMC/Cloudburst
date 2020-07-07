@@ -3,8 +3,8 @@ package cn.nukkit.entity.impl.passive;
 import cn.nukkit.entity.EntityOwnable;
 import cn.nukkit.entity.EntityType;
 import cn.nukkit.level.Location;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.OWNER_EID;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.SITTING;
@@ -28,7 +28,7 @@ public abstract class EntityTameable extends Animal implements EntityOwnable {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForLong("OwnerID", v -> {
@@ -39,11 +39,11 @@ public abstract class EntityTameable extends Animal implements EntityOwnable {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.longTag("OwnerID", this.getOwnerId());
-        tag.booleanTag("Sitting", this.isSitting());
+        tag.putLong("OwnerID", this.getOwnerId());
+        tag.putBoolean("Sitting", this.isSitting());
     }
 
     @Override

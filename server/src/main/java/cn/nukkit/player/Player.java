@@ -74,8 +74,8 @@ import com.google.common.collect.HashBiMap;
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.BedrockSession;
@@ -1530,11 +1530,11 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setTag(Biome.BIOME_DEFINITIONS);
+        biomeDefinitionListPacket.setDefinitions(Biome.BIOME_DEFINITIONS);
         this.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket availableEntityIdentifiersPacket = new AvailableEntityIdentifiersPacket();
-        availableEntityIdentifiersPacket.setTag(EntityRegistry.get().getEntityIdentifiersPalette());
+        availableEntityIdentifiersPacket.setIdentifiers(EntityRegistry.get().getEntityIdentifiersPalette());
         this.sendPacket(availableEntityIdentifiersPacket);
 
         UpdateBlockPropertiesPacket updateBlockPropertiesPacket = new UpdateBlockPropertiesPacket();
@@ -1622,11 +1622,11 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 break;
             }
         }
-        CompoundTag nbt;
+        NbtMap nbt;
         if (oldPlayer != null) {
-            CompoundTagBuilder tag = CompoundTag.builder();
+            NbtMapBuilder tag = NbtMap.builder();
             oldPlayer.saveAdditionalData(tag);
-            nbt = tag.buildRootTag();
+            nbt = tag.build();
             oldPlayer.close("", "disconnectionScreen.loggedinOtherLocation");
         } else {
             File legacyDataFile = new File(server.getDataPath() + "players/" + this.username.toLowerCase() + ".dat");
@@ -2296,7 +2296,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         this.playerData.loadData(tag);
 
         String level = this.playerData.getLevel();
@@ -2318,7 +2318,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
         this.playerData.setLevel(this.level.getId());
@@ -2329,13 +2329,13 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         this.playerData.saveData(tag);
 
-        tag.intTag("GameType", this.getGamemode().getVanillaId());
+        tag.putInt("GameType", this.getGamemode().getVanillaId());
 
-        tag.intTag("EXP", this.getExperience());
-        tag.intTag("expLevel", this.getExperienceLevel());
+        tag.putInt("EXP", this.getExperience());
+        tag.putInt("expLevel", this.getExperienceLevel());
 
-        tag.intTag("foodLevel", this.getFoodData().getLevel());
-        tag.floatTag("foodSaturationLevel", this.getFoodData().getFoodSaturationLevel());
+        tag.putInt("foodLevel", this.getFoodData().getLevel());
+        tag.putFloat("foodSaturationLevel", this.getFoodData().getFoodSaturationLevel());
     }
 
     public void save(boolean async) {
@@ -2347,10 +2347,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return; // No point in saving player data from here.
         }
 
-        CompoundTagBuilder tag = CompoundTag.builder();
+        NbtMapBuilder tag = NbtMap.builder();
         this.saveAdditionalData(tag);
 
-        this.server.saveOfflinePlayerData(this.identity, tag.buildRootTag(), async);
+        this.server.saveOfflinePlayerData(this.identity, tag.build(), async);
     }
 
     @Override
@@ -3148,7 +3148,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return;
         }
 
-        CompoundTag tag = blockEntity.getChunkTag().toBuilder().stringTag("Text", String.join("\n", lines)).buildRootTag();
+        NbtMap tag = blockEntity.getChunkTag().toBuilder().putString("Text", String.join("\n", lines)).build();
         BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
         blockEntityDataPacket.setBlockPosition(position);
         blockEntityDataPacket.setData(tag);

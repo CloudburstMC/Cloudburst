@@ -2,8 +2,8 @@ package cn.nukkit.item;
 
 import cn.nukkit.player.Player;
 import cn.nukkit.utils.Identifier;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket;
 import lombok.extern.log4j.Log4j2;
 
@@ -39,9 +39,9 @@ public class ItemMap extends Item {
     private static final String TAG_HEIGHT = "height"; // Short
     private static final String TAG_COLORS = "colors"; // Byte array
     private static final String TAG_FULLY_EXPLORED = "fullyExplored"; // Boolean
-    private static final String TAG_DECORATIONS = "decorations"; // List<CompoundTag>
-    private static final String TAG_DECORATION_DATA = "data"; // CompoundTag - MapDecoration::load
-    private static final String TAG_DECORATION_KEY = "key"; // CompoundTag - MapItemTrackedActor::UniqueId::load
+    private static final String TAG_DECORATIONS = "decorations"; // List<NbtMap>
+    private static final String TAG_DECORATION_DATA = "data"; // NbtMap - MapDecoration::load
+    private static final String TAG_DECORATION_KEY = "key"; // NbtMap - MapItemTrackedActor::UniqueId::load
     private static final String TAG_LOCKED = "mapLocked"; // Boolean
 
     private long mapId;
@@ -65,7 +65,7 @@ public class ItemMap extends Item {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForLong(TAG_ID, v -> this.mapId = v);
@@ -74,11 +74,11 @@ public class ItemMap extends Item {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.longTag(TAG_ID, this.mapId);
-        tag.byteArrayTag(TAG_COLORS, this.getColors());
+        tag.putLong(TAG_ID, this.mapId);
+        tag.putByteArray(TAG_COLORS, this.getColors());
     }
 
     public void setImage(File file) throws IOException {

@@ -5,8 +5,8 @@ import cn.nukkit.blockentity.BlockEntityType;
 import cn.nukkit.blockentity.Skull;
 import cn.nukkit.level.chunk.Chunk;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 /**
  * Created by Snake1999 on 2016/2/3.
@@ -23,7 +23,7 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForByte("SkullType", this::setSkullType);
@@ -33,13 +33,13 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.byteTag("SkullType", (byte) this.getSkullType());
-        tag.floatTag("Rotation", this.getRotation());
-        tag.intTag("MouthTickCount", this.getMouthTickCount());
-        tag.booleanTag("MouthMoving", this.isMouthMoving());
+        tag.putByte("SkullType", (byte) this.getSkullType());
+        tag.putFloat("Rotation", this.getRotation());
+        tag.putInt("MouthTickCount", this.getMouthTickCount());
+        tag.putBoolean("MouthMoving", this.isMouthMoving());
     }
 
     @Override
