@@ -5,11 +5,10 @@ import cn.nukkit.level.chunk.bitarray.BitArray;
 import cn.nukkit.level.chunk.bitarray.BitArrayVersion;
 import cn.nukkit.registry.BlockRegistry;
 import cn.nukkit.utils.Identifier;
-import com.google.common.base.Preconditions;
+import com.nukkitx.nbt.NBTInputStream;
+import com.nukkitx.nbt.NBTOutputStream;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
 import com.nukkitx.network.VarInts;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -130,10 +129,10 @@ public class BlockStorage {
             for (int runtimeId : palette.toIntArray()) {
                 Block block = BlockRegistry.get().getBlock(runtimeId);
 
-                nbtOutputStream.write(CompoundTag.builder()
-                        .stringTag("name", block.getId().toString())
-                        .shortTag("val", (short) block.getMeta())
-                        .buildRootTag());
+                nbtOutputStream.writeTag(NbtMap.builder()
+                        .putString("name", block.getId().toString())
+                        .putShort("val", (short) block.getMeta())
+                        .build());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -160,8 +159,8 @@ public class BlockStorage {
         try (ByteBufInputStream stream = new ByteBufInputStream(buffer);
              NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
             for (int i = 0; i < paletteSize; i++) {
-                CompoundTag tag = (CompoundTag) nbtInputStream.readTag();
-                checkArgument(!tag.contains("states"), "Unsupported chunk version (flattened)"); // TODO: 19/04/2020 Support this
+                NbtMap tag = (NbtMap) nbtInputStream.readTag();
+                checkArgument(!tag.containsKey("states"), "Unsupported chunk version (flattened)"); // TODO: 19/04/2020 Support this
 
                 String name = tag.getString("name");
                 int id = BlockRegistry.get().getLegacyId(name);

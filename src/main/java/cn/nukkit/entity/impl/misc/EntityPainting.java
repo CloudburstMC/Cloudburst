@@ -11,8 +11,8 @@ import cn.nukkit.item.ItemIds;
 import cn.nukkit.level.Location;
 import cn.nukkit.level.gamerule.GameRules;
 import cn.nukkit.player.Player;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.AddPaintingPacket;
 
@@ -39,17 +39,17 @@ public class EntityPainting extends HangingEntity implements Painting {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForString("Motive", this::setMotive);
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.stringTag("Motive", this.motive.title);
+        tag.putString("Motive", this.motive.title);
     }
 
     @Override

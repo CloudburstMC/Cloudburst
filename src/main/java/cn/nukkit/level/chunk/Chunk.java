@@ -15,8 +15,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector4i;
+import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTOutputStream;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import io.netty.buffer.ByteBuf;
@@ -646,7 +646,7 @@ public final class Chunk implements IChunk, Closeable {
                         tiles.forEach(blockEntity -> {
                             if (blockEntity.isSpawnable()) {
                                 try {
-                                    nbtOutputStream.write(blockEntity.getChunkTag());
+                                    nbtOutputStream.writeTag(blockEntity.getChunkTag());
                                 } catch (IOException e) {
                                     throw new RuntimeException(e);
                                 }

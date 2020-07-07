@@ -19,8 +19,9 @@ import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.SimpleAxisAlignedBB;
 import cn.nukkit.player.Player;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,11 +45,11 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        tag.listenForList("Items", CompoundTag.class, tags -> {
-            for (CompoundTag itemTag : tags) {
+        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
+            for (NbtMap itemTag : tags) {
                 this.inventory.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
             }
         });
@@ -58,16 +59,16 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        List<CompoundTag> items = new ArrayList<>();
+        List<NbtMap> items = new ArrayList<>();
         for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
         }
-        tag.listTag("Items", CompoundTag.class, items);
+        tag.putList("Items", NbtType.COMPOUND, items);
 
-        tag.intTag("TransferCooldown", this.transferCooldown);
+        tag.putInt("TransferCooldown", this.transferCooldown);
     }
 
     @Override

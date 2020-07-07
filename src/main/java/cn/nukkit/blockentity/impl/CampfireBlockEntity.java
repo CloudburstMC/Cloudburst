@@ -9,8 +9,8 @@ import cn.nukkit.item.ItemEdible;
 import cn.nukkit.item.ItemUtils;
 import cn.nukkit.level.chunk.Chunk;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 /**
  * @author Sleepybear
@@ -28,12 +28,12 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         boolean hasItems = false;
         for (int i = 0; i < 4; i++) {
-            if (tag.contains(ITEM_TAGS[i])) {
+            if (tag.containsKey(ITEM_TAGS[i])) {
                 Item item = ItemUtils.deserializeItem(tag.getCompound(ITEM_TAGS[i]));
                 items[i] = item;
                 hasItems = true;
@@ -41,7 +41,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
                 items[i] = null;
             }
 
-            if (tag.contains(TIME_TAGS[i])) {
+            if (tag.containsKey(TIME_TAGS[i])) {
                 itemTimes[i] = tag.getInt(TIME_TAGS[i]);
             } else {
                 itemTimes[i] = 0;
@@ -51,14 +51,14 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     @Override
-    protected void saveClientData(CompoundTagBuilder tag) {
+    protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
         for (int i = 0; i < 4; i++) {
             Item item = this.items[i];
             if (item != null && !item.isNull()) {
-                tag.tag(ItemUtils.serializeItem(item).toBuilder().build(ITEM_TAGS[i]));
-                tag.intTag(TIME_TAGS[i], this.itemTimes[i]);
+                tag.putCompound(ITEM_TAGS[i], ItemUtils.serializeItem(item));
+                tag.putInt(TIME_TAGS[i], this.itemTimes[i]);
             }
         }
     }

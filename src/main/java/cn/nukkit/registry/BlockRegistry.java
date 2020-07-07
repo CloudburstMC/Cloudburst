@@ -1,18 +1,12 @@
 package cn.nukkit.registry;
 
 import cn.nukkit.block.*;
-import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.blockentity.BlockEntityType;
 import cn.nukkit.blockentity.BlockEntityTypes;
 import cn.nukkit.item.ItemIds;
 import cn.nukkit.utils.BlockColor;
 import cn.nukkit.utils.Identifier;
 import com.google.common.collect.HashBiMap;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.ListTag;
+import com.nukkitx.nbt.*;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -30,13 +24,13 @@ import static cn.nukkit.block.BlockIds.*;
 public class BlockRegistry implements Registry {
     public static final BlockFactory UNKNOWN_FACTORY = BlockUnknown::new;
     private static final BlockRegistry INSTANCE;
-    private static final List<CompoundTag> VANILLA_PALETTE;
+    private static final List<NbtMap> VANILLA_PALETTE;
 
     static {
         InputStream stream = RegistryUtils.getOrAssertResource("runtime_block_states.dat");
         try (NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
             //noinspection unchecked
-            VANILLA_PALETTE = ((ListTag<CompoundTag>) nbtInputStream.readTag()).getValue();
+            VANILLA_PALETTE = ((NbtList<NbtMap>) nbtInputStream.readTag());
         } catch (IOException e) {
             throw new AssertionError(e);
         }
@@ -49,8 +43,8 @@ public class BlockRegistry implements Registry {
     private final Int2ObjectMap<Block> runtimeStateMap = new Int2ObjectOpenHashMap<>();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
     private final AtomicInteger customIdAllocator = new AtomicInteger(1000);
-    private ListTag<CompoundTag> paletteTag;
-    private CompoundTag propertiesTag;
+    private NbtList<NbtMap> paletteTag;
+    private NbtMap propertiesTag;
 
     private volatile boolean closed;
 
@@ -100,24 +94,26 @@ public class BlockRegistry implements Registry {
 
     private void registerVanillaPalette() throws RegistryException {
         checkClosed();
-        for (CompoundTag entry : VANILLA_PALETTE) {
+        System.out.println("Palette entries found: " + VANILLA_PALETTE.size());
+
+        for (NbtMap entry : VANILLA_PALETTE) {
+            //TODO Update block palette parsing to parse output of proxypass data rip
+            if (!entry.containsKey("LegacyStates")) continue;
+
+            List<NbtMap> legacyStates = entry.getList("LegacyStates", NbtType.COMPOUND);
+
             String name = entry.getCompound("block").getString("name");
             Identifier id = Identifier.fromString(name);
             int legacyId = entry.getShort("id");
             this.idLegacyMap.putIfAbsent(id, legacyId);
-
-            if (!entry.contains("meta")) {
-                this.runtimeIdAllocator.getAndIncrement();
-                continue;
-            }
-            int[] meta = entry.getIntArray("meta");
-
-            int runtimeId = this.registerBlockState(id, legacyId, meta[0]);
-
-            for (int i = 1; i < meta.length; i++) {
-                this.stateRuntimeMap.put(getFullId(legacyId, meta[i]), runtimeId);
+            NbtMap first = legacyStates.get(0);
+            int runtimeId = this.registerBlockState(id, legacyId, first.getShort("val"));
+            for (NbtMap state : legacyStates) {
+                int stateId = getFullId(state.getShort("id"), state.getShort("val"));
+                this.stateRuntimeMap.put(stateId, runtimeId);
             }
         }
+        System.out.println("Registered " + stateRuntimeMap.size() + " entries.");
     }
 
     boolean isBlock(Identifier id) {
@@ -201,44 +197,44 @@ public class BlockRegistry implements Registry {
 
         // generate cache
 
-        List<CompoundTag> palette = new ArrayList<>(VANILLA_PALETTE); // Add all vanilla palette entries
+        List<NbtMap> palette = new ArrayList<>(VANILLA_PALETTE); // Add all vanilla palette entries
 
         int startId = VANILLA_PALETTE.size();
         int size = this.runtimeIdAllocator.get();
 
-        CompoundTagBuilder propertiesTag = CompoundTag.builder();
+        NbtMapBuilder propertiesTag = NbtMap.builder();
 
         // add custom blocks
         for (int i = startId; i < size; i++) {
             Block block = this.runtimeStateMap.get(i);
 
             //noinspection ConstantConditions
-            CompoundTag tag = CompoundTag.builder()
-                    .shortTag("id", (short) (int) this.idLegacyMap.get(block.getId()))
-                    .tag(CompoundTag.builder()
-                            .stringTag("name", block.getId().toString())
-                            .tag(CompoundTag.builder().build("states"))
-                            .build("block"))
-                    .buildRootTag(); // custom blocks can't have states
+            NbtMap tag = NbtMap.builder()
+                    .putShort("id", this.idLegacyMap.get(block.getId()).shortValue())
+                    .putCompound("block", NbtMap.builder()
+                            .putString("name", block.getId().toString())
+                            .putCompound("states", NbtMap.builder().build())
+                            .build())
+                    .build(); // custom blocks can't have states
 
             palette.add(tag);
 
             // this doesn't have to be sent
-            propertiesTag.tag(CompoundTag.builder()
-                    .tag(CompoundTag.builder()
-                            .intTag("value", 1)
-                            .build("minecraft:block_light_absorption"))
-                    .tag(CompoundTag.builder()
-                            .floatTag("emission", 0.0f)
-                            .build("minecraft:block_light_emission"))
-                    .tag(CompoundTag.builder()
-                            .floatTag("value", 1)
-                            .build("minecraft:destroy_time"))
-                    .build(block.getId().toString()));
+            propertiesTag.putCompound(block.getId().toString(), NbtMap.builder()
+                    .putCompound("minecraft:block_light_absorption", NbtMap.builder()
+                            .putInt("value", 1)
+                            .build())
+                    .putCompound("minecraft:block_light_emission", NbtMap.builder()
+                            .putFloat("emission", 0.0f)
+                            .build())
+                    .putCompound("minecraft:destroy_time", NbtMap.builder()
+                            .putFloat("value", 1)
+                            .build())
+                    .build());
         }
 
-        this.paletteTag = new ListTag<>("palette", CompoundTag.class, palette);
-        this.propertiesTag = propertiesTag.buildRootTag();
+        this.paletteTag = new NbtList<>(NbtType.COMPOUND, palette);
+        this.propertiesTag = propertiesTag.build();
     }
 
     private void checkClosed() throws RegistryException {
@@ -247,11 +243,11 @@ public class BlockRegistry implements Registry {
         }
     }
 
-    public ListTag<CompoundTag> getPaletteTag() {
+    public NbtList<NbtMap> getPaletteTag() {
         return paletteTag;
     }
 
-    public CompoundTag getPropertiesTag() {
+    public NbtMap getPropertiesTag() {
         return propertiesTag;
     }
 

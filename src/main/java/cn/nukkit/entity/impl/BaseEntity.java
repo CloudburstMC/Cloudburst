@@ -37,10 +37,9 @@ import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.FloatTag;
-import com.nukkitx.nbt.tag.NumberTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
@@ -79,7 +78,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     public Chunk chunk;
     public List<Block> blocksAround = new ArrayList<>();
     public List<Block> collisionBlocks = new ArrayList<>();
-    public CompoundTag tag;
+    public NbtMap tag;
     public float highestPosition;
     public boolean firstMove = true;
     protected Vector3f position = Vector3f.ZERO;
@@ -222,20 +221,15 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
-        tag.listenForList("Pos", NumberTag.class, list -> {
-            this.setPosition(Vector3f.from(((NumberTag<?>) list.get(0)).getValue().floatValue(),
-                    ((NumberTag<?>) list.get(1)).getValue().floatValue(),
-                    ((NumberTag<?>) list.get(2)).getValue().floatValue()));
+    public void loadAdditionalData(NbtMap tag) {
+        tag.listenForList("Pos", NbtType.FLOAT, list -> {
+            this.setPosition(Vector3f.from(list.get(0), list.get(1), list.get(2)));
         });
-        tag.listenForList("Rotation", NumberTag.class, list -> {
-            this.setRotation(((NumberTag<?>) list.get(0)).getValue().floatValue(),
-                    ((NumberTag<?>) list.get(1)).getValue().floatValue());
+        tag.listenForList("Rotation", NbtType.FLOAT, list -> {
+            this.setRotation(list.get(0), list.get(1));
         });
-        tag.listenForList("Motion", NumberTag.class, list -> {
-            this.setMotion(Vector3f.from(((NumberTag<?>) list.get(0)).getValue().floatValue(),
-                    ((NumberTag<?>) list.get(1)).getValue().floatValue(),
-                    ((NumberTag<?>) list.get(2)).getValue().floatValue()));
+        tag.listenForList("Motion", NbtType.FLOAT, list -> {
+            this.setMotion(Vector3f.from(list.get(0), list.get(1), list.get(2)));
         });
 
 //        this.highestPosition = this.y + this.namedTag.getFloat("FallDistance");
@@ -250,9 +244,9 @@ public abstract class BaseEntity implements Entity, Metadatable {
         tag.listenForBoolean("Invulnerable", this::setInvulnerable);
         tag.listenForFloat("scale", this::setScale);
 
-        if (tag.contains("ActiveEffects")) {
-            List<CompoundTag> effects = tag.getList("ActiveEffects", CompoundTag.class);
-            for (CompoundTag e : effects) {
+        if (tag.containsKey("ActiveEffects")) {
+            List<NbtMap> effects = tag.getList("ActiveEffects", NbtType.COMPOUND);
+            for (NbtMap e : effects) {
                 this.addEffect(Effect.getEffect(e));
             }
         }
@@ -263,48 +257,48 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         if (this.hasNameTag()) {
-            tag.stringTag("CustomName", this.getNameTag());
-            tag.booleanTag("CustomNameVisible", this.isNameTagVisible());
-            tag.booleanTag("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
+            tag.putString("CustomName", this.getNameTag());
+            tag.putBoolean("CustomNameVisible", this.isNameTagVisible());
+            tag.putBoolean("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
         }
 
         if (!(this instanceof Player)) {
-            tag.stringTag("identifier", this.type.getIdentifier().toString());
+            tag.putString("identifier", this.type.getIdentifier().toString());
         }
 
-        tag.listTag("Pos", FloatTag.class, Arrays.asList(
-                new FloatTag("", this.position.getX()),
-                new FloatTag("", this.position.getY()),
-                new FloatTag("", this.position.getZ()))
+        tag.putList("Pos", NbtType.FLOAT, Arrays.asList(
+                this.position.getX(),
+                this.position.getY(),
+                this.position.getZ())
         );
 
-        tag.listTag("Motion", FloatTag.class, Arrays.asList(
-                new FloatTag("", this.motion.getX()),
-                new FloatTag("", this.motion.getY()),
-                new FloatTag("", this.motion.getZ()))
+        tag.putList("Motion", NbtType.FLOAT, Arrays.asList(
+                this.motion.getX(),
+                this.motion.getY(),
+                this.motion.getZ())
         );
 
-        tag.listTag("Rotation", FloatTag.class, Arrays.asList(
-                new FloatTag("", this.yaw),
-                new FloatTag("", this.pitch))
+        tag.putList("Rotation", NbtType.FLOAT, Arrays.asList(
+                this.yaw,
+                this.pitch)
         );
 
-        tag.floatTag("FallDistance", this.fallDistance);
-        tag.shortTag("Fire", (short) this.fireTicks);
-        tag.shortTag("Air", this.data.getShort(AIR_SUPPLY));
-        tag.booleanTag("OnGround", this.onGround);
-        tag.booleanTag("Invulnerable", this.invulnerable);
-        tag.floatTag("Scale", this.scale);
+        tag.putFloat("FallDistance", this.fallDistance);
+        tag.putShort("Fire", (short) this.fireTicks);
+        tag.putShort("Air", this.data.getShort(AIR_SUPPLY));
+        tag.putBoolean("OnGround", this.onGround);
+        tag.putBoolean("Invulnerable", this.invulnerable);
+        tag.putFloat("Scale", this.scale);
 
         if (!this.effects.isEmpty()) {
-            List<CompoundTag> list = new ArrayList<>();
+            List<NbtMap> list = new ArrayList<>();
             for (Effect effect : this.effects.values()) {
                 list.add(effect.createTag());
             }
 
-            tag.listTag("ActiveEffects", CompoundTag.class, list);
+            tag.putList("ActiveEffects", NbtType.COMPOUND, list);
         }
     }
 
@@ -562,7 +556,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     @Override
-    public CompoundTag getTag() {
+    public NbtMap getTag() {
         return tag;
     }
 

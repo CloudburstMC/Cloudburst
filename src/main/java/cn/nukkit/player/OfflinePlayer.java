@@ -3,7 +3,7 @@ package cn.nukkit.player;
 import cn.nukkit.Server;
 import cn.nukkit.metadata.MetadataValue;
 import cn.nukkit.plugin.Plugin;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +19,7 @@ import java.util.UUID;
  */
 public class OfflinePlayer implements IPlayer {
     private final Server server;
-    private final CompoundTag namedTag;
+    private final NbtMap namedTag;
 
     /**
      * 初始化这个{@code OfflinePlayer}对象。<br>
@@ -42,7 +42,7 @@ public class OfflinePlayer implements IPlayer {
     public OfflinePlayer(Server server, UUID uuid, String name) {
         this.server = server;
 
-        CompoundTag nbt;
+        NbtMap nbt;
         if (uuid != null) {
             nbt = this.server.getOfflinePlayerData(uuid, false);
         } else if (name != null) {
@@ -51,16 +51,16 @@ public class OfflinePlayer implements IPlayer {
             throw new IllegalArgumentException("Name and UUID cannot both be null");
         }
         if (nbt == null) {
-            nbt = CompoundTag.EMPTY;
+            nbt = NbtMap.EMPTY;
         }
 
         if (uuid != null) {
             nbt = nbt.toBuilder()
-                    .longTag("UUIDMost", uuid.getMostSignificantBits())
-                    .longTag("UUIDLeast", uuid.getLeastSignificantBits())
-                    .buildRootTag();
+                    .putLong("UUIDMost", uuid.getMostSignificantBits())
+                    .putLong("UUIDLeast", uuid.getLeastSignificantBits())
+                    .build();
         } else {
-            nbt = nbt.toBuilder().stringTag("NameTag", name).buildRootTag();
+            nbt = nbt.toBuilder().putString("NameTag", name).build();
         }
         this.namedTag = nbt;
     }
@@ -72,7 +72,7 @@ public class OfflinePlayer implements IPlayer {
 
     @Override
     public String getName() {
-        if (namedTag != null && namedTag.contains("NameTag")) {
+        if (namedTag != null && namedTag.containsKey("NameTag")) {
             return namedTag.getString("NameTag");
         }
         return null;
@@ -158,7 +158,7 @@ public class OfflinePlayer implements IPlayer {
 
     @Override
     public boolean hasPlayedBefore() {
-        return this.namedTag != CompoundTag.EMPTY;
+        return this.namedTag != NbtMap.EMPTY;
     }
 
     public void setMetadata(String metadataKey, MetadataValue newMetadataValue) {

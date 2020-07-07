@@ -46,7 +46,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -553,7 +553,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(
                     Vector3i.from(pickPos.getX(), pickPos.getY(), pickPos.getZ()));
             if (blockEntity != null) {
-                CompoundTag nbt = blockEntity.getItemTag();
+                NbtMap nbt = blockEntity.getItemTag();
                 if (nbt != null) {
                     serverItem.addTag(nbt);
                     serverItem.setLore("+(DATA)");
@@ -750,7 +750,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockPos);
         if (blockEntity != null && blockEntity.isSpawnable()) {
-            if (!blockEntity.updateFromClient((CompoundTag) packet.getData(), player)) {
+            if (!blockEntity.updateFromClient(packet.getData(), player)) {
                 blockEntity.spawnTo(player);
             }
         }

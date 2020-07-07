@@ -2,7 +2,7 @@ package cn.nukkit.pack;
 
 import cn.nukkit.pack.loader.PackLoader;
 import cn.nukkit.utils.SemVersion;
-import com.nukkitx.protocol.bedrock.packet.ResourcePackDataInfoPacket;
+import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import lombok.ToString;
 
 import java.io.Closeable;
@@ -88,7 +88,7 @@ public abstract class Pack implements Closeable {
         this.loader.close();
     }
 
-    public abstract ResourcePackDataInfoPacket.Type getType();
+    public abstract ResourcePackType getType();
 
     @FunctionalInterface
     public interface Factory {

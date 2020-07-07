@@ -1,23 +1,23 @@
 package cn.nukkit.utils;
 
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class BannerPattern {
 
-    private Type type;
-    private DyeColor color;
+    private final Type type;
+    private final DyeColor color;
 
     public BannerPattern(Type type, DyeColor color) {
         this.type = type;
         this.color = color;
     }
 
-    public static BannerPattern fromCompoundTag(CompoundTag compoundTag) {
-        return new BannerPattern(Type.getByName(compoundTag.contains("Pattern") ? compoundTag.getString("Pattern") : ""),
-                compoundTag.contains("Color") ? DyeColor.getByDyeData(compoundTag.getInt("Color")) : DyeColor.BLACK);
+    public static BannerPattern fromNbtMap(NbtMap nbt) {
+        return new BannerPattern(Type.getByName(nbt.containsKey("Pattern") ? nbt.getString("Pattern") : ""),
+                nbt.containsKey("Color") ? DyeColor.getByDyeData(nbt.getInt("Color")) : DyeColor.BLACK);
     }
 
     public DyeColor getColor() {
@@ -77,7 +77,7 @@ public class BannerPattern {
             }
         }
 
-        private String name;
+        private final String name;
 
         Type(String name) {
             this.name = name;

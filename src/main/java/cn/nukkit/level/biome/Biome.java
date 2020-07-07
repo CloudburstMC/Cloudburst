@@ -3,9 +3,9 @@ package cn.nukkit.level.biome;
 import cn.nukkit.Nukkit;
 import cn.nukkit.level.ChunkManager;
 import cn.nukkit.utils.Identifier;
+import com.nukkitx.nbt.NBTInputStream;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
@@ -19,7 +19,7 @@ import java.util.Set;
  * @author DaPorkchop_
  */
 public class Biome {
-    public static final CompoundTag BIOME_DEFINITIONS;
+    public static final NbtMap BIOME_DEFINITIONS;
     public static final NoiseSource TEMPERATURE_NOISE = new PerlinNoiseEngine(new FastPRandom(123456789L));
 
     static {
@@ -28,7 +28,7 @@ public class Biome {
             throw new AssertionError("Could not find biome_definitions.dat");
         }
         try (NBTInputStream stream = NbtUtils.createNetworkReader(inputStream)) {
-            BIOME_DEFINITIONS = (CompoundTag) stream.readTag();
+            BIOME_DEFINITIONS = (NbtMap) stream.readTag();
         } catch (Exception e) {
             throw new AssertionError("Error whilst loading biome_definitions.dat", e);
         }

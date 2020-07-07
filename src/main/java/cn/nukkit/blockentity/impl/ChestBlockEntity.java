@@ -13,8 +13,9 @@ import cn.nukkit.level.chunk.Chunk;
 import cn.nukkit.player.Player;
 import cn.nukkit.utils.Identifier;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,16 +40,16 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        tag.listenForList("Items", CompoundTag.class, tags -> {
-            for (CompoundTag itemTag : tags) {
+        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
+            for (NbtMap itemTag : tags) {
                 Item item = ItemUtils.deserializeItem(itemTag);
                 this.inventory.setItem(itemTag.getByte("Slot"), item);
             }
         });
-        if (tag.contains("pairx") && tag.contains("pairz")) {
+        if (tag.containsKey("pairx") && tag.containsKey("pairz")) {
             this.pairPosition = Vector3i.from(tag.getInt("pairx"), this.getPosition().getY(), tag.getInt("pairz"));
         }
         tag.listenForBoolean("pairlead", this::setPairlead);
@@ -56,25 +57,25 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
     }
 
     @Override
-    protected void saveClientData(CompoundTagBuilder tag) {
+    protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
         if (this.pairPosition != null && this.pairlead) {
-            tag.intTag("pairx", this.pairPosition.getX());
-            tag.intTag("pairz", this.pairPosition.getZ());
-            tag.booleanTag("pairlead", this.pairlead);
+            tag.putInt("pairx", this.pairPosition.getX());
+            tag.putInt("pairz", this.pairPosition.getZ());
+            tag.putBoolean("pairlead", this.pairlead);
         }
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        List<CompoundTag> items = new ArrayList<>();
+        List<NbtMap> items = new ArrayList<>();
         for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
         }
-        tag.listTag("Items", CompoundTag.class, items);
-        tag.booleanTag("Findable", this.findable);
+        tag.putList("Items", NbtType.COMPOUND, items);
+        tag.putBoolean("Findable", this.findable);
     }
 
     public void setPairlead(boolean pairlead) {

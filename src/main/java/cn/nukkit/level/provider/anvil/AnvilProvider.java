@@ -7,9 +7,9 @@ import cn.nukkit.level.provider.LevelProvider;
 import cn.nukkit.utils.LoadState;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.*;
+import com.nukkitx.nbt.NBTOutputStream;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -136,14 +136,14 @@ class AnvilProvider implements LevelProvider {
 
         this.executor.execute(() -> {
             try {
-                CompoundTag tag = AnvilConverter.convertToAnvil(chunk);
+                NbtMap tag = AnvilConverter.convertToAnvil(chunk);
 
                 RegionFile file = this.regionFiles.get(regionPosition);
 
                 ByteBuf buffer = ByteBufAllocator.DEFAULT.ioBuffer();
                 try (ByteBufOutputStream stream = new ByteBufOutputStream(buffer);
                      NBTOutputStream nbtOutputStream = NbtUtils.createWriter(stream)) {
-                    nbtOutputStream.write(tag);
+                    nbtOutputStream.writeTag(tag);
                     file.writeChunk(inX, inZ, buffer);
                 } finally {
                     buffer.release();

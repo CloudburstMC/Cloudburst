@@ -11,8 +11,9 @@ import cn.nukkit.registry.EntityRegistry;
 import cn.nukkit.utils.DyeColor;
 import cn.nukkit.utils.Identifier;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,32 +45,32 @@ public class ItemFirework extends Item {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForCompound(TAG_FIREWORKS, compound -> {
             this.flight = compound.getByte(TAG_FLIGHT, (byte) 1);
 
-            List<CompoundTag> explosions = compound.getList(TAG_EXPLOSIONS, CompoundTag.class);
-            for (CompoundTag explosionTag : explosions) {
+            List<NbtMap> explosions = compound.getList(TAG_EXPLOSIONS, NbtType.COMPOUND);
+            for (NbtMap explosionTag : explosions) {
                 this.explosions.add(FireworkExplosion.from(explosionTag));
             }
         });
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        List<CompoundTag> explosionTags = new ArrayList<>();
+        List<NbtMap> explosionTags = new ArrayList<>();
         for (FireworkExplosion explosion : this.explosions) {
             explosionTags.add(explosion.createTag());
         }
 
-        tag.tag(CompoundTag.builder()
-                .listTag(TAG_EXPLOSIONS, CompoundTag.class, explosionTags)
-                .byteTag(TAG_FLIGHT, this.flight)
-                .build(TAG_FIREWORKS));
+        tag.putCompound(TAG_FIREWORKS, NbtMap.builder()
+                .putList(TAG_EXPLOSIONS, NbtType.COMPOUND, explosionTags)
+                .putByte(TAG_FLIGHT, this.flight)
+                .build());
     }
 
     @Override
@@ -180,7 +181,7 @@ public class ItemFirework extends Item {
             return this;
         }
 
-        public static FireworkExplosion from(CompoundTag tag) {
+        public static FireworkExplosion from(NbtMap tag) {
             FireworkExplosion explosion = new FireworkExplosion();
 
             explosion.setFlicker(tag.getBoolean(TAG_FLICKER));
@@ -200,7 +201,7 @@ public class ItemFirework extends Item {
             return explosion;
         }
 
-        public CompoundTag createTag() {
+        public NbtMap createTag() {
             byte[] clrs = new byte[colors.size()];
             for (int i = 0; i < clrs.length; i++) {
                 clrs[i] = (byte) colors.get(i).getDyeData();
@@ -211,13 +212,13 @@ public class ItemFirework extends Item {
                 fds[i] = (byte) fades.get(i).getDyeData();
             }
 
-            return CompoundTag.builder()
-                    .byteArrayTag(TAG_COLORS, clrs)
-                    .byteArrayTag(TAG_FADES, fds)
-                    .booleanTag(TAG_FLICKER, this.flicker)
-                    .booleanTag(TAG_TRAIL, this.trail)
-                    .byteTag(TAG_TYPE, (byte) this.type.ordinal())
-                    .buildRootTag();
+            return NbtMap.builder()
+                    .putByteArray(TAG_COLORS, clrs)
+                    .putByteArray(TAG_FADES, fds)
+                    .putBoolean(TAG_FLICKER, this.flicker)
+                    .putBoolean(TAG_TRAIL, this.trail)
+                    .putByte(TAG_TYPE, (byte) this.type.ordinal())
+                    .build();
         }
 
         public enum ExplosionType {

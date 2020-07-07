@@ -8,8 +8,9 @@ import cn.nukkit.utils.BannerPattern;
 import cn.nukkit.utils.DyeColor;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,14 +33,14 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForInt("Base", this::setBase);
         tag.listenForInt("Type", this::setBannerType);
 
-        tag.listenForList("Patterns", CompoundTag.class, patternTags -> {
-            for (CompoundTag patternTag : patternTags) {
+        tag.listenForList("Patterns", NbtType.COMPOUND, patternTags -> {
+            for (NbtMap patternTag : patternTags) {
                 String pattern = patternTag.getString("Pattern");
                 DyeColor color = DyeColor.getByDyeData(patternTag.getInt("Color"));
                 this.patterns.add(new BannerPattern(BannerPattern.Type.getByName(pattern), color));
@@ -48,21 +49,21 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
     }
 
     @Override
-    protected void saveClientData(CompoundTagBuilder tag) {
+    protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
-        tag.intTag("Base", this.base.getDyeData());
-        tag.intTag("Type", this.type);
+        tag.putInt("Base", this.base.getDyeData());
+        tag.putInt("Type", this.type);
 
         if (!patterns.isEmpty()) {
-            List<CompoundTag> patternsTag = new ArrayList<>();
+            List<NbtMap> patternsTag = new ArrayList<>();
             for (BannerPattern pattern : this.patterns) {
-                patternsTag.add(CompoundTag.builder().
-                        intTag("Color", pattern.getColor().getDyeData() & 0x0f).
-                        stringTag("Pattern", pattern.getType().getName())
-                        .buildRootTag());
+                patternsTag.add(NbtMap.builder().
+                        putInt("Color", pattern.getColor().getDyeData() & 0x0f).
+                        putString("Pattern", pattern.getType().getName())
+                        .build());
             }
-            tag.listTag("Patterns", CompoundTag.class, patternsTag);
+            tag.putList("Patterns", NbtType.COMPOUND, patternsTag);
         }
     }
 

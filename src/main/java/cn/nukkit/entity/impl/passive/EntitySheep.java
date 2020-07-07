@@ -8,8 +8,8 @@ import cn.nukkit.item.ItemDye;
 import cn.nukkit.level.Location;
 import cn.nukkit.player.Player;
 import cn.nukkit.utils.DyeColor;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -57,7 +57,7 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForByte("Color", this::setColor);
@@ -65,11 +65,11 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.byteTag("Color", (byte) this.getColor());
-        tag.booleanTag("Sheared", this.isSheared());
+        tag.putByte("Color", (byte) this.getColor());
+        tag.putBoolean("Sheared", this.isSheared());
     }
 
     @Override

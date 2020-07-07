@@ -6,7 +6,7 @@ import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityRegainHealthEvent;
 import cn.nukkit.player.Player;
 import cn.nukkit.utils.ServerException;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.INVISIBLE;
@@ -139,7 +139,7 @@ public class Effect implements Cloneable {
         this(id, name, r, g, b, false);
     }
 
-    public static Effect getEffect(CompoundTag tag) {
+    public static Effect getEffect(NbtMap tag) {
         return getEffect(tag.getByte(TAG_ID))
                 .setAmbient(tag.getBoolean(TAG_AMBIENT))
                 .setAmplifier(tag.getByte(TAG_AMPLIFIER))
@@ -320,13 +320,13 @@ public class Effect implements Cloneable {
         }
     }
 
-    public CompoundTag createTag() {
-        return CompoundTag.builder().byteTag(TAG_ID, getId())
-                .booleanTag(TAG_AMBIENT, isAmbient())
-                .byteTag(TAG_AMPLIFIER, getAmplifier())
-                .booleanTag(TAG_SHOW_PARTICLES, isVisible())
-                .intTag(TAG_DURATION, getDuration())
-                .buildRootTag();
+    public NbtMap createTag() {
+        return NbtMap.builder().putByte(TAG_ID, getId())
+                .putBoolean(TAG_AMBIENT, isAmbient())
+                .putByte(TAG_AMPLIFIER, getAmplifier())
+                .putBoolean(TAG_SHOW_PARTICLES, isVisible())
+                .putInt(TAG_DURATION, getDuration())
+                .build();
     }
 
     @Override

@@ -16,8 +16,8 @@ import cn.nukkit.player.Player;
 import cn.nukkit.potion.Effect;
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 
@@ -46,9 +46,9 @@ public interface Entity extends Metadatable {
 
     float getLength();
 
-    void loadAdditionalData(CompoundTag tag);
+    void loadAdditionalData(NbtMap tag);
 
-    void saveAdditionalData(CompoundTagBuilder tag);
+    void saveAdditionalData(NbtMapBuilder tag);
 
     boolean canCollide();
 
@@ -263,7 +263,7 @@ public interface Entity extends Metadatable {
 
     SyncedEntityData getData();
 
-    CompoundTag getTag();
+    NbtMap getTag();
 
     boolean isClosed();
 

@@ -6,8 +6,8 @@ import cn.nukkit.blockentity.Cauldron;
 import cn.nukkit.level.chunk.Chunk;
 import cn.nukkit.utils.BlockColor;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 /**
  * author: CreeperFace
@@ -25,7 +25,7 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         // TODO: "Items" tag 0-10 slots
@@ -36,14 +36,14 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.shortTag("PotionType", this.getPotionType());
-        tag.shortTag("PotionId", this.getPotionId());
-        tag.booleanTag("IsSplash", this.isSplash());
+        tag.putShort("PotionType", this.getPotionType());
+        tag.putShort("PotionId", this.getPotionId());
+        tag.putBoolean("IsSplash", this.isSplash());
         if (this.customColor != null) {
-            tag.intTag("CustomColor", this.customColor.getRGB());
+            tag.putInt("CustomColor", this.customColor.getRGB());
         }
     }
 

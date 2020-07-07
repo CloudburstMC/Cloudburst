@@ -12,8 +12,9 @@ import cn.nukkit.level.Location;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.potion.InstantEffect;
 import cn.nukkit.potion.Potion;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -213,11 +214,11 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        tag.listenForList(TAG_MOB_EFFECTS, CompoundTag.class, effectTags -> {
-            for (CompoundTag effectTag : effectTags) {
+        tag.listenForList(TAG_MOB_EFFECTS, NbtType.COMPOUND, effectTags -> {
+            for (NbtMap effectTag : effectTags) {
                 this.cloudEffects.add(Effect.getEffect(effectTag));
             }
         });
@@ -235,25 +236,25 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        List<CompoundTag> effects = new ArrayList<>();
+        List<NbtMap> effects = new ArrayList<>();
         for (Effect effect : this.cloudEffects) {
             effects.add(effect.createTag());
         }
-        tag.listTag(TAG_MOB_EFFECTS, CompoundTag.class, effects);
-        tag.intTag(TAG_PARTICLE_COLOR, getPotionColor());
-        tag.shortTag(TAG_POTION_ID, getPotionId());
-        tag.intTag(TAG_DURATION, getDuration());
-        tag.intTag(TAG_DURATION_ON_USE, durationOnUse);
-        tag.intTag(TAG_REAPPLICATION_DELAY, reapplicationDelay);
-        tag.floatTag(TAG_RADIUS, getRadius());
-        tag.floatTag(TAG_RADIUS_CHANGE_ON_PICKUP, getRadiusChangeOnPickup());
-        tag.floatTag(TAG_RADIUS_ON_USE, radiusOnUse);
-        tag.floatTag(TAG_RADIUS_PER_TICK, getRadiusPerTick());
-        tag.intTag("WaitTime", getWaitTime());
-        tag.floatTag(TAG_INITIAL_RADIUS, initialRadius);
+        tag.putList(TAG_MOB_EFFECTS, NbtType.COMPOUND, effects);
+        tag.putInt(TAG_PARTICLE_COLOR, getPotionColor());
+        tag.putShort(TAG_POTION_ID, getPotionId());
+        tag.putInt(TAG_DURATION, getDuration());
+        tag.putInt(TAG_DURATION_ON_USE, durationOnUse);
+        tag.putInt(TAG_REAPPLICATION_DELAY, reapplicationDelay);
+        tag.putFloat(TAG_RADIUS, getRadius());
+        tag.putFloat(TAG_RADIUS_CHANGE_ON_PICKUP, getRadiusChangeOnPickup());
+        tag.putFloat(TAG_RADIUS_ON_USE, radiusOnUse);
+        tag.putFloat(TAG_RADIUS_PER_TICK, getRadiusPerTick());
+        tag.putInt("WaitTime", getWaitTime());
+        tag.putFloat(TAG_INITIAL_RADIUS, initialRadius);
     }
 
     @Override

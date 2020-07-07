@@ -9,8 +9,9 @@ import cn.nukkit.item.ItemUtils;
 import cn.nukkit.level.chunk.Chunk;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
@@ -41,7 +42,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         if (tag.getBoolean(TAG_HAS_BOOK)) {
@@ -52,14 +53,14 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
         if (this.book != null) {
-            tag.booleanTag(TAG_HAS_BOOK, true);
-            tag.tag(ItemUtils.serializeItem(this.book).toBuilder().build(TAG_BOOK));
-            tag.intTag(TAG_PAGE, this.page);
-            tag.intTag(TAG_TOTAL_PAGES, this.totalPages);
+            tag.putBoolean(TAG_HAS_BOOK, true);
+            tag.putCompound(TAG_BOOK, ItemUtils.serializeItem(this.book).toBuilder().build());
+            tag.putInt(TAG_PAGE, this.page);
+            tag.putInt(TAG_TOTAL_PAGES, this.totalPages);
         }
     }
 
@@ -123,7 +124,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     private void updateTotalPages(boolean updateRedstone) {
         if (hasBook()) {
-            this.totalPages = this.book.getTag().getList("pages", CompoundTag.class).size();
+            this.totalPages = this.book.getTag().getList("pages", NbtType.COMPOUND).size();
         } else {
             this.totalPages = 0;
         }

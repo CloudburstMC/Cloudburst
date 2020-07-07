@@ -9,8 +9,8 @@ import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.level.Location;
 import cn.nukkit.player.Player;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.EXPERIENCE_VALUE;
 
@@ -71,7 +71,7 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForInt("experience value", this::setExperience);
@@ -80,12 +80,12 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.intTag("experience value", this.getExperience());
-        tag.shortTag("Age", (short) this.age);
-        tag.shortTag("PickupDelay", (short) this.pickupDelay);
+        tag.putInt("experience value", this.getExperience());
+        tag.putShort("Age", (short) this.age);
+        tag.putShort("PickupDelay", (short) this.pickupDelay);
     }
 
     @Override

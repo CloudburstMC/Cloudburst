@@ -13,8 +13,8 @@ import cn.nukkit.level.Sound;
 import cn.nukkit.level.gamerule.GameRules;
 import cn.nukkit.registry.BlockRegistry;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import static cn.nukkit.block.BlockIds.AIR;
 import static cn.nukkit.block.BlockIds.ANVIL;
@@ -65,17 +65,17 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         int id;
         int meta;
         BlockRegistry registry = BlockRegistry.get();
-        if (tag.contains("Tile") && tag.contains("Data")) {
+        if (tag.containsKey("Tile") && tag.containsKey("Data")) {
             id = tag.getByte("Tile") & 0xff;
             meta = tag.getByte("Data");
         } else {
-            CompoundTag plantTag = tag.getCompound("FallingBlock");
+            NbtMap plantTag = tag.getCompound("FallingBlock");
             id = registry.getLegacyId(plantTag.getString("name"));
             meta = plantTag.getShort("val");
         }
@@ -88,15 +88,15 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
         Block block = getBlock();
 
-        tag.tag(CompoundTag.builder()
-                .stringTag("name", block.getId().toString())
-                .shortTag("val", (short) block.getMeta())
-                .build("FallingBlock"));
+        tag.putCompound("FallingBlock", NbtMap.builder()
+                .putString("name", block.getId().toString())
+                .putShort("val", (short) block.getMeta())
+                .build());
     }
 
     public boolean canCollideWith(Entity entity) {
