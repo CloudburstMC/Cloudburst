@@ -24,7 +24,7 @@ import static cn.nukkit.block.BlockIds.*;
 public class BlockRegistry implements Registry {
     public static final BlockFactory UNKNOWN_FACTORY = BlockUnknown::new;
     private static final BlockRegistry INSTANCE;
-    private static final List<NbtMap> VANILLA_PALETTE;
+    private static final NbtList<NbtMap> VANILLA_PALETTE;
 
     static {
         InputStream stream = RegistryUtils.getOrAssertResource("runtime_block_states.dat");
@@ -94,26 +94,27 @@ public class BlockRegistry implements Registry {
 
     private void registerVanillaPalette() throws RegistryException {
         checkClosed();
-        System.out.println("Palette entries found: " + VANILLA_PALETTE.size());
-
         for (NbtMap entry : VANILLA_PALETTE) {
             //TODO Update block palette parsing to parse output of proxypass data rip
-            if (!entry.containsKey("LegacyStates")) continue;
+            if (entry.containsKey("LegacyStates")) {
 
-            List<NbtMap> legacyStates = entry.getList("LegacyStates", NbtType.COMPOUND);
+                List<NbtMap> legacyStates = entry.getList("LegacyStates", NbtType.COMPOUND);
 
-            String name = entry.getCompound("block").getString("name");
-            Identifier id = Identifier.fromString(name);
-            int legacyId = entry.getShort("id");
-            this.idLegacyMap.putIfAbsent(id, legacyId);
-            NbtMap first = legacyStates.get(0);
-            int runtimeId = this.registerBlockState(id, legacyId, first.getShort("val"));
-            for (NbtMap state : legacyStates) {
-                int stateId = getFullId(state.getShort("id"), state.getShort("val"));
-                this.stateRuntimeMap.put(stateId, runtimeId);
+                String name = entry.getCompound("block").getString("name");
+                Identifier id = Identifier.fromString(name);
+                int legacyId = entry.getShort("id");
+                this.idLegacyMap.putIfAbsent(id, legacyId);
+                NbtMap first = legacyStates.get(0);
+                int runtimeId = this.registerBlockState(id, legacyId, first.getShort("val"));
+                for (int i = 1; i < legacyStates.size(); i++) {
+                    NbtMap state = legacyStates.get(i);
+                    this.stateRuntimeMap.put(getFullId(legacyId, state.getShort("val")), runtimeId);
+                }
+            } else {
+                runtimeIdAllocator.getAndIncrement();
             }
         }
-        System.out.println("Registered " + stateRuntimeMap.size() + " entries.");
+
     }
 
     boolean isBlock(Identifier id) {
