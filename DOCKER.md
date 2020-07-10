@@ -1,7 +1,7 @@
 Docker
 -------------
 
-Running Nukkit in [Docker](https://www.docker.com/) (17.05+ or higher).
+Running Cloudburst in [Docker](https://www.docker.com/) (17.05+ or higher).
 
 Build image from source,
 
