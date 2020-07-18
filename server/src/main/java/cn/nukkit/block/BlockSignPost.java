@@ -85,7 +85,7 @@ public class BlockSignPost extends BlockTransparent implements Faceable {
             }
 
             Sign sign = BlockEntityRegistry.get().newEntity(SIGN, this.getChunk(), this.getPosition());
-            if (!item.hasCompoundTag()) {
+            if (!item.hasNbtMap()) {
                 sign.setTextOwner(player.getXuid());
             } else {
                 sign.loadAdditionalData(item.getTag());

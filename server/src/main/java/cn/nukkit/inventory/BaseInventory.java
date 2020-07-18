@@ -7,7 +7,7 @@ import cn.nukkit.event.entity.EntityInventoryChangeEvent;
 import cn.nukkit.event.inventory.InventoryOpenEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.player.Player;
-import com.nukkitx.protocol.bedrock.data.ItemData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 
@@ -176,7 +176,7 @@ public abstract class BaseInventory implements Inventory {
     public boolean contains(Item item) {
         int count = Math.max(1, item.getCount());
         boolean checkDamage = item.hasMeta() && item.getMeta() >= 0;
-        boolean checkTag = item.hasCompoundTag();
+        boolean checkTag = item.hasNbtMap();
         for (Item i : this.getContents().values()) {
             if (item.equals(i, checkDamage, checkTag)) {
                 count -= i.getCount();
@@ -193,7 +193,7 @@ public abstract class BaseInventory implements Inventory {
     public Map<Integer, Item> all(Item item) {
         Map<Integer, Item> slots = new HashMap<>();
         boolean checkDamage = item.hasMeta() && item.getMeta() >= 0;
-        boolean checkTag = item.hasCompoundTag();
+        boolean checkTag = item.hasNbtMap();
         for (Map.Entry<Integer, Item> entry : this.getContents().entrySet()) {
             if (item.equals(entry.getValue(), checkDamage, checkTag)) {
                 slots.put(entry.getKey(), entry.getValue());
@@ -206,7 +206,7 @@ public abstract class BaseInventory implements Inventory {
     @Override
     public void remove(Item item) {
         boolean checkDamage = item.hasMeta();
-        boolean checkTag = item.hasCompoundTag();
+        boolean checkTag = item.hasNbtMap();
         for (Map.Entry<Integer, Item> entry : this.getContents().entrySet()) {
             if (item.equals(entry.getValue(), checkDamage, checkTag)) {
                 this.clear(entry.getKey());
@@ -218,7 +218,7 @@ public abstract class BaseInventory implements Inventory {
     public int first(Item item, boolean exact) {
         int count = Math.max(1, item.getCount());
         boolean checkDamage = item.hasMeta();
-        boolean checkTag = item.hasCompoundTag();
+        boolean checkTag = item.hasNbtMap();
         for (Map.Entry<Integer, Item> entry : this.getContents().entrySet()) {
             if (item.equals(entry.getValue(), checkDamage, checkTag) && (entry.getValue().getCount() == count || (!exact && entry.getValue().getCount() > count))) {
                 return entry.getKey();
@@ -288,7 +288,7 @@ public abstract class BaseInventory implements Inventory {
     public boolean canAddItem(Item item) {
         item = item.clone();
         boolean checkDamage = item.hasMeta();
-        boolean checkTag = item.hasCompoundTag();
+        boolean checkTag = item.hasNbtMap();
         for (int i = 0; i < this.getSize(); ++i) {
             Item slot = this.getItem(i);
             if (item.equals(slot, checkDamage, checkTag)) {
@@ -380,7 +380,7 @@ public abstract class BaseInventory implements Inventory {
             }
 
             for (Item slot : new ArrayList<>(itemSlots)) {
-                if (slot.equals(item, item.hasMeta(), item.hasCompoundTag())) {
+                if (slot.equals(item, item.hasMeta(), item.hasNbtMap())) {
                     int amount = Math.min(item.getCount(), slot.getCount());
                     slot.setCount(slot.getCount() - amount);
                     item.setCount(item.getCount() - amount);

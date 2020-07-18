@@ -4,8 +4,8 @@ import cn.nukkit.level.biome.Biome;
 import cn.nukkit.level.biome.BiomeBuilder;
 import cn.nukkit.utils.Identifier;
 import com.google.common.base.Preconditions;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.StringTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.nukkit.level.biome.BiomeIds.*;
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkState;
 
 public class BiomeRegistry implements Registry {
     private static final BiomeRegistry INSTANCE;
@@ -25,14 +25,14 @@ public class BiomeRegistry implements Registry {
 
     static {
         //build initial biome map
-        VANILLA_BIOMES = Biome.BIOME_DEFINITIONS.getValue().entrySet().stream().collect(Collectors.toMap(
+        VANILLA_BIOMES = Biome.BIOME_DEFINITIONS.entrySet().stream().collect(Collectors.toMap(
                 entry -> Identifier.fromString(entry.getKey()),
                 entry -> {
-                    CompoundTag tag = (CompoundTag) entry.getValue();
+                    NbtMap tag = (NbtMap) entry.getValue();
                     BiomeBuilder builder = BiomeBuilder.builder().setId(Identifier.fromString(entry.getKey()));
                     tag.listenForFloat("temperature", builder::setTemperature);
                     tag.listenForFloat("downfall", builder::setDownfall);
-                    tag.listenForList("tags", StringTag.class, list -> builder.setTags(list.stream().map(StringTag::getValue).map(Identifier::fromString).collect(Collectors.toList())));
+                    tag.listenForList("tags", NbtType.STRING, list -> builder.setTags(list.stream().map(Identifier::fromString).collect(Collectors.toList())));
                     return builder.build();
                 }));
 

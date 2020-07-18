@@ -4,7 +4,7 @@ import cn.nukkit.item.Item;
 import cn.nukkit.utils.Identifier;
 import cn.nukkit.utils.Utils;
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.protocol.bedrock.data.CraftingData;
+import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
 
@@ -218,7 +218,7 @@ public class ShapedRecipe implements CraftingRecipe {
             }
 
             for (Item needItem : new ArrayList<>(needItems)) {
-                if (needItem.equals(haveItem, needItem.hasMeta(), needItem.hasCompoundTag()) && needItem.getCount() == haveItem.getCount()) {
+                if (needItem.equals(haveItem, needItem.hasMeta(), needItem.hasNbtMap()) && needItem.getCount() == haveItem.getCount()) {
                     haveItems.remove(haveItem);
                     needItems.remove(needItem);
                     break;
@@ -238,7 +238,7 @@ public class ShapedRecipe implements CraftingRecipe {
                 Item given = input[y][x];
                 Item required = map.get(y).get(x);
 
-                if (given == null || !required.equals(given, required.hasMeta(), required.hasCompoundTag()) || required.getCount() != given.getCount()) {
+                if (given == null || !required.equals(given, required.hasMeta(), required.hasNbtMap()) || required.getCount() != given.getCount()) {
                     return false;
                 }
 

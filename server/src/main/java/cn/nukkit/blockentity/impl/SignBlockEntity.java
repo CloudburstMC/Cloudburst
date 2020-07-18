@@ -9,8 +9,8 @@ import cn.nukkit.player.Player;
 import cn.nukkit.utils.Identifier;
 import cn.nukkit.utils.TextFormat;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -40,11 +40,11 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         String[] text;
-        if (!tag.contains("Text")) {
+        if (!tag.containsKey("Text")) {
             text = new String[4];
             for (int i = 0; i < 4; i++) {
                 text[i] = tag.getString(LEGACY_TEXT_TAGS[i], "");
@@ -59,11 +59,11 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
-    public void saveClientData(CompoundTagBuilder tag) {
+    public void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
-        tag.stringTag("Text", String.join("\n", this.text));
-        tag.stringTag("TextOwner", this.textOwner);
+        tag.putString("Text", String.join("\n", this.text));
+        tag.putString("TextOwner", this.textOwner);
     }
 
     @Override
@@ -102,7 +102,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
-    public boolean updateCompoundTag(CompoundTag tag, Player player) {
+    public boolean updateNbtMap(NbtMap tag, Player player) {
         String[] splitText = tag.getString("Text").split("\n", 4);
         String[] text = new String[4];
 
@@ -117,7 +117,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
 
         SignChangeEvent event = new SignChangeEvent(this.getBlock(), player, text);
 
-        if (!tag.contains("TextOwner") || !Objects.equals(player.getXuid(), tag.getString("TextOwner"))) {
+        if (!tag.containsKey("TextOwner") || !Objects.equals(player.getXuid(), tag.getString("TextOwner"))) {
             event.setCancelled();
         }
 

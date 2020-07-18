@@ -9,8 +9,8 @@ import cn.nukkit.item.RecordItem;
 import cn.nukkit.level.chunk.Chunk;
 import cn.nukkit.utils.Identifier;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 
 import java.util.IdentityHashMap;
@@ -48,7 +48,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForCompound("RecordItem", itemTag -> {
@@ -57,11 +57,11 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
         if (this.recordItem != null && !this.recordItem.isNull()) {
-            tag.tag(ItemUtils.serializeItem(this.recordItem).toBuilder().build("RecordItem"));
+            tag.putCompound("RecordItem", ItemUtils.serializeItem(this.recordItem).toBuilder().build());
         }
     }
 

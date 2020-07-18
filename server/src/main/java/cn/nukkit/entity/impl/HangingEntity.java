@@ -3,8 +3,8 @@ package cn.nukkit.entity.impl;
 import cn.nukkit.entity.EntityType;
 import cn.nukkit.level.Location;
 import cn.nukkit.math.BlockFace;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 /**
  * author: MagicDroidX
@@ -26,20 +26,20 @@ public abstract class HangingEntity extends BaseEntity {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForByte("Direction", v -> this.direction = v);
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.byteTag("Direction", this.direction);
-        tag.intTag("TileX", (int) this.getX());
-        tag.intTag("TileY", (int) this.getY());
-        tag.intTag("TileZ", (int) this.getZ());
+        tag.putByte("Direction", this.direction);
+        tag.putInt("TileX", (int) this.getX());
+        tag.putInt("TileY", (int) this.getY());
+        tag.putInt("TileZ", (int) this.getZ());
     }
 
     @Override

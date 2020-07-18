@@ -18,8 +18,9 @@ import cn.nukkit.math.BlockFace;
 import cn.nukkit.player.Player;
 import cn.nukkit.utils.Identifier;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 
@@ -46,11 +47,11 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        tag.listenForList("Items", CompoundTag.class, tags -> {
-            for (CompoundTag itemTag : tags) {
+        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
+            for (NbtMap itemTag : tags) {
                 Item item = ItemUtils.deserializeItem(itemTag);
                 this.inventory.setItem(itemTag.getByte("Slot"), item);
             }
@@ -62,23 +63,23 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        List<CompoundTag> items = new ArrayList<>();
+        List<NbtMap> items = new ArrayList<>();
         for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
         }
-        tag.listTag("Items", CompoundTag.class, items);
-        tag.shortTag("CookTime", this.cookTime);
+        tag.putList("Items", NbtType.COMPOUND, items);
+        tag.putShort("CookTime", this.cookTime);
     }
 
     @Override
-    protected void saveClientData(CompoundTagBuilder tag) {
+    protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
-        tag.shortTag("FuelAmount", this.fuelAmount);
-        tag.shortTag("FuelTotal", this.fuelTotal);
+        tag.putShort("FuelAmount", this.fuelAmount);
+        tag.putShort("FuelTotal", this.fuelTotal);
     }
 
     @Override

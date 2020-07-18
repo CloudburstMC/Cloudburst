@@ -11,8 +11,8 @@ import cn.nukkit.registry.BlockEntityRegistry;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import lombok.extern.log4j.Log4j2;
 
@@ -75,15 +75,15 @@ public abstract class BaseBlockEntity implements BlockEntity {
         return id;
     }
 
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         tag.listenForBoolean("isMovable", this::setMovable);
         tag.listenForString("CustomName", this::setCustomName);
     }
 
-    public void saveAdditionalData(CompoundTagBuilder tag) {
-        tag.booleanTag("isMovable", this.movable);
+    public void saveAdditionalData(NbtMapBuilder tag) {
+        tag.putBoolean("isMovable", this.movable);
         if (this.customName != null) {
-            tag.stringTag("CustomName", this.customName);
+            tag.putString("CustomName", this.customName);
         }
 
         this.saveClientData(tag);
@@ -94,40 +94,40 @@ public abstract class BaseBlockEntity implements BlockEntity {
      *
      * @param tag tag to write data to
      */
-    protected void saveClientData(CompoundTagBuilder tag) {
+    protected void saveClientData(NbtMapBuilder tag) {
 
     }
 
-    public final CompoundTag getItemTag() {
+    public final NbtMap getItemTag() {
         return this.getTag(false, false, true);
     }
 
     @Override
-    public final CompoundTag getServerTag() {
+    public final NbtMap getServerTag() {
         return getTag(true, true, true);
     }
 
     @Override
-    public final CompoundTag getClientTag() {
+    public final NbtMap getClientTag() {
         return getTag(true, false, false);
     }
 
     @Override
-    public final CompoundTag getChunkTag() {
+    public final NbtMap getChunkTag() {
         return getTag(true, true, false);
     }
 
-    private CompoundTag getTag(boolean id, boolean position, boolean server) {
-        CompoundTagBuilder tag = CompoundTag.builder();
+    private NbtMap getTag(boolean id, boolean position, boolean server) {
+        NbtMapBuilder tag = NbtMap.builder();
 
         if (id) {
-            tag.stringTag("id", BlockEntityRegistry.get().getPersistentId(this.type));
+            tag.putString("id", BlockEntityRegistry.get().getPersistentId(this.type));
         }
 
         if (position) {
-            tag.intTag("x", this.position.getX());
-            tag.intTag("y", this.position.getY());
-            tag.intTag("z", this.position.getZ());
+            tag.putInt("x", this.position.getX());
+            tag.putInt("y", this.position.getY());
+            tag.putInt("z", this.position.getZ());
         }
 
         if (server) {
@@ -136,7 +136,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
             this.saveClientData(tag);
         }
 
-        return tag.buildRootTag();
+        return tag.build();
     }
 
     @Override
@@ -246,11 +246,11 @@ public abstract class BaseBlockEntity implements BlockEntity {
         }
     }
 
-    public final boolean updateFromClient(CompoundTag tag, Player player) {
+    public final boolean updateFromClient(NbtMap tag, Player player) {
         if (!tag.getString("id").equals(BlockEntityRegistry.get().getPersistentId(this.getType()))) {
             return false;
         }
-        return this.updateCompoundTag(tag, player);
+        return this.updateNbtMap(tag, player);
     }
 
     /**
@@ -261,7 +261,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
      * @param player player
      * @return bool indication of success, will respawn the tile to the player if false.
      */
-    protected boolean updateCompoundTag(CompoundTag nbt, Player player) {
+    protected boolean updateNbtMap(NbtMap nbt, Player player) {
         return false;
     }
 

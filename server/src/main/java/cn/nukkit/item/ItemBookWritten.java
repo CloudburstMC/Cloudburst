@@ -4,8 +4,9 @@ import cn.nukkit.utils.Identifier;
 import cn.nukkit.utils.PageContent;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.math.GenericMath;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,7 @@ public class ItemBookWritten extends Item {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForInt(TAG_GENERATION, this::setGeneration);
@@ -46,30 +47,30 @@ public class ItemBookWritten extends Item {
         tag.listenForString(TAG_XUID, this::setXuid);
         tag.listenForLong(TAG_ID, this::setBookId);
         tag.listenForBoolean(TAG_RESOLVED, this::setResolved);
-        tag.listenForList(TAG_PAGES, CompoundTag.class, tags -> {
+        tag.listenForList(TAG_PAGES, NbtType.COMPOUND, tags -> {
             this.pages.clear();
-            for (CompoundTag pageTag : tags) {
+            for (NbtMap pageTag : tags) {
                 this.pages.add(PageContent.from(pageTag));
             }
         });
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.intTag(TAG_GENERATION, this.getGeneration());
-        tag.stringTag(TAG_TITLE, this.getTitle());
-        tag.stringTag(TAG_AUTHOR, this.getAuthor());
-        tag.stringTag(TAG_XUID, this.getXuid());
-        tag.longTag(TAG_ID, this.getBookId());
-        tag.booleanTag(TAG_RESOLVED, this.isResolved());
+        tag.putInt(TAG_GENERATION, this.getGeneration());
+        tag.putString(TAG_TITLE, this.getTitle());
+        tag.putString(TAG_AUTHOR, this.getAuthor());
+        tag.putString(TAG_XUID, this.getXuid());
+        tag.putLong(TAG_ID, this.getBookId());
+        tag.putBoolean(TAG_RESOLVED, this.isResolved());
 
-        List<CompoundTag> pages = new ArrayList<>();
+        List<NbtMap> pages = new ArrayList<>();
         for (PageContent page : this.pages) {
             pages.add(page.createTag());
         }
-        tag.listTag(TAG_PAGES, CompoundTag.class, pages);
+        tag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
     }
 
     public void signBook(String title, String author, String xuid) {

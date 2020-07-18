@@ -24,13 +24,13 @@ import cn.nukkit.utils.Rail;
 import cn.nukkit.utils.Rail.Orientation;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import java.util.Iterator;
 import java.util.Objects;
 
-import static com.nukkitx.protocol.bedrock.data.EntityData.*;
+import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
 
 /**
  * Created by: larryTheCoder on 2017/6/26.
@@ -93,7 +93,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     @Override
     public String getName() {
-        return entityName;
+        return entityName == null ? "Minecart" : entityName;
     }
 
     @Override
@@ -120,7 +120,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         if (tag.getBoolean("CustomDisplayTile")) {
@@ -129,11 +129,11 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             int id;
             int meta;
             BlockRegistry registry = BlockRegistry.get();
-            if (tag.contains("DisplayTile") && tag.contains("DisplayData")) {
+            if (tag.containsKey("DisplayTile") && tag.containsKey("DisplayData")) {
                 id = tag.getInt("DisplayTile");
                 meta = tag.getInt("DisplayData");
             } else {
-                CompoundTag plantTag = tag.getCompound("DisplayBlock");
+                NbtMap plantTag = tag.getCompound("DisplayBlock");
                 id = registry.getLegacyId(plantTag.getString("name"));
                 meta = plantTag.getShort("val");
             }
@@ -144,19 +144,19 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
         if (this.hasDisplay()) {
-            tag.booleanTag("CustomDisplayTile", true);
+            tag.putBoolean("CustomDisplayTile", true);
 
             Block block = this.getDisplayBlock();
-            tag.tag(CompoundTag.builder()
-                    .stringTag("name", block.getId().toString())
-                    .shortTag("val", (short) block.getMeta())
-                    .build("DisplayBlock"));
+            tag.putCompound("DisplayBlock", NbtMap.builder()
+                    .putString("name", block.getId().toString())
+                    .putShort("val", (short) block.getMeta())
+                    .build());
 
-            tag.intTag("DisplayOffset", this.getDisplayOffset());
+            tag.putInt("DisplayOffset", this.getDisplayOffset());
         }
     }
 
@@ -720,11 +720,11 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     public boolean hasDisplay() {
-        return this.data.getBoolean(HAS_DISPLAY);
+        return this.data.getBoolean(CUSTOM_DISPLAY);
     }
 
     public void setDisplay(boolean display) {
-        this.data.setBoolean(HAS_DISPLAY, true);
+        this.data.setBoolean(CUSTOM_DISPLAY, true);
     }
 
     /**

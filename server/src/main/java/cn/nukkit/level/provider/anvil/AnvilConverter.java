@@ -17,10 +17,10 @@ import cn.nukkit.utils.Identifier;
 import cn.nukkit.utils.NibbleArray;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NBTInputStream;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.NumberTag;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import lombok.RequiredArgsConstructor;
@@ -37,13 +37,13 @@ public class AnvilConverter {
 
     public static void convertToNukkit(ChunkBuilder chunkBuilder, ByteBuf chunkBuf) throws IOException {
 
-        CompoundTag tag;
+        NbtMap tag;
 
         try (ByteBufInputStream stream = new ByteBufInputStream(chunkBuf);
              NBTInputStream nbtInputStream = NbtUtils.createReader(stream)) {
-            tag = (CompoundTag) nbtInputStream.readTag();
+            tag = (NbtMap) nbtInputStream.readTag();
 
-            if (!tag.contains("Level") || !(tag.get("Level") instanceof CompoundTag)) {
+            if (!tag.containsKey("Level") || !(tag.get("Level") instanceof NbtMap)) {
                 throw new IllegalArgumentException("No level tag found in chunk data");
             }
             tag = tag.getCompound("Level");
@@ -57,7 +57,7 @@ public class AnvilConverter {
         LegacyBlockConverter legacyBlockConverter = LegacyBlockConverter.get();
 
         // Chunk sections
-        for (CompoundTag sectionTag : tag.getList("Sections", CompoundTag.class)) {
+        for (NbtMap sectionTag : tag.getList("Sections", NbtType.COMPOUND)) {
             int y = sectionTag.getByte("Y");
             if (y >= 16) {
                 continue;
@@ -88,7 +88,7 @@ public class AnvilConverter {
         chunkBuilder.sections(sections);
 
         byte[] biomes;
-        if (tag.contains("BiomeColors")) {
+        if (tag.containsKey("BiomeColors")) {
             int[] biomeColors = tag.getIntArray("BiomeColors");
             biomes = new byte[256];
             if (biomeColors != null && biomeColors.length == 256) {
@@ -114,13 +114,13 @@ public class AnvilConverter {
         chunkBuilder.heightMap(heightMap);
 
 
-        chunkBuilder.dataLoader(new DataLoader(tag.getList("Entities", CompoundTag.class)));
-        chunkBuilder.dataLoader(new TileLoader(tag.getList("TileEntities", CompoundTag.class)));
+        chunkBuilder.dataLoader(new DataLoader(tag.getList("Entities", NbtType.COMPOUND)));
+        chunkBuilder.dataLoader(new TileLoader(tag.getList("TileEntities", NbtType.COMPOUND)));
 
-        List<CompoundTag> updateEntries = tag.getList("TileTicks", CompoundTag.class);
+        List<NbtMap> updateEntries = tag.getList("TileTicks", NbtType.COMPOUND);
 
         if (updateEntries != null && updateEntries.size() > 0) {
-            for (CompoundTag entryTag : updateEntries) {
+            for (NbtMap entryTag : updateEntries) {
                 Block block;
 
                 try {
@@ -157,7 +157,7 @@ public class AnvilConverter {
         }
     }
 
-    public static CompoundTag convertToAnvil(Chunk chunk) {
+    public static NbtMap convertToAnvil(Chunk chunk) {
         throw new UnsupportedOperationException();
     }
 
@@ -166,14 +166,13 @@ public class AnvilConverter {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Location getLocation(CompoundTag tag, Chunk chunk) {
-        List<NumberTag<?>> pos = (List) tag.getList("Pos", NumberTag.class);
-        Vector3f position = Vector3f.from(pos.get(0).getValue().floatValue(), pos.get(1).getValue().floatValue(),
-                pos.get(2).getValue().floatValue());
+    private static Location getLocation(NbtMap tag, Chunk chunk) {
+        List<Float> pos = tag.getList("Pos", NbtType.FLOAT);
+        Vector3f position = Vector3f.from(pos.get(0), pos.get(1), pos.get(2));
 
-        List<NumberTag<?>> rotation = (List) tag.getList("Rotation", NumberTag.class);
-        float yaw = rotation.get(0).getValue().floatValue();
-        float pitch = rotation.get(1).getValue().floatValue();
+        List<Float> rotation = tag.getList("Rotation", NbtType.FLOAT);
+        float yaw = rotation.get(0);
+        float pitch = rotation.get(1);
 
         checkArgument(position.getFloorX() >> 4 == chunk.getX() && position.getFloorZ() >> 4 == chunk.getZ(),
                 "Entity is not in chunk of origin");
@@ -183,14 +182,14 @@ public class AnvilConverter {
 
     @RequiredArgsConstructor
     private static class DataLoader implements ChunkDataLoader {
-        private final List<CompoundTag> entityTags;
+        private final List<NbtMap> entityTags;
 
         @Override
         public boolean load(Chunk chunk) {
             EntityRegistry registry = EntityRegistry.get();
             boolean dirty = false;
-            for (CompoundTag entityTag : entityTags) {
-                if (!entityTag.contains("id")) {
+            for (NbtMap entityTag : entityTags) {
+                if (!entityTag.containsKey("id")) {
                     dirty = true;
                     continue;
                 }
@@ -216,14 +215,14 @@ public class AnvilConverter {
     @RequiredArgsConstructor
     private static class TileLoader implements ChunkDataLoader {
         private static final BlockEntityRegistry REGISTRY = BlockEntityRegistry.get();
-        private final List<CompoundTag> tileTags;
+        private final List<NbtMap> tileTags;
 
         @Override
         public boolean load(Chunk chunk) {
             boolean dirty = false;
-            for (CompoundTag tag : tileTags) {
+            for (NbtMap tag : tileTags) {
                 if (tag != null) {
-                    if (!tag.contains("id")) {
+                    if (!tag.containsKey("id")) {
                         dirty = true;
                         continue;
                     }

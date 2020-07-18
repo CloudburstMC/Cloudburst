@@ -5,18 +5,12 @@ import cn.nukkit.level.gamerule.GameRule;
 import cn.nukkit.level.gamerule.GameRuleMap;
 import cn.nukkit.level.provider.LevelDataSerializer;
 import cn.nukkit.registry.GameRuleRegistry;
-import cn.nukkit.utils.Identifier;
 import cn.nukkit.utils.LoadState;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.LittleEndianDataInputStream;
-import com.nukkitx.nbt.stream.LittleEndianDataOutputStream;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.*;
+import com.nukkitx.nbt.util.stream.LittleEndianDataInputStream;
+import com.nukkitx.nbt.util.stream.LittleEndianDataOutputStream;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.ByteArrayOutputStream;
@@ -66,45 +60,45 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
     }
 
     private void saveData(LevelData data, Path levelDatPath) throws IOException {
-        CompoundTagBuilder tag = CompoundTag.builder()
-                .stringTag("LevelName", data.getName())
-                .stringTag("FlatWorldLayers", data.getGeneratorOptions())
-                .stringTag("generatorName", data.getGenerator().toString())
-                .intTag("lightningTime", data.getLightningTime())
-                .intTag("Difficulty", data.getDifficulty())
-                .intTag("GameType", data.getGameType())
-                .intTag("serverChunkTickRange", data.getServerChunkTickRange())
-                .intTag("NetherScale", data.getNetherScale())
-                .longTag("currentTick", data.getCurrentTick())
-                .longTag("LastPlayed", data.getLastPlayed())
-                .longTag("RandomSeed", data.getRandomSeed())
-                .longTag("Time", data.getTime())
-                .intTag("SpawnX", data.getSpawn().getX())
-                .intTag("SpawnY", data.getSpawn().getY())
-                .intTag("SpawnZ", data.getSpawn().getZ())
-                .intTag("Dimension", data.getDimension())
-                .intTag("rainTime", data.getRainTime())
-                .floatTag("rainLevel", data.getRainLevel())
-                .floatTag("lightningLevel", data.getLightningLevel())
-                .booleanTag("hardcore", data.isHardcore());
+        NbtMapBuilder tag = NbtMap.builder()
+                .putString("LevelName", data.getName())
+                .putString("FlatWorldLayers", data.getGeneratorOptions())
+                .putString("generatorName", data.getGenerator().toString())
+                .putInt("lightningTime", data.getLightningTime())
+                .putInt("Difficulty", data.getDifficulty())
+                .putInt("GameType", data.getGameType())
+                .putInt("serverChunkTickRange", data.getServerChunkTickRange())
+                .putInt("NetherScale", data.getNetherScale())
+                .putLong("currentTick", data.getCurrentTick())
+                .putLong("LastPlayed", data.getLastPlayed())
+                .putLong("RandomSeed", data.getRandomSeed())
+                .putLong("Time", data.getTime())
+                .putInt("SpawnX", data.getSpawn().getX())
+                .putInt("SpawnY", data.getSpawn().getY())
+                .putInt("SpawnZ", data.getSpawn().getZ())
+                .putInt("Dimension", data.getDimension())
+                .putInt("rainTime", data.getRainTime())
+                .putFloat("rainLevel", data.getRainLevel())
+                .putFloat("lightningLevel", data.getLightningLevel())
+                .putBoolean("hardcore", data.isHardcore());
 
         // Gamerules - No idea why these aren't in a separate tag
         GameRuleMap gameRules = data.getGameRules();
         gameRules.forEach((gameRule, o) -> {
             String name = gameRule.getName().toLowerCase();
             if (gameRule.getValueClass() == Boolean.class) {
-                tag.booleanTag(name, (boolean) o);
+                tag.putBoolean(name, (boolean) o);
             } else if (gameRule.getValueClass() == Integer.class) {
-                tag.intTag(name, (int) o);
+                tag.putInt(name, (int) o);
             } else if (gameRule.getValueClass() == Boolean.class) {
-                tag.floatTag(name, (float) o);
+                tag.putFloat(name, (float) o);
             }
         });
 
         byte[] tagBytes;
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
              NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
-            nbtOutputStream.write(tag.buildRootTag());
+            nbtOutputStream.writeTag(tag.build());
             tagBytes = stream.toByteArray();
         }
 
@@ -117,7 +111,7 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
     }
 
     private void loadData(LevelData data, Path levelDatPath) throws IOException {
-        CompoundTag tag;
+        NbtMap tag;
         try (LittleEndianDataInputStream stream = new LittleEndianDataInputStream(Files.newInputStream(levelDatPath));
              NBTInputStream nbtInputStream = new NBTInputStream(stream)) {
 
@@ -126,7 +120,7 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
                 throw new IOException("Incompatible level.dat version");
             }
             stream.readInt(); // Size
-            tag = (CompoundTag) nbtInputStream.readTag();
+            tag = (NbtMap) nbtInputStream.readTag();
         }
 
         /*tag.listenForString("LevelName", data::setName);
@@ -143,7 +137,7 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
         tag.listenForLong("LastPlayed", data::setLastPlayed);
         tag.listenForLong("RandomSeed", data::setRandomSeed);
         tag.listenForLong("Time", data::setTime);
-        if (tag.contains("SpawnX") && tag.contains("SpawnY") && tag.contains("SpawnZ")) {
+        if (tag.containsKey("SpawnX") && tag.containsKey("SpawnY") && tag.containsKey("SpawnZ")) {
             int x = tag.getInt("SpawnX");
             int y = tag.getInt("SpawnY");
             int z = tag.getInt("SpawnZ");
@@ -156,8 +150,8 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
         tag.listenForBoolean("Hardcore", data::setHardcore);
 
         GameRuleRegistry.get().getRules().forEach(rule -> {
-            Tag<?> gameRuleTag = tag.get(rule.getName().toLowerCase());
-            Object value = gameRuleTag == null ? null : gameRuleTag.getValue();
+            NbtMap gameRuleTag = tag.getCompound(rule.getName().toLowerCase());
+            Object value = gameRuleTag == null ? null : gameRuleTag.get(0);
             if (value instanceof Byte) {
                 data.getGameRules().put((GameRule<Boolean>) rule, (byte) value != 0);
             } else if (value instanceof Integer) {

@@ -12,12 +12,12 @@ import cn.nukkit.level.MovingObjectPosition;
 import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.NukkitMath;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import java.util.Set;
 
-import static com.nukkitx.protocol.bedrock.data.EntityFlag.CRITICAL;
+import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
 
 /**
  * author: MagicDroidX
@@ -34,17 +34,17 @@ public abstract class EntityProjectile extends BaseEntity {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForNumber("damage", v -> this.damage = v.floatValue());
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.floatTag("damage", this.damage);
+        tag.putFloat("damage", this.damage);
     }
 
     public int getResultDamage() {

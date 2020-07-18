@@ -15,8 +15,8 @@ import cn.nukkit.registry.BlockEntityRegistry;
 import cn.nukkit.utils.BlockColor;
 import cn.nukkit.utils.Identifier;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import static cn.nukkit.blockentity.BlockEntityTypes.SHULKER_BOX;
 
@@ -54,11 +54,11 @@ public class BlockUndyedShulkerBox extends BlockTransparent {
 
         ShulkerBox shulkerBox = (ShulkerBox) this.getLevel().getBlockEntity(this.getPosition());
 
-        CompoundTag tag = CompoundTag.EMPTY;
+        NbtMap tag = NbtMap.EMPTY;
         if (shulkerBox != null) {
-            CompoundTagBuilder tagBuilder = CompoundTag.builder();
+            NbtMapBuilder tagBuilder = NbtMap.builder();
             shulkerBox.saveAdditionalData(tagBuilder);
-            tag = tagBuilder.buildRootTag();
+            tag = tagBuilder.build();
         }
 
         return Item.get(this.id, 0, 1, tag);

@@ -16,8 +16,8 @@ import cn.nukkit.utils.DyeColor;
 import cn.nukkit.utils.Faceable;
 import cn.nukkit.utils.Identifier;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import static cn.nukkit.block.BlockIds.AIR;
 import static cn.nukkit.block.BlockIds.WALL_BANNER;
@@ -68,11 +68,11 @@ public class BlockBanner extends BlockTransparent implements Faceable {
                 this.getLevel().setBlock(block.getPosition(), Block.get(WALL_BANNER, this.getMeta()), true);
             }
 
-            CompoundTagBuilder tag = CompoundTag.builder();
+            NbtMapBuilder tag = NbtMap.builder();
             item.saveAdditionalData(tag);
-            tag.intTag("Base", item.getMeta());
+            tag.putInt("Base", item.getMeta());
 
-            BlockEntityRegistry.get().newEntity(BANNER, this.getChunk(), this.getPosition()).loadAdditionalData(tag.buildRootTag());
+            BlockEntityRegistry.get().newEntity(BANNER, this.getChunk(), this.getPosition()).loadAdditionalData(tag.build());
 
             return true;
         }
@@ -100,11 +100,11 @@ public class BlockBanner extends BlockTransparent implements Faceable {
             Banner banner = (Banner) blockEntity;
             item.setMeta(banner.getBase().getDyeData());
 
-            CompoundTagBuilder tag = CompoundTag.builder();
+            NbtMapBuilder tag = NbtMap.builder();
             banner.saveAdditionalData(tag);
             tag.remove("Base");
 
-            item.loadAdditionalData(tag.buildRootTag());
+            item.loadAdditionalData(tag.build());
         }
         return item;
     }

@@ -8,9 +8,9 @@ import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.SimpleAxisAlignedBB;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.IntTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,7 @@ public class PistonBlockEntity extends BaseBlockEntity implements Piston {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         this.progress = tag.getFloat("Progress", 1.0f);
@@ -46,29 +46,29 @@ public class PistonBlockEntity extends BaseBlockEntity implements Piston {
         this.newState = tag.getByte("NewState", (byte) 1);
         this.sticky = tag.getBoolean("Sticky");
 
-        List<IntTag> attachedBlocks = tag.getList("AttachedBlocks", IntTag.class);
+        List<Integer> attachedBlocks = tag.getList("AttachedBlocks", NbtType.INT);
 
         for (int i = 0; i < attachedBlocks.size(); i += 3) {
             this.attachedBlocks.add(Vector3i.from(
-                    attachedBlocks.get(i).getPrimitiveValue(),
-                    attachedBlocks.get(i + 1).getPrimitiveValue(),
-                    attachedBlocks.get(i + 2).getPrimitiveValue()
+                    attachedBlocks.get(i),
+                    attachedBlocks.get(i + 1),
+                    attachedBlocks.get(i + 2)
             ));
         }
 
-        List<IntTag> breakBlocks = tag.getList("BreakBlocks", IntTag.class);
+        List<Integer> breakBlocks = tag.getList("BreakBlocks", NbtType.INT);
 
         for (int i = 0; i < breakBlocks.size(); i += 3) {
             this.breakBlocks.add(Vector3i.from(
-                    breakBlocks.get(i).getPrimitiveValue(),
-                    breakBlocks.get(i + 1).getPrimitiveValue(),
-                    breakBlocks.get(i + 2).getPrimitiveValue()
+                    breakBlocks.get(i),
+                    breakBlocks.get(i + 1),
+                    breakBlocks.get(i + 2)
             ));
         }
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
     }
 

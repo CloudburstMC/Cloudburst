@@ -4,8 +4,8 @@ import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.utils.Identifier;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import java.util.Random;
 
@@ -53,17 +53,17 @@ public abstract class ItemTool extends Item implements ItemDurable {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForBoolean("Unbreakable", this::setUnbreakable);
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        if (this.unbreakable) tag.booleanTag("Unbreakable", true);
+        if (this.unbreakable) tag.putBoolean("Unbreakable", true);
     }
 
     @Override

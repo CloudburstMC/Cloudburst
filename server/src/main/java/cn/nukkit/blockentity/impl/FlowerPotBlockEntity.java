@@ -7,8 +7,8 @@ import cn.nukkit.blockentity.FlowerPot;
 import cn.nukkit.level.chunk.Chunk;
 import cn.nukkit.registry.BlockRegistry;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import static cn.nukkit.block.BlockIds.AIR;
 
@@ -25,18 +25,18 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         BlockRegistry registry = BlockRegistry.get();
 
-        if (tag.contains("item") && tag.contains("mData")) {
+        if (tag.containsKey("item") && tag.containsKey("mData")) {
             short id = tag.getShort("item");
             int meta = tag.getInt("mData");
 
             this.plant = registry.getBlock(id, meta);
         } else {
-            CompoundTag plantTag = tag.getCompound("PlantBlock");
+            NbtMap plantTag = tag.getCompound("PlantBlock");
             int legacyId = registry.getLegacyId(plantTag.getString("name"));
             short meta = plantTag.getShort("val");
 
@@ -45,13 +45,13 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.tag(CompoundTag.builder()
-                .stringTag("name", plant.getId().toString())
-                .shortTag("val", (short) plant.getMeta())
-                .build("PlantBlock"));
+        tag.putCompound("PlantBlock", NbtMap.builder()
+                .putString("name", plant.getId().toString())
+                .putShort("val", (short) plant.getMeta())
+                .build());
     }
 
     @Override

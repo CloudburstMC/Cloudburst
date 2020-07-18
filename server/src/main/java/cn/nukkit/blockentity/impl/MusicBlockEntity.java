@@ -5,8 +5,8 @@ import cn.nukkit.blockentity.BlockEntityType;
 import cn.nukkit.blockentity.Noteblock;
 import cn.nukkit.level.chunk.Chunk;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
 
@@ -18,7 +18,7 @@ public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForByte("note", this::setNote);
@@ -26,11 +26,11 @@ public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.byteTag("note", this.getNote());
-        tag.booleanTag("powered", this.isPowered());
+        tag.putByte("note", this.getNote());
+        tag.putBoolean("powered", this.isPowered());
     }
 
     @Override
