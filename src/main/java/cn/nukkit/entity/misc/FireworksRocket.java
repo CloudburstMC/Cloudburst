@@ -1,7 +1,7 @@
 package cn.nukkit.entity.misc;
 
 import cn.nukkit.entity.Entity;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 
 public interface FireworksRocket extends Entity {
 
@@ -13,7 +13,7 @@ public interface FireworksRocket extends Entity {
 
     void setLifetime(int lifetime);
 
-    CompoundTag getFireworkData();
+    NbtMap getFireworkData();
 
-    void setFireworkData(CompoundTag tag);
+    void setFireworkData(NbtMap tag);
 }

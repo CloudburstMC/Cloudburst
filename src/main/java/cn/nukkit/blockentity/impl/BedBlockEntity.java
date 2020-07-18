@@ -6,8 +6,8 @@ import cn.nukkit.blockentity.BlockEntityType;
 import cn.nukkit.level.chunk.Chunk;
 import cn.nukkit.utils.DyeColor;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 /**
  * Created by CreeperFace on 2.6.2017.
@@ -21,17 +21,17 @@ public class BedBlockEntity extends BaseBlockEntity implements Bed {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForByte("color", this::setColor);
     }
 
     @Override
-    protected void saveClientData(CompoundTagBuilder tag) {
+    protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
-        tag.byteTag("color", (byte) this.getColor().getDyeData());
+        tag.putByte("color", (byte) this.getColor().getDyeData());
     }
 
     @Override

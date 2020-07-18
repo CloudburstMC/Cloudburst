@@ -11,12 +11,7 @@ import cn.nukkit.registry.EntityRegistry;
 import cn.nukkit.registry.RegistryException;
 import cn.nukkit.utils.Identifier;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.NumberTag;
+import com.nukkitx.nbt.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.iq80.leveldb.DB;
@@ -42,11 +37,11 @@ public class EntitySerializer {
             return;
         }
 
-        List<CompoundTag> entityTags = new ArrayList<>();
+        List<NbtMap> entityTags = new ArrayList<>();
         try (ByteArrayInputStream stream = new ByteArrayInputStream(value);
              NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
             while (stream.available() > 0) {
-                entityTags.add((CompoundTag) nbtInputStream.readTag());
+                entityTags.add((NbtMap) nbtInputStream.readTag());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -67,9 +62,9 @@ public class EntitySerializer {
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
              NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
             for (Entity entity : entities) {
-                CompoundTagBuilder tag = CompoundTag.builder();
+                NbtMapBuilder tag = NbtMap.builder();
                 entity.saveAdditionalData(tag);
-                nbtOutputStream.write(tag.buildRootTag());
+                nbtOutputStream.writeTag(tag.build());
             }
             value = stream.toByteArray();
         } catch (IOException e) {
@@ -79,14 +74,15 @@ public class EntitySerializer {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Location getLocation(CompoundTag tag, Chunk chunk) {
-        List<NumberTag<?>> pos = (List) tag.getList("Pos", NumberTag.class);
-        Vector3f position = Vector3f.from(pos.get(0).getValue().floatValue(), pos.get(1).getValue().floatValue(),
-                pos.get(2).getValue().floatValue());
+    private static Location getLocation(NbtMap tag, Chunk chunk) {
+        List<NbtMap> pos = (List) tag.getList("Pos", NbtType.FLOAT);
+        Vector3f position = Vector3f.from((float) pos.get(0).get(0)
+                , (float) pos.get(1).get(0)
+                , (float) pos.get(2).get(0));
 
-        List<NumberTag<?>> rotation = (List) tag.getList("Rotation", NumberTag.class);
-        float yaw = rotation.get(0).getValue().floatValue();
-        float pitch = rotation.get(1).getValue().floatValue();
+        List<NbtMap> rotation = (List) tag.getList("Rotation", NbtType.FLOAT);
+        float yaw = (float) rotation.get(0).get(0);
+        float pitch = (float) rotation.get(1).get(0);
 
         checkArgument(position.getFloorX() >> 4 == chunk.getX() && position.getFloorZ() >> 4 == chunk.getZ(),
                 "Entity is not in chunk of origin");
@@ -96,13 +92,13 @@ public class EntitySerializer {
 
     @RequiredArgsConstructor
     private static class DataLoader implements ChunkDataLoader {
-        private final List<CompoundTag> entityTags;
+        private final List<NbtMap> entityTags;
 
         @Override
         public boolean load(Chunk chunk) {
             boolean dirty = false;
-            for (CompoundTag entityTag : entityTags) {
-                if (!entityTag.contains("identifier")) {
+            for (NbtMap entityTag : entityTags) {
+                if (!entityTag.containsKey("identifier")) {
                     dirty = true;
                     continue;
                 }

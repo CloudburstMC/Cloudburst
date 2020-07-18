@@ -16,8 +16,9 @@ import cn.nukkit.player.Player;
 import cn.nukkit.potion.Effect;
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 
 import javax.annotation.Nonnegative;
@@ -45,9 +46,9 @@ public interface Entity extends Metadatable {
 
     float getLength();
 
-    void loadAdditionalData(CompoundTag tag);
+    void loadAdditionalData(NbtMap tag);
 
-    void saveAdditionalData(CompoundTagBuilder tag);
+    void saveAdditionalData(NbtMapBuilder tag);
 
     boolean canCollide();
 
@@ -84,7 +85,7 @@ public interface Entity extends Metadatable {
     Entity getVehicle();
 
     default boolean mount(Entity entity) {
-        return this.mount(entity, MountMode.RIDER);
+        return this.mount(entity, EntityLinkData.Type.RIDER);
     }
 
     /**
@@ -94,7 +95,7 @@ public interface Entity extends Metadatable {
      * @param mode    mode
      * @return whether or not the mount was successful
      */
-    boolean mount(Entity vehicle, MountMode mode);
+    boolean mount(Entity vehicle, EntityLinkData.Type mode);
 
     boolean dismount(Entity vehicle);
 
@@ -262,7 +263,7 @@ public interface Entity extends Metadatable {
 
     SyncedEntityData getData();
 
-    CompoundTag getTag();
+    NbtMap getTag();
 
     boolean isClosed();
 

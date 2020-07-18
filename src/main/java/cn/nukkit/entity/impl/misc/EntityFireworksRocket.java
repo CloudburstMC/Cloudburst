@@ -8,16 +8,16 @@ import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.level.Location;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.protocol.bedrock.data.EntityEventType;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.nukkitx.protocol.bedrock.data.EntityData.*;
+import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
 
 /**
  * @author CreeperFace
@@ -40,13 +40,13 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
 
         this.setMotion(Vector3f.from(rand.nextGaussian() * 0.001, 0.05, rand.nextGaussian() * 0.001));
 
-        this.data.setTag(DISPLAY_ITEM, CompoundTag.EMPTY);
+        this.data.setTag(DISPLAY_ITEM, NbtMap.EMPTY);
         this.data.setInt(DISPLAY_OFFSET, 1);
-        this.data.setByte(HAS_DISPLAY, 1);
+        this.data.setByte(CUSTOM_DISPLAY, 1);
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForInt("Life", v -> this.life = v);
@@ -54,11 +54,11 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.intTag("Life", this.life);
-        tag.intTag("LifeTime", this.lifetime);
+        tag.putInt("Life", this.life);
+        tag.putInt("LifeTime", this.lifetime);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
             float f = (float) Math.sqrt(this.motion.getX() * this.motion.getX() + this.motion.getZ() * this.motion.getZ());
             this.yaw = (float) (Math.atan2(this.motion.getX(), this.motion.getZ()) * (180D / Math.PI));
 
-            this.pitch = (float) (Math.atan2(this.motion.getY(), (double) f) * (180D / Math.PI));
+            this.pitch = (float) (Math.atan2(this.motion.getY(), f) * (180D / Math.PI));
 
 
             if (this.life == 0) {
@@ -103,7 +103,7 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
             hasUpdate = true;
             if (this.life >= this.lifetime) {
                 EntityEventPacket packet = new EntityEventPacket();
-                packet.setType(EntityEventType.FIREWORK_PARTICLES);
+                packet.setType(EntityEventType.FIREWORK_EXPLODE);
                 packet.setRuntimeEntityId(this.getRuntimeId());
 
                 this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.LARGE_BLAST, -1, getType());
@@ -153,12 +153,12 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
     }
 
     @Override
-    public CompoundTag getFireworkData() {
+    public NbtMap getFireworkData() {
         return this.data.getTag(DISPLAY_ITEM);
     }
 
     @Override
-    public void setFireworkData(CompoundTag tag) {
+    public void setFireworkData(NbtMap tag) {
         this.data.setTag(DISPLAY_ITEM, tag);
     }
 

@@ -2,7 +2,10 @@ package cn.nukkit.entity.impl;
 
 import cn.nukkit.Server;
 import cn.nukkit.block.*;
-import cn.nukkit.entity.*;
+import cn.nukkit.entity.Attribute;
+import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.EntityType;
+import cn.nukkit.entity.Rideable;
 import cn.nukkit.entity.data.SyncedEntityData;
 import cn.nukkit.entity.misc.LightningBolt;
 import cn.nukkit.event.Event;
@@ -34,14 +37,13 @@ import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.FloatTag;
-import com.nukkitx.nbt.tag.NumberTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.EntityData;
-import com.nukkitx.protocol.bedrock.data.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.EntityLink;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
+import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import com.spotify.futures.CompletableFutures;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
@@ -57,8 +59,8 @@ import static cn.nukkit.block.BlockIds.FARMLAND;
 import static cn.nukkit.block.BlockIds.PORTAL;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.nukkitx.protocol.bedrock.data.EntityData.*;
-import static com.nukkitx.protocol.bedrock.data.EntityFlag.*;
+import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
+import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.*;
 
 /**
  * @author MagicDroidX
@@ -76,7 +78,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     public Chunk chunk;
     public List<Block> blocksAround = new ArrayList<>();
     public List<Block> collisionBlocks = new ArrayList<>();
-    public CompoundTag tag;
+    public NbtMap tag;
     public float highestPosition;
     public boolean firstMove = true;
     protected Vector3f position = Vector3f.ZERO;
@@ -173,9 +175,9 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     protected void initEntity() {
         this.data.setFlag(HAS_COLLISION, true);
-        this.data.setShort(AIR, 400);
-        this.data.setShort(MAX_AIR, 400);
-        this.data.setLong(LEAD_HOLDER_EID, -1);
+        this.data.setShort(AIR_SUPPLY, 400);
+        this.data.setShort(MAX_AIR_SUPPLY, 400);
+        this.data.setLong(LEASH_HOLDER_EID, -1);
         this.data.setFloat(SCALE, 1f);
         this.data.setFloat(BOUNDING_BOX_HEIGHT, this.getHeight());
         this.data.setFloat(BOUNDING_BOX_WIDTH, this.getWidth());
@@ -219,20 +221,15 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
-        tag.listenForList("Pos", NumberTag.class, list -> {
-            this.setPosition(Vector3f.from(((NumberTag<?>) list.get(0)).getValue().floatValue(),
-                    ((NumberTag<?>) list.get(1)).getValue().floatValue(),
-                    ((NumberTag<?>) list.get(2)).getValue().floatValue()));
+    public void loadAdditionalData(NbtMap tag) {
+        tag.listenForList("Pos", NbtType.FLOAT, list -> {
+            this.setPosition(Vector3f.from(list.get(0), list.get(1), list.get(2)));
         });
-        tag.listenForList("Rotation", NumberTag.class, list -> {
-            this.setRotation(((NumberTag<?>) list.get(0)).getValue().floatValue(),
-                    ((NumberTag<?>) list.get(1)).getValue().floatValue());
+        tag.listenForList("Rotation", NbtType.FLOAT, list -> {
+            this.setRotation(list.get(0), list.get(1));
         });
-        tag.listenForList("Motion", NumberTag.class, list -> {
-            this.setMotion(Vector3f.from(((NumberTag<?>) list.get(0)).getValue().floatValue(),
-                    ((NumberTag<?>) list.get(1)).getValue().floatValue(),
-                    ((NumberTag<?>) list.get(2)).getValue().floatValue()));
+        tag.listenForList("Motion", NbtType.FLOAT, list -> {
+            this.setMotion(Vector3f.from(list.get(0), list.get(1), list.get(2)));
         });
 
 //        this.highestPosition = this.y + this.namedTag.getFloat("FallDistance");
@@ -247,9 +244,9 @@ public abstract class BaseEntity implements Entity, Metadatable {
         tag.listenForBoolean("Invulnerable", this::setInvulnerable);
         tag.listenForFloat("scale", this::setScale);
 
-        if (tag.contains("ActiveEffects")) {
-            List<CompoundTag> effects = tag.getList("ActiveEffects", CompoundTag.class);
-            for (CompoundTag e : effects) {
+        if (tag.containsKey("ActiveEffects")) {
+            List<NbtMap> effects = tag.getList("ActiveEffects", NbtType.COMPOUND);
+            for (NbtMap e : effects) {
                 this.addEffect(Effect.getEffect(e));
             }
         }
@@ -260,48 +257,48 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         if (this.hasNameTag()) {
-            tag.stringTag("CustomName", this.getNameTag());
-            tag.booleanTag("CustomNameVisible", this.isNameTagVisible());
-            tag.booleanTag("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
+            tag.putString("CustomName", this.getNameTag());
+            tag.putBoolean("CustomNameVisible", this.isNameTagVisible());
+            tag.putBoolean("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
         }
 
         if (!(this instanceof Player)) {
-            tag.stringTag("identifier", this.type.getIdentifier().toString());
+            tag.putString("identifier", this.type.getIdentifier().toString());
         }
 
-        tag.listTag("Pos", FloatTag.class, Arrays.asList(
-                new FloatTag("", this.position.getX()),
-                new FloatTag("", this.position.getY()),
-                new FloatTag("", this.position.getZ()))
+        tag.putList("Pos", NbtType.FLOAT, Arrays.asList(
+                this.position.getX(),
+                this.position.getY(),
+                this.position.getZ())
         );
 
-        tag.listTag("Motion", FloatTag.class, Arrays.asList(
-                new FloatTag("", this.motion.getX()),
-                new FloatTag("", this.motion.getY()),
-                new FloatTag("", this.motion.getZ()))
+        tag.putList("Motion", NbtType.FLOAT, Arrays.asList(
+                this.motion.getX(),
+                this.motion.getY(),
+                this.motion.getZ())
         );
 
-        tag.listTag("Rotation", FloatTag.class, Arrays.asList(
-                new FloatTag("", this.yaw),
-                new FloatTag("", this.pitch))
+        tag.putList("Rotation", NbtType.FLOAT, Arrays.asList(
+                this.yaw,
+                this.pitch)
         );
 
-        tag.floatTag("FallDistance", this.fallDistance);
-        tag.shortTag("Fire", (short) this.fireTicks);
-        tag.shortTag("Air", this.data.getShort(AIR));
-        tag.booleanTag("OnGround", this.onGround);
-        tag.booleanTag("Invulnerable", this.invulnerable);
-        tag.floatTag("Scale", this.scale);
+        tag.putFloat("FallDistance", this.fallDistance);
+        tag.putShort("Fire", (short) this.fireTicks);
+        tag.putShort("Air", this.data.getShort(AIR_SUPPLY));
+        tag.putBoolean("OnGround", this.onGround);
+        tag.putBoolean("Invulnerable", this.invulnerable);
+        tag.putFloat("Scale", this.scale);
 
         if (!this.effects.isEmpty()) {
-            List<CompoundTag> list = new ArrayList<>();
+            List<NbtMap> list = new ArrayList<>();
             for (Effect effect : this.effects.values()) {
                 list.add(effect.createTag());
             }
 
-            tag.listTag("ActiveEffects", CompoundTag.class, list);
+            tag.putList("ActiveEffects", NbtType.COMPOUND, list);
         }
     }
 
@@ -334,11 +331,11 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public boolean isNameTagAlwaysVisible() {
-        return this.data.getByte(ALWAYS_SHOW_NAMETAG) == 1;
+        return this.data.getByte(NAMETAG_ALWAYS_SHOW) == 1;
     }
 
     public void setNameTagAlwaysVisible(boolean value) {
-        this.data.setByte(ALWAYS_SHOW_NAMETAG, value ? 1 : 0);
+        this.data.setByte(NAMETAG_ALWAYS_SHOW, value ? 1 : 0);
     }
 
     public void setNameTagAlwaysVisible() {
@@ -400,11 +397,11 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public short getAir() {
-        return this.data.getShort(AIR);
+        return this.data.getShort(AIR_SUPPLY);
     }
 
     public void setAir(short air) {
-        this.data.setShort(AIR, air);
+        this.data.setShort(AIR_SUPPLY, air);
     }
 
     public boolean isInvulnerable() {
@@ -516,11 +513,11 @@ public abstract class BaseEntity implements Entity, Metadatable {
             int g = (color[1] / count) & 0xff;
             int b = (color[2] / count) & 0xff;
 
-            this.data.setInt(POTION_COLOR, (r << 16) + (g << 8) + b);
-            this.data.setByte(POTION_AMBIENT, ambient ? 1 : 0);
+            this.data.setInt(EFFECT_COLOR, (r << 16) + (g << 8) + b);
+            this.data.setByte(EFFECT_AMBIENT, ambient ? 1 : 0);
         } else {
-            this.data.setInt(POTION_COLOR, 0);
-            this.data.setByte(POTION_AMBIENT, 0);
+            this.data.setInt(EFFECT_COLOR, 0);
+            this.data.setByte(EFFECT_AMBIENT, 0);
         }
     }
 
@@ -559,7 +556,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     @Override
-    public CompoundTag getTag() {
+    public NbtMap getTag() {
         return tag;
     }
 
@@ -584,8 +581,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
             this.vehicle.spawnTo(player);
 
             SetEntityLinkPacket packet = new SetEntityLinkPacket();
-            packet.setEntityLink(new com.nukkitx.protocol.bedrock.data.EntityLink(this.vehicle.getUniqueId(),
-                    this.getUniqueId(), com.nukkitx.protocol.bedrock.data.EntityLink.Type.RIDER, true));
+            packet.setEntityLink(new EntityLinkData(this.vehicle.getUniqueId(),
+                    this.getUniqueId(), EntityLinkData.Type.RIDER, true, false));
 
             player.sendPacket(packet);
         }
@@ -602,8 +599,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
         this.data.putAllIn(addEntity.getMetadata());
 
         for (int i = 0; i < this.passengers.size(); i++) {
-            addEntity.getEntityLinks().add(new com.nukkitx.protocol.bedrock.data.EntityLink(this.getUniqueId(),
-                    this.passengers.get(i).getUniqueId(), i == 0 ? EntityLink.Type.RIDER : EntityLink.Type.PASSENGER, false));
+            addEntity.getEntityLinks().add(new EntityLinkData(this.getUniqueId(),
+                    this.passengers.get(i).getUniqueId(), i == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, false, false));
         }
         return addEntity;
     }
@@ -1058,7 +1055,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
      * @return {@code true} if the mounting successful
      */
     @Override
-    public boolean mount(Entity vehicle, MountMode mode) {
+    public boolean mount(Entity vehicle, EntityLinkData.Type mode) {
         checkNotNull(vehicle, "The target of the mounting entity can't be null");
 
         if (this.vehicle != null && !this.vehicle.dismount(this)) {
@@ -1078,7 +1075,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         vehicle.onMount(this); // Flags have to be set before
 //        this.data.setFlag(RIDING, true);
         this.data.update(); // force any data that needs to be sent
-        broadcastLinkPacket(vehicle, mode.getType());
+        broadcastLinkPacket(vehicle, mode);
 
         return true;
     }
@@ -1096,7 +1093,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             return false;
         }
 
-        broadcastLinkPacket(vehicle, EntityLink.Type.REMOVE);
+        broadcastLinkPacket(vehicle, EntityLinkData.Type.REMOVE);
 
         // Refurbish the entity
         this.vehicle = null;
@@ -1125,9 +1122,9 @@ public abstract class BaseEntity implements Entity, Metadatable {
         passenger.setSeatPosition(Vector3f.ZERO);
     }
 
-    protected void broadcastLinkPacket(Entity vehicle, EntityLink.Type type) {
+    protected void broadcastLinkPacket(Entity vehicle, EntityLinkData.Type type) {
         SetEntityLinkPacket packet = new SetEntityLinkPacket();
-        packet.setEntityLink(new EntityLink(getUniqueId(), vehicle.getUniqueId(), type, false));
+        packet.setEntityLink(new EntityLinkData(getUniqueId(), vehicle.getUniqueId(), type, false, false));
 
         Server.broadcastPacket(vehicle.getViewers(), packet);
     }

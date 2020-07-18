@@ -1,6 +1,6 @@
 package cn.nukkit.utils;
 
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -18,7 +18,7 @@ public class PageContent {
     private final String text;
     private final String photoName;
 
-    public static PageContent from(CompoundTag tag) {
+    public static PageContent from(NbtMap tag) {
         String text = tag.getString(TAG_TEXT, "");
         String photoName = tag.getString(TAG_PHOTO_NAME, "");
         return from(text, photoName);
@@ -42,11 +42,11 @@ public class PageContent {
         return photoName;
     }
 
-    public CompoundTag createTag() {
-        return CompoundTag.builder()
-                .stringTag(TAG_TEXT, text)
-                .stringTag(TAG_PHOTO_NAME, photoName)
-                .buildRootTag();
+    public NbtMap createTag() {
+        return NbtMap.builder()
+                .putString(TAG_TEXT, text)
+                .putString(TAG_PHOTO_NAME, photoName)
+                .build();
     }
 
     public boolean isValid() {

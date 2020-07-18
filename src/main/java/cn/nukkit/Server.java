@@ -53,13 +53,9 @@ import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.nbt.stream.NBTInputStream;
-import com.nukkitx.nbt.stream.NBTOutputStream;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.FloatTag;
+import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.SerializedSkin;
+import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.spotify.futures.CompletableFutures;
 import io.netty.buffer.ByteBuf;
@@ -1290,26 +1286,26 @@ public class Server {
         return new OfflinePlayer(this, uuid);
     }
 
-    public CompoundTag getOfflinePlayerData(UUID uuid) {
+    public NbtMap getOfflinePlayerData(UUID uuid) {
         return getOfflinePlayerData(uuid, false);
     }
 
-    public CompoundTag getOfflinePlayerData(UUID uuid, boolean create) {
+    public NbtMap getOfflinePlayerData(UUID uuid, boolean create) {
         return getOfflinePlayerDataInternal(uuid.toString(), true, create);
     }
 
     @Deprecated
-    public CompoundTag getOfflinePlayerData(String name) {
+    public NbtMap getOfflinePlayerData(String name) {
         return getOfflinePlayerData(name, false);
     }
 
     @Deprecated
-    public CompoundTag getOfflinePlayerData(String name, boolean create) {
+    public NbtMap getOfflinePlayerData(String name, boolean create) {
         Optional<UUID> uuid = lookupName(name);
         return getOfflinePlayerDataInternal(uuid.map(UUID::toString).orElse(name), true, create);
     }
 
-    private CompoundTag getOfflinePlayerDataInternal(String name, boolean runEvent, boolean create) {
+    private NbtMap getOfflinePlayerDataInternal(String name, boolean runEvent, boolean create) {
         Preconditions.checkNotNull(name, "name");
 
         PlayerDataSerializeEvent event = new PlayerDataSerializeEvent(name, playerDataSerializer);
@@ -1322,7 +1318,7 @@ public class Server {
             dataStream = event.getSerializer().read(name, event.getUuid().orElse(null));
             if (dataStream.isPresent()) {
                 try (NBTInputStream stream = NbtUtils.createGZIPReader(dataStream.get())) {
-                    return (CompoundTag) stream.readTag();
+                    return (NbtMap) stream.readTag();
                 }
             }
         } catch (IOException e) {
@@ -1337,49 +1333,49 @@ public class Server {
                 }
             }
         }
-        CompoundTag nbt = null;
+        NbtMap nbt = null;
         if (create) {
             log.info(this.getLanguage().translate("nukkit.data.playerNotFound", name));
             Location spawn = this.getDefaultLevel().getSafeSpawn();
-            nbt = CompoundTag.builder()
-                    .longTag("firstPlayed", System.currentTimeMillis() / 1000)
-                    .longTag("lastPlayed", System.currentTimeMillis() / 1000)
-                    .listTag("Pos", FloatTag.class, Arrays.asList(
-                            new FloatTag("", spawn.getPosition().getX()),
-                            new FloatTag("", spawn.getPosition().getY()),
-                            new FloatTag("", spawn.getPosition().getZ())
+            nbt = NbtMap.builder()
+                    .putLong("firstPlayed", System.currentTimeMillis() / 1000)
+                    .putLong("lastPlayed", System.currentTimeMillis() / 1000)
+                    .putList("Pos", NbtType.FLOAT, Arrays.asList(
+                            spawn.getPosition().getX(),
+                            spawn.getPosition().getY(),
+                            spawn.getPosition().getZ()
                     ))
-                    .stringTag("Level", this.getDefaultLevel().getName())
-                    .intTag("playerGameType", this.getGamemode().getVanillaId())
-                    .listTag("Rotation", FloatTag.class, Arrays.asList(
-                            new FloatTag("", spawn.getYaw()),
-                            new FloatTag("", spawn.getPitch())
+                    .putString("Level", this.getDefaultLevel().getName())
+                    .putInt("playerGameType", this.getGamemode().getVanillaId())
+                    .putList("Rotation", NbtType.FLOAT, Arrays.asList(
+                            spawn.getYaw(),
+                            spawn.getPitch()
                     ))
-                    .buildRootTag();
+                    .build();
 
             this.saveOfflinePlayerData(name, nbt, true, runEvent);
         }
         return nbt;
     }
 
-    public void saveOfflinePlayerData(UUID uuid, CompoundTag tag) {
+    public void saveOfflinePlayerData(UUID uuid, NbtMap tag) {
         this.saveOfflinePlayerData(uuid, tag, false);
     }
 
-    public void saveOfflinePlayerData(String name, CompoundTag tag) {
+    public void saveOfflinePlayerData(String name, NbtMap tag) {
         this.saveOfflinePlayerData(name, tag, false);
     }
 
-    public void saveOfflinePlayerData(UUID uuid, CompoundTag tag, boolean async) {
+    public void saveOfflinePlayerData(UUID uuid, NbtMap tag, boolean async) {
         this.saveOfflinePlayerData(uuid.toString(), tag, async);
     }
 
-    public void saveOfflinePlayerData(String name, CompoundTag tag, boolean async) {
+    public void saveOfflinePlayerData(String name, NbtMap tag, boolean async) {
         Optional<UUID> uuid = lookupName(name);
         saveOfflinePlayerData(uuid.map(UUID::toString).orElse(name), tag, async, true);
     }
 
-    private void saveOfflinePlayerData(String name, CompoundTag tag, boolean async, boolean runEvent) {
+    private void saveOfflinePlayerData(String name, NbtMap tag, boolean async, boolean runEvent) {
         String nameLower = name.toLowerCase();
         if (this.shouldSavePlayerData()) {
             PlayerDataSerializeEvent event = new PlayerDataSerializeEvent(nameLower, playerDataSerializer);
@@ -1407,10 +1403,10 @@ public class Server {
         }
     }
 
-    private void saveOfflinePlayerDataInternal(PlayerDataSerializer serializer, CompoundTag tag, String name, UUID uuid) {
+    private void saveOfflinePlayerDataInternal(PlayerDataSerializer serializer, NbtMap tag, String name, UUID uuid) {
         try (OutputStream dataStream = serializer.write(name, uuid);
              NBTOutputStream stream = NbtUtils.createGZIPWriter(dataStream)) {
-            stream.write(tag);
+            stream.writeTag(tag);
         } catch (Exception e) {
             log.error(this.getLanguage().translate("nukkit.data.saveError", name, e));
         }
@@ -1436,16 +1432,16 @@ public class Server {
 
             log.debug("Attempting legacy player data conversion for {}", name);
 
-            CompoundTag tag = this.getOfflinePlayerDataInternal(name, false, false);
+            NbtMap tag = this.getOfflinePlayerDataInternal(name, false, false);
 
-            if (tag == null || !tag.contains("UUIDLeast") || !tag.contains("UUIDMost")) {
+            if (tag == null || !tag.containsKey("UUIDLeast") || !tag.containsKey("UUIDMost")) {
                 // No UUID so we cannot convert. Wait until player logs in.
                 continue;
             }
 
             UUID uuid = new UUID(tag.getLong("UUIDMost"), tag.getLong("UUIDLeast"));
-            if (!tag.contains("NameTag")) {
-                tag = tag.toBuilder().stringTag("NameTag", name).buildRootTag();
+            if (!tag.containsKey("NameTag")) {
+                tag = tag.toBuilder().putString("NameTag", name).build();
             }
 
             if (new File(getDataPath() + "players/" + uuid.toString() + ".dat").exists()) {

@@ -9,8 +9,9 @@ import cn.nukkit.item.ItemUtils;
 import cn.nukkit.level.chunk.Chunk;
 import cn.nukkit.player.Player;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,11 +27,11 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        tag.listenForList("Items", CompoundTag.class, tags -> {
-            for (CompoundTag itemTag : tags) {
+        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
+            for (NbtMap itemTag : tags) {
                 Item item = ItemUtils.deserializeItem(itemTag);
                 this.inventory.setItem(itemTag.getByte("Slot"), item);
             }
@@ -38,14 +39,14 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        List<CompoundTag> items = new ArrayList<>();
+        List<NbtMap> items = new ArrayList<>();
         for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
         }
-        tag.listTag("Items", CompoundTag.class, items);
+        tag.putList("Items", NbtType.COMPOUND, items);
     }
 
     @Override

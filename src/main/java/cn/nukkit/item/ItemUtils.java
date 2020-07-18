@@ -3,57 +3,56 @@ package cn.nukkit.item;
 import cn.nukkit.block.BlockIds;
 import cn.nukkit.registry.ItemRegistry;
 import cn.nukkit.utils.Identifier;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
-import com.nukkitx.nbt.tag.Tag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class ItemUtils {
 
-    public static CompoundTag serializeItem(Item item) {
+    public static NbtMap serializeItem(Item item) {
         return serializeItem(item, -1);
     }
 
-    public static CompoundTag serializeItem(Item item, int slot) {
-        CompoundTagBuilder tag = CompoundTag.builder()
-                .stringTag("Name", item.getId().toString())
-                .byteTag("Count", (byte) item.getCount())
-                .shortTag("Damage", (short) item.getMeta());
+    public static NbtMap serializeItem(Item item, int slot) {
+        NbtMapBuilder tag = NbtMap.builder()
+                .putString("Name", item.getId().toString())
+                .putByte("Count", (byte) item.getCount())
+                .putShort("Damage", (short) item.getMeta());
         if (slot >= 0) {
-            tag.byteTag("Slot", (byte) slot);
+            tag.putByte("Slot", (byte) slot);
         }
 
-        CompoundTagBuilder nbt = item.getTag().toBuilder();
+        NbtMapBuilder nbt = item.getTag().toBuilder();
         item.saveAdditionalData(nbt);
-        tag.tag(nbt.build("tag"));
+        tag.putCompound("tag", nbt.build());
 
-        return tag.buildRootTag();
+        return tag.build();
     }
 
-    public static Item deserializeItem(CompoundTag tag) {
-        if (!(tag.contains("Name") || tag.contains("id")) && !tag.contains("Count")) {
+    public static Item deserializeItem(NbtMap tag) {
+        if (!(tag.containsKey("Name") || tag.containsKey("id")) && !tag.containsKey("Count")) {
             return Item.get(BlockIds.AIR);
         }
 
         Item item;
         try {
             Identifier identifier;
-            if (tag.contains("Name")) {
+            if (tag.containsKey("Name")) {
                 identifier = Identifier.fromString(tag.getString("Name"));
             } else {
                 identifier = ItemRegistry.get().fromLegacy(tag.getShort("id"));
             }
-            item = Item.get(identifier, !tag.contains("Damage") ? 0 : tag.getShort("Damage"), tag.getByte("Count"));
+            item = Item.get(identifier, !tag.containsKey("Damage") ? 0 : tag.getShort("Damage"), tag.getByte("Count"));
         } catch (Exception e) {
             item = Item.fromString(tag.getString("id"));
-            item.setMeta(!tag.contains("Damage") ? 0 : tag.getShort("Damage"));
+            item.setMeta(!tag.containsKey("Damage") ? 0 : tag.getShort("Damage"));
             item.setCount(tag.getByte("Count"));
         }
 
-        Tag<?> tagTag = tag.get("tag");
-        if (tagTag instanceof CompoundTag) {
-            item.loadAdditionalData((CompoundTag) tagTag);
+        NbtMap tagTag = tag.getCompound("tag", NbtMap.EMPTY);
+        if (tagTag != NbtMap.EMPTY) {
+            item.loadAdditionalData(tagTag);
         }
 
         return item;

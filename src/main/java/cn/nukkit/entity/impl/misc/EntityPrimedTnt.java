@@ -11,12 +11,12 @@ import cn.nukkit.event.entity.EntityExplosionPrimeEvent;
 import cn.nukkit.level.Explosion;
 import cn.nukkit.level.Location;
 import cn.nukkit.level.gamerule.GameRules;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 
-import static com.nukkitx.protocol.bedrock.data.EntityData.FUSE_LENGTH;
-import static com.nukkitx.protocol.bedrock.data.EntityFlag.IGNITED;
+import static com.nukkitx.protocol.bedrock.data.entity.EntityData.FUSE_LENGTH;
+import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.IGNITED;
 
 /**
  * @author MagicDroidX
@@ -79,17 +79,17 @@ public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, EntityExpl
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForInt("Fuse", this::setFuse);
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.intTag("Fuse", this.getFuse());
+        tag.putInt("Fuse", this.getFuse());
     }
 
     public boolean canCollideWith(Entity entity) {

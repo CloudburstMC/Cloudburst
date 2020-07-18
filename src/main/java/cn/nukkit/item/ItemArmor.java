@@ -3,8 +3,8 @@ package cn.nukkit.item;
 import cn.nukkit.player.Player;
 import cn.nukkit.utils.Identifier;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 
 /**
@@ -102,17 +102,17 @@ abstract public class ItemArmor extends Item implements ItemDurable {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForBoolean("Unbreakable", v -> this.unbreakable = v);
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.booleanTag("Unbreakable", this.unbreakable);
+        tag.putBoolean("Unbreakable", this.unbreakable);
     }
 
     @Override

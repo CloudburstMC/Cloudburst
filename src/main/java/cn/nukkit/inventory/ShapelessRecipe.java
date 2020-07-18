@@ -2,7 +2,7 @@ package cn.nukkit.inventory;
 
 import cn.nukkit.item.Item;
 import cn.nukkit.utils.Identifier;
-import com.nukkitx.protocol.bedrock.data.CraftingData;
+import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 
 import java.util.*;
 
@@ -141,7 +141,7 @@ public class ShapelessRecipe implements CraftingRecipe {
             Item haveItem = haveItems.get(i);
             Item needItem = needItems.get(i);
 
-            if (needItem.equals(haveItem, needItem.hasMeta(), needItem.hasCompoundTag())) {
+            if (needItem.equals(haveItem, needItem.hasMeta(), needItem.hasNbtMap())) {
                 completed++;
             }
         }

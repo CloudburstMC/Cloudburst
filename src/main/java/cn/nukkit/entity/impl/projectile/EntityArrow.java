@@ -3,8 +3,8 @@ package cn.nukkit.entity.impl.projectile;
 import cn.nukkit.entity.EntityType;
 import cn.nukkit.entity.projectile.Arrow;
 import cn.nukkit.level.Location;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -92,17 +92,17 @@ public class EntityArrow extends EntityProjectile implements Arrow {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        this.pickupMode = tag.contains("pickup") ? tag.getByte("pickup") : PICKUP_ANY;
+        this.pickupMode = tag.getByte("pickup", (byte) PICKUP_ANY);
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.byteTag("pickup", (byte) this.pickupMode);
+        tag.putByte("pickup", (byte) this.pickupMode);
     }
 
     public int getPickupMode() {

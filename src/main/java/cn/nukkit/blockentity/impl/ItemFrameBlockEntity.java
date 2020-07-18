@@ -7,8 +7,8 @@ import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemUtils;
 import cn.nukkit.level.chunk.Chunk;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import java.util.Objects;
 
@@ -28,7 +28,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForCompound("Item", itemTag -> {
@@ -39,13 +39,13 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     }
 
     @Override
-    protected void saveClientData(CompoundTagBuilder tag) {
+    protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
         if (this.item != null && !this.item.isNull()) {
-            tag.tag(ItemUtils.serializeItem(this.item).toBuilder().build("Item"));
-            tag.byteTag("ItemRotation", this.itemRotation);
-            tag.floatTag("ItemDropChance", this.itemDropChance);
+            tag.putCompound("Item", ItemUtils.serializeItem(this.item));
+            tag.putByte("ItemRotation", this.itemRotation);
+            tag.putFloat("ItemDropChance", this.itemDropChance);
         }
     }
 

@@ -8,8 +8,8 @@ import cn.nukkit.level.chunk.Chunk;
 import cn.nukkit.registry.BlockEntityRegistry;
 import cn.nukkit.registry.BlockRegistry;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.CompoundTagBuilder;
-import com.nukkitx.nbt.tag.CompoundTag;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 
 import static cn.nukkit.block.BlockIds.AIR;
 
@@ -28,23 +28,23 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     }
 
     @Override
-    public void loadAdditionalData(CompoundTag tag) {
+    public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         BlockRegistry registry = BlockRegistry.get();
-        if (tag.contains("movingBlockId") && tag.contains("movingBlockData")) {
+        if (tag.containsKey("movingBlockId") && tag.containsKey("movingBlockData")) {
             int id = tag.getByte("movingBlockId") & 0xff;
             int meta = tag.getByte("movingBlockData");
 
             this.block = registry.getBlock(id, meta);
         } else {
-            CompoundTag blockTag = tag.getCompound("movingBlock");
+            NbtMap blockTag = tag.getCompound("movingBlock");
             int legacyId = registry.getLegacyId(blockTag.getString("name"));
             short meta = blockTag.getShort("val");
 
             this.block = registry.getBlock(legacyId, meta);
 
-            CompoundTag extraBlockTag = tag.getCompound("movingBlockExtra");
+            NbtMap extraBlockTag = tag.getCompound("movingBlockExtra");
             int extraId = registry.getLegacyId(extraBlockTag.getString("name", "minecraft:air"));
             short extraData = extraBlockTag.getShort("val");
             this.extraBlock = registry.getBlock(extraId, extraData);
@@ -61,25 +61,25 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     }
 
     @Override
-    public void saveAdditionalData(CompoundTagBuilder tag) {
+    public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.tag(CompoundTag.builder()
-                .stringTag("name", this.block.getId().toString())
-                .shortTag("val", (short) this.block.getMeta())
-                .build("movingBlock"));
+        tag.putCompound("movingBlock", NbtMap.builder()
+                .putString("name", this.block.getId().toString())
+                .putShort("val", (short) this.block.getMeta())
+                .build());
 
-        tag.tag(CompoundTag.builder()
-                .stringTag("name", this.extraBlock.getId().toString())
-                .shortTag("val", (short) this.extraBlock.getMeta())
-                .build("movingBlockExtra"));
+        tag.putCompound("movingBlockExtra", NbtMap.builder()
+                .putString("name", this.extraBlock.getId().toString())
+                .putShort("val", (short) this.extraBlock.getMeta())
+                .build());
 
-        tag.intTag("pistonPosX", this.piston.getX());
-        tag.intTag("pistonPosY", this.piston.getY());
-        tag.intTag("pistonPosZ", this.piston.getZ());
+        tag.putInt("pistonPosX", this.piston.getX());
+        tag.putInt("pistonPosY", this.piston.getY());
+        tag.putInt("pistonPosZ", this.piston.getZ());
 
         if (this.blockEntity != null) {
-            tag.tag(this.blockEntity.getServerTag().toBuilder().build("movingEntity"));
+            tag.putCompound("movingEntity", this.blockEntity.getServerTag());
         }
     }
 
