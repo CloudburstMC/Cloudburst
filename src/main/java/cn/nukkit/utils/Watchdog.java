@@ -59,8 +59,8 @@ public class Watchdog extends Thread {
                     if (responding) {
 
                         log.fatal("--------- Server stopped responding --------- (" + Math.round(diff / 1000d) + "s)");
-                        log.fatal("Please report this to Nukkit:");
-                        log.fatal(" - https://github.com/NukkitX/Nukkit/issues/new");
+                        log.fatal("Please report this to Cloudburst:");
+                        log.fatal(" - https://github.com/CloudburstMC/Server/issues/new");
                         log.fatal("---------------- Main thread ----------------");
 
                         dumpThread(ManagementFactory.getThreadMXBean().getThreadInfo(this.server.getPrimaryThread().getId(), Integer.MAX_VALUE));
