@@ -24,8 +24,7 @@
 package co.aikar.timings;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
-import cn.nukkit.timings.JsonUtil;
+import org.cloudburstmc.server.timings.JsonUtil;
 
 class TimingsHistoryEntry {
     final TimingData data;

@@ -1,0 +1,34 @@
+package org.cloudburstmc.server.event.block;
+
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.event.Cancellable;
+import org.cloudburstmc.server.event.HandlerList;
+import org.cloudburstmc.server.player.Player;
+
+/**
+ * Created by Snake1999 on 2016/1/22.
+ * Package cn.nukkit.event.block in project nukkit.
+ */
+public class DoorToggleEvent extends BlockUpdateEvent implements Cancellable {
+
+    private static final HandlerList handlers = new HandlerList();
+
+    public static HandlerList getHandlers() {
+        return handlers;
+    }
+
+    private Player player;
+
+    public DoorToggleEvent(BlockState blockState, Player player) {
+        super(blockState);
+        this.player = player;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+}

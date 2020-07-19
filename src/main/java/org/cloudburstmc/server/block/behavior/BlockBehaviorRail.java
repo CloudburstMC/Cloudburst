@@ -1,0 +1,261 @@
+package org.cloudburstmc.server.block.behavior;
+
+import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.math.AxisAlignedBB;
+import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.Faceable;
+import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.Rail;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.cloudburstmc.server.block.BlockTypes.RAIL;
+
+/**
+ * Created by Snake1999 on 2016/1/11.
+ * Package cn.nukkit.block in project nukkit
+ */
+public class BlockBehaviorRail extends FloodableBlockBehavior implements Faceable {
+
+    // 0x8: Set the block active
+    // 0x7: Reset the block to normal
+    // If the rail can be powered. So its a complex rail!
+    protected boolean canBePowered = false;
+
+    public BlockBehaviorRail(Identifier id) {
+        super(id);
+    }
+
+    @Override
+    public float getHardness() {
+        return 0.7f;
+    }
+
+    @Override
+    public float getResistance() {
+        return 3.5f;
+    }
+
+    @Override
+    public boolean canPassThrough() {
+        return true;
+    }
+
+    @Override
+    public int getToolType() {
+        return ItemTool.TYPE_PICKAXE;
+    }
+
+    @Override
+    public int onUpdate(int type) {
+        if (type == Level.BLOCK_UPDATE_NORMAL) {
+            Optional<BlockFace> ascendingDirection = this.getOrientation().ascendingDirection();
+            if (this.down().isTransparent() || (ascendingDirection.isPresent() && this.getSide(ascendingDirection.get()).isTransparent())) {
+                this.getLevel().useBreakOn(this.getPosition());
+                return Level.BLOCK_UPDATE_NORMAL;
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public float getMaxY() {
+        return this.getY() + 0.125f;
+    }
+
+    @Override
+    public AxisAlignedBB recalculateBoundingBox() {
+        return this;
+    }
+
+    @Override
+    public BlockColor getColor() {
+        return BlockColor.AIR_BLOCK_COLOR;
+    }
+
+    //Information from http://minecraft.gamepedia.com/Rail
+    @Override
+    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+        BlockState down = this.down();
+        if (down == null || down.isTransparent()) {
+            return false;
+        }
+        Map<BlockBehaviorRail, BlockFace> railsAround = this.checkRailsAroundAffected();
+        List<BlockBehaviorRail> rails = new ArrayList<>(railsAround.keySet());
+        List<BlockFace> faces = new ArrayList<>(railsAround.values());
+        if (railsAround.size() == 1) {
+            BlockBehaviorRail other = rails.get(0);
+            this.setMeta(this.connect(other, railsAround.get(other)).metadata());
+        } else if (railsAround.size() == 4) {
+            if (this.isAbstract()) {
+                this.setMeta(this.connect(rails.get(faces.indexOf(BlockFace.SOUTH)), BlockFace.SOUTH, rails.get(faces.indexOf(BlockFace.EAST)), BlockFace.EAST).metadata());
+            } else {
+                this.setMeta(this.connect(rails.get(faces.indexOf(BlockFace.EAST)), BlockFace.EAST, rails.get(faces.indexOf(BlockFace.WEST)), BlockFace.WEST).metadata());
+            }
+        } else if (!railsAround.isEmpty()) {
+            if (this.isAbstract()) {
+                if (railsAround.size() == 2) {
+                    BlockBehaviorRail rail1 = rails.get(0);
+                    BlockBehaviorRail rail2 = rails.get(1);
+                    this.setMeta(this.connect(rail1, railsAround.get(rail1), rail2, railsAround.get(rail2)).metadata());
+                } else {
+                    List<BlockFace> cd = Stream.of(Rail.Orientation.CURVED_SOUTH_EAST, Rail.Orientation.CURVED_NORTH_EAST, Rail.Orientation.CURVED_SOUTH_WEST)
+                            .filter(o -> faces.containsAll(o.connectingDirections()))
+                            .findFirst().get().connectingDirections();
+                    BlockFace f1 = cd.get(0);
+                    BlockFace f2 = cd.get(1);
+                    this.setMeta(this.connect(rails.get(faces.indexOf(f1)), f1, rails.get(faces.indexOf(f2)), f2).metadata());
+                }
+            } else {
+                BlockFace f = faces.stream().min((f1, f2) -> (f1.getIndex() < f2.getIndex()) ? 1 : ((this.getX() == this.getY()) ? 0 : -1)).get();
+                BlockFace fo = f.getOpposite();
+                if (faces.contains(fo)) { //Opposite connectable
+                    this.setMeta(this.connect(rails.get(faces.indexOf(f)), f, rails.get(faces.indexOf(fo)), fo).metadata());
+                } else {
+                    this.setMeta(this.connect(rails.get(faces.indexOf(f)), f).metadata());
+                }
+            }
+        }
+        this.level.setBlock(this.getPosition(), this, true, true);
+        if (!isAbstract()) {
+            level.scheduleUpdate(this, this.getPosition(), 0);
+        }
+        return true;
+    }
+
+    private Rail.Orientation connect(BlockBehaviorRail rail1, BlockFace face1, BlockBehaviorRail rail2, BlockFace face2) {
+        this.connect(rail1, face1);
+        this.connect(rail2, face2);
+
+        if (face1.getOpposite() == face2) {
+            int delta1 = (int) (this.getY() - rail1.getY());
+            int delta2 = (int) (this.getY() - rail2.getY());
+
+            if (delta1 == -1) {
+                return Rail.Orientation.ascending(face1);
+            } else if (delta2 == -1) {
+                return Rail.Orientation.ascending(face2);
+            }
+        }
+        return Rail.Orientation.straightOrCurved(face1, face2);
+    }
+
+    private Rail.Orientation connect(BlockBehaviorRail other, BlockFace face) {
+        int delta = (int) (this.getY() - other.getY());
+        Map<BlockBehaviorRail, BlockFace> rails = other.checkRailsConnected();
+        if (rails.isEmpty()) { //Only one
+            other.setOrientation(delta == 1 ? Rail.Orientation.ascending(face.getOpposite()) : Rail.Orientation.straight(face));
+            return delta == -1 ? Rail.Orientation.ascending(face) : Rail.Orientation.straight(face);
+        } else if (rails.size() == 1) { //Already connected
+            BlockFace faceConnected = rails.values().iterator().next();
+
+            if (other.isAbstract() && faceConnected != face) { //Curve!
+                other.setOrientation(Rail.Orientation.curved(face.getOpposite(), faceConnected));
+                return delta == -1 ? Rail.Orientation.ascending(face) : Rail.Orientation.straight(face);
+            } else if (faceConnected == face) { //Turn!
+                if (!other.getOrientation().isAscending()) {
+                    other.setOrientation(delta == 1 ? Rail.Orientation.ascending(face.getOpposite()) : Rail.Orientation.straight(face));
+                }
+                return delta == -1 ? Rail.Orientation.ascending(face) : Rail.Orientation.straight(face);
+            } else if (other.getOrientation().hasConnectingDirections(BlockFace.NORTH, BlockFace.SOUTH)) { //North-south
+                other.setOrientation(delta == 1 ? Rail.Orientation.ascending(face.getOpposite()) : Rail.Orientation.straight(face));
+                return delta == -1 ? Rail.Orientation.ascending(face) : Rail.Orientation.straight(face);
+            }
+        }
+        return Rail.Orientation.STRAIGHT_NORTH_SOUTH;
+    }
+
+    private Map<BlockBehaviorRail, BlockFace> checkRailsAroundAffected() {
+        Map<BlockBehaviorRail, BlockFace> railsAround = this.checkRailsAround(Arrays.asList(BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH));
+        return railsAround.keySet().stream()
+                .filter(r -> r.checkRailsConnected().size() != 2)
+                .collect(Collectors.toMap(r -> r, railsAround::get));
+    }
+
+    private Map<BlockBehaviorRail, BlockFace> checkRailsAround(Collection<BlockFace> faces) {
+        Map<BlockBehaviorRail, BlockFace> result = new HashMap<>();
+        faces.forEach(f -> {
+            BlockState b = this.getSide(f);
+            Stream.of(b, b.up(), b.down())
+                    .filter(Rail::isRailBlock)
+                    .forEach(block -> result.put((BlockBehaviorRail) block, f));
+        });
+        return result;
+    }
+
+    protected Map<BlockBehaviorRail, BlockFace> checkRailsConnected() {
+        Map<BlockBehaviorRail, BlockFace> railsAround = this.checkRailsAround(this.getOrientation().connectingDirections());
+        return railsAround.keySet().stream()
+                .filter(r -> r.getOrientation().hasConnectingDirections(railsAround.get(r).getOpposite()))
+                .collect(Collectors.toMap(r -> r, railsAround::get));
+    }
+
+    public boolean isAbstract() {
+        return this.getId() == RAIL;
+    }
+
+    public boolean canPowered() {
+        return this.canBePowered;
+    }
+
+    public Rail.Orientation getOrientation() {
+        return Rail.Orientation.byMetadata(this.getRealMeta());
+    }
+
+    public void setOrientation(Rail.Orientation o) {
+        if (o.metadata() != this.getRealMeta()) {
+            this.setMeta(o.metadata());
+            this.level.setBlock(this.getPosition(), this, false, true);
+        }
+    }
+
+    public int getRealMeta() {
+        // Check if this can be powered
+        // Avoid modifying the value from meta (The rail orientation may be false)
+        // Reason: When the rail is curved, the meta will return STRAIGHT_NORTH_SOUTH.
+        // OR Null Pointer Exception
+        if (!isAbstract()) {
+            return getMeta() & 0x7;
+        }
+        // Return the default: This meta
+        return getMeta();
+    }
+
+    public boolean isActive() {
+        return (getMeta() & 0x8) != 0;
+    }
+
+    public void setActive(boolean active) {
+        if (active) {
+            setMeta(getMeta() | 0x8);
+        } else {
+            setMeta(getMeta() & 0x7);
+        }
+        level.setBlock(this.getPosition(), this, true, true);
+    }
+
+    @Override
+    public Item toItem() {
+        return Item.get(id, 0);
+    }
+
+    @Override
+    public Item[] getDrops(Item hand) {
+        return new Item[]{
+                Item.get(RAIL)
+        };
+    }
+
+    @Override
+    public BlockFace getBlockFace() {
+        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
+    }
+}

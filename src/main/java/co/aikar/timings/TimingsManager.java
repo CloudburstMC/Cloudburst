@@ -23,7 +23,7 @@
  */
 package co.aikar.timings;
 
-import cn.nukkit.Server;
+import org.cloudburstmc.server.Server;
 
 import java.util.*;
 
