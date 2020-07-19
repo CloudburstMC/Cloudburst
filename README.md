@@ -28,7 +28,7 @@ Links
 
 Build JAR file
 -------------
-- `git clone https://github.com/Cloudburst/Server`
+- `git clone https://github.com/CloudburstMC/Server.git`
 - `cd Server`
 - `git submodule update --init`
 - `./mvnw clean package`
