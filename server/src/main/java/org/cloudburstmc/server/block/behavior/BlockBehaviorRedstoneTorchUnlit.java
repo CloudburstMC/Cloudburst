@@ -1,0 +1,86 @@
+package org.cloudburstmc.server.block.behavior;
+
+import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
+import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.utils.Identifier;
+
+/**
+ * Created by CreeperFace on 10.4.2017.
+ */
+public class BlockBehaviorRedstoneTorchUnlit extends BlockBehaviorTorch {
+
+    public BlockBehaviorRedstoneTorchUnlit(Identifier id) {
+        super(id);
+    }
+
+    @Override
+    public int getLightLevel() {
+        return 0;
+    }
+
+    @Override
+    public int getWeakPower(BlockFace side) {
+        return 0;
+    }
+
+    @Override
+    public int getStrongPower(BlockFace side) {
+        return 0;
+    }
+
+    @Override
+    public Item toItem() {
+        return Item.get(BlockTypes.REDSTONE_TORCH);
+    }
+
+    @Override
+    public int onUpdate(int type) {
+        if (super.onUpdate(type) == 0) {
+            if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
+                this.level.scheduleUpdate(this, tickRate());
+            } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+                RedstoneUpdateEvent ev = new RedstoneUpdateEvent(this);
+                getLevel().getServer().getPluginManager().callEvent(ev);
+                if (ev.isCancelled()) {
+                    return 0;
+                }
+
+                if (checkState()) {
+                    return 1;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    protected boolean checkState() {
+        BlockFace face = getBlockFace().getOpposite();
+        Vector3i pos = this.getPosition();
+
+        if (!this.level.isSidePowered(face.getOffset(pos), face)) {
+            this.level.setBlock(pos, BlockState.get(BlockTypes.REDSTONE_TORCH, getMeta()), false, true);
+
+            for (BlockFace side : BlockFace.values()) {
+                if (side == face) {
+                    continue;
+                }
+
+                this.level.updateAroundRedstone(side.getOffset(pos), null);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public int tickRate() {
+        return 2;
+    }
+}

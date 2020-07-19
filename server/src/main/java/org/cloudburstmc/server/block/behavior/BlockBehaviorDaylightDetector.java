@@ -1,0 +1,44 @@
+package org.cloudburstmc.server.block.behavior;
+
+import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.Identifier;
+
+/**
+ * Created on 2015/11/22 by CreeperFace.
+ * Package cn.nukkit.block in project Nukkit .
+ */
+public class BlockBehaviorDaylightDetector extends BlockBehaviorTransparent {
+
+    public BlockBehaviorDaylightDetector(Identifier id) {
+        super(id);
+    }
+
+    @Override
+    public float getHardness() {
+        return 0.2f;
+    }
+
+    @Override
+    public BlockColor getColor() {
+        return BlockColor.WOOD_BLOCK_COLOR;
+    }
+
+    @Override
+    public Item toItem() {
+        return Item.get(id, meta);
+    }
+
+    //This function is a suggestion that can be renamed or deleted
+    protected boolean invertDetect() {
+        return false;
+    }
+
+    @Override
+    public boolean canWaterlogSource() {
+        return true;
+    }
+
+    //todo redstone
+
+}
