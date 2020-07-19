@@ -83,7 +83,7 @@ public class DebugPasteCommand extends Command {
                     b.append("os.arch: '").append(System.getProperty("os.arch")).append("'\n");
                     b.append("os.name: '").append(System.getProperty("os.name")).append("'\n");
                     b.append("os.version: '").append(System.getProperty("os.version")).append("'\n\n");
-                    b.append("\n# Create a ticket: https://github.com/NukkitX/Nukkit/issues/new");
+                    b.append("\n# Create a ticket: https://github.com/CloudburstMC/Server/issues/new");
                     String link = HastebinUtility.upload(b.toString());
                     sender.sendMessage(link);
                 } catch (IOException e) {
