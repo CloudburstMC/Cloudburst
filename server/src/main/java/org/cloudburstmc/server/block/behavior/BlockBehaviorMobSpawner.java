@@ -2,16 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by Pub4Game on 27.12.2015.
- */
 public class BlockBehaviorMobSpawner extends BlockBehaviorSolid {
-
-    public BlockBehaviorMobSpawner(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getToolType() {
@@ -29,7 +21,7 @@ public class BlockBehaviorMobSpawner extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[0];
     }
 

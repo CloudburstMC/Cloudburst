@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
@@ -25,7 +26,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (!canStay()) {
                 getLevel().useBreakOn(this.getPosition());
@@ -37,7 +38,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (canStay()) {
             getLevel().setBlock(blockState.getPosition(), this, true, true);
             return true;
@@ -51,7 +52,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == DyeColor.WHITE.getDyeData()) {
             if (player != null && player.getGamemode().isSurvival()) {
                 item.decrementCount();

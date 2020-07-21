@@ -29,10 +29,10 @@ public class BlockBehaviorSandstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];
@@ -40,7 +40,7 @@ public class BlockBehaviorSandstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, this.getMeta() & 0x03);
     }
 

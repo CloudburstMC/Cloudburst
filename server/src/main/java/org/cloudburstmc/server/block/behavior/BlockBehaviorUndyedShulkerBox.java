@@ -51,7 +51,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
 
         ShulkerBox shulkerBox = (ShulkerBox) this.getLevel().getBlockEntity(this.getPosition());
 
@@ -66,7 +66,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         this.getLevel().setBlock(blockState.getPosition(), this, true);
 
         ShulkerBox shulkerBox = BlockEntityRegistry.get().newEntity(SHULKER_BOX, this.getChunk(), this.getPosition());
@@ -83,7 +83,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
             BlockEntity t = this.getLevel().getBlockEntity(this.getPosition());
             ShulkerBox box;

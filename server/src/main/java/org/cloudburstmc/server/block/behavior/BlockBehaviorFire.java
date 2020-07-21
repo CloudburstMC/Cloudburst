@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.entity.Entity;
@@ -18,20 +19,11 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorFire extends FloodableBlockBehavior {
-
-    public BlockBehaviorFire(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean hasEntityCollision() {
@@ -70,15 +62,15 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[0];
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_RANDOM) {
             if (!this.isBlockTopFacingSurfaceSolid(this.down()) && !this.canNeighborBurn()) {
-                BlockFadeEvent event = new BlockFadeEvent(this, get(BlockTypes.AIR));
+                BlockFadeEvent event = new BlockFadeEvent(this, BlockState.AIR);
                 level.getServer().getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
                     level.setBlock(this.getPosition(), event.getNewState(), true);
@@ -296,7 +288,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(BlockTypes.AIR);
     }
 }

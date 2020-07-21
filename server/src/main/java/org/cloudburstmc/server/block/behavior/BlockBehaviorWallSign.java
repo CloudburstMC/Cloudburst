@@ -17,7 +17,7 @@ public class BlockBehaviorWallSign extends BlockBehaviorSignPost {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         int[] faces = {
                 3,
                 2,

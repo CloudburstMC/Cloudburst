@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.Barrel;
 import org.cloudburstmc.server.blockentity.BlockEntity;
@@ -12,21 +13,18 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
-public class BlockBehaviorBarrel extends BlockBehaviorSolid implements Faceable {
+import static org.cloudburstmc.server.block.BlockTypes.BARREL;
 
-    public BlockBehaviorBarrel(Identifier id) {
-        super(id);
-    }
+public class BlockBehaviorBarrel extends BlockBehaviorSolid {
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
-        if (Math.abs(player.getX() - this.getX()) < 2 && Math.abs(player.getZ() - this.getZ()) < 2) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+        BlockState newState = BlockState.get(BARREL);
+        if (Math.abs(player.getX() - block.getX()) < 2 && Math.abs(player.getZ() - block.getZ()) < 2) {
             float y = player.getY() + player.getEyeHeight();
 
-            if (y - this.getY() > 2) {
+            if (y - block.getY() > 2) {
                 this.setMeta(BlockFace.UP.getIndex());
             } else if (this.getY() - y > 0) {
                 this.setMeta(BlockFace.DOWN.getIndex());
@@ -37,26 +35,26 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid implements Faceable 
             this.setMeta(player.getHorizontalFacing().getOpposite().getIndex());
         }
 
-        this.level.setBlock(blockState.getPosition(), this, true, false);
+        block.set(newState, true, false);
 
-        Barrel barrel = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, this.getChunk(), this.getPosition());
+        Barrel barrel = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, block.getChunk(), block.getPosition());
         barrel.loadAdditionalData(item.getTag());
 
         return true;
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (player == null) {
             return false;
         }
 
-        BlockEntity blockEntity = level.getBlockEntity(this.getPosition());
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         Barrel barrel;
         if (blockEntity instanceof Barrel) {
             barrel = (Barrel) blockEntity;
         } else {
-            barrel = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, this.getChunk(), this.getPosition());
+            barrel = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, block.getChunk(), block.getPosition());
         }
 
         player.addWindow(barrel.getInventory());
@@ -90,7 +88,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid implements Faceable 
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(this.id, 0);
     }
 

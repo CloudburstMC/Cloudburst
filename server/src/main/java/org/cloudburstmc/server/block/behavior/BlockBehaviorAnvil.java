@@ -11,23 +11,10 @@ import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.SNOW_LAYER;
 
-/**
- * Created by Pub4Game on 27.12.2015.
- */
 public class BlockBehaviorAnvil extends BlockBehaviorFallable implements Faceable {
-
-    public BlockBehaviorAnvil(Identifier id) {
-        super(id);
-    }
-
-    @Override
-    public final void setMeta(int meta) {
-        this.meta = meta;
-    }
 
     @Override
     public boolean canBeActivated() {
@@ -55,7 +42,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable implements Faceabl
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (!target.isTransparent() || target.getId() == SNOW_LAYER) {
             int meta = this.getMeta();
             int[] faces = {1, 2, 3, 0};
@@ -73,7 +60,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable implements Faceabl
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
             player.addWindow(new AnvilInventory(player.getUIInventory(), this), ContainerIds.ANVIL);
         }
@@ -81,7 +68,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable implements Faceabl
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         int meta = this.getMeta();
         if (meta >= 4 && meta <= 7) {
             return Item.get(id, this.getMeta() & 0x04);
@@ -93,10 +80,10 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable implements Faceabl
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    this.toItem()
+                    this.toItem(blockState)
             };
         }
         return new Item[0];

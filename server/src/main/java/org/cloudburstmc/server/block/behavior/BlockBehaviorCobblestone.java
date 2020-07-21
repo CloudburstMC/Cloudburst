@@ -1,18 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class BlockBehaviorCobblestone extends BlockBehaviorSolid {
-
-    public BlockBehaviorCobblestone(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -30,10 +22,10 @@ public class BlockBehaviorCobblestone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];

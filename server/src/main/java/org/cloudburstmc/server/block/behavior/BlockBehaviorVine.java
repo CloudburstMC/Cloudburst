@@ -148,7 +148,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (target.isSolid() && face.getHorizontalIndex() != -1) {
             this.setMeta(getMeta(face.getOpposite()));
             this.getLevel().setBlock(blockState.getPosition(), this, true, true);
@@ -159,10 +159,10 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isShears()) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];
@@ -170,12 +170,12 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (!this.getSide(getFace(this.getMeta())).isSolid()) {
                 BlockState up = this.up();

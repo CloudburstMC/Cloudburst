@@ -76,7 +76,7 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if ((type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) && this.level.isBlockPowered(this.getPosition())) {
             this.prime();
         }
@@ -85,7 +85,7 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.FLINT_AND_STEEL) {
             item.useOn(this);
             this.prime(80, player);

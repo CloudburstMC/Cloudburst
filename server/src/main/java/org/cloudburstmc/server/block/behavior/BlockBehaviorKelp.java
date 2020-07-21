@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.Item;
@@ -14,64 +15,59 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import static org.cloudburstmc.server.block.BlockTraits.FLUID_LEVEL;
+import static org.cloudburstmc.server.block.BlockTraits.KELP_AGE;
 import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.math.BlockFace.DOWN;
 import static org.cloudburstmc.server.math.MathHelper.clamp;
 
 public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
-    public BlockBehaviorKelp(Identifier id) {
-        super(id);
-    }
-
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
-        int waterDamage = getWaterloggingWaterDamage();
-        if (waterDamage != 0 && waterDamage != 8) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+        Integer waterDamage = block.getExtra().getState().getTrait(FLUID_LEVEL);
+        if (waterDamage == null || waterDamage != 0 && waterDamage != 8) {
             return false;
         }
 
-        BlockState down = down();
-        if ((down.getId() != KELP && !down.isSolid())
-                || down.getId() == MAGMA
-                || down.getId() == ICE
-                || down.getId() == SOUL_SAND
-        ) {
+        Block down = block.getSide(DOWN);
+        BlockState downState = down.getState();
+        if ((downState.getType() != KELP && !down.getBehaviour().isSolid())
+                || downState.getType() == MAGMA || downState.getType() == ICE || downState.getType() == SOUL_SAND) {
             return false;
         }
 
         if (waterDamage == 8) {
-            this.level.setBlock(this.getPosition(), 1, BlockState.get(FLOWING_WATER, 0), true, false);
+            block.getLevel().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
         }
 
-        if (down.getId() == KELP && down.getMeta() != 24) {
-            down.setMeta(24);
-            this.level.setBlock(down.getPosition(), down, true, true);
+        if (downState.getType() == KELP && downState.ensureTrait(KELP_AGE) != 24) {
+            block.set(downState.withTrait(KELP_AGE, 24), true, true);
         }
-        setMeta(ThreadLocalRandom.current().nextInt(25));
-        this.level.setBlock(this.getPosition(), this, true, true);
+        BlockState newState = block.getState().withTrait(KELP_AGE, ThreadLocalRandom.current().nextInt(25));
+        block.set(newState, true, true);
         return true;
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            int waterDamage = getWaterloggingWaterDamage();
-            if (waterDamage != 0 && waterDamage != 8) {
-                this.getLevel().useBreakOn(this.getPosition());
+            Integer waterDamage = block.getState().getTrait(FLUID_LEVEL);
+            if (waterDamage == null || waterDamage != 0 && waterDamage != 8) {
+                block.getLevel().useBreakOn(block.getPosition());
                 return type;
             }
 
-            BlockState down = down();
-            if ((!down.isSolid() && down.getId() != KELP)
-                    || down.getId() == MAGMA
-                    || down.getId() == ICE
-                    || down.getId() == SOUL_SAND) {
-                this.getLevel().useBreakOn(this.getPosition());
+            Block down = block.getSide(DOWN);
+            BlockState downState = down.getState();
+            if ((downState.getType() != KELP && !down.getBehaviour().isSolid())
+                    || downState.getType() == MAGMA || downState.getType() == ICE || downState.getType() == SOUL_SAND) {
+                block.getLevel().useBreakOn(block.getPosition());
                 return type;
             }
 
             if (waterDamage == 8) {
-                this.getLevel().setBlock(this.getPosition(), 1, BlockState.get(FLOWING_WATER, 0), true, false);
+                block.getLevel().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
             }
             return type;
         } else if (type == Level.BLOCK_UPDATE_RANDOM) {
@@ -80,7 +76,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
             }
             return type;
         }
-        return super.onUpdate(type);
+        return super.onUpdate(block, type);
     }
 
     public boolean grow() {
@@ -106,17 +102,17 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Item item) {
+    public boolean onBreak(Block block, Item item) {
         BlockState down = down();
         if (down.getId() == KELP) {
             this.getLevel().setBlock(down.getPosition(), BlockState.get(KELP, ThreadLocalRandom.current().nextInt(25)), true, true);
         }
-        super.onBreak(item);
+        super.onBreak(block, item);
         return true;
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) { //Bone Meal
             int x = getX();
             int z = getZ();
@@ -151,10 +147,9 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.KELP);
     }
-
 
     @Override
     public boolean canWaterlogSource() {

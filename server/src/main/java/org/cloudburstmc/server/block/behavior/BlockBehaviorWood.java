@@ -52,7 +52,7 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, getMeta() & 0xF);
     }
 
@@ -63,7 +63,7 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (!item.isAxe() || !player.isCreative() && !item.useOn(this)) {
             return false;
         }
@@ -111,7 +111,7 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         setAxis(face.getAxis());
         return super.place(item, blockState, target, face, clickPos, player);
     }

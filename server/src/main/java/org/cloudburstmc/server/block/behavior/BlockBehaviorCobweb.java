@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -7,10 +8,6 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created on 2015/12/2 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorCobweb extends FloodableBlockBehavior {
     public BlockBehaviorCobweb(Identifier id) {
         super(id);
@@ -37,7 +34,7 @@ public class BlockBehaviorCobweb extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isShears() || hand.isSword()) {
             return new Item[]{
                     Item.get(ItemIds.STRING)

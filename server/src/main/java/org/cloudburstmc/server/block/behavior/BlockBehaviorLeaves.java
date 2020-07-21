@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.LeavesDecayEvent;
 import org.cloudburstmc.server.item.Item;
@@ -11,7 +12,6 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -19,19 +19,11 @@ import static org.cloudburstmc.server.block.BlockTypes.*;
 import static org.cloudburstmc.server.item.ItemIds.APPLE;
 import static org.cloudburstmc.server.item.ItemIds.STICK;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     public static final int OAK = 0;
     public static final int SPRUCE = 1;
     public static final int BIRCH = 2;
     public static final int JUNGLE = 3;
-
-    public BlockBehaviorLeaves(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -54,22 +46,22 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         this.setPersistent(true);
         this.getLevel().setBlock(this.getPosition(), this, true);
         return true;
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, this.getMeta() & 0x3, 1);
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isShears()) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             if (this.canDropApple() && ThreadLocalRandom.current().nextInt(200) == 0) {
@@ -93,7 +85,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_RANDOM && !isPersistent() && !isCheckDecay()) {
             setCheckDecay(true);
             getLevel().setBlock(this.getPosition(), this, false, false);

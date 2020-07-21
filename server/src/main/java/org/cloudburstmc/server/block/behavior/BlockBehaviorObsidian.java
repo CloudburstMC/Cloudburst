@@ -1,22 +1,14 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.PORTAL;
 
-/**
- * Created on 2015/12/2 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorObsidian extends BlockBehaviorSolid {
-
-    public BlockBehaviorObsidian(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getToolType() {
@@ -34,10 +26,10 @@ public class BlockBehaviorObsidian extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_DIAMOND) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];
@@ -45,7 +37,7 @@ public class BlockBehaviorObsidian extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onBreak(Item item) {
+    public boolean onBreak(Block block, Item item) {
         //destroy the nether portal
         BlockState[] nearby = new BlockState[]{
                 this.up(), this.down(),
@@ -57,7 +49,7 @@ public class BlockBehaviorObsidian extends BlockBehaviorSolid {
                 aNearby.onBreak(item);
             }
         }
-        return super.onBreak(item);
+        return super.onBreak(block, item);
     }
 
     @Override

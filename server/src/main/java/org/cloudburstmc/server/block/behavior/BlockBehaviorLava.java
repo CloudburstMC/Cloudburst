@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockFactory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
@@ -24,18 +25,10 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
-    protected BlockBehaviorLava(Identifier id, Identifier flowingId, Identifier stationaryId) {
-        super(id, flowingId, stationaryId);
-    }
-
     protected BlockBehaviorLava(Identifier flowingId, Identifier stationaryId) {
-        this(flowingId, flowingId, stationaryId);
+        this(flowingId, stationaryId);
     }
 
     @Override
@@ -66,7 +59,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         boolean ret = this.getLevel().setBlock(this.getPosition(), this, true, false);
         this.getLevel().scheduleUpdate(this, this.tickRate());
 
@@ -74,8 +67,8 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     }
 
     @Override
-    public int onUpdate(int type) {
-        int result = super.onUpdate(type);
+    public int onUpdate(Block block, int type) {
+        int result = super.onUpdate(block, type);
 
         if (type == Level.BLOCK_UPDATE_RANDOM && this.level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
             Random random = ThreadLocalRandom.current();

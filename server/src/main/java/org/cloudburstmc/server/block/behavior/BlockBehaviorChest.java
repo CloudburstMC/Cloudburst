@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
@@ -15,18 +16,9 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 @Log4j2
 public class BlockBehaviorChest extends BlockBehaviorTransparent implements Faceable {
-
-    public BlockBehaviorChest(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canWaterlogSource() {
@@ -85,7 +77,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent implements Face
 
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         Chest chest = null;
         int[] faces = {2, 5, 3, 4};
         this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
@@ -105,11 +97,11 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent implements Face
                 }
             }
         }
-        if ((blockState.getId() == BlockTypes.WATER || blockState.getId() == BlockTypes.FLOWING_WATER) && blockState.getMeta() == 0) {
-            this.getLevel().setBlock(blockState.getPosition(), 1, blockState, true, false);
+        if ((block.getId() == BlockTypes.WATER || block.getId() == BlockTypes.FLOWING_WATER) && block.getMeta() == 0) {
+            this.getLevel().setBlock(block.getPosition(), 1, block, true, false);
         }
 
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+        this.getLevel().setBlock(block.getPosition(), this, true, true);
 
         Chest chest1 = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, this.getChunk(), this.getPosition());
         chest1.loadAdditionalData(item.getTag());
@@ -125,16 +117,16 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent implements Face
     }
 
     @Override
-    public boolean onBreak(Item item) {
+    public boolean onBreak(Block block, Item item) {
         BlockEntity t = this.getLevel().getBlockEntity(this.getPosition());
         if (t instanceof Chest) {
             ((Chest) t).unpair();
         }
-        return super.onBreak(item);
+        return super.onBreak(block, item);
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
             BlockState top = up();
             if (!top.isTransparent()) {
@@ -175,7 +167,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent implements Face
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 

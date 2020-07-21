@@ -1,23 +1,19 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.data.DirtType;
 
-/**
- * author: MagicDroidX
- * AMAZING COARSE DIRT added by kvetinac97
- * Nukkit Project
- */
+import static org.cloudburstmc.server.block.BlockTraits.DIRT_TYPE;
+import static org.cloudburstmc.server.block.BlockTypes.DIRT;
+import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
+
 public class BlockBehaviorDirt extends BlockBehaviorSolid {
-
-    public BlockBehaviorDirt(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canBeActivated() {
@@ -40,11 +36,10 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (item.isHoe()) {
-            item.useOn(this);
-            this.getLevel().setBlock(this.getPosition(), this.getMeta() == 0 ? BlockState.get(BlockTypes.FARMLAND) : BlockState.get(BlockTypes.DIRT), true);
-
+            item.useOn(block);
+            block.set(BlockState.get(block.getState().ensureTrait(DIRT_TYPE) == DirtType.NORMAL ? FARMLAND : DIRT), true);
             return true;
         }
 
@@ -52,7 +47,7 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{Item.get(BlockTypes.DIRT)};
     }
 

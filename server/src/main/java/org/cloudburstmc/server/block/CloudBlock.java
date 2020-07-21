@@ -39,4 +39,9 @@ public class CloudBlock implements Block {
         BlockState fluidState = this.level.getBlockAt(this.position, 1);
         return (fluidState.getType() == WATER || fluidState.getType() == FLOWING_WATER);
     }
+
+    @Override
+    public void set(BlockState state, boolean direct, boolean update) {
+        this.level.setBlock(this.position, this.layer, state, direct, update);
+    }
 }

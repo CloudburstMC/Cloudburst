@@ -34,13 +34,13 @@ public class BlockBehaviorRedstoneTorchUnlit extends BlockBehaviorTorch {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(BlockTypes.REDSTONE_TORCH);
     }
 
     @Override
-    public int onUpdate(int type) {
-        if (super.onUpdate(type) == 0) {
+    public int onUpdate(Block block, int type) {
+        if (super.onUpdate(block, type) == 0) {
             if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
                 this.level.scheduleUpdate(this, tickRate());
             } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {

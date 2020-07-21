@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
@@ -10,15 +11,7 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created on 2015/12/2 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
-
-    public BlockBehaviorFarmland(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getResistance() {
@@ -41,7 +34,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_RANDOM) {
             Vector3f v = Vector3f.ZERO;
 
@@ -102,7 +95,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(BlockTypes.DIRT);
     }
 

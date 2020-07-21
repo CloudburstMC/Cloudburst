@@ -1,23 +1,16 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.item.ItemIds.ENDER_EYE;
 
-/**
- * Created by Pub4Game on 26.12.2015.
- */
 public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent implements Faceable {
-
-    public BlockBehaviorEndPortalFrame(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getResistance() {
@@ -63,7 +56,7 @@ public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent implem
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if ((this.getMeta() & 0x04) == 0 && player != null && item.getId() == ENDER_EYE) {
             this.setMeta(this.getMeta() + 4);
             this.getLevel().setBlock(this.getPosition(), this, true, true);
@@ -80,7 +73,7 @@ public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent implem
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 

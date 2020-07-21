@@ -1,18 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class BlockBehaviorGlass extends BlockBehaviorTransparent {
-
-    public BlockBehaviorGlass(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getResistance() {
@@ -25,7 +17,7 @@ public class BlockBehaviorGlass extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[0];
     }
 

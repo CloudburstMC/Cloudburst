@@ -28,7 +28,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior implements Faceab
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             BlockState below = this.down();
             int side = this.getMeta();
@@ -53,7 +53,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior implements Faceab
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         BlockState below = this.down();
 
         if (!target.isTransparent() && face != BlockFace.DOWN) {
@@ -79,7 +79,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior implements Faceab
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 

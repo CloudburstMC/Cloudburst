@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
@@ -14,7 +15,6 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,16 +22,9 @@ import java.util.List;
 import static com.nukkitx.math.vector.Vector3i.UP;
 import static org.cloudburstmc.server.block.BlockTypes.*;
 
-/**
- * @author CreeperFace
- */
 public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid implements Faceable {
 
     public boolean sticky;
-
-    public BlockBehaviorPistonBase(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getResistance() {
@@ -44,7 +37,7 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid impleme
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (Math.abs(player.getX() - this.getX()) < 2 && Math.abs(player.getZ() - this.getZ()) < 2) {
             float y = player.getY() + player.getEyeHeight();
 
@@ -67,8 +60,8 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid impleme
     }
 
     @Override
-    public boolean onBreak(Item item) {
-        super.onBreak(item);
+    public boolean onBreak(Block block, Item item) {
+        super.onBreak(block, item);
 
         BlockState blockState = this.getSide(getFacing());
 
@@ -85,7 +78,7 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid impleme
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type != 6 && type != 1) {
             return 0;
         } else {
@@ -226,7 +219,7 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid impleme
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 

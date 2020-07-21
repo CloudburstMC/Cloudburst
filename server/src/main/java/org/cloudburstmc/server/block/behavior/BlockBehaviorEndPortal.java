@@ -1,15 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorEndPortal extends FloodableBlockBehavior {
-
-    public BlockBehaviorEndPortal(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canPassThrough() {
@@ -57,7 +53,7 @@ public class BlockBehaviorEndPortal extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(BlockTypes.AIR, 0, 0);
     }
 }

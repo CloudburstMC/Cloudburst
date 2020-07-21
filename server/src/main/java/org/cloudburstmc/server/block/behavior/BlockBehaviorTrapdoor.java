@@ -165,7 +165,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent implements F
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_REDSTONE) {
             if ((!this.isOpen() && this.level.isBlockPowered(this.getPosition())) || (this.isOpen() && !this.level.isBlockPowered(this.getPosition()))) {
                 this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, isOpen() ? 15 : 0, isOpen() ? 0 : 15));
@@ -180,12 +180,12 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent implements F
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (toggle(player)) {
             this.level.addSound(this.getPosition(), isOpen() ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
             return true;
@@ -194,7 +194,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent implements F
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         BlockFace facing;
         boolean top;
         int meta = 0;

@@ -21,7 +21,7 @@ public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         int[] faces = {2, 5, 3, 4};
 
         Chest chest = null;

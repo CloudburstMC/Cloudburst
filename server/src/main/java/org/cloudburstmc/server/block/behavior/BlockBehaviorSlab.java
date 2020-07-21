@@ -105,12 +105,12 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(this.id, this.getMeta() & 0x07);
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         int meta = this.getMeta() & 0x07;
         boolean isTop;
         BlockBehaviorDoubleSlab dSlab = (BlockBehaviorDoubleSlab) BlockRegistry.get().getBlock(this.doubleSlabId, meta);

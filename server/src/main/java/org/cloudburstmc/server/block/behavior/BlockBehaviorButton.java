@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.Item;
@@ -9,16 +10,8 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by CreeperFace on 27. 11. 2016.
- */
 public abstract class BlockBehaviorButton extends FloodableBlockBehavior implements Faceable {
-
-    public BlockBehaviorButton(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getResistance() {
@@ -31,7 +24,7 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior impleme
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (target.isTransparent()) {
             return false;
         }
@@ -47,7 +40,7 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior impleme
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (this.isActivated()) {
             return false;
         }
@@ -64,7 +57,7 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior impleme
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.getSide(getFacing().getOpposite()).isTransparent()) {
                 this.level.useBreakOn(this.getPosition());
@@ -111,16 +104,16 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior impleme
     }
 
     @Override
-    public boolean onBreak(Item item) {
+    public boolean onBreak(Block block, Item item) {
         if (isActivated()) {
             this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 15, 0));
         }
 
-        return super.onBreak(item);
+        return super.onBreak(block, item);
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(this.getId(), 0);
     }
 

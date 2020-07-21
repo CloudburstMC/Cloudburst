@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorMonsterEgg extends BlockBehaviorSolid {
     public static final int STONE = 0;
@@ -10,10 +10,6 @@ public class BlockBehaviorMonsterEgg extends BlockBehaviorSolid {
     public static final int MOSSY_BRICK = 3;
     public static final int CRACKED_BRICK = 4;
     public static final int CHISELED_BRICK = 5;
-
-    public BlockBehaviorMonsterEgg(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -26,7 +22,7 @@ public class BlockBehaviorMonsterEgg extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[0];
     }
 }

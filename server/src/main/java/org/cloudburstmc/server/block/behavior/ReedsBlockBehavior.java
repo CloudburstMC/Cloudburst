@@ -24,7 +24,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.REEDS);
     }
 
@@ -34,7 +34,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0F) { //Bonemeal
             int count = 1;
 
@@ -80,7 +80,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             BlockState down = this.down();
             if (down.isTransparent() && down.getId() != BlockTypes.REEDS) {
@@ -110,7 +110,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (blockState.getId() != BlockTypes.AIR) {
             return false;
         }

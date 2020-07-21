@@ -29,7 +29,7 @@ public class BlockBehaviorSeaLantern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(ItemIds.PRISMARINE_CRYSTALS, 0, ThreadLocalRandom.current().nextInt(2, 4))
         };

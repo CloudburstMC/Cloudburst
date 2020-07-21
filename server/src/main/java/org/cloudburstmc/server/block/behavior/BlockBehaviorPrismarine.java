@@ -1,19 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorPrismarine extends BlockBehaviorSolid {
-
-    public static final int NORMAL = 0;
-    public static final int BRICKS = 1;
-    public static final int DARK = 2;
-
-    public BlockBehaviorPrismarine(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -31,10 +23,10 @@ public class BlockBehaviorPrismarine extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];

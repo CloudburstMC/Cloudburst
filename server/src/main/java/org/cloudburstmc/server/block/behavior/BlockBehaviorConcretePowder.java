@@ -7,18 +7,10 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
 
-/**
- * Created by CreeperFace on 2.6.2017.
- */
 public class BlockBehaviorConcretePowder extends BlockBehaviorFallable {
-
-    public BlockBehaviorConcretePowder(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getResistance() {
@@ -36,7 +28,7 @@ public class BlockBehaviorConcretePowder extends BlockBehaviorFallable {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             super.onUpdate(Level.BLOCK_UPDATE_NORMAL);
 

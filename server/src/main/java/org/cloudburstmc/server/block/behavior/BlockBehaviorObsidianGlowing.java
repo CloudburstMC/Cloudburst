@@ -1,20 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.OBSIDIAN;
 
-/**
- * Created on 2015/11/22 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorObsidianGlowing extends BlockBehaviorSolid {
-
-    public BlockBehaviorObsidianGlowing(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getToolType() {
@@ -37,15 +29,15 @@ public class BlockBehaviorObsidianGlowing extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(OBSIDIAN);
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() > ItemTool.TIER_DIAMOND) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];

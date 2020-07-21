@@ -21,9 +21,9 @@ public class BlockNetherWartBlockBehavior extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
-                toItem()
+                toItem(blockState)
         };
     }
 

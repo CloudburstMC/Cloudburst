@@ -5,6 +5,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorAir;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLava;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
@@ -96,7 +97,7 @@ public class ItemBucket extends Item {
             if (target instanceof BlockBehaviorLiquid && target.getMeta() == 0) {
                 Item result = Item.get(ItemIds.BUCKET, this.getDamageFromIdentifier(target.getId()), 1);
                 PlayerBucketFillEvent ev;
-                player.getServer().getPluginManager().callEvent(ev = new PlayerBucketFillEvent(player, blockState, face, this, result));
+                player.getServer().getPluginManager().callEvent(ev = new PlayerBucketFillEvent(player, block, face, this, result));
                 if (!ev.isCancelled()) {
                     player.getLevel().setBlock(target.getPosition(), BlockState.get(AIR), true, true);
 
@@ -160,14 +161,16 @@ public class ItemBucket extends Item {
                 }
 
                 if (this.getMeta() == 10) {
-                    level.addLevelSoundEvent(blockState.getPosition(), SoundEvent.BUCKET_EMPTY_LAVA);
+                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_EMPTY_LAVA);
                 } else {
-                    level.addLevelSoundEvent(blockState.getPosition(), SoundEvent.BUCKET_EMPTY_WATER);
+                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_EMPTY_WATER);
                 }
 
                 return true;
             } else {
-                player.getLevel().sendBlocks(new Player[]{player}, new BlockState[]{BlockState.get(AIR, 0, blockState.getPosition(), 1)}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                player.getLevel().sendBlocks(new Player[]{player},
+                        new Block[]{new CloudBlock(BlockState.AIR, block.getLevel(), block.getChunk(), block.getPosition(), block.getLayer())},
+                        UpdateBlockPacket.FLAG_ALL_PRIORITY);
                 player.getInventory().sendContents(player);
             }
         }

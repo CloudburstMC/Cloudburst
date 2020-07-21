@@ -6,6 +6,8 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.BlockFace;
 
+import static org.cloudburstmc.server.math.BlockFace.*;
+
 public interface Block {
 
     BlockState getState();
@@ -32,6 +34,30 @@ public interface Block {
 
     BlockBehavior getBehaviour();
 
+    default Block up() {
+        return getSide(UP, 1);
+    }
+
+    default Block down() {
+        return getSide(DOWN, 1);
+    }
+
+    default Block north() {
+        return getSide(NORTH, 1);
+    }
+
+    default Block east() {
+        return getSide(EAST, 1);
+    }
+
+    default Block south() {
+        return getSide(SOUTH, 1);
+    }
+
+    default Block west() {
+        return getSide(WEST, 1);
+    }
+
     default Block getSide(BlockFace face) {
         return getSide(face, 1);
     }
@@ -41,4 +67,14 @@ public interface Block {
     Block getExtra();
 
     boolean isWaterlogged();
+
+    default void set(BlockState state) {
+        this.set(state, false, true);
+    }
+
+    default void set(BlockState state, boolean direct) {
+        this.set(state, direct, true);
+    }
+
+    void set(BlockState state, boolean direct, boolean update);
 }

@@ -1,28 +1,20 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by Leonidius20 on 18.08.18.
- */
 public class BlockBehaviorObserver extends BlockBehaviorSolid implements Faceable {
 
-    public BlockBehaviorObserver(Identifier id) {
-        super(id);
-    }
-
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         int[] faces = {2, 5, 3, 4};
         this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+        this.getLevel().setBlock(block.getPosition(), this, true, true);
         return true;
     }
 

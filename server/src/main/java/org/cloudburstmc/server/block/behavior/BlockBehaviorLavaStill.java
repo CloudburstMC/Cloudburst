@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockFactory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
@@ -12,12 +13,8 @@ import org.cloudburstmc.server.utils.Identifier;
  */
 public class BlockBehaviorLavaStill extends BlockBehaviorLava {
 
-    protected BlockBehaviorLavaStill(Identifier id, Identifier flowingId, Identifier stationaryId) {
-        super(id, flowingId, stationaryId);
-    }
-
     protected BlockBehaviorLavaStill(Identifier flowingId, Identifier stationaryId) {
-        this(stationaryId, flowingId, stationaryId);
+        super(flowingId, stationaryId);
     }
 
     @Override
@@ -26,9 +23,9 @@ public class BlockBehaviorLavaStill extends BlockBehaviorLava {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type != Level.BLOCK_UPDATE_SCHEDULED) {
-            return super.onUpdate(type);
+            return super.onUpdate(block, type);
         }
         return 0;
     }

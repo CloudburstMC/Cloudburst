@@ -31,9 +31,9 @@ public class BlockBehaviorSmoothStone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe()) {
-            return new Item[]{toItem()};
+            return new Item[]{toItem(blockState)};
         } else {
             return new Item[0];
         }

@@ -43,7 +43,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.STRING);
     }
 
@@ -120,7 +120,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             if (!isPowered()) {
                 return type;
@@ -149,7 +149,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         this.getLevel().setBlock(this.getPosition(), this, true, true);
         this.updateHook(false);
 
@@ -157,15 +157,15 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Item item) {
+    public boolean onBreak(Block block, Item item) {
         if (item.getId() == ItemIds.SHEARS) {
             this.setDisarmed(true);
             this.level.setBlock(this.getPosition(), this, true, false);
             this.updateHook(false);
-            super.onBreak(item);
+            super.onBreak(block, item);
         } else {
             this.setPowered(true);
-            super.onBreak(item);
+            super.onBreak(block, item);
             this.updateHook(true);
         }
 

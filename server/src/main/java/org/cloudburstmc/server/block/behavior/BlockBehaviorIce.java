@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
@@ -9,17 +10,8 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorIce extends BlockBehaviorTransparent {
-
-    public BlockBehaviorIce(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getResistance() {
@@ -42,7 +34,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onBreak(Item item, Player player) {
+    public boolean onBreak(Block block, Item item, Player player) {
         if (player.getGamemode() == GameMode.CREATIVE) {
             return this.getLevel().setBlock(this.getPosition(), BlockState.AIR, true);
         }
@@ -55,7 +47,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_RANDOM) {
             if (this.getLevel().getBlockLightAt(this.getX(), this.getY(), this.getZ()) >= 12) {
                 BlockFadeEvent event = new BlockFadeEvent(this, BlockState.get(BlockTypes.WATER));
@@ -70,7 +62,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[0];
     }
 

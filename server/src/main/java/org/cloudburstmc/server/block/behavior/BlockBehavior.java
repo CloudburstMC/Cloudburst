@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.BlockItem;
 import org.cloudburstmc.server.item.Item;
@@ -20,11 +19,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
-
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 
 public abstract class BlockBehavior implements AxisAlignedBB {
 
@@ -90,11 +84,11 @@ public abstract class BlockBehavior implements AxisAlignedBB {
         return 0;
     }
 
-    public boolean onActivate(Item item) {
+    public boolean onActivate(Block block, Item item) {
         return this.onActivate(item, null);
     }
 
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         return false;
     }
 
@@ -183,7 +177,7 @@ public abstract class BlockBehavior implements AxisAlignedBB {
         return block.getLevel().setBlock(block.getPosition(), item.getBlock(), true, true);
     }
 
-    public boolean onBreak(Item item) {
+    public boolean onBreak(Block block, Item item) {
         return removeBlock(true);
     }
 
@@ -196,8 +190,8 @@ public abstract class BlockBehavior implements AxisAlignedBB {
         return this.getLevel().setBlock(this.getPosition(), BlockBehavior.get(AIR), true, update);
     }
 
-    public boolean onBreak(Item item, Player player) {
-        return onBreak(item);
+    public boolean onBreak(Block block, Item item, Player player) {
+        return onBreak(block, item);
     }
 
     public float getHardness() {
@@ -238,9 +232,9 @@ public abstract class BlockBehavior implements AxisAlignedBB {
                 blockToolType == ItemTool.TYPE_NONE;
     }
 
-    public Item[] getDrops(Block block, Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
-                this.toItem(block.getState())
+                this.toItem(blockState)
         };
     }
 
@@ -383,21 +377,5 @@ public abstract class BlockBehavior implements AxisAlignedBB {
 
     public boolean canWaterlogFlowing() {
         return false;
-    }
-
-    public boolean isWaterlogged(Block block) {
-        BlockState fluidState = block.getLevel().getBlock(block.getPosition(), 1);
-        return (fluidState.getType() == WATER || fluidState.getType() == FLOWING_WATER);
-    }
-
-    /**
-     * Returns the data of the water which is waterlogging this block.
-     *
-     * @return -1 if the block is not waterlogged, the water meta otherwise.
-     */
-    public int getWaterloggingWaterDamage(Block block) {
-        BlockState fluidState = block.getLevel().getBlock(block.getPosition(), 1);
-        Integer fluidLevel = fluidState.getTrait(BlockTraits.FLUID_LEVEL);
-        return (fluidLevel == null) ? -1 : fluidLevel;
     }
 }

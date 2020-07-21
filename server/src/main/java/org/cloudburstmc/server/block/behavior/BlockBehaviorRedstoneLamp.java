@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
@@ -10,16 +11,8 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * @author Nukkit Project Team
- */
 public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
-
-    public BlockBehaviorRedstoneLamp(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -37,7 +30,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (this.level.isBlockPowered(this.getPosition())) {
             this.level.setBlock(this.getPosition(), BlockState.get(BlockTypes.LIT_REDSTONE_LAMP), false, true);
         } else {
@@ -47,7 +40,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
             // Redstone event
             RedstoneUpdateEvent ev = new RedstoneUpdateEvent(this);
@@ -65,7 +58,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(BlockTypes.REDSTONE_LAMP)
         };

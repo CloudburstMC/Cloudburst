@@ -1,14 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created on 2015/11/22 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorPodzol extends BlockBehaviorDirt {
 
     public BlockBehaviorPodzol(Identifier id) {
@@ -26,7 +23,7 @@ public class BlockBehaviorPodzol extends BlockBehaviorDirt {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         return false;
     }
 

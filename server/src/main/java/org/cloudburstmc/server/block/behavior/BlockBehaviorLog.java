@@ -11,15 +11,7 @@ import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorLog extends BlockBehaviorSolid {
-    public static final int OAK = 0;
-    public static final int SPRUCE = 1;
-    public static final int BIRCH = 2;
-    public static final int JUNGLE = 3;
 
     public static final int UP_DOWN = 0 << 2;
     public static final int EAST_WEST = 1 << 2;
@@ -43,10 +35,6 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
             0b0100,
             0b0100
     };
-
-    public BlockBehaviorLog(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -81,7 +69,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (!item.isAxe() || !item.useOn(this)) {
             return false;
         }
@@ -94,7 +82,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         // Convert the old log bark to the new wood block
         if ((this.getMeta() & 0b1100) == 0b1100) {
             BlockState woodBlockState = BlockState.get(BlockTypes.WOOD, this.getMeta() & 0x03, this.getPosition(), this.getLevel());
@@ -128,7 +116,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         if ((getMeta() & 0b1100) == 0b1100) {
             return Item.get(BlockTypes.WOOD, this.getMeta() & 0x3);
         } else {

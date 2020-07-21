@@ -46,7 +46,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         BlockState down = this.down();
         if (down.isSolid()) {
             this.getLevel().setBlock(blockState.getPosition(), this, true);
@@ -57,8 +57,8 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public int onUpdate(int type) {
-        super.onUpdate(type);
+    public int onUpdate(Block block, int type) {
+        super.onUpdate(block, type);
         if (type == Level.BLOCK_UPDATE_RANDOM) {
             if (this.getLevel().getBlockLightAt((int) this.getX(), (int) this.getY(), (int) this.getZ()) >= 10) {
                 BlockFadeEvent event = new BlockFadeEvent(this, BlockState.get(AIR));
@@ -73,15 +73,15 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.SNOWBALL);
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isShovel() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    this.toItem()
+                    this.toItem(blockState)
             };
         } else {
             return new Item[0];

@@ -1,28 +1,24 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Rail;
 
 import static org.cloudburstmc.server.block.BlockTypes.ACTIVATOR_RAIL;
 
-/**
- * @author Nukkit Project Team
- */
 public class BlockBehaviorRailActivator extends BlockBehaviorRail {
 
-    public BlockBehaviorRailActivator(Identifier id) {
-        super(id);
+    public BlockBehaviorRailActivator() {
         canBePowered = true;
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE || type == Level.BLOCK_UPDATE_SCHEDULED) {
-            super.onUpdate(type);
+            super.onUpdate(block, type);
             boolean wasPowered = isActive();
             boolean isPowered = level.isBlockPowered(this.getPosition())
                     || checkSurrounding(this.getPosition(), true, 0)
@@ -157,7 +153,7 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(ACTIVATOR_RAIL)
         };

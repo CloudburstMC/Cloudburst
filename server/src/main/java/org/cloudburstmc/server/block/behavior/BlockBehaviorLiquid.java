@@ -22,11 +22,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-
 public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     private static final byte CAN_FLOW_DOWN = 1;
@@ -38,8 +33,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     protected Vector3f flowVector = null;
     private Long2ByteMap flowCostVisited = new Long2ByteOpenHashMap();
 
-    public BlockBehaviorLiquid(Identifier id, Identifier flowingId, Identifier stationaryId) {
-        super(id);
+    public BlockBehaviorLiquid(Identifier flowingId, Identifier stationaryId) {
         this.flowingId = flowingId;
         this.stationaryId = stationaryId;
     }
@@ -53,7 +47,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         return null;
     }
 
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[0];
     }
 
@@ -185,7 +179,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             this.checkForHarden();
             // This check exists because if water is at layer1 with air at layer0, the water gets invisible
@@ -484,7 +478,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(AIR, 0, 0);
     }
 

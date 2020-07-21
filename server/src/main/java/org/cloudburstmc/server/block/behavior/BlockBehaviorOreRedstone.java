@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
@@ -7,20 +8,11 @@ import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
-
-    public BlockBehaviorOreRedstone(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -38,7 +30,7 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_IRON) {
             int count = new Random().nextInt(2) + 4;
 
@@ -56,7 +48,7 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_TOUCH) { //type == Level.BLOCK_UPDATE_NORMAL ||
             this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockTypes.LIT_REDSTONE_ORE), false, false);
 

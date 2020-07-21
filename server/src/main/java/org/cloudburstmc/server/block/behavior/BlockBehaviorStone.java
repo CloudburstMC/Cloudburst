@@ -41,7 +41,7 @@ public class BlockBehaviorStone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
                     Item.get(this.getMeta() == 0 ? COBBLESTONE : STONE, this.getMeta(), 1)

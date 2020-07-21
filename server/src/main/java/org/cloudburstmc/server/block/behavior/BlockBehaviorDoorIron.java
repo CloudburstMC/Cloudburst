@@ -1,21 +1,14 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
-
-    public BlockBehaviorDoorIron(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canBeActivated() {
@@ -38,10 +31,10 @@ public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];
@@ -49,7 +42,7 @@ public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.IRON_DOOR);
     }
 
@@ -59,7 +52,7 @@ public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         return false;
     }
 

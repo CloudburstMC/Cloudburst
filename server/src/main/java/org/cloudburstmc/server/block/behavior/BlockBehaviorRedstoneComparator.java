@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Comparator;
@@ -12,20 +13,12 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.POWERED_COMPARATOR;
 import static org.cloudburstmc.server.block.BlockTypes.UNPOWERED_COMPARATOR;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.COMPARATOR;
 
-/**
- * @author CreeperFace
- */
 public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode {
-
-    public BlockBehaviorRedstoneComparator(Identifier id) {
-        super(id);
-    }
 
     @Override
     protected int getDelay() {
@@ -114,7 +107,7 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (getMode() == Mode.SUBTRACT) {
             this.setMeta(this.getMeta() - 4);
         } else {
@@ -130,13 +123,13 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             this.onChange();
             return type;
         }
 
-        return super.onUpdate(type);
+        return super.onUpdate(block, type);
     }
 
     private void onChange() {
@@ -165,8 +158,8 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
-        if (super.place(item, blockState, target, face, clickPos, player)) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+        if (super.place(item, block, target, face, clickPos, player)) {
             BlockEntityRegistry.get().newEntity(COMPARATOR, this.getChunk(), this.getPosition());
 
             this.onUpdate(Level.BLOCK_UPDATE_REDSTONE);
@@ -182,7 +175,7 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.COMPARATOR);
     }
 

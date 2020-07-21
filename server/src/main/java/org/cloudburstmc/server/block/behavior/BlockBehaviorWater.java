@@ -27,7 +27,7 @@ public class BlockBehaviorWater extends BlockBehaviorLiquid {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         boolean success = target.getLevel().setBlock(blockState.getPosition(), this, true, false);
         if (success) this.getLevel().scheduleUpdate(this, this.tickRate());
 

@@ -93,8 +93,8 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior implements
     }
 
     @Override
-    public boolean onBreak(Item item) {
-        boolean result = super.onBreak(item);
+    public boolean onBreak(Block block, Item item) {
+        boolean result = super.onBreak(block, item);
         for (BlockFace face : BlockFace.values()) {
             BlockState b = this.getSide(face);
             if (b != null) {
@@ -132,7 +132,7 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior implements
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(BlockTypes.AIR, 0, 0);
     }
 

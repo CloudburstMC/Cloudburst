@@ -1,6 +1,6 @@
-package cn.nukkit;
+package org.cloudburstmc.server;
 
-import cn.nukkit.utils.Zlib;
+import org.cloudburstmc.server.utils.Zlib;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.event.block;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
@@ -18,8 +19,8 @@ public class BlockSpreadEvent extends BlockFormEvent implements Cancellable {
 
     private final BlockState source;
 
-    public BlockSpreadEvent(BlockState blockState, BlockState source, BlockState newState) {
-        super(blockState, newState);
+    public BlockSpreadEvent(Block block, BlockState source, BlockState newState) {
+        super(block, newState);
         this.source = source;
     }
 

@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
@@ -19,7 +20,6 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * @author Sleepybear
@@ -28,10 +28,6 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid implements Faceabl
 
     private static final int CAMPFIRE_LIT_MASK = 0x04; // Bit is 1 when fire is extinguished
     private static final int CAMPFIRE_FACING_MASK = 0x03;
-
-    public BlockBehaviorCampfire(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -66,7 +62,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid implements Faceabl
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (!blockState.canBeReplaced()) return false;
         if (blockState.down().getId() == BlockTypes.CAMPFIRE) {
             return false;
@@ -110,12 +106,12 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid implements Faceabl
     }
 
     @Override
-    public boolean onActivate(Item item) {
+    public boolean onActivate(Block block, Item item) {
         return this.onActivate(item, null);
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.getEnchantment(Enchantment.ID_SILK_TOUCH) != null) {
             return super.getDrops(hand);
         } else {
@@ -124,7 +120,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid implements Faceabl
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.FLINT_AND_STEEL
                 || item.getEnchantment(Enchantment.ID_FIRE_ASPECT) != null) {
             if (!(this.isLit())) {
@@ -162,7 +158,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid implements Faceabl
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.isLit()) {
                 if (this.isWaterlogged()) {

@@ -1,17 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class BlockBehaviorBedrock extends BlockBehaviorSolid {
-
-    public BlockBehaviorBedrock(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

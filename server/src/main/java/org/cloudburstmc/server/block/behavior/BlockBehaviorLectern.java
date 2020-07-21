@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
@@ -17,14 +17,8 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
-public class BlockBehaviorLectern extends BlockBehaviorTransparent implements Faceable {
-
-    public BlockBehaviorLectern(Identifier id) {
-        super(id);
-    }
+public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
     @Override
     public boolean canBeActivated() {
@@ -73,11 +67,6 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent implements Fa
         return power;
     }
 
-    @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(getMeta() & 0b11);
-    }
-
     public void setBlockFace(BlockFace face) {
         final int dataMask = (1 << 6) - 1;
 
@@ -88,7 +77,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent implements Fa
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         setBlockFace(player != null ? player.getDirection().getOpposite() : BlockFace.SOUTH);
 
         Lectern lectern = BlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, this.getChunk(), this.getPosition());
@@ -98,7 +87,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent implements Fa
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
             BlockEntity t = this.getLevel().getBlockEntity(this.getPosition());
             Lectern lectern;
@@ -170,7 +159,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent implements Fa
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             if (isActivated()) {
                 this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 15, 0));

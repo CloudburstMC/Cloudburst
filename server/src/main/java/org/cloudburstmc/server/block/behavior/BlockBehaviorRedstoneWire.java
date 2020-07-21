@@ -52,7 +52,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (face != BlockFace.UP || !canBePlacedOn(target.getPosition())) {
             return false;
         }
@@ -157,7 +157,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Item item) {
+    public boolean onBreak(Block block, Item item) {
         this.getLevel().setBlock(this.getPosition(), BlockState.get(AIR), true, true);
 
         Vector3i pos = this.getPosition();
@@ -196,7 +196,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.REDSTONE);
     }
 
@@ -235,7 +235,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type != Level.BLOCK_UPDATE_NORMAL && type != Level.BLOCK_UPDATE_REDSTONE) {
             return 0;
         }

@@ -23,7 +23,7 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.down().getId() != FARMLAND) {
                 this.getLevel().useBreakOn(this.getPosition());
@@ -65,12 +65,12 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.MELON_SEEDS);
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(ItemIds.MELON_SEEDS, 0, ThreadLocalRandom.current().nextInt(0, 4))
         };

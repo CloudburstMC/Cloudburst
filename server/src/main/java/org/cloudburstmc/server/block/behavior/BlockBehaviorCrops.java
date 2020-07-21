@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -11,39 +11,29 @@ import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
-
-    protected BlockBehaviorCrops(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canBeActivated() {
         return true;
     }
 
-
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
-        if (blockState.down().getId() == FARMLAND) {
-            this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+        if (block.down().getId() == FARMLAND) {
+            this.getLevel().setBlock(block.getPosition(), this, true, true);
             return true;
         }
         return false;
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         //Bone meal
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) {
             if (this.getMeta() < 7) {
@@ -74,7 +64,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.down().getId() != FARMLAND) {
                 this.getLevel().useBreakOn(this.getPosition());

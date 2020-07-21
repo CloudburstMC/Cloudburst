@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.EnchantingTable;
@@ -12,18 +13,10 @@ import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.ENCHANTING_TABLE;
 
-/**
- * Created on 2015/11/22 by CreeperFace.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
-    public BlockBehaviorEnchantingTable(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getToolType() {
@@ -51,10 +44,10 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];
@@ -62,8 +55,8 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+        this.getLevel().setBlock(block.getPosition(), this, true, true);
 
         EnchantingTable enchantingTable = BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, this.getChunk(), this.getPosition());
         enchantingTable.loadAdditionalData(item.getTag());
@@ -74,7 +67,7 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
             BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
             if (!(blockEntity instanceof EnchantingTable)) {

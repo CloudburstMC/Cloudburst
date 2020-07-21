@@ -5,17 +5,8 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created on 2015/12/7 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public abstract class BlockBehaviorFence extends BlockBehaviorTransparent {
-
-    public BlockBehaviorFence(Identifier id) {
-        super(id);
-    }
 
     @Override
     protected AxisAlignedBB recalculateBoundingBox() {
@@ -59,7 +50,7 @@ public abstract class BlockBehaviorFence extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, this.getMeta());
     }
 

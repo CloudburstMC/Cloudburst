@@ -1,19 +1,15 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.WOODEN_SLAB;
 
-/**
- * Created on 2015/12/2 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorDoubleSlabWood extends BlockBehaviorDoubleSlab {
 
-    public BlockBehaviorDoubleSlabWood(Identifier id) {
-        super(id, WOODEN_SLAB, BlockBehaviorSlabWood.COLORS);
+    public BlockBehaviorDoubleSlabWood() {
+        super(WOODEN_SLAB, BlockBehaviorSlabWood.COLORS);
     }
 
     @Override
@@ -42,7 +38,7 @@ public class BlockBehaviorDoubleSlabWood extends BlockBehaviorDoubleSlab {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(this.getSlabId(), this.getMeta() & 0x07, 2)
         };
