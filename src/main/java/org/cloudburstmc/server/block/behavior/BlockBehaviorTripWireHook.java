@@ -27,7 +27,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (!this.getSide(this.getFacing().getOpposite()).isNormalBlock()) {
                 this.level.useBreakOn(this.getPosition());
@@ -43,7 +43,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (!this.getSide(face.getOpposite()).isNormalBlock() || face == BlockFace.DOWN || face == BlockFace.UP) {
             return false;
         }
@@ -61,8 +61,8 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Item item) {
-        super.onBreak(item);
+    public boolean onBreak(Block block, Item item) {
+        super.onBreak(block, item);
         boolean attached = isAttached();
         boolean powered = isPowered();
 
@@ -221,7 +221,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 

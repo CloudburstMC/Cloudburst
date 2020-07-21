@@ -1,24 +1,17 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.PURPUR_BLOCK;
 
 public class BlockBehaviorPurpur extends BlockBehaviorSolid {
-
-    public static final int PURPUR_NORMAL = 0;
-    public static final int PURPUR_PILLAR = 2;
-
-    public BlockBehaviorPurpur(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -36,7 +29,7 @@ public class BlockBehaviorPurpur extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (this.getMeta() != PURPUR_NORMAL) {
             short[] faces = new short[]{
                     0,
@@ -49,16 +42,16 @@ public class BlockBehaviorPurpur extends BlockBehaviorSolid {
 
             this.setMeta(((this.getMeta() & 0x03) | faces[face.getIndex()]));
         }
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+        this.getLevel().setBlock(block.getPosition(), this, true, true);
 
         return true;
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];
@@ -66,7 +59,7 @@ public class BlockBehaviorPurpur extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(PURPUR_BLOCK, this.getMeta() & 0x03, 1);
     }
 

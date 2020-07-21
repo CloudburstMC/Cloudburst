@@ -32,9 +32,9 @@ public class BlockBehaviorTerracottaStained extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{toItem()};
+            return new Item[]{toItem(blockState)};
         } else {
             return new Item[0];
         }

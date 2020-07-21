@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
@@ -11,17 +11,8 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created on 2015/11/23 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorFenceGate extends BlockBehaviorTransparent implements Faceable {
-
-    public BlockBehaviorFenceGate(Identifier id) {
-        super(id);
-    }
 
     private static final float[] offMinX = new float[2];
     private static final float[] offMinZ = new float[2];
@@ -92,7 +83,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent implements 
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         this.setMeta(player != null ? player.getDirection().getHorizontalIndex() : 0);
         this.getLevel().setBlock(blockState.getPosition(), this, true, true);
 
@@ -100,7 +91,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent implements 
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (player == null) {
             return false;
         }
@@ -173,7 +164,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent implements 
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_REDSTONE) {
             if ((!isOpen() && this.level.isBlockPowered(this.getPosition())) || (isOpen() && !this.level.isBlockPowered(this.getPosition()))) {
                 this.toggle(null);

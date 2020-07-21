@@ -15,12 +15,12 @@ public class BlockBehaviorWheat extends BlockBehaviorCrops {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.WHEAT);
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (this.getMeta() >= 0x07) {
             return new Item[]{
                     Item.get(ItemIds.WHEAT),

@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
@@ -15,7 +16,6 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -61,15 +61,6 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent implements Face
     public static final int STAGE_3 = 2;
     public static final int STAGE_MASK = 12;
 
-    public BlockBehaviorCocoa(Identifier id) {
-        super(id);
-    }
-
-    @Override
-    public void setMeta(int meta) {
-        super.setMeta(meta);
-    }
-
 
     @Override
     public float getMinX() {
@@ -111,7 +102,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent implements Face
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (target.getId() == BlockTypes.LOG && (target.getMeta() & 0x03) == BlockBehaviorLog.JUNGLE) {
             if (face != BlockFace.DOWN && face != BlockFace.UP) {
                 int[] faces = new int[]{
@@ -124,7 +115,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent implements Face
                 };
 
                 this.setMeta(faces[face.getIndex()]);
-                this.level.setBlock(blockState.getPosition(), this, true, true);
+                this.level.setBlock(block.getPosition(), this, true, true);
                 return true;
             }
         }
@@ -132,7 +123,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent implements Face
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             int[] faces = new int[]{
                     3, 4, 2, 5, 3, 4, 2, 5, 3, 4, 2, 5
@@ -172,7 +163,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent implements Face
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) {
             BlockState blockState = this.clone();
             if (this.getMeta() / 4 < 2) {
@@ -213,12 +204,12 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent implements Face
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.DYE, DyeColor.BROWN.getDyeData());
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (this.getMeta() >= 8) {
             return new Item[]{
                     Item.get(ItemIds.DYE, 3, 3)

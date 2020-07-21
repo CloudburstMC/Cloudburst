@@ -63,7 +63,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent implements F
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (down().getId() == AIR) {
                 getLevel().useBreakOn(this.getPosition());
@@ -76,7 +76,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent implements F
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (face != BlockFace.DOWN) {
             if (face == BlockFace.UP) {
                 setMeta((int) Math.floor(((player.getYaw() + 180) * 16 / 360) + 0.5) & 0x0f);
@@ -115,7 +115,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent implements F
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(signItemId);
     }
 

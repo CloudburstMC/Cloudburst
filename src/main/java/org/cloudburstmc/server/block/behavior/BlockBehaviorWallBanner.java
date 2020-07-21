@@ -15,7 +15,7 @@ public class BlockBehaviorWallBanner extends BlockBehaviorBanner {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.getMeta() >= BlockFace.NORTH.getIndex() && this.getMeta() <= BlockFace.EAST.getIndex()) {
                 if (this.getSide(BlockFace.fromIndex(this.getMeta()).getOpposite()).getId() == BlockTypes.AIR) {

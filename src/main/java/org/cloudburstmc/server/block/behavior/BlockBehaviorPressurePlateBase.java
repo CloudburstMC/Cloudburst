@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Event;
@@ -15,7 +16,6 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
@@ -27,10 +27,6 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
 
     protected float onPitch;
     protected float offPitch;
-
-    protected BlockBehaviorPressurePlateBase(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canPassThrough() {
@@ -82,7 +78,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.down().isTransparent()) {
                 this.level.useBreakOn(this.getPosition());
@@ -99,12 +95,12 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
-        if (blockState.down().isTransparent()) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+        if (block.down().isTransparent()) {
             return false;
         }
 
-        this.level.setBlock(blockState.getPosition(), this, true, true);
+        this.level.setBlock(block.getPosition(), this, true, true);
         return true;
     }
 
@@ -161,8 +157,8 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public boolean onBreak(Item item) {
-        super.onBreak(item);
+    public boolean onBreak(Block block, Item item) {
+        super.onBreak(block, item);
 
         if (this.getRedstonePower() > 0) {
             this.level.updateAroundRedstone(this.getPosition(), null);
@@ -201,7 +197,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     protected abstract int computeRedstoneStrength();
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(AIR, 0, 0);
     }
 

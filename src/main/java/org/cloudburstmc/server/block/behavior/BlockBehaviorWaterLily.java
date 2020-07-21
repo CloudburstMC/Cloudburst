@@ -53,7 +53,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (target instanceof BlockBehaviorWater) {
             BlockState up = target.up();
             if (up.getId() == AIR) {
@@ -65,7 +65,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (!(this.down() instanceof BlockBehaviorWater)) {
                 this.getLevel().useBreakOn(this.getPosition());
@@ -76,7 +76,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 

@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
@@ -9,8 +10,6 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Rail;
 
 import java.util.*;
@@ -19,20 +18,12 @@ import java.util.stream.Stream;
 
 import static org.cloudburstmc.server.block.BlockTypes.RAIL;
 
-/**
- * Created by Snake1999 on 2016/1/11.
- * Package cn.nukkit.block in project nukkit
- */
-public class BlockBehaviorRail extends FloodableBlockBehavior implements Faceable {
+public class BlockBehaviorRail extends FloodableBlockBehavior {
 
     // 0x8: Set the block active
     // 0x7: Reset the block to normal
     // If the rail can be powered. So its a complex rail!
     protected boolean canBePowered = false;
-
-    public BlockBehaviorRail(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -55,7 +46,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior implements Faceabl
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             Optional<BlockFace> ascendingDirection = this.getOrientation().ascendingDirection();
             if (this.down().isTransparent() || (ascendingDirection.isPresent() && this.getSide(ascendingDirection.get()).isTransparent())) {
@@ -83,7 +74,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior implements Faceabl
 
     //Information from http://minecraft.gamepedia.com/Rail
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         BlockState down = this.down();
         if (down == null || down.isTransparent()) {
             return false;
@@ -243,19 +234,14 @@ public class BlockBehaviorRail extends FloodableBlockBehavior implements Faceabl
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(RAIL)
         };
-    }
-
-    @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 }

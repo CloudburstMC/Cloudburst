@@ -48,7 +48,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         Level level = blockState.getLevel();
         boolean blockSet = level.setBlock(blockState.getPosition(), this);
 

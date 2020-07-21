@@ -1,20 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.GOLD_ORE;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorOreGold extends BlockBehaviorSolid {
-
-    public BlockBehaviorOreGold(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -32,7 +24,7 @@ public class BlockBehaviorOreGold extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_IRON) {
             return new Item[]{
                     Item.get(GOLD_ORE)

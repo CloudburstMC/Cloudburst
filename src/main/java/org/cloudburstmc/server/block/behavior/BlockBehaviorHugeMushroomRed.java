@@ -1,17 +1,14 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockTypes.RED_MUSHROOM;
 
-/**
- * Created by Pub4Game on 28.01.2016.
- */
 public class BlockBehaviorHugeMushroomRed extends BlockBehaviorSolid {
     public static final int NONE = 0;
     public static final int TOP_NW = 1;
@@ -26,10 +23,6 @@ public class BlockBehaviorHugeMushroomRed extends BlockBehaviorSolid {
     public static final int STEM = 10;
     public static final int ALL = 14;
     public static final int STEM_ALL = 15;
-
-    public BlockBehaviorHugeMushroomRed(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getToolType() {
@@ -47,7 +40,7 @@ public class BlockBehaviorHugeMushroomRed extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (ThreadLocalRandom.current().nextInt(0, 20) == 0) {
             return new Item[]{
                     Item.get(RED_MUSHROOM)

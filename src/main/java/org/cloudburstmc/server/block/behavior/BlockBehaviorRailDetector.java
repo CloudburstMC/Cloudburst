@@ -1,27 +1,19 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.DETECTOR_RAIL;
 
-/**
- * Created on 2015/11/22 by CreeperFace.
- * Contributed by: larryTheCoder on 2017/7/8.
- * <p>
- * Nukkit Project,
- * Minecart and Riding Project,
- * Package cn.nukkit.block in project Nukkit.
- */
 public class BlockBehaviorRailDetector extends BlockBehaviorRail {
 
-    public BlockBehaviorRailDetector(Identifier id) {
-        super(id);
+    public BlockBehaviorRailDetector() {
         canBePowered = true;
     }
 
@@ -41,12 +33,12 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             updateState();
             return type;
         }
-        return super.onUpdate(type);
+        return super.onUpdate(block, type);
     }
 
     @Override
@@ -86,7 +78,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(DETECTOR_RAIL, 0, 1)
         };

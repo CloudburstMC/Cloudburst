@@ -1,23 +1,14 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorOreDiamond extends BlockBehaviorSolid {
-
-
-    public BlockBehaviorOreDiamond(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -35,7 +26,7 @@ public class BlockBehaviorOreDiamond extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_IRON) {
             int count = 1;
             Enchantment fortune = hand.getEnchantment(Enchantment.ID_FORTUNE_DIGGING);

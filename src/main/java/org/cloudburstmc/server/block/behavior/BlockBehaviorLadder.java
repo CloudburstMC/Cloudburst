@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
@@ -9,19 +10,12 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.LADDER;
 
-/**
- * Created on 2015/12/8 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
-public class BlockBehaviorLadder extends BlockBehaviorTransparent implements Faceable {
+public class BlockBehaviorLadder extends BlockBehaviorTransparent {
 
-    public BlockBehaviorLadder(Identifier id) {
-        super(id);
+    public BlockBehaviorLadder() {
         calculateOffsets();
     }
 
@@ -124,7 +118,7 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent implements Fac
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (!target.isTransparent()) {
             if (face.getIndex() >= 2 && face.getIndex() <= 5) {
                 this.setMeta(face.getIndex());
@@ -136,7 +130,7 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent implements Fac
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             int[] faces = {
                     0, //never use
@@ -165,7 +159,7 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent implements Fac
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(LADDER, 0, 1)
         };

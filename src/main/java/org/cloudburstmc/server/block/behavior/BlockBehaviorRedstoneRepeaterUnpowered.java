@@ -20,7 +20,7 @@ public class BlockBehaviorRedstoneRepeaterUnpowered extends BlockBehaviorRedston
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         this.setMeta(this.getMeta() + 4);
         if (this.getMeta() > 15) this.setMeta(this.getMeta() % 4);
 
@@ -39,7 +39,7 @@ public class BlockBehaviorRedstoneRepeaterUnpowered extends BlockBehaviorRedston
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.REPEATER);
     }
 

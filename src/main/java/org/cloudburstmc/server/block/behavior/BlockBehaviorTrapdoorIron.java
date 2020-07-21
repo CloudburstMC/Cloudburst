@@ -32,7 +32,7 @@ public class BlockBehaviorTrapdoorIron extends BlockBehaviorTrapdoor {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         return false;
     }
 

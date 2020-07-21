@@ -40,7 +40,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         BlockState down = this.down();
         if (down.getId() == GRASS || down.getId() == DIRT || down.getId() == FARMLAND || down.getId() == PODZOL) {
             this.getLevel().setBlock(blockState.getPosition(), this, true, true);
@@ -55,7 +55,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
         return true;
     }
 
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == DYE && item.getMeta() == 0x0F) { //BoneMeal
             if (player != null && player.getGamemode().isSurvival()) {
                 item.decrementCount();
@@ -73,7 +73,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
         return false;
     }
 
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.down().isTransparent()) {
                 this.getLevel().useBreakOn(this.getPosition());
@@ -157,7 +157,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(SAPLING, this.getMeta() & 0x7);
     }
 

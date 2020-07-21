@@ -1,19 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created on 2015/12/6 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorIronBars extends BlockBehaviorThin {
-
-    public BlockBehaviorIronBars(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -31,15 +23,15 @@ public class BlockBehaviorIronBars extends BlockBehaviorThin {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    this.toItem()
+                    this.toItem(blockState)
             };
         } else {
             return new Item[0];

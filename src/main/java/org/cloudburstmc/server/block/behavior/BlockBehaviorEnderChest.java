@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
@@ -11,21 +12,12 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import static org.cloudburstmc.server.block.BlockTypes.OBSIDIAN;
 
-public class BlockBehaviorEnderChest extends BlockBehaviorTransparent implements Faceable {
-
-    private Set<Player> viewers = new HashSet<>();
-
-    public BlockBehaviorEnderChest(Identifier id) {
-        super(id);
-    }
+public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 
     @Override
     public boolean canBeActivated() {
@@ -78,7 +70,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent implements
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         int[] faces = {2, 5, 3, 4};
         this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
 
@@ -93,7 +85,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent implements
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
             BlockState top = this.up();
             if (!top.isTransparent()) {
@@ -113,7 +105,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent implements
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
                     Item.get(OBSIDIAN, 0, 8)
@@ -148,13 +140,8 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent implements
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id);
-    }
-
-    @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Bed;
@@ -17,18 +18,9 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorBed extends BlockBehaviorTransparent implements Faceable {
-
-    public BlockBehaviorBed(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canBeActivated() {
@@ -51,12 +43,12 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent implements Faceab
     }
 
     @Override
-    public boolean onActivate(Item item) {
+    public boolean onActivate(Block block, Item item) {
         return this.onActivate(item, null);
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
 
         BlockState blockStateNorth = this.north();
         BlockState blockStateSouth = this.south();
@@ -108,7 +100,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent implements Faceab
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         BlockState down = this.down();
         if (!down.isTransparent() || down instanceof BlockBehaviorSlab) {
             BlockState next = this.getSide(player.getHorizontalFacing());
@@ -133,7 +125,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent implements Faceab
     }
 
     @Override
-    public boolean onBreak(Item item) {
+    public boolean onBreak(Block block, Item item) {
         BlockState blockStateNorth = this.north(); //Gets the blocks around them
         BlockState blockStateSouth = this.south();
         BlockState blockStateEast = this.east();
@@ -177,7 +169,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent implements Faceab
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.BED, this.getDyeColor().getWoolData());
     }
 

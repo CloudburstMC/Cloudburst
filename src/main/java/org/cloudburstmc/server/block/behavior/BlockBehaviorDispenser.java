@@ -1,28 +1,13 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.BlockFace;
-import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by CreeperFace on 15.4.2017.
- */
-public class BlockBehaviorDispenser extends BlockBehaviorSolid implements Faceable {
-
-    public BlockBehaviorDispenser(Identifier id) {
-        super(id);
-    }
+public class BlockBehaviorDispenser extends BlockBehaviorSolid {
 
     @Override
     public boolean hasComparatorInputOverride() {
         return true;
-    }
-
-    @Override
-    public Item toItem() {
-        return Item.get(id, 0);
     }
 
     @Override
@@ -67,10 +52,5 @@ public class BlockBehaviorDispenser extends BlockBehaviorSolid implements Faceab
         float z = this.getZ() + 0.7f * facing.getZOffset();
 
         return Vector3f.from(x, y, z);
-    }
-
-    @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 }

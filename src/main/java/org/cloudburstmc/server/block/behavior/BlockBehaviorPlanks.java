@@ -2,24 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorPlanks extends BlockBehaviorSolid {
-    public static final int OAK = 0;
-    public static final int SPRUCE = 1;
-    public static final int BIRCH = 2;
-    public static final int JUNGLE = 3;
-    public static final int ACACIA = 4;
-    public static final int DARK_OAK = 5;
-
-
-    public BlockBehaviorPlanks(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

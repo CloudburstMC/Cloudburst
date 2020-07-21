@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.Beacon;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
@@ -13,16 +12,8 @@ import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: Angelic47 Nukkit Project
- */
 public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
-
-    public BlockBehaviorBeacon(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -50,7 +41,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
             BlockEntity t = this.getLevel().getBlockEntity(this.getPosition());
             if (!(t instanceof Beacon)) {
@@ -64,7 +55,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         boolean blockSuccess = super.place(item, blockState, target, face, clickPos, player);
 
         if (blockSuccess) {

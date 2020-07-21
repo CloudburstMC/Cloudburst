@@ -29,7 +29,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (!super.place(item, blockState, target, face, clickPos, player)) {
             return false;
         }
@@ -63,8 +63,8 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     @Override
-    public boolean onBreak(Item item) {
-        super.onBreak(item);
+    public boolean onBreak(Block block, Item item) {
+        super.onBreak(block, item);
 
         Vector3i pos = this.getPosition();
 
@@ -81,8 +81,8 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     @Override
-    public int onUpdate(int type) {
-        if (super.onUpdate(type) == 0) {
+    public int onUpdate(Block block, int type) {
+        if (super.onUpdate(block, type) == 0) {
             if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
                 this.level.scheduleUpdate(this, tickRate());
             } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {

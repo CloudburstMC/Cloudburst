@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
@@ -8,19 +9,11 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
-/**
- * Created on 2015/11/24 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorCarpet extends FloodableBlockBehavior {
-    public BlockBehaviorCarpet(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -53,7 +46,7 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         BlockState down = this.down();
         if (down.getId() != AIR) {
             this.getLevel().setBlock(blockState.getPosition(), this, true, true);
@@ -63,7 +56,7 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.down().getId() == AIR) {
                 this.getLevel().useBreakOn(this.getPosition());

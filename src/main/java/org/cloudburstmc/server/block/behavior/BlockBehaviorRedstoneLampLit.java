@@ -23,12 +23,12 @@ public class BlockBehaviorRedstoneLampLit extends BlockBehaviorRedstoneLamp {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(REDSTONE_LAMP);
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if ((type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) && !this.level.isBlockPowered(this.getPosition())) {
             // Redstone event
             RedstoneUpdateEvent ev = new RedstoneUpdateEvent(this);

@@ -1,22 +1,15 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Random;
 
-/**
- * Created on 2015/12/6 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorGlowstone extends BlockBehaviorTransparent {
-    public BlockBehaviorGlowstone(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getResistance() {
@@ -34,7 +27,7 @@ public class BlockBehaviorGlowstone extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         Random random = new Random();
         int count = 2 + random.nextInt(3);
 

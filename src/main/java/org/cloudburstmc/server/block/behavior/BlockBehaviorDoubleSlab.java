@@ -3,31 +3,20 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
-import org.cloudburstmc.server.block.BlockFactory;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.util.Arrays;
-
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
 
     private final Identifier slabId;
     private final BlockColor[] colors;
 
-    protected BlockBehaviorDoubleSlab(Identifier id, Identifier slabId, BlockColor[] colors) {
-        super(id);
+    protected BlockBehaviorDoubleSlab(Identifier slabId, BlockColor[] colors) {
         this.slabId = slabId;
         this.colors = colors;
-    }
-
-    public static BlockFactory factory(Identifier slabId, BlockColor... colors) {
-        return id -> new BlockBehaviorDoubleSlab(id, slabId, Arrays.copyOf(colors, 8));
     }
 
     public Identifier getSlabId() {
@@ -55,7 +44,7 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
                     Item.get(this.slabId, this.getMeta() & 0x07, 2)

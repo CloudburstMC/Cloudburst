@@ -217,12 +217,42 @@
             <artifactId>fastutil-short-object-maps</artifactId>
             <version>8.3.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-reference-int-maps</artifactId>
+            <version>8.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-int-reference-maps</artifactId>
+            <version>8.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-reference-reference-maps</artifactId>
+            <version>8.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-object-reference-maps</artifactId>
+            <version>8.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-reference-object-maps</artifactId>
+            <version>8.3.1</version>
+        </dependency>
 
         <!-- Miscellaneous -->
         <dependency>
             <groupId>com.nukkitx.protocol</groupId>
             <artifactId>bedrock-v407</artifactId>
             <version>2.6.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx</groupId>
+            <artifactId>block-state-updater</artifactId>
+            <version>1.16.0.2</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx</groupId>
@@ -278,7 +308,7 @@
                         <manifestEntries>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <Main-Class>cn.nukkit.Nukkit</Main-Class>
+                            <Main-Class>org.cloudburstmc.server.Nukkit</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>

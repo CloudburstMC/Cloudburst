@@ -52,7 +52,7 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, this.getMeta() & 0x07);
     }
 }

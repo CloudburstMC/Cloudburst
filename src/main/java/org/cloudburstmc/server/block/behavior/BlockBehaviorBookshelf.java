@@ -1,19 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * @author Nukkit Project Team
- */
 public class BlockBehaviorBookshelf extends BlockBehaviorSolid {
-
-    public BlockBehaviorBookshelf(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -41,7 +34,7 @@ public class BlockBehaviorBookshelf extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(ItemIds.BOOK, 0, 3)
         };

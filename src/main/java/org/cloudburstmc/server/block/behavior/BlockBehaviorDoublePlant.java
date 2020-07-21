@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
@@ -16,10 +17,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
 
-/**
- * Created on 2015/11/23 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     public static final int SUNFLOWER = 0;
     public static final int LILAC = 1;
@@ -39,7 +36,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if ((this.getMeta() & TOP_HALF_BITMASK) == TOP_HALF_BITMASK) {
                 // Top
@@ -59,12 +56,12 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         BlockState down = down();
         BlockState up = up();
 
         if (up.getId() == AIR && (down.getId() == GRASS || down.getId() == DIRT)) {
-            this.getLevel().setBlock(blockState.getPosition(), this, true, false); // If we update the bottom half, it will drop the item because there isn't a flower block above
+            this.getLevel().setBlock(block.getPosition(), this, true, false); // If we update the bottom half, it will drop the item because there isn't a flower block above
             this.getLevel().setBlock(up.getPosition(), BlockState.get(DOUBLE_PLANT, getMeta() ^ TOP_HALF_BITMASK), true, true);
             return true;
         }
@@ -73,20 +70,20 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Item item) {
-        BlockState down = down();
+    public boolean onBreak(Block block, Item item) {
+        Block down = block.down();
 
         if ((this.getMeta() & TOP_HALF_BITMASK) == TOP_HALF_BITMASK) { // Top half
-            this.getLevel().useBreakOn(down.getPosition());
+            block.getLevel().useBreakOn(down.getPosition());
         } else {
-            this.getLevel().setBlock(this.getPosition(), BlockState.get(AIR), true, true);
+            block.set(BlockState.AIR, true, true);
         }
 
         return true;
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if ((this.getMeta() & TOP_HALF_BITMASK) != TOP_HALF_BITMASK) {
             boolean dropSeeds = ThreadLocalRandom.current().nextDouble(100) > 87.5;
             switch (this.getMeta() & 0x07) {
@@ -108,7 +105,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                     }
             }
 
-            return new Item[]{toItem()};
+            return new Item[]{toItem(blockState)};
         }
 
         return new Item[0];
@@ -125,7 +122,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) { //Bone meal
             switch (this.getMeta() & 0x07) {
                 case SUNFLOWER:
@@ -136,7 +133,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                         item.decrementCount();
                     }
                     this.level.addParticle(new BoneMealParticle(this.getPosition()));
-                    this.level.dropItem(this.getPosition(), this.toItem());
+                    this.level.dropItem(this.getPosition(), this.toItem(blockState));
             }
 
             return true;

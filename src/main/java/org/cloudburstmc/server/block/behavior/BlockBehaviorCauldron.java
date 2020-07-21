@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Cauldron;
@@ -19,15 +20,7 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.CAULDRON;
 
-/**
- * author: CreeperFace
- * Nukkit Project
- */
 public class BlockBehaviorCauldron extends BlockBehaviorSolid {
-
-    public BlockBehaviorCauldron(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getResistance() {
@@ -58,7 +51,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         BlockEntity be = this.level.getBlockEntity(this.getPosition());
 
         if (!(be instanceof Cauldron)) {
@@ -195,7 +188,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         Cauldron cauldron = BlockEntityRegistry.get().newEntity(CAULDRON, this.getChunk(), this.getPosition());
         cauldron.loadAdditionalData(item.getTag());
         cauldron.setPotionId(0xffff);
@@ -204,7 +197,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{Item.get(ItemIds.CAULDRON)};
         }
@@ -213,7 +206,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.CAULDRON);
     }
 

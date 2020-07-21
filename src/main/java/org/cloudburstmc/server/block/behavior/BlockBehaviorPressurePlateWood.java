@@ -1,19 +1,15 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * @author Nukkit Project Team
- */
 public class BlockBehaviorPressurePlateWood extends BlockBehaviorPressurePlateBase {
 
-    public BlockBehaviorPressurePlateWood(Identifier id) {
-        super(id);
+    public BlockBehaviorPressurePlateWood() {
         this.onPitch = 0.8f;
         this.offPitch = 0.7f;
     }
@@ -34,9 +30,9 @@ public class BlockBehaviorPressurePlateWood extends BlockBehaviorPressurePlateBa
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
-                toItem()
+                toItem(blockState)
         };
     }
 

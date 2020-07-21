@@ -1,37 +1,28 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Rail;
 
 import static org.cloudburstmc.server.block.BlockTypes.GOLDEN_RAIL;
 
-/**
- * Created by Snake1999 on 2016/1/11.
- * Contributed by: larryTheCoder on 2017/7/18.
- * <p>
- * Nukkit Project,
- * Minecart and Riding Project,
- * Package cn.nukkit.block in project Nukkit.
- */
 public class BlockBehaviorRailPowered extends BlockBehaviorRail {
 
-    public BlockBehaviorRailPowered(Identifier id) {
-        super(id);
+    public BlockBehaviorRailPowered() {
         canBePowered = true;
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         // Warning: I din't recommended this on slow networks server or slow client
         //          Network below 86Kb/s. This will became unresponsive to clients 
         //          When updating the block state. Espicially on the world with many rails. 
         //          Trust me, I tested this on my server.
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE || type == Level.BLOCK_UPDATE_SCHEDULED) {
-            if (super.onUpdate(type) == Level.BLOCK_UPDATE_NORMAL) {
+            if (super.onUpdate(block, type) == Level.BLOCK_UPDATE_NORMAL) {
                 return 0; // Already broken
             }
             boolean wasPowered = isActive();
@@ -173,7 +164,7 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(GOLDEN_RAIL)
         };

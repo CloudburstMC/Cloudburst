@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
@@ -13,22 +14,13 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent implements Faceable {
 
     public static int DOOR_OPEN_BIT = 0x04;
     public static int DOOR_TOP_BIT = 0x08;
     public static int DOOR_HINGE_BIT = 0x01;
     public static int DOOR_POWERED_BIT = 0x02;
-
-    public BlockBehaviorDoor(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canBeActivated() {
@@ -188,7 +180,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent impleme
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.down().getId() == BlockTypes.AIR) {
                 BlockState up = this.up();
@@ -214,7 +206,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent impleme
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (this.getY() > 254) return false;
         if (face == BlockFace.UP) {
             BlockState blockStateUp = this.up();
@@ -252,7 +244,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent impleme
     }
 
     @Override
-    public boolean onBreak(Item item) {
+    public boolean onBreak(Block block, Item item) {
         if (isTop(this.getMeta())) {
             BlockState down = this.down();
             if (down.getId() == this.getId()) {
@@ -264,18 +256,18 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent impleme
                 up.removeBlock(true);
             }
         }
-        super.onBreak(item);
+        super.onBreak(block, item);
 
         return true;
     }
 
     @Override
-    public boolean onActivate(Item item) {
+    public boolean onActivate(Block block, Item item) {
         return this.onActivate(item, null);
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (!this.toggle(player)) {
             return false;
         }

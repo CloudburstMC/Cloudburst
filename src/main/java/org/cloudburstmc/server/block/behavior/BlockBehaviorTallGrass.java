@@ -49,7 +49,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         // Prevents from placing the same plant block on itself
         if (item.getId() == target.getId() && item.getMeta() == blockState.getMeta()) {
             return false;
@@ -63,7 +63,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.down().isTransparent()) {
                 this.getLevel().useBreakOn(this.getPosition());
@@ -74,7 +74,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == DYE && item.getMeta() == 0x0f) {
             BlockState up = this.up();
 
@@ -112,7 +112,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         boolean dropSeeds = ThreadLocalRandom.current().nextDouble(100) > 87.5;
         if (hand.isShears()) {
             //todo enchantment

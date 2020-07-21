@@ -1,23 +1,13 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.utils.Identifier;
 
-//和pm源码有点出入，这里参考了wiki
-
-/**
- * Created on 2015/12/6 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
-
-    public BlockBehaviorOreRedstoneGlowing(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getLightLevel() {
@@ -25,12 +15,12 @@ public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(BlockTypes.REDSTONE_ORE);
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED || type == Level.BLOCK_UPDATE_RANDOM) {
             BlockFadeEvent event = new BlockFadeEvent(this, BlockState.get(BlockTypes.REDSTONE_ORE));
             level.getServer().getPluginManager().callEvent(event);

@@ -4,17 +4,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created on 2015/12/7 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorFenceNetherBrick extends BlockBehaviorFence {
-
-    public BlockBehaviorFenceNetherBrick(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getToolType() {
@@ -32,10 +23,10 @@ public class BlockBehaviorFenceNetherBrick extends BlockBehaviorFence {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];

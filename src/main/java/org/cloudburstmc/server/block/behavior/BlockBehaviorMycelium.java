@@ -2,27 +2,20 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockSpreadEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockTypes.DIRT;
 import static org.cloudburstmc.server.block.BlockTypes.MYCELIUM;
 
-/**
- * Created by Pub4Game on 03.01.2016.
- */
 public class BlockBehaviorMycelium extends BlockBehaviorSolid {
-
-    public BlockBehaviorMycelium(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getToolType() {
@@ -40,14 +33,14 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         return new Item[]{
                 Item.get(DIRT)
         };
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_RANDOM) {
             //TODO: light levels
             Vector3i pos = this.getPosition();

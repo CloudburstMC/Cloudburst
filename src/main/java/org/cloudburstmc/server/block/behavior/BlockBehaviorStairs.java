@@ -34,7 +34,7 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent imple
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         int[] faces = new int[]{2, 1, 3, 0};
         this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
         if ((clickPos.getY() > 0.5 && face != BlockFace.UP) || face == BlockFace.DOWN) {
@@ -46,10 +46,10 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent imple
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         } else {
             return new Item[0];
@@ -57,8 +57,8 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent imple
     }
 
     @Override
-    public Item toItem() {
-        Item item = super.toItem();
+    public Item toItem(BlockState state) {
+        Item item = super.toItem(blockState);
         item.setMeta(0);
         return item;
     }

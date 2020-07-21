@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ItemFrame;
@@ -11,24 +12,16 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Random;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.ITEM_FRAME;
 
-/**
- * Created by Pub4Game on 03.07.2016.
- */
 public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
 
-    public BlockBehaviorItemFrame(Identifier id) {
-        super(id);
-    }
-
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.getSide(getFacing()).isTransparent()) {
                 this.level.useBreakOn(this.getPosition());
@@ -45,7 +38,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         if (itemFrame.getItem() == null || itemFrame.getItem().getId() == AIR) {
@@ -65,7 +58,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (!target.isTransparent() && face.getIndex() > 1 && !blockState.isSolid()) {
             switch (face) {
                 case NORTH:
@@ -95,30 +88,30 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onBreak(Item item) {
-        super.onBreak(item);
+    public boolean onBreak(Block block, Item item) {
+        super.onBreak(block, item);
         this.getLevel().addSound(this.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
         return true;
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         int chance = new Random().nextInt(100) + 1;
         if (itemFrame != null && chance <= (itemFrame.getItemDropChance() * 100)) {
             return new Item[]{
-                    toItem(), itemFrame.getItem().clone()
+                    toItem(blockState), itemFrame.getItem().clone()
             };
         } else {
             return new Item[]{
-                    toItem()
+                    toItem(blockState)
             };
         }
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.FRAME);
     }
 

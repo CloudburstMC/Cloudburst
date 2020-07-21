@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.level.Level;
@@ -42,11 +43,11 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_TOUCH) {
             this.teleport();
         }
-        return super.onUpdate(type);
+        return super.onUpdate(block, type);
     }
 
     public void teleport() {

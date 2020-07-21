@@ -1,16 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorBlueIce extends BlockBehaviorIce {
-
-    public BlockBehaviorBlueIce(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getToolType() {
@@ -33,7 +29,7 @@ public class BlockBehaviorBlueIce extends BlockBehaviorIce {
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         return 0;
     }
 
@@ -43,14 +39,14 @@ public class BlockBehaviorBlueIce extends BlockBehaviorIce {
     }
 
     @Override
-    public boolean onBreak(Item item) {
-        this.getLevel().setBlock(this.getPosition(), BlockState.AIR, true);
+    public boolean onBreak(Block block, Item item) {
+        block.set(BlockState.AIR);
         return true;
     }
 
     @Override
-    public boolean onBreak(Item item, Player player) {
-        return this.onBreak(item);
+    public boolean onBreak(Block block, Item item, Player player) {
+        return this.onBreak(block, item);
     }
 
     @Override

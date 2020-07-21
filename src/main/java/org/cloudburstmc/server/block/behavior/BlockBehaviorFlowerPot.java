@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
@@ -14,14 +15,7 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * @author Nukkit Project Team
- */
 public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
-
-    public BlockBehaviorFlowerPot(Identifier id) {
-        super(id);
-    }
 
     protected static boolean canPlaceIntoFlowerPot(Identifier id) {
         return id == BlockTypes.SAPLING || id == BlockTypes.WEB || id == BlockTypes.TALL_GRASS || id == BlockTypes.DEADBUSH || id == BlockTypes.YELLOW_FLOWER ||
@@ -40,7 +34,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (face != BlockFace.UP) return false;
 
         FlowerPot flowerPot = BlockEntityRegistry.get().newEntity(BlockEntityTypes.FLOWER_POT, this.getChunk(), this.getPosition());
@@ -56,12 +50,12 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Item item) {
+    public boolean onActivate(Block block, Item item) {
         return this.onActivate(item, null);
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         BlockEntity blockEntity = getLevel().getBlockEntity(this.getPosition());
         if (!(blockEntity instanceof FlowerPot)) return false;
         FlowerPot flowerPot = (FlowerPot) blockEntity;
@@ -94,7 +88,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         boolean dropInside = false;
         BlockState blockState = BlockState.AIR;
         BlockEntity blockEntity = getLevel().getBlockEntity(this.getPosition());
@@ -106,7 +100,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
         if (dropInside) {
             return new Item[]{
                     Item.get(ItemIds.FLOWER_POT),
-                    blockState.toItem()
+                    blockState.toItem(blockState)
             };
         } else {
             return new Item[]{
@@ -151,7 +145,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(ItemIds.FLOWER_POT);
     }
 

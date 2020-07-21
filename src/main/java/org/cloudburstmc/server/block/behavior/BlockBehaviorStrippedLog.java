@@ -19,13 +19,13 @@ public class BlockBehaviorStrippedLog extends BlockBehaviorLog {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         this.setMeta(FACES[face.getIndex()] >> 2);
         return this.getLevel().setBlock(this.getPosition(), this, true, true);
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id);
     }
 }

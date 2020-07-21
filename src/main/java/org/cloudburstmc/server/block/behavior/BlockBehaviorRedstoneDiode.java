@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.Item;
@@ -10,26 +11,18 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_BLOCK;
 import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_WIRE;
 
-/**
- * @author CreeperFace
- */
 public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior implements Faceable {
 
     protected boolean isPowered = false;
 
-    public BlockBehaviorRedstoneDiode(Identifier id) {
-        super(id);
-    }
-
     @Override
-    public boolean onBreak(Item item) {
+    public boolean onBreak(Block block, Item item) {
         Vector3i pos = this.getPosition();
-        super.onBreak(item);
+        super.onBreak(block, item);
 
         for (BlockFace face : BlockFace.values()) {
             this.level.updateAroundRedstone(face.getOffset(pos), null);
@@ -38,13 +31,13 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
-        if (blockState.getSide(BlockFace.DOWN).isTransparent()) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+        if (block.getSide(BlockFace.DOWN).isTransparent()) {
             return false;
         }
 
         this.setMeta(player != null ? player.getDirection().getOpposite().getHorizontalIndex() : 0);
-        this.level.setBlock(blockState.getPosition(), this, true, true);
+        this.level.setBlock(block.getPosition(), this, true, true);
 
         if (shouldBePowered()) {
             this.level.scheduleUpdate(this, 1);
@@ -53,7 +46,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             if (!this.isLocked()) {
                 Vector3i pos = this.getPosition();

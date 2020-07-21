@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Jukebox;
@@ -11,19 +12,11 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.JUKEBOX;
 
-/**
- * Created by CreeperFace on 7.8.2017.
- */
 public class BlockBehaviorJukebox extends BlockBehaviorSolid implements Faceable {
-
-    public BlockBehaviorJukebox(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canBeActivated() {
@@ -31,12 +24,12 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid implements Faceable
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
         if (!(blockEntity instanceof Jukebox)) {
             blockEntity = this.createBlockEntity();
@@ -55,7 +48,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid implements Faceable
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (super.place(item, blockState, target, face, clickPos, player)) {
             createBlockEntity();
             return true;
@@ -65,8 +58,8 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid implements Faceable
     }
 
     @Override
-    public boolean onBreak(Item item) {
-        if (super.onBreak(item)) {
+    public boolean onBreak(Block block, Item item) {
+        if (super.onBreak(block, item)) {
             BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
 
             if (blockEntity instanceof Jukebox) {

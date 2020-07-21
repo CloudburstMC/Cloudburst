@@ -28,7 +28,7 @@ public class BlockBehaviorSnow extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isShovel() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
                     Item.get(ItemIds.SNOWBALL, 0, 4)

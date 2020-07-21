@@ -1,24 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.STONEBRICK;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorBricksStone extends BlockBehaviorSolid {
-    public static final int NORMAL = 0;
-    public static final int MOSSY = 1;
-    public static final int CRACKED = 2;
-    public static final int CHISELED = 3;
-
-    public BlockBehaviorBricksStone(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -31,7 +19,7 @@ public class BlockBehaviorBricksStone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
+    public Item[] getDrops(BlockState blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
                     Item.get(STONEBRICK, this.getMeta() & 0x03, 1)

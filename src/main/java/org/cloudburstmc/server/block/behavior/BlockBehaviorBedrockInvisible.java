@@ -1,19 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
-/**
- * Created by Pub4Game on 03.01.2016.
- */
 public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
-
-    public BlockBehaviorBedrockInvisible(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -41,7 +34,7 @@ public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(AIR, 0, 0);
     }
 }

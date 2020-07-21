@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.Item;
@@ -10,16 +11,8 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Faceable;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * @author Nukkit Project Team
- */
 public class BlockBehaviorLever extends FloodableBlockBehavior implements Faceable {
-
-    public BlockBehaviorLever(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canBeActivated() {
@@ -37,13 +30,13 @@ public class BlockBehaviorLever extends FloodableBlockBehavior implements Faceab
     }
 
     @Override
-    public Item toItem() {
+    public Item toItem(BlockState state) {
         return Item.get(id, 0);
     }
 
     @Override
-    public Item[] getDrops(Item hand) {
-        return new Item[]{toItem()};
+    public Item[] getDrops(BlockState blockState, Item hand) {
+        return new Item[]{toItem(blockState)};
     }
 
     public boolean isPowerOn() {
@@ -51,7 +44,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior implements Faceab
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, isPowerOn() ? 15 : 0, isPowerOn() ? 0 : 15));
         this.setMeta(this.getMeta() ^ 0x08);
 
@@ -66,7 +59,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior implements Faceab
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             int face = this.isPowerOn() ? this.getMeta() ^ 0x08 : this.getMeta();
             BlockFace faces = LeverOrientation.byMetadata(face).getFacing().getOpposite();
@@ -78,7 +71,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior implements Faceab
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         if (target.isNormalBlock()) {
             this.setMeta(LeverOrientation.forFacings(face, player.getHorizontalFacing()).getMetadata());
             this.getLevel().setBlock(blockState.getPosition(), this, true, true);
@@ -88,8 +81,8 @@ public class BlockBehaviorLever extends FloodableBlockBehavior implements Faceab
     }
 
     @Override
-    public boolean onBreak(Item item) {
-        super.onBreak(item);
+    public boolean onBreak(Block block, Item item) {
+        super.onBreak(block, item);
 
         if (isPowerOn()) {
             BlockFace face = LeverOrientation.byMetadata(this.isPowerOn() ? this.getMeta() ^ 0x08 : this.getMeta()).getFacing();

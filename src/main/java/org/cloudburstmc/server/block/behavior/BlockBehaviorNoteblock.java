@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
@@ -21,14 +21,9 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-/**
- * Created by Snake1999 on 2016/1/17.
- * Package cn.nukkit.block in project nukkit.
- */
 public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
 
     private static final Map<Identifier, Instrument> INSTRUMENTS = new IdentityHashMap<>();
-    ;
 
     static {
         INSTRUMENTS.put(BlockTypes.GOLD_BLOCK, Instrument.GLOCKENSPIEL);
@@ -149,10 +144,6 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         INSTRUMENTS.put(BlockTypes.OBSERVER, Instrument.BASS_DRUM);
     }
 
-    public BlockBehaviorNoteblock(Identifier id) {
-        super(id);
-    }
-
     @Override
     public int getToolType() {
         return ItemTool.TYPE_AXE;
@@ -174,7 +165,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, BlockState blockState, BlockState target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         this.getLevel().setBlock(blockState.getPosition(), this, true);
         return this.createBlockEntity() != null;
     }
@@ -210,14 +201,14 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
+    public boolean onActivate(Block block, Item item, Player player) {
         this.increaseStrength();
         this.emitSound();
         return true;
     }
 
     @Override
-    public int onUpdate(int type) {
+    public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_REDSTONE) {
             Noteblock blockEntity = this.getBlockEntity();
             if (blockEntity != null) {
@@ -231,7 +222,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
                 }
             }
         }
-        return super.onUpdate(type);
+        return super.onUpdate(block, type);
     }
 
     private Noteblock getBlockEntity() {
