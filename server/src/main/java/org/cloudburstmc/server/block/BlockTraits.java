@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.server.block.trait.EnumBlockTrait;
 import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
-import org.cloudburstmc.server.math.SimpleDirection;
+import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.utils.data.*;
 
 @UtilityClass
@@ -62,7 +62,7 @@ public class BlockTraits {
     public final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_WEST = EnumBlockTrait.of("wall_connection_west", WallConnectionType.class);
     public final IntegerBlockTrait WEEPING_VINES_AGE = IntegerBlockTrait.from("weeping_vines_age", 26);
 
-    public final EnumBlockTrait<SimpleDirection> DIRECTION = EnumBlockTrait.of("direction", SimpleDirection.class);
+    public final EnumBlockTrait<BlockFace> DIRECTION = EnumBlockTrait.of("direction", BlockFace.class, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST);
 
     public final BooleanBlockTrait IS_ALLOWED_UNDERWATER = BooleanBlockTrait.of("is_allowed_underwater");
     public final BooleanBlockTrait IS_ATTACHED = BooleanBlockTrait.of("is_attached");

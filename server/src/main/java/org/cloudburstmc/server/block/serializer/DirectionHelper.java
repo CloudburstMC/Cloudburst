@@ -6,7 +6,6 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.math.SimpleDirection;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -14,34 +13,20 @@ import java.util.*;
 @UtilityClass
 public class DirectionHelper {
 
-    private final Map<SeqType, List<SimpleDirection>> objTranslators = new EnumMap<>(SeqType.class);
-    private final Map<SeqType, Map<SimpleDirection, Byte>> metaTranslators = new EnumMap<>(SeqType.class);
-
     private final Map<SeqType, List<BlockFace>> faceObjTranslators = new EnumMap<>(SeqType.class);
     private final Map<SeqType, Map<BlockFace, Byte>> faceMetaTranslators = new EnumMap<>(SeqType.class);
 
     static {
-        register(SeqType.TYPE_1, SimpleDirection.NORTH, SimpleDirection.SOUTH, SimpleDirection.WEST, SimpleDirection.EAST);
-        register(SeqType.TYPE_2, SimpleDirection.SOUTH, SimpleDirection.WEST, SimpleDirection.NORTH, SimpleDirection.EAST);
-        register(SeqType.TYPE_3, SimpleDirection.EAST, SimpleDirection.SOUTH, SimpleDirection.WEST, SimpleDirection.NORTH);
-        register(SeqType.TYPE_4, SimpleDirection.EAST, SimpleDirection.WEST, SimpleDirection.SOUTH, SimpleDirection.NORTH);
-        register(SeqType.TYPE_5, SimpleDirection.SOUTH, SimpleDirection.NORTH, SimpleDirection.EAST, SimpleDirection.WEST);
-        register(SeqType.TYPE_6, SimpleDirection.NORTH, SimpleDirection.EAST, SimpleDirection.SOUTH, SimpleDirection.WEST);
+        register(SeqType.TYPE_1, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
+        register(SeqType.TYPE_2, BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST);
+        register(SeqType.TYPE_3, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH);
+        register(SeqType.TYPE_4, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH);
+        register(SeqType.TYPE_5, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST);
+        register(SeqType.TYPE_6, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST);
 
-        register(SeqType.TYPE_1, BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
-        register(SeqType.TYPE_2, BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST);
-        register(SeqType.TYPE_3, BlockFace.DOWN, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.UP);
-    }
-
-    private void register(SeqType type, SimpleDirection... seq) {
-        EnumMap<SimpleDirection, Byte> map = new EnumMap<>(SimpleDirection.class);
-
-        for (byte i = 0; i < seq.length; i++) {
-            map.put(seq[i], i);
-        }
-
-        objTranslators.put(type, new ArrayList<>(Arrays.asList(seq)));
-        metaTranslators.put(type, map);
+        register(SeqType.TYPE_7, BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
+        register(SeqType.TYPE_8, BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST);
+        register(SeqType.TYPE_9, BlockFace.DOWN, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.UP);
     }
 
     private void register(SeqType type, BlockFace... seq) {
@@ -55,15 +40,7 @@ public class DirectionHelper {
         faceMetaTranslators.put(type, map);
     }
 
-    public SimpleDirection fromMeta(int meta, SeqType type) {
-        List<SimpleDirection> list = objTranslators.get(type);
-
-        meta = NukkitMath.clamp(meta, 0, list.size() - 1);
-
-        return list.get(meta);
-    }
-
-    public BlockFace faceFromMeta(int meta, SeqType type) {
+    public BlockFace fromMeta(int meta, SeqType type) {
         List<BlockFace> list = faceObjTranslators.get(type);
 
         meta = NukkitMath.clamp(meta, 0, list.size() - 1);
@@ -76,10 +53,6 @@ public class DirectionHelper {
         builder.putInt("direction", toMeta(state.getTrait(BlockTraits.DIRECTION), type));
     }
 
-    public short toMeta(@Nonnull SimpleDirection direction, SeqType type) {
-        return metaTranslators.get(type).get(direction);
-    }
-
     public short toMeta(@Nonnull BlockFace direction, SeqType type) {
         return faceMetaTranslators.get(type).get(direction);
     }
@@ -90,6 +63,9 @@ public class DirectionHelper {
         TYPE_3,
         TYPE_4,
         TYPE_5,
-        TYPE_6 //2 reversed
+        TYPE_6, //2 reversed
+        TYPE_7,
+        TYPE_8,
+        TYPE_9
     }
 }
