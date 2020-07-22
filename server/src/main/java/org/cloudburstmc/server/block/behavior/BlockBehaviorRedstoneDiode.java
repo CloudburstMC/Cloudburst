@@ -161,12 +161,12 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         return false;
     }
 
-    protected boolean isAlternateInput(BlockState blockState) {
-        return blockState.isPowerSource();
+    protected boolean isAlternateInput(BlockBehavior behavior) {
+        return behavior.isPowerSource();
     }
 
-    public static boolean isDiode(BlockState blockState) {
-        return blockState instanceof BlockBehaviorRedstoneDiode;
+    public static boolean isDiode(BlockBehavior behavior) {
+        return behavior instanceof BlockBehaviorRedstoneDiode;
     }
 
     protected int getRedstoneSignal() {

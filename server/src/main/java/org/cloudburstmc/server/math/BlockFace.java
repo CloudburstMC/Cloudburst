@@ -4,6 +4,7 @@ import com.google.common.collect.Iterators;
 import com.nukkitx.math.vector.Vector3i;
 import net.daporkchop.lib.random.PRandom;
 
+import javax.annotation.Nonnull;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -377,6 +378,7 @@ public enum BlockFace {
             return face != null && face.getAxis().getPlane() == this;
         }
 
+        @Nonnull
         public Iterator<BlockFace> iterator() {
             return Iterators.forArray(faces);
         }
