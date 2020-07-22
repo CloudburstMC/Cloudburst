@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.inventory.AnvilInventory;
 import org.cloudburstmc.server.item.Item;
@@ -43,8 +44,9 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable implements Faceabl
 
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        if (!target.isTransparent() || target.getId() == SNOW_LAYER) {
-            int meta = this.getMeta();
+        BlockState state = block.getState();
+        if (!target.getBehaviour().isTransparent() || state.getType() == SNOW_LAYER) {
+            int meta = item.getMeta();
             int[] faces = {1, 2, 3, 0};
             this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
             if (meta >= 4 && meta <= 7) {
@@ -52,8 +54,8 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable implements Faceabl
             } else if (meta >= 8 && meta <= 11) {
                 this.setMeta(this.getMeta() | 0x08);
             }
-            this.getLevel().setBlock(blockState.getPosition(), this, true);
-            this.getLevel().addSound(this.getPosition().toFloat(), Sound.RANDOM_ANVIL_LAND, 1, 0.8F);
+            block.getLevel().setBlock(block.getState().getPosition(), this, true);
+            block.getLevel().addSound(this.getPosition().toFloat(), Sound.RANDOM_ANVIL_LAND, 1, 0.8F);
             return true;
         }
         return false;

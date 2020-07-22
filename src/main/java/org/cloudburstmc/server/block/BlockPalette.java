@@ -55,7 +55,10 @@ public class BlockPalette {
 
             NbtMapBuilder tagBuilder = NbtMap.builder();
             BlockSerializers.serializeCommon(tagBuilder, identifier);
-            serializer.serialize(tagBuilder, state);
+
+            NbtMapBuilder statesBuilder = NbtMap.builder();
+            serializer.serialize(statesBuilder, state);
+            tagBuilder.putCompound("states", statesBuilder.build());
 
             NbtMap tag = tagBuilder.build();
             this.stateSerializedMap.put(state, tag);
