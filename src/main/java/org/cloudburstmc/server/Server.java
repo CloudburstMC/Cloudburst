@@ -12,6 +12,8 @@ import com.spotify.futures.CompletableFutures;
 import io.netty.buffer.ByteBuf;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
+import org.cloudburstmc.server.block.serializer.DirectionHelper;
+import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.console.NukkitConsole;
@@ -543,6 +545,8 @@ public class Server {
         }
 
         EnumLevel.initLevels();
+        DirectionHelper.init();
+        BlockTraitSerializers.init();
 
         if (this.getConfig("ticks-per.autosave", 6000) > 0) {
             this.autoSaveTicks = this.getConfig("ticks-per.autosave", 6000);
