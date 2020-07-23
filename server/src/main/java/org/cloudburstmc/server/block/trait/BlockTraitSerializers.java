@@ -6,12 +6,13 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.serializer.DirectionHelper;
 import org.cloudburstmc.server.math.BlockFace;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 @UtilityClass
+@ParametersAreNonnullByDefault
 public class BlockTraitSerializers {
 
     private final Map<Class<? extends Comparable<?>>, BlockTraitSerializer<?>> serializers = new HashMap<>();
@@ -21,24 +22,19 @@ public class BlockTraitSerializers {
                 DirectionHelper.serialize(builder, state));
     }
 
-    public void register(@Nonnull Class<? extends Comparable<?>> clazz, @Nonnull BlockTraitSerializer<?> serializer) {
+    public void register(Class<? extends Comparable<?>> clazz, BlockTraitSerializer<?> serializer) {
         Objects.requireNonNull(clazz);
         Objects.requireNonNull(serializer);
         serializers.put(clazz, serializer);
     }
 
     @SuppressWarnings("ConstantConditions")
-    public void serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockState state, @Nonnull BlockTrait<?> trait) {
+    public void serialize(NbtMapBuilder builder, BlockState state, BlockTrait<?> trait) {
         serialize(builder, state, trait, state.getTrait(trait));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void serialize(
-            @Nonnull NbtMapBuilder builder,
-            @Nonnull BlockState state,
-            @Nonnull BlockTrait<?> trait,
-            @Nonnull Comparable<?> value
-    ) {
+    public void serialize(NbtMapBuilder builder, BlockState state, BlockTrait<?> trait, Comparable<?> value) {
         BlockTraitSerializer serializer = serializers.get(trait.getValueClass());
 
         if (serializer != null) {
