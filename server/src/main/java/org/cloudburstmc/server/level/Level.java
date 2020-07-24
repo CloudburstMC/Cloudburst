@@ -1,9 +1,5 @@
 package org.cloudburstmc.server.level;
 
-import cn.nukkit.block.*;
-import cn.nukkit.event.level.*;
-import cn.nukkit.math.*;
-import cn.nukkit.utils.*;
 import co.aikar.timings.Timing;
 import co.aikar.timings.TimingsHistory;
 import com.google.common.base.Preconditions;
@@ -985,13 +981,13 @@ public class Level implements ChunkManager, Metadatable {
                 Block block = this.getBlock(pos);
 
                 BlockBehavior behavior = block.getBehaviour();
-                if (BlockBehaviorRedstoneDiode.isDiode(block)) {
+                if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
                     behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
                 } else if (behavior.isNormalBlock()) {
                     pos = face.getOffset(pos);
                     block = this.getBlock(pos);
 
-                    if (BlockBehaviorRedstoneDiode.isDiode(block)) {
+                    if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
                         behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
                     }
                 }
@@ -1723,7 +1719,7 @@ public class Level implements ChunkManager, Metadatable {
 
         targetBehavior.onBreak(item, player);
 
-        item.useOn(target.getState());
+        item.useOn(target);
         if (item.isTool() && item.getMeta() >= item.getMaxDurability()) {
             item = Item.get(BlockTypes.AIR, 0, 0);
         }
