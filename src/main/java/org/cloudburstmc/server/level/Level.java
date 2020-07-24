@@ -981,13 +981,13 @@ public class Level implements ChunkManager, Metadatable {
                 Block block = this.getBlock(pos);
 
                 BlockBehavior behavior = block.getBehaviour();
-                if (BlockBehaviorRedstoneDiode.isDiode(block.getBehaviour())) {
+                if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
                     behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
                 } else if (behavior.isNormalBlock()) {
                     pos = face.getOffset(pos);
                     block = this.getBlock(pos);
 
-                    if (BlockBehaviorRedstoneDiode.isDiode(block.getBehaviour())) {
+                    if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
                         behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
                     }
                 }
