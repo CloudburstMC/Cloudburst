@@ -1,11 +1,13 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorAir extends BlockBehaviorTransparent {
+
     private static final Item[] EMPTY = new Item[0];
 
     @Override
@@ -39,7 +41,7 @@ public class BlockBehaviorAir extends BlockBehaviorTransparent {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox() {
+    public AxisAlignedBB getBoundingBox(Block block) {
         return null;
     }
 

@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
@@ -10,6 +11,7 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -18,9 +20,10 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockTypes.WEB;
+import static org.cloudburstmc.server.block.BlockTypes.WOOL;
 
-public abstract class BlockBehavior implements AxisAlignedBB {
+public abstract class BlockBehavior {
 
     //http://minecraft.gamepedia.com/Breaking
     private static float breakTime0(float blockHardness, boolean correctTool, boolean canHarvestWithHand,
@@ -85,7 +88,7 @@ public abstract class BlockBehavior implements AxisAlignedBB {
     }
 
     public boolean onActivate(Block block, Item item) {
-        return this.onActivate(item, null);
+        return this.onActivate(block, item, null);
     }
 
     public boolean onActivate(Block block, Item item, Player player) {
@@ -178,16 +181,16 @@ public abstract class BlockBehavior implements AxisAlignedBB {
     }
 
     public boolean onBreak(Block block, Item item) {
-        return removeBlock(true);
+        return removeBlock(block, true);
     }
 
-    final protected boolean removeBlock(boolean update) {
-        if (this.isWaterlogged()) {
-            BlockBehavior water = getLevel().getBlock(getX(), getY(), getZ(), 1);
-            getLevel().setBlock(this.getPosition(), water, true, false);
-            return getLevel().setBlock(getX(), getY(), getZ(), 1, BlockBehavior.get(AIR), true, update);
+    final protected boolean removeBlock(Block block, boolean update) {
+        if (block.isWaterlogged()) {
+            Block water = block.getLevel().getBlock(block.getPosition(), 1);
+            block.getLevel().setBlock(block.getPosition(), water.getState(), true, false);
         }
-        return this.getLevel().setBlock(this.getPosition(), BlockBehavior.get(AIR), true, update);
+
+        return block.getLevel().setBlock(block.getPosition(), BlockState.AIR, true, update);
     }
 
     public boolean onBreak(Block block, Item item, Player player) {
@@ -309,12 +312,12 @@ public abstract class BlockBehavior implements AxisAlignedBB {
         return base;
     }
 
-    public boolean collidesWithBB(AxisAlignedBB bb) {
-        return collidesWithBB(bb, false);
+    public boolean collidesWithBB(Block block, AxisAlignedBB bb) {
+        return collidesWithBB(block, bb, false);
     }
 
-    public boolean collidesWithBB(AxisAlignedBB bb, boolean collisionBB) {
-        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes() : this.getBoundingBox();
+    public boolean collidesWithBB(Block block, AxisAlignedBB bb, boolean collisionBB) {
+        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block) : this.getBoundingBox(block);
         return bb1 != null && bb.intersectsWith(bb1);
     }
 
@@ -322,12 +325,13 @@ public abstract class BlockBehavior implements AxisAlignedBB {
 
     }
 
-    public AxisAlignedBB getBoundingBox() {
-        return this.recalculateBoundingBox();
+    public AxisAlignedBB getBoundingBox(Block block) {
+        Vector3i pos = block.getPosition();
+        return new SimpleAxisAlignedBB(pos, pos.add(1, 1, 1));
     }
 
-    public AxisAlignedBB getCollisionBoxes() {
-        return this.recalculateCollisionBoundingBox();
+    public AxisAlignedBB getCollisionBoxes(Block block) {
+        return getBoundingBox(block);
     }
 
     public String getSaveId() {
