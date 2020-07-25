@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.behavior.*;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.serializer.NoopBlockSerializer;
@@ -158,8 +159,8 @@ public class BlockRegistry implements Registry {
 
     private void registerVanillaBlocks() {
         this.registerVanilla(AIR, new BlockBehaviorAir()); //0
-        this.registerVanilla(STONE, new BlockBehaviorStone()); //1
-        this.registerVanilla(GRASS, new BlockBehaviorGrass()); //2
+        this.registerVanilla(STONE, new BlockBehaviorStone(), BlockTraits.STONE_TYPE); //1
+        this.registerVanilla(GRASS, new BlockBehaviorGrass(), ); //2
         this.registerVanilla(DIRT, new BlockBehaviorDirt()); //3
         this.registerVanilla(COBBLESTONE, new BlockBehaviorCobblestone()); //4
         this.registerVanilla(PLANKS, new BlockBehaviorPlanks()); //5
