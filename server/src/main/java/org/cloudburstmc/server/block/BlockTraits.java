@@ -55,6 +55,7 @@ public class BlockTraits {
     public final EnumBlockTrait<SeaGrassType> SEA_GRASS_TYPE = EnumBlockTrait.of("sea_gras_type", SeaGrassType.class);
     public final EnumBlockTrait<SpongeType> SPONGE_TYPE = EnumBlockTrait.of("sponge_type", SpongeType.class);
     public final IntegerBlockTrait STABILITY = IntegerBlockTrait.from("stability", 8);
+    public final EnumBlockTrait<StoneType> STONE_TYPE = EnumBlockTrait.of("stone_type", StoneType.class);
     public final EnumBlockTrait<StoneBrickType> STONE_BRICK_TYPE = EnumBlockTrait.of("stone_brick_type", StoneBrickType.class);
     public final EnumBlockTrait<StoneSlabType> STONE_SLAB_TYPE = EnumBlockTrait.of("stone_slab_type", StoneSlabType.class);
     public final EnumBlockTrait<StructureBlockType> STRUCTURE_BLOCK_TYPE = EnumBlockTrait.of("structure_block_type", StructureBlockType.class);
