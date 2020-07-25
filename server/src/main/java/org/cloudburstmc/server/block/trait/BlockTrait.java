@@ -1,21 +1,49 @@
 package org.cloudburstmc.server.block.trait;
 
+import lombok.Getter;
+import org.cloudburstmc.server.block.BlockTraits;
+
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.function.Predicate;
 
-public interface BlockTrait<E extends Comparable<E>> {
+import static com.google.common.base.Preconditions.checkNotNull;
 
-    String getName();
+@Getter
+@ParametersAreNonnullByDefault
+public abstract class BlockTrait<E extends Comparable<E>> {
 
-    List<E> getPossibleValues();
+    protected final String name;
+    protected final String vanillaName;
+    protected final Class<E> valueClass;
+    protected final List<E> possibleValues;
 
-    E getDefaultValue();
+    public BlockTrait(String name, @Nullable String vanillaName, Class<E> valueClass, List<E> possibleValues) {
+        checkNotNull(name);
+        checkNotNull(valueClass);
+        checkNotNull(possibleValues);
+        this.name = name;
+        this.vanillaName = vanillaName;
+        this.valueClass = valueClass;
+        this.possibleValues = possibleValues;
 
-    Class<E> getValueClass();
+        BlockTraits.register(this);
+    }
 
-    default Predicate<E> getValidator() {
+    public String getVanillaName() {
+        if (vanillaName != null) {
+            return vanillaName;
+        }
+
+        return name;
+    }
+
+    abstract E getDefaultValue();
+
+    Predicate<E> getValidator() {
         return e -> this.getPossibleValues().contains(e);
     }
 
-    int getIndex(Object value);
+    abstract int getIndex(Object value);
 }

@@ -1,15 +1,22 @@
 package org.cloudburstmc.server.block;
 
+import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
+import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.server.block.trait.EnumBlockTrait;
 import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.utils.data.*;
 
+import javax.annotation.Nonnull;
+
 @UtilityClass
 public class BlockTraits {
 
+    private final Object2ReferenceMap<String, BlockTrait<?>> vanillaMapping = new Object2ReferenceOpenHashMap<>();
+    private final Object2ReferenceMap<String, BlockTrait<?>> internalMapping = new Object2ReferenceOpenHashMap<>();
 
     public final IntegerBlockTrait AGE = IntegerBlockTrait.from("age", 16);
     public final EnumBlockTrait<AttachmentType> ATTACHMENT = EnumBlockTrait.of("attachment", AttachmentType.class);
@@ -30,7 +37,7 @@ public class BlockTraits {
     public final EnumBlockTrait<DirtType> DIRT_TYPE = EnumBlockTrait.of("dirt_type", DirtType.class);
     public final EnumBlockTrait<DoublePlantType> DOUBLE_PLANT_TYPE = EnumBlockTrait.of("double_plant_type", DoublePlantType.class);
     public final BooleanBlockTrait DRAG_DOWN = BooleanBlockTrait.of("drag_down");
-    public final BooleanBlockTrait EXPLODE = BooleanBlockTrait.of("explode");
+    public final BooleanBlockTrait EXPLODE = BooleanBlockTrait.of("explode", "explode_bit");
     public final IntegerBlockTrait FILL_LEVEL = IntegerBlockTrait.from("fill_level", 7);
     public final EnumBlockTrait<FlowerType> FLOWER_TYPE = EnumBlockTrait.of("flower_type", FlowerType.class);
     public final IntegerBlockTrait FLUID_LEVEL = IntegerBlockTrait.from("fluid_level", 8);
@@ -64,40 +71,53 @@ public class BlockTraits {
 
     public final EnumBlockTrait<BlockFace> DIRECTION = EnumBlockTrait.of("direction", BlockFace.class, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST);
 
-    public final BooleanBlockTrait IS_ALLOWED_UNDERWATER = BooleanBlockTrait.of("is_allowed_underwater");
-    public final BooleanBlockTrait IS_ATTACHED = BooleanBlockTrait.of("is_attached");
-    public final BooleanBlockTrait IS_BUTTON_PRESSED = BooleanBlockTrait.of("is_button_pressed");
-    public final BooleanBlockTrait IS_CONDITIONAL = BooleanBlockTrait.of("is_conditional");
-    public final BooleanBlockTrait IS_COVERED = BooleanBlockTrait.of("is_covered");
-    public final BooleanBlockTrait IS_DEAD = BooleanBlockTrait.of("is_dead");
-    public final BooleanBlockTrait IS_DISARMED = BooleanBlockTrait.of("is_disarmed");
-    public final BooleanBlockTrait IS_DOOR_HINGE = BooleanBlockTrait.of("is_door_hinge");
-    public final BooleanBlockTrait IS_EXTINGUISHED = BooleanBlockTrait.of("is_extinguished");
+    public final BooleanBlockTrait IS_ALLOWED_UNDERWATER = BooleanBlockTrait.of("is_allowed_underwater", "allow_underwater_bit");
+    public final BooleanBlockTrait IS_ATTACHED = BooleanBlockTrait.of("is_attached", "attached_bit");
+    public final BooleanBlockTrait IS_BUTTON_PRESSED = BooleanBlockTrait.of("is_button_pressed", "button_pressed_bit");
+    public final BooleanBlockTrait IS_CONDITIONAL = BooleanBlockTrait.of("is_conditional", "conditional_bit");
+    public final BooleanBlockTrait IS_COVERED = BooleanBlockTrait.of("is_covered", "covered_bit");
+    public final BooleanBlockTrait IS_DEAD = BooleanBlockTrait.of("is_dead", "dead_bit");
+    public final BooleanBlockTrait IS_DISARMED = BooleanBlockTrait.of("is_disarmed", "disarmed_bit");
+    public final BooleanBlockTrait IS_DOOR_HINGE = BooleanBlockTrait.of("is_door_hinge", "door_hinge_bit");
+    public final BooleanBlockTrait IS_EXTINGUISHED = BooleanBlockTrait.of("is_extinguished", "extinguished");
     public final BooleanBlockTrait IS_FLOWING = BooleanBlockTrait.of("is_flowing");
-    public final BooleanBlockTrait IS_HANGING = BooleanBlockTrait.of("is_hanging");
-    public final BooleanBlockTrait IS_HEAD_PIECE = BooleanBlockTrait.of("is_head_piece");
-    public final BooleanBlockTrait IS_IN_WALL = BooleanBlockTrait.of("is_in_wall");
-    public final BooleanBlockTrait IS_OCCUPIED = BooleanBlockTrait.of("is_occupied");
-    public final BooleanBlockTrait IS_OPEN = BooleanBlockTrait.of("is_open");
-    public final BooleanBlockTrait IS_OUTPUT_LIT = BooleanBlockTrait.of("is_output_lit");
-    public final BooleanBlockTrait IS_OUTPUT_SUBTRACT = BooleanBlockTrait.of("is_output_subtract");
-    public final BooleanBlockTrait IS_PERSISTENT = BooleanBlockTrait.of("is_persistent");
-    public final BooleanBlockTrait IS_POWERED = BooleanBlockTrait.of("is_powered");
-    public final BooleanBlockTrait IS_STRIPPED = BooleanBlockTrait.of("is_stripped");
-    public final BooleanBlockTrait IS_SUSPENDED = BooleanBlockTrait.of("is_suspended");
-    public final BooleanBlockTrait IS_TOGGLED = BooleanBlockTrait.of("is_toggled");
-    public final BooleanBlockTrait IS_TOP_SLOT = BooleanBlockTrait.of("is_top_slot");
-    public final BooleanBlockTrait IS_TRIGGERED = BooleanBlockTrait.of("is_triggered");
-    public final BooleanBlockTrait IS_UPPER_BLOCK = BooleanBlockTrait.of("is_upper_block");
-    public final BooleanBlockTrait IS_UPSIDE_DOWN = BooleanBlockTrait.of("is_upside_down");
-    public final BooleanBlockTrait IS_WALL_POST = BooleanBlockTrait.of("is_wall_post");
-    public final BooleanBlockTrait HAS_AGE = BooleanBlockTrait.of("has_age");
-    public final BooleanBlockTrait HAS_BREWING_STAND_SLOT_A = BooleanBlockTrait.of("has_brewing_stand_slot_a");
-    public final BooleanBlockTrait HAS_BREWING_STAND_SLOT_B = BooleanBlockTrait.of("has_brewing_stand_slot_b");
-    public final BooleanBlockTrait HAS_BREWING_STAND_SLOT_C = BooleanBlockTrait.of("has_brewing_stand_slot_c");
-    public final BooleanBlockTrait HAS_COLOR = BooleanBlockTrait.of("has_color");
-    public final BooleanBlockTrait HAS_END_PORTAL_EYE = BooleanBlockTrait.of("has_end_portal_eye");
-    public final BooleanBlockTrait HAS_INFINIBURN = BooleanBlockTrait.of("has_infiniburn");
-    public final BooleanBlockTrait HAS_NO_DROP = BooleanBlockTrait.of("has_no_drop");
-    public final BooleanBlockTrait HAS_UPDATE = BooleanBlockTrait.of("has_update");
+    public final BooleanBlockTrait IS_HANGING = BooleanBlockTrait.of("is_hanging", "hanging");
+    public final BooleanBlockTrait IS_HEAD_PIECE = BooleanBlockTrait.of("is_head_piece", "head_piece_bit");
+    public final BooleanBlockTrait IS_IN_WALL = BooleanBlockTrait.of("is_in_wall", "in_wall_bit");
+    public final BooleanBlockTrait IS_OCCUPIED = BooleanBlockTrait.of("is_occupied", "occupied_bit");
+    public final BooleanBlockTrait IS_OPEN = BooleanBlockTrait.of("is_open", "open_bit");
+    public final BooleanBlockTrait IS_OUTPUT_LIT = BooleanBlockTrait.of("is_output_lit", "output_lit_bit");
+    public final BooleanBlockTrait IS_OUTPUT_SUBTRACT = BooleanBlockTrait.of("is_output_subtract", "output_subtract_bit");
+    public final BooleanBlockTrait IS_PERSISTENT = BooleanBlockTrait.of("is_persistent", "persistent_bit");
+    public final BooleanBlockTrait IS_POWERED = BooleanBlockTrait.of("is_powered", "powered_bit");
+    public final BooleanBlockTrait IS_STRIPPED = BooleanBlockTrait.of("is_stripped", "stripped_bit");
+    public final BooleanBlockTrait IS_SUSPENDED = BooleanBlockTrait.of("is_suspended", "suspended_bit");
+    public final BooleanBlockTrait IS_TOGGLED = BooleanBlockTrait.of("is_toggled", "toggle_bit");
+    public final BooleanBlockTrait IS_TOP_SLOT = BooleanBlockTrait.of("is_top_slot", "top_slot_bit");
+    public final BooleanBlockTrait IS_TRIGGERED = BooleanBlockTrait.of("is_triggered", "triggered_bit");
+    public final BooleanBlockTrait IS_UPPER_BLOCK = BooleanBlockTrait.of("is_upper_block", "upper_block_bit");
+    public final BooleanBlockTrait IS_UPSIDE_DOWN = BooleanBlockTrait.of("is_upside_down", "upside_down_bit");
+    public final BooleanBlockTrait IS_WALL_POST = BooleanBlockTrait.of("is_wall_post", "wall_post_bit");
+    public final BooleanBlockTrait HAS_AGE = BooleanBlockTrait.of("has_age", "age");
+    public final BooleanBlockTrait HAS_BREWING_STAND_SLOT_A = BooleanBlockTrait.of("has_brewing_stand_slot_a", "has_brewing_stand_slot_a_bit");
+    public final BooleanBlockTrait HAS_BREWING_STAND_SLOT_B = BooleanBlockTrait.of("has_brewing_stand_slot_b", "has_brewing_stand_slot_b_bit");
+    public final BooleanBlockTrait HAS_BREWING_STAND_SLOT_C = BooleanBlockTrait.of("has_brewing_stand_slot_c", "has_brewing_stand_slot_c_bit");
+    public final BooleanBlockTrait HAS_COLOR = BooleanBlockTrait.of("has_color", "color");
+    public final BooleanBlockTrait HAS_END_PORTAL_EYE = BooleanBlockTrait.of("has_end_portal_eye", "end_portal_eye_bit");
+    public final BooleanBlockTrait HAS_INFINIBURN = BooleanBlockTrait.of("has_infiniburn", "infiniburn_bit");
+    public final BooleanBlockTrait HAS_NO_DROP = BooleanBlockTrait.of("has_no_drop", "no_drop_bit");
+    public final BooleanBlockTrait HAS_UPDATE = BooleanBlockTrait.of("has_update", "update_bit");
+
+    public void register(@Nonnull BlockTrait<?> trait) {
+        vanillaMapping.put(trait.getVanillaName(), trait);
+        internalMapping.put(trait.getName(), trait);
+    }
+
+    public BlockTrait<?> fromVanilla(String name) {
+        return vanillaMapping.get(name);
+    }
+
+    public BlockTrait<?> from(String name) {
+        return internalMapping.get(name);
+    }
 }

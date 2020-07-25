@@ -3,23 +3,21 @@ package org.cloudburstmc.server.block.trait;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class EnumBlockTrait<E extends Enum<E>> implements BlockTrait<E> {
-    private final String name;
-    private final Class<E> enumClass;
-    private final ImmutableList<E> possibleValues;
+@ParametersAreNonnullByDefault
+public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
+
     private final E defaultValue;
 
-    private EnumBlockTrait(String name, Class<E> enumClass, ImmutableList<E> possibleValues, E defaultValue) {
-        this.name = name;
-        this.enumClass = enumClass;
-        this.possibleValues = possibleValues;
+    private EnumBlockTrait(String name, @Nullable String vanillaName, Class<E> enumClass, ImmutableList<E> possibleValues, E defaultValue) {
+        super(name, vanillaName, enumClass, possibleValues);
         this.defaultValue = defaultValue;
     }
 
@@ -37,33 +35,21 @@ public class EnumBlockTrait<E extends Enum<E>> implements BlockTrait<E> {
         return of(name, enumClass, ImmutableSet.copyOf(enumClass.getEnumConstants()), defaultValue);
     }
 
-    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, Set<E> possibleValues,
-                                                           E defaultValue) {
+    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, Set<E> possibleValues, E defaultValue) {
+        return of(name, null, enumClass, possibleValues, defaultValue);
+    }
+
+    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, @Nullable String vanillaName, Class<E> enumClass, Set<E> possibleValues, E defaultValue) {
         checkNotNull(name, "name");
         checkNotNull(enumClass, "enumClass");
         checkNotNull(possibleValues, "possibleValues");
         checkNotNull(defaultValue, "defaultValues");
-        return new EnumBlockTrait<>(name, enumClass, ImmutableList.copyOf(new HashSet<>(possibleValues)), defaultValue);
-    }
-
-    @Override
-    public String getName() {
-        return this.name;
-    }
-
-    @Override
-    public List<E> getPossibleValues() {
-        return this.possibleValues;
+        return new EnumBlockTrait<>(name, vanillaName, enumClass, ImmutableList.copyOf(new HashSet<>(possibleValues)), defaultValue);
     }
 
     @Override
     public E getDefaultValue() {
         return this.defaultValue;
-    }
-
-    @Override
-    public Class<E> getValueClass() {
-        return this.enumClass;
     }
 
     public int getIndex(Object value) {
