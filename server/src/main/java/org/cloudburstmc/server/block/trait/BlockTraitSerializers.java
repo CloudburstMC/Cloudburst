@@ -45,6 +45,6 @@ public class BlockTraitSerializers {
             value = ((Enum<?>) value).name().toLowerCase();
         }
 
-        builder.put(trait.getName(), value);
+        builder.put(trait.getVanillaName(), value);
     }
 }
