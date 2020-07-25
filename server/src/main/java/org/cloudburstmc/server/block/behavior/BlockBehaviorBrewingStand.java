@@ -98,7 +98,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.IRON_BLOCK_COLOR;
     }
 

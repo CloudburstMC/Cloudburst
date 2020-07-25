@@ -12,7 +12,6 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.Faceable;
 import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
@@ -21,7 +20,7 @@ import static org.cloudburstmc.server.block.BlockTypes.AIR;
  * author: Angelic47
  * Nukkit Project
  */
-public class BlockBehaviorFurnaceBurning extends BlockBehaviorSolid implements Faceable {
+public class BlockBehaviorFurnaceBurning extends BlockBehaviorSolid {
     private BlockEntityType<? extends Furnace> furnaceEntity;
 
     protected BlockBehaviorFurnaceBurning(Identifier id, BlockEntityType<? extends Furnace> entity) {

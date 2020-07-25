@@ -39,7 +39,7 @@ public class BlockBehaviorFenceNetherBrick extends BlockBehaviorFence {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.NETHERRACK_BLOCK_COLOR;
     }
 

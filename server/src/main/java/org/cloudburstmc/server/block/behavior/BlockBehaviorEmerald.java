@@ -34,7 +34,7 @@ public class BlockBehaviorEmerald extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.EMERALD_BLOCK_COLOR;
     }
 

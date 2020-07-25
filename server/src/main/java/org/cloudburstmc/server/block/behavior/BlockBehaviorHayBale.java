@@ -6,9 +6,8 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 
-public class BlockBehaviorHayBale extends BlockBehaviorSolid implements Faceable {
+public class BlockBehaviorHayBale extends BlockBehaviorSolid {
 
     @Override
     public float getHardness() {
@@ -47,7 +46,7 @@ public class BlockBehaviorHayBale extends BlockBehaviorSolid implements Faceable
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.YELLOW_BLOCK_COLOR;
     }
 

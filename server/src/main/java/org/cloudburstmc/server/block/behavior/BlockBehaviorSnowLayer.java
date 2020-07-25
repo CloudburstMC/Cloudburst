@@ -89,7 +89,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.SNOW_BLOCK_COLOR;
     }
 

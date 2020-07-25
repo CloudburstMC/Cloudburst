@@ -22,7 +22,7 @@ public class BlockBehaviorGlassPane extends BlockBehaviorThin {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 

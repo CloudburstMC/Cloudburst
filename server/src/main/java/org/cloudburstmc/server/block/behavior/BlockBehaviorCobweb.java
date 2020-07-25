@@ -45,7 +45,7 @@ public class BlockBehaviorCobweb extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.CLOTH_BLOCK_COLOR;
     }
 

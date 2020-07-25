@@ -31,7 +31,7 @@ public class BlockBehaviorPlanks extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         switch (getMeta() & 0x07) {
             default:
             case OAK:

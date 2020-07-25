@@ -10,9 +10,8 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 
-public class BlockBehaviorFenceGate extends BlockBehaviorTransparent implements Faceable {
+public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 
     private static final float[] offMinX = new float[2];
     private static final float[] offMinZ = new float[2];
@@ -105,7 +104,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent implements 
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 

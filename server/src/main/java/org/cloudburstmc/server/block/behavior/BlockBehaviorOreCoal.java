@@ -65,7 +65,7 @@ public class BlockBehaviorOreCoal extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.BLACK_BLOCK_COLOR;
     }
 }

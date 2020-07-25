@@ -28,7 +28,7 @@ public class BlockBehaviorChorusPlant extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.PURPLE_BLOCK_COLOR;
     }
 }

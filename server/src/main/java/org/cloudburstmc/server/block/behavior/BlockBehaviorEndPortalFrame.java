@@ -6,11 +6,10 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 
 import static org.cloudburstmc.server.item.ItemIds.ENDER_EYE;
 
-public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent implements Faceable {
+public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
 
     @Override
     public float getResistance() {
@@ -83,7 +82,7 @@ public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent implem
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.GREEN_BLOCK_COLOR;
     }
 

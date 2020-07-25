@@ -168,7 +168,7 @@ public abstract class BlockBehavior {
         return false;
     }
 
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.VOID_BLOCK_COLOR;
     }
 

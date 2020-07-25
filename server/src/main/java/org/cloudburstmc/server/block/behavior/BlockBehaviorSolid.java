@@ -10,7 +10,7 @@ public abstract class BlockBehaviorSolid extends BlockBehavior {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.STONE_BLOCK_COLOR;
     }
 }

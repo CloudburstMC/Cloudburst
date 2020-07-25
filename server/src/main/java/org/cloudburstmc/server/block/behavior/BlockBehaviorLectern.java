@@ -176,7 +176,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 

@@ -15,7 +15,6 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Faceable;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -23,7 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Created by CreeperFace on 27. 10. 2016.
  */
-public class BlockBehaviorCocoa extends BlockBehaviorTransparent implements Faceable {
+public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     protected static final AxisAlignedBB[] BB_NORTH = {
             new SimpleAxisAlignedBB(0.375f, 0.4375f, 0.0625f, 0.625f, 0.75f, 0.3125f),
             new SimpleAxisAlignedBB(0.3125f, 0.3125f, 0.0625f, 0.6875f, 0.75f, 0.4375f),

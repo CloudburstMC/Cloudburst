@@ -2,9 +2,11 @@ package org.cloudburstmc.server.block;
 
 import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
+import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
@@ -17,14 +19,14 @@ import static com.google.common.base.Preconditions.checkState;
 
 @ParametersAreNonnullByDefault
 public final class CloudBlockState implements BlockState {
-    private final Identifier identifier;
+    private final Identifier type;
     private final ImmutableMap<BlockTrait<?>, Comparable<?>> traits;
     private final Reference2IntMap<BlockTrait<?>> traitPalette;
     private CloudBlockState[][] table = null;
 
-    CloudBlockState(Identifier identifier, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
+    CloudBlockState(Identifier type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
                     Reference2IntMap<BlockTrait<?>> traitPalette) {
-        this.identifier = identifier;
+        this.type = type;
         this.traits = traits;
         this.traitPalette = traitPalette;
     }
@@ -32,7 +34,7 @@ public final class CloudBlockState implements BlockState {
     @Nonnull
     @Override
     public Identifier getType() {
-        return identifier;
+        return type;
     }
 
     @Nullable
@@ -76,6 +78,11 @@ public final class CloudBlockState implements BlockState {
         checkNotNull(trait, "trait");
         int traitIndex = this.traitPalette.getInt(trait);
         return this.table[traitIndex][trait.getIndex(value)];
+    }
+
+    @Override
+    public BlockBehavior getBehavior() {
+        return BlockRegistry.get().getBehavior(this.type);
     }
 
     public void buildStateTable(Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map) {

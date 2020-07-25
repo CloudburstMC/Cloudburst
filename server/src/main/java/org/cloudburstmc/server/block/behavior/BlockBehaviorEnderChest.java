@@ -116,7 +116,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.OBSIDIAN_BLOCK_COLOR;
     }
 

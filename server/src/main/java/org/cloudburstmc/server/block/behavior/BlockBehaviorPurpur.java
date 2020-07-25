@@ -64,7 +64,7 @@ public class BlockBehaviorPurpur extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.MAGENTA_BLOCK_COLOR;
     }
 }

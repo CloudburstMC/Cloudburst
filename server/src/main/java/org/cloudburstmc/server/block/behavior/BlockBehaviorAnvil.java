@@ -11,11 +11,10 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 
 import static org.cloudburstmc.server.block.BlockTypes.SNOW_LAYER;
 
-public class BlockBehaviorAnvil extends BlockBehaviorFallable implements Faceable {
+public class BlockBehaviorAnvil extends BlockBehaviorFallable {
 
     @Override
     public boolean canBeActivated() {
@@ -45,7 +44,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable implements Faceabl
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
-        if (!target.getBehaviour().isTransparent() || state.getType() == SNOW_LAYER) {
+        if (!target.getBehavior().isTransparent() || state.getType() == SNOW_LAYER) {
             int meta = item.getMeta();
             int[] faces = {1, 2, 3, 0};
             this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
@@ -92,7 +91,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable implements Faceabl
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.IRON_BLOCK_COLOR;
     }
 

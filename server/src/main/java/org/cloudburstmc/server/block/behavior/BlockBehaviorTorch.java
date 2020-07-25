@@ -7,7 +7,6 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE_WALL;
@@ -16,7 +15,7 @@ import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE_WALL;
  * Created on 2015/12/2 by xtypr.
  * Package cn.nukkit.block in project Nukkit .
  */
-public class BlockBehaviorTorch extends FloodableBlockBehavior implements Faceable {
+public class BlockBehaviorTorch extends FloodableBlockBehavior {
 
     public BlockBehaviorTorch(Identifier id) {
         super(id);
@@ -84,7 +83,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior implements Faceab
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 

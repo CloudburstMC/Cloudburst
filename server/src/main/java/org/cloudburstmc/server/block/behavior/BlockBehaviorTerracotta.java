@@ -42,7 +42,7 @@ public class BlockBehaviorTerracotta extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return TerracottaColor.getByTerracottaData(getMeta()).getColor();
     }
 
