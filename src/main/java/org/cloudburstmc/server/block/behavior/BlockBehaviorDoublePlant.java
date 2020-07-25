@@ -11,24 +11,12 @@ import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
-    public static final int SUNFLOWER = 0;
-    public static final int LILAC = 1;
-    public static final int TALL_GRASS = 2;
-    public static final int LARGE_FERN = 3;
-    public static final int ROSE_BUSH = 4;
-    public static final int PEONY = 5;
-    public static final int TOP_HALF_BITMASK = 0x8;
-
-    public BlockBehaviorDoublePlant(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canBeReplaced() {

@@ -8,19 +8,10 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
-/**
- * Created on 2015/12/1 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
-
-    public BlockBehaviorWaterLily(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getMinX() {

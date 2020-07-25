@@ -6,15 +6,10 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by CreeperFace on 10.4.2017.
- */
 public class BlockBehaviorRedstoneRepeaterPowered extends BlockBehaviorRedstoneDiode {
 
-    public BlockBehaviorRedstoneRepeaterPowered(Identifier id) {
-        super(id);
+    public BlockBehaviorRedstoneRepeaterPowered() {
         this.isPowered = true;
     }
 

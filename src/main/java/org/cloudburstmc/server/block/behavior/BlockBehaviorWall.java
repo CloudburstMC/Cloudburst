@@ -5,22 +5,13 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE_WALL;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorWall extends BlockBehaviorTransparent {
     public static final int NONE_MOSSY_WALL = 0;
     public static final int MOSSY_WALL = 1;
 
-
-    public BlockBehaviorWall(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean isSolid() {

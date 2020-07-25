@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockFactory;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
@@ -7,13 +8,10 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
-/**
- * Created by Pub4Game on 26.12.2015.
- */
 public class BlockBehaviorWallSign extends BlockBehaviorSignPost {
 
-    public BlockBehaviorWallSign(Identifier id, Identifier signStandingId, Identifier signItemId) {
-        super(id, signStandingId, id, signItemId);
+    public BlockBehaviorWallSign(Identifier signStandingId, Identifier signItemId) {
+        super(signStandingId, id, signItemId);
     }
 
     @Override

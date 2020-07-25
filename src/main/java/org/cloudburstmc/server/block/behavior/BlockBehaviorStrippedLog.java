@@ -5,13 +5,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorStrippedLog extends BlockBehaviorLog {
-
-    public BlockBehaviorStrippedLog(Identifier identifier) {
-        super(identifier);
-    }
 
     @Override
     public boolean canBeActivated() {

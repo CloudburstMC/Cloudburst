@@ -1,16 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by Pub4Game on 21.02.2016.
- */
 public class BlockBehaviorSlime extends BlockBehaviorSolid {
-
-    public BlockBehaviorSlime(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

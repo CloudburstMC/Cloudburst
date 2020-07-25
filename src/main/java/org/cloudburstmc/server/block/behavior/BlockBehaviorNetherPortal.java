@@ -8,18 +8,8 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created on 2016/1/5 by xtypr.
- * Package cn.nukkit.block in project nukkit .
- * The name NetherPortalBlock comes from minecraft wiki.
- */
 public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
-
-    public BlockBehaviorNetherPortal(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canPassThrough() {

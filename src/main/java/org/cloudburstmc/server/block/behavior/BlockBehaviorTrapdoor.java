@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockFactory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
@@ -14,11 +15,7 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by Pub4Game on 26.12.2015.
- */
 public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
 
     public static final int TRAPDOOR_OPEN_BIT = 0x08;
@@ -28,12 +25,11 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
 
     protected BlockColor blockColor;
 
-    public BlockBehaviorTrapdoor(Identifier id) {
-        this(id, BlockColor.WOOD_BLOCK_COLOR);
+    public BlockBehaviorTrapdoor() {
+        this(BlockColor.WOOD_BLOCK_COLOR);
     }
 
-    public BlockBehaviorTrapdoor(Identifier id, BlockColor blockColor) {
-        super(id);
+    public BlockBehaviorTrapdoor(BlockColor blockColor) {
         this.blockColor = blockColor;
     }
 

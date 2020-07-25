@@ -10,18 +10,10 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.TRIPWIRE;
 
-/**
- * @author CreeperFace
- */
 public class BlockBehaviorTripWire extends FloodableBlockBehavior {
-
-    public BlockBehaviorTripWire(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canPassThrough() {

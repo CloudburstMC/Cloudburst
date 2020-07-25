@@ -11,11 +11,7 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by Pub4Game on 15.01.2016.
- */
 public class BlockBehaviorVine extends BlockBehaviorTransparent {
     public static final int SOUTH = 1;
     public static final int WEST = 2;
@@ -46,10 +42,6 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
             case EAST:
                 return EAST;
         }
-    }
-
-    public BlockBehaviorVine(Identifier id) {
-        super(id);
     }
 
     @Override

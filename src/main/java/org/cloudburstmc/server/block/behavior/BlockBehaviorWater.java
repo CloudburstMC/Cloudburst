@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockFactory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
@@ -12,18 +13,10 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorWater extends BlockBehaviorLiquid {
 
-    protected BlockBehaviorWater(Identifier id, Identifier flowingId, Identifier stationaryId) {
-        super(id, flowingId, stationaryId);
-    }
-
     protected BlockBehaviorWater(Identifier flowingId, Identifier stationaryId) {
-        this(flowingId, flowingId, stationaryId);
+        super(flowingId, stationaryId);
     }
 
     @Override

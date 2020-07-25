@@ -1,14 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorStairsPurpur extends BlockBehaviorStairs {
-
-    public BlockBehaviorStairsPurpur(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

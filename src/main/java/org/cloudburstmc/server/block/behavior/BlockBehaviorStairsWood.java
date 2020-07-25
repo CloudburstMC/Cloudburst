@@ -1,18 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created on 2015/11/25 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorStairsWood extends BlockBehaviorStairs {
-    public BlockBehaviorStairsWood(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getToolType() {

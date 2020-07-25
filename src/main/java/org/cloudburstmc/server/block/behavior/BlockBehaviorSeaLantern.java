@@ -1,17 +1,14 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 
 public class BlockBehaviorSeaLantern extends BlockBehaviorTransparent {
-    public BlockBehaviorSeaLantern(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getResistance() {

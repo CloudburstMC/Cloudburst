@@ -18,24 +18,16 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
-/**
- * @author Nukkit Project Team
- */
 public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
 
     protected final Identifier signItemId;
     protected final Identifier signWallId;
     protected final Identifier signStandingId;
 
-    protected BlockBehaviorSignPost(Identifier id, Identifier signStandingId, Identifier signWallId, Identifier signItemId) {
-        super(id);
+    protected BlockBehaviorSignPost(Identifier signStandingId, Identifier signWallId, Identifier signItemId) {
         this.signItemId = signItemId;
         this.signWallId = signWallId;
         this.signStandingId = signStandingId;
-    }
-
-    public BlockBehaviorSignPost(Identifier id, Identifier signWallId, Identifier signItemId) {
-        this(id, id, signWallId, signItemId);
     }
 
     @Override

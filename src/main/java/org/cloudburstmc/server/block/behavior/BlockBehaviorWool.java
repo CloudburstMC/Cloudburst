@@ -1,19 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
-/**
- * Created on 2015/12/2 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorWool extends BlockBehaviorSolid {
-
-    public BlockBehaviorWool(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getToolType() {

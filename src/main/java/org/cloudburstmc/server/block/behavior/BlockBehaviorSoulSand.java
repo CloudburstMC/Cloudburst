@@ -1,18 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by Pub4Game on 27.12.2015.
- */
 public class BlockBehaviorSoulSand extends BlockBehaviorSolid {
-
-    public BlockBehaviorSoulSand(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

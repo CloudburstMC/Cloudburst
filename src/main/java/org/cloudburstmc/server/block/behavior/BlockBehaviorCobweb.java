@@ -6,12 +6,8 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorCobweb extends FloodableBlockBehavior {
-    public BlockBehaviorCobweb(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

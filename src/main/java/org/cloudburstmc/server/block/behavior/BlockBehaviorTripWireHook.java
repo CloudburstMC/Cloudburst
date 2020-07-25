@@ -3,24 +3,17 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
 
-/**
- * @author CreeperFace
- */
 public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
-
-    public BlockBehaviorTripWireHook(Identifier id) {
-        super(id);
-    }
 
     public BlockFace getFacing() {
         return BlockFace.fromHorizontalIndex(getMeta() & 0b11);

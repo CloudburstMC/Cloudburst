@@ -3,21 +3,12 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.LevelException;
 
 import static org.cloudburstmc.server.block.BlockTypes.GLASS;
 import static org.cloudburstmc.server.block.BlockTypes.GLASS_PANE;
 
-/**
- * Created on 2015/12/6 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public abstract class BlockBehaviorThin extends BlockBehaviorTransparent {
-
-    public BlockBehaviorThin(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean isSolid() {

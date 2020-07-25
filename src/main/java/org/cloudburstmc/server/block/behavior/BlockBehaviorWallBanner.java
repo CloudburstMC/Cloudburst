@@ -3,16 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by PetteriM1
- */
 public class BlockBehaviorWallBanner extends BlockBehaviorBanner {
-
-    public BlockBehaviorWallBanner(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int onUpdate(Block block, int type) {

@@ -7,16 +7,8 @@ import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by CreeperFace on 10.4.2017.
- */
 public class BlockBehaviorRedstoneTorchUnlit extends BlockBehaviorTorch {
-
-    public BlockBehaviorRedstoneTorchUnlit(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getLightLevel() {
