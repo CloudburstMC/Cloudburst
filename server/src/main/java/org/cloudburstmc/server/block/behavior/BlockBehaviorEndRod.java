@@ -7,9 +7,8 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Faceable;
 
-public class BlockBehaviorEndRod extends BlockBehaviorTransparent implements Faceable {
+public class BlockBehaviorEndRod extends BlockBehaviorTransparent {
 
     @Override
     public float getHardness() {

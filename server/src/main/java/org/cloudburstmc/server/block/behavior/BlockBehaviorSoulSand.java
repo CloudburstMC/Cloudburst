@@ -45,7 +45,7 @@ public class BlockBehaviorSoulSand extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.BROWN_BLOCK_COLOR;
     }
 

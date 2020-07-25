@@ -39,7 +39,7 @@ public class BlockBehaviorSnow extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.SNOW_BLOCK_COLOR;
     }
 

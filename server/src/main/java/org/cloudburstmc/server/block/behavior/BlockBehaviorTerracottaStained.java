@@ -41,7 +41,7 @@ public class BlockBehaviorTerracottaStained extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return DyeColor.getByWoolData(getMeta()).getColor();
     }
 

@@ -53,7 +53,7 @@ public class BlockBehaviorObsidian extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.OBSIDIAN_BLOCK_COLOR;
     }
 

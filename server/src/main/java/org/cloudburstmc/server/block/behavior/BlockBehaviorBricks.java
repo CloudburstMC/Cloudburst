@@ -36,7 +36,7 @@ public class BlockBehaviorBricks extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.RED_BLOCK_COLOR;
     }
 

@@ -15,10 +15,9 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 
 @Log4j2
-public class BlockBehaviorChest extends BlockBehaviorTransparent implements Faceable {
+public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
     @Override
     public boolean canWaterlogSource() {
@@ -148,7 +147,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent implements Face
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 

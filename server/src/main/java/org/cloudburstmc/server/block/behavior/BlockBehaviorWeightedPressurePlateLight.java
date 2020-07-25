@@ -49,7 +49,7 @@ public class BlockBehaviorWeightedPressurePlateLight extends BlockBehaviorPressu
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.GOLD_BLOCK_COLOR;
     }
 

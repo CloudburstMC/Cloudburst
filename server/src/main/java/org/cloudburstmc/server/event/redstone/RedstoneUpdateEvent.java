@@ -1,13 +1,9 @@
 package org.cloudburstmc.server.event.redstone;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.event.block.BlockUpdateEvent;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class RedstoneUpdateEvent extends BlockUpdateEvent {
 
     private static final HandlerList handlers = new HandlerList();
@@ -16,7 +12,7 @@ public class RedstoneUpdateEvent extends BlockUpdateEvent {
         return handlers;
     }
 
-    public RedstoneUpdateEvent(BlockState source) {
+    public RedstoneUpdateEvent(Block source) {
         super(source);
     }
 

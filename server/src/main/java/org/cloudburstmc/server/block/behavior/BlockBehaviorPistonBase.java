@@ -14,7 +14,6 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.Faceable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +21,7 @@ import java.util.List;
 import static com.nukkitx.math.vector.Vector3i.UP;
 import static org.cloudburstmc.server.block.BlockTypes.*;
 
-public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid implements Faceable {
+public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
 
     public boolean sticky;
 

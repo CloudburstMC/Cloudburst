@@ -67,7 +67,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.ICE_BLOCK_COLOR;
     }
 

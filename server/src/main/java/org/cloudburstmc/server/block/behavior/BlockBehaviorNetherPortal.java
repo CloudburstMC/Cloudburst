@@ -8,7 +8,6 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 import org.cloudburstmc.server.utils.Identifier;
 
 /**
@@ -16,7 +15,7 @@ import org.cloudburstmc.server.utils.Identifier;
  * Package cn.nukkit.block in project nukkit .
  * The name NetherPortalBlock comes from minecraft wiki.
  */
-public class BlockBehaviorNetherPortal extends FloodableBlockBehavior implements Faceable {
+public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
 
     public BlockBehaviorNetherPortal(Identifier id) {
         super(id);
@@ -112,7 +111,7 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior implements
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 

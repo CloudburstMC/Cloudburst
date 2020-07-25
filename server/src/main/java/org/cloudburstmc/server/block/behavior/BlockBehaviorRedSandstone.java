@@ -29,7 +29,7 @@ public class BlockBehaviorRedSandstone extends BlockBehaviorSandstone {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.ORANGE_BLOCK_COLOR;
     }
 }

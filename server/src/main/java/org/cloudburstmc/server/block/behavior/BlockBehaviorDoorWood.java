@@ -21,7 +21,7 @@ public class BlockBehaviorDoorWood extends BlockBehaviorDoor {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 }

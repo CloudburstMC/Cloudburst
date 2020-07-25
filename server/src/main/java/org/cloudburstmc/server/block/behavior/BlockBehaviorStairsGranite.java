@@ -29,7 +29,7 @@ public class BlockBehaviorStairsGranite extends BlockBehaviorStairs {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.DIRT_BLOCK_COLOR;
     }
 

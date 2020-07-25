@@ -14,7 +14,6 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
@@ -22,7 +21,7 @@ import static org.cloudburstmc.server.block.BlockTypes.AIR;
 /**
  * @author Nukkit Project Team
  */
-public class BlockBehaviorSignPost extends BlockBehaviorTransparent implements Faceable {
+public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
 
     protected final Identifier signItemId;
     protected final Identifier signWallId;
@@ -106,7 +105,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent implements F
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 

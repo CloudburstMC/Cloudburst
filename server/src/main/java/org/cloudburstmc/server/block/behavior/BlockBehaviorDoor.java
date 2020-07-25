@@ -13,9 +13,8 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Faceable;
 
-public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent implements Faceable {
+public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
     public static int DOOR_OPEN_BIT = 0x04;
     public static int DOOR_TOP_BIT = 0x08;

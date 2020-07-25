@@ -62,7 +62,7 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.PURPLE_BLOCK_COLOR;
     }
 
