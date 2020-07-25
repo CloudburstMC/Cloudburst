@@ -29,6 +29,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorRedstoneDiode;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorSlab;
+import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
@@ -1106,7 +1107,7 @@ public class Level implements ChunkManager, Metadatable {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
                         Block block = this.getLoadedBlock(x, y, z);
-                        if (block != null && block.getState() != BlockState.AIR && block.getBehaviour().collidesWithBB(bb)) {
+                        if (block != null && block.getState() != BlockState.AIR && block.getBehaviour().collidesWithBB(block, bb)) {
                             collides.add(block);
                         }
                     }

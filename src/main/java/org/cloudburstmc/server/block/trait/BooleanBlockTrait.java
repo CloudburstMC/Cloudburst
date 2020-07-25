@@ -2,50 +2,42 @@ package org.cloudburstmc.server.block.trait;
 
 import com.google.common.collect.ImmutableList;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @ParametersAreNonnullByDefault
-public class BooleanBlockTrait implements BlockTrait<Boolean> {
+public class BooleanBlockTrait extends BlockTrait<Boolean> {
     private static final ImmutableList<Boolean> VALUES = ImmutableList.of(Boolean.TRUE, Boolean.FALSE);
 
-    private final String name;
     private final boolean defaultValue;
 
-    private BooleanBlockTrait(String name, boolean defaultValue) {
-        this.name = name;
+    private BooleanBlockTrait(String name, @Nullable String vanillaName, boolean defaultValue) {
+        super(name, vanillaName, Boolean.class, VALUES);
         this.defaultValue = defaultValue;
     }
 
     public static BooleanBlockTrait of(String name) {
-        return of(name, false);
+        return of(name, null, false);
+    }
+
+    public static BooleanBlockTrait of(String name, @Nullable String vanillaName) {
+        return of(name, vanillaName, false);
     }
 
     public static BooleanBlockTrait of(String name, boolean defaultValue) {
+        return of(name, null, defaultValue);
+    }
+
+    public static BooleanBlockTrait of(String name, @Nullable String vanillaName, boolean defaultValue) {
         checkNotNull(name, "name");
-        return new BooleanBlockTrait(name, defaultValue);
-    }
-
-    @Override
-    public String getName() {
-        return this.name;
-    }
-
-    @Override
-    public List<Boolean> getPossibleValues() {
-        return VALUES;
+        return new BooleanBlockTrait(name, vanillaName, defaultValue);
     }
 
     @Override
     public Boolean getDefaultValue() {
         return this.defaultValue;
-    }
-
-    @Override
-    public Class<Boolean> getValueClass() {
-        return Boolean.class;
     }
 
     @Override
