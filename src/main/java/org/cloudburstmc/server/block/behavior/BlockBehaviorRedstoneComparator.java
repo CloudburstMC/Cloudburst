@@ -185,7 +185,7 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 }

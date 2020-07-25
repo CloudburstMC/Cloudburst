@@ -15,7 +15,7 @@ public class BlockBehaviorDriedKelp extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.GREEN_BLOCK_COLOR;
     }
 }

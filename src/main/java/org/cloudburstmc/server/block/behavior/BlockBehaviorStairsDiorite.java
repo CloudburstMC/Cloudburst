@@ -29,7 +29,7 @@ public class BlockBehaviorStairsDiorite extends BlockBehaviorStairs {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.QUARTZ_BLOCK_COLOR;
     }
 

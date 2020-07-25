@@ -29,7 +29,7 @@ public class BlockBehaviorStairsSmoothSandstone extends BlockBehaviorStairs {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.SAND_BLOCK_COLOR;
     }
 

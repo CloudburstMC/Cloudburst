@@ -6,7 +6,7 @@ import org.cloudburstmc.server.utils.data.DyeColor;
 public class BlockBehaviorGlassPaneStained extends BlockBehaviorGlassPane {
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return getDyeColor().getColor();
     }
 

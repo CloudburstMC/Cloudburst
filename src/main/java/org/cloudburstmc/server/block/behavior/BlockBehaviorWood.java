@@ -128,7 +128,7 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         switch (getWoodType()) {
             default:
             case OAK:

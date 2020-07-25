@@ -31,7 +31,7 @@ public abstract class BlockBehaviorFence extends BlockBehaviorTransparent {
     public abstract boolean canConnect(BlockState blockState);
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         switch (this.getMeta() & 0x07) {
             default:
             case 1: //OAK

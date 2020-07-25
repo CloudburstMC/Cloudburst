@@ -6,9 +6,8 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Faceable;
 
-public class BlockBehaviorObserver extends BlockBehaviorSolid implements Faceable {
+public class BlockBehaviorObserver extends BlockBehaviorSolid {
 
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {

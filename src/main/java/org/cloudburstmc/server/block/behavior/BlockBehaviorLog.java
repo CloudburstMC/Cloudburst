@@ -101,7 +101,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         switch (getMeta() & 0x03) {
             default:
             case OAK:

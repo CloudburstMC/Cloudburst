@@ -37,7 +37,7 @@ public class BlockBehaviorRedstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.REDSTONE_BLOCK_COLOR;
     }
 

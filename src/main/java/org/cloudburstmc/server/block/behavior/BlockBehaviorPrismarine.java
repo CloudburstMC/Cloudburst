@@ -39,7 +39,7 @@ public class BlockBehaviorPrismarine extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         switch (getMeta() & 0x07) {
             case NORMAL:
                 return BlockColor.CYAN_BLOCK_COLOR;

@@ -32,7 +32,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
         Block down = block.getSide(DOWN);
         BlockState downState = down.getState();
-        if ((downState.getType() != KELP && !down.getBehaviour().isSolid())
+        if ((downState.getType() != KELP && !down.getBehavior().isSolid())
                 || downState.getType() == MAGMA || downState.getType() == ICE || downState.getType() == SOUL_SAND) {
             return false;
         }
@@ -60,7 +60,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
             Block down = block.getSide(DOWN);
             BlockState downState = down.getState();
-            if ((downState.getType() != KELP && !down.getBehaviour().isSolid())
+            if ((downState.getType() != KELP && !down.getBehavior().isSolid())
                     || downState.getType() == MAGMA || downState.getType() == ICE || downState.getType() == SOUL_SAND) {
                 block.getLevel().useBreakOn(block.getPosition());
                 return type;

@@ -29,7 +29,7 @@ public class BlockBehaviorStairsPrismarine extends BlockBehaviorStairs {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.CYAN_BLOCK_COLOR;
     }
 

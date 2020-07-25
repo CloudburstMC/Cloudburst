@@ -10,9 +10,8 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 
-public class BlockBehaviorLever extends FloodableBlockBehavior implements Faceable {
+public class BlockBehaviorLever extends FloodableBlockBehavior {
 
     @Override
     public boolean canBeActivated() {
@@ -206,7 +205,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior implements Faceab
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 

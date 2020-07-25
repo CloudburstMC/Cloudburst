@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block;
 
 import com.google.common.collect.ImmutableMap;
+import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
@@ -35,6 +36,8 @@ public interface BlockState {
 
     @Nonnull
     BlockState withTrait(BooleanBlockTrait trait, boolean value);
+
+    BlockBehavior getBehavior();
 
     static BlockState get(@Nonnull Identifier blockType) {
         return BlockPalette.INSTANCE.getDefaultState(blockType);

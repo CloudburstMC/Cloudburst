@@ -31,7 +31,7 @@ public class BlockBehaviorClay extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.CLAY_BLOCK_COLOR;
     }
 

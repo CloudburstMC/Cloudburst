@@ -38,7 +38,7 @@ public class BlockBehaviorEndPortal extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.BLACK_BLOCK_COLOR;
     }
 

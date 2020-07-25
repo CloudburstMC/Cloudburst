@@ -37,7 +37,7 @@ public class BlockBehaviorFenceWooden extends BlockBehaviorFence {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 }

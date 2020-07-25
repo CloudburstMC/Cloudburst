@@ -70,7 +70,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return colors[this.getMeta() & 0x07];
     }
 

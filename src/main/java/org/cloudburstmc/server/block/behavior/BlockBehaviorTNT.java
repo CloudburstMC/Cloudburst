@@ -101,7 +101,7 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.TNT_BLOCK_COLOR;
     }
 }
