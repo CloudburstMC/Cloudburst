@@ -14,7 +14,7 @@ public class BlockBehaviorShulkerBox extends BlockBehaviorUndyedShulkerBox {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return this.getDyeColor().getColor();
     }
 

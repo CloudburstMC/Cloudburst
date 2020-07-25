@@ -6,7 +6,7 @@ import org.cloudburstmc.server.utils.data.DyeColor;
 public class BlockBehaviorGlassStained extends BlockBehaviorGlass {
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return DyeColor.getByWoolData(getMeta()).getColor();
     }
 

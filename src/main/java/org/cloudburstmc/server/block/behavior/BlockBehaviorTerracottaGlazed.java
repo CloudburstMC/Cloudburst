@@ -6,13 +6,12 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Faceable;
 import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * Created by CreeperFace on 2.6.2017.
  */
-public class BlockBehaviorTerracottaGlazed extends BlockBehaviorSolid implements Faceable {
+public class BlockBehaviorTerracottaGlazed extends BlockBehaviorSolid {
 
     public BlockBehaviorTerracottaGlazed(Identifier id) {
         super(id);

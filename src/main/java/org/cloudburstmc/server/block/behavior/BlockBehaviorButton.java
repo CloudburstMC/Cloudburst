@@ -9,9 +9,8 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Faceable;
 
-public abstract class BlockBehaviorButton extends FloodableBlockBehavior implements Faceable {
+public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
     public float getResistance() {

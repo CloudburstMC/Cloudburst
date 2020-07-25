@@ -19,12 +19,11 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.Faceable;
 
 /**
  * @author Sleepybear
  */
-public class BlockBehaviorCampfire extends BlockBehaviorSolid implements Faceable {
+public class BlockBehaviorCampfire extends BlockBehaviorSolid {
 
     private static final int CAMPFIRE_LIT_MASK = 0x04; // Bit is 1 when fire is extinguished
     private static final int CAMPFIRE_FACING_MASK = 0x03;

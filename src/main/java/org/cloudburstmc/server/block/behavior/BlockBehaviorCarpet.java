@@ -69,7 +69,7 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return DyeColor.getByWoolData(getMeta()).getColor();
     }
 

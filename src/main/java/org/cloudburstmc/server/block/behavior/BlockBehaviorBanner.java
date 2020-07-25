@@ -16,14 +16,13 @@ import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 import static org.cloudburstmc.server.block.BlockTypes.WALL_BANNER;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.BANNER;
 
-public class BlockBehaviorBanner extends BlockBehaviorTransparent implements Faceable {
+public class BlockBehaviorBanner extends BlockBehaviorTransparent {
 
     @Override
     public float getHardness() {
@@ -108,7 +107,7 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent implements Fac
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return this.getDyeColor().getColor();
     }
 

@@ -26,7 +26,7 @@ public class BlockBehaviorStairsPurpur extends BlockBehaviorStairs {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.MAGENTA_BLOCK_COLOR;
     }
 }

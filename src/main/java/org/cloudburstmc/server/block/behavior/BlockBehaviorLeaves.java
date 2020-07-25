@@ -141,7 +141,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 

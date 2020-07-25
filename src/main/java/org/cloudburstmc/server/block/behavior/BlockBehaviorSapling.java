@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
@@ -12,38 +13,19 @@ import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
 import static org.cloudburstmc.server.item.ItemIds.DYE;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class BlockBehaviorSapling extends FloodableBlockBehavior {
-    public static final int OAK = 0;
-    public static final int SPRUCE = 1;
-    public static final int BIRCH = 2;
-    /**
-     * placeholder
-     */
-    public static final int BIRCH_TALL = 8 | BIRCH;
-    public static final int JUNGLE = 3;
-    public static final int ACACIA = 4;
-    public static final int DARK_OAK = 5;
-
-    public BlockBehaviorSapling(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
         BlockState down = this.down();
         if (down.getId() == GRASS || down.getId() == DIRT || down.getId() == FARMLAND || down.getId() == PODZOL) {
-            this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+            this.getLevel().setBlock(block.getPosition(), this, true, true);
             return true;
         }
 
@@ -162,7 +144,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 }

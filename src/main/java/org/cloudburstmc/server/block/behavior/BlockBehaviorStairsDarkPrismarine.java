@@ -13,7 +13,7 @@ public class BlockBehaviorStairsDarkPrismarine extends BlockBehaviorStairsPrisma
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.DIAMOND_BLOCK_COLOR;
     }
 }

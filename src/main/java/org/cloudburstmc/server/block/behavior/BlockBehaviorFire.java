@@ -278,7 +278,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.LAVA_BLOCK_COLOR;
     }
 

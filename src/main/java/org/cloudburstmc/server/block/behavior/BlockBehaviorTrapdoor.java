@@ -14,13 +14,12 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * Created by Pub4Game on 26.12.2015.
  */
-public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent implements Faceable {
+public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
 
     public static final int TRAPDOOR_OPEN_BIT = 0x08;
     public static final int TRAPDOOR_TOP_BIT = 0x04;
@@ -244,7 +243,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent implements F
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return this.blockColor;
     }
 

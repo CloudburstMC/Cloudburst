@@ -37,7 +37,7 @@ public class BlockBehaviorPressurePlateWood extends BlockBehaviorPressurePlateBa
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 

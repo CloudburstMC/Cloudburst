@@ -35,7 +35,7 @@ public class BlockBehaviorWater extends BlockBehaviorLiquid {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.WATER_BLOCK_COLOR;
     }
 

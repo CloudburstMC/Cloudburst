@@ -42,7 +42,7 @@ public class BlockBehaviorPressurePlateStone extends BlockBehaviorPressurePlateB
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.STONE_BLOCK_COLOR;
     }
 

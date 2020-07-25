@@ -10,29 +10,28 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 
 import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_BLOCK;
 import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_WIRE;
 
-public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior implements Faceable {
+public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior {
 
     protected boolean isPowered = false;
 
     @Override
     public boolean onBreak(Block block, Item item) {
-        Vector3i pos = this.getPosition();
+        Vector3i pos = block.getPosition();
         super.onBreak(block, item);
 
         for (BlockFace face : BlockFace.values()) {
-            this.level.updateAroundRedstone(face.getOffset(pos), null);
+            block.getLevel().updateAroundRedstone(face.getOffset(pos), null);
         }
         return true;
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        if (block.getSide(BlockFace.DOWN).isTransparent()) {
+        if (block.getSide(BlockFace.DOWN).getState().getBehavior().isTransparent()) {
             return false;
         }
 
@@ -47,49 +46,49 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
 
     @Override
     public int onUpdate(Block block, int type) {
+        Level level = block.getLevel();
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             if (!this.isLocked()) {
-                Vector3i pos = this.getPosition();
+                Vector3i pos = block.getPosition();
                 boolean shouldBePowered = this.shouldBePowered();
 
                 if (this.isPowered && !shouldBePowered) {
-                    this.level.setBlock(pos, this.getUnpowered(), true, true);
+                    block.set(this.getUnpowered(), true, true);
 
-                    this.level.updateAroundRedstone(this.getFacing().getOpposite().getOffset(pos), null);
+                    level.updateAroundRedstone(this.getFacing().getOpposite().getOffset(pos), null);
                 } else if (!this.isPowered) {
-                    this.level.setBlock(pos, this.getPowered(), true, true);
-                    this.level.updateAroundRedstone(this.getFacing().getOpposite().getOffset(pos), null);
+                    block.set(this.getPowered(), true, true);
+                    level.updateAroundRedstone(this.getFacing().getOpposite().getOffset(pos), null);
 
                     if (!shouldBePowered) {
 //                        System.out.println("schedule update 2");
-                        level.scheduleUpdate(getPowered(), pos, this.getDelay());
+                        level.scheduleUpdate(level.getBlock(pos), pos, this.getDelay());
                     }
                 }
             }
         } else if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
             // Redstone event
-            RedstoneUpdateEvent ev = new RedstoneUpdateEvent(this);
-            getLevel().getServer().getPluginManager().callEvent(ev);
-            if (ev.isCancelled()) {
-                return 0;
-            }
-            if (type == Level.BLOCK_UPDATE_NORMAL && this.getSide(BlockFace.DOWN).isTransparent()) {
-                this.level.useBreakOn(this.getPosition());
+            RedstoneUpdateEvent event = new RedstoneUpdateEvent(block);
+            level.getServer().getPluginManager().callEvent(event);
+            if (event.isCancelled()) return 0;
+            if (type == Level.BLOCK_UPDATE_NORMAL && block.down().getState().getBehavior().isTransparent()) {
+                level.useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             } else {
-                this.updateState();
+                this.updateState(block);
                 return Level.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
     }
 
-    public void updateState() {
+    public void updateState(Block block) {
         if (!this.isLocked()) {
             boolean shouldPowered = this.shouldBePowered();
 
+            Level level = block.getLevel();
             if ((this.isPowered && !shouldPowered || !this.isPowered && shouldPowered) &&
-                    !this.level.isBlockTickPending(this.getPosition(), this)) {
+                    !level.isBlockTickPending(block.getPosition(), this)) {
                 /*int priority = -1;
 
                 if (this.isFacingTowardsRepeater()) {
@@ -98,7 +97,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
                     priority = -2;
                 }*/
 
-                this.level.scheduleUpdate(this, this.getPosition(), this.getDelay());
+                level.scheduleUpdate(block, block.getPosition(), this.getDelay());
             }
         }
     }
@@ -202,7 +201,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 

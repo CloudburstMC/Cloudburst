@@ -51,7 +51,7 @@ public class BlockBehaviorStairsRedSandstone extends BlockBehaviorStairs {
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.ORANGE_BLOCK_COLOR;
     }
 }

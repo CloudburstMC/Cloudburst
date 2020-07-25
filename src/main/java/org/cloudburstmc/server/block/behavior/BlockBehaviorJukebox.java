@@ -11,12 +11,11 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.JUKEBOX;
 
-public class BlockBehaviorJukebox extends BlockBehaviorSolid implements Faceable {
+public class BlockBehaviorJukebox extends BlockBehaviorSolid {
 
     @Override
     public boolean canBeActivated() {
@@ -81,7 +80,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid implements Faceable
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.DIRT_BLOCK_COLOR;
     }
 }

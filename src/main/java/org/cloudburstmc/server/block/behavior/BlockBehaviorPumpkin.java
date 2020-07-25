@@ -8,9 +8,8 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Faceable;
 
-public class BlockBehaviorPumpkin extends BlockBehaviorSolid implements Faceable {
+public class BlockBehaviorPumpkin extends BlockBehaviorSolid {
 
     @Override
     public float getHardness() {
@@ -40,7 +39,7 @@ public class BlockBehaviorPumpkin extends BlockBehaviorSolid implements Faceable
     }
 
     @Override
-    public BlockColor getColor() {
+    public BlockColor getColor(BlockState state) {
         return BlockColor.ORANGE_BLOCK_COLOR;
     }
 
