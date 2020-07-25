@@ -7,7 +7,7 @@ import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -35,13 +35,13 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
                     }
                     return Level.BLOCK_UPDATE_RANDOM;
                 } else {
-                    for (BlockFace face : BlockFace.Plane.HORIZONTAL) {
+                    for (Direction face : Direction.Plane.HORIZONTAL) {
                         BlockState b = this.getSide(face);
                         if (b.getId() == MELON_BLOCK) {
                             return Level.BLOCK_UPDATE_RANDOM;
                         }
                     }
-                    BlockState side = this.getSide(BlockFace.Plane.HORIZONTAL.random(random));
+                    BlockState side = this.getSide(Direction.Plane.HORIZONTAL.random(random));
                     BlockState d = side.down();
                     if (side.getId() == AIR && (d.getId() == FARMLAND || d.getId() == GRASS || d.getId() == DIRT)) {
                         BlockGrowEvent ev = new BlockGrowEvent(side, BlockState.get(MELON_BLOCK));

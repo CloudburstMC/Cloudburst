@@ -21,7 +21,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -294,7 +294,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     @Override
-    public int[] getHopperPushSlots(BlockFace direction, Item item) {
+    public int[] getHopperPushSlots(Direction direction, Item item) {
         Identifier id = item.getId();
 
         if (direction.getAxis().isHorizontal()) {

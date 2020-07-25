@@ -9,7 +9,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -26,8 +26,8 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
     }
 
     @Override
-    public BlockFace getFacing() {
-        return BlockFace.fromHorizontalIndex(this.getMeta());
+    public Direction getFacing() {
+        return Direction.fromHorizontalIndex(this.getMeta());
     }
 
     public Mode getMode() {
@@ -73,7 +73,7 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
 
     protected int calculateInputStrength() {
         int power = super.calculateInputStrength();
-        BlockFace face = getFacing();
+        Direction face = getFacing();
         BlockState blockState = this.getSide(face);
 
         if (blockState.hasComparatorInputOverride()) {
@@ -158,7 +158,7 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (super.place(item, block, target, face, clickPos, player)) {
             BlockEntityRegistry.get().newEntity(COMPARATOR, this.getChunk(), this.getPosition());
 

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 public class BlockBehaviorDispenser extends BlockBehaviorSolid {
 
@@ -21,8 +21,8 @@ public class BlockBehaviorDispenser extends BlockBehaviorSolid {
         return super.getComparatorInputOverride();
     }
 
-    public BlockFace getFacing() {
-        return BlockFace.fromIndex(this.getMeta() & 7);
+    public Direction getFacing() {
+        return Direction.fromIndex(this.getMeta() & 7);
     }
 
     public boolean isTriggered() {
@@ -46,7 +46,7 @@ public class BlockBehaviorDispenser extends BlockBehaviorSolid {
     }
 
     public Vector3f getDispensePosition() {
-        BlockFace facing = getFacing();
+        Direction facing = getFacing();
         float x = this.getX() + 0.7f * facing.getXOffset();
         float y = this.getY() + 0.7f * facing.getYOffset();
         float z = this.getZ() + 0.7f * facing.getZOffset();

@@ -13,7 +13,7 @@ import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.server.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -87,7 +87,7 @@ public class ItemBucket extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, BlockFace face, Vector3f clickPos) {
+    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         BlockState bucketContents = BlockState.get(getBlockIdFromDamage(this.getMeta()));
 
         if (bucketContents instanceof BlockBehaviorAir) {
@@ -103,7 +103,7 @@ public class ItemBucket extends Item {
 
                     // When water is removed ensure any adjacent still water is
                     // replaced with water that can flow.
-                    for (BlockFace side : BlockFace.Plane.HORIZONTAL) {
+                    for (Direction side : Direction.Plane.HORIZONTAL) {
                         Block b = target.getSide(side);
                         if (b.isWaterlogged()) {
                             b = player.getLevel().getBlock(b.getX(), b.getY(), b.getZ(), 1);

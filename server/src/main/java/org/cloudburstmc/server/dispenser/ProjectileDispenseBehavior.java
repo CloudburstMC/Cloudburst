@@ -7,7 +7,7 @@ import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.Projectile;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 /**
@@ -29,7 +29,7 @@ public class ProjectileDispenseBehavior implements DispenseBehavior {
     public void dispense(BlockBehaviorDispenser source, Item item) {
         Location dispensePos = Location.from(source.getDispensePosition(), source.getLevel());
 
-        BlockFace face = source.getFacing();
+        Direction face = source.getFacing();
 
         Projectile projectile = EntityRegistry.get().newEntity(entityType, dispensePos);
         if (projectile == null) {

@@ -16,7 +16,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -239,7 +239,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     public boolean canNeighborBurn() {
-        for (BlockFace face : BlockFace.values()) {
+        for (Direction face : Direction.values()) {
             if (this.getSide(face).getBurnChance() > 0) {
                 return true;
             }

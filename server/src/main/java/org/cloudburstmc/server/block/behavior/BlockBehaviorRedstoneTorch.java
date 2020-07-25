@@ -6,7 +6,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -20,7 +20,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!super.place(item, blockState, target, face, clickPos, player)) {
             return false;
         }
@@ -44,13 +44,13 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     @Override
-    public int getWeakPower(BlockFace side) {
+    public int getWeakPower(Direction side) {
         return getBlockFace() != side ? 15 : 0;
     }
 
     @Override
-    public int getStrongPower(BlockFace side) {
-        return side == BlockFace.DOWN ? this.getWeakPower(side) : 0;
+    public int getStrongPower(Direction side) {
+        return side == Direction.DOWN ? this.getWeakPower(side) : 0;
     }
 
     @Override
@@ -59,9 +59,9 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
         Vector3i pos = this.getPosition();
 
-        BlockFace face = getBlockFace().getOpposite();
+        Direction face = getBlockFace().getOpposite();
 
-        for (BlockFace side : BlockFace.values()) {
+        for (Direction side : Direction.values()) {
             if (side == face) {
                 continue;
             }
@@ -95,12 +95,12 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
     protected boolean checkState() {
         if (isPoweredFromSide()) {
-            BlockFace face = getBlockFace().getOpposite();
+            Direction face = getBlockFace().getOpposite();
             Vector3i pos = this.getPosition();
 
             this.level.setBlock(pos, BlockState.get(UNLIT_REDSTONE_TORCH, getMeta()), false, true);
 
-            for (BlockFace side : BlockFace.values()) {
+            for (Direction side : Direction.values()) {
                 if (side == face) {
                     continue;
                 }
@@ -115,7 +115,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     protected boolean isPoweredFromSide() {
-        BlockFace face = getBlockFace().getOpposite();
+        Direction face = getBlockFace().getOpposite();
         return this.level.isSidePowered(face.getOffset(this.getPosition()), face);
     }
 

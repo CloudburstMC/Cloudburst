@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 import static java.lang.Math.abs;
 
@@ -58,7 +58,7 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
         y += branchHeight;
         if (depth < this.maxRecursion) {
             for (int i = random.nextInt(4) - (depth == 0 ? 0 : 1); i >= 0; i--) {
-                final BlockFace face = BlockFace.Plane.HORIZONTAL.random(random);
+                final Direction face = Direction.Plane.HORIZONTAL.random(random);
                 final int dx = face.getUnitVector().getX();
                 final int dz = face.getUnitVector().getZ();
 

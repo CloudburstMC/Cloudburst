@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block;
 import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
-import static org.cloudburstmc.server.math.BlockFace.*;
+import static org.cloudburstmc.server.math.Direction.*;
 
 public interface Block extends BlockSnapshot {
 
@@ -53,11 +53,11 @@ public interface Block extends BlockSnapshot {
         return getSide(WEST, 1);
     }
 
-    default Block getSide(BlockFace face) {
+    default Block getSide(Direction face) {
         return getSide(face, 1);
     }
 
-    Block getSide(BlockFace face, int step);
+    Block getSide(Direction face, int step);
 
     boolean isWaterlogged();
 

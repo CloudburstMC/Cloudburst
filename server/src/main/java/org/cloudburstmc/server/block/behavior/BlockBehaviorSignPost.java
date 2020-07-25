@@ -10,7 +10,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -68,9 +68,9 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        if (face != BlockFace.DOWN) {
-            if (face == BlockFace.UP) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        if (face != Direction.DOWN) {
+            if (face == Direction.UP) {
                 setMeta((int) Math.floor(((player.getYaw() + 180) * 16 / 360) + 0.5) & 0x0f);
                 getLevel().setBlock(blockState.getPosition(), BlockState.get(signStandingId, getMeta()), true);
             } else {
@@ -102,8 +102,8 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromIndex(this.getMeta() & 0x07);
+    public Direction getBlockFace() {
+        return Direction.fromIndex(this.getMeta() & 0x07);
     }
 
     @Override

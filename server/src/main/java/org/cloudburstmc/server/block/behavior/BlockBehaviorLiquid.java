@@ -15,7 +15,7 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
@@ -133,7 +133,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         }
         Vector3f vector = Vector3f.ZERO;
         int decay = this.getEffectiveFlowDecay(this);
-        for (BlockFace face : BlockFace.Plane.HORIZONTAL) {
+        for (Direction face : Direction.Plane.HORIZONTAL) {
             BlockState sideBlockState = this.getSide(face);
 
             int blockDecay = this.getEffectiveFlowDecay(sideBlockState);

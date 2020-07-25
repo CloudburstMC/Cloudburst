@@ -6,7 +6,7 @@ import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
@@ -84,7 +84,7 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
     @Override
     public boolean onBreak(Block block, Item item) {
         boolean result = super.onBreak(block, item);
-        for (BlockFace face : BlockFace.values()) {
+        for (Direction face : Direction.values()) {
             BlockState b = this.getSide(face);
             if (b != null) {
                 if (b instanceof BlockBehaviorNetherPortal) {
@@ -126,7 +126,7 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 }

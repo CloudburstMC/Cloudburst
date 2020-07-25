@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorRedstone extends BlockBehaviorSolid {
@@ -47,7 +47,7 @@ public class BlockBehaviorRedstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getWeakPower(BlockFace face) {
+    public int getWeakPower(Direction face) {
         return 15;
     }
 

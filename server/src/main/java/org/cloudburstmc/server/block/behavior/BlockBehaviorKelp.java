@@ -9,7 +9,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -18,13 +18,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.cloudburstmc.server.block.BlockTraits.FLUID_LEVEL;
 import static org.cloudburstmc.server.block.BlockTraits.KELP_AGE;
 import static org.cloudburstmc.server.block.BlockTypes.*;
-import static org.cloudburstmc.server.math.BlockFace.DOWN;
+import static org.cloudburstmc.server.math.Direction.DOWN;
 import static org.cloudburstmc.server.math.MathHelper.clamp;
 
 public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Integer waterDamage = block.getExtra().getState().getTrait(FLUID_LEVEL);
         if (waterDamage == null || waterDamage != 0 && waterDamage != 8) {
             return false;

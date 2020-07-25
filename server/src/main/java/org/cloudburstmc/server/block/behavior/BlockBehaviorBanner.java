@@ -11,7 +11,7 @@ import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -50,9 +50,9 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        if (face != BlockFace.DOWN) {
-            if (face == BlockFace.UP) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        if (face != Direction.DOWN) {
+            if (face == Direction.UP) {
                 this.setMeta(NukkitMath.floorDouble(((player.getYaw() + 180) * 16 / 360) + 0.5) & 0x0f);
                 this.getLevel().setBlock(blockState.getPosition(), this, true);
             } else {
@@ -102,8 +102,8 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x7);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x7);
     }
 
     @Override

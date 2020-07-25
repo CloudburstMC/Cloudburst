@@ -11,7 +11,7 @@ import org.cloudburstmc.server.blockentity.Piston;
 import org.cloudburstmc.server.event.block.BlockPistonChangeEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
@@ -36,14 +36,14 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (Math.abs(player.getX() - this.getX()) < 2 && Math.abs(player.getZ() - this.getZ()) < 2) {
             float y = player.getY() + player.getEyeHeight();
 
             if (y - this.getY() > 2) {
-                this.setMeta(BlockFace.UP.getIndex());
+                this.setMeta(Direction.UP.getIndex());
             } else if (this.getY() - y > 0) {
-                this.setMeta(BlockFace.DOWN.getIndex());
+                this.setMeta(Direction.DOWN.getIndex());
             } else {
                 this.setMeta(player.getHorizontalFacing().getIndex());
             }
@@ -71,7 +71,7 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
     }
 
     public boolean isExtended() {
-        BlockFace face = getFacing();
+        Direction face = getFacing();
         BlockState blockState = getSide(face);
         return blockState instanceof BlockBehaviorPistonHead && ((BlockBehaviorPistonHead) blockState).getFacing() == face;
     }
@@ -95,9 +95,9 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
         }
     }
 
-    public static boolean canPush(BlockState blockState, BlockFace face, boolean destroyBlocks) {
-        if (blockState.canBePushed() && blockState.getY() >= 0 && (face != BlockFace.DOWN || blockState.getY() != 0) &&
-                blockState.getY() <= 255 && (face != BlockFace.UP || blockState.getY() != 255)) {
+    public static boolean canPush(BlockState blockState, Direction face, boolean destroyBlocks) {
+        if (blockState.canBePushed() && blockState.getY() >= 0 && (face != Direction.DOWN || blockState.getY() != 0) &&
+                blockState.getY() <= 255 && (face != Direction.UP || blockState.getY() != 255)) {
             if (!(blockState instanceof BlockBehaviorPistonBase)) {
 
                 if (blockState instanceof FloodableBlockBehavior) {
@@ -110,26 +110,26 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
 
     }
 
-    public BlockFace getFacing() {
-        return BlockFace.fromIndex(this.getMeta()).getOpposite();
+    public Direction getFacing() {
+        return Direction.fromIndex(this.getMeta()).getOpposite();
     }
 
     private boolean isPowered() {
-        BlockFace face = getFacing();
+        Direction face = getFacing();
 
-        for (BlockFace side : BlockFace.values()) {
+        for (Direction side : Direction.values()) {
             if (side != face && this.level.isSidePowered(side.getOffset(this.getPosition()), side)) {
                 return true;
             }
         }
 
-        if (this.level.isSidePowered(this.getPosition(), BlockFace.DOWN)) {
+        if (this.level.isSidePowered(this.getPosition(), Direction.DOWN)) {
             return true;
         } else {
             Vector3i pos = this.getPosition().add(UP);
 
-            for (BlockFace side : BlockFace.values()) {
-                if (side != BlockFace.DOWN && this.level.isSidePowered(side.getOffset(pos), side)) {
+            for (Direction side : Direction.values()) {
+                if (side != Direction.DOWN && this.level.isSidePowered(side.getOffset(pos), side)) {
                     return true;
                 }
             }
@@ -139,7 +139,7 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
     }
 
     private void checkState() {
-        BlockFace facing = getFacing();
+        Direction facing = getFacing();
         boolean isPowered = this.isPowered();
 
         if (isPowered && !isExtended()) {
@@ -174,7 +174,7 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
 
     private boolean doMove(boolean extending) {
         Vector3i pos = this.getPosition();
-        BlockFace direction = getFacing();
+        Direction direction = getFacing();
 
         if (!extending) {
             this.level.setBlock(direction.getOffset(pos), BlockState.get(AIR), true, false);
@@ -190,7 +190,7 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
             List<BlockState> newBlockStates = new ArrayList<>(blockStates);
 
             List<BlockState> destroyBlockStates = calculator.getBlocksToDestroy();
-            BlockFace side = extending ? direction : direction.getOpposite();
+            Direction side = extending ? direction : direction.getOpposite();
 
             for (int i = destroyBlockStates.size() - 1; i >= 0; --i) {
                 BlockState blockState = destroyBlockStates.get(i);
@@ -223,8 +223,8 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     public class BlocksCalculator {
@@ -232,12 +232,12 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
         private final Level level;
         private final Vector3i pistonPos;
         private final BlockState blockStateToMove;
-        private final BlockFace moveDirection;
+        private final Direction moveDirection;
 
         private final List<BlockState> toMove = new ArrayList<>();
         private final List<BlockState> toDestroy = new ArrayList<>();
 
-        public BlocksCalculator(Level level, BlockState pos, BlockFace facing, boolean extending) {
+        public BlocksCalculator(Level level, BlockState pos, Direction facing, boolean extending) {
             this.level = level;
             this.pistonPos = pos.getPosition();
 
@@ -369,7 +369,7 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
         }
 
         private boolean addBranchingBlocks(BlockState blockState) {
-            for (BlockFace face : BlockFace.values()) {
+            for (Direction face : Direction.values()) {
                 if (face.getAxis() != this.moveDirection.getAxis() && !this.addBlockLine(blockState.getSide(face))) {
                     return false;
                 }

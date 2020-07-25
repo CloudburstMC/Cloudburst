@@ -11,7 +11,7 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -83,7 +83,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
                 this.getLevel().useBreakOn(this.getPosition());
             } else {
                 for (int side = 2; side <= 5; ++side) {
-                    BlockState blockState = getSide(BlockFace.fromIndex(side));
+                    BlockState blockState = getSide(Direction.fromIndex(side));
                     if (!blockState.canBeFlooded()) {
                         this.getLevel().useBreakOn(this.getPosition());
                     }
@@ -115,7 +115,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = this.down();
         if (!blockState.isWaterlogged() && (down.getId() == SAND || down.getId() == CACTUS)) {
             BlockState blockState0 = north();

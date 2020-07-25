@@ -7,7 +7,7 @@ import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.vehicle.Boat;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -27,8 +27,8 @@ public class ItemBoat extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, BlockFace face, Vector3f clickPos) {
-        if (face != BlockFace.UP) return false;
+    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+        if (face != Direction.UP) return false;
         Vector3f spawnPos = Vector3f.from(block.getX() + 0.5,
                 block.getY() - (target instanceof BlockBehaviorWater ? 0.0625 : 0), block.getZ());
         Boat boat = EntityRegistry.get().newEntity(EntityTypes.BOAT, Location.from(spawnPos, level));

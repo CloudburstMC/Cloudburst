@@ -6,7 +6,7 @@ import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 public class BlockBehaviorRedstoneTorchUnlit extends BlockBehaviorTorch {
 
@@ -16,12 +16,12 @@ public class BlockBehaviorRedstoneTorchUnlit extends BlockBehaviorTorch {
     }
 
     @Override
-    public int getWeakPower(BlockFace side) {
+    public int getWeakPower(Direction side) {
         return 0;
     }
 
     @Override
-    public int getStrongPower(BlockFace side) {
+    public int getStrongPower(Direction side) {
         return 0;
     }
 
@@ -52,13 +52,13 @@ public class BlockBehaviorRedstoneTorchUnlit extends BlockBehaviorTorch {
     }
 
     protected boolean checkState() {
-        BlockFace face = getBlockFace().getOpposite();
+        Direction face = getBlockFace().getOpposite();
         Vector3i pos = this.getPosition();
 
         if (!this.level.isSidePowered(face.getOffset(pos), face)) {
             this.level.setBlock(pos, BlockState.get(BlockTypes.REDSTONE_TORCH, getMeta()), false, true);
 
-            for (BlockFace side : BlockFace.values()) {
+            for (Direction side : Direction.values()) {
                 if (side == face) {
                     continue;
                 }

@@ -13,7 +13,7 @@ import org.cloudburstmc.server.item.ItemBucket;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -188,7 +188,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Cauldron cauldron = BlockEntityRegistry.get().newEntity(CAULDRON, this.getChunk(), this.getPosition());
         cauldron.loadAdditionalData(item.getTag());
         cauldron.setPotionId(0xffff);

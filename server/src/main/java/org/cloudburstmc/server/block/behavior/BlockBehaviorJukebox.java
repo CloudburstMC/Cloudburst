@@ -7,7 +7,7 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Jukebox;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.RecordItem;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -47,7 +47,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (super.place(item, blockState, target, face, clickPos, player)) {
             createBlockEntity();
             return true;
@@ -75,8 +75,8 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

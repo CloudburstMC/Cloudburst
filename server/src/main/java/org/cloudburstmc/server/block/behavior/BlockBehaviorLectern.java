@@ -13,7 +13,7 @@ import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -67,7 +67,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         return power;
     }
 
-    public void setBlockFace(BlockFace face) {
+    public void setBlockFace(Direction face) {
         final int dataMask = (1 << 6) - 1;
 
         int horizontalIndex = face.getHorizontalIndex();
@@ -77,8 +77,8 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        setBlockFace(player != null ? player.getDirection().getOpposite() : BlockFace.SOUTH);
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        setBlockFace(player != null ? player.getDirection().getOpposite() : Direction.SOUTH);
 
         Lectern lectern = BlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, this.getChunk(), this.getPosition());
 
@@ -149,12 +149,12 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getWeakPower(BlockFace face) {
+    public int getWeakPower(Direction face) {
         return isActivated() ? 15 : 0;
     }
 
     @Override
-    public int getStrongPower(BlockFace side) {
+    public int getStrongPower(Direction side) {
         return 0;
     }
 

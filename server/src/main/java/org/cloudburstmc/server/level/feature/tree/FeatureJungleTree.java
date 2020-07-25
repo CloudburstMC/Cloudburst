@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehaviorVine;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 /**
  * Generates normal trees, but with vines on the sides.
@@ -28,14 +28,14 @@ public class FeatureJungleTree extends FeatureNormalTree {
         super.placeTrunk(level, random, x, y, z, height, log, leaves);
 
         for (int dy = 0; dy < height; dy++) {
-            this.placeVines(level, random, x, y + dy, z, BlockFace.NORTH);
-            this.placeVines(level, random, x, y + dy, z, BlockFace.SOUTH);
-            this.placeVines(level, random, x, y + dy, z, BlockFace.EAST);
-            this.placeVines(level, random, x, y + dy, z, BlockFace.WEST);
+            this.placeVines(level, random, x, y + dy, z, Direction.NORTH);
+            this.placeVines(level, random, x, y + dy, z, Direction.SOUTH);
+            this.placeVines(level, random, x, y + dy, z, Direction.EAST);
+            this.placeVines(level, random, x, y + dy, z, Direction.WEST);
         }
     }
 
-    protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, BlockFace face) {
+    protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, Direction face) {
         x -= face.getUnitVector().getX();
         z -= face.getUnitVector().getZ();
         if (random.nextInt(4) != 0 && this.test(level.getBlockRuntimeIdUnsafe(x, y, z, 0))) {

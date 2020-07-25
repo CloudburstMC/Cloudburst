@@ -9,7 +9,7 @@ import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -19,15 +19,15 @@ import static org.cloudburstmc.server.block.BlockTypes.BARREL;
 public class BlockBehaviorBarrel extends BlockBehaviorSolid {
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState newState = BlockState.get(BARREL);
         if (Math.abs(player.getX() - block.getX()) < 2 && Math.abs(player.getZ() - block.getZ()) < 2) {
             float y = player.getY() + player.getEyeHeight();
 
             if (y - block.getY() > 2) {
-                this.setMeta(BlockFace.UP.getIndex());
+                this.setMeta(Direction.UP.getIndex());
             } else if (this.getY() - y > 0) {
-                this.setMeta(BlockFace.DOWN.getIndex());
+                this.setMeta(Direction.DOWN.getIndex());
             } else {
                 this.setMeta(player.getHorizontalFacing().getOpposite().getIndex());
             }
@@ -93,12 +93,12 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockFace getBlockFace() {
+    public Direction getBlockFace() {
         int index = getMeta() & 0x7;
-        return BlockFace.fromIndex(index);
+        return Direction.fromIndex(index);
     }
 
-    public void setBlockFace(BlockFace face) {
+    public void setBlockFace(Direction face) {
         setMeta((getMeta() & 0x8) | (face.getIndex() & 0x7));
         getLevel().setBlockDataAt(this.getX(), this.getY(), this.getZ(), this.getLayer(), getMeta());
     }

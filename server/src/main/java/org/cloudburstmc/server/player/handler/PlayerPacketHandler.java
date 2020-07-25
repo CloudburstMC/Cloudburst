@@ -60,7 +60,7 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.InventoryTransactionUtils;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.Player;
@@ -261,7 +261,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         packet.setRuntimeEntityId(player.getRuntimeId());
         Vector3f currentPos = player.getPosition();
         Vector3i blockPos = packet.getBlockPosition();
-        BlockFace face = BlockFace.fromIndex(packet.getFace());
+        Direction face = Direction.fromIndex(packet.getFace());
 
         switch (packet.getAction()) {
             case START_BREAK:
@@ -915,7 +915,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             case ITEM_USE:
 
                 Vector3i blockVector = packet.getBlockPosition();
-                BlockFace face = BlockFace.fromIndex(packet.getBlockFace());
+                Direction face = Direction.fromIndex(packet.getBlockFace());
 
                 switch (packet.getActionType()) {
                     case InventoryTransactionUtils.USE_ITEM_ACTION_CLICK_BLOCK:

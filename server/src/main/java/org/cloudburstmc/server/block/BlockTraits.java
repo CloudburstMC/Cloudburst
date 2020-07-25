@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.server.block.trait.EnumBlockTrait;
 import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.data.*;
 
 import javax.annotation.Nonnull;
@@ -70,7 +70,8 @@ public class BlockTraits {
     public final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_WEST = EnumBlockTrait.of("wall_connection_west", WallConnectionType.class);
     public final IntegerBlockTrait WEEPING_VINES_AGE = IntegerBlockTrait.from("weeping_vines_age", 26);
 
-    public final EnumBlockTrait<BlockFace> DIRECTION = EnumBlockTrait.of("direction", BlockFace.class, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST);
+    public final EnumBlockTrait<Direction> FACING_DIRECTION = EnumBlockTrait.of("facing_direction", Direction.class, Direction.UP, Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
+    public final EnumBlockTrait<Direction> DIRECTION = EnumBlockTrait.of("direction", Direction.class, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
 
     public final BooleanBlockTrait IS_ALLOWED_UNDERWATER = BooleanBlockTrait.of("is_allowed_underwater", "allow_underwater_bit");
     public final BooleanBlockTrait IS_ATTACHED = BooleanBlockTrait.of("is_attached", "attached_bit");

@@ -7,7 +7,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Rail;
@@ -48,7 +48,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            Optional<BlockFace> ascendingDirection = this.getOrientation().ascendingDirection();
+            Optional<Direction> ascendingDirection = this.getOrientation().ascendingDirection();
             if (this.down().isTransparent() || (ascendingDirection.isPresent() && this.getSide(ascendingDirection.get()).isTransparent())) {
                 this.getLevel().useBreakOn(this.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
@@ -74,22 +74,22 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
 
     //Information from http://minecraft.gamepedia.com/Rail
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = this.down();
         if (down == null || down.isTransparent()) {
             return false;
         }
-        Map<BlockBehaviorRail, BlockFace> railsAround = this.checkRailsAroundAffected();
+        Map<BlockBehaviorRail, Direction> railsAround = this.checkRailsAroundAffected();
         List<BlockBehaviorRail> rails = new ArrayList<>(railsAround.keySet());
-        List<BlockFace> faces = new ArrayList<>(railsAround.values());
+        List<Direction> faces = new ArrayList<>(railsAround.values());
         if (railsAround.size() == 1) {
             BlockBehaviorRail other = rails.get(0);
             this.setMeta(this.connect(other, railsAround.get(other)).metadata());
         } else if (railsAround.size() == 4) {
             if (this.isAbstract()) {
-                this.setMeta(this.connect(rails.get(faces.indexOf(BlockFace.SOUTH)), BlockFace.SOUTH, rails.get(faces.indexOf(BlockFace.EAST)), BlockFace.EAST).metadata());
+                this.setMeta(this.connect(rails.get(faces.indexOf(Direction.SOUTH)), Direction.SOUTH, rails.get(faces.indexOf(Direction.EAST)), Direction.EAST).metadata());
             } else {
-                this.setMeta(this.connect(rails.get(faces.indexOf(BlockFace.EAST)), BlockFace.EAST, rails.get(faces.indexOf(BlockFace.WEST)), BlockFace.WEST).metadata());
+                this.setMeta(this.connect(rails.get(faces.indexOf(Direction.EAST)), Direction.EAST, rails.get(faces.indexOf(Direction.WEST)), Direction.WEST).metadata());
             }
         } else if (!railsAround.isEmpty()) {
             if (this.isAbstract()) {
@@ -98,16 +98,16 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
                     BlockBehaviorRail rail2 = rails.get(1);
                     this.setMeta(this.connect(rail1, railsAround.get(rail1), rail2, railsAround.get(rail2)).metadata());
                 } else {
-                    List<BlockFace> cd = Stream.of(Rail.Orientation.CURVED_SOUTH_EAST, Rail.Orientation.CURVED_NORTH_EAST, Rail.Orientation.CURVED_SOUTH_WEST)
+                    List<Direction> cd = Stream.of(Rail.Orientation.CURVED_SOUTH_EAST, Rail.Orientation.CURVED_NORTH_EAST, Rail.Orientation.CURVED_SOUTH_WEST)
                             .filter(o -> faces.containsAll(o.connectingDirections()))
                             .findFirst().get().connectingDirections();
-                    BlockFace f1 = cd.get(0);
-                    BlockFace f2 = cd.get(1);
+                    Direction f1 = cd.get(0);
+                    Direction f2 = cd.get(1);
                     this.setMeta(this.connect(rails.get(faces.indexOf(f1)), f1, rails.get(faces.indexOf(f2)), f2).metadata());
                 }
             } else {
-                BlockFace f = faces.stream().min((f1, f2) -> (f1.getIndex() < f2.getIndex()) ? 1 : ((this.getX() == this.getY()) ? 0 : -1)).get();
-                BlockFace fo = f.getOpposite();
+                Direction f = faces.stream().min((f1, f2) -> (f1.getIndex() < f2.getIndex()) ? 1 : ((this.getX() == this.getY()) ? 0 : -1)).get();
+                Direction fo = f.getOpposite();
                 if (faces.contains(fo)) { //Opposite connectable
                     this.setMeta(this.connect(rails.get(faces.indexOf(f)), f, rails.get(faces.indexOf(fo)), fo).metadata());
                 } else {
@@ -122,7 +122,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
         return true;
     }
 
-    private Rail.Orientation connect(BlockBehaviorRail rail1, BlockFace face1, BlockBehaviorRail rail2, BlockFace face2) {
+    private Rail.Orientation connect(BlockBehaviorRail rail1, Direction face1, BlockBehaviorRail rail2, Direction face2) {
         this.connect(rail1, face1);
         this.connect(rail2, face2);
 
@@ -139,14 +139,14 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
         return Rail.Orientation.straightOrCurved(face1, face2);
     }
 
-    private Rail.Orientation connect(BlockBehaviorRail other, BlockFace face) {
+    private Rail.Orientation connect(BlockBehaviorRail other, Direction face) {
         int delta = (int) (this.getY() - other.getY());
-        Map<BlockBehaviorRail, BlockFace> rails = other.checkRailsConnected();
+        Map<BlockBehaviorRail, Direction> rails = other.checkRailsConnected();
         if (rails.isEmpty()) { //Only one
             other.setOrientation(delta == 1 ? Rail.Orientation.ascending(face.getOpposite()) : Rail.Orientation.straight(face));
             return delta == -1 ? Rail.Orientation.ascending(face) : Rail.Orientation.straight(face);
         } else if (rails.size() == 1) { //Already connected
-            BlockFace faceConnected = rails.values().iterator().next();
+            Direction faceConnected = rails.values().iterator().next();
 
             if (other.isAbstract() && faceConnected != face) { //Curve!
                 other.setOrientation(Rail.Orientation.curved(face.getOpposite(), faceConnected));
@@ -156,7 +156,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
                     other.setOrientation(delta == 1 ? Rail.Orientation.ascending(face.getOpposite()) : Rail.Orientation.straight(face));
                 }
                 return delta == -1 ? Rail.Orientation.ascending(face) : Rail.Orientation.straight(face);
-            } else if (other.getOrientation().hasConnectingDirections(BlockFace.NORTH, BlockFace.SOUTH)) { //North-south
+            } else if (other.getOrientation().hasConnectingDirections(Direction.NORTH, Direction.SOUTH)) { //North-south
                 other.setOrientation(delta == 1 ? Rail.Orientation.ascending(face.getOpposite()) : Rail.Orientation.straight(face));
                 return delta == -1 ? Rail.Orientation.ascending(face) : Rail.Orientation.straight(face);
             }
@@ -164,15 +164,15 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
         return Rail.Orientation.STRAIGHT_NORTH_SOUTH;
     }
 
-    private Map<BlockBehaviorRail, BlockFace> checkRailsAroundAffected() {
-        Map<BlockBehaviorRail, BlockFace> railsAround = this.checkRailsAround(Arrays.asList(BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH));
+    private Map<BlockBehaviorRail, Direction> checkRailsAroundAffected() {
+        Map<BlockBehaviorRail, Direction> railsAround = this.checkRailsAround(Arrays.asList(Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.NORTH));
         return railsAround.keySet().stream()
                 .filter(r -> r.checkRailsConnected().size() != 2)
                 .collect(Collectors.toMap(r -> r, railsAround::get));
     }
 
-    private Map<BlockBehaviorRail, BlockFace> checkRailsAround(Collection<BlockFace> faces) {
-        Map<BlockBehaviorRail, BlockFace> result = new HashMap<>();
+    private Map<BlockBehaviorRail, Direction> checkRailsAround(Collection<Direction> faces) {
+        Map<BlockBehaviorRail, Direction> result = new HashMap<>();
         faces.forEach(f -> {
             BlockState b = this.getSide(f);
             Stream.of(b, b.up(), b.down())
@@ -182,8 +182,8 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
         return result;
     }
 
-    protected Map<BlockBehaviorRail, BlockFace> checkRailsConnected() {
-        Map<BlockBehaviorRail, BlockFace> railsAround = this.checkRailsAround(this.getOrientation().connectingDirections());
+    protected Map<BlockBehaviorRail, Direction> checkRailsConnected() {
+        Map<BlockBehaviorRail, Direction> railsAround = this.checkRailsAround(this.getOrientation().connectingDirections());
         return railsAround.keySet().stream()
                 .filter(r -> r.getOrientation().hasConnectingDirections(railsAround.get(r).getOpposite()))
                 .collect(Collectors.toMap(r -> r, railsAround::get));

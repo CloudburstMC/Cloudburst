@@ -5,7 +5,7 @@ import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 import static java.lang.Math.abs;
 
@@ -46,7 +46,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
         int dx = 0;
         int dz = 0;
 
-        BlockFace direction = BlockFace.Plane.HORIZONTAL.random(random);
+        Direction direction = Direction.Plane.HORIZONTAL.random(random);
 
         for (int dy = 0; dy < height; dy++) {
             if (dy >= bendHeight && bendSize > 0) {
@@ -61,7 +61,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
         }
         this.placeLeaves(level, random, x + dx, y + height - 1, z + dz, height, log, leaves);
 
-        BlockFace secondDirection = BlockFace.Plane.HORIZONTAL.random(random);
+        Direction secondDirection = Direction.Plane.HORIZONTAL.random(random);
         if (direction == secondDirection) {
             return true;
         }

@@ -10,7 +10,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
@@ -176,7 +176,7 @@ public abstract class BlockBehavior {
         return false;
     }
 
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         return block.getLevel().setBlock(block.getPosition(), item.getBlock(), true, true);
     }
 
@@ -339,11 +339,11 @@ public abstract class BlockBehavior {
         return name.substring(16);
     }
 
-    public int getWeakPower(BlockFace face) {
+    public int getWeakPower(Direction face) {
         return 0;
     }
 
-    public int getStrongPower(BlockFace side) {
+    public int getStrongPower(Direction side) {
         return 0;
     }
 

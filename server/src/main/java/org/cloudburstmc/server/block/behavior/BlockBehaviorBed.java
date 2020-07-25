@@ -13,7 +13,7 @@ import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -99,7 +99,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = this.down();
         if (!down.isTransparent() || down instanceof BlockBehaviorSlab) {
             BlockState next = this.getSide(player.getHorizontalFacing());
@@ -190,8 +190,8 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x7);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x7);
     }
 
     @Override

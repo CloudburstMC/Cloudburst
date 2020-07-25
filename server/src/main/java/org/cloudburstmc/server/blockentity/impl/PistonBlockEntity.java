@@ -9,7 +9,7 @@ import org.cloudburstmc.server.blockentity.Piston;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class PistonBlockEntity extends BaseBlockEntity implements Piston {
 
     private final List<Vector3i> attachedBlocks = new ArrayList<>();
     private final List<Vector3i> breakBlocks = new ArrayList<>();
-    public BlockFace facing;
+    public Direction facing;
     public boolean extending = false;
     public boolean powered = false;
     private float progress = 1.0F;

@@ -10,7 +10,7 @@ import org.cloudburstmc.server.blockentity.FlowerPot;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -34,8 +34,8 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        if (face != BlockFace.UP) return false;
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        if (face != Direction.UP) return false;
 
         FlowerPot flowerPot = BlockEntityRegistry.get().newEntity(BlockEntityTypes.FLOWER_POT, this.getChunk(), this.getPosition());
         flowerPot.loadAdditionalData(item.getTag());

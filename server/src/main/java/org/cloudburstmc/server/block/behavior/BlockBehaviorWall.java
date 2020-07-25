@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 
 import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE_WALL;
@@ -31,10 +31,10 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
     @Override
     protected AxisAlignedBB recalculateBoundingBox() {
 
-        boolean north = this.canConnect(this.getSide(BlockFace.NORTH));
-        boolean south = this.canConnect(this.getSide(BlockFace.SOUTH));
-        boolean west = this.canConnect(this.getSide(BlockFace.WEST));
-        boolean east = this.canConnect(this.getSide(BlockFace.EAST));
+        boolean north = this.canConnect(this.getSide(Direction.NORTH));
+        boolean south = this.canConnect(this.getSide(Direction.SOUTH));
+        boolean west = this.canConnect(this.getSide(Direction.WEST));
+        boolean east = this.canConnect(this.getSide(Direction.EAST));
 
         float n = north ? 0 : 0.25f;
         float s = south ? 1 : 0.75f;

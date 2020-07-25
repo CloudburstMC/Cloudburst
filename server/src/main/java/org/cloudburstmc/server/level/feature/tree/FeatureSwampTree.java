@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehaviorVine;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 /**
@@ -38,19 +38,19 @@ public class FeatureSwampTree extends FeatureNormalTree {
                 }
 
                 if (level.getBlockRuntimeIdUnsafe(x + dx + 1, y, z + dz, 0) == leaves) {
-                    this.placeVines(level, random, x + dx, y, z + dz, BlockFace.WEST, leaves);
+                    this.placeVines(level, random, x + dx, y, z + dz, Direction.WEST, leaves);
                 } else if (level.getBlockRuntimeIdUnsafe(x + dx - 1, y, z + dz, 0) == leaves) {
-                    this.placeVines(level, random, x + dx, y, z + dz, BlockFace.EAST, leaves);
+                    this.placeVines(level, random, x + dx, y, z + dz, Direction.EAST, leaves);
                 } else if (level.getBlockRuntimeIdUnsafe(x + dx, y, z + dz + 1, 0) == leaves) {
-                    this.placeVines(level, random, x + dx, y, z + dz, BlockFace.NORTH, leaves);
+                    this.placeVines(level, random, x + dx, y, z + dz, Direction.NORTH, leaves);
                 } else if (level.getBlockRuntimeIdUnsafe(x + dx, y, z + dz - 1, 0) == leaves) {
-                    this.placeVines(level, random, x + dx, y, z + dz, BlockFace.SOUTH, leaves);
+                    this.placeVines(level, random, x + dx, y, z + dz, Direction.SOUTH, leaves);
                 }
             }
         }
     }
 
-    protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, BlockFace face, int leaves) {
+    protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, Direction face, int leaves) {
         int block = BlockRegistry.get().getRuntimeId(BlockTypes.VINE, BlockBehaviorVine.getMeta(face.getOpposite()));
         for (int dy = 0, id; dy < 4 && (id = level.getBlockRuntimeIdUnsafe(x, y - dy, z, 0)) != leaves && this.test(id); dy++) {
             level.setBlockRuntimeIdUnsafe(x, y - dy, z, 0, block);

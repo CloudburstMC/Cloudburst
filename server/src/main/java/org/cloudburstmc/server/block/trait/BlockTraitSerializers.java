@@ -4,7 +4,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.serializer.DirectionHelper;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
@@ -18,7 +18,7 @@ public class BlockTraitSerializers {
     private final Map<Class<? extends Comparable<?>>, BlockTraitSerializer<?>> serializers = new HashMap<>();
 
     public void init() {
-        register(BlockFace.class, (builder, state, value) ->
+        register(Direction.class, (builder, state, value) ->
                 DirectionHelper.serialize(builder, state));
     }
 

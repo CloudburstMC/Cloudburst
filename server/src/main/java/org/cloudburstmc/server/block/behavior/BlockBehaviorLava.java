@@ -16,7 +16,7 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.gamerule.GameRules;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -59,7 +59,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         boolean ret = this.getLevel().setBlock(this.getPosition(), this, true, false);
         this.getLevel().scheduleUpdate(this, this.tickRate());
 
@@ -121,7 +121,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     }
 
     protected boolean isSurroundingBlockFlammable(BlockState blockState) {
-        for (BlockFace face : BlockFace.values()) {
+        for (Direction face : Direction.values()) {
             if (blockState.getSide(face).getBurnChance() > 0) {
                 return true;
             }
@@ -157,7 +157,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     protected void checkForHarden() {
         BlockState colliding = null;
         for (int side = 1; side < 6; ++side) { //don't check downwards side
-            BlockState blockStateSide = this.getSide(BlockFace.fromIndex(side));
+            BlockState blockStateSide = this.getSide(Direction.fromIndex(side));
             if (blockStateSide instanceof BlockBehaviorWater
                     || (blockStateSide = blockStateSide.layer(1)) instanceof BlockBehaviorWater) {
                 colliding = blockStateSide;

@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehaviorVine;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
@@ -44,10 +44,10 @@ public class FeatureHugeJungleTree extends FeatureHugeTree {
         for (int dy = 0; dy < height; dy++) {
             for (int dx = 0; dx < 2; dx++) {
                 for (int dz = 0; dz < 2; dz++) {
-                    this.placeVines(level, random, x + dx, y + dy, z + dz, BlockFace.NORTH);
-                    this.placeVines(level, random, x + dx, y + dy, z + dz, BlockFace.SOUTH);
-                    this.placeVines(level, random, x + dx, y + dy, z + dz, BlockFace.EAST);
-                    this.placeVines(level, random, x + dx, y + dy, z + dz, BlockFace.WEST);
+                    this.placeVines(level, random, x + dx, y + dy, z + dz, Direction.NORTH);
+                    this.placeVines(level, random, x + dx, y + dy, z + dz, Direction.SOUTH);
+                    this.placeVines(level, random, x + dx, y + dy, z + dz, Direction.EAST);
+                    this.placeVines(level, random, x + dx, y + dy, z + dz, Direction.WEST);
                 }
             }
         }
@@ -76,7 +76,7 @@ public class FeatureHugeJungleTree extends FeatureHugeTree {
         }
     }
 
-    protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, BlockFace face) {
+    protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, Direction face) {
         x -= face.getUnitVector().getX();
         z -= face.getUnitVector().getZ();
         if (random.nextInt(4) != 0 && this.test(level.getBlockRuntimeIdUnsafe(x, y, z, 0))) {

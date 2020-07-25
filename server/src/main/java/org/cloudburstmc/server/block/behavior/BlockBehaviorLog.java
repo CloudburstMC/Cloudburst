@@ -5,7 +5,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -82,7 +82,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         // Convert the old log bark to the new wood block
         if ((this.getMeta() & 0b1100) == 0b1100) {
             BlockState woodBlockState = BlockState.get(BlockTypes.WOOD, this.getMeta() & 0x03, this.getPosition(), this.getLevel());

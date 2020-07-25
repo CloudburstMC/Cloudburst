@@ -18,7 +18,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -273,7 +273,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     @Override
-    public int[] getHopperPushSlots(BlockFace direction, Item item) {
-        return new int[]{direction == BlockFace.DOWN ? FurnaceInventory.SLOT_SMELTING : FurnaceInventory.SLOT_FUEL};
+    public int[] getHopperPushSlots(Direction direction, Item item) {
+        return new int[]{direction == Direction.DOWN ? FurnaceInventory.SLOT_SMELTING : FurnaceInventory.SLOT_FUEL};
     }
 }

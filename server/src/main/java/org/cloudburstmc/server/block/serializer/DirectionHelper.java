@@ -4,7 +4,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -17,22 +17,22 @@ import static org.cloudburstmc.server.block.serializer.DirectionHelper.SeqType.*
 @UtilityClass
 public class DirectionHelper {
 
-    private final Map<SeqType, List<BlockFace>> faceObjTranslators = new EnumMap<>(SeqType.class);
-    private final Map<SeqType, Map<BlockFace, Byte>> faceMetaTranslators = new EnumMap<>(SeqType.class);
+    private final Map<SeqType, List<Direction>> faceObjTranslators = new EnumMap<>(SeqType.class);
+    private final Map<SeqType, Map<Direction, Byte>> faceMetaTranslators = new EnumMap<>(SeqType.class);
 
     private final Map<Identifier, SeqType> mapping = new HashMap<>();
 
     public void init() {
-        register(TYPE_1, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
-        register(TYPE_2, BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST);
-        register(TYPE_3, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH);
-        register(TYPE_4, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH);
-        register(TYPE_5, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST);
-        register(TYPE_6, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST);
+        register(TYPE_1, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
+        register(TYPE_2, Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST);
+        register(TYPE_3, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH);
+        register(TYPE_4, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH);
+        register(TYPE_5, Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST);
+        register(TYPE_6, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST);
 
-        register(TYPE_7, BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
-        register(TYPE_8, BlockFace.DOWN, BlockFace.UP, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST);
-        register(TYPE_9, BlockFace.DOWN, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.UP);
+        register(TYPE_7, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
+        register(TYPE_8, Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST);
+        register(TYPE_9, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.UP);
 
         registerDefaultMappings();
     }
@@ -150,8 +150,8 @@ public class DirectionHelper {
         }
     }
 
-    private void register(SeqType type, BlockFace... seq) {
-        EnumMap<BlockFace, Byte> map = new EnumMap<>(BlockFace.class);
+    private void register(SeqType type, Direction... seq) {
+        EnumMap<Direction, Byte> map = new EnumMap<>(Direction.class);
 
         for (byte i = 0; i < seq.length; i++) {
             map.put(seq[i], i);
@@ -161,15 +161,15 @@ public class DirectionHelper {
         faceMetaTranslators.put(type, map);
     }
 
-    public BlockFace fromMeta(int meta, SeqType type) {
-        List<BlockFace> list = faceObjTranslators.get(type);
+    public Direction fromMeta(int meta, SeqType type) {
+        List<Direction> list = faceObjTranslators.get(type);
 
         meta = NukkitMath.clamp(meta, 0, list.size() - 1);
 
         return list.get(meta);
     }
 
-    public short toMeta(@Nonnull BlockFace direction, SeqType type) {
+    public short toMeta(@Nonnull Direction direction, SeqType type) {
         return faceMetaTranslators.get(type).get(direction);
     }
 

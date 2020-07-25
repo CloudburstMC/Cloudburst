@@ -5,7 +5,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 
@@ -24,10 +24,10 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         int[] faces = new int[]{2, 1, 3, 0};
         this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
-        if ((clickPos.getY() > 0.5 && face != BlockFace.UP) || face == BlockFace.DOWN) {
+        if ((clickPos.getY() > 0.5 && face != Direction.UP) || face == Direction.DOWN) {
             this.setMeta(this.getMeta() | 0x04); //Upside-down stairs
         }
         this.getLevel().setBlock(blockState.getPosition(), this, true, true);
@@ -130,8 +130,8 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x7);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x7);
     }
 
     @Override

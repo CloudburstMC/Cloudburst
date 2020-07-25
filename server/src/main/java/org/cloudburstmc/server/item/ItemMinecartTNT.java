@@ -7,7 +7,7 @@ import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.vehicle.TntMinecart;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -25,7 +25,7 @@ public class ItemMinecartTNT extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, BlockFace face, Vector3f clickPos) {
+    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (Rail.isRailBlock(target.getState())) {
             Rail.Orientation type = ((BlockBehaviorRail) target).getOrientation();
             double adjacent = 0.0D;

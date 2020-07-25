@@ -4,7 +4,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 public class BlockBehaviorPistonHead extends BlockBehaviorTransparent {
 
@@ -34,8 +34,8 @@ public class BlockBehaviorPistonHead extends BlockBehaviorTransparent {
         return true;
     }
 
-    public BlockFace getFacing() {
-        return BlockFace.fromIndex(this.getMeta()).getOpposite();
+    public Direction getFacing() {
+        return Direction.fromIndex(this.getMeta()).getOpposite();
     }
 
     @Override

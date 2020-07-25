@@ -1,11 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.utils.BlockColor;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BlockBehaviorTransparent extends BlockBehavior {
 
     @Override

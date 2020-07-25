@@ -2,7 +2,7 @@ package org.cloudburstmc.server.utils.data;
 
 public enum StoneSlabType {
     SMOOTH_STONE,
-    STANDSTONE,
+    SANDSTONE,
     WOOD,
     COBBLESTONE,
     BRICK,

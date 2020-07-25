@@ -7,7 +7,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -18,19 +18,19 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     public static final int NORTH = 4;
     public static final int EAST = 8;
 
-    public static BlockFace getFace(int meta) {
+    public static Direction getFace(int meta) {
         if ((meta & EAST) != 0) {
-            return BlockFace.EAST;
+            return Direction.EAST;
         } else if ((meta & NORTH) != 0) {
-            return BlockFace.NORTH;
+            return Direction.NORTH;
         } else if ((meta & WEST) != 0) {
-            return BlockFace.WEST;
+            return Direction.WEST;
         } else {
-            return BlockFace.SOUTH;
+            return Direction.SOUTH;
         }
     }
 
-    public static int getMeta(BlockFace face) {
+    public static int getMeta(Direction face) {
         switch (face) {
             case SOUTH:
             default:
@@ -140,7 +140,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.isSolid() && face.getHorizontalIndex() != -1) {
             this.setMeta(getMeta(face.getOpposite()));
             this.getLevel().setBlock(blockState.getPosition(), this, true, true);

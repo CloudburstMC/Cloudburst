@@ -12,7 +12,7 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.DyeColor;
@@ -101,9 +101,9 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getId() == BlockTypes.LOG && (target.getMeta() & 0x03) == BlockBehaviorLog.JUNGLE) {
-            if (face != BlockFace.DOWN && face != BlockFace.UP) {
+            if (face != Direction.DOWN && face != Direction.UP) {
                 int[] faces = new int[]{
                         0,
                         0,
@@ -128,7 +128,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
                     3, 4, 2, 5, 3, 4, 2, 5, 3, 4, 2, 5
             };
 
-            BlockState side = this.getSide(BlockFace.fromIndex(faces[this.getMeta()]));
+            BlockState side = this.getSide(Direction.fromIndex(faces[this.getMeta()]));
 
             if (side.getId() != BlockTypes.LOG && side.getMeta() != BlockBehaviorLog.JUNGLE) {
                 this.getLevel().useBreakOn(this.getPosition());
@@ -221,8 +221,8 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

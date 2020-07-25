@@ -4,24 +4,15 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.data.StoneSlabType;
+
+import static org.cloudburstmc.server.block.behavior.BlockBehaviorSlab.COLORS;
 
 public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
-
-    private final Identifier slabId;
-    private final BlockColor[] colors;
-
-    protected BlockBehaviorDoubleSlab(Identifier slabId, BlockColor[] colors) {
-        this.slabId = slabId;
-        this.colors = colors;
-    }
-
-    public Identifier getSlabId() {
-        return this.slabId;
-    }
 
     @Override
     public float getResistance() {
@@ -56,7 +47,8 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
 
     @Override
     public BlockColor getColor(BlockState state) {
-        return colors[this.getMeta() & 0x7];
+        StoneSlabType type = state.ensureTrait(BlockTraits.STONE_SLAB_TYPE);
+        return COLORS.get(type);
     }
 
     protected void playPlaceSound() {

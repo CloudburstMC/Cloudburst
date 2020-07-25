@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -23,15 +23,15 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         Vector3i pos = block.getPosition();
         super.onBreak(block, item);
 
-        for (BlockFace face : BlockFace.values()) {
+        for (Direction face : Direction.values()) {
             block.getLevel().updateAroundRedstone(face.getOffset(pos), null);
         }
         return true;
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        if (block.getSide(BlockFace.DOWN).getState().getBehavior().isTransparent()) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        if (block.getSide(Direction.DOWN).getState().getBehavior().isTransparent()) {
             return false;
         }
 
@@ -107,7 +107,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     protected int calculateInputStrength() {
-        BlockFace face = getFacing();
+        Direction face = getFacing();
         Vector3i pos = face.getOffset(this.getPosition());
         int power = this.level.getRedstonePower(pos, face);
 
@@ -122,13 +122,13 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     protected int getPowerOnSides() {
         Vector3i pos = this.getPosition();
 
-        BlockFace face = getFacing();
-        BlockFace face1 = face.rotateY();
-        BlockFace face2 = face.rotateYCCW();
+        Direction face = getFacing();
+        Direction face1 = face.rotateY();
+        Direction face2 = face.rotateYCCW();
         return Math.max(this.getPowerOnSide(face1.getOffset(pos), face1), this.getPowerOnSide(face2.getOffset(pos), face2));
     }
 
-    protected int getPowerOnSide(Vector3i pos, BlockFace side) {
+    protected int getPowerOnSide(Vector3i pos, Direction side) {
         BlockState blockState = this.level.getBlock(pos);
         return isAlternateInput(blockState) ? (blockState.getId() == REDSTONE_BLOCK ? 15 : (blockState.getId() == REDSTONE_WIRE ? blockState.getMeta() : this.level.getStrongPower(pos, side))) : 0;
     }
@@ -142,7 +142,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         return this.calculateInputStrength() > 0;
     }
 
-    public abstract BlockFace getFacing();
+    public abstract Direction getFacing();
 
     protected abstract int getDelay();
 
@@ -172,11 +172,11 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         return 15;
     }
 
-    public int getStrongPower(BlockFace side) {
+    public int getStrongPower(Direction side) {
         return getWeakPower(side);
     }
 
-    public int getWeakPower(BlockFace side) {
+    public int getWeakPower(Direction side) {
         return !this.isPowered() ? 0 : (getFacing() == side ? this.getRedstoneSignal() : 0);
     }
 
@@ -190,14 +190,14 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     public boolean isFacingTowardsRepeater() {
-        BlockFace side = getFacing().getOpposite();
+        Direction side = getFacing().getOpposite();
         BlockState blockState = this.getSide(side);
         return blockState instanceof BlockBehaviorRedstoneDiode && ((BlockBehaviorRedstoneDiode) blockState).getFacing() != side;
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

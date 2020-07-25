@@ -11,7 +11,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
@@ -28,11 +28,11 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        BlockFace facing = face.getOpposite();
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        Direction facing = face.getOpposite();
 
-        if (facing == BlockFace.UP) {
-            facing = BlockFace.DOWN;
+        if (facing == Direction.UP) {
+            facing = Direction.DOWN;
         }
 
         this.setMeta(facing.getIndex());
@@ -80,8 +80,8 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
         return super.getComparatorInputOverride();
     }
 
-    public BlockFace getFacing() {
-        return BlockFace.fromIndex(this.getMeta() & 7);
+    public Direction getFacing() {
+        return Direction.fromIndex(this.getMeta() & 7);
     }
 
     public boolean isEnabled() {
@@ -135,8 +135,8 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

@@ -13,7 +13,7 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ShulkerBox;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -58,7 +58,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         this.getLevel().setBlock(blockState.getPosition(), this, true);
 
         ShulkerBox shulkerBox = BlockEntityRegistry.get().newEntity(SHULKER_BOX, this.getChunk(), this.getPosition());

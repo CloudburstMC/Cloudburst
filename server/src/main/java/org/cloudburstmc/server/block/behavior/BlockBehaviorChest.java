@@ -11,7 +11,7 @@ import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -76,7 +76,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Chest chest = null;
         int[] faces = {2, 5, 3, 4};
         this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
@@ -87,7 +87,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
             } else if ((this.getMeta() == 3 || this.getMeta() == 2) && (side == 2 || side == 3)) {
                 continue;
             }
-            BlockState c = this.getSide(BlockFace.fromIndex(side));
+            BlockState c = this.getSide(Direction.fromIndex(side));
             if (c instanceof BlockBehaviorChest && c.getMeta() == this.getMeta()) {
                 BlockEntity blockEntity = this.getLevel().getBlockEntity(c.getPosition());
                 if (blockEntity instanceof Chest && !((Chest) blockEntity).isPaired()) {
@@ -171,7 +171,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x7);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x7);
     }
 }
