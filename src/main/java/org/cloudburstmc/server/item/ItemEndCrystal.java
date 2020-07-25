@@ -8,7 +8,7 @@ import org.cloudburstmc.server.entity.misc.EnderCrystal;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -27,7 +27,7 @@ public class ItemEndCrystal extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, BlockFace face, Vector3f clickPos) {
+    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (!(target instanceof BlockBehaviorBedrock) && !(target instanceof BlockBehaviorObsidian)) return false;
         Chunk chunk = level.getLoadedChunk(blockState.getPosition());
 

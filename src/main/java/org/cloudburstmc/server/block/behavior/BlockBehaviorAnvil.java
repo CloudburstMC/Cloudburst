@@ -7,7 +7,7 @@ import org.cloudburstmc.server.inventory.AnvilInventory;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -42,7 +42,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
         if (!target.getBehavior().isTransparent() || state.getType() == SNOW_LAYER) {
             int meta = item.getMeta();
@@ -101,8 +101,8 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x7);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x7);
     }
 
     @Override

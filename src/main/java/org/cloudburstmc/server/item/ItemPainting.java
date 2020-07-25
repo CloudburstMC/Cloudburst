@@ -7,7 +7,7 @@ import org.cloudburstmc.server.entity.misc.Painting;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -35,7 +35,7 @@ public class ItemPainting extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, BlockFace face, Vector3f clickPos) {
+    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         Chunk chunk = level.getChunk(blockState.getPosition());
 
         if (chunk == null || target.isTransparent() || face.getHorizontalIndex() == -1 || blockState.isSolid()) {
@@ -47,9 +47,9 @@ public class ItemPainting extends Item {
             boolean valid = true;
             for (int x = 0; x < motive.width && valid; x++) {
                 for (int z = 0; z < motive.height && valid; z++) {
-                    if (target.getSide(BlockFace.fromIndex(RIGHT[face.getIndex() - 2]), x).isTransparent() ||
+                    if (target.getSide(Direction.fromIndex(RIGHT[face.getIndex() - 2]), x).isTransparent() ||
                             target.up(z).isTransparent() ||
-                            blockState.getSide(BlockFace.fromIndex(RIGHT[face.getIndex() - 2]), x).isSolid() ||
+                            blockState.getSide(Direction.fromIndex(RIGHT[face.getIndex() - 2]), x).isSolid() ||
                             blockState.up(z).isSolid()) {
                         valid = false;
                     }

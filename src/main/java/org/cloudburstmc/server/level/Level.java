@@ -963,8 +963,8 @@ public class Level implements ChunkManager, Metadatable {
         }
     }
 
-    public void updateAroundRedstone(Vector3i pos, BlockFace face) {
-        for (BlockFace side : BlockFace.values()) {
+    public void updateAroundRedstone(Vector3i pos, Direction face) {
+        for (Direction side : Direction.values()) {
             if (face != null && side == face) {
                 continue;
             }
@@ -975,7 +975,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public void updateComparatorOutputLevel(Vector3i v) {
-        for (BlockFace face : BlockFace.Plane.HORIZONTAL) {
+        for (Direction face : Direction.Plane.HORIZONTAL) {
             Vector3i pos = face.getOffset(v);
 
             if (this.isChunkLoaded(pos)) {
@@ -1611,7 +1611,7 @@ public class Level implements ChunkManager, Metadatable {
         return useBreakOn(pos, null, item, player, createParticles);
     }
 
-    public Item useBreakOn(Vector3i pos, BlockFace face, Item item, Player player, boolean createParticles) {
+    public Item useBreakOn(Vector3i pos, Direction face, Item item, Player player, boolean createParticles) {
         if (player != null && player.getGamemode() == GameMode.SPECTATOR) {
             return null;
         }
@@ -1769,16 +1769,16 @@ public class Level implements ChunkManager, Metadatable {
         }
     }
 
-    public Item useItemOn(Vector3i vector, Item item, BlockFace face, Vector3f clickPos) {
+    public Item useItemOn(Vector3i vector, Item item, Direction face, Vector3f clickPos) {
         return this.useItemOn(vector, item, face, clickPos, null);
     }
 
-    public Item useItemOn(Vector3i vector, Item item, BlockFace face, Vector3f clickPos, Player player) {
+    public Item useItemOn(Vector3i vector, Item item, Direction face, Vector3f clickPos, Player player) {
         return this.useItemOn(vector, item, face, clickPos, player, true);
     }
 
 
-    public Item useItemOn(Vector3i vector, Item item, BlockFace face, Vector3f clickPos, Player player, boolean playSound) {
+    public Item useItemOn(Vector3i vector, Item item, Direction face, Vector3f clickPos, Player player, boolean playSound) {
         Block target = this.getBlock(vector);
         BlockBehavior targetBehavior = target.getBehaviour();
         Block block = target.getSide(face);
@@ -2545,14 +2545,14 @@ public class Level implements ChunkManager, Metadatable {
         return this.getHighestBlockAt(x, z) < y;
     }
 
-    public int getStrongPower(Vector3i pos, BlockFace direction) {
+    public int getStrongPower(Vector3i pos, Direction direction) {
         return this.getBlock(pos).getStrongPower(direction);
     }
 
     public int getStrongPower(Vector3i pos) {
         int i = 0;
 
-        for (BlockFace face : BlockFace.values()) {
+        for (Direction face : Direction.values()) {
             i = Math.max(i, this.getStrongPower(face.getOffset(pos), face));
 
             if (i >= 15) {
@@ -2595,17 +2595,17 @@ public class Level implements ChunkManager, Metadatable {
 //        }
     }
 
-    public boolean isSidePowered(Vector3i pos, BlockFace face) {
+    public boolean isSidePowered(Vector3i pos, Direction face) {
         return this.getRedstonePower(pos, face) > 0;
     }
 
-    public int getRedstonePower(Vector3i pos, BlockFace face) {
+    public int getRedstonePower(Vector3i pos, Direction face) {
         BlockState blockState = this.getBlock(pos);
         return blockState.isNormalBlock() ? this.getStrongPower(pos) : blockState.getWeakPower(face);
     }
 
     public boolean isBlockPowered(Vector3i pos) {
-        for (BlockFace face : BlockFace.values()) {
+        for (Direction face : Direction.values()) {
             if (this.getRedstonePower(face.getOffset(pos), face) > 0) {
                 return true;
             }
@@ -2617,7 +2617,7 @@ public class Level implements ChunkManager, Metadatable {
     public int isBlockIndirectlyGettingPowered(Vector3i pos) {
         int power = 0;
 
-        for (BlockFace face : BlockFace.values()) {
+        for (Direction face : Direction.values()) {
             int blockPower = this.getRedstonePower(face.getOffset(pos), face);
 
             if (blockPower >= 15) {

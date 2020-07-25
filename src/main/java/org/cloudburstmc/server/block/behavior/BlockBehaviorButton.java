@@ -7,7 +7,7 @@ import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
 public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
@@ -23,7 +23,7 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.isTransparent()) {
             return false;
         }
@@ -89,17 +89,17 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
         return true;
     }
 
-    public int getWeakPower(BlockFace side) {
+    public int getWeakPower(Direction side) {
         return isActivated() ? 15 : 0;
     }
 
-    public int getStrongPower(BlockFace side) {
+    public int getStrongPower(Direction side) {
         return !isActivated() ? 0 : (getFacing() == side ? 15 : 0);
     }
 
-    public BlockFace getFacing() {
+    public Direction getFacing() {
         int side = isActivated() ? getMeta() ^ 0x08 : getMeta();
-        return BlockFace.fromIndex(side);
+        return Direction.fromIndex(side);
     }
 
     @Override
@@ -117,8 +117,8 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x7);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x7);
     }
 
     @Override

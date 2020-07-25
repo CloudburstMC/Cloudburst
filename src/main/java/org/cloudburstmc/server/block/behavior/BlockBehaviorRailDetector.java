@@ -6,7 +6,7 @@ import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 
 import static org.cloudburstmc.server.block.BlockTypes.DETECTOR_RAIL;
@@ -23,13 +23,13 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
     }
 
     @Override
-    public int getWeakPower(BlockFace side) {
+    public int getWeakPower(Direction side) {
         return isActive() ? 15 : 0;
     }
 
     @Override
-    public int getStrongPower(BlockFace side) {
-        return isActive() ? 0 : (side == BlockFace.UP ? 15 : 0);
+    public int getStrongPower(Direction side) {
+        return isActive() ? 0 : (side == Direction.UP ? 15 : 0);
     }
 
     @Override

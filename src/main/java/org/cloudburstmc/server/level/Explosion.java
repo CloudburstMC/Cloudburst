@@ -20,7 +20,7 @@ import org.cloudburstmc.server.event.entity.EntityExplodeEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.particle.HugeExplodeSeedParticle;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.utils.Hash;
@@ -197,7 +197,7 @@ public class Explosion {
                 continue;
             }
 
-            for (BlockFace side : BlockFace.values()) {
+            for (Direction side : Direction.values()) {
                 BlockState sideBlockState = blockState.getSide(side);
                 Vector3i sidePos = sideBlockState.getPosition();
                 long index = Hash.hashBlock(sidePos.getX(), sidePos.getY(), sidePos.getZ());

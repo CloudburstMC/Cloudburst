@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
 import static org.cloudburstmc.server.block.BlockTypes.WATER;
@@ -35,7 +35,7 @@ public class CloudBlock implements Block {
     }
 
     @Override
-    public Block getSide(BlockFace face, int step) {
+    public Block getSide(Direction face, int step) {
         return this.level.getBlock(face.getOffset(this.position, step));
     }
 

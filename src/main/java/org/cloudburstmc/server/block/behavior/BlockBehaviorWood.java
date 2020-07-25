@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -76,19 +76,19 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
         setMeta((getMeta() & ~STRIPPED_BIT) | (stripped ? STRIPPED_BIT : 0));
     }
 
-    public BlockFace.Axis getAxis() {
+    public Direction.Axis getAxis() {
         switch (getMeta() & 0x30) {
             default:
             case AXIS_Y:
-                return BlockFace.Axis.Y;
+                return Direction.Axis.Y;
             case AXIS_X:
-                return BlockFace.Axis.X;
+                return Direction.Axis.X;
             case AXIS_Z:
-                return BlockFace.Axis.Z;
+                return Direction.Axis.Z;
         }
     }
 
-    public void setAxis(BlockFace.Axis axis) {
+    public void setAxis(Direction.Axis axis) {
         int axisProp;
         switch (axis) {
             default:
@@ -106,7 +106,7 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         setAxis(face.getAxis());
         return super.place(item, blockState, target, face, clickPos, player);
     }

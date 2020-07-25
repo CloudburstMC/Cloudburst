@@ -3,7 +3,7 @@ package org.cloudburstmc.server.event.player;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
 public class PlayerBucketEmptyEvent extends PlayerBucketEvent {
@@ -13,8 +13,8 @@ public class PlayerBucketEmptyEvent extends PlayerBucketEvent {
         return handlers;
     }
 
-    public PlayerBucketEmptyEvent(Player who, BlockState blockStateClicked, BlockFace blockFace, Item bucket, Item itemInHand) {
-        super(who, blockStateClicked, blockFace, bucket, itemInHand);
+    public PlayerBucketEmptyEvent(Player who, BlockState blockStateClicked, Direction direction, Item bucket, Item itemInHand) {
+        super(who, blockStateClicked, direction, bucket, itemInHand);
     }
 
 }

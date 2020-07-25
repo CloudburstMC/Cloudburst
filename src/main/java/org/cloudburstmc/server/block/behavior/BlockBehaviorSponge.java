@@ -9,7 +9,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -37,7 +37,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Level level = block.getLevel();
         boolean blockSet = level.setBlock(block.getPosition(), this);
 
@@ -73,7 +73,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
         Entry entry;
         int waterRemoved = 0;
         while (waterRemoved < 64 && (entry = entries.poll()) != null) {
-            for (BlockFace face : BlockFace.values()) {
+            for (Direction face : Direction.values()) {
 
                 BlockState faceBlockState = entry.blockState.getSide(face);
                 if (faceBlockState.getId() == FLOWING_WATER || faceBlockState.getId() == WATER) {

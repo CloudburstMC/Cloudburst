@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.math.BlockFace;
-import org.cloudburstmc.server.math.BlockFace.Plane;
+import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
@@ -17,16 +17,16 @@ import static org.cloudburstmc.server.blockentity.BlockEntityTypes.CHEST;
 public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         int[] faces = {2, 5, 3, 4};
 
         Chest chest = null;
         this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
 
-        for (BlockFace side : Plane.HORIZONTAL) {
-            if ((this.getMeta() == 4 || this.getMeta() == 5) && (side == BlockFace.WEST || side == BlockFace.EAST)) {
+        for (Direction side : Plane.HORIZONTAL) {
+            if ((this.getMeta() == 4 || this.getMeta() == 5) && (side == Direction.WEST || side == Direction.EAST)) {
                 continue;
-            } else if ((this.getMeta() == 3 || this.getMeta() == 2) && (side == BlockFace.NORTH || side == BlockFace.SOUTH)) {
+            } else if ((this.getMeta() == 3 || this.getMeta() == 2) && (side == Direction.NORTH || side == Direction.SOUTH)) {
                 continue;
             }
             BlockState c = this.getSide(side);
@@ -56,7 +56,7 @@ public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
     }
 
     @Override
-    public int getWeakPower(BlockFace face) {
+    public int getWeakPower(Direction face) {
         int playerCount = 0;
 
         BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
@@ -69,8 +69,8 @@ public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
     }
 
     @Override
-    public int getStrongPower(BlockFace side) {
-        return side == BlockFace.UP ? this.getWeakPower(side) : 0;
+    public int getStrongPower(Direction side) {
+        return side == Direction.UP ? this.getWeakPower(side) : 0;
     }
 
     @Override

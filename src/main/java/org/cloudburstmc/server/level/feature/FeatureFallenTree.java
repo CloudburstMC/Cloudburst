@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehaviorLog;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorVine;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -34,7 +34,7 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
         }
 
         final int size = this.size.rand(random);
-        final BlockFace direction = BlockFace.Plane.HORIZONTAL.random(random);
+        final Direction direction = Direction.Plane.HORIZONTAL.random(random);
         for (int i = 0; i < size; i++) {
             if (!this.test(level.getBlockRuntimeIdUnsafe(x + direction.getXOffset() * i, y, z + direction.getZOffset() * i, 0))
                     || this.testOrLiquid(level.getBlockRuntimeIdUnsafe(x + direction.getXOffset() * i, y - 1, z + direction.getZOffset() * i, 0))) {
@@ -44,7 +44,7 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
 
         level.setBlockAt(x, y, z, 0, this.logId, this.logType);
 
-        int metaDirection = direction.getAxis() == BlockFace.Axis.X ? BlockBehaviorLog.EAST_WEST : BlockBehaviorLog.NORTH_SOUTH;
+        int metaDirection = direction.getAxis() == Direction.Axis.X ? BlockBehaviorLog.EAST_WEST : BlockBehaviorLog.NORTH_SOUTH;
         int log = BlockRegistry.get().getRuntimeId(this.logId, this.logType | metaDirection);
         for (int i = random.nextInt(2) + 2; i < size; i++) {
             level.setBlockRuntimeIdUnsafe(x + direction.getXOffset() * i, y, z + direction.getZOffset() * i, 0, log);

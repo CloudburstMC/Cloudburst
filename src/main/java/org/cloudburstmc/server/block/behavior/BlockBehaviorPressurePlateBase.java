@@ -13,7 +13,7 @@ import org.cloudburstmc.server.event.player.PlayerInteractEvent.Action;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 
@@ -95,7 +95,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (block.down().isTransparent()) {
             return false;
         }
@@ -169,13 +169,13 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public int getWeakPower(BlockFace side) {
+    public int getWeakPower(Direction side) {
         return getRedstonePower();
     }
 
     @Override
-    public int getStrongPower(BlockFace side) {
-        return side == BlockFace.UP ? this.getRedstonePower() : 0;
+    public int getStrongPower(Direction side) {
+        return side == Direction.UP ? this.getRedstonePower() : 0;
     }
 
     public int getRedstonePower() {

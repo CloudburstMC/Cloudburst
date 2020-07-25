@@ -5,7 +5,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -33,7 +33,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
                     0  //6
             };
 
-            if (this.getSide(BlockFace.fromIndex(faces[side])).isTransparent() && !(side == 0 && (below instanceof BlockBehaviorFence || below.getId() == COBBLESTONE_WALL))) {
+            if (this.getSide(Direction.fromIndex(faces[side])).isTransparent() && !(side == 0 && (below instanceof BlockBehaviorFence || below.getId() == COBBLESTONE_WALL))) {
                 this.getLevel().useBreakOn(this.getPosition());
 
                 return Level.BLOCK_UPDATE_NORMAL;
@@ -44,10 +44,10 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState below = this.down();
 
-        if (!target.isTransparent() && face != BlockFace.DOWN) {
+        if (!target.isTransparent() && face != Direction.DOWN) {
             int[] faces = new int[]{
                     0, //0, nerver used
                     5, //1
@@ -80,22 +80,22 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockFace getBlockFace() {
+    public Direction getBlockFace() {
         return getBlockFace(this.getMeta() & 0x07);
     }
 
-    public BlockFace getBlockFace(int meta) {
+    public Direction getBlockFace(int meta) {
         switch (meta) {
             case 1:
-                return BlockFace.EAST;
+                return Direction.EAST;
             case 2:
-                return BlockFace.WEST;
+                return Direction.WEST;
             case 3:
-                return BlockFace.SOUTH;
+                return Direction.SOUTH;
             case 4:
-                return BlockFace.NORTH;
+                return Direction.NORTH;
             default:
-                return BlockFace.UP;
+                return Direction.UP;
         }
     }
 

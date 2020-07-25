@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.utils;
 
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,24 +26,24 @@ public final class Rail {
     }
 
     public enum Orientation {
-        STRAIGHT_NORTH_SOUTH(0, STRAIGHT, BlockFace.NORTH, BlockFace.SOUTH, null),
-        STRAIGHT_EAST_WEST(1, STRAIGHT, BlockFace.EAST, BlockFace.WEST, null),
-        ASCENDING_EAST(2, ASCENDING, BlockFace.EAST, BlockFace.WEST, BlockFace.EAST),
-        ASCENDING_WEST(3, ASCENDING, BlockFace.EAST, BlockFace.WEST, BlockFace.WEST),
-        ASCENDING_NORTH(4, ASCENDING, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.NORTH),
-        ASCENDING_SOUTH(5, ASCENDING, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.SOUTH),
-        CURVED_SOUTH_EAST(6, CURVED, BlockFace.SOUTH, BlockFace.EAST, null),
-        CURVED_SOUTH_WEST(7, CURVED, BlockFace.SOUTH, BlockFace.WEST, null),
-        CURVED_NORTH_WEST(8, CURVED, BlockFace.NORTH, BlockFace.WEST, null),
-        CURVED_NORTH_EAST(9, CURVED, BlockFace.NORTH, BlockFace.EAST, null);
+        STRAIGHT_NORTH_SOUTH(0, STRAIGHT, Direction.NORTH, Direction.SOUTH, null),
+        STRAIGHT_EAST_WEST(1, STRAIGHT, Direction.EAST, Direction.WEST, null),
+        ASCENDING_EAST(2, ASCENDING, Direction.EAST, Direction.WEST, Direction.EAST),
+        ASCENDING_WEST(3, ASCENDING, Direction.EAST, Direction.WEST, Direction.WEST),
+        ASCENDING_NORTH(4, ASCENDING, Direction.NORTH, Direction.SOUTH, Direction.NORTH),
+        ASCENDING_SOUTH(5, ASCENDING, Direction.NORTH, Direction.SOUTH, Direction.SOUTH),
+        CURVED_SOUTH_EAST(6, CURVED, Direction.SOUTH, Direction.EAST, null),
+        CURVED_SOUTH_WEST(7, CURVED, Direction.SOUTH, Direction.WEST, null),
+        CURVED_NORTH_WEST(8, CURVED, Direction.NORTH, Direction.WEST, null),
+        CURVED_NORTH_EAST(9, CURVED, Direction.NORTH, Direction.EAST, null);
 
         private static final Orientation[] META_LOOKUP = new Orientation[values().length];
         private final int meta;
         private final State state;
-        private final List<BlockFace> connectingDirections;
-        private final BlockFace ascendingDirection;
+        private final List<Direction> connectingDirections;
+        private final Direction ascendingDirection;
 
-        Orientation(int meta, State state, BlockFace from, BlockFace to, BlockFace ascendingDirection) {
+        Orientation(int meta, State state, Direction from, Direction to, Direction ascendingDirection) {
             this.meta = meta;
             this.state = state;
             this.connectingDirections = Arrays.asList(from, to);
@@ -58,7 +58,7 @@ public final class Rail {
             return META_LOOKUP[meta];
         }
 
-        public static Orientation straight(BlockFace face) {
+        public static Orientation straight(Direction face) {
             switch (face) {
                 case NORTH:
                 case SOUTH:
@@ -70,7 +70,7 @@ public final class Rail {
             return STRAIGHT_NORTH_SOUTH;
         }
 
-        public static Orientation ascending(BlockFace face) {
+        public static Orientation ascending(Direction face) {
             switch (face) {
                 case NORTH:
                     return ASCENDING_NORTH;
@@ -84,7 +84,7 @@ public final class Rail {
             return ASCENDING_EAST;
         }
 
-        public static Orientation curved(BlockFace f1, BlockFace f2) {
+        public static Orientation curved(Direction f1, Direction f2) {
             for (Orientation o : new Orientation[]{CURVED_SOUTH_EAST, CURVED_SOUTH_WEST, CURVED_NORTH_WEST, CURVED_NORTH_EAST}) {
                 if (o.connectingDirections.contains(f1) && o.connectingDirections.contains(f2)) {
                     return o;
@@ -93,7 +93,7 @@ public final class Rail {
             return CURVED_SOUTH_EAST;
         }
 
-        public static Orientation straightOrCurved(BlockFace f1, BlockFace f2) {
+        public static Orientation straightOrCurved(Direction f1, Direction f2) {
             for (Orientation o : new Orientation[]{STRAIGHT_NORTH_SOUTH, STRAIGHT_EAST_WEST, CURVED_SOUTH_EAST, CURVED_SOUTH_WEST, CURVED_NORTH_WEST, CURVED_NORTH_EAST}) {
                 if (o.connectingDirections.contains(f1) && o.connectingDirections.contains(f2)) {
                     return o;
@@ -106,15 +106,15 @@ public final class Rail {
             return meta;
         }
 
-        public boolean hasConnectingDirections(BlockFace... faces) {
+        public boolean hasConnectingDirections(Direction... faces) {
             return Stream.of(faces).allMatch(connectingDirections::contains);
         }
 
-        public List<BlockFace> connectingDirections() {
+        public List<Direction> connectingDirections() {
             return connectingDirections;
         }
 
-        public Optional<BlockFace> ascendingDirection() {
+        public Optional<Direction> ascendingDirection() {
             return Optional.ofNullable(ascendingDirection);
         }
 

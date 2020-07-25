@@ -8,15 +8,15 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
-    public BlockFace getFacing() {
-        return BlockFace.fromHorizontalIndex(getMeta() & 0b11);
+    public Direction getFacing() {
+        return Direction.fromHorizontalIndex(getMeta() & 0b11);
     }
 
     @Override
@@ -36,8 +36,8 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        if (!this.getSide(face.getOpposite()).isNormalBlock() || face == BlockFace.DOWN || face == BlockFace.UP) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        if (!this.getSide(face.getOpposite()).isNormalBlock() || face == Direction.DOWN || face == Direction.UP) {
             return false;
         }
 
@@ -72,7 +72,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     public void calculateState(boolean onBreak, boolean updateAround, int pos, BlockState blockState) {
-        BlockFace facing = getFacing();
+        Direction facing = getFacing();
         Vector3i v = this.getPosition();
         boolean attached = isAttached();
         boolean powered = isPowered();
@@ -123,7 +123,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
         if (distance > 0) {
             Vector3i vec = v.add(facing.getUnitVector().mul(distance));
-            BlockFace face = facing.getOpposite();
+            Direction face = facing.getOpposite();
             hook.setFace(face);
             this.level.setBlock(vec, hook, true, false);
             this.level.updateAroundRedstone(vec, null);
@@ -193,7 +193,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         }
     }
 
-    public void setFace(BlockFace face) {
+    public void setFace(Direction face) {
         this.setMeta(this.getMeta() - this.getMeta() % 4);
         this.setMeta(this.getMeta() | face.getHorizontalIndex());
     }
@@ -204,12 +204,12 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public int getWeakPower(BlockFace face) {
+    public int getWeakPower(Direction face) {
         return isPowered() ? 15 : 0;
     }
 
     @Override
-    public int getStrongPower(BlockFace side) {
+    public int getStrongPower(Direction side) {
         return !isPowered() ? 0 : getFacing() == side ? 15 : 0;
     }
 

@@ -8,7 +8,7 @@ import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -27,25 +27,25 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
 
     protected final Vector3f touchVector;
 
-    protected final BlockFace blockFace;
+    protected final Direction direction;
 
     protected final Item item;
 
     protected final Action action;
 
-    public PlayerInteractEvent(Player player, Item item, Block block, BlockFace face, Action action) {
+    public PlayerInteractEvent(Player player, Item item, Block block, Direction face, Action action) {
         this(player, item, face, action, block, Vector3f.ZERO);
     }
 
-    public PlayerInteractEvent(Player player, Item item, Vector3f touchVector, BlockFace face, Action action) {
+    public PlayerInteractEvent(Player player, Item item, Vector3f touchVector, Direction face, Action action) {
         this(player, item, face, action, new CloudBlock(BlockState.AIR, player.getLevel(),
                 player.getLevel().getChunk(player.getPosition()), Vector3i.ZERO, 0), touchVector);
     }
 
-    private PlayerInteractEvent(Player player, Item item, BlockFace face, Action action, Block block, Vector3f touchVector) {
+    private PlayerInteractEvent(Player player, Item item, Direction face, Action action, Block block, Vector3f touchVector) {
         super(player);
         this.item = item;
-        this.blockFace = face;
+        this.direction = face;
         this.action = action;
         this.blockTouched = block;
         this.touchVector = touchVector;
@@ -67,8 +67,8 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
         return touchVector;
     }
 
-    public BlockFace getFace() {
-        return blockFace;
+    public Direction getFace() {
+        return direction;
     }
 
     public enum Action {

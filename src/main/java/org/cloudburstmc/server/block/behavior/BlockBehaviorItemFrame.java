@@ -9,7 +9,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
@@ -58,7 +58,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!target.isTransparent() && face.getIndex() > 1 && !blockState.isSolid()) {
             switch (face) {
                 case NORTH:
@@ -136,16 +136,16 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
         return super.getComparatorInputOverride();
     }
 
-    public BlockFace getFacing() {
+    public Direction getFacing() {
         switch (this.getMeta() & 3) {
             case 0:
-                return BlockFace.WEST;
+                return Direction.WEST;
             case 1:
-                return BlockFace.EAST;
+                return Direction.EAST;
             case 2:
-                return BlockFace.NORTH;
+                return Direction.NORTH;
             case 3:
-                return BlockFace.SOUTH;
+                return Direction.SOUTH;
         }
 
         return null;

@@ -19,7 +19,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 
@@ -240,10 +240,10 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             return false;
         }
 
-        BlockFace direction = BlockFace.fromIndex(this.getBlock().getMeta());
+        Direction direction = Direction.fromIndex(this.getBlock().getMeta());
         BlockEntity be = this.getLevel().getBlockEntity(direction.getOffset(this.getPosition()));
 
-        if (be instanceof Hopper && direction == BlockFace.DOWN || !(be instanceof InventoryHolder))
+        if (be instanceof Hopper && direction == Direction.DOWN || !(be instanceof InventoryHolder))
             return false;
 
         if (be instanceof ContainerBlockEntity) {

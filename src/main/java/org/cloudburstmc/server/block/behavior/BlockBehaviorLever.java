@@ -7,7 +7,7 @@ import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -51,7 +51,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
         this.getLevel().addSound(this.getPosition(), Sound.RANDOM_CLICK, 0.8f, isPowerOn() ? 0.58f : 0.5f);
 
         LeverOrientation orientation = LeverOrientation.byMetadata(this.isPowerOn() ? this.getMeta() ^ 0x08 : this.getMeta());
-        BlockFace face = orientation.getFacing();
+        Direction face = orientation.getFacing();
         //this.level.updateAroundRedstone(this.getPosition(), null);
         this.level.updateAroundRedstone(face.getOpposite().getOffset(this.getPosition()), isPowerOn() ? face : null);
         return true;
@@ -61,7 +61,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             int face = this.isPowerOn() ? this.getMeta() ^ 0x08 : this.getMeta();
-            BlockFace faces = LeverOrientation.byMetadata(face).getFacing().getOpposite();
+            Direction faces = LeverOrientation.byMetadata(face).getFacing().getOpposite();
             if (!this.getSide(faces).isSolid()) {
                 this.level.useBreakOn(this.getPosition());
             }
@@ -70,7 +70,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.isNormalBlock()) {
             this.setMeta(LeverOrientation.forFacings(face, player.getHorizontalFacing()).getMetadata());
             this.getLevel().setBlock(blockState.getPosition(), this, true, true);
@@ -84,18 +84,18 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
         super.onBreak(block, item);
 
         if (isPowerOn()) {
-            BlockFace face = LeverOrientation.byMetadata(this.isPowerOn() ? this.getMeta() ^ 0x08 : this.getMeta()).getFacing();
+            Direction face = LeverOrientation.byMetadata(this.isPowerOn() ? this.getMeta() ^ 0x08 : this.getMeta()).getFacing();
             this.level.updateAround(face.getOpposite().getOffset(this.getPosition()));
         }
         return true;
     }
 
     @Override
-    public int getWeakPower(BlockFace side) {
+    public int getWeakPower(Direction side) {
         return isPowerOn() ? 15 : 0;
     }
 
-    public int getStrongPower(BlockFace side) {
+    public int getStrongPower(Direction side) {
         return !isPowerOn() ? 0 : LeverOrientation.byMetadata(this.isPowerOn() ? this.getMeta() ^ 0x08 : this.getMeta()).getFacing() == side ? 15 : 0;
     }
 
@@ -105,21 +105,21 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     public enum LeverOrientation {
-        DOWN_X(0, "down_x", BlockFace.DOWN),
-        EAST(1, "east", BlockFace.EAST),
-        WEST(2, "west", BlockFace.WEST),
-        SOUTH(3, "south", BlockFace.SOUTH),
-        NORTH(4, "north", BlockFace.NORTH),
-        UP_Z(5, "up_z", BlockFace.UP),
-        UP_X(6, "up_x", BlockFace.UP),
-        DOWN_Z(7, "down_z", BlockFace.DOWN);
+        DOWN_X(0, "down_x", Direction.DOWN),
+        EAST(1, "east", Direction.EAST),
+        WEST(2, "west", Direction.WEST),
+        SOUTH(3, "south", Direction.SOUTH),
+        NORTH(4, "north", Direction.NORTH),
+        UP_Z(5, "up_z", Direction.UP),
+        UP_X(6, "up_x", Direction.UP),
+        DOWN_Z(7, "down_z", Direction.DOWN);
 
         private static final LeverOrientation[] META_LOOKUP = new LeverOrientation[values().length];
         private final int meta;
         private final String name;
-        private final BlockFace facing;
+        private final Direction facing;
 
-        LeverOrientation(int meta, String name, BlockFace face) {
+        LeverOrientation(int meta, String name, Direction face) {
             this.meta = meta;
             this.name = name;
             this.facing = face;
@@ -129,7 +129,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
             return this.meta;
         }
 
-        public BlockFace getFacing() {
+        public Direction getFacing() {
             return this.facing;
         }
 
@@ -145,7 +145,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
             return META_LOOKUP[meta];
         }
 
-        public static LeverOrientation forFacings(BlockFace clickedSide, BlockFace playerDirection) {
+        public static LeverOrientation forFacings(Direction clickedSide, Direction playerDirection) {
             switch (clickedSide) {
                 case DOWN:
                     switch (playerDirection.getAxis()) {
@@ -200,8 +200,8 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

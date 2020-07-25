@@ -8,7 +8,7 @@ import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.misc.FireworksRocket;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -78,7 +78,7 @@ public class ItemFirework extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, BlockFace face, Vector3f clickPos) {
+    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (blockState.canPassThrough()) {
             this.spawnFirework(level, blockState.getPosition().toFloat().add(0.5, 0.5, 0.5));
 

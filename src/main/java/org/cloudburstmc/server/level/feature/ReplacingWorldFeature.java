@@ -5,7 +5,7 @@ import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -65,8 +65,8 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
     /**
      * Checks whether all the blocks that horizontally neighbor the given coordinates match the given {@link BlockFilter}.
      */
-    public boolean allNeighborsMatch(ChunkManager level, int x, int y, int z, BlockFilter filter, BlockFace except) {
-        for (BlockFace face : BlockFace.Plane.HORIZONTAL) {
+    public boolean allNeighborsMatch(ChunkManager level, int x, int y, int z, BlockFilter filter, Direction except) {
+        for (Direction face : Direction.Plane.HORIZONTAL) {
             if (face != except && !filter.test(level.getBlockRuntimeIdUnsafe(x + face.getXOffset(), y, z + face.getZOffset(), 0))) {
                 return false;
             }

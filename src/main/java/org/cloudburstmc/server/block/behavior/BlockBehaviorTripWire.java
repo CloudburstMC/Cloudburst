@@ -8,7 +8,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
 import static org.cloudburstmc.server.block.BlockTypes.TRIPWIRE;
@@ -88,7 +88,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     public void updateHook(boolean scheduleUpdate) {
-        for (BlockFace side : new BlockFace[]{BlockFace.SOUTH, BlockFace.WEST}) {
+        for (Direction side : new Direction[]{Direction.SOUTH, Direction.WEST}) {
             for (int i = 1; i < 42; ++i) {
                 BlockState blockState = this.getSide(side, i);
 
@@ -142,7 +142,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         this.getLevel().setBlock(this.getPosition(), this, true, true);
         this.updateHook(false);
 

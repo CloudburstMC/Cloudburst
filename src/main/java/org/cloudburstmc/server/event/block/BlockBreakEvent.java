@@ -4,7 +4,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
@@ -23,7 +23,7 @@ public class BlockBreakEvent extends BlockEvent implements Cancellable {
     protected final Player player;
 
     protected final Item item;
-    protected final BlockFace face;
+    protected final Direction face;
 
     protected boolean instaBreak = false;
     protected Item[] blockDrops = new Item[0];
@@ -44,7 +44,7 @@ public class BlockBreakEvent extends BlockEvent implements Cancellable {
                 BlockRegistry.get().getBehavior(block.getState().getType()).getDropExp(), instaBreak, fastBreak);
     }
 
-    public BlockBreakEvent(Player player, Block block, BlockFace face, Item item, Item[] drops, int dropExp, boolean instaBreak, boolean fastBreak) {
+    public BlockBreakEvent(Player player, Block block, Direction face, Item item, Item[] drops, int dropExp, boolean instaBreak, boolean fastBreak) {
         super(block);
         this.face = face;
         this.item = item;
@@ -59,7 +59,7 @@ public class BlockBreakEvent extends BlockEvent implements Cancellable {
         return player;
     }
 
-    public BlockFace getFace() {
+    public Direction getFace() {
         return face;
     }
 

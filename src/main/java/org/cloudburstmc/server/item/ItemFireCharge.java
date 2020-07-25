@@ -8,7 +8,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehaviorSolid;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -32,7 +32,7 @@ public class ItemFireCharge extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, BlockFace face, Vector3f clickPos) {
+    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (blockState.getId() == AIR && (target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves)) {
             BlockBehaviorFire fire = (BlockBehaviorFire) BlockState.get(FIRE);
             fire.setPosition(blockState.getPosition());

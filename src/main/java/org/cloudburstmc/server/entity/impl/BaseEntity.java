@@ -1015,8 +1015,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
         return Vector2f.from(-Math.cos(Math.toRadians(this.yaw) - Math.PI / 2), -Math.sin(Math.toRadians(this.yaw) - Math.PI / 2)).normalize();
     }
 
-    public BlockFace getHorizontalFacing() {
-        return BlockFace.fromHorizontalIndex(NukkitMath.floorDouble((this.yaw * 4.0F / 360.0F) + 0.5D) & 3);
+    public Direction getHorizontalFacing() {
+        return Direction.fromHorizontalIndex(NukkitMath.floorDouble((this.yaw * 4.0F / 360.0F) + 0.5D) & 3);
     }
 
     public boolean onUpdate(int currentTick) {
@@ -1202,19 +1202,19 @@ public abstract class BaseEntity implements Entity, Metadatable {
         }
     }
 
-    public BlockFace getDirection() {
+    public Direction getDirection() {
         double rotation = this.yaw % 360;
         if (rotation < 0) {
             rotation += 360.0;
         }
         if ((0 <= rotation && rotation < 45) || (315 <= rotation && rotation < 360)) {
-            return BlockFace.SOUTH;
+            return Direction.SOUTH;
         } else if (45 <= rotation && rotation < 135) {
-            return BlockFace.WEST;
+            return Direction.WEST;
         } else if (135 <= rotation && rotation < 225) {
-            return BlockFace.NORTH;
+            return Direction.NORTH;
         } else if (225 <= rotation && rotation < 315) {
-            return BlockFace.EAST;
+            return Direction.EAST;
         } else {
             return null;
         }
@@ -1273,7 +1273,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         }
 
         if (fallDistance > 0.75) {
-            BlockState down = this.level.getBlock(BlockFace.DOWN.getUnitVector().add(this.getPosition().toInt()));
+            BlockState down = this.level.getBlock(Direction.DOWN.getUnitVector().add(this.getPosition().toInt()));
 
             if (down.getId() == FARMLAND) {
                 Event ev;

@@ -12,7 +12,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehaviorLeaves;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorSolid;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -42,7 +42,7 @@ public class ItemFlintSteel extends ItemTool {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, BlockFace face, Vector3f clickPos) {
+    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (block.getState() == BlockState.AIR && target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves) {
             PORTAL:
             if (target.getState().getType() == OBSIDIAN) {
@@ -254,7 +254,7 @@ public class ItemFlintSteel extends ItemTool {
             BlockState fire = BlockState.get(BlockTypes.FIRE);
             BlockBehavior fireBehavior = BlockRegistry.get().getBehavior(BlockTypes.FIRE);
 
-            if (fireBehavior.isBlockTopFacingSurfaceSolid(block.getSide(BlockFace.DOWN)) || fireBehavior.canNeighborBurn()) {
+            if (fireBehavior.isBlockTopFacingSurfaceSolid(block.getSide(Direction.DOWN)) || fireBehavior.canNeighborBurn()) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
                 block.getLevel().getServer().getPluginManager().callEvent(e);
 

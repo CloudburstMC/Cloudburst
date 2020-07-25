@@ -1,76 +1,59 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.BlockFactory;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.data.StoneSlabType;
 
-import java.util.Arrays;
+import java.util.EnumMap;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 
-    public static final BlockColor[] COLORS_1 = new BlockColor[]{
-            BlockColor.STONE_BLOCK_COLOR,
-            BlockColor.SAND_BLOCK_COLOR,
-            BlockColor.WOOD_BLOCK_COLOR,
-            BlockColor.STONE_BLOCK_COLOR,
-            BlockColor.STONE_BLOCK_COLOR,
-            BlockColor.QUARTZ_BLOCK_COLOR,
-            BlockColor.NETHERRACK_BLOCK_COLOR
-    };
-    public static final BlockColor[] COLORS_2 = new BlockColor[]{
-            BlockColor.ORANGE_BLOCK_COLOR,
-            BlockColor.PURPLE_BLOCK_COLOR,
-            BlockColor.CYAN_BLOCK_COLOR,
-            BlockColor.CYAN_BLOCK_COLOR,
-            BlockColor.CYAN_BLOCK_COLOR,
-            BlockColor.STONE_BLOCK_COLOR,
-            BlockColor.SAND_BLOCK_COLOR,
-            BlockColor.NETHERRACK_BLOCK_COLOR
-    };
-    public static final BlockColor[] COLORS_3 = new BlockColor[]{
-            BlockColor.WHITE_BLOCK_COLOR,
-            BlockColor.ORANGE_BLOCK_COLOR,
-            BlockColor.STONE_BLOCK_COLOR,
-            BlockColor.STONE_BLOCK_COLOR,
-            BlockColor.WHITE_BLOCK_COLOR,
-            BlockColor.WHITE_BLOCK_COLOR,
-            BlockColor.PINK_BLOCK_COLOR,
-            BlockColor.PINK_BLOCK_COLOR
-    };
-    public static final BlockColor[] COLORS_4 = new BlockColor[]{
-            BlockColor.STONE_BLOCK_COLOR,
-            BlockColor.QUARTZ_BLOCK_COLOR,
-            BlockColor.STONE_BLOCK_COLOR,
-            BlockColor.SAND_BLOCK_COLOR,
-            BlockColor.ORANGE_BLOCK_COLOR
-    };
+    static final EnumMap<StoneSlabType, BlockColor> COLORS = new EnumMap<>(StoneSlabType.class);
 
-    private final Identifier doubleSlabId;
-    private final BlockColor[] colors;
-
-    public BlockBehaviorSlab(Identifier doubleSlabId, BlockColor[] colors) {
-        this.doubleSlabId = doubleSlabId;
-        this.colors = colors;
-    }
-
-    public static BlockFactory factory(Identifier doubleSlabId, BlockColor... colors) {
-        return id -> new BlockBehaviorSlab(id, doubleSlabId, Arrays.copyOf(colors, 8));
+    static {
+        COLORS.put(StoneSlabType.SMOOTH_STONE, BlockColor.STONE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.SANDSTONE, BlockColor.SAND_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.WOOD, BlockColor.WOOD_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.COBBLESTONE, BlockColor.STONE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.BRICK, BlockColor.STONE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.STONE_BRICK, BlockColor.STONE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.QUARTZ, BlockColor.QUARTZ_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.NETHER_BRICK, BlockColor.NETHERRACK_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.RED_SANDSTONE, BlockColor.ORANGE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.PURPUR, BlockColor.PURPLE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.PRISMARINE_ROUGH, BlockColor.CYAN_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.PRISMARINE_DARK, BlockColor.CYAN_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.PRISMARINE_BRICK, BlockColor.CYAN_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.MOSSY_COBBLESTONE, BlockColor.STONE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.SMOOTH_SANDSTONE, BlockColor.SAND_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.RED_NETHER_BRICK, BlockColor.NETHERRACK_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.END_STONE_BRICK, BlockColor.WHITE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.SMOOTH_RED_SANDSTONE, BlockColor.ORANGE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.POLISHED_ANDESITE, BlockColor.STONE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.ANDESITE, BlockColor.STONE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.DIORITE, BlockColor.WHITE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.POLISHED_DIORITE, BlockColor.WHITE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.GRANITE, BlockColor.PINK_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.POLISHED_GRANITE, BlockColor.PINK_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.MOSSY_STONE_BRICK, BlockColor.STONE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.SMOOTH_QUARTZ, BlockColor.QUARTZ_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.STONE, BlockColor.STONE_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.CUT_SANDSTONE, BlockColor.SAND_BLOCK_COLOR);
+        COLORS.put(StoneSlabType.CUT_RED_SANDSTONE, BlockColor.ORANGE_BLOCK_COLOR);
     }
 
     @Override
     public BlockColor getColor(BlockState state) {
-        return colors[this.getMeta() & 0x07];
+        StoneSlabType type = state.ensureTrait(BlockTraits.STONE_SLAB_TYPE);
+        return COLORS.get(type);
     }
 
     @Override
@@ -109,12 +92,12 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         int meta = this.getMeta() & 0x07;
         boolean isTop;
         BlockBehaviorDoubleSlab dSlab = (BlockBehaviorDoubleSlab) BlockRegistry.get().getBlock(this.doubleSlabId, meta);
 
-        if (face == BlockFace.DOWN) {
+        if (face == Direction.DOWN) {
             if (checkSlab(target) && ((BlockBehaviorSlab) target).isTopSlab()) {
                 if (this.getLevel().setBlock(target.getPosition(), dSlab, true, false)) {
                     dSlab.playPlaceSound();
@@ -130,7 +113,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
             } else {
                 isTop = true;
             }
-        } else if (face == BlockFace.UP) {
+        } else if (face == Direction.UP) {
             if (checkSlab(target) && !((BlockBehaviorSlab) target).isTopSlab()) {
                 if (this.getLevel().setBlock(target.getPosition(), dSlab, true, false)) {
                     dSlab.playPlaceSound();

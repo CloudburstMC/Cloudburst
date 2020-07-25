@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockFactory;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
@@ -24,7 +24,7 @@ public class BlockBehaviorWallSign extends BlockBehaviorSignPost {
         };
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (this.getMeta() >= 2 && this.getMeta() <= 5) {
-                if (this.getSide(BlockFace.fromIndex(faces[this.getMeta() - 2])).getId() == AIR) {
+                if (this.getSide(Direction.fromIndex(faces[this.getMeta() - 2])).getId() == AIR) {
                     this.getLevel().useBreakOn(this.getPosition());
                 }
                 return Level.BLOCK_UPDATE_NORMAL;

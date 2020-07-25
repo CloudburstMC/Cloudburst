@@ -17,7 +17,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.metadata.Metadatable;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
@@ -156,13 +156,13 @@ public interface Entity extends Metadatable {
 
     boolean canCollideWith(Entity entity);
 
-    BlockFace getDirection();
+    Direction getDirection();
 
     Vector3f getDirectionVector();
 
     Vector2f getDirectionPlane();
 
-    BlockFace getHorizontalFacing();
+    Direction getHorizontalFacing();
 
     boolean onUpdate(int currentTick);
 

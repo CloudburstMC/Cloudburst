@@ -11,7 +11,7 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -189,8 +189,8 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        BlockFace facing;
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        Direction facing;
         boolean top;
         int meta = 0;
 
@@ -199,7 +199,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
             top = clickPos.getY() > 0.5f;
         } else {
             facing = player.getDirection().getOpposite();
-            top = face != BlockFace.UP;
+            top = face != Direction.UP;
         }
 
         int[] faces = {2, 1, 3, 0};
@@ -234,8 +234,8 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

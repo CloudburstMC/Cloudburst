@@ -10,7 +10,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 
@@ -205,9 +205,9 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
+    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (this.getY() > 254) return false;
-        if (face == BlockFace.UP) {
+        if (face == Direction.UP) {
             BlockState blockStateUp = this.up();
             BlockState blockStateDown = this.down();
             if (!blockStateUp.canBeReplaced() || blockStateDown.isTransparent()) {
@@ -321,8 +321,8 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockFace getBlockFace() {
-        return BlockFace.fromHorizontalIndex(this.getMeta() & 0x07);
+    public Direction getBlockFace() {
+        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

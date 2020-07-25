@@ -4,7 +4,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.math.BlockFace;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
 public class BlockBehaviorRedstoneRepeaterPowered extends BlockBehaviorRedstoneDiode {
@@ -14,8 +14,8 @@ public class BlockBehaviorRedstoneRepeaterPowered extends BlockBehaviorRedstoneD
     }
 
     @Override
-    public BlockFace getFacing() {
-        return BlockFace.fromHorizontalIndex(getMeta());
+    public Direction getFacing() {
+        return Direction.fromHorizontalIndex(getMeta());
     }
 
     @Override
