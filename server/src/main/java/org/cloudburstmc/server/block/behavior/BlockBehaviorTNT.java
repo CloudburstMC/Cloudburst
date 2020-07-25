@@ -13,21 +13,12 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
-/**
- * Created on 2015/12/8 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
 public class BlockBehaviorTNT extends BlockBehaviorSolid {
-
-    public BlockBehaviorTNT(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

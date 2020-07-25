@@ -3,16 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * Created by CreeperFace on 26. 11. 2016.
- */
 public class BlockBehaviorStairsRedSandstone extends BlockBehaviorStairs {
-
-    public BlockBehaviorStairsRedSandstone(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

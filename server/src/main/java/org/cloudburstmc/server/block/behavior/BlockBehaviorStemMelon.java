@@ -1,26 +1,19 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
 
-/**
- * Created by Pub4Game on 15.01.2016.
- */
 public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
-
-    public BlockBehaviorStemMelon(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int onUpdate(Block block, int type) {

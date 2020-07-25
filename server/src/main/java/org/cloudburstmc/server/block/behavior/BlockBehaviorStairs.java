@@ -8,17 +8,8 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
-
-    public BlockBehaviorStairs(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getMinY() {

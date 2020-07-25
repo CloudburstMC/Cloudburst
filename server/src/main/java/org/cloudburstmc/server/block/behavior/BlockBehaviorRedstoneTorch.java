@@ -9,19 +9,10 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.UNLIT_REDSTONE_TORCH;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
-
-    public BlockBehaviorRedstoneTorch(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int getLightLevel() {

@@ -2,16 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * @author Erik Miller | EinBexiii | Bex
- */
 public class BlockBehaviorStairsGranite extends BlockBehaviorStairs {
-
-    public BlockBehaviorStairsGranite(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

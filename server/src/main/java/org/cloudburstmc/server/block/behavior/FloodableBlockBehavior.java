@@ -1,17 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class FloodableBlockBehavior extends BlockBehaviorTransparent {
-
-    protected FloodableBlockBehavior(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canBeFlooded() {

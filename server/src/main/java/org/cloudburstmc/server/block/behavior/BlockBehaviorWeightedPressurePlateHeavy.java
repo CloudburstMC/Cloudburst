@@ -1,18 +1,14 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * @author CreeperFace
- */
 public class BlockBehaviorWeightedPressurePlateHeavy extends BlockBehaviorPressurePlateBase {
 
-    public BlockBehaviorWeightedPressurePlateHeavy(Identifier id) {
-        super(id);
+    public BlockBehaviorWeightedPressurePlateHeavy() {
         this.onPitch = 0.90000004f;
         this.offPitch = 0.75f;
     }

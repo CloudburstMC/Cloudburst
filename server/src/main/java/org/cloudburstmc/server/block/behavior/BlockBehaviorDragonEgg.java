@@ -7,15 +7,10 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
-
-    public BlockBehaviorDragonEgg(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

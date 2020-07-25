@@ -1,22 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class BlockBehaviorSandstone extends BlockBehaviorSolid {
-    public static final int NORMAL = 0;
-    public static final int CHISELED = 1;
-    public static final int SMOOTH = 2;
-
-    public BlockBehaviorSandstone(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

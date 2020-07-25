@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
@@ -12,25 +13,13 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class BlockBehaviorSponge extends BlockBehaviorSolid {
-
-    public static final int DRY = 0;
-    public static final int WET = 1;
-
-    public BlockBehaviorSponge(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {
@@ -49,25 +38,25 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
 
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
-        Level level = blockState.getLevel();
-        boolean blockSet = level.setBlock(blockState.getPosition(), this);
+        Level level = block.getLevel();
+        boolean blockSet = level.setBlock(block.getPosition(), this);
 
         if (blockSet) {
             if (this.getMeta() == WET && level.getDimension() == Level.DIMENSION_NETHER) {
-                level.setBlock(blockState.getPosition(), BlockState.get(SPONGE, DRY));
-                this.getLevel().addSound(blockState.getPosition(), Sound.RANDOM_FIZZ);
+                level.setBlock(block.getPosition(), BlockState.get(SPONGE, DRY));
+                this.getLevel().addSound(block.getPosition(), Sound.RANDOM_FIZZ);
 
                 for (int i = 0; i < 8; ++i) {
                     //TODO: Use correct smoke particle
-                    this.getLevel().addParticle(new SmokeParticle(blockState.getPosition().add(Math.random(), 1, Math.random())));
+                    this.getLevel().addParticle(new SmokeParticle(block.getPosition().add(Math.random(), 1, Math.random())));
                 }
-            } else if (this.getMeta() == DRY && performWaterAbsorb(blockState)) {
-                level.setBlock(blockState.getPosition(), BlockState.get(SPONGE, WET));
+            } else if (this.getMeta() == DRY && performWaterAbsorb(block)) {
+                level.setBlock(block.getPosition(), BlockState.get(SPONGE, WET));
 
                 for (int i = 0; i < 4; i++) {
                     LevelEventPacket packet = new LevelEventPacket();
                     packet.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
-                    packet.setPosition(blockState.getPosition().toFloat().add(0.5, 0.5, 0.5));
+                    packet.setPosition(block.getPosition().toFloat().add(0.5, 0.5, 0.5));
                     packet.setData(BlockRegistry.get().getRuntimeId(FLOWING_WATER, 0));
                     level.addChunkPacket(this.getPosition(), packet);
                 }

@@ -17,18 +17,10 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.SHULKER_BOX;
 
-/**
- * @author Reece Mackie
- */
 public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
-
-    public BlockBehaviorUndyedShulkerBox(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

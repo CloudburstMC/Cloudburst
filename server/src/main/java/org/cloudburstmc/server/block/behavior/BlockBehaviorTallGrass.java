@@ -11,22 +11,13 @@ import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
 import static org.cloudburstmc.server.item.ItemIds.DYE;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
-
-    public BlockBehaviorTallGrass(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean canBeActivated() {

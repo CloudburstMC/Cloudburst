@@ -59,8 +59,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
     private final Identifier doubleSlabId;
     private final BlockColor[] colors;
 
-    public BlockBehaviorSlab(Identifier id, Identifier doubleSlabId, BlockColor[] colors) {
-        super(id);
+    public BlockBehaviorSlab(Identifier doubleSlabId, BlockColor[] colors) {
         this.doubleSlabId = doubleSlabId;
         this.colors = colors;
     }

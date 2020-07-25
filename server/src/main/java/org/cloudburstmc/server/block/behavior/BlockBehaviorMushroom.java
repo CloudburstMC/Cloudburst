@@ -14,16 +14,11 @@ import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
-
-    public BlockBehaviorMushroom(Identifier id) {
-        super(id);
-    }
 
     @Override
     public int onUpdate(Block block, int type) {

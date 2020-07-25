@@ -7,7 +7,6 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 //Block state information: https://hastebin.com/emuvawasoj.js
 public class BlockBehaviorWood extends BlockBehaviorSolid {
@@ -21,10 +20,6 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     private static final int AXIS_Y = 0;
     private static final int AXIS_X = 1 << 4;
     private static final int AXIS_Z = 2 << 4;
-
-    public BlockBehaviorWood(Identifier id) {
-        super(id);
-    }
 
     @Override
     public float getHardness() {

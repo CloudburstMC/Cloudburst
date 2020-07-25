@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Chest;
@@ -10,15 +11,10 @@ import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.math.BlockFace.Plane;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.CHEST;
 
 public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
-
-    public BlockBehaviorTrappedChest(Identifier id) {
-        super(id);
-    }
 
     @Override
     public boolean place(Item item, Block block, Block target, BlockFace face, Vector3f clickPos, Player player) {
@@ -43,7 +39,7 @@ public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
             }
         }
 
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+        this.getLevel().setBlock(block.getPosition(), this, true, true);
 
         Chest chest1 = BlockEntityRegistry.get().newEntity(CHEST, this.getChunk(), this.getPosition());
         chest1.loadAdditionalData(item.getTag());

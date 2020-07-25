@@ -11,7 +11,6 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.BlockFace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -19,18 +18,10 @@ import java.util.Set;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
     private boolean canProvidePower = true;
     private final Set<Vector3f> blocksNeedingUpdate = new HashSet<>();
-
-    public BlockBehaviorRedstoneWire(Identifier id) {
-        super(id);
-    }
 
     protected static boolean canConnectUpwardsTo(Level level, Vector3i pos) {
         return canConnectUpwardsTo(level.getBlock(pos));
