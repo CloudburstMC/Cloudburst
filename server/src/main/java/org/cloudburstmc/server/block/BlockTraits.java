@@ -23,6 +23,8 @@ public class BlockTraits {
     public final EnumBlockTrait<BambooLeafSize> BAMBOO_LEAF_SIZE = EnumBlockTrait.of("bamboo_leaf_size", BambooLeafSize.class);
     public final EnumBlockTrait<BambooStalkThickness> BAMBOO_STALK_THICKNESS = EnumBlockTrait.of("bamboo_stalk_thickness", BambooStalkThickness.class);
     public final IntegerBlockTrait BITE_COUNTER = IntegerBlockTrait.from("bite_counter", 7);
+    public final IntegerBlockTrait CHORUS_AGE = IntegerBlockTrait.from("chorus_age", 7);
+    public final IntegerBlockTrait COCOA_AGE = IntegerBlockTrait.from("cocoa_age", 4);
     public final IntegerBlockTrait LIGHT_LEVEL = IntegerBlockTrait.from("light_level", 16);
     public final EnumBlockTrait<FluidType> FLUID_TYPE = EnumBlockTrait.of("fluid_type", FluidType.class);
     public final EnumBlockTrait<ChemistryTableType> CHEMISTRY_TABLE_TYPE = EnumBlockTrait.of("chemistry_table_type", ChemistryTableType.class);
@@ -38,14 +40,16 @@ public class BlockTraits {
     public final EnumBlockTrait<DoublePlantType> DOUBLE_PLANT_TYPE = EnumBlockTrait.of("double_plant_type", DoublePlantType.class);
     public final BooleanBlockTrait DRAG_DOWN = BooleanBlockTrait.of("drag_down");
     public final BooleanBlockTrait EXPLODE = BooleanBlockTrait.of("explode", "explode_bit");
-    public final IntegerBlockTrait FILL_LEVEL = IntegerBlockTrait.from("fill_level", 7);
     public final EnumBlockTrait<FlowerType> FLOWER_TYPE = EnumBlockTrait.of("flower_type", FlowerType.class);
     public final IntegerBlockTrait FLUID_LEVEL = IntegerBlockTrait.from("fluid_level", 8);
     public final IntegerBlockTrait GROWTH = IntegerBlockTrait.from("growth", 8);
     public final IntegerBlockTrait HEIGHT = IntegerBlockTrait.from("height", 8);
     public final IntegerBlockTrait HONEY_LEVEL = IntegerBlockTrait.from("honey_level", 8);
+    public final IntegerBlockTrait HUGE_MUSHROOM_BITS = IntegerBlockTrait.from("huge_mushroom_bits", 16);
+    public final IntegerBlockTrait ICE_AGE = IntegerBlockTrait.from("ice_age", 4);
     public final IntegerBlockTrait KELP_AGE = IntegerBlockTrait.from("kelp_age", 26);
     public final IntegerBlockTrait MOISTURIZED_AMOUNT = IntegerBlockTrait.from("moisturized_amount", 8);
+    public final IntegerBlockTrait WART_GROWTH = IntegerBlockTrait.from("wart_growth", 4);
     public final EnumBlockTrait<PrismarineBlockType> PRISMARINE_BLOCK_TYPE = EnumBlockTrait.of("prismarine_block_type", PrismarineBlockType.class);
     public final IntegerBlockTrait REDSTONE_SIGNAL = IntegerBlockTrait.from("redstone_signal", 16);
     public final IntegerBlockTrait REPEATER_DELAY = IntegerBlockTrait.from("repeater_delay", 4);
@@ -64,14 +68,22 @@ public class BlockTraits {
     public final EnumBlockTrait<TreeSpecies> TREE_SPECIES = EnumBlockTrait.of("tree_species", TreeSpecies.class);
     public final IntegerBlockTrait TURTLE_EGG_COUNT = IntegerBlockTrait.from("turtle_egg_count", 1, 4);
     public final IntegerBlockTrait TWISTING_VINES_AGE = IntegerBlockTrait.from("twisting_vines_age", 26);
+    public final IntegerBlockTrait VINE_DIRECTION_BITS = IntegerBlockTrait.from("vine_direction_bits", 16);
+    public final EnumBlockTrait<WallBlockType> WALL_BLOCK_TYPE = EnumBlockTrait.of("wall_block_type", WallBlockType.class);
     public final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_NORTH = EnumBlockTrait.of("wall_connection_north", WallConnectionType.class);
     public final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_EAST = EnumBlockTrait.of("wall_connection_east", WallConnectionType.class);
     public final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_SOUTH = EnumBlockTrait.of("wall_connection_south", WallConnectionType.class);
     public final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_WEST = EnumBlockTrait.of("wall_connection_west", WallConnectionType.class);
     public final IntegerBlockTrait WEEPING_VINES_AGE = IntegerBlockTrait.from("weeping_vines_age", 26);
 
+    public final EnumBlockTrait<Direction.Axis> AXIS = EnumBlockTrait.of("axis", Direction.Axis.class);
+    public final EnumBlockTrait<Direction.Axis> PORTAL_AXIS = EnumBlockTrait.of("portal_axis", Direction.Axis.class, null, Direction.Axis.X, Direction.Axis.Z);
     public final EnumBlockTrait<Direction> FACING_DIRECTION = EnumBlockTrait.of("facing_direction", Direction.class, Direction.UP, Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
     public final EnumBlockTrait<Direction> DIRECTION = EnumBlockTrait.of("direction", Direction.class, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
+    public final EnumBlockTrait<RailDirection> RAIL_DIRECTION = EnumBlockTrait.of("rail_direction", RailDirection.class);
+    public final EnumBlockTrait<RailDirection> SIMPLE_RAIL_DIRECTION = EnumBlockTrait.of("simple_rail_direction", RailDirection.class, RailDirection.simpleValues());
+    public final EnumBlockTrait<Direction> TORCH_DIRECTION = EnumBlockTrait.of("torch_direction", Direction.class, null, Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.UP);
+    public final EnumBlockTrait<CardinalDirection> CARDINAL_DIRECTION = EnumBlockTrait.of("cardinal_direction", CardinalDirection.class);
 
     public final BooleanBlockTrait IS_ALLOWED_UNDERWATER = BooleanBlockTrait.of("is_allowed_underwater", "allow_underwater_bit");
     public final BooleanBlockTrait IS_ATTACHED = BooleanBlockTrait.of("is_attached", "attached_bit");
@@ -99,16 +111,20 @@ public class BlockTraits {
     public final BooleanBlockTrait IS_TRIGGERED = BooleanBlockTrait.of("is_triggered", "triggered_bit");
     public final BooleanBlockTrait IS_UPPER_BLOCK = BooleanBlockTrait.of("is_upper_block", "upper_block_bit");
     public final BooleanBlockTrait IS_UPSIDE_DOWN = BooleanBlockTrait.of("is_upside_down", "upside_down_bit");
-    public final BooleanBlockTrait IS_WALL_POST = BooleanBlockTrait.of("is_wall_post", "wall_post_bit");
     public final BooleanBlockTrait HAS_AGE = BooleanBlockTrait.of("has_age", "age");
-    public final BooleanBlockTrait HAS_BREWING_STAND_SLOT_A = BooleanBlockTrait.of("has_brewing_stand_slot_a", "has_brewing_stand_slot_a_bit");
-    public final BooleanBlockTrait HAS_BREWING_STAND_SLOT_B = BooleanBlockTrait.of("has_brewing_stand_slot_b", "has_brewing_stand_slot_b_bit");
-    public final BooleanBlockTrait HAS_BREWING_STAND_SLOT_C = BooleanBlockTrait.of("has_brewing_stand_slot_c", "has_brewing_stand_slot_c_bit");
+    public final BooleanBlockTrait IS_BREWING_A = BooleanBlockTrait.of("is_brewing_a", "has_brewing_stand_slot_a_bit");
+    public final BooleanBlockTrait IS_BREWING_B = BooleanBlockTrait.of("is_brewing_b", "has_brewing_stand_slot_b_bit");
+    public final BooleanBlockTrait IS_BREWING_C = BooleanBlockTrait.of("is_brewing_c", "has_brewing_stand_slot_c_bit");
     public final BooleanBlockTrait HAS_COLOR = BooleanBlockTrait.of("has_color", "color");
     public final BooleanBlockTrait HAS_END_PORTAL_EYE = BooleanBlockTrait.of("has_end_portal_eye", "end_portal_eye_bit");
     public final BooleanBlockTrait HAS_INFINIBURN = BooleanBlockTrait.of("has_infiniburn", "infiniburn_bit");
     public final BooleanBlockTrait HAS_NO_DROP = BooleanBlockTrait.of("has_no_drop", "no_drop_bit");
+    public final BooleanBlockTrait HAS_POST = BooleanBlockTrait.of("has_post", "wall_post_bit");
     public final BooleanBlockTrait HAS_UPDATE = BooleanBlockTrait.of("has_update", "update_bit");
+    public final BooleanBlockTrait HAS_MAP = BooleanBlockTrait.of("has_map", "item_frame_map_bit");
+
+    @Deprecated
+    public final IntegerBlockTrait DEPRECATED = IntegerBlockTrait.from("deprecated", 4);
 
     public void register(@Nonnull BlockTrait<?> trait) {
         vanillaMapping.put(trait.getVanillaName(), trait);
