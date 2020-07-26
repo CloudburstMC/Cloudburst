@@ -201,7 +201,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 

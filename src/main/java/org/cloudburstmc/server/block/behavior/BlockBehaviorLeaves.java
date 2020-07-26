@@ -53,15 +53,15 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(id, this.getMeta() & 0x3, 1);
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isShears()) {
             return new Item[]{
-                    toItem(blockState)
+                    toItem(block)
             };
         } else {
             if (this.canDropApple() && ThreadLocalRandom.current().nextInt(200) == 0) {
@@ -141,7 +141,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 

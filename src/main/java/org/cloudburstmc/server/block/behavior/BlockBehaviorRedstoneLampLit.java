@@ -16,7 +16,7 @@ public class BlockBehaviorRedstoneLampLit extends BlockBehaviorRedstoneLamp {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(REDSTONE_LAMP);
     }
 

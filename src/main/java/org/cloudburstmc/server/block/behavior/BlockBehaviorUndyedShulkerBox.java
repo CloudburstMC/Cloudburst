@@ -8,7 +8,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ShulkerBox;
 import org.cloudburstmc.server.item.Item;
@@ -43,7 +43,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
 
         ShulkerBox shulkerBox = (ShulkerBox) this.getLevel().getBlockEntity(this.getPosition());
 
@@ -93,7 +93,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.PURPLE_BLOCK_COLOR;
     }
 

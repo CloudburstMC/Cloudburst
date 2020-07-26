@@ -47,12 +47,12 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         return new Item[]{Item.get(BlockTypes.DIRT)};
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.DIRT_BLOCK_COLOR;
     }
 }

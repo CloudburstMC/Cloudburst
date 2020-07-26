@@ -86,15 +86,15 @@ public class BlockBehaviorFurnaceBurning extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(getId(), 0);
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    this.toItem(blockState)
+                    this.toItem(block)
             };
         } else {
             return new Item[0];
@@ -106,14 +106,14 @@ public class BlockBehaviorFurnaceBurning extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getComparatorInputOverride() {
+    public int getComparatorInputOverride(Block block) {
         BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
 
         if (blockEntity instanceof Furnace) {
             return ContainerInventory.calculateRedstone(((Furnace) blockEntity).getInventory());
         }
 
-        return super.getComparatorInputOverride();
+        return super.getComparatorInputOverride(block);
     }
 
     @Override

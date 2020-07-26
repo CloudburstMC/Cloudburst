@@ -23,6 +23,7 @@ public final class CloudBlockState implements BlockState {
     private final ImmutableMap<BlockTrait<?>, Comparable<?>> traits;
     private final Reference2IntMap<BlockTrait<?>> traitPalette;
     private CloudBlockState[][] table = null;
+    private BlockState defaultState;
 
     CloudBlockState(Identifier type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
                     Reference2IntMap<BlockTrait<?>> traitPalette) {
@@ -85,8 +86,15 @@ public final class CloudBlockState implements BlockState {
         return BlockRegistry.get().getBehavior(this.type);
     }
 
-    public void buildStateTable(Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map) {
+    @Nonnull
+    @Override
+    public BlockState defaultState() {
+        return defaultState;
+    }
+
+    public void buildStateTable(BlockState defaultState, Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map) {
         checkState(this.table == null, "BlockTrait table has already been built");
+        this.defaultState = defaultState;
         this.table = new CloudBlockState[this.traitPalette.size()][];
 
         for (Map.Entry<BlockTrait<?>, Comparable<?>> entry : this.traits.entrySet()) {

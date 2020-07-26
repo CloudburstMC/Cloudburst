@@ -105,7 +105,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
                     Item.get(OBSIDIAN, 0, 8)
@@ -116,7 +116,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.OBSIDIAN_BLOCK_COLOR;
     }
 
@@ -140,7 +140,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(id);
     }
 

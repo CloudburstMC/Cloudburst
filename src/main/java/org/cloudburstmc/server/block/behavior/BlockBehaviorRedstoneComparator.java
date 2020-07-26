@@ -175,7 +175,7 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.COMPARATOR);
     }
 
@@ -185,7 +185,7 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 }

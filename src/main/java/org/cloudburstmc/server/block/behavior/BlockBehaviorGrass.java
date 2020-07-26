@@ -99,7 +99,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.GRASS_BLOCK_COLOR;
     }
 

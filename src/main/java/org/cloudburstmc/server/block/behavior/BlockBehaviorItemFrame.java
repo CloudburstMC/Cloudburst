@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ItemFrame;
 import org.cloudburstmc.server.item.Item;
@@ -95,23 +94,23 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         int chance = new Random().nextInt(100) + 1;
         if (itemFrame != null && chance <= (itemFrame.getItemDropChance() * 100)) {
             return new Item[]{
-                    toItem(blockState), itemFrame.getItem().clone()
+                    toItem(block), itemFrame.getItem().clone()
             };
         } else {
             return new Item[]{
-                    toItem(blockState)
+                    toItem(block)
             };
         }
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.FRAME);
     }
 
@@ -126,14 +125,14 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getComparatorInputOverride() {
+    public int getComparatorInputOverride(Block block) {
         BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
 
         if (blockEntity instanceof ItemFrame) {
             return ((ItemFrame) blockEntity).getAnalogOutput();
         }
 
-        return super.getComparatorInputOverride();
+        return super.getComparatorInputOverride(block);
     }
 
     public Direction getFacing() {

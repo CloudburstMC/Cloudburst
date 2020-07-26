@@ -30,7 +30,7 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_IRON) {
             int count = new Random().nextInt(2) + 4;
 

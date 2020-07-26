@@ -20,7 +20,7 @@ public class BlockBehaviorLog2 extends BlockBehaviorLog {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         if ((getMeta() & 0b1100) == 0b1100) {
             return Item.get(BlockTypes.WOOD, this.getMeta() & 0x3 + 4);
         } else {

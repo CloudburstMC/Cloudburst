@@ -5,7 +5,6 @@ import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.BlockItem;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
@@ -14,6 +13,7 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -160,7 +160,7 @@ public abstract class BlockBehavior {
         return false;
     }
 
-    public int getComparatorInputOverride() {
+    public int getComparatorInputOverride(Block block) {
         return 0;
     }
 
@@ -168,7 +168,7 @@ public abstract class BlockBehavior {
         return false;
     }
 
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.VOID_BLOCK_COLOR;
     }
 
@@ -235,9 +235,9 @@ public abstract class BlockBehavior {
                 blockToolType == ItemTool.TYPE_NONE;
     }
 
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         return new Item[]{
-                this.toItem(blockState)
+                this.toItem(block)
         };
     }
 
@@ -367,8 +367,8 @@ public abstract class BlockBehavior {
         }
     }
 
-    public Item toItem(BlockState state) {
-        return new BlockItem(state);
+    public Item toItem(Block block) {
+        return ItemRegistry.get().getItem(block.getState());
     }
 
     public boolean canSilkTouch() {

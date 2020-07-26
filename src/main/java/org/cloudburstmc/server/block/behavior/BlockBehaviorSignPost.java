@@ -97,7 +97,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 
@@ -107,7 +107,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(signItemId);
     }
 

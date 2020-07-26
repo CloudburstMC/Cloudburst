@@ -57,12 +57,12 @@ public class BlockBehaviorNetherWart extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.RED_BLOCK_COLOR;
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (this.getMeta() == 0x03) {
             return new Item[]{
                     Item.get(ItemIds.NETHER_WART, 0, 2 + (int) (Math.random() * ((4 - 2) + 1)))
@@ -75,7 +75,7 @@ public class BlockBehaviorNetherWart extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.NETHER_WART);
     }
 }

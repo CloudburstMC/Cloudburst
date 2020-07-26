@@ -214,7 +214,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(id, 0);
     }
 
