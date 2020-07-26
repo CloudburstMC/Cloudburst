@@ -15,7 +15,7 @@ public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(BlockTypes.REDSTONE_ORE);
     }
 

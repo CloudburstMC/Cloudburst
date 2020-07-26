@@ -203,12 +203,12 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.DYE, DyeColor.BROWN.getDyeData());
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (this.getMeta() >= 8) {
             return new Item[]{
                     Item.get(ItemIds.DYE, 3, 3)

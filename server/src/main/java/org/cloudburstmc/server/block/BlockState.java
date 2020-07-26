@@ -39,6 +39,9 @@ public interface BlockState {
 
     BlockBehavior getBehavior();
 
+    @Nonnull
+    BlockState defaultState();
+
     static BlockState get(@Nonnull Identifier blockType) {
         return BlockPalette.INSTANCE.getDefaultState(blockType);
     }

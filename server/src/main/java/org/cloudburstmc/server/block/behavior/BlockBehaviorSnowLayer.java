@@ -65,15 +65,15 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.SNOWBALL);
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isShovel() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    this.toItem(blockState)
+                    this.toItem(block)
             };
         } else {
             return new Item[0];
@@ -81,7 +81,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.SNOW_BLOCK_COLOR;
     }
 

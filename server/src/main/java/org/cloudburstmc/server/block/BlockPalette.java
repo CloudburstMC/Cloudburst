@@ -44,10 +44,11 @@ public class BlockPalette {
             map.put(state.getTraits(), state);
         }
 
-        this.defaultStateMap.put(identifier, states.get(0));
+        BlockState defaultState = states.get(0);
+        this.defaultStateMap.put(identifier, defaultState);
 
         for (CloudBlockState state : states) {
-            state.buildStateTable(map);
+            state.buildStateTable(defaultState, map);
 
             int runtimeId = this.runtimeIdAllocator.getAndIncrement();
             this.stateRuntimeMap.put(state, runtimeId);

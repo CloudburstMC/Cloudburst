@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.EnchantingTable;
 import org.cloudburstmc.server.inventory.EnchantInventory;
@@ -44,10 +43,10 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem(blockState)
+                    toItem(block)
             };
         } else {
             return new Item[0];
@@ -86,7 +85,7 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.RED_BLOCK_COLOR;
     }
 

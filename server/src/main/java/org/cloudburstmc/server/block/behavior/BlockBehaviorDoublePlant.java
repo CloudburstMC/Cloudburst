@@ -71,7 +71,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if ((this.getMeta() & TOP_HALF_BITMASK) != TOP_HALF_BITMASK) {
             boolean dropSeeds = ThreadLocalRandom.current().nextDouble(100) > 87.5;
             switch (this.getMeta() & 0x07) {
@@ -93,14 +93,14 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                     }
             }
 
-            return new Item[]{toItem(blockState)};
+            return new Item[]{toItem(block)};
         }
 
         return new Item[0];
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 

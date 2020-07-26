@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.item.Item;
@@ -78,7 +77,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         return new Item[]{
                 Item.get(DETECTOR_RAIL, 0, 1)
         };

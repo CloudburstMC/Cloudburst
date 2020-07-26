@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Skull;
 import org.cloudburstmc.server.item.Item;
@@ -56,7 +56,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         Skull blockEntity = (Skull) getLevel().getBlockEntity(this.getPosition());
         int meta = 0;
         if (blockEntity != null) meta = blockEntity.getSkullType();
@@ -69,7 +69,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 

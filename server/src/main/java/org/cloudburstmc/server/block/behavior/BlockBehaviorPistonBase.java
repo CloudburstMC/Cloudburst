@@ -218,7 +218,7 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(id, 0);
     }
 

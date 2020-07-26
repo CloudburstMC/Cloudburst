@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityTypes;
@@ -92,7 +93,7 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.TNT_BLOCK_COLOR;
     }
 }

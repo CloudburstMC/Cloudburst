@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
@@ -35,7 +35,7 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
                     Item.get(this.slabId, this.getMeta() & 0x07, 2)
@@ -46,8 +46,8 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
-        StoneSlabType type = state.ensureTrait(BlockTraits.STONE_SLAB_TYPE);
+    public BlockColor getColor(Block block) {
+        StoneSlabType type = block.ensureTrait(BlockTraits.STONE_SLAB_TYPE);
         return COLORS.get(type);
     }
 

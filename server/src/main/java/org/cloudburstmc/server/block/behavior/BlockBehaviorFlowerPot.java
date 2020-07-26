@@ -88,7 +88,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         boolean dropInside = false;
         BlockState blockState = BlockState.AIR;
         BlockEntity blockEntity = getLevel().getBlockEntity(this.getPosition());
@@ -145,7 +145,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.FLOWER_POT);
     }
 

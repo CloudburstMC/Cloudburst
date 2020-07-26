@@ -39,11 +39,11 @@ public abstract class BlockTrait<E extends Comparable<E>> {
         return name;
     }
 
-    abstract E getDefaultValue();
+    public abstract E getDefaultValue();
 
     Predicate<E> getValidator() {
         return e -> this.getPossibleValues().contains(e);
     }
 
-    abstract int getIndex(Object value);
+    public abstract int getIndex(Object value);
 }

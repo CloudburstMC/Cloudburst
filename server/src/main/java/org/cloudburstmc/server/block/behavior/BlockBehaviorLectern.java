@@ -51,7 +51,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getComparatorInputOverride() {
+    public int getComparatorInputOverride(Block block) {
         int power = 0;
         int page = 0;
         int maxPage = 0;
