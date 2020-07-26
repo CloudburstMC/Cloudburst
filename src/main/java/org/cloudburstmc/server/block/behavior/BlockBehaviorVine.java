@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.Item;
@@ -151,10 +152,10 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isShears()) {
             return new Item[]{
-                    toItem(blockState)
+                    toItem(block)
             };
         } else {
             return new Item[0];
@@ -162,7 +163,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(id, 0);
     }
 
@@ -186,7 +187,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 

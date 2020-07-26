@@ -139,12 +139,12 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(SAPLING, this.getMeta() & 0x7);
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 }

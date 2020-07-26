@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.Beacon;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
@@ -43,23 +44,23 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockEntity t = this.getLevel().getBlockEntity(this.getPosition());
+            BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             if (!(t instanceof Beacon)) {
                 t.close();
-                BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, this.getChunk(), this.getPosition());
+                BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, block.getChunk(), block.getPosition());
             }
 
-            player.addWindow(new BeaconInventory(player.getUIInventory(), this), ContainerIds.BEACON);
+            player.addWindow(new BeaconInventory(player.getUIInventory(), block.getState()), ContainerIds.BEACON);
         }
         return true;
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        boolean blockSuccess = super.place(item, blockState, target, face, clickPos, player);
+        boolean blockSuccess = super.place(item, block, target, face, clickPos, player);
 
         if (blockSuccess) {
-            BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, this.getChunk(), this.getPosition());
+            BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, block.getChunk(), block.getPosition());
         }
 
         return blockSuccess;
@@ -71,7 +72,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block state) {
         return BlockColor.DIAMOND_BLOCK_COLOR;
     }
 

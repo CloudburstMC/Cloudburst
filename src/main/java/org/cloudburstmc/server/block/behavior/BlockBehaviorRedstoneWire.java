@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
@@ -172,7 +173,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 
@@ -187,7 +188,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.REDSTONE);
     }
 

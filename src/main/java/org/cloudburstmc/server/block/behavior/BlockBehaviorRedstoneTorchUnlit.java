@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
@@ -26,7 +27,7 @@ public class BlockBehaviorRedstoneTorchUnlit extends BlockBehaviorTorch {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(BlockTypes.REDSTONE_TORCH);
     }
 

@@ -45,10 +45,10 @@ public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isShears()) {
             return new Item[]{
-                    toItem(blockState)
+                    toItem(block)
             };
         } else {
             return new Item[]{
@@ -57,7 +57,7 @@ public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
         }
     }
 
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 

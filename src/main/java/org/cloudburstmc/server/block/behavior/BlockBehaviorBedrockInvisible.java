@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -24,7 +24,7 @@ public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.TRANSPARENT_BLOCK_COLOR;
     }
 
@@ -34,7 +34,7 @@ public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(AIR, 0, 0);
     }
 }

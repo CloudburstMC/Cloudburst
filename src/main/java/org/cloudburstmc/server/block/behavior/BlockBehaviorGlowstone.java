@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
@@ -27,7 +27,7 @@ public class BlockBehaviorGlowstone extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         Random random = new Random();
         int count = 2 + random.nextInt(3);
 
@@ -42,7 +42,7 @@ public class BlockBehaviorGlowstone extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.SAND_BLOCK_COLOR;
     }
 

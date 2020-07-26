@@ -153,7 +153,7 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         return new Item[]{
                 Item.get(ACTIVATOR_RAIL)
         };

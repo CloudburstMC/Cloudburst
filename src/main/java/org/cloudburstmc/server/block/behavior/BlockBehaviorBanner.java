@@ -3,7 +3,10 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Banner;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.item.Item;
@@ -11,10 +14,12 @@ import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
+import org.cloudburstmc.server.math.CardinalDirection;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -40,7 +45,7 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     @Override
-    protected AxisAlignedBB recalculateBoundingBox() {
+    public AxisAlignedBB getBoundingBox(Block block) {
         return null;
     }
 
@@ -52,19 +57,26 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.DOWN) {
+            BlockState banner;
             if (face == Direction.UP) {
-                this.setMeta(NukkitMath.floorDouble(((player.getYaw() + 180) * 16 / 360) + 0.5) & 0x0f);
-                this.getLevel().setBlock(blockState.getPosition(), this, true);
+                banner = BlockRegistry.get().getBlock(BlockTypes.STANDING_BANNER)
+                        .withTrait(
+                                BlockTraits.CARDINAL_DIRECTION,
+                                CardinalDirection.values()[NukkitMath.floorDouble(((player.getYaw() + 180) * 16 / 360) + 0.5) & 0x0f]
+                        );
+
             } else {
-                this.setMeta(face.getIndex());
-                this.getLevel().setBlock(blockState.getPosition(), BlockState.get(WALL_BANNER, this.getMeta()), true);
+                banner = BlockRegistry.get().getBlock(WALL_BANNER)
+                        .withTrait(BlockTraits.FACING_DIRECTION, face);
             }
+
+            block.getLevel().setBlock(block.getPosition(), banner, true);
 
             NbtMapBuilder tag = NbtMap.builder();
             item.saveAdditionalData(tag);
             tag.putInt("Base", item.getMeta());
 
-            BlockEntityRegistry.get().newEntity(BANNER, this.getChunk(), this.getPosition()).loadAdditionalData(tag.build());
+            BlockEntityRegistry.get().newEntity(BANNER, block.getChunk(), block.getPosition()).loadAdditionalData(tag.build());
 
             return true;
         }
@@ -74,8 +86,8 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.down().getId() == AIR) {
-                this.getLevel().useBreakOn(this.getPosition());
+            if (block.down().getState().getType() == AIR) {
+                block.getLevel().useBreakOn(block.getPosition());
 
                 return Level.BLOCK_UPDATE_NORMAL;
             }
@@ -85,8 +97,8 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
+    public Item toItem(Block block) {
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         Item item = Item.get(ItemIds.BANNER);
         if (blockEntity instanceof Banner) {
             Banner banner = (Banner) blockEntity;
@@ -102,22 +114,15 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Direction getBlockFace() {
-        return Direction.fromHorizontalIndex(this.getMeta() & 0x7);
+    public BlockColor getColor(Block block) {
+        return this.getDyeColor(block).getColor();
     }
 
-    @Override
-    public BlockColor getColor(BlockState state) {
-        return this.getDyeColor().getColor();
-    }
+    public DyeColor getDyeColor(Block block) {
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
-    public DyeColor getDyeColor() {
-        if (this.level != null) {
-            BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
-
-            if (blockEntity instanceof Banner) {
-                return ((Banner) blockEntity).getBase();
-            }
+        if (blockEntity instanceof Banner) {
+            return ((Banner) blockEntity).getBase();
         }
 
         return DyeColor.WHITE;

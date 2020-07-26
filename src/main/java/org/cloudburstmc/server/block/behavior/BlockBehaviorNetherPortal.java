@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
@@ -101,7 +102,7 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 
@@ -121,7 +122,7 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(BlockTypes.AIR, 0, 0);
     }
 

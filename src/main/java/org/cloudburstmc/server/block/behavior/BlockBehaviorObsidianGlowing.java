@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 
@@ -29,15 +29,15 @@ public class BlockBehaviorObsidianGlowing extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(OBSIDIAN);
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() > ItemTool.TIER_DIAMOND) {
             return new Item[]{
-                    toItem(blockState)
+                    toItem(block)
             };
         } else {
             return new Item[0];

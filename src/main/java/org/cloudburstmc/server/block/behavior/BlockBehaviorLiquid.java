@@ -48,7 +48,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         return null;
     }
 
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         return new Item[0];
     }
 
@@ -479,7 +479,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(AIR, 0, 0);
     }
 

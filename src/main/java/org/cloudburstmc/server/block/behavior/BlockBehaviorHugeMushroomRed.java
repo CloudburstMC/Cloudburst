@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -40,7 +40,7 @@ public class BlockBehaviorHugeMushroomRed extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (ThreadLocalRandom.current().nextInt(0, 20) == 0) {
             return new Item[]{
                     Item.get(RED_MUSHROOM)
@@ -56,7 +56,7 @@ public class BlockBehaviorHugeMushroomRed extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.RED_BLOCK_COLOR;
     }
 }

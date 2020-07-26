@@ -7,6 +7,7 @@ import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.server.block.trait.EnumBlockTrait;
 import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.server.math.CardinalDirection;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.data.*;
 
@@ -35,7 +36,7 @@ public class BlockTraits {
     public final EnumBlockTrait<DyeColor> CORAL_COLOR = EnumBlockTrait.of("coral_color", DyeColor.class,
             DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW);
     public final EnumBlockTrait<CrackedState> CRACKED_STATE = EnumBlockTrait.of("cracked_state", CrackedState.class);
-    public final EnumBlockTrait<AnvilDamage> DAMAGE = EnumBlockTrait.of("damage", AnvilDamage.class);
+    public final EnumBlockTrait<AnvilDamage> DAMAGE = EnumBlockTrait.of("damage", AnvilDamage.class, AnvilDamage.UNDAMAGED);
     public final EnumBlockTrait<DirtType> DIRT_TYPE = EnumBlockTrait.of("dirt_type", DirtType.class);
     public final EnumBlockTrait<DoublePlantType> DOUBLE_PLANT_TYPE = EnumBlockTrait.of("double_plant_type", DoublePlantType.class);
     public final BooleanBlockTrait DRAG_DOWN = BooleanBlockTrait.of("drag_down");

@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Cauldron;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
@@ -197,7 +196,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{Item.get(ItemIds.CAULDRON)};
         }
@@ -206,7 +205,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.CAULDRON);
     }
 
@@ -214,7 +213,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
         return true;
     }
 
-    public int getComparatorInputOverride() {
+    public int getComparatorInputOverride(Block block) {
         return this.getMeta();
     }
 

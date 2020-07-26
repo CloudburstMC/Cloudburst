@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
@@ -25,14 +25,14 @@ public class BlockBehaviorGravel extends BlockBehaviorFallable {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (new Random().nextInt(9) == 0) {
             return new Item[]{
                     Item.get(ItemIds.FLINT)
             };
         } else {
             return new Item[]{
-                    toItem(blockState)
+                    toItem(block)
             };
         }
     }

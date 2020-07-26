@@ -62,7 +62,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         return new Item[0];
     }
 
@@ -278,7 +278,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.LAVA_BLOCK_COLOR;
     }
 
@@ -288,7 +288,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(BlockTypes.AIR);
     }
 }

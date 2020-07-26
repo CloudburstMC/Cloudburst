@@ -1,14 +1,16 @@
 package org.cloudburstmc.server.registry;
 
-import cn.nukkit.item.*;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -90,12 +92,21 @@ public class ItemRegistry implements Registry {
         }
     }
 
+    public Item getItem(BlockState state) throws RegistryException {
+        Preconditions.checkNotNull(state);
+        return new BlockItem(state);
+    }
+
     public Item getItem(Identifier identifier) throws RegistryException {
+        return getItem(identifier, 0);
+    }
+
+    public Item getItem(Identifier identifier, int meta) throws RegistryException {
         Objects.requireNonNull(identifier, "identifier");
         ItemFactory itemFactory = this.factoryMap.get(identifier);
         if (itemFactory == null) {
             if (this.blockRegistry.isBlock(identifier)) {
-                return new BlockItem(identifier);
+                return new BlockItem(BlockStateMetaMappings.getStateFromMeta(identifier, meta));
             } else {
                 throw new RegistryException("Item '" + identifier + "' is not registered");
             }

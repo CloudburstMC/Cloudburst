@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.AxisAlignedBB;
@@ -31,7 +32,7 @@ public abstract class BlockBehaviorFence extends BlockBehaviorTransparent {
     public abstract boolean canConnect(BlockState blockState);
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         switch (this.getMeta() & 0x07) {
             default:
             case 1: //OAK
@@ -50,7 +51,7 @@ public abstract class BlockBehaviorFence extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(id, this.getMeta());
     }
 

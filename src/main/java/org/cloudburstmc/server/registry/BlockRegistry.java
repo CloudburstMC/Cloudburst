@@ -6,7 +6,10 @@ import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -14,8 +17,14 @@ import org.cloudburstmc.server.block.behavior.*;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.serializer.NoopBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTrait;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
+import org.cloudburstmc.server.blockentity.BlockEntityTypes;
+import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
+import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -28,12 +37,17 @@ public class BlockRegistry implements Registry {
     private final Reference2ReferenceMap<Identifier, BlockBehavior> behaviorMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, BlockSerializer> serializerMap = new Reference2ReferenceOpenHashMap<>();
     private final HashBiMap<Identifier, Integer> idLegacyMap = HashBiMap.create();
+    private final EnumMap<BlockCategory, ReferenceSet<Identifier>> categoryMap = new EnumMap<>(BlockCategory.class);
     private final AtomicInteger customIdAllocator = new AtomicInteger(1000);
     private final BlockPalette palette = BlockPalette.INSTANCE;
     private NbtMap propertiesTag;
     private volatile boolean closed;
 
     private BlockRegistry() {
+        for (BlockCategory category : BlockCategory.values()) {
+            categoryMap.put(category, new ReferenceOpenHashSet<>());
+        }
+
         this.registerVanillaBlocks();
     }
 
@@ -66,6 +80,20 @@ public class BlockRegistry implements Registry {
         this.palette.addBlock(id, serializer, traits);
     }
 
+    public boolean inCategory(Identifier type, BlockCategory category) {
+        return categoryMap.get(category).add(type);
+    }
+
+    public boolean inCategories(Identifier type, BlockCategory... categories) {
+        for (BlockCategory category : categories) {
+            if (!inCategory(type, category)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     boolean isBlock(Identifier id) {
         return this.idLegacyMap.containsKey(id);
     }
@@ -88,6 +116,14 @@ public class BlockRegistry implements Registry {
 
     public int getRuntimeId(int id, int meta) {
         return getRuntimeId(this.idLegacyMap.inverse().get(id), meta);
+    }
+
+    public BlockState getBlock(Identifier identifier) {
+        return palette.getDefaultState(identifier);
+    }
+
+    public BlockState getBlock(Item item) {
+        return BlockStateMetaMappings.getStateFromMeta(item);
     }
 
     public BlockState getBlock(Identifier identifier, int meta) {

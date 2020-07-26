@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
@@ -197,7 +196,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     protected abstract int computeRedstoneStrength();
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(AIR, 0, 0);
     }
 

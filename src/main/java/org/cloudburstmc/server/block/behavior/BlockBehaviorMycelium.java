@@ -33,7 +33,7 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         return new Item[]{
                 Item.get(DIRT)
         };
@@ -62,7 +62,7 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.PURPLE_BLOCK_COLOR;
     }
 

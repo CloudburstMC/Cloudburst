@@ -131,7 +131,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.LAVA_BLOCK_COLOR;
     }
 

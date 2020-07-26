@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockFactory;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.Item;
@@ -175,7 +174,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(id, 0);
     }
 
@@ -239,7 +238,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return this.blockColor;
     }
 

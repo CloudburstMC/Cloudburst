@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -34,7 +35,7 @@ public class BlockBehaviorRedstoneRepeaterUnpowered extends BlockBehaviorRedston
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.REPEATER);
     }
 

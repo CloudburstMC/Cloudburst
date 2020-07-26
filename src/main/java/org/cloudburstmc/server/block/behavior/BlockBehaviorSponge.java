@@ -32,7 +32,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.YELLOW_BLOCK_COLOR;
     }
 

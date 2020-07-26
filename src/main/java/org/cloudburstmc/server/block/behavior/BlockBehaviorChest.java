@@ -147,7 +147,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
@@ -155,18 +155,18 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
         return true;
     }
 
-    public int getComparatorInputOverride() {
+    public int getComparatorInputOverride(Block block) {
         BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
 
         if (blockEntity instanceof Chest) {
             return ContainerInventory.calculateRedstone(((Chest) blockEntity).getInventory());
         }
 
-        return super.getComparatorInputOverride();
+        return super.getComparatorInputOverride(block);
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(id, 0);
     }
 
