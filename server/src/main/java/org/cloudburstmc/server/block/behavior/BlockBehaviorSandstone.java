@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -18,10 +18,10 @@ public class BlockBehaviorSandstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem(blockState)
+                    toItem(block)
             };
         } else {
             return new Item[0];
@@ -29,7 +29,7 @@ public class BlockBehaviorSandstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(id, this.getMeta() & 0x03);
     }
 
@@ -39,7 +39,7 @@ public class BlockBehaviorSandstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.SAND_BLOCK_COLOR;
     }
 

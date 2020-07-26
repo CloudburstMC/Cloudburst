@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
@@ -103,7 +104,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         boolean dropSeeds = ThreadLocalRandom.current().nextDouble(100) > 87.5;
         if (hand.isShears()) {
             //todo enchantment
@@ -127,7 +128,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 }

@@ -18,7 +18,7 @@ import org.cloudburstmc.server.utils.Identifier;
 public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.REEDS);
     }
 
@@ -126,7 +126,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 }

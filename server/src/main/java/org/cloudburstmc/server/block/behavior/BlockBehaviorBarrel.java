@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.Barrel;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
@@ -12,6 +13,7 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.server.block.BlockTypes.BARREL;
@@ -21,20 +23,23 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState newState = BlockState.get(BARREL);
+        Direction facing;
+
         if (Math.abs(player.getX() - block.getX()) < 2 && Math.abs(player.getZ() - block.getZ()) < 2) {
             float y = player.getY() + player.getEyeHeight();
 
             if (y - block.getY() > 2) {
-                this.setMeta(Direction.UP.getIndex());
-            } else if (this.getY() - y > 0) {
-                this.setMeta(Direction.DOWN.getIndex());
+                facing = Direction.UP;
+            } else if (block.getY() - y > 0) {
+                facing = Direction.DOWN;
             } else {
-                this.setMeta(player.getHorizontalFacing().getOpposite().getIndex());
+                facing = player.getHorizontalFacing().getOpposite();
             }
         } else {
-            this.setMeta(player.getHorizontalFacing().getOpposite().getIndex());
+            facing = player.getHorizontalFacing().getOpposite();
         }
 
+        newState = newState.withTrait(BlockTraits.FACING_DIRECTION, facing);
         block.set(newState, true, false);
 
         Barrel barrel = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, block.getChunk(), block.getPosition());
@@ -83,33 +88,13 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
     @Override
-    public Item toItem(BlockState state) {
-        return Item.get(this.id, 0);
-    }
-
-    @Override
-    public Direction getBlockFace() {
-        int index = getMeta() & 0x7;
-        return Direction.fromIndex(index);
-    }
-
-    public void setBlockFace(Direction face) {
-        setMeta((getMeta() & 0x8) | (face.getIndex() & 0x7));
-        getLevel().setBlockDataAt(this.getX(), this.getY(), this.getZ(), this.getLayer(), getMeta());
-    }
-
-    public boolean isOpen() {
-        return (getMeta() & 0x8) == 0x8;
-    }
-
-    public void setOpen(boolean open) {
-        setMeta((getMeta() & 0x7) | (open ? 0x8 : 0x0));
-        getLevel().setBlockDataAt(this.getX(), this.getY(), this.getZ(), this.getLayer(), getMeta());
+    public Item toItem(Block block) {
+        return ItemRegistry.get().getItem(block.getState().defaultState());
     }
 
     @Override
@@ -118,13 +103,13 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getComparatorInputOverride() {
-        BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+    public int getComparatorInputOverride(Block block) {
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Barrel) {
             return ContainerInventory.calculateRedstone(((Barrel) blockEntity).getInventory());
         }
 
-        return super.getComparatorInputOverride();
+        return super.getComparatorInputOverride(block);
     }
 }

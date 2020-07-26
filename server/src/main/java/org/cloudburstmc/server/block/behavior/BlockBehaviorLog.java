@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
@@ -101,7 +102,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         switch (getMeta() & 0x03) {
             default:
             case OAK:
@@ -116,7 +117,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         if ((getMeta() & 0b1100) == 0b1100) {
             return Item.get(BlockTypes.WOOD, this.getMeta() & 0x3);
         } else {

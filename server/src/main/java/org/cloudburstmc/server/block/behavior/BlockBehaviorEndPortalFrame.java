@@ -45,7 +45,7 @@ public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
         return true;
     }
 
-    public int getComparatorInputOverride() {
+    public int getComparatorInputOverride(Block block) {
         return (getMeta() & 4) != 0 ? 15 : 0;
     }
 

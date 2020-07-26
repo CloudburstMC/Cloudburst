@@ -28,7 +28,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.OBSIDIAN_BLOCK_COLOR;
     }
 

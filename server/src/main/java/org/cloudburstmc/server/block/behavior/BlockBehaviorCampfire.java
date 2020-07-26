@@ -110,7 +110,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.getEnchantment(Enchantment.ID_SILK_TOUCH) != null) {
             return super.getDrops(hand);
         } else {

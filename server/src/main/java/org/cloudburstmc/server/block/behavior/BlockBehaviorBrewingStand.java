@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BrewingStand;
 import org.cloudburstmc.server.inventory.ContainerInventory;
@@ -82,15 +81,15 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.BREWING_STAND);
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    toItem(blockState)
+                    toItem(block)
             };
         } else {
             return new Item[0];
@@ -98,7 +97,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.IRON_BLOCK_COLOR;
     }
 
@@ -107,14 +106,14 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getComparatorInputOverride() {
+    public int getComparatorInputOverride(Block block) {
         BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
 
         if (blockEntity instanceof BrewingStand) {
             return ContainerInventory.calculateRedstone(((BrewingStand) blockEntity).getInventory());
         }
 
-        return super.getComparatorInputOverride();
+        return super.getComparatorInputOverride(block);
     }
 
     @Override

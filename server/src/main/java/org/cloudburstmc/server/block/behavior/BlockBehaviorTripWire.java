@@ -36,7 +36,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.STRING);
     }
 

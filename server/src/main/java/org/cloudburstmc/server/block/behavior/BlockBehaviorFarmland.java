@@ -95,12 +95,12 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(BlockTypes.DIRT);
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.DIRT_BLOCK_COLOR;
     }
 }

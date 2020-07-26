@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
@@ -25,8 +25,8 @@ public class BlockBehaviorTerracottaGlazed extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
-        return hand.getTier() >= ItemTool.TIER_WOODEN ? new Item[]{this.toItem(blockState)} : new Item[0];
+    public Item[] getDrops(Block block, Item hand) {
+        return hand.getTier() >= ItemTool.TIER_WOODEN ? new Item[]{this.toItem(block)} : new Item[0];
     }
 
     @Override

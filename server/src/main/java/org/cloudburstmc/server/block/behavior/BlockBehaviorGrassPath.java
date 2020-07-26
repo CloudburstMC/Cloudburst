@@ -26,7 +26,7 @@ public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block block) {
         return BlockColor.DIRT_BLOCK_COLOR;
     }
 

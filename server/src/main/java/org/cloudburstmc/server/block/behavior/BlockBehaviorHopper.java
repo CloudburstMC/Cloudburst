@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Hopper;
@@ -70,14 +69,14 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getComparatorInputOverride() {
+    public int getComparatorInputOverride(Block block) {
         BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
 
         if (blockEntity instanceof Hopper) {
             return ContainerInventory.calculateRedstone(((Hopper) blockEntity).getInventory());
         }
 
-        return super.getComparatorInputOverride();
+        return super.getComparatorInputOverride(block);
     }
 
     public Direction getFacing() {
@@ -116,16 +115,16 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block block, Item hand) {
         if (hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{toItem(blockState)};
+            return new Item[]{toItem(block)};
         }
 
         return new Item[0];
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(ItemIds.HOPPER);
     }
 

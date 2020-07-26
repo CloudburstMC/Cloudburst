@@ -51,8 +51,8 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
-        StoneSlabType type = state.ensureTrait(BlockTraits.STONE_SLAB_TYPE);
+    public BlockColor getColor(Block block) {
+        StoneSlabType type = block.ensureTrait(BlockTraits.STONE_SLAB_TYPE);
         return COLORS.get(type);
     }
 
@@ -87,7 +87,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(BlockState state) {
+    public Item toItem(Block block) {
         return Item.get(this.id, this.getMeta() & 0x07);
     }
 
