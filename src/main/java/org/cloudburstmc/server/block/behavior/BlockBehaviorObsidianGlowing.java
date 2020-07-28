@@ -24,7 +24,7 @@ public class BlockBehaviorObsidianGlowing extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 12;
     }
 

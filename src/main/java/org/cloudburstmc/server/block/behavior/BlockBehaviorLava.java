@@ -32,12 +32,12 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     }
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 15;
     }
 
     @Override
-    public void onEntityCollide(Entity entity) {
+    public void onEntityCollide(Block block, Entity entity) {
         float highestPos = entity.getHighestPosition();
         entity.setHighestPosition(highestPos - (highestPos - entity.getY()) * 0.5f);
 
@@ -55,7 +55,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
             entity.attack(new EntityDamageByBlockEvent(this, entity, EntityDamageEvent.DamageCause.LAVA, 4));
         }
 
-        super.onEntityCollide(entity);
+        super.onEntityCollide(block, entity);
     }
 
     @Override

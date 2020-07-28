@@ -16,7 +16,7 @@ import static org.cloudburstmc.server.block.BlockTypes.UNLIT_REDSTONE_TORCH;
 public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 7;
     }
 

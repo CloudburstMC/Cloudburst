@@ -23,7 +23,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
     }
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 1;
     }
 

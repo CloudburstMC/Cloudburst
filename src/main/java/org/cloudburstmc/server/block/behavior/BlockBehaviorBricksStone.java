@@ -4,8 +4,6 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 
-import static org.cloudburstmc.server.block.BlockTypes.STONEBRICK;
-
 public class BlockBehaviorBricksStone extends BlockBehaviorSolid {
 
     @Override
@@ -22,7 +20,7 @@ public class BlockBehaviorBricksStone extends BlockBehaviorSolid {
     public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{
-                    Item.get(STONEBRICK, this.getMeta() & 0x03, 1)
+                    Item.get(block.getState().getType())
             };
         } else {
             return new Item[0];

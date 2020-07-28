@@ -105,9 +105,9 @@ public abstract class Food {
         return getByRelative(item.getId(), item.getMeta());
     }
 
-    public static Food getByRelative(BlockState blockState) {
+    public static Food getByRelative(BlockState blockState, int level) {
         Objects.requireNonNull(blockState);
-        return getByRelative(blockState.getId(), blockState.getMeta());
+        return getByRelative(blockState.getType(), level);
     }
 
     public static Food getByRelative(Identifier relativeID, int meta) {

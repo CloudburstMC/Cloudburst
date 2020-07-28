@@ -2,12 +2,13 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -35,21 +36,16 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
         return false;
     }
 
-    @Override
-    protected AxisAlignedBB recalculateBoundingBox() {
-        return this;
-    }
-
-    @Override
-    public float getMaxY() {
-        return this.getY() + 0.0625f;
-    }
+//    @Override
+//    public float getMaxY() {
+//        return this.getY() + 0.0625f;
+//    }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        BlockState down = this.down();
-        if (down.getId() != AIR) {
-            this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+        Block down = block.down();
+        if (down.getState().getType() != AIR) {
+            block.getLevel().setBlock(block.getPosition(), BlockRegistry.get().getBlock(BlockTypes.CARPET), true);
             return true;
         }
         return false;
@@ -58,8 +54,8 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.down().getId() == AIR) {
-                this.getLevel().useBreakOn(this.getPosition());
+            if (block.down().getState().getType() == AIR) {
+                block.getLevel().useBreakOn(block.getPosition());
 
                 return Level.BLOCK_UPDATE_NORMAL;
             }
@@ -70,11 +66,11 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
 
     @Override
     public BlockColor getColor(Block block) {
-        return DyeColor.getByWoolData(getMeta()).getColor();
+        return getDyeColor(block).getColor();
     }
 
-    public DyeColor getDyeColor() {
-        return DyeColor.getByWoolData(getMeta());
+    public DyeColor getDyeColor(Block block) {
+        return block.getState().ensureTrait(BlockTraits.COLOR);
     }
 
     @Override

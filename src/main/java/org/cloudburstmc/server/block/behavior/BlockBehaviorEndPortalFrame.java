@@ -22,7 +22,7 @@ public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 1;
     }
 

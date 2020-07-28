@@ -73,7 +73,7 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
     }
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 11;
     }
 
