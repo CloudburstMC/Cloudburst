@@ -15,7 +15,7 @@ public class BlockBehaviorBeetroot extends BlockBehaviorCrops {
 
     @Override
     public Item[] getDrops(Block block, Item hand) {
-        if (this.getMeta() >= 0x07) {
+        if (hand.getMeta() >= 0x07) {
             return new Item[]{
                     Item.get(ItemIds.BEETROOT, 0, 1),
                     Item.get(BEETROOT_SEEDS, 0, (int) (4f * Math.random()))

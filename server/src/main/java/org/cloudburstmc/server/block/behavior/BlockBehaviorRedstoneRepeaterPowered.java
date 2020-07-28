@@ -45,7 +45,7 @@ public class BlockBehaviorRedstoneRepeaterPowered extends BlockBehaviorRedstoneD
     }
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 7;
     }
 

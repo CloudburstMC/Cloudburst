@@ -12,7 +12,7 @@ import org.cloudburstmc.server.math.Direction;
 public class BlockBehaviorRedstoneTorchUnlit extends BlockBehaviorTorch {
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 0;
     }
 

@@ -14,7 +14,7 @@ import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE_WALL;
 public class BlockBehaviorTorch extends FloodableBlockBehavior {
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 14;
     }
 

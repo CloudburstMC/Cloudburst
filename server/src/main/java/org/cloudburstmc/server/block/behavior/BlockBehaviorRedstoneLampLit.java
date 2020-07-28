@@ -11,7 +11,7 @@ import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_LAMP;
 public class BlockBehaviorRedstoneLampLit extends BlockBehaviorRedstoneLamp {
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 15;
     }
 

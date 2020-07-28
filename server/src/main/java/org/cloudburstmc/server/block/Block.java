@@ -61,6 +61,8 @@ public interface Block extends BlockSnapshot {
 
     boolean isWaterlogged();
 
+    int getLayer();
+
     default void set(BlockState state) {
         this.set(state, 0, false, true);
     }

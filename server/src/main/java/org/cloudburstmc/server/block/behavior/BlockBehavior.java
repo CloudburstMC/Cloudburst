@@ -25,6 +25,17 @@ import static org.cloudburstmc.server.block.BlockTypes.WOOL;
 
 public abstract class BlockBehavior {
 
+    protected final Identifier type;
+
+    //TODO: remove
+    public BlockBehavior() {
+        this(null);
+    }
+
+    public BlockBehavior(Identifier type) {
+        this.type = type;
+    }
+
     //http://minecraft.gamepedia.com/Breaking
     private static float breakTime0(float blockHardness, boolean correctTool, boolean canHarvestWithHand,
                                     Identifier id, int toolType, int toolTier, int efficiencyLoreLevel, int hasteEffectLevel,
@@ -107,7 +118,7 @@ public abstract class BlockBehavior {
         return ItemTool.TYPE_NONE;
     }
 
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 0;
     }
 
@@ -321,7 +332,7 @@ public abstract class BlockBehavior {
         return bb1 != null && bb.intersectsWith(bb1);
     }
 
-    public void onEntityCollide(Entity entity) {
+    public void onEntityCollide(Block block, Entity entity) {
 
     }
 

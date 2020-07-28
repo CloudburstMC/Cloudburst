@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.Item;
@@ -15,7 +16,9 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.data.DyeColor;
+import org.cloudburstmc.server.utils.data.WoodType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -61,60 +64,51 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     public static final int STAGE_MASK = 12;
 
 
-    @Override
-    public float getMinX() {
-        return this.getX() + getRelativeBoundingBox().getMinX();
-    }
+//    @Override
+//    public float getMinX() {
+//        return this.getX() + getRelativeBoundingBox().getMinX();
+//    }
+//
+//    @Override
+//    public float getMaxX() {
+//        return this.getX() + getRelativeBoundingBox().getMaxX();
+//    }
+//
+//    @Override
+//    public float getMinY() {
+//        return this.getY() + getRelativeBoundingBox().getMinY();
+//    }
+//
+//    @Override
+//    public float getMaxY() {
+//        return this.getY() + getRelativeBoundingBox().getMaxY();
+//    }
+//
+//    @Override
+//    public float getMinZ() {
+//        return this.getZ() + getRelativeBoundingBox().getMinZ();
+//    }
+//
+//    @Override
+//    public float getMaxZ() {
+//        return this.getZ() + getRelativeBoundingBox().getMaxZ();
+//    }
 
-    @Override
-    public float getMaxX() {
-        return this.getX() + getRelativeBoundingBox().getMaxX();
-    }
+    private AxisAlignedBB getRelativeBoundingBox(Block block) {
+//        int meta = this.getMeta();
+//        if (meta > 11) {
+//            this.setMeta(meta = 11);
+//        }
 
-    @Override
-    public float getMinY() {
-        return this.getY() + getRelativeBoundingBox().getMinY();
-    }
-
-    @Override
-    public float getMaxY() {
-        return this.getY() + getRelativeBoundingBox().getMaxY();
-    }
-
-    @Override
-    public float getMinZ() {
-        return this.getZ() + getRelativeBoundingBox().getMinZ();
-    }
-
-    @Override
-    public float getMaxZ() {
-        return this.getZ() + getRelativeBoundingBox().getMaxZ();
-    }
-
-    private AxisAlignedBB getRelativeBoundingBox() {
-        int meta = this.getMeta();
-        if (meta > 11) {
-            this.setMeta(meta = 11);
-        }
-
-        return BB_ALL[meta];
+        return BB_ALL[0]; //TODO:
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (target.getId() == BlockTypes.LOG && (target.getMeta() & 0x03) == BlockBehaviorLog.JUNGLE) {
+        if (target.getState().getType() == BlockTypes.LOG && target.getState().ensureTrait(BlockTraits.WOOD_TYPE) == WoodType.JUNGLE) {
             if (face != Direction.DOWN && face != Direction.UP) {
-                int[] faces = new int[]{
-                        0,
-                        0,
-                        0,
-                        2,
-                        3,
-                        1,
-                };
-
-                this.setMeta(faces[face.getIndex()]);
-                this.level.setBlock(block.getPosition(), this, true, true);
+                block.getLevel().setBlock(block.getPosition(), BlockRegistry.get().getBlock(BlockTypes.COCOA)
+                        .withTrait(BlockTraits.DIRECTION, face), true);
                 return true;
             }
         }
@@ -124,29 +118,16 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            int[] faces = new int[]{
-                    3, 4, 2, 5, 3, 4, 2, 5, 3, 4, 2, 5
-            };
+            BlockState side = block.getSide(block.getState().ensureTrait(BlockTraits.DIRECTION)).getState();
 
-            BlockState side = this.getSide(Direction.fromIndex(faces[this.getMeta()]));
-
-            if (side.getId() != BlockTypes.LOG && side.getMeta() != BlockBehaviorLog.JUNGLE) {
-                this.getLevel().useBreakOn(this.getPosition());
+            if (side.getType() != BlockTypes.LOG || side.ensureTrait(BlockTraits.WOOD_TYPE) != WoodType.JUNGLE) {
+                block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
         } else if (type == Level.BLOCK_UPDATE_RANDOM) {
             if (ThreadLocalRandom.current().nextInt(2) == 1) {
-                if (this.getMeta() / 4 < 2) {
-                    BlockBehaviorCocoa block = (BlockBehaviorCocoa) this.clone();
-                    block.setMeta(block.getMeta() + 4);
-                    BlockGrowEvent ev = new BlockGrowEvent(this, block);
-                    Server.getInstance().getPluginManager().callEvent(ev);
-
-                    if (!ev.isCancelled()) {
-                        this.getLevel().setBlock(this.getPosition(), ev.getNewState(), true, true);
-                    } else {
-                        return Level.BLOCK_UPDATE_RANDOM;
-                    }
+                if (!grow(block)) {
+                    return Level.BLOCK_UPDATE_RANDOM;
                 }
             } else {
                 return Level.BLOCK_UPDATE_RANDOM;
@@ -164,17 +145,8 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) {
-            BlockState blockState = this.clone();
-            if (this.getMeta() / 4 < 2) {
-                blockState.setMeta(blockState.getMeta() + 4);
-                BlockGrowEvent ev = new BlockGrowEvent(this, blockState);
-                Server.getInstance().getPluginManager().callEvent(ev);
-
-                if (ev.isCancelled()) {
-                    return false;
-                }
-                this.getLevel().setBlock(this.getPosition(), ev.getNewState(), true, true);
-                this.level.addParticle(new BoneMealParticle(this.getPosition()));
+            if (grow(block)) {
+                block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
 
                 if (player != null && player.getGamemode().isSurvival()) {
                     item.decrementCount();
@@ -182,6 +154,23 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
             }
 
             return true;
+        }
+
+        return false;
+    }
+
+    public boolean grow(Block block) {
+        int age = block.getState().ensureTrait(BlockTraits.AGE);
+        if (age < 2) {
+            BlockState cocoa = block.getState().incrementTrait(BlockTraits.AGE);
+
+            BlockGrowEvent ev = new BlockGrowEvent(block, cocoa);
+            Server.getInstance().getPluginManager().callEvent(ev);
+
+            if (!ev.isCancelled()) {
+                block.getLevel().setBlock(block.getPosition(), ev.getNewState(), true, true);
+                return true;
+            }
         }
 
         return false;
@@ -209,7 +198,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
 
     @Override
     public Item[] getDrops(Block block, Item hand) {
-        if (this.getMeta() >= 8) {
+        if (block.getState().ensureTrait(BlockTraits.AGE) >= 2) {
             return new Item[]{
                     Item.get(ItemIds.DYE, 3, 3)
             };
@@ -218,11 +207,6 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
                     Item.get(ItemIds.DYE, 3, 1)
             };
         }
-    }
-
-    @Override
-    public Direction getBlockFace() {
-        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

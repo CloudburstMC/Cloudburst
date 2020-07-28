@@ -11,12 +11,16 @@ import static org.cloudburstmc.server.block.BlockTypes.WATER;
 
 @RequiredArgsConstructor
 public class CloudBlock implements Block {
+
+    private final BlockState state;
     private final Level level;
+    private final Chunk chunk;
     private final Vector3i position;
+    private final int layer;
 
     @Override
     public BlockState getState(int layer) {
-        return this.level.getBlockAt(this.position, layer);
+        return state;
     }
 
     @Override
@@ -31,7 +35,7 @@ public class CloudBlock implements Block {
 
     @Override
     public Chunk getChunk() {
-        return this.level.getChunk(this.position);
+        return chunk;
     }
 
     @Override
@@ -43,6 +47,11 @@ public class CloudBlock implements Block {
     public boolean isWaterlogged() {
         BlockState fluidState = this.getExtra();
         return (fluidState.getType() == WATER || fluidState.getType() == FLOWING_WATER);
+    }
+
+    @Override
+    public int getLayer() {
+        return layer;
     }
 
     @Override
