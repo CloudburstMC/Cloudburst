@@ -76,7 +76,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     }
 
     @Override
-    public void onEntityCollide(Entity entity) {
+    public void onEntityCollide(Block block, Entity entity) {
         entity.resetFallDistance();
         entity.setOnGround(true);
     }

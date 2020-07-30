@@ -3,6 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BrewingStand;
 import org.cloudburstmc.server.inventory.ContainerInventory;
@@ -12,6 +15,7 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.BREWING_STAND;
@@ -39,16 +43,17 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 1;
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (!blockState.down().isTransparent()) {
-            getLevel().setBlock(blockState.getPosition(), this, true, true);
+        BlockState state = block.getState();
+        if (!BlockRegistry.get().inCategory(state.getType(), BlockCategory.TRANSPARENT)) {
+            block.getLevel().setBlock(block.getPosition(), BlockRegistry.get().getBlock(BlockTypes.BREWING_STAND), true, true);
 
-            BrewingStand brewingStand = BlockEntityRegistry.get().newEntity(BREWING_STAND, this.getChunk(), this.getPosition());
+            BrewingStand brewingStand = BlockEntityRegistry.get().newEntity(BREWING_STAND, block.getChunk(), block.getPosition());
             brewingStand.loadAdditionalData(item.getTag());
             if (item.hasCustomName()) {
                 brewingStand.setCustomName(item.getCustomName());
@@ -62,7 +67,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockEntity blockEntity = getLevel().getBlockEntity(this.getPosition());
+            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             BrewingStand brewing;
             if (blockEntity instanceof BrewingStand) {
                 brewing = (BrewingStand) blockEntity;
@@ -71,7 +76,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
                     blockEntity.close();
                 }
 
-                brewing = BlockEntityRegistry.get().newEntity(BREWING_STAND, this.getChunk(), this.getPosition());
+                brewing = BlockEntityRegistry.get().newEntity(BREWING_STAND, block.getChunk(), block.getPosition());
             }
 
             player.addWindow(brewing.getInventory());
@@ -107,7 +112,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
 
     @Override
     public int getComparatorInputOverride(Block block) {
-        BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof BrewingStand) {
             return ContainerInventory.calculateRedstone(((BrewingStand) blockEntity).getInventory());

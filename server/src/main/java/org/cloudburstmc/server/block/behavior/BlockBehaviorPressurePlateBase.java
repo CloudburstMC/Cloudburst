@@ -109,7 +109,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public void onEntityCollide(Entity entity) {
+    public void onEntityCollide(Block block, Entity entity) {
         int power = getRedstonePower();
 
         if (power == 0) {

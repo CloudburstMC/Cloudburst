@@ -51,6 +51,10 @@ public final class IntegerBlockTrait extends BlockTrait<Integer> {
         return getIndex((int) value);
     }
 
+    public IntRange getRange() {
+        return range;
+    }
+
     public int getIndex(int value) {
         int start = this.range.getStart();
         int end = this.range.getEnd();

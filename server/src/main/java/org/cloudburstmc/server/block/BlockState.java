@@ -11,6 +11,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 @ParametersAreNonnullByDefault
 public interface BlockState {
 
@@ -35,7 +37,29 @@ public interface BlockState {
     BlockState withTrait(IntegerBlockTrait trait, int value);
 
     @Nonnull
+    default BlockState incrementTrait(IntegerBlockTrait trait) {
+        checkNotNull(trait, "trait");
+        return withTrait(trait, Math.min(trait.getRange().getEnd(), ensureTrait(trait) + 1));
+    }
+
+    @Nonnull
+    default BlockState decrementTrait(IntegerBlockTrait trait) {
+        checkNotNull(trait, "trait");
+        return withTrait(trait, Math.max(trait.getRange().getStart(), ensureTrait(trait) - 1));
+    }
+
+    @Nonnull
     BlockState withTrait(BooleanBlockTrait trait, boolean value);
+
+    @Nonnull
+    default BlockState toggleTrait(BooleanBlockTrait trait) {
+        checkNotNull(trait, "trait");
+        return withTrait(trait, !ensureTrait(trait));
+    }
+
+    default <T extends Comparable<T>> BlockState withDefaultTrait(BlockTrait<T> trait) {
+        return this.withTrait(trait, trait.getDefaultValue());
+    }
 
     BlockBehavior getBehavior();
 

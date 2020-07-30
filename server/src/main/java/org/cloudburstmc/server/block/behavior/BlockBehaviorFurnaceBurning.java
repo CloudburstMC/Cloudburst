@@ -43,7 +43,7 @@ public class BlockBehaviorFurnaceBurning extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 13;
     }
 

@@ -42,7 +42,7 @@ public class BlockTraits {
     public final BooleanBlockTrait DRAG_DOWN = BooleanBlockTrait.of("drag_down");
     public final BooleanBlockTrait EXPLODE = BooleanBlockTrait.of("explode", "explode_bit");
     public final EnumBlockTrait<FlowerType> FLOWER_TYPE = EnumBlockTrait.of("flower_type", FlowerType.class);
-    public final IntegerBlockTrait FLUID_LEVEL = IntegerBlockTrait.from("fluid_level", 8);
+    public final IntegerBlockTrait FLUID_LEVEL = IntegerBlockTrait.from("fluid_level", "liquid_depth", 0, 15, 0);
     public final IntegerBlockTrait GROWTH = IntegerBlockTrait.from("growth", 8);
     public final IntegerBlockTrait HEIGHT = IntegerBlockTrait.from("height", 8);
     public final IntegerBlockTrait HONEY_LEVEL = IntegerBlockTrait.from("honey_level", 8);
@@ -76,6 +76,7 @@ public class BlockTraits {
     public final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_SOUTH = EnumBlockTrait.of("wall_connection_south", WallConnectionType.class);
     public final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_WEST = EnumBlockTrait.of("wall_connection_west", WallConnectionType.class);
     public final IntegerBlockTrait WEEPING_VINES_AGE = IntegerBlockTrait.from("weeping_vines_age", 26);
+    public final EnumBlockTrait<WoodType> WOOD_TYPE = EnumBlockTrait.of("wood_type", WoodType.class);
 
     public final EnumBlockTrait<Direction.Axis> AXIS = EnumBlockTrait.of("axis", Direction.Axis.class);
     public final EnumBlockTrait<Direction.Axis> PORTAL_AXIS = EnumBlockTrait.of("portal_axis", Direction.Axis.class, null, Direction.Axis.X, Direction.Axis.Z);

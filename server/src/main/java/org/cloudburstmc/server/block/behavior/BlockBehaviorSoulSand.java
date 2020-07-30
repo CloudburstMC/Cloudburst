@@ -33,7 +33,7 @@ public class BlockBehaviorSoulSand extends BlockBehaviorSolid {
     }
 
     @Override
-    public void onEntityCollide(Entity entity) {
+    public void onEntityCollide(Block block, Entity entity) {
         entity.setMotion(entity.getMotion().mul(0.4, 1, 0.4));
     }
 

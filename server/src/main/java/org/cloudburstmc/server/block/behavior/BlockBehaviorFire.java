@@ -31,7 +31,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 15;
     }
 
@@ -46,7 +46,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public void onEntityCollide(Entity entity) {
+    public void onEntityCollide(Block block, Entity entity) {
         if (!entity.hasEffect(Effect.FIRE_RESISTANCE)) {
             entity.attack(new EntityDamageByBlockEvent(this, entity, EntityDamageEvent.DamageCause.FIRE, 1));
         }
