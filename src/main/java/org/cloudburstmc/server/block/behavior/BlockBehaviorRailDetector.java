@@ -41,7 +41,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
     }
 
     @Override
-    public void onEntityCollide(Entity entity) {
+    public void onEntityCollide(Block block, Entity entity) {
         updateState();
     }
 

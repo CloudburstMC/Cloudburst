@@ -38,8 +38,8 @@ public class BlockBehaviorWater extends BlockBehaviorLiquid {
     }
 
     @Override
-    public void onEntityCollide(Entity entity) {
-        super.onEntityCollide(entity);
+    public void onEntityCollide(Block block, Entity entity) {
+        super.onEntityCollide(block, entity);
 
         if (entity.isOnFire()) {
             entity.extinguish();

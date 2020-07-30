@@ -2,9 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Chest;
@@ -12,8 +10,12 @@ import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.server.math.Direction.Axis;
+import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
 @Log4j2
@@ -44,65 +46,72 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
         return ItemTool.TYPE_AXE;
     }
 
-    @Override
-    public float getMinX() {
-        return this.getX() + 0.0625f;
-    }
-
-    @Override
-    public float getMinY() {
-        return this.getY();
-    }
-
-    @Override
-    public float getMinZ() {
-        return this.getZ() + 0.0625f;
-    }
-
-    @Override
-    public float getMaxX() {
-        return this.getX() + 0.9375f;
-    }
-
-    @Override
-    public float getMaxY() {
-        return this.getY() + 0.9475f;
-    }
-
-    @Override
-    public float getMaxZ() {
-        return this.getZ() + 0.9375f;
-    }
+//    @Override
+//    public float getMinX() {
+//        return this.getX() + 0.0625f;
+//    }
+//
+//    @Override
+//    public float getMinY() {
+//        return this.getY();
+//    }
+//
+//    @Override
+//    public float getMinZ() {
+//        return this.getZ() + 0.0625f;
+//    }
+//
+//    @Override
+//    public float getMaxX() {
+//        return this.getX() + 0.9375f;
+//    }
+//
+//    @Override
+//    public float getMaxY() {
+//        return this.getY() + 0.9475f;
+//    }
+//
+//    @Override
+//    public float getMaxZ() {
+//        return this.getZ() + 0.9375f;
+//    }
 
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        BlockState blockState = block.getState();
+        Direction chestFace = player.getHorizontalFacing().getOpposite();
+        Axis axis = chestFace.getAxis() == Axis.X ? Axis.Z : Axis.X;
+
         Chest chest = null;
-        int[] faces = {2, 5, 3, 4};
-        this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
-
-        for (int side = 2; side <= 5; ++side) {
-            if ((this.getMeta() == 4 || this.getMeta() == 5) && (side == 4 || side == 5)) {
-                continue;
-            } else if ((this.getMeta() == 3 || this.getMeta() == 2) && (side == 2 || side == 3)) {
+        for (Direction direction : Plane.HORIZONTAL) {
+            if (direction.getAxis() != axis) {
                 continue;
             }
-            BlockState c = this.getSide(Direction.fromIndex(side));
-            if (c instanceof BlockBehaviorChest && c.getMeta() == this.getMeta()) {
-                BlockEntity blockEntity = this.getLevel().getBlockEntity(c.getPosition());
-                if (blockEntity instanceof Chest && !((Chest) blockEntity).isPaired()) {
-                    chest = (Chest) blockEntity;
-                    break;
-                }
+
+            Block b = block.getSide(direction);
+            BlockState state = b.getState();
+
+            if (state.getType() != BlockTypes.CHEST || state.ensureTrait(BlockTraits.FACING_DIRECTION) != chestFace) {
+                continue;
+            }
+
+            BlockEntity be = block.getLevel().getBlockEntity(b.getPosition());
+            if (be instanceof Chest) {
+                chest = (Chest) be;
             }
         }
-        if ((block.getId() == BlockTypes.WATER || block.getId() == BlockTypes.FLOWING_WATER) && block.getMeta() == 0) {
-            this.getLevel().setBlock(block.getPosition(), 1, block, true, false);
+
+        int layer = 0;
+        if ((blockState.getType() == BlockTypes.WATER || blockState.getType() == BlockTypes.FLOWING_WATER) && blockState.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
+            layer = 1;
         }
 
-        this.getLevel().setBlock(block.getPosition(), this, true, true);
+        block.getLevel().setBlock(block.getPosition(), layer,
+                BlockRegistry.get().getBlock(BlockTypes.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace),
+                true, true);
 
-        Chest chest1 = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, this.getChunk(), this.getPosition());
+        Chest chest1 = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, block.getChunk(), block.getPosition());
         chest1.loadAdditionalData(item.getTag());
         if (item.hasCustomName()) {
             chest1.setCustomName(item.getCustomName());
@@ -117,7 +126,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
     @Override
     public boolean onBreak(Block block, Item item) {
-        BlockEntity t = this.getLevel().getBlockEntity(this.getPosition());
+        BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
         if (t instanceof Chest) {
             ((Chest) t).unpair();
         }
@@ -127,17 +136,17 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockState top = up();
-            if (!top.isTransparent()) {
+            Block top = block.up();
+            if (!BlockRegistry.get().inCategory(top.getState().getType(), BlockCategory.TRANSPARENT)) {
                 return true;
             }
 
-            BlockEntity t = this.getLevel().getBlockEntity(this.getPosition());
+            BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             Chest chest;
             if (t instanceof Chest) {
                 chest = (Chest) t;
             } else {
-                chest = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, this.getChunk(), this.getPosition());
+                chest = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, block.getChunk(), block.getPosition());
             }
 
             player.addWindow(chest.getInventory());
@@ -156,7 +165,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     public int getComparatorInputOverride(Block block) {
-        BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Chest) {
             return ContainerInventory.calculateRedstone(((Chest) blockEntity).getInventory());
@@ -167,11 +176,6 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(id, 0);
-    }
-
-    @Override
-    public Direction getBlockFace() {
-        return Direction.fromHorizontalIndex(this.getMeta() & 0x7);
+        return ItemRegistry.get().getItem(BlockTypes.CHEST);
     }
 }

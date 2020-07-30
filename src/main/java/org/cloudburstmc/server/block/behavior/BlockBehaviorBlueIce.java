@@ -61,7 +61,7 @@ public class BlockBehaviorBlueIce extends BlockBehaviorIce {
 
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 4;
     }
 }

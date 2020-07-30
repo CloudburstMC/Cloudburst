@@ -3,7 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Campfire;
 import org.cloudburstmc.server.entity.Entity;
@@ -19,6 +21,7 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.BlockRegistry;
 
 /**
  * @author Sleepybear
@@ -43,45 +46,47 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
         return ItemTool.TYPE_AXE;
     }
 
-    @Override
-    public Direction getBlockFace() {
-        return Direction.fromHorizontalIndex(this.getMeta() & CAMPFIRE_FACING_MASK);
+    public boolean isLit(Block block) {
+        return !block.getState().ensureTrait(BlockTraits.IS_EXTINGUISHED);
     }
 
-    public boolean isLit() {
-        return (this.getMeta() & CAMPFIRE_LIT_MASK) == 0;
-    }
+    public void toggleFire(Block block) {
+        if (!this.isLit(block) && block.isWaterlogged()) return;
 
-    public void toggleFire() {
-        if (!this.isLit() && isWaterlogged()) return;
-        this.setMeta(this.getMeta() ^ CAMPFIRE_LIT_MASK);
-        getLevel().setBlockDataAt(this.getX(), this.getY(), this.getZ(), this.getMeta());
-        Campfire cf = (Campfire) getLevel().getBlockEntity(this.getPosition());
-        if (cf != null) getLevel().getBlockEntity(this.getPosition()).scheduleUpdate();
+        block.getLevel().setBlock(block.getPosition(), block.getState().toggleTrait(BlockTraits.IS_EXTINGUISHED));
+        Campfire cf = (Campfire) block.getLevel().getBlockEntity(block.getPosition());
+        if (cf != null) block.getLevel().getBlockEntity(block.getPosition()).scheduleUpdate();
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (!blockState.canBeReplaced()) return false;
-        if (blockState.down().getId() == BlockTypes.CAMPFIRE) {
+        BlockState state = block.getState();
+        if (!state.getBehavior().canBeReplaced()) return false;
+        if (block.down().getState().getType() == BlockTypes.CAMPFIRE) {
             return false;
         }
-        this.setMeta(player.getHorizontalFacing().getOpposite().getHorizontalIndex() & CAMPFIRE_FACING_MASK);
-        if ((blockState.getId() == BlockTypes.WATER || blockState.getId() == BlockTypes.FLOWING_WATER) && blockState.getMeta() == 0) {
-            this.setMeta(this.getMeta() + CAMPFIRE_LIT_MASK);
-            getLevel().setBlock(blockState.getX(), blockState.getY(), blockState.getZ(), 1, blockState.clone(), true, false);
+
+        BlockState campfire = BlockRegistry.get().getBlock(BlockTypes.CAMPFIRE)
+                .withTrait(BlockTraits.DIRECTION, player.getHorizontalFacing().getOpposite());
+
+
+        int layer = 0;
+        if ((state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) && state.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
+            campfire = campfire.withTrait(BlockTraits.IS_EXTINGUISHED, true);
+            layer = 1;
         }
 
-        if (getLevel().setBlock(blockState.getPosition(), this, true, true)) {
-            BlockEntityRegistry.get().newEntity(BlockEntityTypes.CAMPFIRE, this.getChunk(), this.getPosition());
+
+        if (block.getLevel().setBlock(block.getPosition(), layer, campfire, true, true)) {
+            BlockEntityRegistry.get().newEntity(BlockEntityTypes.CAMPFIRE, block.getChunk(), block.getPosition());
             return true;
         }
         return false;
     }
 
     @Override
-    public int getLightLevel() {
-        return isLit() ? 15 : 0;
+    public int getLightLevel(Block block) {
+        return isLit(block) ? 15 : 0;
     }
 
     @Override
@@ -106,13 +111,13 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
 
     @Override
     public boolean onActivate(Block block, Item item) {
-        return this.onActivate(item, null);
+        return this.onActivate(block, item, null);
     }
 
     @Override
     public Item[] getDrops(Block block, Item hand) {
         if (hand.getEnchantment(Enchantment.ID_SILK_TOUCH) != null) {
-            return super.getDrops(hand);
+            return super.getDrops(block, hand);
         } else {
             return new Item[0];
         }
@@ -122,24 +127,29 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.FLINT_AND_STEEL
                 || item.getEnchantment(Enchantment.ID_FIRE_ASPECT) != null) {
-            if (!(this.isLit())) {
-                this.toggleFire();
+            if (!(this.isLit(block))) {
+                this.toggleFire(block);
             }
             return true;
         } else if (item.isShovel()) {
-            if (this.isLit()) {
-                this.toggleFire();
+            if (this.isLit(block)) {
+                this.toggleFire(block);
             }
             return true;
         } else if (item instanceof ItemEdible) {
-            Campfire fire = (Campfire) getLevel().getBlockEntity(this.getPosition());
-            if (fire.putItemInFire(item)) {
-                if (player != null && player.isSurvival()) {
-                    item.decrementCount();
-                    if (item.getCount() <= 0) {
-                        item = Item.get(BlockTypes.AIR);
+            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+
+            if (blockEntity instanceof Campfire) {
+                Campfire fire = (Campfire) blockEntity;
+
+                if (fire.putItemInFire(item)) {
+                    if (player != null && player.isSurvival()) {
+                        item.decrementCount();
+                        if (item.getCount() <= 0) {
+                            item = Item.get(BlockTypes.AIR);
+                        }
+                        player.getInventory().setItemInHand(item);
                     }
-                    player.getInventory().setItemInHand(item);
                 }
             }
             return true;
@@ -148,26 +158,26 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     }
 
     @Override
-    public void onEntityCollide(Entity entity) {
-        if (this.isLit() && entity instanceof EntityLiving) {
-            entity.attack(new EntityDamageByBlockEvent(this, entity, EntityDamageEvent.DamageCause.FIRE_TICK, 1.0f));
-        } else if (!this.isLit() && entity.isOnFire()) {
-            this.toggleFire();
+    public void onEntityCollide(Block block, Entity entity) {
+        if (this.isLit(block) && entity instanceof EntityLiving) {
+            entity.attack(new EntityDamageByBlockEvent(block, entity, EntityDamageEvent.DamageCause.FIRE_TICK, 1.0f));
+        } else if (!this.isLit(block) && entity.isOnFire()) {
+            this.toggleFire(block);
         }
     }
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.isLit()) {
-                if (this.isWaterlogged()) {
-                    this.toggleFire();
+            if (this.isLit(block)) {
+                if (block.isWaterlogged()) {
+                    this.toggleFire(block);
                     return type;
                 }
 
-                BlockState up = this.up();
-                if (up.getId() == BlockTypes.WATER || up.getId() == BlockTypes.FLOWING_WATER) {
-                    this.toggleFire();
+                Block up = block.up();
+                if (up.getState().getType() == BlockTypes.WATER || up.getState().getType() == BlockTypes.FLOWING_WATER) {
+                    this.toggleFire(block);
                     return type;
                 }
             }

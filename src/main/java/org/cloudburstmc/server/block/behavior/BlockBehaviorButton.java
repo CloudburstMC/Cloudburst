@@ -2,14 +2,23 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.utils.Identifier;
 
 public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
+
+    public BlockBehaviorButton(Identifier type) {
+        super(type);
+    }
 
     @Override
     public float getResistance() {
@@ -23,12 +32,12 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (target.isTransparent()) {
+        if (BlockRegistry.get().inCategory(target.getState().getType(), BlockCategory.TRANSPARENT)) {
             return false;
         }
 
-        this.setMeta(face.getIndex());
-        this.level.setBlock(blockState.getPosition(), this, true, true);
+        BlockState btn = BlockRegistry.get().getBlock(this.type).withTrait(BlockTraits.FACING_DIRECTION, face);
+        block.getLevel().setBlock(block.getPosition(), btn, true);
         return true;
     }
 
@@ -39,38 +48,42 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        if (this.isActivated()) {
+        if (this.isActivated(block)) {
             return false;
         }
 
-        this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 0, 15));
-        this.setMeta(this.getMeta() ^ 0x08);
-        this.level.setBlock(this.getPosition(), this, true, false);
-        this.level.addSound(this.getPosition(), Sound.RANDOM_CLICK);
-        this.level.scheduleUpdate(this, 30);
+        Level level = block.getLevel();
+        level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 0, 15));
 
-        level.updateAroundRedstone(this.getPosition(), null);
-        level.updateAroundRedstone(this.getFacing().getOpposite().getOffset(this.getPosition()), null);
+        level.setBlock(block.getPosition(),
+                block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, true), true, false);
+        level.addSound(block.getPosition(), Sound.RANDOM_CLICK);
+        level.scheduleUpdate(block, 30);
+
+        level.updateAroundRedstone(block.getPosition(), null);
+        level.updateAroundRedstone(this.getFacing(block).getOpposite().getOffset(block.getPosition()), null);
         return true;
     }
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.getSide(getFacing().getOpposite()).isTransparent()) {
-                this.level.useBreakOn(this.getPosition());
+            if (BlockRegistry.get().inCategory(block.getSide(getFacing(block).getOpposite()).getState().getType(), BlockCategory.TRANSPARENT)) {
+                block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
         } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
-            if (this.isActivated()) {
-                this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 15, 0));
+            if (this.isActivated(block)) {
+                Level level = block.getLevel();
+                level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
 
-                this.setMeta(this.getMeta() ^ 0x08);
-                this.level.setBlock(this.getPosition(), this, true, false);
-                this.level.addSound(this.getPosition(), Sound.RANDOM_CLICK);
+                level.setBlock(block.getPosition(),
+                        block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, false),
+                        true, false);
+                level.addSound(block.getPosition(), Sound.RANDOM_CLICK);
 
-                level.updateAroundRedstone(this.getPosition(), null);
-                level.updateAroundRedstone(this.getFacing().getOpposite().getOffset(this.getPosition()), null);
+                level.updateAroundRedstone(block.getPosition(), null);
+                level.updateAroundRedstone(this.getFacing(block).getOpposite().getOffset(block.getPosition()), null);
             }
 
             return Level.BLOCK_UPDATE_SCHEDULED;
@@ -79,8 +92,8 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
         return 0;
     }
 
-    public boolean isActivated() {
-        return ((this.getMeta() & 0x08) == 0x08);
+    public boolean isActivated(Block block) {
+        return block.getState().ensureTrait(BlockTraits.IS_BUTTON_PRESSED);
     }
 
     @Override
@@ -88,23 +101,22 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
         return true;
     }
 
-    public int getWeakPower(Direction side) {
-        return isActivated() ? 15 : 0;
+    public int getWeakPower(Block block, Direction side) {
+        return isActivated(block) ? 15 : 0;
     }
 
-    public int getStrongPower(Direction side) {
-        return !isActivated() ? 0 : (getFacing() == side ? 15 : 0);
+    public int getStrongPower(Block block, Direction side) {
+        return !isActivated(block) ? 0 : (getFacing(block) == side ? 15 : 0);
     }
 
-    public Direction getFacing() {
-        int side = isActivated() ? getMeta() ^ 0x08 : getMeta();
-        return Direction.fromIndex(side);
+    public Direction getFacing(Block block) {
+        return block.getState().ensureTrait(BlockTraits.FACING_DIRECTION);
     }
 
     @Override
     public boolean onBreak(Block block, Item item) {
-        if (isActivated()) {
-            this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 15, 0));
+        if (isActivated(block)) {
+            block.getLevel().getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
         }
 
         return super.onBreak(block, item);
@@ -112,12 +124,7 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(this.getId(), 0);
-    }
-
-    @Override
-    public Direction getBlockFace() {
-        return Direction.fromHorizontalIndex(this.getMeta() & 0x7);
+        return Item.get(block.getState().getType());
     }
 
     @Override

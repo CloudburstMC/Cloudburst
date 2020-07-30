@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.entity;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
 
 /**
@@ -9,14 +9,14 @@ import org.cloudburstmc.server.entity.Entity;
  */
 public class EntityDamageByBlockEvent extends EntityDamageEvent {
 
-    private final BlockState damager;
+    private final Block damager;
 
-    public EntityDamageByBlockEvent(BlockState damager, Entity entity, DamageCause cause, float damage) {
+    public EntityDamageByBlockEvent(Block damager, Entity entity, DamageCause cause, float damage) {
         super(entity, cause, damage);
         this.damager = damager;
     }
 
-    public BlockState getDamager() {
+    public Block getDamager() {
         return damager;
     }
 

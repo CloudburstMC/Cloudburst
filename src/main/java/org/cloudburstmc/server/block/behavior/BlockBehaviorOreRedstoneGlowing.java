@@ -10,7 +10,7 @@ import org.cloudburstmc.server.level.Level;
 public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 9;
     }
 

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.block;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.HandlerList;
 
 /**
@@ -14,10 +14,10 @@ public class BlockRedstoneEvent extends BlockEvent {
         return handlers;
     }
 
-    private int oldPower;
-    private int newPower;
+    private final int oldPower;
+    private final int newPower;
 
-    public BlockRedstoneEvent(BlockState blockState, int oldPower, int newPower) {
+    public BlockRedstoneEvent(Block blockState, int oldPower, int newPower) {
         super(blockState);
         this.oldPower = oldPower;
         this.newPower = newPower;

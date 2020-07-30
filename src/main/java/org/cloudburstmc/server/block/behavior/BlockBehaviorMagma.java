@@ -28,7 +28,7 @@ public class BlockBehaviorMagma extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getLightLevel() {
+    public int getLightLevel(Block block) {
         return 3;
     }
 
@@ -44,7 +44,7 @@ public class BlockBehaviorMagma extends BlockBehaviorSolid {
     }
 
     @Override
-    public void onEntityCollide(Entity entity) {
+    public void onEntityCollide(Block block, Entity entity) {
         if (!entity.hasEffect(Effect.FIRE_RESISTANCE)) {
             if (entity instanceof Player) {
                 Player p = (Player) entity;
