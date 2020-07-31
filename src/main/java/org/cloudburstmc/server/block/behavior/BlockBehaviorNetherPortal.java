@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -28,48 +28,52 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
         for (int xx = -1; xx < 4; xx++) {
             for (int yy = 1; yy < 4; yy++) {
                 for (int zz = -1; zz < 3; zz++) {
-                    level.setBlockId(x + xx, y + yy, z + zz, BlockTypes.AIR);
+                    level.setBlockAt(x + xx, y + yy, z + zz, BlockState.AIR);
+                    level.setBlockAt(x + xx, y + yy, z + zz, 1, BlockState.AIR);
                 }
             }
         }
 
-        level.setBlockId(x + 1, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 2, y, z, BlockTypes.OBSIDIAN);
+        val obsidian = BlockState.get(BlockTypes.OBSIDIAN);
+        val portal = BlockState.get(BlockTypes.PORTAL);
+
+        level.setBlockAt(x + 1, y, z, obsidian);
+        level.setBlockAt(x + 2, y, z, obsidian);
 
         z += 1;
-        level.setBlockId(x, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 1, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 2, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 3, y, z, BlockTypes.OBSIDIAN);
+        level.setBlockAt(x, y, z, obsidian);
+        level.setBlockAt(x + 1, y, z, obsidian);
+        level.setBlockAt(x + 2, y, z, obsidian);
+        level.setBlockAt(x + 3, y, z, obsidian);
 
         z += 1;
-        level.setBlockId(x + 1, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 2, y, z, BlockTypes.OBSIDIAN);
+        level.setBlockAt(x + 1, y, z, obsidian);
+        level.setBlockAt(x + 2, y, z, obsidian);
 
         z -= 1;
         y += 1;
-        level.setBlockId(x, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 1, y, z, BlockTypes.PORTAL);
-        level.setBlockId(x + 2, y, z, BlockTypes.PORTAL);
-        level.setBlockId(x + 3, y, z, BlockTypes.OBSIDIAN);
+        level.setBlockAt(x, y, z, obsidian);
+        level.setBlockAt(x + 1, y, z, portal);
+        level.setBlockAt(x + 2, y, z, portal);
+        level.setBlockAt(x + 3, y, z, obsidian);
 
         y += 1;
-        level.setBlockId(x, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 1, y, z, BlockTypes.PORTAL);
-        level.setBlockId(x + 2, y, z, BlockTypes.PORTAL);
-        level.setBlockId(x + 3, y, z, BlockTypes.OBSIDIAN);
+        level.setBlockAt(x, y, z, obsidian);
+        level.setBlockAt(x + 1, y, z, portal);
+        level.setBlockAt(x + 2, y, z, portal);
+        level.setBlockAt(x + 3, y, z, obsidian);
 
         y += 1;
-        level.setBlockId(x, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 1, y, z, BlockTypes.PORTAL);
-        level.setBlockId(x + 2, y, z, BlockTypes.PORTAL);
-        level.setBlockId(x + 3, y, z, BlockTypes.OBSIDIAN);
+        level.setBlockAt(x, y, z, obsidian);
+        level.setBlockAt(x + 1, y, z, portal);
+        level.setBlockAt(x + 2, y, z, portal);
+        level.setBlockAt(x + 3, y, z, obsidian);
 
         y += 1;
-        level.setBlockId(x, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 1, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 2, y, z, BlockTypes.OBSIDIAN);
-        level.setBlockId(x + 3, y, z, BlockTypes.OBSIDIAN);
+        level.setBlockAt(x, y, z, obsidian);
+        level.setBlockAt(x + 1, y, z, obsidian);
+        level.setBlockAt(x + 2, y, z, obsidian);
+        level.setBlockAt(x + 3, y, z, obsidian);
     }
 
     @Override
@@ -86,11 +90,9 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
     public boolean onBreak(Block block, Item item) {
         boolean result = super.onBreak(block, item);
         for (Direction face : Direction.values()) {
-            BlockState b = this.getSide(face);
-            if (b != null) {
-                if (b instanceof BlockBehaviorNetherPortal) {
-                    result &= b.onBreak(item);
-                }
+            Block b = block.getSide(face);
+            if (b instanceof BlockBehaviorNetherPortal) {
+                result &= b.getState().getBehavior().onBreak(b, item);
             }
         }
         return result;
@@ -116,18 +118,13 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
         return false;
     }
 
-    @Override
-    protected AxisAlignedBB recalculateBoundingBox() {
-        return this;
-    }
+//    @Override //TODO: bounding box
+//    protected AxisAlignedBB recalculateBoundingBox() {
+//        return this;
+//    }
 
     @Override
     public Item toItem(Block block) {
         return Item.get(BlockTypes.AIR, 0, 0);
-    }
-
-    @Override
-    public Direction getBlockFace() {
-        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 }

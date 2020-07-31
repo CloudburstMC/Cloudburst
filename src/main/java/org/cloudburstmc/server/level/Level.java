@@ -1023,6 +1023,10 @@ public class Level implements ChunkManager, Metadatable {
         }
     }
 
+    public void scheduleUpdate(Vector3i pos, int delay) {
+        scheduleUpdate(getBlock(pos), delay);
+    }
+
     public void scheduleUpdate(Block block, int delay) {
         this.scheduleUpdate(block, block.getPosition(), delay, 0, true);
     }
@@ -1289,33 +1293,21 @@ public class Level implements ChunkManager, Metadatable {
         return this.getBlock(vector.getX(), vector.getY(), vector.getZ());
     }
 
-    public Block getBlock(Vector4i vector) {
-        return this.getBlock(vector.getX(), vector.getY(), vector.getZ(), vector.getW());
-    }
-
-    @Nonnull
-    public Block getBlock(Vector3i vector, int layer) {
-        return this.getBlock(vector.getX(), vector.getY(), vector.getZ(), layer);
-    }
-
     @Nonnull
     public Block getBlock(int x, int y, int z) {
-        return getBlock(x, y, z, 0);
-    }
-
-    @Nonnull
-    public Block getBlock(int x, int y, int z, int layer) {
         int chunkX = x >> 4;
         int chunkZ = z >> 4;
 
         Chunk chunk = this.getChunk(chunkX, chunkZ);
 
         if (y < 0 || y > 255) {
-            return new CloudBlock(BlockState.AIR, this, chunk, Vector3i.from(x, y, z), layer);
+            return new CloudBlock(this, Vector3i.from(x, y, z), CloudBlockState.EMPTY_STATES);
         }
 
-        BlockState state = chunk.getBlock(x & 0xf, y, z & 0xf, layer & 0x1);
-        return new CloudBlock(state, this, chunk, Vector3i.from(x, y, z), layer);
+        return new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
+                chunk.getBlock(x & 0xf, y, z & 0xf, 0),
+                chunk.getBlock(x & 0xf, y, z & 0xf, 1)
+        });
     }
 
     public void updateBlockSkyLight(int x, int y, int z) {
@@ -1394,7 +1386,7 @@ public class Level implements ChunkManager, Metadatable {
             int y = Hash.hashBlockY(node);
             int z = Hash.hashBlockZ(node);
 
-            Block block = this.getBlock(x, y, z, 0);
+            Block block = this.getBlock(x, y, z);
 
             int lightLevel = this.getBlockLightAt(x, y, z)
                     - BlockRegistry.get().getBehavior(block.getState().getType()).getFilterLevel();
@@ -1495,7 +1487,10 @@ public class Level implements ChunkManager, Metadatable {
         int cz = z >> 4;
         long index = Chunk.key(cx, cz);
 
-        Block block = new CloudBlock(state, this, chunk, Vector3i.from(x, y, z), layer);
+        Block block = new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
+                layer == 0 ? state : chunk.getBlock(x & 0xf, y, z & 0xf),
+                layer == 1 ? state : chunk.getBlock(x & 0xf, y, z & 0xf, 1)
+        });
         if (direct) {
             this.sendBlocks(this.getChunkPlayers(cx, cz).toArray(new Player[0]), new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
         } else {
@@ -1503,10 +1498,10 @@ public class Level implements ChunkManager, Metadatable {
         }
 
         if (update) {
-            BlockBehavior behavior = block.getBehaviour();
+            BlockBehavior behavior = state.getBehavior();
             BlockBehavior previousBehavior = BlockRegistry.get().getBehavior(previousState.getType());
             if (previousBehavior.isTransparent() != behavior.isTransparent() ||
-                    previousBehavior.getLightLevel() != behavior.getLightLevel()) {
+                    previousBehavior.getLightLevel(block) != behavior.getLightLevel(block)) {
                 addLightUpdate(x, y, z);
             }
             BlockUpdateEvent ev = new BlockUpdateEvent(block);
@@ -1617,7 +1612,7 @@ public class Level implements ChunkManager, Metadatable {
         }
         Block target = this.getBlock(pos);
         Item[] drops;
-        BlockBehavior targetBehavior = target.getBehaviour();
+        BlockBehavior targetBehavior = target.getState().getBehavior();
         int dropExp = targetBehavior.getDropExp();
 
         if (item == null) {
@@ -1660,7 +1655,7 @@ public class Level implements ChunkManager, Metadatable {
             if (!player.isSurvival()) {
                 eventDrops = new Item[0];
             } else if (isSilkTouch && targetBehavior.canSilkTouch()) {
-                eventDrops = new Item[]{targetBehavior.toItem(target.getState())};
+                eventDrops = new Item[]{targetBehavior.toItem(target)};
             } else {
                 eventDrops = targetBehavior.getDrops(target, item);
             }
@@ -1690,7 +1685,7 @@ public class Level implements ChunkManager, Metadatable {
         } else if (!targetBehavior.isBreakable(item)) {
             return null;
         } else if (item.getEnchantment(Enchantment.ID_SILK_TOUCH) != null) {
-            drops = new Item[]{targetBehavior.toItem(target.getState())};
+            drops = new Item[]{targetBehavior.toItem(target)};
         } else {
             drops = targetBehavior.getDrops(target, item);
         }
@@ -1718,7 +1713,7 @@ public class Level implements ChunkManager, Metadatable {
             this.updateComparatorOutputLevel(target.getPosition());
         }
 
-        targetBehavior.onBreak(item, player);
+        targetBehavior.onBreak(target, item, player);
 
         item.useOn(target);
         if (item.isTool() && item.getMeta() >= item.getMaxDurability()) {
@@ -1780,9 +1775,9 @@ public class Level implements ChunkManager, Metadatable {
 
     public Item useItemOn(Vector3i vector, Item item, Direction face, Vector3f clickPos, Player player, boolean playSound) {
         Block target = this.getBlock(vector);
-        BlockBehavior targetBehavior = target.getBehaviour();
+        BlockBehavior targetBehavior = target.getState().getBehavior();
         Block block = target.getSide(face);
-        BlockBehavior behavior = block.getBehaviour();
+        BlockBehavior behavior = block.getState().getBehavior();
         Vector3i blockPos = block.getPosition();
 
         if (blockPos.getY() > 255 || blockPos.getY() < 0) {
@@ -1826,7 +1821,7 @@ public class Level implements ChunkManager, Metadatable {
                 }
                 return null;
             }
-        } else if (targetBehavior.canBeActivated() && targetBehavior.onActivate(item, player)) {
+        } else if (targetBehavior.canBeActivated() && targetBehavior.onActivate(target, item)) {
             if (item.isTool() && item.getMeta() >= item.getMaxDurability()) {
                 item = Item.get(BlockTypes.AIR, 0, 0);
             }
@@ -1839,12 +1834,12 @@ public class Level implements ChunkManager, Metadatable {
             return null;
         }
 
-        if (!(behavior.canBeReplaced()
+        if (!(behavior.canBeReplaced(block)
                 || (hand instanceof BlockBehaviorSlab && (block instanceof BlockBehaviorSlab || target instanceof BlockBehaviorSlab)))) {
             return null;
         }
 
-        if (targetBehavior.canBeReplaced()) {
+        if (targetBehavior.canBeReplaced(target)) {
             block = target;
             behavior = targetBehavior;
         }
@@ -1890,32 +1885,33 @@ public class Level implements ChunkManager, Metadatable {
             }
         }
 
-        Block liquid = block;
-        Block air = block.getExtra();
-        Vector3i pos = null;
-        if (air.getState() == BlockState.AIR && (liquid.getBehaviour() instanceof BlockBehaviorLiquid) && ((BlockBehaviorLiquid) liquid.getBehaviour()).usesWaterLogging()
-                && (liquid.getMeta() == 0 || liquid.getMeta() == 8) // Remove this line when MCPE-33345 is resolved
-        ) {
-            pos = liquid.getPosition();
+        BlockBehavior liquidBehavior = block.getState().getBehavior();
+        BlockState air = block.getExtra();
 
-            this.setBlock(pos, 1, liquid.getState(), false, false);
-            this.setBlock(pos, 0, air.getState(), false, false);
-            block = air;
+        Vector3i pos = null;
+        if (air == BlockState.AIR && (liquidBehavior instanceof BlockBehaviorLiquid) && ((BlockBehaviorLiquid) liquidBehavior).usesWaterLogging()
+                && (block.getState().ensureTrait(BlockTraits.FLUID_LEVEL) == 0) // Remove this line when MCPE-33345 is resolved
+        ) {
+            pos = block.getPosition();
+
+            block.set(block.getState(), 1, false, false);
+            block.set(air, false, false);
+
             this.scheduleUpdate(block, 1);
         }
 
         try {
             if (!handBehavior.place(item, block, target, face, clickPos, player)) {
                 if (pos != null) {
-                    this.setBlock(pos, 0, liquid.getState(), false, false);
-                    this.setBlock(pos, 1, air.getState(), false, false);
+                    this.setBlock(pos, 0, block.getState(), false, false);
+                    this.setBlock(pos, 1, air, false, false);
                 }
                 return null;
             }
         } catch (Exception e) {
             if (pos != null) {
-                this.setBlock(pos, 0, liquid.getState(), false, false);
-                this.setBlock(pos, 1, air.getState(), false, false);
+                this.setBlock(pos, 0, block.getState(), false, false);
+                this.setBlock(pos, 1, air, false, false);
             }
             throw e;
         }
@@ -1927,7 +1923,7 @@ public class Level implements ChunkManager, Metadatable {
         }
 
         if (playSound) {
-            this.addLevelSoundEvent(hand.getPosition().toFloat(), SoundEvent.PLACE, BlockRegistry.get().getRuntimeId(hand));
+            this.addLevelSoundEvent(block.getPosition().toFloat(), SoundEvent.PLACE, BlockRegistry.get().getRuntimeId(hand));
         }
 
         if (item.getCount() <= 0) {

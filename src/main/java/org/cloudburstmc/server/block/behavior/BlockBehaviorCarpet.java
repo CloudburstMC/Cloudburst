@@ -3,12 +3,10 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -45,7 +43,7 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Block down = block.down();
         if (down.getState().getType() != AIR) {
-            block.getLevel().setBlock(block.getPosition(), BlockRegistry.get().getBlock(BlockTypes.CARPET), true);
+            placeBlock(block, item);
             return true;
         }
         return false;

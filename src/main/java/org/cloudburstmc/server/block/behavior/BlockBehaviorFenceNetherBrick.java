@@ -1,7 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -35,8 +37,8 @@ public class BlockBehaviorFenceNetherBrick extends BlockBehaviorFence {
     }
 
     @Override
-    public boolean canConnect(BlockState blockState) {
-        return (blockState instanceof BlockBehaviorFenceNetherBrick || blockState instanceof BlockBehaviorFenceGate) || blockState.isSolid() && !blockState.isTransparent();
+    public boolean canConnect(BlockState state) {
+        return (state.getType() == BlockTypes.NETHER_BRICK_FENCE || state.inCategory(BlockCategory.FENCE_GATE)) || state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT);
     }
 
     @Override

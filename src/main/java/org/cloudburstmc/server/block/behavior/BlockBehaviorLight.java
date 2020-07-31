@@ -1,19 +1,15 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 
 public class BlockBehaviorLight extends BlockBehaviorTransparent {
 
     @Override
-    public void setMeta(int meta) {
-        super.setMeta(meta & 0xF);
-    }
-
-    @Override
     public int getLightLevel(Block block) {
-        return getMeta() & 0xF;
+        return block.getState().ensureTrait(BlockTraits.LIGHT_LEVEL);
     }
 
     @Override
@@ -32,7 +28,7 @@ public class BlockBehaviorLight extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeReplaced() {
+    public boolean canBeReplaced(Block block) {
         return true;
     }
 

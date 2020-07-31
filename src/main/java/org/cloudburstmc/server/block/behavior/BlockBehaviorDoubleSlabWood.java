@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTool;
 
 import static org.cloudburstmc.server.block.BlockTypes.WOODEN_SLAB;
@@ -9,7 +8,7 @@ import static org.cloudburstmc.server.block.BlockTypes.WOODEN_SLAB;
 public class BlockBehaviorDoubleSlabWood extends BlockBehaviorDoubleSlab {
 
     public BlockBehaviorDoubleSlabWood() {
-        super(WOODEN_SLAB, BlockBehaviorSlabWood.COLORS);
+        super(WOODEN_SLAB, BlockTraits.WOOD_TYPE);
     }
 
     @Override
@@ -35,12 +34,5 @@ public class BlockBehaviorDoubleSlabWood extends BlockBehaviorDoubleSlab {
     @Override
     public boolean canHarvestWithHand() {
         return true;
-    }
-
-    @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(this.getSlabId(), this.getMeta() & 0x07, 2)
-        };
     }
 }

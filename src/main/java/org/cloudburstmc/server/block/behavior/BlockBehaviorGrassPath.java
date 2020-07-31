@@ -15,10 +15,10 @@ public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
         return ItemTool.TYPE_SHOVEL;
     }
 
-    @Override
-    public float getMaxY() {
-        return this.getY() + 0.9375f;
-    }
+//    @Override //TODO: bounding box
+//    public float getMaxY() {
+//        return this.getY() + 0.9375f;
+//    }
 
     @Override
     public float getResistance() {

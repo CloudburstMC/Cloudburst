@@ -37,7 +37,7 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
         }
 
         BlockState btn = BlockRegistry.get().getBlock(this.type).withTrait(BlockTraits.FACING_DIRECTION, face);
-        block.getLevel().setBlock(block.getPosition(), btn, true);
+        placeBlock(block, btn);
         return true;
     }
 
@@ -55,8 +55,8 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
         Level level = block.getLevel();
         level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 0, 15));
 
-        level.setBlock(block.getPosition(),
-                block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, true), true, false);
+        block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, true), true, false);
+
         level.addSound(block.getPosition(), Sound.RANDOM_CLICK);
         level.scheduleUpdate(block, 30);
 
@@ -77,8 +77,7 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
                 Level level = block.getLevel();
                 level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
 
-                level.setBlock(block.getPosition(),
-                        block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, false),
+                block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, false),
                         true, false);
                 level.addSound(block.getPosition(), Sound.RANDOM_CLICK);
 
@@ -97,7 +96,7 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return true;
     }
 

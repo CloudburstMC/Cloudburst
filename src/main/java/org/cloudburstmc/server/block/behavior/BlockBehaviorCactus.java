@@ -16,7 +16,6 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.server.block.BlockTypes.*;
@@ -105,14 +104,14 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
                             BlockGrowEvent event = new BlockGrowEvent(b, BlockState.get(CACTUS));
                             Server.getInstance().getPluginManager().callEvent(event);
                             if (!event.isCancelled()) {
-                                block.getLevel().setBlock(b.getPosition(), event.getNewState(), true);
+                                block.set(event.getNewState(), true);
                             }
                         }
                     }
 
-                    block.getLevel().setBlock(block.getPosition(), block.getState().withTrait(BlockTraits.AGE, 0), false, false);
+                    block.set(block.getState().withTrait(BlockTraits.AGE, 0), false, false);
                 } else {
-                    block.getLevel().setBlock(block.getPosition(), block.getState().withTrait(BlockTraits.AGE, age + 1), false, false);
+                    block.set(block.getState().withTrait(BlockTraits.AGE, age + 1), false, false);
                 }
             }
         }
@@ -132,7 +131,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
                 }
             }
 
-            block.getLevel().setBlock(block.getPosition(), BlockRegistry.get().getBlock(CACTUS), true);
+            placeBlock(block, item);
             return true;
         }
         return false;

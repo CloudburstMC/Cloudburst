@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -48,7 +49,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        BlockState state = block.getState();
+        val state = block.getState();
         if (!target.getState().getBehavior().isTransparent() || state.getType() == SNOW_LAYER) {
             BlockState anvil = BlockRegistry.get().getBlock(BlockTypes.ANVIL)
                     .withTrait(BlockTraits.DIRECTION, player.getDirection().getOpposite());
@@ -60,7 +61,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
                 anvil = anvil.withTrait(BlockTraits.DAMAGE, AnvilDamage.VERY_DAMAGED);
             }
 
-            block.getLevel().setBlock(block.getPosition(), anvil, true);
+            block.set(anvil, true);
             block.getLevel().addSound(block.getPosition().toFloat(), Sound.RANDOM_ANVIL_LAND, 1, 0.8F);
             return true;
         }

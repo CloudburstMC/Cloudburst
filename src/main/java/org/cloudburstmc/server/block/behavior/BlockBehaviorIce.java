@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
@@ -35,25 +37,28 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
 
     @Override
     public boolean onBreak(Block block, Item item, Player player) {
+        val level = block.getLevel();
         if (player.getGamemode() == GameMode.CREATIVE) {
-            return this.getLevel().setBlock(this.getPosition(), BlockState.AIR, true);
+            return removeBlock(block);
         }
 
-        if (down().isSolid()) {
-            return this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockTypes.WATER), true);
+        if (block.down().getState().inCategory(BlockCategory.SOLID)) {
+            block.set(BlockState.get(BlockTypes.WATER));
         } else {
-            return this.getLevel().setBlock(this.getPosition(), BlockState.AIR, true);
+            return removeBlock(block);
         }
+
+        return true;
     }
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_RANDOM) {
-            if (this.getLevel().getBlockLightAt(this.getX(), this.getY(), this.getZ()) >= 12) {
-                BlockFadeEvent event = new BlockFadeEvent(this, BlockState.get(BlockTypes.WATER));
-                level.getServer().getPluginManager().callEvent(event);
+            if (block.getLevel().getBlockLightAt(block.getX(), block.getY(), block.getZ()) >= 12) {
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.WATER));
+                block.getLevel().getServer().getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
-                    level.setBlock(this.getPosition(), event.getNewState(), true);
+                    block.getLevel().setBlock(block.getPosition(), event.getNewState(), true);
                 }
                 return Level.BLOCK_UPDATE_NORMAL;
             }

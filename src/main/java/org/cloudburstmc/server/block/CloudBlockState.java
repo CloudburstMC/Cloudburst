@@ -19,6 +19,12 @@ import static com.google.common.base.Preconditions.checkState;
 
 @ParametersAreNonnullByDefault
 public final class CloudBlockState implements BlockState {
+
+    public static final BlockState[] EMPTY_STATES = new BlockState[]{
+            BlockState.AIR,
+            BlockState.AIR
+    };
+
     private final Identifier type;
     private final ImmutableMap<BlockTrait<?>, Comparable<?>> traits;
     private final Reference2IntMap<BlockTrait<?>> traitPalette;

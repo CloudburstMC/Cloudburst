@@ -11,6 +11,8 @@ public interface Block extends BlockSnapshot {
 
     BlockSnapshot snapshot();
 
+    Block refresh();
+
     Level getLevel();
 
     Chunk getChunk();
@@ -60,8 +62,6 @@ public interface Block extends BlockSnapshot {
     Block getSide(Direction face, int step);
 
     boolean isWaterlogged();
-
-    int getLayer();
 
     default void set(BlockState state) {
         this.set(state, 0, false, true);

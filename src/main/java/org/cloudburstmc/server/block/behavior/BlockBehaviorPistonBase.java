@@ -45,10 +45,10 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
             } else if (this.getY() - y > 0) {
                 this.setMeta(Direction.DOWN.getIndex());
             } else {
-                this.setMeta(player.getHorizontalFacing().getIndex());
+                this.setMeta(player.getHorizontalDirection().getIndex());
             }
         } else {
-            this.setMeta(player.getHorizontalFacing().getIndex());
+            this.setMeta(player.getHorizontalDirection().getIndex());
         }
         this.level.setBlock(blockState.getPosition(), this, true, false);
 

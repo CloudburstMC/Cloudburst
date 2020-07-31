@@ -17,14 +17,14 @@ public class BlockSpreadEvent extends BlockFormEvent implements Cancellable {
         return handlers;
     }
 
-    private final BlockState source;
+    private final Block source;
 
-    public BlockSpreadEvent(Block block, BlockState source, BlockState newState) {
+    public BlockSpreadEvent(Block block, Block source, BlockState newState) {
         super(block, newState);
         this.source = source;
     }
 
-    public BlockState getSource() {
+    public Block getSource() {
         return source;
     }
 }

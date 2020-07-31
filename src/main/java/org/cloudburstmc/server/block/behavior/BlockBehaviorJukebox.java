@@ -23,14 +23,14 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(id, 0);
+        return Item.get(block.getState().getType());
     }
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         if (!(blockEntity instanceof Jukebox)) {
-            blockEntity = this.createBlockEntity();
+            blockEntity = this.createBlockEntity(block);
         }
 
         Jukebox jukebox = (Jukebox) blockEntity;
@@ -47,8 +47,8 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (super.place(item, blockState, target, face, clickPos, player)) {
-            createBlockEntity();
+        if (placeBlock(block, item)) {
+            createBlockEntity(block);
             return true;
         }
 
@@ -58,7 +58,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
     @Override
     public boolean onBreak(Block block, Item item) {
         if (super.onBreak(block, item)) {
-            BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
             if (blockEntity instanceof Jukebox) {
                 ((Jukebox) blockEntity).dropItem();
@@ -69,13 +69,8 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
         return false;
     }
 
-    private BlockEntity createBlockEntity() {
-        return BlockEntityRegistry.get().newEntity(JUKEBOX, this.getChunk(), this.getPosition());
-    }
-
-    @Override
-    public Direction getBlockFace() {
-        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
+    private BlockEntity createBlockEntity(Block block) {
+        return BlockEntityRegistry.get().newEntity(JUKEBOX, block);
     }
 
     @Override

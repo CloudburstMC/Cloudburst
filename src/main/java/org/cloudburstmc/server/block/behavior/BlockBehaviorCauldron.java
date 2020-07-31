@@ -4,7 +4,6 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Cauldron;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
@@ -17,7 +16,6 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.CAULDRON;
@@ -83,7 +81,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 if (!ev.isCancelled()) {
                     replaceBucket(item, player, ev.getItem());
 
-                    block.getLevel().setBlock(block.getPosition(), block.getState().withTrait(BlockTraits.FILL_LEVEL, 0), true);
+                    block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, 0), true);
                     cauldron.setCustomColor(null);
                     block.getLevel().addSound(block.getPosition().toFloat().add(0.5, 1, 0.5), Sound.CAULDRON_TAKEWATER);
                 }
@@ -106,11 +104,11 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                         cauldron.setPotionId(0xffff);//reset potion
                         cauldron.setSplash(false);
                         cauldron.setCustomColor(null);
-                        block.getLevel().setBlock(block.getPosition(), block.getState().withTrait(BlockTraits.FILL_LEVEL, 0), true);
+                        block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, 0), true);
                         block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_EXPLODE);
                     } else {
                         cauldron.setCustomColor(null);
-                        block.getLevel().setBlock(block.getPosition(), block.getState().withTrait(BlockTraits.FILL_LEVEL, 6), true);
+                        block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, 6), true);
                         block.getLevel().addLevelSoundEvent(block.getPosition().toFloat().add(0.5, 1, 0.5), SoundEvent.BUCKET_FILL_WATER);
                     }
                     //this.update();
@@ -140,7 +138,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 }
             }
 
-            block.getLevel().setBlock(block.getPosition(), block.getState().incrementTrait(BlockTraits.FILL_LEVEL));
+            block.set(block.getState().incrementTrait(BlockTraits.FILL_LEVEL));
             block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_FILLPOTION);
         } else if (itemType == ItemIds.GLASS_BOTTLE) {
             if (isEmpty(block)) {
@@ -161,7 +159,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 }
             }
 
-            block.getLevel().setBlock(block.getPosition(), block.getState().decrementTrait(BlockTraits.FILL_LEVEL));
+            block.set(block.getState().decrementTrait(BlockTraits.FILL_LEVEL));
             block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_TAKEPOTION);
         } else {
             return true;
@@ -191,8 +189,8 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
         Cauldron cauldron = BlockEntityRegistry.get().newEntity(CAULDRON, block.getChunk(), block.getPosition());
         cauldron.loadAdditionalData(item.getTag());
         cauldron.setPotionId(0xffff);
-        block.getLevel().setBlock(block.getPosition(), BlockRegistry.get().getBlock(BlockTypes.CAULDRON), true);
-        return true;
+
+        return placeBlock(block, item);
     }
 
     @Override

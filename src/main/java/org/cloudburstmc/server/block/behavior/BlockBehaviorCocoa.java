@@ -107,8 +107,8 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().getType() == BlockTypes.LOG && target.getState().ensureTrait(BlockTraits.WOOD_TYPE) == WoodType.JUNGLE) {
             if (face != Direction.DOWN && face != Direction.UP) {
-                block.getLevel().setBlock(block.getPosition(), BlockRegistry.get().getBlock(BlockTypes.COCOA)
-                        .withTrait(BlockTraits.DIRECTION, face), true);
+                placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.COCOA)
+                        .withTrait(BlockTraits.DIRECTION, face));
                 return true;
             }
         }
@@ -168,7 +168,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
             Server.getInstance().getPluginManager().callEvent(ev);
 
             if (!ev.isCancelled()) {
-                block.getLevel().setBlock(block.getPosition(), ev.getNewState(), true, true);
+                block.set(ev.getNewState(), true, true);
                 return true;
             }
         }

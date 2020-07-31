@@ -162,7 +162,7 @@ public interface Entity extends Metadatable {
 
     Vector2f getDirectionPlane();
 
-    Direction getHorizontalFacing();
+    Direction getHorizontalDirection();
 
     boolean onUpdate(int currentTick);
 

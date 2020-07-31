@@ -42,12 +42,12 @@ public class BlockBehaviorRedstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return true;
     }
 
     @Override
-    public int getWeakPower(Direction face) {
+    public int getWeakPower(Block block, Direction face) {
         return 15;
     }
 

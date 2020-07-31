@@ -3,6 +3,7 @@ package org.cloudburstmc.server.registry;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityFactory;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
@@ -65,6 +66,10 @@ public class BlockEntityRegistry implements Registry {
             throw new RegistryException("No BlockEntityType exists for id: " + persistentId);
         }
         return type;
+    }
+
+    public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, Block block) {
+        return newEntity(type, block.getChunk(), block.getPosition());
     }
 
     /**

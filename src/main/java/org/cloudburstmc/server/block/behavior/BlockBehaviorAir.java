@@ -30,7 +30,7 @@ public class BlockBehaviorAir extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeReplaced() {
+    public boolean canBeReplaced(Block block) {
         return true;
     }
 

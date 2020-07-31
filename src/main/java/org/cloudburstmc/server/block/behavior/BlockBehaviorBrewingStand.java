@@ -51,7 +51,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
         if (!BlockRegistry.get().inCategory(state.getType(), BlockCategory.TRANSPARENT)) {
-            block.getLevel().setBlock(block.getPosition(), BlockRegistry.get().getBlock(BlockTypes.BREWING_STAND), true, true);
+            placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.BREWING_STAND));
 
             BrewingStand brewingStand = BlockEntityRegistry.get().newEntity(BREWING_STAND, block.getChunk(), block.getPosition());
             brewingStand.loadAdditionalData(item.getTag());

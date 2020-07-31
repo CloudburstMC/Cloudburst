@@ -9,5 +9,8 @@ public enum BlockCategory {
     DOOR,
     LOG,
     LEAVES,
-    LIQUID
+    LIQUID,
+    CROPS,
+    FENCE,
+    FENCE_GATE
 }

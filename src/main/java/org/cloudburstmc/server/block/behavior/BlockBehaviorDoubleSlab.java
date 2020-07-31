@@ -1,18 +1,29 @@
 package org.cloudburstmc.server.block.behavior;
 
-import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.StoneSlabType;
 
 import static org.cloudburstmc.server.block.behavior.BlockBehaviorSlab.COLORS;
 
 public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
+
+    protected Identifier slabType;
+    protected BlockTrait typeTrait;
+
+    public BlockBehaviorDoubleSlab(Identifier slabType, BlockTrait<?> typeTrait) {
+        this.slabType = slabType;
+        this.typeTrait = typeTrait;
+    }
 
     @Override
     public float getResistance() {
@@ -37,9 +48,7 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     @Override
     public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{
-                    Item.get(this.slabId, this.getMeta() & 0x07, 2)
-            };
+            return new Item[]{ItemRegistry.get().getItem(BlockState.get(slabType).withTrait(typeTrait, block.getState().ensureTrait(typeTrait)))};
         } else {
             return new Item[0];
         }
@@ -47,20 +56,20 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
 
     @Override
     public BlockColor getColor(Block block) {
-        StoneSlabType type = block.ensureTrait(BlockTraits.STONE_SLAB_TYPE);
+        StoneSlabType type = block.getState().ensureTrait(BlockTraits.STONE_SLAB_TYPE);
         return COLORS.get(type);
     }
 
-    protected void playPlaceSound() {
+    protected void playPlaceSound(Block block) {
         LevelSoundEvent2Packet pk = new LevelSoundEvent2Packet();
         pk.setSound(SoundEvent.ITEM_USE_ON);
         pk.setExtraData(725); // Who knows what this means? It's what is sent per ProxyPass
-        pk.setPosition(Vector3f.from(this.getX() + 0.5f, this.getY() + 0.5f, this.getZ() + 0.5f));
+        pk.setPosition(block.getPosition().toFloat().add(0.5f, 0.5f, 0.5f));
         pk.setIdentifier("");
         pk.setBabySound(false);
         pk.setRelativeVolumeDisabled(false);
 
 
-        this.getLevel().addChunkPacket(this.getChunk().getX(), this.getChunk().getZ(), pk);
+        block.getLevel().addChunkPacket(block.getPosition(), pk);
     }
 }

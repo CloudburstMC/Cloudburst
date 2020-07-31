@@ -45,13 +45,13 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     @Override
-    public int getWeakPower(Direction side) {
+    public int getWeakPower(Block block, Direction side) {
         return getBlockFace() != side ? 15 : 0;
     }
 
     @Override
-    public int getStrongPower(Direction side) {
-        return side == Direction.DOWN ? this.getWeakPower(side) : 0;
+    public int getStrongPower(Block block, Direction side) {
+        return side == Direction.DOWN ? this.getWeakPower(, side) : 0;
     }
 
     @Override
@@ -126,7 +126,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     @Override
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return true;
     }
 

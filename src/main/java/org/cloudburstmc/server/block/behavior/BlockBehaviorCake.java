@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
@@ -11,7 +10,6 @@ import org.cloudburstmc.server.item.food.Food;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorCake extends BlockBehaviorTransparent {
@@ -64,7 +62,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (block.down().getState().getType() != BlockTypes.AIR) {
-            block.getLevel().setBlock(block.getPosition(), BlockRegistry.get().getBlock(BlockTypes.CAKE), true);
+            placeBlock(block, item);
 
             return true;
         }
@@ -75,7 +73,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() == BlockTypes.AIR) {
-                block.getLevel().setBlock(block.getPosition(), BlockState.AIR, true);
+                removeBlock(block, true);
 
                 return Level.BLOCK_UPDATE_NORMAL;
             }
@@ -104,10 +102,10 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
             }
 
             if (counter >= 6) {
-                block.getLevel().setBlock(block.getPosition(), BlockState.AIR, true);
+                removeBlock(block, true);
             } else {
                 Food.getByRelative(block.getState(), counter).eatenBy(player);
-                block.getLevel().setBlock(block.getPosition(), block.getState().withTrait(BlockTraits.BITE_COUNTER, counter), true);
+                block.set(block.getState().withTrait(BlockTraits.BITE_COUNTER, counter), true);
             }
 
             return true;

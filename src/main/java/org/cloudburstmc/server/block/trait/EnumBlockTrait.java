@@ -22,8 +22,12 @@ public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
     }
 
     public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass) {
+        return of(name, null, enumClass);
+    }
+
+    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, @Nullable String vanillaName, Class<E> enumClass) {
         E[] values = enumClass.getEnumConstants();
-        return of(name, enumClass, values);
+        return of(name, vanillaName, enumClass, ImmutableSet.copyOf(values), values[0]);
     }
 
     @SafeVarargs

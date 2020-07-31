@@ -1,16 +1,16 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.DoublePlantType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -19,23 +19,24 @@ import static org.cloudburstmc.server.block.BlockTypes.*;
 public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
     @Override
-    public boolean canBeReplaced() {
-        return this.getMeta() == TALL_GRASS || this.getMeta() == LARGE_FERN;
+    public boolean canBeReplaced(Block block) {
+        DoublePlantType type = block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE);
+        return type == DoublePlantType.GRASS || type == DoublePlantType.FERN;
     }
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if ((this.getMeta() & TOP_HALF_BITMASK) == TOP_HALF_BITMASK) {
+            if (block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) {
                 // Top
-                if (!(this.down().getId() == DOUBLE_PLANT)) {
-                    this.getLevel().setBlock(this.getPosition(), BlockState.get(AIR), false, true);
+                if (!(block.down().getState().getType() == DOUBLE_PLANT)) {
+                    removeBlock(block, true);
                     return Level.BLOCK_UPDATE_NORMAL;
                 }
             } else {
                 // Bottom
-                if (this.down().isTransparent() || !(this.up().getId() == DOUBLE_PLANT)) {
-                    this.getLevel().useBreakOn(this.getPosition());
+                if (block.down().getState().inCategory(BlockCategory.TRANSPARENT) || block.up().getState().getType() != DOUBLE_PLANT) {
+                    block.getLevel().useBreakOn(block.getPosition());
                     return Level.BLOCK_UPDATE_NORMAL;
                 }
             }
@@ -45,12 +46,12 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        BlockState down = down();
-        BlockState up = up();
+        BlockState down = block.down().getState();
+        Block up = block.up();
 
-        if (up.getId() == AIR && (down.getId() == GRASS || down.getId() == DIRT)) {
-            this.getLevel().setBlock(block.getPosition(), this, true, false); // If we update the bottom half, it will drop the item because there isn't a flower block above
-            this.getLevel().setBlock(up.getPosition(), BlockState.get(DOUBLE_PLANT, getMeta() ^ TOP_HALF_BITMASK), true, true);
+        if (up.getState().getType() == AIR && (down.getType() == GRASS || down.getType() == DIRT)) {
+            placeBlock(block, item, false); // If we update the bottom half, it will drop the item because there isn't a flower block above
+            placeBlock(up, item.getBlock().withTrait(BlockTraits.IS_UPPER_BLOCK, true));
             return true;
         }
 
@@ -61,10 +62,10 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     public boolean onBreak(Block block, Item item) {
         Block down = block.down();
 
-        if ((this.getMeta() & TOP_HALF_BITMASK) == TOP_HALF_BITMASK) { // Top half
+        if (block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) { // Top half
             block.getLevel().useBreakOn(down.getPosition());
         } else {
-            block.set(BlockState.AIR, true, true);
+            removeBlock(block, true);
         }
 
         return true;
@@ -72,15 +73,16 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
     @Override
     public Item[] getDrops(Block block, Item hand) {
-        if ((this.getMeta() & TOP_HALF_BITMASK) != TOP_HALF_BITMASK) {
+        if (!block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) {
             boolean dropSeeds = ThreadLocalRandom.current().nextDouble(100) > 87.5;
-            switch (this.getMeta() & 0x07) {
-                case TALL_GRASS:
-                case LARGE_FERN:
+            DoublePlantType type = block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE);
+            switch (type) {
+                case GRASS:
+                case FERN:
                     if (hand.isShears()) {
                         //todo enchantment
                         return new Item[]{
-                                Item.get(BlockTypes.TALL_GRASS, (this.getMeta() & 0x07) == TALL_GRASS ? 1 : 2, 2)
+                                Item.get(BlockTypes.TALL_GRASS, type == DoublePlantType.GRASS ? 1 : 2, 2)
                         };
                     }
 
@@ -112,16 +114,16 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) { //Bone meal
-            switch (this.getMeta() & 0x07) {
+            switch (block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE)) {
                 case SUNFLOWER:
-                case LILAC:
-                case ROSE_BUSH:
-                case PEONY:
+                case SYRINGA:
+                case ROSE:
+                case PAEONIA:
                     if (player != null && player.getGamemode().isSurvival()) {
                         item.decrementCount();
                     }
-                    this.level.addParticle(new BoneMealParticle(this.getPosition()));
-                    this.level.dropItem(this.getPosition(), this.toItem(blockState));
+                    block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+                    block.getLevel().dropItem(block.getPosition(), ItemRegistry.get().getItem(block.getState()));
             }
 
             return true;

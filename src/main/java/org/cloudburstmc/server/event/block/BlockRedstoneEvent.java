@@ -17,8 +17,8 @@ public class BlockRedstoneEvent extends BlockEvent {
     private final int oldPower;
     private final int newPower;
 
-    public BlockRedstoneEvent(Block blockState, int oldPower, int newPower) {
-        super(blockState);
+    public BlockRedstoneEvent(Block block, int oldPower, int newPower) {
+        super(block);
         this.oldPower = oldPower;
         this.newPower = newPower;
     }

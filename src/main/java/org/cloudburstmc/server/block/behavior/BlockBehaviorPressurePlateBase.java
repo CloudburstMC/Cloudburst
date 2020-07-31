@@ -68,7 +68,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return true;
     }
 
@@ -168,12 +168,12 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public int getWeakPower(Direction side) {
+    public int getWeakPower(Block block, Direction side) {
         return getRedstonePower();
     }
 
     @Override
-    public int getStrongPower(Direction side) {
+    public int getStrongPower(Block block, Direction side) {
         return side == Direction.UP ? this.getRedstonePower() : 0;
     }
 

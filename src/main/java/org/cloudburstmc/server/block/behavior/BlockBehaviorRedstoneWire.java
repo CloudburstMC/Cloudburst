@@ -192,11 +192,11 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         return Item.get(ItemIds.REDSTONE);
     }
 
-    public int getStrongPower(Direction side) {
-        return !this.canProvidePower ? 0 : getWeakPower(side);
+    public int getStrongPower(Block block, Direction side) {
+        return !this.canProvidePower ? 0 : getWeakPower(, side);
     }
 
-    public int getWeakPower(Direction side) {
+    public int getWeakPower(Block block, Direction side) {
         if (!this.canProvidePower) {
             return 0;
         } else {
@@ -269,7 +269,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return this.canProvidePower;
     }
 

@@ -134,7 +134,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     @Override
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return true;
     }
 
@@ -172,11 +172,11 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         return 15;
     }
 
-    public int getStrongPower(Direction side) {
-        return getWeakPower(side);
+    public int getStrongPower(Block block, Direction side) {
+        return getWeakPower(, side);
     }
 
-    public int getWeakPower(Direction side) {
+    public int getWeakPower(Block block, Direction side) {
         return !this.isPowered() ? 0 : (getFacing() == side ? this.getRedstoneSignal() : 0);
     }
 
