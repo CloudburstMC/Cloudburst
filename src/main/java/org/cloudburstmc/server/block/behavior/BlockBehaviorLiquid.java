@@ -97,12 +97,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 //    }
 
     public float getFluidHeightPercent(BlockState state) {
-        float d = state.ensureTrait(BlockTraits.FLUID_LEVEL);
-        if (d >= 8) {
-            d = 0;
-        }
-
-        return (d + 1) / 9f;
+        return (state.ensureTrait(BlockTraits.FLUID_LEVEL) + 1) / 9f;
     }
 
     protected int getFlowDecay(BlockState state) {
@@ -117,11 +112,8 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         if (!isSameLiquid(state.getType())) {
             return -1;
         }
-        int decay = state.ensureTrait(BlockTraits.FLUID_LEVEL);
-        if (decay >= 8) {
-            decay = 0;
-        }
-        return decay;
+
+        return state.ensureTrait(BlockTraits.FLUID_LEVEL);
     }
 
     public void clearCaches() {
@@ -156,7 +148,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 vector = vector.add(side.getPosition().toFloat().sub(block.getPosition().toFloat()).mul(realDecay));
             }
         }
-        if (state.ensureTrait(BlockTraits.FLUID_LEVEL) >= 8) {
+        if (state.ensureTrait(BlockTraits.IS_FLOWING)) {
             if (!this.canFlowInto(level.getBlock(block.getX(), block.getY(), block.getZ() - 1)) ||
                     !this.canFlowInto(level.getBlock(block.getX(), block.getY(), block.getZ() + 1)) ||
                     !this.canFlowInto(level.getBlock(block.getX() - 1, block.getY(), block.getZ())) ||
