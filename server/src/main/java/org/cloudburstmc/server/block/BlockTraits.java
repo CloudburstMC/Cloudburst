@@ -26,8 +26,7 @@ public class BlockTraits {
     public final IntegerBlockTrait BITE_COUNTER = IntegerBlockTrait.from("bite_counter", 7);
     public final IntegerBlockTrait CHORUS_AGE = IntegerBlockTrait.from("chorus_age", 7);
     public final IntegerBlockTrait COCOA_AGE = IntegerBlockTrait.from("cocoa_age", 4);
-    public final IntegerBlockTrait LIGHT_LEVEL = IntegerBlockTrait.from("light_level", 16);
-    public final EnumBlockTrait<FluidType> FLUID_TYPE = EnumBlockTrait.of("fluid_type", FluidType.class);
+    public final IntegerBlockTrait CORAL_FAN_DIRECTION = IntegerBlockTrait.from("coral_direction", 2);
     public final EnumBlockTrait<ChemistryTableType> CHEMISTRY_TABLE_TYPE = EnumBlockTrait.of("chemistry_table_type", ChemistryTableType.class);
     public final EnumBlockTrait<ChiselType> CHISEL_TYPE = EnumBlockTrait.of("chisel_type", ChiselType.class);
     public final IntegerBlockTrait CLUSTER_COUNT = IntegerBlockTrait.from("cluster_count", 4);
@@ -35,20 +34,25 @@ public class BlockTraits {
     public final IntegerBlockTrait COMPOSTER_FILL_LEVEL = IntegerBlockTrait.from("composter_fill_level", 9);
     public final EnumBlockTrait<DyeColor> CORAL_COLOR = EnumBlockTrait.of("coral_color", DyeColor.class,
             DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW);
+    public final EnumBlockTrait<DyeColor> CORAL_HANG_COLOR = EnumBlockTrait.of("coral_color", DyeColor.class,
+            DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW, null);
     public final EnumBlockTrait<CrackedState> CRACKED_STATE = EnumBlockTrait.of("cracked_state", CrackedState.class);
     public final EnumBlockTrait<AnvilDamage> DAMAGE = EnumBlockTrait.of("damage", AnvilDamage.class, AnvilDamage.UNDAMAGED);
     public final EnumBlockTrait<DirtType> DIRT_TYPE = EnumBlockTrait.of("dirt_type", DirtType.class);
     public final EnumBlockTrait<DoublePlantType> DOUBLE_PLANT_TYPE = EnumBlockTrait.of("double_plant_type", DoublePlantType.class);
-    public final BooleanBlockTrait DRAG_DOWN = BooleanBlockTrait.of("drag_down");
+    public final BooleanBlockTrait HAS_DRAG_DOWN = BooleanBlockTrait.of("drag_down");
     public final BooleanBlockTrait EXPLODE = BooleanBlockTrait.of("explode", "explode_bit");
     public final EnumBlockTrait<FlowerType> FLOWER_TYPE = EnumBlockTrait.of("flower_type", FlowerType.class);
-    public final IntegerBlockTrait FLUID_LEVEL = IntegerBlockTrait.from("fluid_level", "liquid_depth", 0, 15, 0);
+    public final IntegerBlockTrait FLUID_LEVEL = IntegerBlockTrait.from("fluid_level", 8);
+    public final EnumBlockTrait<FluidType> FLUID_TYPE = EnumBlockTrait.of("fluid_type", FluidType.class);
+    public final IntegerBlockTrait FILL_LEVEL = IntegerBlockTrait.from("fill_level", 7);
     public final IntegerBlockTrait GROWTH = IntegerBlockTrait.from("growth", 8);
     public final IntegerBlockTrait HEIGHT = IntegerBlockTrait.from("height", 8);
-    public final IntegerBlockTrait HONEY_LEVEL = IntegerBlockTrait.from("honey_level", 8);
+    public final IntegerBlockTrait HONEY_LEVEL = IntegerBlockTrait.from("honey_level", 6);
     public final IntegerBlockTrait HUGE_MUSHROOM_BITS = IntegerBlockTrait.from("huge_mushroom_bits", 16);
     public final IntegerBlockTrait ICE_AGE = IntegerBlockTrait.from("ice_age", 4);
     public final IntegerBlockTrait KELP_AGE = IntegerBlockTrait.from("kelp_age", 26);
+    public final IntegerBlockTrait LIGHT_LEVEL = IntegerBlockTrait.from("light_level", 16);
     public final IntegerBlockTrait MOISTURIZED_AMOUNT = IntegerBlockTrait.from("moisturized_amount", 8);
     public final IntegerBlockTrait WART_GROWTH = IntegerBlockTrait.from("wart_growth", 4);
     public final EnumBlockTrait<PrismarineBlockType> PRISMARINE_BLOCK_TYPE = EnumBlockTrait.of("prismarine_block_type", PrismarineBlockType.class);
@@ -113,15 +117,16 @@ public class BlockTraits {
     public final BooleanBlockTrait IS_TRIGGERED = BooleanBlockTrait.of("is_triggered", "triggered_bit");
     public final BooleanBlockTrait IS_UPPER_BLOCK = BooleanBlockTrait.of("is_upper_block", "upper_block_bit");
     public final BooleanBlockTrait IS_UPSIDE_DOWN = BooleanBlockTrait.of("is_upside_down", "upside_down_bit");
-    public final BooleanBlockTrait HAS_AGE = BooleanBlockTrait.of("has_age", "age");
     public final BooleanBlockTrait IS_BREWING_A = BooleanBlockTrait.of("is_brewing_a", "has_brewing_stand_slot_a_bit");
     public final BooleanBlockTrait IS_BREWING_B = BooleanBlockTrait.of("is_brewing_b", "has_brewing_stand_slot_b_bit");
     public final BooleanBlockTrait IS_BREWING_C = BooleanBlockTrait.of("is_brewing_c", "has_brewing_stand_slot_c_bit");
+    public final BooleanBlockTrait HAS_AGE = BooleanBlockTrait.of("has_age", "age");
     public final BooleanBlockTrait HAS_COLOR = BooleanBlockTrait.of("has_color", "color");
     public final BooleanBlockTrait HAS_END_PORTAL_EYE = BooleanBlockTrait.of("has_end_portal_eye", "end_portal_eye_bit");
     public final BooleanBlockTrait HAS_INFINIBURN = BooleanBlockTrait.of("has_infiniburn", "infiniburn_bit");
     public final BooleanBlockTrait HAS_NO_DROP = BooleanBlockTrait.of("has_no_drop", "no_drop_bit");
     public final BooleanBlockTrait HAS_POST = BooleanBlockTrait.of("has_post", "wall_post_bit");
+    public final BooleanBlockTrait HAS_STABILITY_CHECK = BooleanBlockTrait.of("has_stability_check", "stability_check");
     public final BooleanBlockTrait HAS_UPDATE = BooleanBlockTrait.of("has_update", "update_bit");
     public final BooleanBlockTrait HAS_MAP = BooleanBlockTrait.of("has_map", "item_frame_map_bit");
 
