@@ -6,6 +6,7 @@ import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -26,8 +27,14 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        int waterDamage = block.getExtra().ensureTrait(FLUID_LEVEL);
-        if (waterDamage != 0) {
+        val state = block.getState();
+
+        if (state.getType() != WATER && state.getType() != FLOWING_WATER) {
+            return false;
+        }
+
+        int waterLevel = state.ensureTrait(FLUID_LEVEL);
+        if (waterLevel != 0) {
             return false;
         }
 
@@ -46,15 +53,17 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
             block.set(downState.withTrait(KELP_AGE, 24), true, true);
         }
         BlockState newState = block.getState().withTrait(KELP_AGE, ThreadLocalRandom.current().nextInt(25));
-        block.set(newState, true, true);
+        placeBlock(block, newState);
         return true;
     }
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            Integer waterDamage = block.getState().getTrait(FLUID_LEVEL);
-            if (waterDamage == null || waterDamage != 0 && waterDamage != 8) {
+            val liquid = block.getExtra();
+            Integer waterDamage = liquid.getTrait(FLUID_LEVEL);
+
+            if (waterDamage == null || waterDamage != 0 || liquid.ensureTrait(BlockTraits.IS_FLOWING)) {
                 block.getLevel().useBreakOn(block.getPosition());
                 return type;
             }
@@ -67,9 +76,9 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
                 return type;
             }
 
-            if (waterDamage == 8) {
-                block.getLevel().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
-            }
+//            if (waterDamage == 8) { //TODO: check
+//                block.getLevel().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
+//            }
             return type;
         } else if (type == Level.BLOCK_UPDATE_RANDOM) {
             if (ThreadLocalRandom.current().nextInt(100) <= 14) {
@@ -88,7 +97,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
             if (upState.getType() == WATER || upState.getType() == FLOWING_WATER) {
                 int fluidLevel = upState.ensureTrait(FLUID_LEVEL);
 
-                if (fluidLevel != 0) {
+                if (fluidLevel != 0 || upState.ensureTrait(BlockTraits.IS_FLOWING)) {
                     return false;
                 }
 
@@ -132,7 +141,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
                 if (blockAbove == WATER || blockAbove == FLOWING_WATER) {
                     int waterData = above.ensureTrait(FLUID_LEVEL);
-                    if (waterData == 0 || waterData == 8) {
+                    if (waterData == 0 && !above.ensureTrait(BlockTraits.IS_FLOWING)) {
                         val highestKelp = level.getBlock(x, y - 1, z);
                         if (grow(highestKelp)) {
                             level.addParticle(new BoneMealParticle(block.getPosition()));
