@@ -385,8 +385,8 @@ public class Server {
 
         log.info("Loading {} ...", TextFormat.GREEN + "server.properties" + TextFormat.WHITE);
         this.properties = new Properties();
-        this.properties.setProperty("motd", "A Nukkit Powered Server");
-        this.properties.setProperty("sub-motd", "https://nukkitx.com");
+        this.properties.setProperty("motd", "A Cloudburst Powered Server");
+        this.properties.setProperty("sub-motd", "https://cloudburstmc.org");
         this.properties.setProperty("server-port", "19132");
         this.properties.setProperty("server-ip", "0.0.0.0");
         this.properties.setProperty("view-distance", "10");
@@ -1155,11 +1155,11 @@ public class Server {
     }
 
     public String getMotd() {
-        return this.getProperty("motd", "A Nukkit Powered Server");
+        return this.getProperty("motd", "A Cloudburst Powered Server");
     }
 
     public String getSubMotd() {
-        return this.getProperty("sub-motd", "https://nukkitx.com");
+        return this.getProperty("sub-motd", "https://cloudburstmc.org");
     }
 
     public boolean getForceResources() {
