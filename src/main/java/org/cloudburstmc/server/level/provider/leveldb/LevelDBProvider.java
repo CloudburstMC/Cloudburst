@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
+import net.daporkchop.ldbjni.direct.DirectDB;
+import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.server.level.LevelData;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
@@ -29,7 +31,7 @@ class LevelDBProvider implements LevelProvider {
     private final String levelId;
     private final Path path;
     private final Executor executor;
-    private final DB db;
+    private final DirectDB db;
     private volatile boolean closed;
 
     LevelDBProvider(String levelId, Path worldPath, Executor executor) throws IOException {
@@ -97,7 +99,7 @@ class LevelDBProvider implements LevelProvider {
                 //the chunk was not dirty, do nothing
                 return null;
             }
-            try (WriteBatch batch = this.db.createWriteBatch()) {
+            try (DirectWriteBatch batch = this.db.createWriteBatch()) {
                 LockableChunk lockableChunk = chunk.readLockable();
                 lockableChunk.lock();
                 try {
