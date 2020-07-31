@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.entity;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
 
 /**
@@ -9,14 +9,14 @@ import org.cloudburstmc.server.entity.Entity;
  */
 public class EntityCombustByBlockEvent extends EntityCombustEvent {
 
-    protected final BlockState combuster;
+    protected final Block combustor;
 
-    public EntityCombustByBlockEvent(BlockState combuster, Entity combustee, int duration) {
+    public EntityCombustByBlockEvent(Block combustor, Entity combustee, int duration) {
         super(combustee, duration);
-        this.combuster = combuster;
+        this.combustor = combustor;
     }
 
-    public BlockState getCombuster() {
-        return combuster;
+    public Block getCombustor() {
+        return combustor;
     }
 }

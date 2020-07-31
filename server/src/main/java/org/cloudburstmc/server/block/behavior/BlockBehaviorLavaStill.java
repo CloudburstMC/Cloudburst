@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockFactory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.level.Level;
@@ -18,7 +17,7 @@ public class BlockBehaviorLavaStill extends BlockBehaviorLava {
     }
 
     @Override
-    public BlockState getBlock(int meta) {
+    public BlockState getBlock(int level) {
         return BlockState.get(BlockTypes.LAVA);
     }
 
@@ -30,7 +29,7 @@ public class BlockBehaviorLavaStill extends BlockBehaviorLava {
         return 0;
     }
 
-    public static BlockFactory factory(Identifier flowingId) {
-        return id -> new BlockBehaviorLavaStill(flowingId, id);
-    }
+//    public static BlockFactory factory(Identifier flowingId) {
+//        return id -> new BlockBehaviorLavaStill(flowingId, id);
+//    }
 }

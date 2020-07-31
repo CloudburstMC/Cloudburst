@@ -1,9 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.LeavesDecayEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
@@ -12,6 +14,7 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.WoodType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -20,10 +23,6 @@ import static org.cloudburstmc.server.item.ItemIds.APPLE;
 import static org.cloudburstmc.server.item.ItemIds.STICK;
 
 public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
-    public static final int OAK = 0;
-    public static final int SPRUCE = 1;
-    public static final int BIRCH = 2;
-    public static final int JUNGLE = 3;
 
     @Override
     public float getHardness() {
@@ -47,24 +46,23 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        this.setPersistent(true);
-        this.getLevel().setBlock(this.getPosition(), this, true);
-        return true;
+        return placeBlock(block, BlockState.get(LEAVES).withTrait(BlockTraits.IS_PERSISTENT, true));
     }
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(id, this.getMeta() & 0x3, 1);
+        return Item.get(BlockState.get(LEAVES).copyTrait(BlockTraits.WOOD_TYPE, block.getState()));
     }
 
     @Override
     public Item[] getDrops(Block block, Item hand) {
+        val state = block.getState();
         if (hand.isShears()) {
             return new Item[]{
                     toItem(block)
             };
         } else {
-            if (this.canDropApple() && ThreadLocalRandom.current().nextInt(200) == 0) {
+            if (this.canDropApple(state) && ThreadLocalRandom.current().nextInt(200) == 0) {
                 return new Item[]{
                         Item.get(APPLE)
                 };
@@ -74,9 +72,9 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
                     return new Item[]{
                             Item.get(STICK, 0, ThreadLocalRandom.current().nextInt(1, 2))
                     };
-                } else if ((this.getMeta() & 0x03) != JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
+                } else if (state.ensureTrait(BlockTraits.WOOD_TYPE) != WoodType.JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
                     return new Item[]{
-                            this.getSapling()
+                            this.getSapling(state)
                     };
                 }
             }
@@ -86,58 +84,43 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_RANDOM && !isPersistent() && !isCheckDecay()) {
-            setCheckDecay(true);
-            getLevel().setBlock(this.getPosition(), this, false, false);
-        } else if (type == Level.BLOCK_UPDATE_RANDOM && isCheckDecay() && !isPersistent()) {
-            setMeta(getMeta() & 0x03);
-
-            LeavesDecayEvent ev = new LeavesDecayEvent(this);
+        val state = block.getState();
+        if (type == Level.BLOCK_UPDATE_RANDOM && !isPersistent(state) && !isCheckDecay(state)) {
+            block.set(block.getState().withTrait(BlockTraits.HAS_UPDATE, true));
+        } else if (type == Level.BLOCK_UPDATE_RANDOM && isCheckDecay(state) && !isPersistent(state)) {
+            LeavesDecayEvent ev = new LeavesDecayEvent(block);
 
             Server.getInstance().getPluginManager().callEvent(ev);
-            if (ev.isCancelled() || findLog(this, 7)) {
-                getLevel().setBlock(this.getPosition(), this, false, false);
+            if (ev.isCancelled() || findLog(block, 7)) {
+                block.set(state.withTrait(BlockTraits.HAS_UPDATE, false), false, false);
             } else {
-                getLevel().useBreakOn(this.getPosition());
+                block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
     }
 
-    private Boolean findLog(BlockState pos, Integer distance) {
-        for (BlockState collisionBlockState : this.getLevel().getCollisionBlocks(new SimpleAxisAlignedBB(
+    private Boolean findLog(Block pos, Integer distance) {
+        for (Block collisionBlock : pos.getLevel().getCollisionBlocks(new SimpleAxisAlignedBB(
                 pos.getX() - distance, pos.getY() - distance, pos.getZ() - distance,
                 pos.getX() + distance, pos.getY() + distance, pos.getZ() + distance))) {
-            if (collisionBlockState.getId() == LOG || collisionBlockState.getId() == LOG2) {
+
+            val state = collisionBlock.getState().getType();
+
+            if (state == LOG || state == LOG2) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean isCheckDecay() {
-        return (this.getMeta() & 0x08) != 0;
+    public boolean isCheckDecay(BlockState state) {
+        return state.ensureTrait(BlockTraits.HAS_UPDATE);
     }
 
-    public void setCheckDecay(boolean checkDecay) {
-        if (checkDecay) {
-            this.setMeta(this.getMeta() | 0x08);
-        } else {
-            this.setMeta(this.getMeta() & ~0x08);
-        }
-    }
-
-    public boolean isPersistent() {
-        return (this.getMeta() & 0x04) != 0;
-    }
-
-    public void setPersistent(boolean persistent) {
-        if (persistent) {
-            this.setMeta(this.getMeta() | 0x04);
-        } else {
-            this.setMeta(this.getMeta() & ~0x04);
-        }
+    public boolean isPersistent(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_PERSISTENT);
     }
 
     @Override
@@ -150,12 +133,13 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
         return true;
     }
 
-    protected boolean canDropApple() {
-        return (this.getMeta() & 0x03) == OAK;
+    protected boolean canDropApple(BlockState state) {
+        val type = state.ensureTrait(BlockTraits.WOOD_TYPE);
+        return type == WoodType.OAK || type == WoodType.DARK_OAK;
     }
 
-    protected Item getSapling() {
-        return Item.get(SAPLING, this.getMeta() & 0x03);
+    protected Item getSapling(BlockState state) {
+        return Item.get(BlockState.get(SAPLING).copyTrait(BlockTraits.WOOD_TYPE, state));
     }
 
     @Override

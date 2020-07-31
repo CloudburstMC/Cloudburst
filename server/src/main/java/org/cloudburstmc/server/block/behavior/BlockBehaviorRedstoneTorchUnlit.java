@@ -17,12 +17,12 @@ public class BlockBehaviorRedstoneTorchUnlit extends BlockBehaviorTorch {
     }
 
     @Override
-    public int getWeakPower(Direction side) {
+    public int getWeakPower(Block block, Direction side) {
         return 0;
     }
 
     @Override
-    public int getStrongPower(Direction side) {
+    public int getStrongPower(Block block, Direction side) {
         return 0;
     }
 

@@ -26,7 +26,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean canBeReplaced() {
+    public boolean canBeReplaced(Block block) {
         return true;
     }
 

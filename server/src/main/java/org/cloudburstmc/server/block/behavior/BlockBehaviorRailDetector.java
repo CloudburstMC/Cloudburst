@@ -17,17 +17,17 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
     }
 
     @Override
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return true;
     }
 
     @Override
-    public int getWeakPower(Direction side) {
+    public int getWeakPower(Block block, Direction side) {
         return isActive() ? 15 : 0;
     }
 
     @Override
-    public int getStrongPower(Direction side) {
+    public int getStrongPower(Block block, Direction side) {
         return isActive() ? 0 : (side == Direction.UP ? 15 : 0);
     }
 

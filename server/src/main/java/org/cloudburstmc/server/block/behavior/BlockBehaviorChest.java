@@ -80,7 +80,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState blockState = block.getState();
-        Direction chestFace = player.getHorizontalFacing().getOpposite();
+        Direction chestFace = player.getHorizontalDirection().getOpposite();
         Axis axis = chestFace.getAxis() == Axis.X ? Axis.Z : Axis.X;
 
         Chest chest = null;
@@ -102,14 +102,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
             }
         }
 
-        int layer = 0;
-        if ((blockState.getType() == BlockTypes.WATER || blockState.getType() == BlockTypes.FLOWING_WATER) && blockState.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
-            layer = 1;
-        }
-
-        block.getLevel().setBlock(block.getPosition(), layer,
-                BlockRegistry.get().getBlock(BlockTypes.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace),
-                true, true);
+        placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace));
 
         Chest chest1 = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, block.getChunk(), block.getPosition());
         chest1.loadAdditionalData(item.getTag());

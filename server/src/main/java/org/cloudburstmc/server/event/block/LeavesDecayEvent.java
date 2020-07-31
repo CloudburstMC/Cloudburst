@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.block;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
 
@@ -16,7 +16,7 @@ public class LeavesDecayEvent extends BlockEvent implements Cancellable {
         return handlers;
     }
 
-    public LeavesDecayEvent(BlockState blockState) {
+    public LeavesDecayEvent(Block blockState) {
         super(blockState);
     }
 

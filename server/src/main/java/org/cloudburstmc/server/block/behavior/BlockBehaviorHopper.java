@@ -1,7 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
+import lombok.var;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Hopper;
@@ -34,23 +37,18 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
             facing = Direction.DOWN;
         }
 
-        this.setMeta(facing.getIndex());
+        var hopper = item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, facing)
+                .withTrait(BlockTraits.IS_TOGGLED, block.getLevel().isBlockPowered(block.getPosition()));
 
-        boolean powered = this.level.isBlockPowered(this.getPosition());
+        placeBlock(block, hopper);
 
-        if (powered == this.isEnabled()) {
-            this.setEnabled(!powered);
-        }
-
-        this.level.setBlock(this.getPosition(), this);
-
-        BlockEntityRegistry.get().newEntity(BlockEntityTypes.HOPPER, this.getChunk(), this.getPosition());
+        BlockEntityRegistry.get().newEntity(BlockEntityTypes.HOPPER, block);
         return true;
     }
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Hopper) {
             return player.addWindow(((Hopper) blockEntity).getInventory()) != -1;
@@ -70,7 +68,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
     @Override
     public int getComparatorInputOverride(Block block) {
-        BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Hopper) {
             return ContainerInventory.calculateRedstone(((Hopper) blockEntity).getInventory());
@@ -79,28 +77,14 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
         return super.getComparatorInputOverride(block);
     }
 
-    public Direction getFacing() {
-        return Direction.fromIndex(this.getMeta() & 7);
-    }
-
-    public boolean isEnabled() {
-        return (this.getMeta() & 0x08) != 8;
-    }
-
-    public void setEnabled(boolean enabled) {
-        if (isEnabled() != enabled) {
-            this.setMeta(this.getMeta() ^ 0x08);
-        }
-    }
-
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            boolean powered = this.level.isBlockPowered(this.getPosition());
+            val state = block.getState();
+            boolean powered = block.getLevel().isBlockPowered(block.getPosition());
 
-            if (powered == this.isEnabled()) {
-                this.setEnabled(!powered);
-                this.level.setBlock(this.getPosition(), this, true, false);
+            if (powered != state.ensureTrait(BlockTraits.IS_TOGGLED)) {
+                block.set(state.withTrait(BlockTraits.IS_TOGGLED, powered));
             }
 
             return type;
@@ -131,11 +115,6 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     @Override
     public boolean canHarvestWithHand() {
         return false;
-    }
-
-    @Override
-    public Direction getBlockFace() {
-        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

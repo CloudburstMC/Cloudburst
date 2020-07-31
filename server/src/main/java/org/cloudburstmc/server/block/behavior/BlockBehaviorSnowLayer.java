@@ -33,7 +33,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean canBeReplaced() {
+    public boolean canBeReplaced(Block block) {
         return true;
     }
 

@@ -10,6 +10,7 @@ import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.inventory.Fuel;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
@@ -82,10 +83,6 @@ public abstract class Item implements Cloneable {
 
     private static final ArrayList<Item> creative = new ArrayList<>();
 
-    public static Item get(Identifier id) {
-        return get(id, 0);
-    }
-
     public static void clearCreativeItems() {
         Item.creative.clear();
     }
@@ -125,6 +122,18 @@ public abstract class Item implements Cloneable {
             }
         }
         return -1;
+    }
+
+    public static Item get(BlockState blockState) {
+        return get(blockState, 1);
+    }
+
+    public static Item get(BlockState blockState, int count) {
+        return get(blockState.getType(), BlockStateMetaMappings.getMetaFromState(blockState), count);
+    }
+
+    public static Item get(Identifier id) {
+        return get(id, 0);
     }
 
     public static Item get(Identifier id, int meta) {

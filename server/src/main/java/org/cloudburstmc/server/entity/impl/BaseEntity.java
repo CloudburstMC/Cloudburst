@@ -1015,7 +1015,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         return Vector2f.from(-Math.cos(Math.toRadians(this.yaw) - Math.PI / 2), -Math.sin(Math.toRadians(this.yaw) - Math.PI / 2)).normalize();
     }
 
-    public Direction getHorizontalFacing() {
+    public Direction getHorizontalDirection() {
         return Direction.fromHorizontalIndex(NukkitMath.floorDouble((this.yaw * 4.0F / 360.0F) + 0.5D) & 3);
     }
 

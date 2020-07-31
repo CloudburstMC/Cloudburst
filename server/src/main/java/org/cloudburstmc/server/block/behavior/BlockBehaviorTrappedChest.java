@@ -56,7 +56,7 @@ public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
     }
 
     @Override
-    public int getWeakPower(Direction face) {
+    public int getWeakPower(Block block, Direction face) {
         int playerCount = 0;
 
         BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
@@ -69,12 +69,12 @@ public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
     }
 
     @Override
-    public int getStrongPower(Direction side) {
-        return side == Direction.UP ? this.getWeakPower(side) : 0;
+    public int getStrongPower(Block block, Direction side) {
+        return side == Direction.UP ? this.getWeakPower(, side) : 0;
     }
 
     @Override
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return true;
     }
 }

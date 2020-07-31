@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.event.block;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
@@ -14,12 +15,12 @@ public class BlockFromToEvent extends BlockEvent implements Cancellable {
 
     private BlockState to;
 
-    public BlockFromToEvent(BlockState blockState, BlockState to) {
+    public BlockFromToEvent(Block blockState, BlockState to) {
         super(blockState);
         this.to = to;
     }
 
-    public BlockState getFrom() {
+    public Block getFrom() {
         return getBlock();
     }
 

@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
@@ -126,7 +127,7 @@ public abstract class BlockBehavior {
         return true;
     }
 
-    public boolean canBeReplaced() {
+    public boolean canBeReplaced(Block block) {
         return false;
     }
 
@@ -188,17 +189,47 @@ public abstract class BlockBehavior {
     }
 
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return block.getLevel().setBlock(block.getPosition(), item.getBlock(), true, true);
+        return placeBlock(block, item);
+    }
+
+    protected boolean placeBlock(Block block, Item item) {
+        return placeBlock(block, item, true);
+    }
+
+    protected boolean placeBlock(Block block, Item item, boolean update) {
+        return placeBlock(block, item.getBlock(), update);
+    }
+
+    protected boolean placeBlock(Block block, BlockState newState) {
+        return placeBlock(block, newState, true);
+    }
+
+    protected boolean placeBlock(Block block, BlockState newState, boolean update) {
+        BlockBehavior behavior = block.getState().getBehavior();
+        if (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging()) {
+            BlockState state = block.getState();
+            boolean flowing = state.ensureTrait(BlockTraits.IS_FLOWING) || state.ensureTrait(BlockTraits.FLUID_LEVEL) != 0;
+
+            if (!flowing && canWaterlogSource() || flowing && canWaterlogFlowing()) {
+                block.set(block.getState(), 1, true, false);
+            }
+        }
+
+        return block.getLevel().setBlock(block.getPosition(), newState, true, update);
     }
 
     public boolean onBreak(Block block, Item item) {
         return removeBlock(block, true);
     }
 
+    final protected boolean removeBlock(Block block) {
+        return removeBlock(block, true);
+    }
+
     final protected boolean removeBlock(Block block, boolean update) {
         if (block.isWaterlogged()) {
-            Block water = block.getLevel().getBlock(block.getPosition(), 1);
-            block.getLevel().setBlock(block.getPosition(), water.getState(), true, false);
+            BlockState water = block.getExtra();
+            block.getLevel().setBlock(block.getPosition(), water, true, false);
         }
 
         return block.getLevel().setBlock(block.getPosition(), BlockState.AIR, true, update);
@@ -224,7 +255,7 @@ public abstract class BlockBehavior {
         return 0.6f;
     }
 
-    public Vector3f addVelocityToEntity(Entity entity, Vector3f vector) {
+    public Vector3f addVelocityToEntity(Block block, Vector3f vector, Entity entity) {
         return vector;
     }
 
@@ -350,15 +381,15 @@ public abstract class BlockBehavior {
         return name.substring(16);
     }
 
-    public int getWeakPower(Direction face) {
+    public int getWeakPower(Block block, Direction face) {
         return 0;
     }
 
-    public int getStrongPower(Direction side) {
+    public int getStrongPower(Block block, Direction side) {
         return 0;
     }
 
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return false;
     }
 
@@ -366,8 +397,8 @@ public abstract class BlockBehavior {
         return 0;
     }
 
-    public boolean isNormalBlock() {
-        return !isTransparent() && isSolid() && !isPowerSource();
+    public boolean isNormalBlock(Block block) {
+        return !isTransparent() && isSolid() && !isPowerSource(block);
     }
 
     public BlockBehavior clone() {

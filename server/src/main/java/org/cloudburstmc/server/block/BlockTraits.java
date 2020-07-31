@@ -7,8 +7,9 @@ import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.server.block.trait.EnumBlockTrait;
 import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
-import org.cloudburstmc.server.math.CardinalDirection;
 import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.server.math.Direction.Axis;
+import org.cloudburstmc.server.math.LeverDirection;
 import org.cloudburstmc.server.utils.data.*;
 
 import javax.annotation.Nonnull;
@@ -52,7 +53,7 @@ public class BlockTraits {
     public final IntegerBlockTrait HUGE_MUSHROOM_BITS = IntegerBlockTrait.from("huge_mushroom_bits", 16);
     public final IntegerBlockTrait ICE_AGE = IntegerBlockTrait.from("ice_age", 4);
     public final IntegerBlockTrait KELP_AGE = IntegerBlockTrait.from("kelp_age", 26);
-    public final IntegerBlockTrait LIGHT_LEVEL = IntegerBlockTrait.from("light_level", 16);
+    public final IntegerBlockTrait LIGHT_LEVEL = IntegerBlockTrait.from("light_level", "block_light_level", 0, 16, 0);
     public final IntegerBlockTrait MOISTURIZED_AMOUNT = IntegerBlockTrait.from("moisturized_amount", 8);
     public final IntegerBlockTrait WART_GROWTH = IntegerBlockTrait.from("wart_growth", 4);
     public final EnumBlockTrait<PrismarineBlockType> PRISMARINE_BLOCK_TYPE = EnumBlockTrait.of("prismarine_block_type", PrismarineBlockType.class);
@@ -82,14 +83,15 @@ public class BlockTraits {
     public final IntegerBlockTrait WEEPING_VINES_AGE = IntegerBlockTrait.from("weeping_vines_age", 26);
     public final EnumBlockTrait<WoodType> WOOD_TYPE = EnumBlockTrait.of("wood_type", WoodType.class);
 
-    public final EnumBlockTrait<Direction.Axis> AXIS = EnumBlockTrait.of("axis", Direction.Axis.class);
+    public final EnumBlockTrait<Axis> AXIS = EnumBlockTrait.of("axis", "pillar_axis", Axis.class);
     public final EnumBlockTrait<Direction.Axis> PORTAL_AXIS = EnumBlockTrait.of("portal_axis", Direction.Axis.class, null, Direction.Axis.X, Direction.Axis.Z);
     public final EnumBlockTrait<Direction> FACING_DIRECTION = EnumBlockTrait.of("facing_direction", Direction.class, Direction.UP, Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
     public final EnumBlockTrait<Direction> DIRECTION = EnumBlockTrait.of("direction", Direction.class, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
     public final EnumBlockTrait<RailDirection> RAIL_DIRECTION = EnumBlockTrait.of("rail_direction", RailDirection.class);
     public final EnumBlockTrait<RailDirection> SIMPLE_RAIL_DIRECTION = EnumBlockTrait.of("simple_rail_direction", RailDirection.class, RailDirection.simpleValues());
     public final EnumBlockTrait<Direction> TORCH_DIRECTION = EnumBlockTrait.of("torch_direction", Direction.class, null, Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.UP);
-    public final EnumBlockTrait<CardinalDirection> CARDINAL_DIRECTION = EnumBlockTrait.of("cardinal_direction", CardinalDirection.class);
+    public final EnumBlockTrait<CardinalDirection> CARDINAL_DIRECTION = EnumBlockTrait.of("cardinal_direction", "ground_sign_direction", CardinalDirection.class);
+    public final EnumBlockTrait<LeverDirection> LEVER_DIRECTION = EnumBlockTrait.of("lever_direction", LeverDirection.class);
 
     public final BooleanBlockTrait IS_ALLOWED_UNDERWATER = BooleanBlockTrait.of("is_allowed_underwater", "allow_underwater_bit");
     public final BooleanBlockTrait IS_ATTACHED = BooleanBlockTrait.of("is_attached", "attached_bit");

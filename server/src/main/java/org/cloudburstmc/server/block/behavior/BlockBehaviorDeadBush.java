@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -16,16 +17,16 @@ import java.util.Random;
 public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
 
     @Override
-    public boolean canBeReplaced() {
+    public boolean canBeReplaced(Block block) {
         return true;
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        BlockState down = this.down();
-        if (down.getId() == BlockTypes.SAND || down.getId() == BlockTypes.HARDENED_CLAY || down.getId() == BlockTypes.STAINED_HARDENED_CLAY ||
-                down.getId() == BlockTypes.DIRT || down.getId() == BlockTypes.PODZOL) {
-            this.getLevel().setBlock(block.getPosition(), this, true, true);
+        val down = block.down().getState().getType();
+        if (down == BlockTypes.SAND || down == BlockTypes.HARDENED_CLAY || down == BlockTypes.STAINED_HARDENED_CLAY ||
+                down == BlockTypes.DIRT || down == BlockTypes.PODZOL) {
+            placeBlock(block, item);
             return true;
         }
         return false;
@@ -35,9 +36,8 @@ public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.down().isTransparent()) {
-                this.getLevel().useBreakOn(this.getPosition());
-
+            if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
+                removeBlock(block, true);
                 return Level.BLOCK_UPDATE_NORMAL;
             }
         }

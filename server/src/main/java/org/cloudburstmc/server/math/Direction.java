@@ -11,12 +11,12 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
 
 public enum Direction {
-    DOWN(0, 1, -1, "down", AxisDirection.NEGATIVE, Vector3i.from(0, -1, 0)),
-    UP(1, 0, -1, "up", AxisDirection.POSITIVE, Vector3i.from(0, 1, 0)),
-    NORTH(2, 3, 2, "north", AxisDirection.NEGATIVE, Vector3i.from(0, 0, -1)),
-    SOUTH(3, 2, 0, "south", AxisDirection.POSITIVE, Vector3i.from(0, 0, 1)),
-    WEST(4, 5, 1, "west", AxisDirection.NEGATIVE, Vector3i.from(-1, 0, 0)),
-    EAST(5, 4, 3, "east", AxisDirection.POSITIVE, Vector3i.from(1, 0, 0));
+    DOWN(1, -1, "down", AxisDirection.NEGATIVE, Vector3i.from(0, -1, 0)),
+    UP(0, -1, "up", AxisDirection.POSITIVE, Vector3i.from(0, 1, 0)),
+    NORTH(3, 2, "north", AxisDirection.NEGATIVE, Vector3i.from(0, 0, -1)),
+    SOUTH(2, 0, "south", AxisDirection.POSITIVE, Vector3i.from(0, 0, 1)),
+    WEST(5, 1, "west", AxisDirection.NEGATIVE, Vector3i.from(-1, 0, 0)),
+    EAST(4, 3, "east", AxisDirection.POSITIVE, Vector3i.from(1, 0, 0));
 
     /**
      * All faces in D-U-N-S-W-E order
@@ -38,18 +38,13 @@ public enum Direction {
         EAST.axis = Axis.X;
 
         for (Direction face : values()) {
-            VALUES[face.index] = face;
+            VALUES[face.ordinal()] = face;
 
             if (face.getAxis().isHorizontal()) {
                 HORIZONTALS[face.horizontalIndex] = face;
             }
         }
     }
-
-    /**
-     * Ordering index for D-U-N-S-W-E
-     */
-    private final int index;
 
     /**
      * Index of the opposite BlockFace in the VALUES array
@@ -75,8 +70,7 @@ public enum Direction {
      */
     private final Vector3i unitVector;
 
-    Direction(int index, int opposite, int horizontalIndex, String name, AxisDirection axisDirection, Vector3i unitVector) {
-        this.index = index;
+    Direction(int opposite, int horizontalIndex, String name, AxisDirection axisDirection, Vector3i unitVector) {
         this.opposite = opposite;
         this.horizontalIndex = horizontalIndex;
         this.name = name;
@@ -140,7 +134,7 @@ public enum Direction {
      * @return index
      */
     public int getIndex() {
-        return index;
+        return ordinal();
     }
 
     /**

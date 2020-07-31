@@ -5,6 +5,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
@@ -34,6 +35,11 @@ public interface BlockState {
     <T extends Comparable<T>> BlockState withTrait(BlockTrait<T> trait, T value);
 
     @Nonnull
+    default <T extends Comparable<T>> BlockState copyTrait(BlockTrait<T> trait, BlockState from) {
+        return withTrait(trait, from.ensureTrait(trait));
+    }
+
+    @Nonnull
     BlockState withTrait(IntegerBlockTrait trait, int value);
 
     @Nonnull
@@ -57,7 +63,7 @@ public interface BlockState {
         return withTrait(trait, !ensureTrait(trait));
     }
 
-    default <T extends Comparable<T>> BlockState withDefaultTrait(BlockTrait<T> trait) {
+    default <T extends Comparable<T>> BlockState resetTrait(BlockTrait<T> trait) {
         return this.withTrait(trait, trait.getDefaultValue());
     }
 
@@ -65,6 +71,10 @@ public interface BlockState {
 
     @Nonnull
     BlockState defaultState();
+
+    default boolean inCategory(BlockCategory category) {
+        return BlockRegistry.get().inCategory(this.getType(), category);
+    }
 
     static BlockState get(@Nonnull Identifier blockType) {
         return BlockPalette.INSTANCE.getDefaultState(blockType);

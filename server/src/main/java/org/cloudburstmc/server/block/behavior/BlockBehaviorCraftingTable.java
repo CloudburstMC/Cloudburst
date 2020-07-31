@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.player.Player;
@@ -37,7 +38,7 @@ public class BlockBehaviorCraftingTable extends BlockBehaviorSolid {
             player.setCraftingGrid(player.getUIInventory().getBigCraftingGrid());
             ContainerOpenPacket pk = new ContainerOpenPacket();
             pk.setId((byte) -1);
-            pk.setBlockPosition(this.getPosition());
+            pk.setBlockPosition(block.getPosition());
             pk.setType(ContainerType.WORKBENCH);
             pk.setUniqueEntityId(player.getUniqueId());
             player.sendPacket(pk);
@@ -46,7 +47,7 @@ public class BlockBehaviorCraftingTable extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 }

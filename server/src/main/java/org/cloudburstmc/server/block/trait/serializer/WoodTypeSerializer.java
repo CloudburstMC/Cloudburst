@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.trait.serializer;
 
+import lombok.val;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.trait.BlockTrait;
@@ -12,16 +13,30 @@ public class WoodTypeSerializer implements TraitNameSerializer {
 
     @Override
     public String apply(BlockState state, BlockTrait<?> blockTrait) {
-        if (state.getType() == BlockTypes.LOG) {
+        val type = state.getType();
+
+        if (type == BlockTypes.LOG) {
             return "old_log_type";
         }
 
-        if (state.getType() == BlockTypes.LOG2) {
+        if (type == BlockTypes.LOG2) {
             return "new_log_type";
         }
 
-        if (state.getType() == BlockTypes.PLANKS) {
+        if (type == BlockTypes.PLANKS) {
             return "wood_type";
+        }
+
+        if (type == BlockTypes.LEAVES) {
+            return "old_leaf_type";
+        }
+
+        if (type == BlockTypes.LEAVES2) {
+            return "new_leaf_type";
+        }
+
+        if (type == BlockTypes.SAPLING) {
+            return "sapling_type";
         }
 
         return null;
