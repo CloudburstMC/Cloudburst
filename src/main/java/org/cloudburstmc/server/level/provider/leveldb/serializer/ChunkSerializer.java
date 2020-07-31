@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
+import net.daporkchop.ldbjni.direct.DirectDB;
+import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
-import org.iq80.leveldb.DB;
-import org.iq80.leveldb.WriteBatch;
 
 interface ChunkSerializer {
 
-    void serialize(WriteBatch db, Chunk chunk);
+    void serialize(DirectWriteBatch db, Chunk chunk);
 
-    void deserialize(DB db, ChunkBuilder chunkBuilder);
+    void deserialize(DirectDB db, ChunkBuilder chunkBuilder);
 }

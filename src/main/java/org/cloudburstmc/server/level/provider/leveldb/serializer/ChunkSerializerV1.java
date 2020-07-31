@@ -4,12 +4,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.daporkchop.ldbjni.direct.DirectDB;
+import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.utils.ChunkException;
 import org.iq80.leveldb.DB;
-import org.iq80.leveldb.WriteBatch;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 class ChunkSerializerV1 implements ChunkSerializer {
@@ -17,12 +18,12 @@ class ChunkSerializerV1 implements ChunkSerializer {
     static final ChunkSerializer INSTANCE = new ChunkSerializerV1();
 
     @Override
-    public void serialize(WriteBatch db, Chunk chunk) {
+    public void serialize(DirectWriteBatch db, Chunk chunk) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void deserialize(DB db, ChunkBuilder chunkBuilder) {
+    public void deserialize(DirectDB db, ChunkBuilder chunkBuilder) {
         this.deserializeExtraData(db, chunkBuilder);
 
         this.deserializeTerrain(db, chunkBuilder);

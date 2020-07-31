@@ -7,6 +7,8 @@ import it.unimi.dsi.fastutil.ints.Int2ShortMap;
 import it.unimi.dsi.fastutil.ints.Int2ShortOpenHashMap;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.daporkchop.ldbjni.direct.DirectDB;
+import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
@@ -14,8 +16,6 @@ import org.cloudburstmc.server.level.chunk.ChunkSection;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.ChunkException;
-import org.iq80.leveldb.DB;
-import org.iq80.leveldb.WriteBatch;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 class ChunkSerializerV3 extends ChunkSerializerV1 {
@@ -23,7 +23,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
     static ChunkSerializer INSTANCE = new ChunkSerializerV3();
 
     @Override
-    public void serialize(WriteBatch db, Chunk chunk) {
+    public void serialize(DirectWriteBatch db, Chunk chunk) {
         // Write chunk sections
         for (int ySection = 0; ySection < Chunk.SECTION_COUNT; ySection++) {
             ChunkSection section = chunk.getSection(ySection);
@@ -36,10 +36,9 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                 buffer.writeByte(ChunkSection.CHUNK_SECTION_VERSION);
                 ChunkSectionSerializers.serialize(buffer, section.getBlockStorageArray(), ChunkSection.CHUNK_SECTION_VERSION);
 
-                byte[] payload = new byte[buffer.readableBytes()];
-                buffer.readBytes(payload);
+                db.put(Unpooled.wrappedBuffer(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunk.getX(), chunk.getZ(), ySection)), buffer);
 
-                db.put(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunk.getX(), chunk.getZ(), ySection), payload);
+                buffer.clear(); //reset indices to prevent the buffer from constantly growing
             } finally {
                 buffer.release();
             }
@@ -47,7 +46,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
     }
 
     @Override
-    public void deserialize(DB db, ChunkBuilder chunkBuilder) {
+    public void deserialize(DirectDB db, ChunkBuilder chunkBuilder) {
         int chunkX = chunkBuilder.getX();
         int chunkZ = chunkBuilder.getZ();
 
@@ -70,40 +69,43 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
         ChunkSection[] sections = new ChunkSection[Chunk.SECTION_COUNT];
 
         for (int ySection = 0; ySection < Chunk.SECTION_COUNT; ySection++) {
-            byte[] sectionData = db.get(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunkX, chunkZ, ySection));
-            if (sectionData == null) {
-                continue;
+            ByteBuf buf = db.getZeroCopy(Unpooled.wrappedBuffer(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunkX, chunkZ, ySection)));
+            if (buf == null)    {
+                continue; //entry doesn't exist, skip
             }
-            ByteBuf buf = Unpooled.wrappedBuffer(sectionData);
-            if (!buf.isReadable()) {
-                throw new ChunkException("Empty sub-chunk " + ySection);
-            }
+            try {
+                if (!buf.isReadable()) {
+                    throw new ChunkException("Empty sub-chunk " + ySection);
+                }
 
-            int subChunkVersion = buf.readUnsignedByte();
-            if (subChunkVersion < ChunkSection.CHUNK_SECTION_VERSION) {
-                chunkBuilder.dirty();
-            }
-            BlockStorage[] blockStorage = ChunkSectionSerializers.deserialize(buf, chunkBuilder, subChunkVersion);
+                int subChunkVersion = buf.readUnsignedByte();
+                if (subChunkVersion < ChunkSection.CHUNK_SECTION_VERSION) {
+                    chunkBuilder.dirty();
+                }
+                BlockStorage[] blockStorage = ChunkSectionSerializers.deserialize(buf, chunkBuilder, subChunkVersion);
 
-            if (blockStorage[1] == null) {
-                blockStorage[1] = new BlockStorage();
-                if (extraDataMap != null) {
-                    for (int x = 0; x < 16; x++) {
-                        for (int z = 0; z < 16; z++) {
-                            for (int y = ySection * 16, lim = y + 16; y < lim; y++) {
-                                int key = Chunk.blockKey(x, y, z);
-                                if (extraDataMap.containsKey(key)) {
-                                    short value = extraDataMap.get(Chunk.blockKey(x, y, z));
-                                    int blockId = value & 0xff;
-                                    int blockData = (value >> 8) & 0xf;
-                                    blockStorage[1].setBlock(ChunkSection.blockIndex(x, y, z), BlockRegistry.get().getBlock(blockId, blockData));
+                if (blockStorage[1] == null) {
+                    blockStorage[1] = new BlockStorage();
+                    if (extraDataMap != null) {
+                        for (int x = 0; x < 16; x++) {
+                            for (int z = 0; z < 16; z++) {
+                                for (int y = ySection * 16, lim = y + 16; y < lim; y++) {
+                                    int key = Chunk.blockKey(x, y, z);
+                                    if (extraDataMap.containsKey(key)) {
+                                        short value = extraDataMap.get(Chunk.blockKey(x, y, z));
+                                        int blockId = value & 0xff;
+                                        int blockData = (value >> 8) & 0xf;
+                                        blockStorage[1].setBlock(ChunkSection.blockIndex(x, y, z), BlockRegistry.get().getBlock(blockId, blockData));
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                sections[ySection] = new ChunkSection(blockStorage);
+            } finally {
+                buf.release(); //release buffer to avoid memory leak
             }
-            sections[ySection] = new ChunkSection(blockStorage);
         }
 
         chunkBuilder.sections(sections);
