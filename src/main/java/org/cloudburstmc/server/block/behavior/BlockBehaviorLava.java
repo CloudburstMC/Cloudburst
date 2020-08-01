@@ -23,10 +23,13 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static org.cloudburstmc.server.block.BlockTypes.FLOWING_LAVA;
+import static org.cloudburstmc.server.block.BlockTypes.LAVA;
+
 public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
-    protected BlockBehaviorLava(Identifier flowingId, Identifier stationaryId) {
-        super(flowingId, stationaryId);
+    public BlockBehaviorLava() {
+        super(FLOWING_LAVA, LAVA);
     }
 
     @Override
@@ -200,8 +203,4 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
         }
         return vector;
     }
-
-//    public static BlockFactory factory(Identifier stationaryId) {
-//        return id -> new BlockBehaviorLava(id, stationaryId);
-//    }
 }

@@ -443,8 +443,6 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         }
     }
 
-    public abstract BlockState getBlock(int meta);
-
     @Nonnull
     public BlockState getLiquidBlock(Level level, int x, int y, int z) {
         return getLiquidBlock(level.getBlock(x, y, z));
