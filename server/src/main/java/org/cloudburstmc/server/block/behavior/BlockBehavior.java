@@ -26,17 +26,6 @@ import static org.cloudburstmc.server.block.BlockTypes.WOOL;
 
 public abstract class BlockBehavior {
 
-    protected final Identifier type;
-
-    //TODO: remove
-    public BlockBehavior() {
-        this(null);
-    }
-
-    public BlockBehavior(Identifier type) {
-        this.type = type;
-    }
-
     //http://minecraft.gamepedia.com/Breaking
     private static float breakTime0(float blockHardness, boolean correctTool, boolean canHarvestWithHand,
                                     Identifier id, int toolType, int toolTier, int efficiencyLoreLevel, int hasteEffectLevel,
