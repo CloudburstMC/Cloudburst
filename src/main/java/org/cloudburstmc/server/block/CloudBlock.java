@@ -44,6 +44,11 @@ public class CloudBlock implements Block {
     }
 
     @Override
+    public Block getRelative(int x, int y, int z) {
+        return this.level.getBlock(this.position.add(x, y, z));
+    }
+
+    @Override
     public boolean isWaterlogged() {
         BlockState fluidState = this.getExtra();
         return (fluidState.getType() == WATER || fluidState.getType() == FLOWING_WATER);
