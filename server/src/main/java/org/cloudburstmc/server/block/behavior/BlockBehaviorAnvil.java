@@ -23,7 +23,7 @@ import static org.cloudburstmc.server.block.BlockTypes.SNOW_LAYER;
 public class BlockBehaviorAnvil extends BlockBehaviorFallable {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

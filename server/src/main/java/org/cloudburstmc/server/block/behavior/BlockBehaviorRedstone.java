@@ -23,8 +23,6 @@ public class BlockBehaviorRedstone extends BlockBehaviorSolid {
         return ItemTool.TYPE_PICKAXE;
     }
 
-    //TODO: redstone
-
     @Override
     public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {

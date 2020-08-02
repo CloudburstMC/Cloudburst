@@ -82,7 +82,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox(Block block) {
+    public AxisAlignedBB getBoundingBox() {
         return null;
     }
 
@@ -96,7 +96,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 //        return this;
 //    }
 
-    public float getFluidHeightPercent(BlockState state) {
+    public static float getFluidHeightPercent(BlockState state) {
         return (state.ensureTrait(BlockTraits.FLUID_LEVEL) + 1) / 9f;
     }
 
@@ -239,7 +239,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                     if (decayed) {
                         to = BlockState.get(AIR);
                     } else {
-                        to = getBlock(decay);
+                        to = BlockState.get(flowingId).withTrait(BlockTraits.FLUID_LEVEL, decay); //TODO: check
                     }
                     BlockFromToEvent event = new BlockFromToEvent(block, to);
                     level.getServer().getPluginManager().callEvent(event);
@@ -308,7 +308,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                     level.useBreakOn(block.getPosition());
                 }
 
-                block.set(getBlock(newFlowDecay), true);
+                block.set(BlockState.get(flowingId).withTrait(BlockTraits.FLUID_LEVEL, newFlowDecay), true); //TODO: check
                 level.scheduleUpdate(block.getPosition(), this.tickRate());
             }
         }

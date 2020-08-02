@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -14,7 +13,6 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
-import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -141,7 +139,7 @@ public abstract class BlockBehavior {
         return 1;
     }
 
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return false;
     }
 
@@ -348,7 +346,7 @@ public abstract class BlockBehavior {
     }
 
     public boolean collidesWithBB(Block block, AxisAlignedBB bb, boolean collisionBB) {
-        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block) : this.getBoundingBox(block);
+        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block) : this.getBoundingBox();
         return bb1 != null && bb.intersectsWith(bb1);
     }
 
@@ -356,13 +354,14 @@ public abstract class BlockBehavior {
 
     }
 
-    public AxisAlignedBB getBoundingBox(Block block) {
-        Vector3i pos = block.getPosition();
-        return new SimpleAxisAlignedBB(pos, pos.add(1, 1, 1));
+    public AxisAlignedBB getBoundingBox() {
+//        Vector3i pos = block.getPosition();
+//        return new SimpleAxisAlignedBB(pos, pos.add(1, 1, 1));
+        return new SimpleAxisAlignedBB(0, 0, 0, 1, 1, 1);
     }
 
     public AxisAlignedBB getCollisionBoxes(Block block) {
-        return getBoundingBox(block);
+        return getBoundingBox();
     }
 
     public String getSaveId() {
@@ -399,7 +398,7 @@ public abstract class BlockBehavior {
     }
 
     public Item toItem(Block block) {
-        return ItemRegistry.get().getItem(block.getState());
+        return Item.get(block.getState());
     }
 
     public boolean canSilkTouch() {

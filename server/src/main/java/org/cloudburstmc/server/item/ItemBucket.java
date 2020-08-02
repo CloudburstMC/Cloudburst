@@ -3,12 +3,8 @@ package org.cloudburstmc.server.item;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.CloudBlock;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorAir;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLava;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
+import lombok.val;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.server.event.player.PlayerItemConsumeEvent;
@@ -90,26 +86,31 @@ public class ItemBucket extends Item {
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         BlockState bucketContents = BlockState.get(getBlockIdFromDamage(this.getMeta()));
 
-        if (bucketContents instanceof BlockBehaviorAir) {
+        if (bucketContents == BlockState.AIR) {
+            BlockState liquid;
+
             if (target.isWaterlogged()) {
-                target = player.getLevel().getBlock(target.getX(), target.getY(), target.getZ(), 1);
+                liquid = target.getExtra();
+            } else {
+                liquid = target.getState();
             }
-            if (target instanceof BlockBehaviorLiquid && target.getMeta() == 0) {
-                Item result = Item.get(ItemIds.BUCKET, this.getDamageFromIdentifier(target.getId()), 1);
+
+            if (liquid.inCategory(BlockCategory.LIQUID) && liquid.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
+                Item result = Item.get(ItemIds.BUCKET, this.getDamageFromIdentifier(liquid.getType()), 1);
                 PlayerBucketFillEvent ev;
                 player.getServer().getPluginManager().callEvent(ev = new PlayerBucketFillEvent(player, block, face, this, result));
                 if (!ev.isCancelled()) {
-                    player.getLevel().setBlock(target.getPosition(), BlockState.get(AIR), true, true);
+                    target.set(BlockState.AIR, true);
 
                     // When water is removed ensure any adjacent still water is
                     // replaced with water that can flow.
                     for (Direction side : Direction.Plane.HORIZONTAL) {
                         Block b = target.getSide(side);
-                        if (b.isWaterlogged()) {
-                            b = player.getLevel().getBlock(b.getX(), b.getY(), b.getZ(), 1);
-                        }
+
                         if (b.getState().getType() == WATER) {
-                            level.setBlock(b.getPosition(), BlockState.get(FLOWING_WATER));
+                            b.set(BlockState.get(FLOWING_WATER));
+                        } else if (b.getExtra().getType() == WATER) {
+                            b.set(BlockState.get(FLOWING_WATER), 1, true, false);
                         }
                     }
 
@@ -120,7 +121,7 @@ public class ItemBucket extends Item {
                         player.getInventory().addItem(ev.getItem());
                     }
 
-                    if (target instanceof BlockBehaviorLava) {
+                    if (liquid.getType() == LAVA) {
                         level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_FILL_LAVA);
                     } else {
                         level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_FILL_WATER);
@@ -131,14 +132,16 @@ public class ItemBucket extends Item {
                     player.getInventory().sendContents(player);
                 }
             }
-        } else if (bucketContents instanceof BlockBehaviorLiquid) {
+        } else if (bucketContents.inCategory(BlockCategory.LIQUID)) {
             Item result = Item.get(ItemIds.BUCKET, 0, 1);
             Block emptyTarget = block;
-            if (target.canWaterlogSource() && bucketContents.getId() == FLOWING_WATER) {
+            val behavior = target.getState().getBehavior();
+
+            if (behavior.canWaterlogSource() && bucketContents.getType() == FLOWING_WATER) {
                 emptyTarget = target;
             }
             PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, emptyTarget, face, this, result);
-            if (!emptyTarget.canBeFlooded() && !emptyTarget.canWaterlogSource()) {
+            if (!behavior.canBeFlooded() && !behavior.canWaterlogSource()) {
                 ev.setCancelled(true);
             }
 
@@ -149,9 +152,9 @@ public class ItemBucket extends Item {
             player.getServer().getPluginManager().callEvent(ev);
 
             if (!ev.isCancelled()) {
-                int layer = emptyTarget.canWaterlogSource() ? 1 : 0;
+                int layer = behavior.canWaterlogSource() ? 1 : 0;
                 if (target.getLevel().setBlock(emptyTarget.getPosition(), layer, bucketContents, true, true)) {
-                    bucketContents.getLevel().scheduleUpdate(bucketContents, bucketContents.tickRate());
+                    target.getLevel().scheduleUpdate(emptyTarget.getPosition(), bucketContents.getBehavior().tickRate());
                 }
                 if (player.isSurvival()) {
                     Item clone = this.clone();
@@ -169,7 +172,7 @@ public class ItemBucket extends Item {
                 return true;
             } else {
                 player.getLevel().sendBlocks(new Player[]{player},
-                        new Block[]{new CloudBlock(BlockState.AIR, block.getLevel(), block.getChunk(), block.getPosition(), block.getLayer())},
+                        new Block[]{new CloudBlock(block.getLevel(), block.getPosition(), CloudBlock.EMPTY)},
                         UpdateBlockPacket.FLAG_ALL_PRIORITY);
                 player.getInventory().sendContents(player);
             }

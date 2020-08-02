@@ -22,10 +22,10 @@ public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED || type == Level.BLOCK_UPDATE_RANDOM) {
-            BlockFadeEvent event = new BlockFadeEvent(this, BlockState.get(BlockTypes.REDSTONE_ORE));
-            level.getServer().getPluginManager().callEvent(event);
+            BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.REDSTONE_ORE));
+            block.getLevel().getServer().getPluginManager().callEvent(event);
             if (!event.isCancelled()) {
-                level.setBlock(this.getPosition(), event.getNewState(), false, false);
+                block.set(event.getNewState(), false, false);
             }
 
             return Level.BLOCK_UPDATE_WEAK;

@@ -49,7 +49,7 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

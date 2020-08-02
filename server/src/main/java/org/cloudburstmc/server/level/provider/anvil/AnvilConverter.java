@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.level.provider.anvil;
 
-import cn.nukkit.level.chunk.*;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NBTInputStream;
@@ -10,12 +9,10 @@ import com.nukkitx.nbt.NbtUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.level.BlockUpdate;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.chunk.*;
 import org.cloudburstmc.server.level.provider.LegacyBlockConverter;
@@ -27,8 +24,6 @@ import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.NibbleArray;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -122,31 +117,31 @@ public class AnvilConverter {
 
         if (updateEntries != null && updateEntries.size() > 0) {
             for (NbtMap entryTag : updateEntries) {
-                BlockState block;
+//                Block block; //TODO: converter
 
-                try {
-                    String name = entryTag.getString("i");
+//                try {
+//                    String name = entryTag.getString("i");
+//
+//
+//                    @SuppressWarnings("unchecked")
+//                    Class<? extends BlockState> clazz = (Class<? extends BlockState>) Class.forName("cn.nukkit.block." + name);
+//
+//                    Constructor<? extends BlockState> constructor = clazz.getDeclaredConstructor();
+//                    constructor.setAccessible(true);
+//                    block = constructor.newInstance();
+//                } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException |
+//                        IllegalAccessException | InvocationTargetException e) {
+//                    continue;
+//                }
 
-
-                    @SuppressWarnings("unchecked")
-                    Class<? extends BlockState> clazz = (Class<? extends BlockState>) Class.forName("cn.nukkit.block." + name);
-
-                    Constructor<? extends BlockState> constructor = clazz.getDeclaredConstructor();
-                    constructor.setAccessible(true);
-                    block = constructor.newInstance();
-                } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException |
-                        IllegalAccessException | InvocationTargetException e) {
-                    continue;
-                }
-
-                block.setPosition(Vector3i.from(
-                        entryTag.getInt("x"),
-                        entryTag.getInt("y"),
-                        entryTag.getInt("z")
-                ));
-
-                chunkBuilder.blockUpdate(BlockUpdate.of(block, block.getPosition(), entryTag.getInt("t"),
-                        entryTag.getInt("p"), false));
+//                block.setPosition(Vector3i.from(
+//                        entryTag.getInt("x"),
+//                        entryTag.getInt("y"),
+//                        entryTag.getInt("z")
+//                ));
+//
+//                chunkBuilder.blockUpdate(BlockUpdate.of(block, block.getPosition(), entryTag.getInt("t"),
+//                        entryTag.getInt("p"), false));
             }
         }
 

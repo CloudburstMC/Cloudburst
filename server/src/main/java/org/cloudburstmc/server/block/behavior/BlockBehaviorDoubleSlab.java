@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -58,18 +56,5 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     public BlockColor getColor(Block block) {
         StoneSlabType type = block.getState().ensureTrait(BlockTraits.STONE_SLAB_TYPE);
         return COLORS.get(type);
-    }
-
-    protected void playPlaceSound(Block block) {
-        LevelSoundEvent2Packet pk = new LevelSoundEvent2Packet();
-        pk.setSound(SoundEvent.ITEM_USE_ON);
-        pk.setExtraData(725); // Who knows what this means? It's what is sent per ProxyPass
-        pk.setPosition(block.getPosition().toFloat().add(0.5f, 0.5f, 0.5f));
-        pk.setIdentifier("");
-        pk.setBabySound(false);
-        pk.setRelativeVolumeDisabled(false);
-
-
-        block.getLevel().addChunkPacket(block.getPosition(), pk);
     }
 }

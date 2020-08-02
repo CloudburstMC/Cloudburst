@@ -8,7 +8,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.level.Level;
@@ -284,7 +284,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
         return chunk;
     }
 
-    public BlockState getBlock() {
-        return this.chunk.getBlock(this.position.getX() & 0xf, this.position.getY() & 0xff, this.position.getZ() & 0xf);
+    public Block getBlock() {
+        return this.level.getBlock(this.position);
     }
 }

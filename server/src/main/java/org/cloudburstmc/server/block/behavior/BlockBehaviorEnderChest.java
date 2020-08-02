@@ -21,7 +21,7 @@ import static org.cloudburstmc.server.block.BlockTypes.OBSIDIAN;
 public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -93,11 +93,11 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
             }
 
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
-            if ((blockEntity instanceof EnderChest)) {
+            if (!(blockEntity instanceof EnderChest)) {
                 BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, block.getChunk(), block.getPosition());
             }
 
-            player.setViewingEnderChest(this);
+            player.setViewingEnderChest((EnderChest) blockEntity);
             player.addWindow(player.getEnderChestInventory());
         }
 

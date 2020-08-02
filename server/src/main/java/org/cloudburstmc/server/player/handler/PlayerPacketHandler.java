@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.player.handler;
 
-import cn.nukkit.block.*;
-import cn.nukkit.event.player.*;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,13 +20,13 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorDragonEgg;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLectern;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorNoteblock;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ItemFrame;
 import org.cloudburstmc.server.blockentity.Lectern;
@@ -271,30 +269,26 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 if ((lastBreakPosition.equals(currentBreakPosition) && (currentBreak - player.lastBreak) < 10) || currentPos.distanceSquared(blockPos.toFloat()) > 100) {
                     break;
                 }
-                BlockState target = player.getLevel().getBlock(blockPos);
-                PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, player.getInventory().getItemInHand(), target, face, target.getId() == AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+                Block target = player.getLevel().getBlock(blockPos);
+                val targetState = target.getState();
+
+                PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, player.getInventory().getItemInHand(), target, face, targetState == BlockState.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
                 player.getServer().getPluginManager().callEvent(playerInteractEvent);
                 if (playerInteractEvent.isCancelled()) {
                     player.getInventory().sendHeldItem(player);
                     break;
                 }
-                if (target.getId() == BlockTypes.NOTEBLOCK) {
-                    ((BlockBehaviorNoteblock) target).emitSound();
-                    break;
-                } else if (target.getId() == BlockTypes.DRAGON_EGG) {
-                    ((BlockBehaviorDragonEgg) target).teleport();
-                    break;
-                }
-                BlockState blockState = target.getSide(face);
-                if (blockState.getId() == BlockTypes.FIRE) {
-                    player.getLevel().setBlock(blockState.getPosition(), BlockState.get(AIR), true);
-                    player.getLevel().addLevelSoundEvent(blockState.getPosition(), SoundEvent.EXTINGUISH_FIRE);
+
+                Block block = target.getSide(face);
+                if (block.getState().getType() == BlockTypes.FIRE) {
+                    block.set(BlockState.AIR, true);
+                    player.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.EXTINGUISH_FIRE);
                     break;
                 }
                 if (!player.isCreative()) {
                     //improved player to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
                     //Done by lmlstarqaq
-                    double breakTime = Math.ceil(target.getBreakTime(player.getInventory().getItemInHand(), player) * 20);
+                    double breakTime = Math.ceil(targetState.getBehavior().getBreakTime(targetState, player.getInventory().getItemInHand(), player) * 20);
                     if (breakTime > 0) {
                         LevelEventPacket levelEvent = new LevelEventPacket();
                         levelEvent.setType(LevelEventType.BLOCK_START_BREAK);
@@ -304,7 +298,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     }
                 }
 
-                player.breakingBlockState = target;
+                player.breakingBlock = target;
                 player.lastBreak = currentBreak;
                 lastBreakPosition = currentBreakPosition;
                 break;
@@ -315,7 +309,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 levelEvent.setPosition(blockPos.toFloat());
                 levelEvent.setData(0);
                 player.getLevel().addChunkPacket(blockPos, levelEvent);
-                player.breakingBlockState = null;
+                player.breakingBlock = null;
                 break;
             case GET_UPDATED_BLOCK:
                 break; //TODO
@@ -438,8 +432,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 break;
             case CONTINUE_BREAK:
                 if (player.isBreakingBlock()) {
-                    blockState = player.getLevel().getBlock(blockPos);
-                    player.getLevel().addParticle(new PunchBlockParticle(blockPos.toFloat(), blockState, face));
+                    block = player.getLevel().getBlock(blockPos);
+                    player.getLevel().addParticle(new PunchBlockParticle(blockPos.toFloat(), block.getState(), face));
                 }
                 break;
             case START_SWIMMING:
@@ -552,8 +546,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(BlockPickRequestPacket packet) {
         Vector3i pickPos = packet.getBlockPosition();
-        BlockState blockState = player.getLevel().getBlock(pickPos.getX(), pickPos.getY(), pickPos.getZ());
-        Item serverItem = blockState.toItem();
+        Block block = player.getLevel().getBlock(pickPos.getX(), pickPos.getY(), pickPos.getZ());
+        Item serverItem = block.getState().getBehavior().toItem(block);
 
         if (packet.isAddUserData()) {
             BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(
@@ -567,7 +561,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
         }
 
-        PlayerBlockPickEvent pickEvent = new PlayerBlockPickEvent(player, blockState, serverItem);
+        PlayerBlockPickEvent pickEvent = new PlayerBlockPickEvent(player, block, serverItem);
         if (player.isSpectator()) {
             log.debug("Got block-pick request from " + player.getName() + " when in spectator mode");
             pickEvent.setCancelled();
@@ -793,13 +787,13 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
         ItemFrame itemFrame = (ItemFrame) blockEntity;
-        BlockState blockState = itemFrame.getBlock();
+        BlockState state = itemFrame.getBlock();
         Item itemDrop = itemFrame.getItem();
-        ItemFrameDropItemEvent itemFrameDropItemEvent = new ItemFrameDropItemEvent(player, blockState, itemFrame, itemDrop);
+        ItemFrameDropItemEvent itemFrameDropItemEvent = new ItemFrameDropItemEvent(player, state, itemFrame, itemDrop);
         player.getServer().getPluginManager().callEvent(itemFrameDropItemEvent);
         if (!itemFrameDropItemEvent.isCancelled()) {
             if (itemDrop.getId() != AIR) {
-                player.getLevel().dropItem(blockState.getPosition(), itemDrop);
+                player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
                 itemFrame.setItem(Item.get(AIR, 0, 0));
                 itemFrame.setItemRotation(0);
                 player.getLevel().addSound(player.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
@@ -959,10 +953,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             return true;
                         }
 
-                        BlockState target = player.getLevel().getBlock(blockVector);
-                        BlockState blockState = target.getSide(face);
+                        Block target = player.getLevel().getBlock(blockVector);
+                        Block blockState = target.getSide(face);
 
-                        player.getLevel().sendBlocks(new Player[]{player}, new BlockState[]{target, blockState}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                        player.getLevel().sendBlocks(new Player[]{player}, new Block[]{target, blockState}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
                         return true;
                     case InventoryTransactionUtils.USE_ITEM_ACTION_BREAK_BLOCK:
                         if (!player.spawned || !player.isAlive()) {
@@ -991,7 +985,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         target = player.getLevel().getBlock(blockVector);
                         BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockVector);
 
-                        player.getLevel().sendBlocks(new Player[]{player}, new BlockState[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                        player.getLevel().sendBlocks(new Player[]{player}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
                         player.getInventory().sendHeldItem(player);
 
@@ -1244,9 +1238,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         Vector3i blockPosition = packet.getBlockPosition();
 
         if (packet.isDroppingBook()) {
-            BlockState blockStateLectern = player.getLevel().getBlock(blockPosition);
-            if (blockStateLectern instanceof BlockBehaviorLectern) {
-                ((BlockBehaviorLectern) blockStateLectern).dropBook(player);
+            Block block = player.getLevel().getBlock(blockPosition);
+            val state = block.getState();
+            if (state.getType() == BlockTypes.LECTERN) {
+                ((BlockBehaviorLectern) state.getBehavior()).dropBook(block, player);
             }
         } else {
             BlockEntity blockEntity = player.getLevel().getBlockEntity(blockPosition);
@@ -1257,9 +1252,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 if (!lecternPageChangeEvent.isCancelled()) {
                     lectern.setPage(lecternPageChangeEvent.getNewRawPage());
                     lectern.spawnToAll();
-                    BlockState blockStateLectern = lectern.getBlock();
-                    if (blockStateLectern instanceof BlockBehaviorLectern) {
-                        ((BlockBehaviorLectern) blockStateLectern).executeRedstonePulse();
+                    val behavior = lectern.getBlock().getBehavior(); //TODO: check
+                    if (behavior instanceof BlockBehaviorLectern) {
+                        ((BlockBehaviorLectern) behavior).executeRedstonePulse(player.getLevel().getBlock(lectern.getPosition()));
                     }
                 }
             }

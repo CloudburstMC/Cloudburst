@@ -27,7 +27,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -79,7 +79,6 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        BlockState blockState = block.getState();
         Direction chestFace = player.getHorizontalDirection().getOpposite();
         Axis axis = chestFace.getAxis() == Axis.X ? Axis.Z : Axis.X;
 

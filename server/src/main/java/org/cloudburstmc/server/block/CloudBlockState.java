@@ -13,6 +13,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -85,6 +86,20 @@ public final class CloudBlockState implements BlockState {
         checkNotNull(trait, "trait");
         int traitIndex = this.traitPalette.getInt(trait);
         return this.table[traitIndex][trait.getIndex(value)];
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Nonnull
+    @Override
+    public BlockState copyTraits(BlockState from) {
+        BlockState result = this;
+
+        //TODO: direct access?
+        for (Entry<BlockTrait<?>, Comparable<?>> entry : from.getTraits().entrySet()) {
+            result = result.withTrait(entry.getKey(), (Comparable) entry.getValue());
+        }
+
+        return result;
     }
 
     @Override

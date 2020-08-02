@@ -13,7 +13,7 @@ public class BlockBehaviorPodzol extends BlockBehaviorDirt {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return false;
     }
 

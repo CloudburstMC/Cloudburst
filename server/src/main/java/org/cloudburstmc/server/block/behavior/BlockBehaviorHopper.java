@@ -58,7 +58,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

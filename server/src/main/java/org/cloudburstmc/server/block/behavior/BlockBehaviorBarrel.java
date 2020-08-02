@@ -68,7 +68,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

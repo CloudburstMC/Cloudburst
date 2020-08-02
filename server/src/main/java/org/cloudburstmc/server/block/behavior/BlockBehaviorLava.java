@@ -18,7 +18,6 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -139,11 +138,6 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.LAVA_BLOCK_COLOR;
-    }
-
-    @Override
-    public BlockState getBlock(int level) {
-        return BlockState.get(BlockTypes.FLOWING_LAVA).withTrait(BlockTraits.FLUID_LEVEL, level);
     }
 
     @Override

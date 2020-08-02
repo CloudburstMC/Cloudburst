@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.entity;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
@@ -21,10 +21,10 @@ public class EntityExplodeEvent extends EntityEvent implements Cancellable {
     }
 
     protected final Vector3f position;
-    protected List<BlockState> blockStates;
+    protected List<Block> blockStates;
     protected double yield;
 
-    public EntityExplodeEvent(Entity entity, Vector3f position, List<BlockState> blockStates, double yield) {
+    public EntityExplodeEvent(Entity entity, Vector3f position, List<Block> blockStates, double yield) {
         this.entity = entity;
         this.position = position;
         this.blockStates = blockStates;
@@ -35,11 +35,11 @@ public class EntityExplodeEvent extends EntityEvent implements Cancellable {
         return this.position;
     }
 
-    public List<BlockState> getBlockList() {
+    public List<Block> getBlockList() {
         return this.blockStates;
     }
 
-    public void setBlockList(List<BlockState> blockStates) {
+    public void setBlockList(List<Block> blockStates) {
         this.blockStates = blockStates;
     }
 

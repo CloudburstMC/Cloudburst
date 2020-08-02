@@ -40,18 +40,13 @@ public class BlockBehaviorWeightedPressurePlateLight extends BlockBehaviorPressu
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(id, 0);
-    }
-
-    @Override
     public BlockColor getColor(Block block) {
         return BlockColor.GOLD_BLOCK_COLOR;
     }
 
     @Override
-    protected int computeRedstoneStrength() {
-        int count = Math.min(this.level.getCollidingEntities(getCollisionBoxes()).size(), this.getMaxWeight());
+    protected int computeRedstoneStrength(Block block) {
+        int count = Math.min(block.getLevel().getCollidingEntities(getCollisionBoxes(block)).size(), this.getMaxWeight());
 
         if (count > 0) {
             float f = (float) Math.min(this.getMaxWeight(), count) / (float) this.getMaxWeight();

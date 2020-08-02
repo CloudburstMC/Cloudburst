@@ -20,7 +20,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
     private static final float[] offMinZ = new float[2];
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

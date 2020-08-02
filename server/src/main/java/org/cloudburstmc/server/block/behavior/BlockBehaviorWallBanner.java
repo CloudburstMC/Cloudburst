@@ -1,20 +1,22 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.BlockTypes;
+import lombok.val;
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
 
 public class BlockBehaviorWallBanner extends BlockBehaviorBanner {
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.getMeta() >= Direction.NORTH.getIndex() && this.getMeta() <= Direction.EAST.getIndex()) {
-                if (this.getSide(Direction.fromIndex(this.getMeta()).getOpposite()).getId() == BlockTypes.AIR) {
-                    this.getLevel().useBreakOn(this.getPosition());
-                }
-                return Level.BLOCK_UPDATE_NORMAL;
+            val side = block.getSide(block.getState().ensureTrait(BlockTraits.FACING_DIRECTION).getOpposite());
+            if (side.getState() == BlockState.AIR) {
+                block.getLevel().useBreakOn(block.getPosition());
             }
+
+            return Level.BLOCK_UPDATE_NORMAL;
         }
         return 0;
     }
