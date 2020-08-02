@@ -10,7 +10,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

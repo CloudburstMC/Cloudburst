@@ -1,11 +1,12 @@
 package org.cloudburstmc.server.level;
 
-import cn.nukkit.math.*;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorTNT;
@@ -42,7 +43,7 @@ public class Explosion {
     private final Vector3f source;
     private final double size;
 
-    private List<BlockState> affectedBlockStates = new ArrayList<>();
+    private List<Block> affectedBlockStates = new ArrayList<>();
     private final double stepLen = 0.3d;
 
     private final Object what;
@@ -99,18 +100,16 @@ public class Explosion {
                             if (vBlock.getY() < 0 || vBlock.getY() > 255) {
                                 break;
                             }
-                            BlockState blockState = this.level.getLoadedBlock(vBlock);
+                            Block block = this.level.getLoadedBlock(vBlock);
 
-                            if (blockState != null && blockState.getId() != BlockTypes.AIR) {
-                                BlockState layer1 = blockState.getExtra();
-                                double resistance = Math.max(blockState.getResistance(), layer1.getResistance());
+                            if (block != null && block.getState() != BlockState.AIR) {
+                                val state = block.getState();
+                                BlockState layer1 = block.getExtra();
+                                double resistance = Math.max(state.getBehavior().getResistance(), layer1.getBehavior().getResistance());
                                 blastForce -= (resistance / 5 + 0.3d) * this.stepLen;
                                 if (blastForce > 0) {
-                                    if (!this.affectedBlockStates.contains(blockState)) {
-                                        this.affectedBlockStates.add(blockState);
-                                        if (layer1.getId() != BlockTypes.AIR) {
-                                            this.affectedBlockStates.add(layer1);
-                                        }
+                                    if (!this.affectedBlockStates.contains(block)) {
+                                        this.affectedBlockStates.add(block);
                                     }
                                 }
                             }
@@ -166,8 +165,8 @@ public class Explosion {
 
                 if (this.what instanceof Entity) {
                     entity.attack(new EntityDamageByEntityEvent((Entity) this.what, entity, EntityDamageEvent.DamageCause.ENTITY_EXPLOSION, damage));
-                } else if (this.what instanceof BlockState) {
-                    entity.attack(new EntityDamageByBlockEvent((BlockState) this.what, entity, EntityDamageEvent.DamageCause.BLOCK_EXPLOSION, damage));
+                } else if (this.what instanceof Block) {
+                    entity.attack(new EntityDamageByBlockEvent((Block) this.what, entity, EntityDamageEvent.DamageCause.BLOCK_EXPLOSION, damage));
                 } else {
                     entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.BLOCK_EXPLOSION, damage));
                 }
@@ -181,40 +180,32 @@ public class Explosion {
         Item air = Item.get(BlockTypes.AIR, 0, 0);
 
         //Iterator iter = this.affectedBlocks.entrySet().iterator();
-        for (BlockState blockState : this.affectedBlockStates) {
+        for (Block block : this.affectedBlockStates) {
+            val state = block.getState();
+            val behavior = state.getBehavior();
             //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
-            if (blockState.getId() == BlockTypes.TNT) {
-                ((BlockBehaviorTNT) blockState).prime(ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
+            if (state.getType() == BlockTypes.TNT) {
+                ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
             } else if (Math.random() * 100 < yield) {
-                for (Item drop : blockState.getDrops(air)) {
-                    this.level.dropItem(blockState.getPosition(), drop);
+                for (Item drop : behavior.getDrops(block, air)) {
+                    this.level.dropItem(block.getPosition(), drop);
                 }
             }
 
-            this.level.setBlockId(blockState.getPosition(), blockState.getLayer(), BlockTypes.AIR);
-
-            if (blockState.getLayer() != 0) {
-                continue;
-            }
+            behavior.onBreak(block, air);
 
             for (Direction side : Direction.values()) {
-                BlockState sideBlockState = blockState.getSide(side);
-                Vector3i sidePos = sideBlockState.getPosition();
+                Block sideBlock = block.getSide(side);
+                Vector3i sidePos = sideBlock.getPosition();
                 long index = Hash.hashBlock(sidePos.getX(), sidePos.getY(), sidePos.getZ());
-                if (!this.affectedBlockStates.contains(sideBlockState) && !updateBlocks.contains(index)) {
-                    BlockUpdateEvent ev = new BlockUpdateEvent(sideBlockState);
+                if (!this.affectedBlockStates.contains(sideBlock) && !updateBlocks.contains(index)) {
+                    BlockUpdateEvent ev = new BlockUpdateEvent(sideBlock);
                     this.level.getServer().getPluginManager().callEvent(ev);
                     if (!ev.isCancelled()) {
-                        ev.getBlock().onUpdate(Level.BLOCK_UPDATE_NORMAL);
+                        val b = ev.getBlock();
+                        b.getState().getBehavior().onUpdate(b, Level.BLOCK_UPDATE_NORMAL);
                     }
-                    BlockState extra = sideBlockState.getExtra();
-                    if (extra.getId() != BlockTypes.AIR) {
-                        ev = new BlockUpdateEvent(extra);
-                        this.level.getServer().getPluginManager().callEvent(ev);
-                        if (!ev.isCancelled()) {
-                            ev.getBlock().onUpdate(Level.BLOCK_UPDATE_NORMAL);
-                        }
-                    }
+
                     updateBlocks.add(index);
                 }
             }

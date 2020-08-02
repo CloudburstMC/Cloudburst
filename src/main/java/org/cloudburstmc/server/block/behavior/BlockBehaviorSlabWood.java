@@ -1,5 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -14,6 +17,10 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
             BlockColor.ORANGE_BLOCK_COLOR,
             BlockColor.BROWN_BLOCK_COLOR
     };
+
+    public BlockBehaviorSlabWood() {
+        super(BlockTypes.WOODEN_SLAB, BlockTypes.DOUBLE_WOODEN_SLAB);
+    }
 
     @Override
     public int getBurnChance() {
@@ -41,7 +48,7 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
     }
 
     @Override
-    public Item toItem(BlockState state) {
-        return Item.get(id, this.getMeta() & 0x07);
+    public Item toItem(Block state) {
+        return Item.get(state.getState().resetTrait(BlockTraits.IS_TOP_SLOT));
     }
 }

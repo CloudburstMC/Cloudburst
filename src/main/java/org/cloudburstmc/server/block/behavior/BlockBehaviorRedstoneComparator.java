@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Comparator;
 import org.cloudburstmc.server.item.Item;
@@ -13,52 +15,53 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.POWERED_COMPARATOR;
 import static org.cloudburstmc.server.block.BlockTypes.UNPOWERED_COMPARATOR;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.COMPARATOR;
 
-public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode {
+public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode {
+
+    public BlockBehaviorRedstoneComparator(Identifier type) {
+        super(type);
+    }
 
     @Override
-    protected int getDelay() {
+    protected int getDelay(BlockState state) {
         return 2;
     }
 
-    @Override
-    public Direction getFacing() {
-        return Direction.fromHorizontalIndex(this.getMeta());
-    }
-
-    public Mode getMode() {
-        return (getMeta() & 4) > 0 ? Mode.SUBTRACT : Mode.COMPARE;
+    public Mode getMode(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_OUTPUT_SUBTRACT) ? Mode.SUBTRACT : Mode.COMPARE;
     }
 
     @Override
-    protected BlockState getUnpowered() {
-        return BlockState.get(UNPOWERED_COMPARATOR, this.getMeta());
+    protected BlockState getUnpowered(BlockState state) {
+        return BlockState.get(UNPOWERED_COMPARATOR).copyTraits(state);
     }
 
     @Override
-    protected BlockState getPowered() {
-        return BlockState.get(POWERED_COMPARATOR, this.getMeta());
+    protected BlockState getPowered(BlockState state) {
+        return BlockState.get(POWERED_COMPARATOR).copyTraits(state);
     }
 
     @Override
-    protected int getRedstoneSignal() {
-        BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+    protected int getRedstoneSignal(Block block) {
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         return blockEntity instanceof Comparator ? ((Comparator) blockEntity).getOutputSignal() : 0;
     }
 
     @Override
-    public void updateState() {
-        if (!this.level.isBlockTickPending(this.getPosition(), this)) {
-            int output = this.calculateOutput();
-            BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+    public void updateState(Block block) {
+        val state = block.getState();
+        if (!block.getLevel().isBlockTickPending(block.getPosition(), state)) {
+            int output = this.calculateOutput(block);
+            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             int power = blockEntity instanceof Comparator ? ((Comparator) blockEntity).getOutputSignal() : 0;
 
-            if (output != power || this.isPowered() != this.shouldBePowered()) {
+            if (output != power || this.isPowered(state) != this.shouldBePowered(block)) {
                 /*if(isFacingTowardsRepeater()) {
                     this.level.scheduleUpdate(this, this, 2, -1);
                 } else {
@@ -66,75 +69,72 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
                 }*/
 
                 //System.out.println("schedule update 0");
-                this.level.scheduleUpdate(this, this.getPosition(), 2);
+                block.getLevel().scheduleUpdate(block, block.getPosition(), 2);
             }
         }
     }
 
-    protected int calculateInputStrength() {
-        int power = super.calculateInputStrength();
-        Direction face = getFacing();
-        BlockState blockState = this.getSide(face);
+    protected int calculateInputStrength(Block block) {
+        int power = super.calculateInputStrength(block);
+        Direction face = getFacing(block.getState());
+        Block b = block.getSide(face);
+        val behavior = b.getState().getBehavior();
 
-        if (blockState.hasComparatorInputOverride()) {
-            power = blockState.getComparatorInputOverride();
-        } else if (power < 15 && blockState.isNormalBlock()) {
-            blockState = blockState.getSide(face);
+        if (behavior.hasComparatorInputOverride()) {
+            power = behavior.getComparatorInputOverride(b);
+        } else if (power < 15 && behavior.isNormalBlock(b)) {
+            b = b.getSide(face);
 
-            if (blockState.hasComparatorInputOverride()) {
-                power = blockState.getComparatorInputOverride();
+            if (behavior.hasComparatorInputOverride()) {
+                power = behavior.getComparatorInputOverride(b);
             }
         }
 
         return power;
     }
 
-    protected boolean shouldBePowered() {
-        int input = this.calculateInputStrength();
+    protected boolean shouldBePowered(Block block) {
+        int input = this.calculateInputStrength(block);
 
         if (input >= 15) {
             return true;
         } else if (input == 0) {
             return false;
         } else {
-            int sidePower = this.getPowerOnSides();
+            int sidePower = this.getPowerOnSides(block);
             return sidePower == 0 || input >= sidePower;
         }
     }
 
-    private int calculateOutput() {
-        return getMode() == Mode.SUBTRACT ? Math.max(this.calculateInputStrength() - this.getPowerOnSides(), 0) : this.calculateInputStrength();
+    private int calculateOutput(Block block) {
+        return getMode(block.getState()) == Mode.SUBTRACT ? Math.max(this.calculateInputStrength(block) - this.getPowerOnSides(block), 0) : this.calculateInputStrength(block);
     }
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        if (getMode() == Mode.SUBTRACT) {
-            this.setMeta(this.getMeta() - 4);
-        } else {
-            this.setMeta(this.getMeta() + 4);
-        }
-
-        this.level.addSound(this.getPosition(), Sound.RANDOM_CLICK, 1, getMode() == Mode.SUBTRACT ? 0.55F : 0.5F);
-        this.level.setBlock(this.getPosition(), this, true, false);
+        val state = block.getState();
+        boolean subtract = state.ensureTrait(BlockTraits.IS_OUTPUT_SUBTRACT);
+        block.set(state.withTrait(BlockTraits.IS_OUTPUT_SUBTRACT, !subtract), true);
+        block.getLevel().addSound(block.getPosition(), Sound.RANDOM_CLICK, 1, subtract ? 0.5f : 0.55F);
         //bug?
 
-        this.onChange();
+        this.onChange(block.refresh());
         return true;
     }
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
-            this.onChange();
+            this.onChange(block);
             return type;
         }
 
         return super.onUpdate(block, type);
     }
 
-    private void onChange() {
-        int output = this.calculateOutput();
-        BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+    private void onChange(Block block) {
+        int output = this.calculateOutput(block);
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         int currentOutput = 0;
 
         if (blockEntity instanceof Comparator) {
@@ -143,26 +143,27 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
             blockEntityComparator.setOutputSignal(output);
         }
 
-        if (currentOutput != output || getMode() == Mode.COMPARE) {
-            boolean shouldBePowered = this.shouldBePowered();
-            boolean isPowered = this.isPowered();
+        val state = block.getState();
+        if (currentOutput != output || getMode(state) == Mode.COMPARE) {
+            boolean shouldBePowered = this.shouldBePowered(block);
+            boolean isPowered = this.isPowered(state);
 
             if (isPowered && !shouldBePowered) {
-                this.level.setBlock(this.getPosition(), getUnpowered(), true, false);
+                block.set(getUnpowered(state), true, false);
             } else if (!isPowered && shouldBePowered) {
-                this.level.setBlock(this.getPosition(), getPowered(), true, false);
+                block.set(getPowered(state), true, false);
             }
 
-            this.level.updateAroundRedstone(this.getPosition(), null);
+            block.getLevel().updateAroundRedstone(block.getPosition(), null);
         }
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (super.place(item, block, target, face, clickPos, player)) {
-            BlockEntityRegistry.get().newEntity(COMPARATOR, this.getChunk(), this.getPosition());
+            BlockEntityRegistry.get().newEntity(COMPARATOR, block);
 
-            this.onUpdate(Level.BLOCK_UPDATE_REDSTONE);
+            this.onUpdate(block, Level.BLOCK_UPDATE_REDSTONE);
             return true;
         }
 
@@ -170,8 +171,8 @@ public abstract class BlockBehaviorRedstoneComparator extends BlockBehaviorRedst
     }
 
     @Override
-    public boolean isPowered() {
-        return this.isPowered || (this.getMeta() & 8) > 0;
+    public boolean isPowered(BlockState state) {
+        return this.isPowered || state.ensureTrait(BlockTraits.IS_OUTPUT_LIT);
     }
 
     @Override

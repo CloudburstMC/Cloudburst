@@ -34,7 +34,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -40,8 +41,8 @@ public class BlockBehaviorPrismarine extends BlockBehaviorSolid {
 
     @Override
     public BlockColor getColor(Block block) {
-        switch (getMeta() & 0x07) {
-            case NORMAL:
+        switch (block.getState().ensureTrait(BlockTraits.PRISMARINE_BLOCK_TYPE)) {
+            case DEFAULT:
                 return BlockColor.CYAN_BLOCK_COLOR;
             case BRICKS:
             case DARK:

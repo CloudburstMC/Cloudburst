@@ -6,7 +6,6 @@ import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
 
 /**
  * author: MagicDroidX
@@ -41,7 +40,7 @@ public class BlockBreakEvent extends BlockEvent implements Cancellable {
 
     public BlockBreakEvent(Player player, Block block, Item item, Item[] drops, boolean instaBreak, boolean fastBreak) {
         this(player, block, null, item, drops,
-                BlockRegistry.get().getBehavior(block.getState().getType()).getDropExp(), instaBreak, fastBreak);
+                block.getState().getBehavior().getDropExp(), instaBreak, fastBreak);
     }
 
     public BlockBreakEvent(Player player, Block block, Direction face, Item item, Item[] drops, int dropExp, boolean instaBreak, boolean fastBreak) {

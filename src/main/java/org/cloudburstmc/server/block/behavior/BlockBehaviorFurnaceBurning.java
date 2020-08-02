@@ -17,12 +17,12 @@ public class BlockBehaviorFurnaceBurning extends BlockBehaviorSolid {
 
     private BlockEntityType<? extends Furnace> furnaceEntity;
 
-    protected BlockBehaviorFurnaceBurning(BlockEntityType<? extends Furnace> entity) {
+    public BlockBehaviorFurnaceBurning(BlockEntityType<? extends Furnace> entity) {
         this.furnaceEntity = entity;
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

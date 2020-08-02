@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
@@ -31,10 +32,11 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (this.level.isBlockPowered(this.getPosition())) {
-            this.level.setBlock(this.getPosition(), BlockState.get(BlockTypes.LIT_REDSTONE_LAMP), false, true);
+        val level = block.getLevel();
+        if (level.isBlockPowered(block.getPosition())) {
+            block.set(BlockState.get(BlockTypes.LIT_REDSTONE_LAMP));
         } else {
-            this.level.setBlock(this.getPosition(), this, false, true);
+            block.set(BlockState.get(BlockTypes.REDSTONE_LAMP));
         }
         return true;
     }
@@ -43,13 +45,22 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
             // Redstone event
-            RedstoneUpdateEvent ev = new RedstoneUpdateEvent(this);
-            getLevel().getServer().getPluginManager().callEvent(ev);
+            RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
+            block.getLevel().getServer().getPluginManager().callEvent(ev);
             if (ev.isCancelled()) {
                 return 0;
             }
-            if (this.level.isBlockPowered(this.getPosition())) {
-                this.level.setBlock(this.getPosition(), BlockState.get(BlockTypes.LIT_REDSTONE_LAMP), false, false);
+
+            boolean powered = block.getLevel().isBlockPowered(block.getPosition());
+            val blockType = block.getState().getType();
+
+            if (powered && blockType == BlockTypes.REDSTONE_LAMP) {
+                block.set(BlockState.get(BlockTypes.LIT_REDSTONE_LAMP), false, false);
+                return 1;
+            }
+
+            if (!powered && blockType == BlockTypes.LIT_REDSTONE_LAMP) {
+                block.set(BlockState.get(BlockTypes.REDSTONE_LAMP), false, false);
                 return 1;
             }
         }

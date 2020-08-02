@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.MovingBlock;
@@ -48,7 +49,6 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
             int extraId = registry.getLegacyId(extraBlockTag.getString("name", "minecraft:air"));
             short extraData = extraBlockTag.getShort("val");
             this.extraBlockState = registry.getBlock(extraId, extraData);
-            this.extraBlockState.setLayer(1);
         }
 
         tag.listenForCompound("movingEntity", entityTag -> {
@@ -65,13 +65,13 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
         super.saveAdditionalData(tag);
 
         tag.putCompound("movingBlock", NbtMap.builder()
-                .putString("name", this.blockState.getId().toString())
-                .putShort("val", (short) this.blockState.getMeta())
+                .putString("name", this.blockState.getType().toString())
+                .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(this.blockState)) //TODO: check
                 .build());
 
         tag.putCompound("movingBlockExtra", NbtMap.builder()
-                .putString("name", this.extraBlockState.getId().toString())
-                .putShort("val", (short) this.extraBlockState.getMeta())
+                .putString("name", this.extraBlockState.getType().toString())
+                .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(this.extraBlockState)) //TODO: check
                 .build());
 
         tag.putInt("pistonPosX", this.piston.getX());
@@ -83,7 +83,7 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
         }
     }
 
-    public BlockState getBlock() {
+    public BlockState getMovingBlock() {
         return this.blockState;
     }
 

@@ -13,7 +13,7 @@ import static org.cloudburstmc.server.block.BlockTypes.WATER;
 
 public class BlockBehaviorWater extends BlockBehaviorLiquid {
 
-    protected BlockBehaviorWater() {
+    public BlockBehaviorWater() {
         super(FLOWING_WATER, WATER);
     }
 

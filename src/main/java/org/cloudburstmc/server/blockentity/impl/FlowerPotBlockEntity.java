@@ -5,6 +5,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.FlowerPot;
 import org.cloudburstmc.server.level.chunk.Chunk;
@@ -49,18 +50,18 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
         super.saveAdditionalData(tag);
 
         tag.putCompound("PlantBlock", NbtMap.builder()
-                .putString("name", plant.getId().toString())
-                .putShort("val", (short) plant.getMeta())
+                .putString("name", plant.getType().toString())
+                .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(plant)) //TODO: check
                 .build());
     }
 
     @Override
     public boolean isValid() {
-        return this.getBlock().getId() == BlockTypes.FLOWER_POT;
+        return this.getBlock().getType() == BlockTypes.FLOWER_POT;
     }
 
     public BlockState getPlant() {
-        return plant.clone();
+        return plant;
     }
 
     public void setPlant(BlockState blockState) {

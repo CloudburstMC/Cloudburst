@@ -40,7 +40,7 @@ public class BlockBehaviorAir extends BlockBehaviorTransparent {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox(Block block) {
+    public AxisAlignedBB getBoundingBox() {
         return null;
     }
 

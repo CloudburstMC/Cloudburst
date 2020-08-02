@@ -2,7 +2,9 @@ package org.cloudburstmc.server.math;
 
 import com.google.common.collect.Iterators;
 import com.nukkitx.math.vector.Vector3i;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.utils.data.CardinalDirection;
 
 import javax.annotation.Nonnull;
 import java.util.Iterator;
@@ -10,13 +12,14 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
 
+@RequiredArgsConstructor
 public enum Direction {
-    DOWN(1, -1, "down", AxisDirection.NEGATIVE, Vector3i.from(0, -1, 0)),
-    UP(0, -1, "up", AxisDirection.POSITIVE, Vector3i.from(0, 1, 0)),
-    NORTH(3, 2, "north", AxisDirection.NEGATIVE, Vector3i.from(0, 0, -1)),
-    SOUTH(2, 0, "south", AxisDirection.POSITIVE, Vector3i.from(0, 0, 1)),
-    WEST(5, 1, "west", AxisDirection.NEGATIVE, Vector3i.from(-1, 0, 0)),
-    EAST(4, 3, "east", AxisDirection.POSITIVE, Vector3i.from(1, 0, 0));
+    DOWN(1, -1, "down", AxisDirection.NEGATIVE, null, Vector3i.from(0, -1, 0)),
+    UP(0, -1, "up", AxisDirection.POSITIVE, null, Vector3i.from(0, 1, 0)),
+    NORTH(3, 2, "north", AxisDirection.NEGATIVE, CardinalDirection.NORTH, Vector3i.from(0, 0, -1)),
+    SOUTH(2, 0, "south", AxisDirection.POSITIVE, CardinalDirection.SOUTH, Vector3i.from(0, 0, 1)),
+    WEST(5, 1, "west", AxisDirection.NEGATIVE, CardinalDirection.WEST, Vector3i.from(-1, 0, 0)),
+    EAST(4, 3, "east", AxisDirection.POSITIVE, CardinalDirection.EAST, Vector3i.from(1, 0, 0));
 
     /**
      * All faces in D-U-N-S-W-E order
@@ -65,18 +68,12 @@ public enum Direction {
     private Axis axis;
     private final AxisDirection axisDirection;
 
+    private final CardinalDirection cardinalDirection;
+
     /**
      * Normalized vector that points in the direction of this BlockFace
      */
     private final Vector3i unitVector;
-
-    Direction(int opposite, int horizontalIndex, String name, AxisDirection axisDirection, Vector3i unitVector) {
-        this.opposite = opposite;
-        this.horizontalIndex = horizontalIndex;
-        this.name = name;
-        this.axisDirection = axisDirection;
-        this.unitVector = unitVector;
-    }
 
     /**
      * Get a BlockFace by it's index (0-5). The order is D-U-N-S-W-E
@@ -144,6 +141,10 @@ public enum Direction {
      */
     public int getHorizontalIndex() {
         return horizontalIndex;
+    }
+
+    public CardinalDirection getCardinalDirection() {
+        return cardinalDirection;
     }
 
     /**

@@ -7,6 +7,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.AddItemEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
@@ -187,9 +188,9 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
             }
 
             Vector3f pos = this.getPosition();
+            val b = this.level.getBlockAt(pos.getFloorX(), (int) this.boundingBox.getMaxY(), pos.getFloorZ()).getType();
 
-            if (this.level.getBlockId(pos.getFloorX(), (int) this.boundingBox.getMaxY(), pos.getFloorZ()) == FLOWING_WATER ||
-                    this.level.getBlockId(pos.getFloorX(), (int) this.boundingBox.getMaxY(), pos.getFloorZ()) == WATER) { //item is fully in water or in still water
+            if (b == FLOWING_WATER || b == WATER) { //item is fully in water or in still water
                 this.motion = this.motion.sub(0, this.getGravity() * -0.015, 0);
             } else if (this.isInsideOfWater()) {
                 this.motion = Vector3f.from(this.motion.getX(), this.getGravity() - 0.06, this.motion.getZ()); //item is going up in water, don't let it go back down too fast
@@ -206,7 +207,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                friction *= this.getLevel().getBlock(pos.add(0, -1, -1)).getFrictionFactor();
+                friction *= this.getLevel().getBlockAt(pos.add(0, -1, -1).toInt()).getBehavior().getFrictionFactor();
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);

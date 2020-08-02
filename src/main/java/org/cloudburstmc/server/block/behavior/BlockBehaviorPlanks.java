@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -31,8 +33,8 @@ public class BlockBehaviorPlanks extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
-        switch (getMeta() & 0x07) {
+    public BlockColor getColor(Block block) {
+        switch (block.getState().ensureTrait(BlockTraits.WOOD_TYPE)) {
             default:
             case OAK:
                 return BlockColor.WOOD_BLOCK_COLOR;

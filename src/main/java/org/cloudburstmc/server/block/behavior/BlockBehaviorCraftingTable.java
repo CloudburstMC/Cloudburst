@@ -12,7 +12,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 public class BlockBehaviorCraftingTable extends BlockBehaviorSolid {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

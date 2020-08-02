@@ -13,11 +13,6 @@ public class BlockBehaviorStairsWood extends BlockBehaviorStairs {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(id, 0);
-    }
-
-    @Override
     public float getHardness() {
         return 2;
     }

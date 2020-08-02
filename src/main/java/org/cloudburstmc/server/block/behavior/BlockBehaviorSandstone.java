@@ -29,11 +29,6 @@ public class BlockBehaviorSandstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(id, this.getMeta() & 0x03);
-    }
-
-    @Override
     public int getToolType() {
         return ItemTool.TYPE_PICKAXE;
     }

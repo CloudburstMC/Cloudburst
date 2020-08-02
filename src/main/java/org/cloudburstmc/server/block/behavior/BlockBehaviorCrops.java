@@ -21,7 +21,7 @@ import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
 public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

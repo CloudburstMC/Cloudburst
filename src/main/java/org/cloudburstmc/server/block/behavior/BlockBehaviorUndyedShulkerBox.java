@@ -8,6 +8,8 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import lombok.val;
+import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ShulkerBox;
@@ -33,7 +35,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -44,24 +46,25 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
+        val be = block.getLevel().getBlockEntity(block.getPosition());
 
-        ShulkerBox shulkerBox = (ShulkerBox) this.getLevel().getBlockEntity(this.getPosition());
+        var tag = NbtMap.EMPTY;
+        if ((be instanceof ShulkerBox)) {
+            ShulkerBox shulkerBox = (ShulkerBox) be;
 
-        NbtMap tag = NbtMap.EMPTY;
-        if (shulkerBox != null) {
             NbtMapBuilder tagBuilder = NbtMap.builder();
             shulkerBox.saveAdditionalData(tagBuilder);
             tag = tagBuilder.build();
         }
 
-        return Item.get(this.id, 0, 1, tag);
+        return Item.get(block.getState().getType(), 0, 1, tag);
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        this.getLevel().setBlock(blockState.getPosition(), this, true);
+        placeBlock(block, item);
 
-        ShulkerBox shulkerBox = BlockEntityRegistry.get().newEntity(SHULKER_BOX, this.getChunk(), this.getPosition());
+        ShulkerBox shulkerBox = BlockEntityRegistry.get().newEntity(SHULKER_BOX, block);
         shulkerBox.loadAdditionalData(item.getTag());
         if (item.hasCustomName()) {
             shulkerBox.setCustomName(item.getCustomName());
@@ -77,13 +80,13 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockEntity t = this.getLevel().getBlockEntity(this.getPosition());
+            BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             ShulkerBox box;
             if (t instanceof ShulkerBox) {
                 box = (ShulkerBox) t;
             } else {
 
-                box = BlockEntityRegistry.get().newEntity(SHULKER_BOX, this.getChunk(), this.getPosition());
+                box = BlockEntityRegistry.get().newEntity(SHULKER_BOX, block);
             }
 
             player.addWindow(box.getInventory());

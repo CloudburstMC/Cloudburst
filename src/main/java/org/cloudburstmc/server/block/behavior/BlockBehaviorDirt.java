@@ -16,7 +16,7 @@ import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
 public class BlockBehaviorDirt extends BlockBehaviorSolid {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
