@@ -35,24 +35,48 @@ public interface Block extends BlockSnapshot {
         return getSide(UP, 1);
     }
 
+    default Block up(int step) {
+        return getSide(UP, step);
+    }
+
     default Block down() {
         return getSide(DOWN, 1);
+    }
+
+    default Block down(int step) {
+        return getSide(DOWN, step);
     }
 
     default Block north() {
         return getSide(NORTH, 1);
     }
 
+    default Block north(int step) {
+        return getSide(NORTH, step);
+    }
+
     default Block east() {
         return getSide(EAST, 1);
+    }
+
+    default Block east(int step) {
+        return getSide(EAST, step);
     }
 
     default Block south() {
         return getSide(SOUTH, 1);
     }
 
+    default Block south(int step) {
+        return getSide(SOUTH, step);
+    }
+
     default Block west() {
         return getSide(WEST, 1);
+    }
+
+    default Block west(int step) {
+        return getSide(WEST, step);
     }
 
     default Block getSide(Direction face) {
@@ -60,6 +84,8 @@ public interface Block extends BlockSnapshot {
     }
 
     Block getSide(Direction face, int step);
+
+    Block getRelative(int x, int y, int z);
 
     boolean isWaterlogged();
 
