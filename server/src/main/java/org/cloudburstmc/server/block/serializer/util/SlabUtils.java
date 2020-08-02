@@ -12,8 +12,6 @@ public class SlabUtils {
 
     private static final EnumMap<StoneSlabType, SlabInfo> SLAB_INFO = new EnumMap<>(StoneSlabType.class);
 
-    public static final String TAG_TOP_SLOT_BIT = "top_slot_bit";
-
     private static final String[][] SLAB_NAMES = {
             {"stone_slab", "double_stone_slab", "stone_slab_type"},
             {"stone_slab2", "double_stone_slab2", "stone_slab_type_2"},

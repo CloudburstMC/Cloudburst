@@ -9,7 +9,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.serializer.util.SlabUtils;
 import org.cloudburstmc.server.utils.data.StoneSlabType;
 
-import static org.cloudburstmc.server.block.serializer.util.SlabUtils.TAG_TOP_SLOT_BIT;
+import static org.cloudburstmc.server.block.serializer.util.BedrockStateTags.TAG_TOP_SLOT_BIT;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class DoubleStoneSlabBlockSerializer implements BlockSerializer {
