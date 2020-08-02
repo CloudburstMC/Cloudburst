@@ -6,22 +6,37 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.serializer.util.SlabUtils;
+import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.StoneSlabType;
 
-import static org.cloudburstmc.server.block.serializer.util.BedrockStateTags.TAG_TOP_SLOT_BIT;
+import static org.cloudburstmc.server.block.serializer.util.BedrockStateTags.*;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class DoubleStoneSlabBlockSerializer implements BlockSerializer {
     public static final BlockSerializer INSTANCE = new DoubleStoneSlabBlockSerializer();
 
+    private static final Identifier[] BLOCK_NAMES = {
+            Identifier.fromString("double_stone_slab"),
+            Identifier.fromString("double_stone_slab2"),
+            Identifier.fromString("double_stone_slab3"),
+            Identifier.fromString("double_stone_slab4"),
+    };
+
+    private static final String[] STATE_NAMES = {
+            TAG_STONE_SLAB_TYPE,
+            TAG_STONE_SLAB_TYPE_2,
+            TAG_STONE_SLAB_TYPE_3,
+            TAG_STONE_SLAB_TYPE_4
+    };
+
     @Override
     public void serialize(NbtMapBuilder builder, BlockState state) {
         StoneSlabType type = state.ensureTrait(BlockTraits.STONE_SLAB_TYPE);
-        SlabUtils.SlabInfo info = SlabUtils.getSlabInfo(type);
-        builder.putString("name", info.getDoubleType().toString());
+        int index = type.ordinal();
+
+        builder.putString(TAG_NAME, BLOCK_NAMES[index & 7].toString());
         builder.putCompound(TAG_STATES, NbtMap.builder()
-                .putString(info.getStateName(), info.getState())
+                .putString(STATE_NAMES[index & 7], type.name().toLowerCase())
                 .putBoolean(TAG_TOP_SLOT_BIT, state.ensureTrait(BlockTraits.IS_TOP_SLOT))
                 .build());
     }

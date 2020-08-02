@@ -7,11 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 
+import static org.cloudburstmc.server.block.serializer.util.BedrockStateTags.TAG_LIQUID_DEPTH;
+
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class FluidBlockSerializer implements BlockSerializer {
     public static final BlockSerializer INSTANCE = new FluidBlockSerializer();
-
-    private static final String TAG_LIQUID_DEPTH = "liquid_depth";
 
     @Override
     public void serialize(NbtMapBuilder builder, BlockState state) {
