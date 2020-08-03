@@ -47,7 +47,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
                 for (int i = 1; i <= toGrow; i++) {
                     Block b = block.up(i);
-                    if (b.getState() == BlockState.AIR) {
+                    if (b.getState() == BlockStates.AIR) {
                         BlockGrowEvent ev = new BlockGrowEvent(b, BlockState.get(BlockTypes.REEDS));
                         Server.getInstance().getPluginManager().callEvent(ev);
 
@@ -89,7 +89,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
                 if (state.ensureTrait(BlockTraits.AGE) == 15) {
                     for (int y = 1; y < 3; ++y) {
                         Block b = block.up(y);
-                        if (b.getState() == BlockState.AIR) {
+                        if (b.getState() == BlockStates.AIR) {
                             b.set(BlockState.get(BlockTypes.REEDS));
                             break;
                         }
@@ -107,7 +107,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (block.getState() != BlockState.AIR) {
+        if (block.getState() != BlockStates.AIR) {
             return false;
         }
         Block down = block.down();

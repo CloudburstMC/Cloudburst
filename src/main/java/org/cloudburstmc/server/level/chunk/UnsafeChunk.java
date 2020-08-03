@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.Entity;
@@ -135,7 +136,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
         ChunkSection section = this.getSection(y >> 4);
         BlockState blockState;
         if (section == null) {
-            blockState = BlockState.AIR;
+            blockState = BlockStates.AIR;
         } else {
             blockState = section.getBlock(x, y & 0xf, z, layer);
         }

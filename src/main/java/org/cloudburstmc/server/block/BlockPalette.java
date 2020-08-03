@@ -8,7 +8,6 @@ import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
-import net.daporkchop.lib.unsafe.PUnsafe;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.serializer.BlockSerializers;
 import org.cloudburstmc.server.block.serializer.NoopBlockSerializer;
@@ -35,8 +34,6 @@ public class BlockPalette {
     private BlockPalette() {
         this.addBlock(BlockTypes.AIR, NoopBlockSerializer.INSTANCE, new BlockTrait[0]);
         this.air = this.getBlockState(0);
-
-        PUnsafe.pork_getStaticField(BlockState.class, "AIR").setObject(this.air);
     }
 
     public void addBlock(Identifier identifier, BlockSerializer serializer, BlockTrait<?>[] traits) {

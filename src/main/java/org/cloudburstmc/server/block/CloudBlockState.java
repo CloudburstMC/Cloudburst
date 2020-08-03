@@ -22,8 +22,8 @@ import static com.google.common.base.Preconditions.checkState;
 public final class CloudBlockState implements BlockState {
 
     public static final BlockState[] EMPTY_STATES = new BlockState[]{
-            BlockState.AIR,
-            BlockState.AIR
+            BlockStates.AIR,
+            BlockStates.AIR
     };
 
     private final Identifier type;

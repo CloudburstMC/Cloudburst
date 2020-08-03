@@ -24,7 +24,7 @@ import lombok.val;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLectern;
 import org.cloudburstmc.server.blockentity.BlockEntity;
@@ -272,7 +272,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 Block target = player.getLevel().getBlock(blockPos);
                 val targetState = target.getState();
 
-                PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, player.getInventory().getItemInHand(), target, face, targetState == BlockState.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+                PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, player.getInventory().getItemInHand(), target, face, targetState == BlockStates.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
                 player.getServer().getPluginManager().callEvent(playerInteractEvent);
                 if (playerInteractEvent.isCancelled()) {
                     player.getInventory().sendHeldItem(player);
@@ -281,7 +281,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                 Block block = target.getSide(face);
                 if (block.getState().getType() == BlockTypes.FIRE) {
-                    block.set(BlockState.AIR, true);
+                    block.set(BlockStates.AIR, true);
                     player.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.EXTINGUISH_FIRE);
                     break;
                 }

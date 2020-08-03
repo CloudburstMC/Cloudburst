@@ -5,7 +5,7 @@ import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -65,7 +65,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     public boolean grow(Block block) {
-        block.set(BlockState.AIR, true, false);
+        block.set(BlockStates.AIR, true, false);
 
         val item = Item.get(block.getState());
         WorldFeature feature = TreeSpecies.fromItem(item.getId(), item.getMeta()).getDefaultGenerator();
