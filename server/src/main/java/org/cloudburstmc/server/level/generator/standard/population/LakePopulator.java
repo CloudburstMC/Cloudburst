@@ -116,12 +116,12 @@ public class LakePopulator extends ChancePopulator.Column {
                                 || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
                                 || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
                                 || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1)))) {
-                            int runtimeId = level.getBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0);
+                            int runtimeId = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0));
 
                             if (y < 4) {
-                                if (runtimeId != block && !BlockRegistry.get().getBlock(runtimeId).isSolid()) {
-                                    return;
-                                }
+//                                if (runtimeId != block && !BlockRegistry.get().getBlock(runtimeId).isSolid()) {
+//                                    return;
+//                                }
                             } else {
                                 if (BlockRegistry.get().getBlock(runtimeId) instanceof BlockBehaviorLiquid) {
                                     return;
@@ -141,7 +141,7 @@ public class LakePopulator extends ChancePopulator.Column {
                 for (int y = 4; y < 8; y++) {
                     for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
-                            if (points.get((y << 8) | (x << 4) | z) && surfaceBlocks.test(surface = level.getBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0))) {
+                            if (points.get((y << 8) | (x << 4) | z) && surfaceBlocks.test(surface = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0)))) {
                                 break COMPUTE_SURFACE;
                             }
                         }
@@ -157,7 +157,7 @@ public class LakePopulator extends ChancePopulator.Column {
                 for (int x = 0; x < 16; x++) {
                     for (int z = 0; z < 16; z++) {
                         if (points.get((y << 8) | (x << 4) | z)) {
-                            level.setBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0, y >= 4 ? 0 : block);
+//                            level.setBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0, y >= 4 ? 0 : block);
                         }
                     }
                 }
@@ -169,8 +169,8 @@ public class LakePopulator extends ChancePopulator.Column {
                 for (int y = 4; y < 8; y++) {
                     for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
-                            if (points.get((y << 8) | (x << 4) | z) && replaceWithSurface.test(level.getBlockRuntimeIdUnsafe(blockX + x, blockY + y - 1, blockZ + z, 0))) {
-                                level.setBlockRuntimeIdUnsafe(blockX + x, blockY + y - 1, blockZ + z, 0, surface);
+                            if (points.get((y << 8) | (x << 4) | z) && replaceWithSurface.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + x, blockY + y - 1, blockZ + z, 0)))) {
+//                                level.setBlockRuntimeIdUnsafe(blockX + x, blockY + y - 1, blockZ + z, 0, surface);
                             }
                         }
                     }
@@ -188,15 +188,15 @@ public class LakePopulator extends ChancePopulator.Column {
                                 continue;
                             }
 
-                            if (((y > 0 && points.get(((y - 1) << 8) | (x << 4) | z))
-                                    || (y < 7 && points.get(((y + 1) << 8) | (x << 4) | z))
-                                    || (x > 0 && points.get((y << 8) | ((x - 1) << 4) | z))
-                                    || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
-                                    || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
-                                    || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1))))
-                                    && BlockRegistry.get().getBlock(level.getBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0)).isSolid()) {
-                                level.setBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0, border);
-                            }
+//                            if (((y > 0 && points.get(((y - 1) << 8) | (x << 4) | z))
+//                                    || (y < 7 && points.get(((y + 1) << 8) | (x << 4) | z))
+//                                    || (x > 0 && points.get((y << 8) | ((x - 1) << 4) | z))
+//                                    || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
+//                                    || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
+//                                    || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1))))
+//                                    && BlockRegistry.get().getBlock(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0))).isSolid()) {
+//                                level.setBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0, border);
+//                            }
                         }
                     }
                 }

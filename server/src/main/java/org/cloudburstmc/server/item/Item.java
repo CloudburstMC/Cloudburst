@@ -17,7 +17,6 @@ import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.registry.RegistryException;
 import org.cloudburstmc.server.utils.Config;
@@ -451,7 +450,7 @@ public abstract class Item implements Cloneable {
 
     public final boolean canBePlaced() {
         BlockState state = this.getBlock();
-        BlockBehavior behavior = BlockRegistry.get().getBehavior(state.getType());
+        BlockBehavior behavior = state.getBehavior();
         return behavior.canBePlaced();
     }
 

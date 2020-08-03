@@ -8,6 +8,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorBrewingStand;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
@@ -101,7 +102,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
     @Override
     public boolean isValid() {
-        return getBlock().getId() == BlockTypes.BREWING_STAND;
+        return getBlockState().getType() == BlockTypes.BREWING_STAND;
     }
 
     @Override
@@ -262,26 +263,35 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     public void updateBlock() {
-        BlockState blockState = this.getBlock();
+        BlockState blockState = this.getBlockState();
 
         if (!(blockState instanceof BlockBehaviorBrewingStand)) {
             return;
         }
 
-        int meta = 0;
+        BlockState state = BlockState.get(BlockTypes.BREWING_STAND);
 
         for (int i = 1; i <= 3; ++i) {
             Item potion = this.inventory.getItem(i);
 
             Identifier id = potion.getId();
             if ((id == ItemIds.POTION || id == ItemIds.SPLASH_POTION || id == ItemIds.LINGERING_POTION) && potion.getCount() > 0) {
-                meta |= 1 << (i - 1);
+                switch (i) {
+                    case 1:
+                        state = state.withTrait(BlockTraits.IS_BREWING_A, true);
+                        break;
+                    case 2:
+                        state = state.withTrait(BlockTraits.IS_BREWING_B, true);
+                        break;
+                    case 3:
+                        state = state.withTrait(BlockTraits.IS_BREWING_C, true);
+                        break;
+                }
             }
         }
 
-        if (blockState.getMeta() != meta) {
-            blockState.setMeta(meta);
-            this.getLevel().setBlock(blockState.getPosition(), blockState, false, false);
+        if (blockState != state) {
+            this.getLevel().setBlock(this.getPosition(), state, false, false);
         }
     }
 

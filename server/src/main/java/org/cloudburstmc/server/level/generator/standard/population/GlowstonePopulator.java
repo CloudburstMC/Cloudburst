@@ -50,39 +50,39 @@ public class GlowstonePopulator extends AbstractReplacingPopulator {
         final int block = this.block.selectRuntimeId(random);
         final int ground = this.ground;
 
-        if (blockY >= 255 || !replace.test(level.getBlockRuntimeIdUnsafe(blockX, blockY, blockZ, 0)) || level.getBlockRuntimeIdUnsafe(blockX, blockY + 1, blockZ, 0) != ground) {
+        if (blockY >= 255 || !replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY, blockZ, 0))) || org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY + 1, blockZ, 0)) != ground) {
             return;
         }
-        level.setBlockRuntimeIdUnsafe(blockX, blockY, blockZ, 0, block);
+//        level.setBlockAt(blockX, blockY, blockZ, 0, org.cloudburstmc.server.registry.BlockRegistry.get().getBlock(block)));
 
         for (int i = this.tries - 1; i >= 0; i--) {
             int x = blockX + random.nextInt(8) - random.nextInt(8);
             int y = blockY - random.nextInt(12);
             int z = blockZ + random.nextInt(8) - random.nextInt(8);
 
-            if (replace.test(level.getBlockRuntimeIdUnsafe(x, y, z, 0))) {
+            if (replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y, z, 0)))) {
                 int neighbors = 0;
-                if (level.getBlockRuntimeIdUnsafe(x - 1, y, z, 0) == block) {
+                if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x - 1, y, z, 0)) == block) {
                     neighbors++;
                 }
-                if (level.getBlockRuntimeIdUnsafe(x + 1, y, z, 0) == block) {
+                if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + 1, y, z, 0)) == block) {
                     neighbors++;
                 }
-                if (level.getBlockRuntimeIdUnsafe(x, y - 1, z, 0) == block) {
+                if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y - 1, z, 0)) == block) {
                     neighbors++;
                 }
-                if (level.getBlockRuntimeIdUnsafe(x, y + 1, z, 0) == block) {
+                if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y + 1, z, 0)) == block) {
                     neighbors++;
                 }
-                if (level.getBlockRuntimeIdUnsafe(x, y, z - 1, 0) == block) {
+                if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y, z - 1, 0)) == block) {
                     neighbors++;
                 }
-                if (level.getBlockRuntimeIdUnsafe(x, y, z + 1, 0) == block) {
+                if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y, z + 1, 0)) == block) {
                     neighbors++;
                 }
 
                 if (neighbors == 1) {
-                    level.setBlockRuntimeIdUnsafe(x, y, z, 0, block);
+//                    level.setBlockAt(x, y, z, 0, org.cloudburstmc.server.registry.BlockRegistry.get().getBlock(block)));
                 }
             }
         }

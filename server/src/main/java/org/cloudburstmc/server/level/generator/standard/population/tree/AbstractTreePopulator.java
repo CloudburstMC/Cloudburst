@@ -46,8 +46,8 @@ public abstract class AbstractTreePopulator extends ChancePopulator {
         final int min = this.height.min;
 
         IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-        for (int y = max, id, lastId = chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, y + 1, blockZ & 0xF, 0); y >= min; y--) {
-            id = chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, y, blockZ & 0xF, 0);
+        for (int y = max, id, lastId = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, y + 1, blockZ & 0xF, 0)); y >= min; y--) {
+            id = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0));
 
             if (replace.test(lastId) && on.test(id) && random.nextDouble() < this.chance) {
                 this.placeTree(random, level, blockX, y, blockZ);

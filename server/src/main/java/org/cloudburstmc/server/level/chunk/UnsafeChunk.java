@@ -218,7 +218,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
             ChunkSection section = this.sections[sectionY];
             if (section != null) {
                 for (int y = 15; y >= 0; y--) {
-                    if (section.getBlockRuntimeIdUnsafe(x, y, z, 0) != 0) {
+                    if (section.getBlock(x, y, z, 0) != null) {
                         return (sectionY << 4) | y;
                     }
                 }

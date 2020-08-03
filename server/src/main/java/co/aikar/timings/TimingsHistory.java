@@ -25,6 +25,7 @@ package co.aikar.timings;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.val;
 import org.cloudburstmc.server.Nukkit;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.blockentity.BlockEntity;
@@ -111,10 +112,12 @@ public class TimingsHistory {
 
                 //count block entities
                 for (BlockEntity blockEntity : chunk.getBlockEntities()) {
-                    if (!blockEntityCounts.containsKey(blockEntity.getBlock().getId()))
-                        blockEntityCounts.put(blockEntity.getBlock().getId(), new AtomicInteger(0));
-                    blockEntityCounts.get(blockEntity.getBlock().getId()).incrementAndGet();
-                    blockEntityMap.put(blockEntity.getBlock().getId(), blockEntity.getClass().getSimpleName());
+                    val type = blockEntity.getBlock().getState().getType();
+
+                    if (!blockEntityCounts.containsKey(type))
+                        blockEntityCounts.put(type, new AtomicInteger(0));
+                    blockEntityCounts.get(type).incrementAndGet();
+                    blockEntityMap.put(type, blockEntity.getClass().getSimpleName());
                 }
 
                 if (blockEntityCounts.isEmpty() && entityCounts.isEmpty()) {

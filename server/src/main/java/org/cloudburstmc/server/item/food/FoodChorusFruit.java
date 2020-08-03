@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.item.food;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
@@ -42,16 +42,16 @@ public class FoodChorusFruit extends FoodNormal {
 
             if (y < 0) continue;
 
-            while (y >= 0 && !level.getBlock(x, y + 1, z).isSolid()) {
+            while (y >= 0 && !level.getBlockAt(x, y + 1, z).inCategory(BlockCategory.SOLID)) {
                 y--;
             }
             y++; // Back up to non solid
 
-            BlockState blockStateUp = level.getBlock(x, y + 1, z);
-            BlockState blockStateUp2 = level.getBlock(x, y + 2, z);
+            BlockState blockStateUp = level.getBlockAt(x, y + 1, z);
+            BlockState blockStateUp2 = level.getBlockAt(x, y + 2, z);
 
-            if (blockStateUp.isSolid() || blockStateUp instanceof BlockBehaviorLiquid ||
-                    blockStateUp2.isSolid() || blockStateUp2 instanceof BlockBehaviorLiquid) {
+            if (blockStateUp.inCategory(BlockCategory.SOLID) || blockStateUp.inCategory(BlockCategory.LIQUID) ||
+                    blockStateUp2.inCategory(BlockCategory.SOLID) || blockStateUp2.inCategory(BlockCategory.LIQUID)) {
                 continue;
             }
 

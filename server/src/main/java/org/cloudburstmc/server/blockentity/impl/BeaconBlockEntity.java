@@ -4,6 +4,8 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import lombok.val;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Beacon;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
@@ -12,7 +14,6 @@ import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Map;
@@ -49,7 +50,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
 
     @Override
     public boolean isValid() {
-        return getBlock().getId() == BlockTypes.BEACON;
+        return getBlockState().getType() == BlockTypes.BEACON;
     }
 
     private long currentTick = 0;
@@ -141,8 +142,8 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     private boolean hasSkyAccess() {
         //Check every block from our y coord to the top of the world
         for (int y = getPosition().getY() + 1; y <= 255; y++) {
-            Identifier testBlockId = getLevel().getBlockId(getPosition().getX(), y, getPosition().getZ());
-            if (!BlockRegistry.get().getBlock(testBlockId, 0).isTransparent()) {
+            val state = getLevel().getBlockAt(getPosition().getX(), y, getPosition().getZ());
+            if (!state.inCategory(BlockCategory.TRANSPARENT)) {
                 //There is no sky access
                 return false;
             }
@@ -163,7 +164,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
             for (int queryX = tileX - powerLevel; queryX <= tileX + powerLevel; queryX++) {
                 for (int queryZ = tileZ - powerLevel; queryZ <= tileZ + powerLevel; queryZ++) {
 
-                    Identifier testBlockId = getLevel().getBlockId(queryX, queryY, queryZ);
+                    Identifier testBlockId = getLevel().getBlockAt(queryX, queryY, queryZ).getType();
                     if (testBlockId != IRON_BLOCK && testBlockId != GOLD_BLOCK && testBlockId != EMERALD_BLOCK &&
                             testBlockId != DIAMOND_BLOCK) {
                         return powerLevel - 1;

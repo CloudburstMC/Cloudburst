@@ -16,7 +16,7 @@ public class DaylightDetectorBlockEntity extends BaseBlockEntity implements Dayl
 
     @Override
     public boolean isValid() {
-        Identifier blockId = getBlock().getId();
+        Identifier blockId = getBlockState().getType();
         return blockId == BlockTypes.DAYLIGHT_DETECTOR || blockId == BlockTypes.DAYLIGHT_DETECTOR_INVERTED;
     }
 

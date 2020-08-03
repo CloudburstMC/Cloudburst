@@ -57,7 +57,7 @@ public final class FlatGenerator implements Generator {
             for (int i = 0; i < layer.size; i++) {
                 for (int x = 15; x >= 0; x--) {
                     for (int z = 15; z >= 0; z--) {
-                        chunk.setBlockRuntimeIdUnsafe(x, y, z, layer.runtimeId);
+                        chunk.setBlock(x, y, z, BlockRegistry.get().getBlock(layer.runtimeId));
                     }
                 }
                 y++;

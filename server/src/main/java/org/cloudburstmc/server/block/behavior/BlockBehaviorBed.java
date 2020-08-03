@@ -21,7 +21,7 @@ import org.cloudburstmc.server.utils.data.DyeColor;
 public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

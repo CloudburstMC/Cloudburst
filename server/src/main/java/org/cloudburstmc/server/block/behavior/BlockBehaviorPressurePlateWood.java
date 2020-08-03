@@ -42,10 +42,10 @@ public class BlockBehaviorPressurePlateWood extends BlockBehaviorPressurePlateBa
     }
 
     @Override
-    protected int computeRedstoneStrength() {
-        AxisAlignedBB bb = getCollisionBoxes();
+    protected int computeRedstoneStrength(Block block) {
+        AxisAlignedBB bb = getCollisionBoxes(block);
 
-        for (Entity entity : this.level.getCollidingEntities(bb)) {
+        for (Entity entity : block.getLevel().getCollidingEntities(bb)) {
             if (entity.canTriggerPressurePlate()) {
                 return 15;
             }

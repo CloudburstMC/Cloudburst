@@ -7,9 +7,7 @@ import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 
 public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
@@ -20,7 +18,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     public static int DOOR_POWERED_BIT = 0x02;
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -29,8 +27,8 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
         return false;
     }
 
-    @Override
-    public AxisAlignedBB getBoundingBox(Block block) {
+//    @Override
+//    public AxisAlignedBB getBoundingBox(Block block) {
 
 //        float f = 0.1875f;
 //
@@ -174,8 +172,8 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 //        }
 //
 //        return bb; //TODO: bounding box
-        return new SimpleAxisAlignedBB(block.getPosition(), block.getPosition().add(1, 1, 1));
-    }
+//        return new SimpleAxisAlignedBB(block.getPosition(), block.getPosition().add(1, 1, 1));
+//    }
 
     @Override
     public int onUpdate(Block block, int type) {

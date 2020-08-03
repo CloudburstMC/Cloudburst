@@ -1,7 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Skull;
 import org.cloudburstmc.server.item.Item;
@@ -31,21 +35,13 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        switch (face) {
-            case NORTH:
-            case SOUTH:
-            case EAST:
-            case WEST:
-            case UP:
-                this.setMeta(face.getIndex());
-                break;
-            case DOWN:
-            default:
-                return false;
+        if (face == Direction.DOWN) {
+            return false;
         }
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
 
-        Skull skull = BlockEntityRegistry.get().newEntity(BlockEntityTypes.SKULL, this.getChunk(), this.getPosition());
+        placeBlock(block, BlockState.get(BlockTypes.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
+
+        Skull skull = BlockEntityRegistry.get().newEntity(BlockEntityTypes.SKULL, block);
         skull.loadAdditionalData(item.getTag());
         skull.setSkullType(item.getMeta());
         skull.setRotation((player.getYaw() * 16 / 360) + 0.5f);
@@ -57,9 +53,13 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        Skull blockEntity = (Skull) getLevel().getBlockEntity(this.getPosition());
+        val be = block.getLevel().getBlockEntity(block.getPosition());
+
         int meta = 0;
-        if (blockEntity != null) meta = blockEntity.getSkullType();
+        if (be instanceof Skull) {
+            meta = ((Skull) be).getSkullType();
+        }
+
         return Item.get(ItemIds.SKULL, meta);
     }
 

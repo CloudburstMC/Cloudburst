@@ -4,10 +4,12 @@ import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import lombok.val;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorRail;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorRailActivator;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorRailPowered;
+import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
@@ -24,7 +26,8 @@ import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Rail;
-import org.cloudburstmc.server.utils.Rail.Orientation;
+import org.cloudburstmc.server.utils.data.MinecartType;
+import org.cloudburstmc.server.utils.data.RailDirection;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -151,8 +154,8 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
             BlockState blockState = this.getDisplayBlock();
             tag.putCompound("DisplayBlock", NbtMap.builder()
-                    .putString("name", blockState.getId().toString())
-                    .putShort("val", (short) blockState.getMeta())
+                    .putString("name", blockState.getType().toString())
+                    .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(blockState)) //TODO: check
                     .build());
 
             tag.putInt("DisplayOffset", this.getDisplayOffset());
@@ -198,18 +201,19 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             int dz = this.position.getFloorZ();
 
             // Some hack to check rails
-            if (Rail.isRailBlock(this.getLevel().getBlockId(dx, dy - 1, dz))) {
+            if (Rail.isRailBlock(this.getLevel().getBlockAt(dx, dy - 1, dz))) {
                 --dy;
             }
 
-            BlockState blockState = this.getLevel().getBlock(dx, dy, dz);
+            Block block = this.getLevel().getBlock(dx, dy, dz);
+            val state = block.getState();
 
             // Ensure that the block is a rail
-            if (Rail.isRailBlock(blockState)) {
-                processMovement(dx, dy, dz, (BlockBehaviorRail) blockState);
+            if (Rail.isRailBlock(state)) {
+                processMovement(dx, dy, dz, block);
                 // Activate the minecart/TNT
-                if (blockState instanceof BlockBehaviorRailActivator && ((BlockBehaviorRailActivator) blockState).isActive()) {
-                    activate(dx, dy, dz, (blockState.getMeta() & 0x8) != 0);
+                if (state.getType() == BlockTypes.ACTIVATOR_RAIL && state.ensureTrait(BlockTraits.IS_POWERED)) {
+                    activate(dx, dy, dz, true);
                 }
             } else {
                 setFalling();
@@ -434,25 +438,25 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         }
     }
 
-    private void processMovement(int dx, int dy, int dz, BlockBehaviorRail block) {
+    private void processMovement(int dx, int dy, int dz, Block block) {
         fallDistance = 0.0F;
         Vector3f vector = getNextRail(this.getPosition());
 
         int y = dy;
 
-        boolean isPowered = false;
-        boolean isSlowed = false;
+        val state = block.getState();
+        boolean isPowered = state.ensureTrait(BlockTraits.IS_POWERED);
+        boolean isSlowed = !isPowered;
 
-        if (block instanceof BlockBehaviorRailPowered) {
-            isPowered = block.isActive();
-            isSlowed = !block.isActive();
-        }
+        val behavior = block.getState().getBehavior();
 
         float motionX = this.motion.getX();
         float motionY = this.motion.getY();
         float motionZ = this.motion.getZ();
 
-        switch (Orientation.byMetadata(block.getRealMeta())) {
+        val railDirection = state.ensureTrait(BlockTraits.RAIL_DIRECTION);
+
+        switch (railDirection) { //TODO: errors
             case ASCENDING_NORTH:
                 motionX -= 0.0078125f;
                 y += 1;
@@ -471,7 +475,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
                 break;
         }
 
-        int[][] facing = matrix[block.getRealMeta()];
+        int[][] facing = matrix[railDirection.ordinal()]; //TODO: idk
         float facing1 = facing[1][0] - facing[0][0];
         float facing2 = facing[1][2] - facing[0][2];
         float speedOnTurns = (float) Math.sqrt(facing1 * facing1 + facing2 * facing2);
@@ -599,16 +603,16 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
                 motionX += motionX / newMovie * nextMovie;
                 motionZ += motionZ / newMovie * nextMovie;
-            } else if (block.getOrientation() == Orientation.STRAIGHT_NORTH_SOUTH) {
-                if (level.getBlock(dx - 1, dy, dz).isNormalBlock()) {
+            } else if (railDirection == RailDirection.NORTH_SOUTH) {
+                if (_isNormalBlock(level.getBlock(dx - 1, dy, dz))) {
                     motionX = 0.02f;
-                } else if (level.getBlock(dx + 1, dy, dz).isNormalBlock()) {
+                } else if (_isNormalBlock(level.getBlock(dx + 1, dy, dz))) {
                     motionX = -0.02f;
                 }
-            } else if (block.getOrientation() == Orientation.STRAIGHT_EAST_WEST) {
-                if (level.getBlock(dx, dy, dz - 1).isNormalBlock()) {
+            } else if (railDirection == RailDirection.EAST_WEST) {
+                if (_isNormalBlock(level.getBlock(dx, dy, dz - 1))) {
                     motionZ = 0.02f;
-                } else if (level.getBlock(dx, dy, dz + 1).isNormalBlock()) {
+                } else if (_isNormalBlock(level.getBlock(dx, dy, dz + 1))) {
                     motionZ = -0.02f;
                 }
             }
@@ -633,14 +637,14 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         int checkY = MathHelper.floor(dy);
         int checkZ = MathHelper.floor(dz);
 
-        if (Rail.isRailBlock(level.getBlockId(checkX, checkY - 1, checkZ))) {
+        if (Rail.isRailBlock(level.getBlockAt(checkX, checkY - 1, checkZ))) {
             --checkY;
         }
 
-        BlockState blockState = level.getBlock(checkX, checkY, checkZ);
+        BlockState blockState = level.getBlockAt(checkX, checkY, checkZ);
 
         if (Rail.isRailBlock(blockState)) {
-            int[][] facing = matrix[((BlockBehaviorRail) blockState).getRealMeta()];
+            int[][] facing = matrix[blockState.ensureTrait(BlockTraits.RAIL_DIRECTION).ordinal()]; //TODO:
             float rail;
             // Genisys mistake (Doesn't check surrounding more exactly)
             float nextOne = checkX + 0.5f + facing[0][0] * 0.5f;
@@ -710,7 +714,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     public BlockState getDisplayBlock() {
         int runtimeId = this.data.getInt(DISPLAY_ITEM);
-        return BlockRegistry.get().getBlock(runtimeId).clone();
+        return BlockRegistry.get().getBlock(runtimeId);
     }
 
     public void setDisplayBlock(BlockState blockState) {
@@ -764,5 +768,9 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     public void setMaximumSpeed(float speed) {
         maxSpeed = speed;
+    }
+
+    private boolean _isNormalBlock(Block block) {
+        return block.getState().getBehavior().isNormalBlock(block);
     }
 }

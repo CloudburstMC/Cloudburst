@@ -1,9 +1,5 @@
 package org.cloudburstmc.server.player;
 
-import cn.nukkit.event.player.*;
-import cn.nukkit.inventory.*;
-import cn.nukkit.level.*;
-import cn.nukkit.utils.*;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,13 +30,15 @@ import it.unimi.dsi.fastutil.bytes.ByteSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorEnderChest;
 import org.cloudburstmc.server.blockentity.BlockEntity;
+import org.cloudburstmc.server.blockentity.EnderChest;
 import org.cloudburstmc.server.blockentity.Sign;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.entity.Attribute;
@@ -199,14 +197,14 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     protected boolean enableClientCommand = true;
 
-    private BlockBehaviorEnderChest viewingEnderChest = null;
+    private EnderChest viewingEnderChest = null;
 
     protected int lastEnderPearl = 20;
     protected int lastChorusFruitTeleport = 20;
 
     private LoginChainData loginChainData;
 
-    public BlockState breakingBlockState = null;
+    public Block breakingBlock = null;
 
     public int pickedXPOrb = 0;
 
@@ -285,15 +283,15 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.lastChorusFruitTeleport = this.server.getTick();
     }
 
-    public BlockBehaviorEnderChest getViewingEnderChest() {
+    public EnderChest getViewingEnderChest() {
         return viewingEnderChest;
     }
 
-    public void setViewingEnderChest(BlockBehaviorEnderChest chest) {
+    public void setViewingEnderChest(EnderChest chest) {
         if (chest == null && this.viewingEnderChest != null) {
-            this.viewingEnderChest.getViewers().remove(this);
+            this.viewingEnderChest.getInventory().getViewers().remove(this);
         } else if (chest != null) {
-            chest.getViewers().add(this);
+            chest.getInventory().getViewers().add(this);
         }
         this.viewingEnderChest = chest;
     }
@@ -992,13 +990,14 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     protected void checkBlockCollision() {
         boolean portal = false;
 
-        for (BlockState blockState : this.getCollisionBlocks()) {
-            if (blockState.getId() == BlockTypes.PORTAL) {
+        for (Block block : this.getCollisionBlocks()) {
+            val state = block.getState();
+            if (state.getType() == BlockTypes.PORTAL) {
                 portal = true;
                 continue;
             }
 
-            blockState.onEntityCollide(this);
+            state.getBehavior().onEntityCollide(block, this);
         }
 
         if (portal) {
@@ -1145,9 +1144,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
-                        BlockState blockState = this.getLevel().getBlock(x, y, z);
+                        Block block = this.getLevel().getBlock(x, y, z);
+                        val behavior = block.getState().getBehavior();
 
-                        if (!blockState.canPassThrough() && blockState.collidesWithBB(realBB)) {
+                        if (!behavior.canPassThrough() && behavior.collidesWithBB(block, realBB)) {
                             onGround = true;
                             break;
                         }
@@ -1246,8 +1246,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             this.lastPitch = to.getPitch();
 
             if (!isFirst) {
-                List<BlockState> blocksAround = new ArrayList<>(this.blocksAround);
-                List<BlockState> collidingBlockStates = new ArrayList<>(this.collisionBlockStates);
+                List<Block> blocksAround = new ArrayList<>(this.blocksAround);
+                List<Block> collidingBlockStates = new ArrayList<>(this.collisionBlockStates);
 
                 PlayerMoveEvent ev = new PlayerMoveEvent(this, from, to);
 
@@ -1440,8 +1440,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
             Vector3f position = this.getPosition().add(0, getEyeHeight(), 0);
             for (Vector3i pos : BlockRayTrace.of(position, getDirectionVector(), maxDistance)) {
-                BlockState blockState = this.getLevel().getLoadedBlock(pos);
-                if (blockState == null) {
+                Block block = this.getLevel().getLoadedBlock(pos);
+                if (block == null) {
                     break;
                 }
 
@@ -2212,7 +2212,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return false;
         } else if (source.getCause() == EntityDamageEvent.DamageCause.FALL) {
         }
-        if (this.getLevel().getBlock(this.getPosition().add(0, -1, 0)).getId() == BlockTypes.SLIME) {
+        if (this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockTypes.SLIME) {
             if (!this.isSneaking()) {
                 //source.setCancelled();
                 this.resetFallDistance();
@@ -2424,8 +2424,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                     break;
 
                 case LAVA:
-                    BlockState blockState = this.getLevel().getBlock(this.getPosition().add(0, -1, 0));
-                    if (blockState.getId() == BlockTypes.MAGMA) {
+                    BlockState state = this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt());
+                    if (state.getType() == BlockTypes.MAGMA) {
                         message = "death.attack.lava.magma";
                         break;
                     }
@@ -2446,7 +2446,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
                 case CONTACT:
                     if (cause instanceof EntityDamageByBlockEvent) {
-                        if (((EntityDamageByBlockEvent) cause).getDamager().getId() == BlockTypes.CACTUS) {
+                        if (((EntityDamageByBlockEvent) cause).getDamager().getState().getType() == BlockTypes.CACTUS) {
                             message = "death.attack.cactus";
                         }
                     }
@@ -3121,7 +3121,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     public boolean isBreakingBlock() {
-        return this.breakingBlockState != null;
+        return this.breakingBlock != null;
     }
 
     /**

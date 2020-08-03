@@ -50,7 +50,7 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_TOUCH) { //type == Level.BLOCK_UPDATE_NORMAL ||
-            this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockTypes.LIT_REDSTONE_ORE), false, false);
+            block.set(BlockState.get(BlockTypes.LIT_REDSTONE_ORE), false, false);
 
             return Level.BLOCK_UPDATE_WEAK;
         }

@@ -95,8 +95,8 @@ public class OrePopulator extends AbstractReplacingPopulator {
                         if (sideX * sideX + sideY * sideY + sideZ * sideZ >= 1.0d) {
                             continue;
                         }
-                        if (this.replace.test(level.getBlockRuntimeIdUnsafe(dx, dy, dz, 0))) {
-                            level.setBlockRuntimeIdUnsafe(dx, dy, dz, 0, block);
+                        if (this.replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(dx, dy, dz, 0)))) {
+//                            level.setBlockAt(dx, dy, dz, 0, org.cloudburstmc.server.registry.BlockRegistry.get().getBlock(block)));
                         }
                     }
                 }

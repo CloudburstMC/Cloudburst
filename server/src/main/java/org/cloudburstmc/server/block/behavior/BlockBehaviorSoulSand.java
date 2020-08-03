@@ -22,10 +22,10 @@ public class BlockBehaviorSoulSand extends BlockBehaviorSolid {
         return ItemTool.TYPE_SHOVEL;
     }
 
-    @Override
-    public float getMaxY() {
-        return this.getY() + 1 - 0.125f;
-    }
+//    @Override //TODO: bounding box
+//    public float getMaxY() {
+//        return this.getY() + 1 - 0.125f;
+//    }
 
     @Override
     public boolean hasEntityCollision() {

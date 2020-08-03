@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.item;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorBedrock;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorObsidian;
 import org.cloudburstmc.server.entity.EntityTypes;
@@ -29,13 +30,13 @@ public class ItemEndCrystal extends Item {
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (!(target instanceof BlockBehaviorBedrock) && !(target instanceof BlockBehaviorObsidian)) return false;
-        Chunk chunk = level.getLoadedChunk(blockState.getPosition());
+        Chunk chunk = level.getLoadedChunk(block.getPosition());
 
         if (chunk == null) {
             return false;
         }
 
-        Vector3f position = blockState.getPosition().toFloat().add(0.5, 0, 0.5);
+        Vector3f position = block.getPosition().toFloat().add(0.5, 0, 0.5);
 
         EnderCrystal enderCrystal = EntityRegistry.get().newEntity(EntityTypes.ENDER_CRYSTAL, Location.from(position, level));
         enderCrystal.setRotation(ThreadLocalRandom.current().nextFloat() * 360, 0);

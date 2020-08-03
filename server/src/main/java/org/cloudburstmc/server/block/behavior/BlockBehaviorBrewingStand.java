@@ -23,7 +23,7 @@ import static org.cloudburstmc.server.blockentity.BlockEntityTypes.BREWING_STAND
 public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

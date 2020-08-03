@@ -1,9 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.Item;
@@ -19,9 +20,9 @@ public class BlockBehaviorNetherWart extends FloodableBlockBehavior {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        BlockState down = this.down();
-        if (down.getId() == BlockTypes.SOUL_SAND) {
-            this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+        val down = block.down().getState();
+        if (down.getType() == BlockTypes.SOUL_SAND) {
+            placeBlock(block, item);
             return true;
         }
         return false;
@@ -30,20 +31,19 @@ public class BlockBehaviorNetherWart extends FloodableBlockBehavior {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.down().getId() != BlockTypes.SOUL_SAND) {
-                this.getLevel().useBreakOn(this.getPosition());
+            if (block.down().getState().getType() != BlockTypes.SOUL_SAND) {
+                block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
         } else if (type == Level.BLOCK_UPDATE_RANDOM) {
             if (new Random().nextInt(10) == 1) {
-                if (this.getMeta() < 0x03) {
-                    BlockBehaviorNetherWart block = (BlockBehaviorNetherWart) this.clone();
-                    block.setMeta(block.getMeta() + 1);
-                    BlockGrowEvent ev = new BlockGrowEvent(this, block);
+                val state = block.getState();
+                if (state.ensureTrait(BlockTraits.AGE) < 3) {
+                    BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.AGE));
                     Server.getInstance().getPluginManager().callEvent(ev);
 
                     if (!ev.isCancelled()) {
-                        this.getLevel().setBlock(this.getPosition(), ev.getNewState(), true, true);
+                        block.set(ev.getNewState(), true);
                     } else {
                         return Level.BLOCK_UPDATE_RANDOM;
                     }
@@ -63,7 +63,7 @@ public class BlockBehaviorNetherWart extends FloodableBlockBehavior {
 
     @Override
     public Item[] getDrops(Block block, Item hand) {
-        if (this.getMeta() == 0x03) {
+        if (block.getState().ensureTrait(BlockTraits.AGE) == 3) {
             return new Item[]{
                     Item.get(ItemIds.NETHER_WART, 0, 2 + (int) (Math.random() * ((4 - 2) + 1)))
             };

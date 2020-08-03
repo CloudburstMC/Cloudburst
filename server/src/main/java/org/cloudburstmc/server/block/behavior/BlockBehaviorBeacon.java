@@ -37,7 +37,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -50,7 +50,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
                 BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, block.getChunk(), block.getPosition());
             }
 
-            player.addWindow(new BeaconInventory(player.getUIInventory(), block.getState()), ContainerIds.BEACON);
+            player.addWindow(new BeaconInventory(player.getUIInventory(), block), ContainerIds.BEACON);
         }
         return true;
     }

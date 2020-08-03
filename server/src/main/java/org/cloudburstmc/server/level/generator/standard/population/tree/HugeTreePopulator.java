@@ -64,8 +64,8 @@ public class HugeTreePopulator extends AbstractTreePopulator {
             final int min = this.height.min;
 
             IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-            for (int y = max, id, lastId = chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, y + 1, blockZ & 0xF, 0); y >= min; y--) {
-                id = chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, y, blockZ & 0xF, 0);
+            for (int y = max, id, lastId = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, y + 1, blockZ & 0xF, 0)); y >= min; y--) {
+                id = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0));
 
                 if (replace.test(lastId) && on.test(id)) {
                     this.placeTree(random, level, blockX, y, blockZ);
@@ -82,8 +82,8 @@ public class HugeTreePopulator extends AbstractTreePopulator {
     protected void placeTree(PRandom random, ChunkManager level, int x, int y, int z) {
         for (int dx = 0; dx <= 1; dx++) {
             for (int dz = 0; dz <= 1; dz++) {
-                int testId = level.getBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0);
-                if (!this.on.test(testId) && (!this.replace.test(testId) || !this.on.test(level.getBlockRuntimeIdUnsafe(x + dx, y - 1, z + dz, 0)))) {
+                int testId = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz, 0));
+                if (!this.on.test(testId) && (!this.replace.test(testId) || !this.on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y - 1, z + dz, 0))))) {
                     return;
                 }
             }
@@ -93,8 +93,8 @@ public class HugeTreePopulator extends AbstractTreePopulator {
             int belowId = this.below.selectRuntimeId(random);
             for (int dx = 0; dx <= 1; dx++) {
                 for (int dz = 0; dz <= 1; dz++) {
-                    level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, belowId);
-                    level.setBlockRuntimeIdUnsafe(x + dx, y - 1, z + dz, 0, belowId);
+//                    level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, belowId);
+//                    level.setBlockRuntimeIdUnsafe(x + dx, y - 1, z + dz, 0, belowId);
                 }
             }
         }

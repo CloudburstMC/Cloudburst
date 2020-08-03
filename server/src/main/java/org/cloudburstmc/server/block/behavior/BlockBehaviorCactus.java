@@ -11,10 +11,8 @@ import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
-import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -37,7 +35,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
         return true;
     }
 
-//    @Override
+//    @Override //TODO: bounding box
 //    public float getMinX() {
 //        return this.getX() + 0.0625f;
 //    }
@@ -68,10 +66,10 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
 //    }
 
 
-    @Override
-    public AxisAlignedBB getBoundingBox(Block block) {
-        return new SimpleAxisAlignedBB(block.getX(), block.getY(), block.getZ(), block.getX() + 1, block.getY() + 1, block.getZ() + 1);
-    }
+//    @Override
+//    public AxisAlignedBB getBoundingBox(Block block) {
+//        return new SimpleAxisAlignedBB(block.getX(), block.getY(), block.getZ(), block.getX() + 1, block.getY() + 1, block.getZ() + 1);
+//    }
 
     @Override
     public void onEntityCollide(Block block, Entity entity) {

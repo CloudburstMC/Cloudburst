@@ -47,7 +47,7 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
             int radius = dy == 0 ? 1 : 2;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0))) {
+                    if (!this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y + dy, z + dz, 0)))) {
                         return false;
                     }
                 }
@@ -60,10 +60,10 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
     @Override
     protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves) {
         for (int dy = 0; dy < height - 2; dy++) {
-            level.setBlockRuntimeIdUnsafe(x, y + dy, z, 0, log);
-            level.setBlockRuntimeIdUnsafe(x + 1, y + dy, z, 0, log);
-            level.setBlockRuntimeIdUnsafe(x, y + dy, z + 1, 0, log);
-            level.setBlockRuntimeIdUnsafe(x + 1, y + dy, z + 1, 0, log);
+//            level.setBlockRuntimeIdUnsafe(x, y + dy, z, 0, log);
+//            level.setBlockRuntimeIdUnsafe(x + 1, y + dy, z, 0, log);
+//            level.setBlockRuntimeIdUnsafe(x, y + dy, z + 1, 0, log);
+//            level.setBlockRuntimeIdUnsafe(x + 1, y + dy, z + 1, 0, log);
         }
     }
 
@@ -85,8 +85,8 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
             for (int dz = -radius; dz <= radius + 1; dz++) {
                 int dxSq = dx > 0 ? (dx - 1) * (dx - 1) : dx * dx;
                 int dzSq = dz > 0 ? (dz - 1) * (dz - 1) : dz * dz;
-                if (dxSq + dzSq <= radiusSq && this.test(level.getBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0))) {
-                    level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, block);
+                if (dxSq + dzSq <= radiusSq && this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz, 0)))) {
+//                    level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, block);
                 }
             }
         }

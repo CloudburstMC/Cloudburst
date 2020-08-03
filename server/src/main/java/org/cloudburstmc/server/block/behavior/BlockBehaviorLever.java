@@ -15,7 +15,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 public class BlockBehaviorLever extends FloodableBlockBehavior {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

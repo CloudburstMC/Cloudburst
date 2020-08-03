@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
@@ -160,61 +161,61 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        this.getLevel().setBlock(blockState.getPosition(), this, true);
-        return this.createBlockEntity() != null;
+        return placeBlock(block, item) && this.createBlockEntity(block) != null;
     }
 
-    public int getStrength() {
-        Noteblock blockEntity = this.getBlockEntity();
+    public int getStrength(Block block) {
+        Noteblock blockEntity = this.getBlockEntity(block);
         return blockEntity != null ? blockEntity.getNote() : 0;
     }
 
-    public void increaseStrength() {
-        Noteblock blockEntity = this.getBlockEntity();
+    public void increaseStrength(Block block) {
+        Noteblock blockEntity = this.getBlockEntity(block);
         if (blockEntity != null) {
             blockEntity.changeNote();
         }
     }
 
-    public Instrument getInstrument() {
-        return INSTRUMENTS.getOrDefault(this.down().getId(), Instrument.PIANO);
+    public Instrument getInstrument(Block block) {
+        return INSTRUMENTS.getOrDefault(block.down().getState().getType(), Instrument.PIANO);
     }
 
-    public void emitSound() {
-        if (this.up().getId() != BlockTypes.AIR) return;
+    public void emitSound(Block block) {
+        if (block.up().getState().getType() != BlockTypes.AIR) return;
 
-        Instrument instrument = this.getInstrument();
+        Instrument instrument = this.getInstrument(block);
 
-        this.level.addLevelSoundEvent(this.getPosition(), SoundEvent.NOTE, instrument.ordinal() << 8 | this.getStrength());
+        val level = block.getLevel();
+        level.addLevelSoundEvent(block.getPosition(), SoundEvent.NOTE, instrument.ordinal() << 8 | this.getStrength(block));
 
         BlockEventPacket pk = new BlockEventPacket();
-        pk.setBlockPosition(this.getPosition());
+        pk.setBlockPosition(block.getPosition());
         pk.setEventType(instrument.ordinal());
-        pk.setEventData(this.getStrength());
-        this.getLevel().addChunkPacket(this.getPosition(), pk);
+        pk.setEventData(this.getStrength(block));
+        level.addChunkPacket(block.getPosition(), pk);
     }
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        this.increaseStrength();
-        this.emitSound();
+        this.increaseStrength(block);
+        this.emitSound(block);
         return true;
     }
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_REDSTONE) {
-            Noteblock blockEntity = this.getBlockEntity();
+            Noteblock blockEntity = this.getBlockEntity(block);
             if (blockEntity != null) {
-                if (this.getLevel().isBlockPowered(this.getPosition())) {
+                if (block.getLevel().isBlockPowered(block.getPosition())) {
                     if (!blockEntity.isPowered()) {
-                        this.emitSound();
+                        this.emitSound(block);
                     }
                     blockEntity.setPowered(true);
                 } else {
@@ -225,16 +226,16 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         return super.onUpdate(block, type);
     }
 
-    private Noteblock getBlockEntity() {
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
+    private Noteblock getBlockEntity(Block block) {
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         if (blockEntity instanceof Noteblock) {
             return (Noteblock) blockEntity;
         }
         return null;
     }
 
-    private Noteblock createBlockEntity() {
-        return BlockEntityRegistry.get().newEntity(BlockEntityTypes.NOTEBLOCK, this.getChunk(), this.getPosition());
+    private Noteblock createBlockEntity(Block block) {
+        return BlockEntityRegistry.get().newEntity(BlockEntityTypes.NOTEBLOCK, block);
     }
 
     public enum Instrument {
@@ -267,7 +268,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 }

@@ -3,13 +3,17 @@ package org.cloudburstmc.server.entity.impl.misc;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import lombok.val;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.FallingBlock;
 import org.cloudburstmc.server.event.entity.EntityBlockChangeEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
+import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.gamerule.GameRules;
@@ -93,8 +97,8 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
         BlockState blockState = getBlock();
 
         tag.putCompound("FallingBlock", NbtMap.builder()
-                .putString("name", blockState.getId().toString())
-                .putShort("val", (short) blockState.getMeta())
+                .putString("name", blockState.getType().toString())
+                .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(blockState)) //TODO: check
                 .build());
     }
 
@@ -138,10 +142,11 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
 
             if (onGround) {
                 close();
-                BlockState blockState = level.getBlock(pos);
-                if (blockState.getId() != AIR && blockState.isTransparent() && !blockState.canBeReplaced()) {
+                val b = level.getBlock(pos);
+                BlockState blockState = b.getState();
+                if (blockState.getType() != AIR && blockState.inCategory(BlockCategory.TRANSPARENT) && !blockState.getBehavior().canBeReplaced(b)) {
                     if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-                        getLevel().dropItem(this.getPosition(), this.getBlock().toItem());
+                        getLevel().dropItem(this.getPosition(), Item.get(this.getBlock()));
                     }
                 } else {
                     EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, blockState, this.getBlock());
@@ -149,7 +154,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
                     if (!event.isCancelled()) {
                         getLevel().setBlock(pos, event.getTo(), true);
 
-                        if (event.getTo().getId() == ANVIL) {
+                        if (event.getTo().getType() == ANVIL) {
                             getLevel().addSound(pos, Sound.RANDOM_ANVIL_LAND);
                         }
                     }

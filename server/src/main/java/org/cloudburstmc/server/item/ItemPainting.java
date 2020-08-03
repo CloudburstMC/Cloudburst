@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.item;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.impl.misc.EntityPainting;
 import org.cloudburstmc.server.entity.misc.Painting;
@@ -36,9 +38,10 @@ public class ItemPainting extends Item {
 
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
-        Chunk chunk = level.getChunk(blockState.getPosition());
+        Chunk chunk = level.getLoadedChunk(block.getPosition());
 
-        if (chunk == null || target.isTransparent() || face.getHorizontalIndex() == -1 || blockState.isSolid()) {
+        if (chunk == null || target.getState().inCategory(BlockCategory.TRANSPARENT)
+                || face.getHorizontalIndex() == -1 || block.getState().inCategory(BlockCategory.SOLID)) {
             return false;
         }
 
@@ -47,10 +50,10 @@ public class ItemPainting extends Item {
             boolean valid = true;
             for (int x = 0; x < motive.width && valid; x++) {
                 for (int z = 0; z < motive.height && valid; z++) {
-                    if (target.getSide(Direction.fromIndex(RIGHT[face.getIndex() - 2]), x).isTransparent() ||
-                            target.up(z).isTransparent() ||
-                            blockState.getSide(Direction.fromIndex(RIGHT[face.getIndex() - 2]), x).isSolid() ||
-                            blockState.up(z).isSolid()) {
+                    if (target.getSideState(Direction.fromIndex(RIGHT[face.getIndex() - 2]), x).inCategory(BlockCategory.TRANSPARENT) ||
+                            target.upState(z).inCategory(BlockCategory.TRANSPARENT) ||
+                            block.getSideState(Direction.fromIndex(RIGHT[face.getIndex() - 2]), x).inCategory(BlockCategory.SOLID) ||
+                            block.upState(z).inCategory(BlockCategory.SOLID)) {
                         valid = false;
                     }
                 }

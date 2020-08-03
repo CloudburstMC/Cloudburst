@@ -165,10 +165,10 @@ public class ItemRegistry implements Registry {
             itemEntries.add(new StartGamePacket.ItemEntry(data.name, (short) data.id));
         }
 
-        List<Identifier> customBlocks = this.blockRegistry.getCustomBlocks();
-        for (Identifier blockId : customBlocks) {
-            itemEntries.add(new StartGamePacket.ItemEntry(blockId.toString(), (short) this.getRuntimeId(blockId)));
-        }
+//        List<Identifier> customBlocks = this.blockRegistry.getCustomBlocks(); //TODO: custom blocks
+//        for (Identifier blockId : customBlocks) {
+//            itemEntries.add(new StartGamePacket.ItemEntry(blockId.toString(), (short) this.getRuntimeId(blockId)));
+//        }
 
         int startId = this.lastLegacyId + 1;
         int size = this.runtimeIdAllocator.get();
