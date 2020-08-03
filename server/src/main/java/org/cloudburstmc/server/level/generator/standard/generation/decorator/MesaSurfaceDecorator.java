@@ -75,8 +75,8 @@ public class MesaSurfaceDecorator extends DepthNoiseDecorator {
         final int minHeight = this.seaLevel + this.getDepthNoise(random, blockX, blockZ);
 
         for (int y = chunk.getHighestBlock(x, z); y >= minHeight; y--) {
-            if (chunk.getBlockRuntimeIdUnsafe(x, y, z, 0) == ground) {
-                chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, this.getBand(blockX, y, blockZ));
+            if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(x, y, z, 0)) == ground) {
+//                chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, this.getBand(blockX, y, blockZ));
             }
         }
     }

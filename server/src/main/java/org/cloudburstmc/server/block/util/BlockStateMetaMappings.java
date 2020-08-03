@@ -52,7 +52,7 @@ public class BlockStateMetaMappings {
                 for (Entry<String, Comparable> entry : traits.entrySet()) {
                     String key = entry.getKey();
 
-                    BlockTrait<?> trait = BlockTraits.fromVanilla(key);
+                    BlockTrait trait = BlockTraits.fromVanilla(key);
 
                     if (trait == null) {
                         log.warn("Unknown trait {}", key);

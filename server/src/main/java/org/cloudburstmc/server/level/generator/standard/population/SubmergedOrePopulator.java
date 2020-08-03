@@ -49,11 +49,11 @@ public class SubmergedOrePopulator extends ChancePopulator.Column {
         IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
         int y = chunk.getHighestBlock(blockX & 0xF, blockZ & 0xF);
         for (; y > 0; y--) {
-            if (this.replace.test(chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, y, blockZ & 0xF, 0))) {
+            if (this.replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0)))) {
                 break;
             }
         }
-        if (y <= 0 || y >= 255 || !this.start.test(level.getBlockRuntimeIdUnsafe(blockX, y + 1, blockZ, 0))) {
+        if (y <= 0 || y >= 255 || !this.start.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, y + 1, blockZ, 0)))) {
             return;
         }
 
@@ -65,8 +65,8 @@ public class SubmergedOrePopulator extends ChancePopulator.Column {
             for (int dz = -radius; dz <= radius; dz++) {
                 if (dx * dx + dz * dz <= radiusSq) {
                     for (int dy = -1; dy < 1; dy++) {
-                        if (this.replace.test(level.getBlockRuntimeIdUnsafe(blockX + dx, y + dy, blockZ + dz, 0))) {
-                            level.setBlockRuntimeIdUnsafe(blockX + dx, y + dy, blockZ + dz, 0, block);
+                        if (this.replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + dx, y + dy, blockZ + dz, 0)))) {
+//                            level.setBlockRuntimeIdUnsafe(blockX + dx, y + dy, blockZ + dz, 0, block);
                         }
                     }
                 }

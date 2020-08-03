@@ -42,7 +42,7 @@ public class FeatureSpruceTree extends FeatureNormalTree {
             int radius = dy < leavesStart ? 0 : maxRadius;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockRuntimeIdUnsafe(x, y + dy, z, 0))) {
+                    if (!this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y + dy, z, 0)))) {
                         return false;
                     }
                 }
@@ -61,8 +61,8 @@ public class FeatureSpruceTree extends FeatureNormalTree {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if ((abs(dx) != radius || abs(dz) != radius || radius <= 0)
-                            && this.test(level.getBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0))) {
-                        level.setBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0, leaves);
+                            && this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y + dy, z + dz, 0)))) {
+//                        level.setBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0, leaves);
                     }
                 }
             }
@@ -81,7 +81,7 @@ public class FeatureSpruceTree extends FeatureNormalTree {
 
         //place logs
         for (int dy = 0; dy < height - 1; dy++) {
-            level.setBlockRuntimeIdUnsafe(x, y + dy, z, 0, log);
+//            level.setBlockRuntimeIdUnsafe(x, y + dy, z, 0, log);
         }
 
         this.replaceGrassWithDirt(level, x, y - 1, z);

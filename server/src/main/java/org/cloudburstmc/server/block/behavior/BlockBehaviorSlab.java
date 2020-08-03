@@ -168,7 +168,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
     }
 
     private BlockState getState(BlockState state, Identifier type) {
-        val trait = getSlabType(state);
+        BlockTrait trait = getSlabType(state);
         return BlockState.get(type).withTrait(trait, state.ensureTrait(trait));
     }
 

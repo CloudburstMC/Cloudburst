@@ -17,7 +17,7 @@ public interface BlockFilter extends Predicate<BlockState> {
     BlockFilter AIR = new BlockFilter() {
         @Override
         public boolean test(BlockState blockState) {
-            return blockState.getId() == BlockTypes.AIR;
+            return blockState.getType() == BlockTypes.AIR;
         }
 
         @Override
@@ -29,7 +29,7 @@ public interface BlockFilter extends Predicate<BlockState> {
     BlockFilter REPLACEABLE = new BlockFilter() {
         @Override
         public boolean test(BlockState blockState) {
-            return blockState.canBeReplaced();
+            return false;
         }
 
         @Override

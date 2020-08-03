@@ -3,8 +3,6 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorCocoa;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
@@ -50,25 +48,25 @@ public class CocoaPopulator extends ChancePopulator {
 
         final IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
         for (int y = this.height.min, max = this.height.max; y < max; y++) {
-            if (random.nextDouble() >= chance || !replace.test(chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, y, blockZ & 0xF, 0))) {
+            if (random.nextDouble() >= chance || !replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0)))) {
                 continue;
             }
 
-            if (on.test(level.getBlockRuntimeIdUnsafe(blockX - 1, y, blockZ, 0))) {
-                if (!avoidDouble || !on.test(level.getBlockRuntimeIdUnsafe(blockX - 2, y, blockZ, 0))) {
-                    level.setBlockAt(blockX, y, blockZ, 0, BlockTypes.COCOA, BlockBehaviorCocoa.EAST);
+            if (on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX - 1, y, blockZ, 0)))) {
+                if (!avoidDouble || !on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX - 2, y, blockZ, 0)))) {
+//                    level.setBlockAt(blockX, y, blockZ, 0, BlockTypes.COCOA, BlockBehaviorCocoa.EAST);
                 }
-            } else if (on.test(level.getBlockRuntimeIdUnsafe(blockX + 1, y, blockZ, 0))) {
-                if (!avoidDouble || !on.test(level.getBlockRuntimeIdUnsafe(blockX + 2, y, blockZ, 0))) {
-                    level.setBlockAt(blockX, y, blockZ, 0, BlockTypes.COCOA, BlockBehaviorCocoa.WEST);
+            } else if (on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + 1, y, blockZ, 0)))) {
+                if (!avoidDouble || !on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + 2, y, blockZ, 0)))) {
+//                    level.setBlockAt(blockX, y, blockZ, 0, BlockTypes.COCOA, BlockBehaviorCocoa.WEST);
                 }
-            } else if (on.test(level.getBlockRuntimeIdUnsafe(blockX, y, blockZ - 1, 0))) {
-                if (!avoidDouble || !on.test(level.getBlockRuntimeIdUnsafe(blockX, y, blockZ - 2, 0))) {
-                    level.setBlockAt(blockX, y, blockZ, 0, BlockTypes.COCOA, BlockBehaviorCocoa.SOUTH);
+            } else if (on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, y, blockZ - 1, 0)))) {
+                if (!avoidDouble || !on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, y, blockZ - 2, 0)))) {
+//                    level.setBlockAt(blockX, y, blockZ, 0, BlockTypes.COCOA, BlockBehaviorCocoa.SOUTH);
                 }
-            } else if (on.test(level.getBlockRuntimeIdUnsafe(blockX, y, blockZ + 1, 0))) {
-                if (!avoidDouble || !on.test(level.getBlockRuntimeIdUnsafe(blockX, y, blockZ + 2, 0))) {
-                    level.setBlockAt(blockX, y, blockZ, 0, BlockTypes.COCOA, BlockBehaviorCocoa.NORTH);
+            } else if (on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, y, blockZ + 1, 0)))) {
+                if (!avoidDouble || !on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, y, blockZ + 2, 0)))) {
+//                    level.setBlockAt(blockX, y, blockZ, 0, BlockTypes.COCOA, BlockBehaviorCocoa.NORTH);
                 }
             }
         }

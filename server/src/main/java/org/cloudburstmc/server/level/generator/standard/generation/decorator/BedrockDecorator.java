@@ -33,20 +33,20 @@ public class BedrockDecorator extends AbstractGenerationPass implements Decorato
         final int runtimeId = this.block.runtimeId();
 
         for (int y = this.base.min, max = this.base.max; y < max; y++) {
-            chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, runtimeId);
+//            chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, runtimeId);
         }
 
         if (!this.fade.empty()) {
             if (this.reverseFade) {
                 for (int y = this.fade.min, i = 1, size = this.fade.size() + 1; i < size; y++, i++) {
                     if (random.nextInt(size) < i) {
-                        chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, runtimeId);
+//                        chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, runtimeId);
                     }
                 }
             } else {
                 for (int y = this.fade.min, i = this.fade.size(), size = i + 1; i > 0; y++, i--) {
                     if (random.nextInt(size) < i) {
-                        chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, runtimeId);
+//                        chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, runtimeId);
                     }
                 }
             }
