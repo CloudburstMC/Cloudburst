@@ -134,9 +134,10 @@ public final class CloudBlockState implements BlockState {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(this.type);
-        if (!this.traits.isEmpty()) {
+        if (this != this.defaultState && !this.traits.isEmpty()) {
             builder.append('{');
             this.traits.forEach((trait, value) -> builder.append(trait).append('=').append(value.toString().toLowerCase()).append(',').append(' '));
+            builder.setLength(builder.length() - 1);
             builder.setCharAt(builder.length() - 1, '}');
         }
         return builder.toString();
