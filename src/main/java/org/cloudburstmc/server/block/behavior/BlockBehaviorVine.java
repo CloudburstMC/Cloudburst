@@ -9,26 +9,12 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorVine extends BlockBehaviorTransparent {
-    public static final int SOUTH = 1;
-    public static final int WEST = 2;
-    public static final int NORTH = 4;
-    public static final int EAST = 8;
 
-    public static Direction getFace(int meta) {
-        if ((meta & EAST) != 0) {
-            return Direction.EAST;
-        } else if ((meta & NORTH) != 0) {
-            return Direction.NORTH;
-        } else if ((meta & WEST) != 0) {
-            return Direction.WEST;
-        } else {
-            return Direction.SOUTH;
-        }
-    }
 
     @Override
     public float getHardness() {
@@ -127,12 +113,9 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (target.getState().inCategory(BlockCategory.SOLID) && face.getHorizontalIndex() != -1) {
-            var state = BlockState.get(BlockTypes.VINE);
-
-            if (face.getAxis().isHorizontal()) {
-                state = state.withTrait(BlockTraits.DIRECTION, face.getOpposite());
-            }
+        if (target.getState().inCategory(BlockCategory.SOLID) && face.getAxis().isHorizontal()) {
+            var state = BlockState.get(BlockTypes.VINE)
+                    .withTrait(BlockTraits.VINE_DIRECTION_BITS, 1 << face.getOpposite().getHorizontalIndex());
 
             placeBlock(block, state);
             return true;
@@ -160,41 +143,37 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            val direction = block.getState().ensureTrait(BlockTraits.DIRECTION);
-
-            if (!block.getSideState(direction).inCategory(BlockCategory.SOLID)) {
-                val up = block.upState();
-
-                if (up.getType() != BlockTypes.VINE || up.ensureTrait(BlockTraits.DIRECTION) != direction) {
-                    block.getLevel().useBreakOn(block.getPosition());
-                    return Level.BLOCK_UPDATE_NORMAL;
-                }
-            }
-//            int current = block.getState().ensureTrait(BlockTraits.VINE_DIRECTION_BITS);
+//            val direction = block.getState().ensureTrait(BlockTraits.DIRECTION);
 //
-//            int bits = 0;
-//            for (Direction direction : Plane.HORIZONTAL) {
-//                if (block.getSide(direction).getState().inCategory(BlockCategory.SOLID)) {
-//                    bits |= 1 << direction.getHorizontalIndex();
-//                }
-//            }
+//            if (!block.getSideState(direction).inCategory(BlockCategory.SOLID)) {
+//                val up = block.upState();
 //
-//            if (bits == 0) {
-//                val upState = block.up().getState();
-//                if (upState.getType() != BlockTypes.VINE || (upState.ensureTrait(BlockTraits.VINE_DIRECTION_BITS) & current) == 0) {
-//                    block.getLevel().useBreakOn(block.getPosition(), null, null, true);
+//                if (up.getType() != BlockTypes.VINE || up.ensureTrait(BlockTraits.DIRECTION) != direction) {
+//                    block.getLevel().useBreakOn(block.getPosition());
 //                    return Level.BLOCK_UPDATE_NORMAL;
 //                }
-//            } else if (bits != current) {
-//                block.set(block.getState().withTrait(BlockTraits.VINE_DIRECTION_BITS, bits));
-//                return Level.BLOCK_UPDATE_NORMAL;
 //            }
+            int current = block.getState().ensureTrait(BlockTraits.VINE_DIRECTION_BITS);
+
+            int bits = 0;
+            for (Direction direction : Plane.HORIZONTAL) {
+                if (block.getSide(direction).getState().inCategory(BlockCategory.SOLID)) {
+                    bits |= 1 << direction.getHorizontalIndex();
+                }
+            }
+
+            if (bits == 0) {
+                val upState = block.up().getState();
+                if (upState.getType() != BlockTypes.VINE || (upState.ensureTrait(BlockTraits.VINE_DIRECTION_BITS) & current) == 0) {
+                    block.getLevel().useBreakOn(block.getPosition(), null, null, true);
+                    return Level.BLOCK_UPDATE_NORMAL;
+                }
+            } else if (bits != current) {
+                block.set(block.getState().withTrait(BlockTraits.VINE_DIRECTION_BITS, bits));
+                return Level.BLOCK_UPDATE_NORMAL;
+            }
         }
         return 0;
-    }
-
-    public int getBits(Direction direction) {
-        return 1 << direction.getHorizontalIndex();
     }
 
     @Override
