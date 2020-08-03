@@ -1306,7 +1306,7 @@ public class Level implements ChunkManager, Metadatable {
         Chunk chunk = this.getChunk(chunkX, chunkZ);
 
         if (y < 0 || y > 255) {
-            return new CloudBlock(this, Vector3i.from(x, y, z), CloudBlockState.EMPTY_STATES);
+            return new CloudBlock(this, Vector3i.from(x, y, z), BlockStates.EMPTY_STATES);
         }
 
         return new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{

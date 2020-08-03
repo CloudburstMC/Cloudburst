@@ -477,4 +477,9 @@ public class BlockStates {
     public static final BlockState BEEHIVE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BEEHIVE);
     public static final BlockState HONEY_BLOCK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.HONEY_BLOCK);
     public static final BlockState HONEYCOMB_BLOCK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.HONEYCOMB_BLOCK);
+
+    public static final BlockState[] EMPTY_STATES = {
+            AIR,
+            AIR
+    };
 }
