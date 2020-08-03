@@ -55,19 +55,19 @@ public class SurfaceDecorator extends DepthNoiseDecorator {
         final int min = this.height == null ? 0 : this.height.min;
 
         for (int y = chunk.getHighestBlock(x, z); y >= min; y--) {
-            if (chunk.getBlockRuntimeIdUnsafe(x, y, z, 0) == this.ground) {
+            if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(x, y, z, 0)) == this.ground) {
                 if (!placed) {
                     placed = true;
                     if (y <= max) {
                         if (y + 1 > this.seaLevel) {
                             if (y < 255 && this.cover >= 0) {
-                                chunk.setBlockRuntimeIdUnsafe(x, y + 1, z, 0, this.cover);
+//                                chunk.setBlockRuntimeIdUnsafe(x, y + 1, z, 0, this.cover);
                             }
-                            chunk.setBlockRuntimeIdUnsafe(x, y--, z, 0, this.top);
+//                            chunk.setBlockRuntimeIdUnsafe(x, y--, z, 0, this.top);
                         }
                         for (int i = depth - 1; i >= 0 && y >= 0; i--, y--) {
-                            if (chunk.getBlockRuntimeIdUnsafe(x, y, z, 0) == this.ground) {
-                                chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, this.filler);
+                            if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(x, y, z, 0)) == this.ground) {
+//                                chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, this.filler);
                             } else {
                                 //we hit air prematurely, abort!
                                 placed = false;

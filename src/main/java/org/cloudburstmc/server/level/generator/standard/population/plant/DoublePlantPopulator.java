@@ -51,11 +51,11 @@ public class DoublePlantPopulator extends AbstractPlantPopulator {
             int blockZ = z + random.nextInt(8) - random.nextInt(8);
 
             IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-            if (on.test(chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, blockY, blockZ & 0xF, 0))
-                    && replace.test(chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, blockY + 1, blockZ & 0xF, 0))
-                    && replace.test(chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, blockY + 2, blockZ & 0xF, 0))) {
-                chunk.setBlockRuntimeIdUnsafe(blockX & 0xF, blockY + 1, blockZ & 0xF, 0, bottom);
-                chunk.setBlockRuntimeIdUnsafe(blockX & 0xF, blockY + 2, blockZ & 0xF, 0, top);
+            if (on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, blockY, blockZ & 0xF, 0)))
+                    && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, blockY + 1, blockZ & 0xF, 0)))
+                    && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, blockY + 2, blockZ & 0xF, 0)))) {
+//                chunk.setBlockRuntimeIdUnsafe(blockX & 0xF, blockY + 1, blockZ & 0xF, 0, bottom);
+//                chunk.setBlockRuntimeIdUnsafe(blockX & 0xF, blockY + 2, blockZ & 0xF, 0, top);
             }
         }
     }

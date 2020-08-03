@@ -46,7 +46,7 @@ public class BlobPopulator extends ChancePopulator.Column {
     @Override
     protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
-        if (y < 0 || !this.on.test(level.getBlockRuntimeIdUnsafe(blockX, y, blockZ, 0))) {
+        if (y < 0 || !this.on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, y, blockZ, 0)))) {
             return;
         }
 
@@ -67,8 +67,8 @@ public class BlobPopulator extends ChancePopulator.Column {
                         continue;
                     }
                     for (int dz = -vz; dz <= vz; dz++) {
-                        if (dx * dx + dy * dy + dz * dz <= g && replace.test(level.getBlockRuntimeIdUnsafe(blockX + dx, y + dy, blockZ + dz, 0))) {
-                            level.setBlockRuntimeIdUnsafe(blockX + dx, y + dy, blockZ + dz, 0, block);
+                        if (dx * dx + dy * dy + dz * dz <= g && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + dx, y + dy, blockZ + dz, 0)))) {
+//                            level.setBlockRuntimeIdUnsafe(blockX + dx, y + dy, blockZ + dz, 0, block);
                         }
                     }
                 }

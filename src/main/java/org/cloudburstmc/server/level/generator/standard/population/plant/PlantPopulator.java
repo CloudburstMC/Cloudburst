@@ -56,21 +56,21 @@ public class PlantPopulator extends AbstractPlantPopulator {
             int blockZ = z + random.nextInt(8) - random.nextInt(8);
 
             IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-            if (!on.test(chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, blockY, blockZ & 0xF, 0))) {
+            if (!on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, blockY, blockZ & 0xF, 0)))) {
                 continue;
             }
-            if (water != null && !(water.test(level.getBlockRuntimeIdUnsafe(blockX + 1, blockY, blockZ, 0))
-                    || water.test(level.getBlockRuntimeIdUnsafe(blockX - 1, blockY, blockZ, 0))
-                    || water.test(level.getBlockRuntimeIdUnsafe(blockX, blockY, blockZ + 1, 0))
-                    || water.test(level.getBlockRuntimeIdUnsafe(blockX, blockY, blockZ - 1, 0)))) {
+            if (water != null && !(water.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + 1, blockY, blockZ, 0)))
+                    || water.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX - 1, blockY, blockZ, 0)))
+                    || water.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY, blockZ + 1, 0)))
+                    || water.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY, blockZ - 1, 0))))) {
                 continue;
             }
-            for (int dy = 1; dy <= height && replace.test(chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, blockY + dy, blockZ & 0xF, 0))
-                    && replace.test(level.getBlockRuntimeIdUnsafe(blockX + 1, blockY + dy, blockZ, 0))
-                    && replace.test(level.getBlockRuntimeIdUnsafe(blockX - 1, blockY + dy, blockZ, 0))
-                    && replace.test(level.getBlockRuntimeIdUnsafe(blockX, blockY + dy, blockZ + 1, 0))
-                    && replace.test(level.getBlockRuntimeIdUnsafe(blockX, blockY + dy, blockZ - 1, 0)); dy++) {
-                chunk.setBlockRuntimeIdUnsafe(blockX & 0xF, blockY + dy, blockZ & 0xF, 0, block);
+            for (int dy = 1; dy <= height && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, blockY + dy, blockZ & 0xF, 0)))
+                    && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + 1, blockY + dy, blockZ, 0)))
+                    && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX - 1, blockY + dy, blockZ, 0)))
+                    && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY + dy, blockZ + 1, 0)))
+                    && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY + dy, blockZ - 1, 0))); dy++) {
+//                chunk.setBlockRuntimeIdUnsafe(blockX & 0xF, blockY + dy, blockZ & 0xF, 0, block);
             }
         }
     }

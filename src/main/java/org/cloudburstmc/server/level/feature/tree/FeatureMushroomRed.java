@@ -41,20 +41,20 @@ public class FeatureMushroomRed extends FeatureMushroomBrown {
         this.placeSideColumn(level, x - 1, yy, z - 2, BlockBehaviorHugeMushroomRed.TOP_NW);
 
         yy = y + height;
-        level.setBlockAt(x, yy, z, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP);
-        level.setBlockAt(x + 1, yy, z, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_E);
-        level.setBlockAt(x + 1, yy, z + 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_SE);
-        level.setBlockAt(x, yy, z + 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_S);
-        level.setBlockAt(x - 1, yy, z + 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_SW);
-        level.setBlockAt(x - 1, yy, z, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_W);
-        level.setBlockAt(x - 1, yy, z - 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_NW);
-        level.setBlockAt(x, yy, z - 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_N);
-        level.setBlockAt(x + 1, yy, z - 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_NE);
+//        level.setBlockAt(x, yy, z, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP);
+//        level.setBlockAt(x + 1, yy, z, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_E);
+//        level.setBlockAt(x + 1, yy, z + 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_SE);
+//        level.setBlockAt(x, yy, z + 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_S);
+//        level.setBlockAt(x - 1, yy, z + 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_SW);
+//        level.setBlockAt(x - 1, yy, z, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_W);
+//        level.setBlockAt(x - 1, yy, z - 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_NW);
+//        level.setBlockAt(x, yy, z - 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_N);
+//        level.setBlockAt(x + 1, yy, z - 1, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.TOP_NE);
     }
 
     protected void placeSideColumn(ChunkManager level, int x, int y, int z, int damage) {
         for (int dy = 0; dy < 3; dy++) {
-            level.setBlockAt(x, y + dy, z, BlockTypes.RED_MUSHROOM_BLOCK, damage);
+//            level.setBlockAt(x, y + dy, z, BlockTypes.RED_MUSHROOM_BLOCK, damage);
         }
     }
 }

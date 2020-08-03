@@ -56,7 +56,7 @@ public class SpikesPopulator extends ChancePopulator.Column {
     @Override
     protected void populate0(PRandom random, ChunkManager level, int x, int z) {
         int y = level.getChunk(x >> 4, z >> 4).getHighestBlock(x & 0xF, z & 0xF);
-        if (y < 0 || !this.on.test(level.getBlockRuntimeIdUnsafe(x, y, z, 0))) {
+        if (y < 0 || !this.on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y, z, 0)))) {
             return;
         }
 
@@ -79,13 +79,13 @@ public class SpikesPopulator extends ChancePopulator.Column {
                     double fz = abs(dz) - 0.25d;
                     if (((dx == 0 && dz == 0) || fx * fx + fz * fz < rf)
                             && ((abs(dx) != radius && abs(dz) != radius) || random.nextInt(4) == 0)) {
-                        if (y + dy < 255 && replace.test(level.getBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0))) {
-                            level.setBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0, block
-                            );
+                        if (y + dy < 255 && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y + dy, z + dz, 0)))) {
+//                            level.setBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0, block
+//                            );
                         }
-                        if (dy != 0 && radius > 1 && y - dy < 255 && replace.test(level.getBlockRuntimeIdUnsafe(x + dx, y - dy, z + dz, 0))) {
-                            level.setBlockRuntimeIdUnsafe(x + dx, y - dy, z + dz, 0, block
-                            );
+                        if (dy != 0 && radius > 1 && y - dy < 255 && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y - dy, z + dz, 0)))) {
+//                            level.setBlockRuntimeIdUnsafe(x + dx, y - dy, z + dz, 0, block
+//                            );
                         }
                     }
                 }
@@ -93,16 +93,16 @@ public class SpikesPopulator extends ChancePopulator.Column {
         }
 
         for (; y >= 0; y--) {
-            int id = level.getBlockRuntimeIdUnsafe(x, y, z, 0);
+            int id = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y, z, 0));
             if (id != block
                     && !replace.test(id)) {
                 return;
             }
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
-                    if ((dx == 0 || dz == 0 || random.nextBoolean()) && replace.test(level.getBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0))) {
-                        level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, block
-                        );
+                    if ((dx == 0 || dz == 0 || random.nextBoolean()) && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz, 0)))) {
+//                        level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, block
+//                        );
                     }
                 }
             }

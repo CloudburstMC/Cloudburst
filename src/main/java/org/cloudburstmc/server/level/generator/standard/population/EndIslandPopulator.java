@@ -53,7 +53,7 @@ public class EndIslandPopulator extends ChancePopulator.Column {
             for (int f = floorI(-radius), c = ceilI(radius), dx = f; dx <= c; dx++) {
                 for (int dz = f; dz <= c; dz++) {
                     if (dx * dx + dz * dz <= (radius + 1.0d) * (radius + 1.0d)) {
-                        level.setBlockRuntimeIdUnsafe(blockX + dx, blockY + dy, blockZ + dz, 0, block);
+//                        level.setBlockRuntimeIdUnsafe(blockX + dx, blockY + dy, blockZ + dz, 0, block);
                     }
                 }
             }

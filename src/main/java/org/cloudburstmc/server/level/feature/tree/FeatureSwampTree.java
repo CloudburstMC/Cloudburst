@@ -2,13 +2,10 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorVine;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.registry.BlockRegistry;
 
 /**
  * Generates normal trees, but with vines on the sides.
@@ -33,17 +30,17 @@ public class FeatureSwampTree extends FeatureNormalTree {
         y = y + height - 3;
         for (int dx = -3; dx <= 3; dx++) {
             for (int dz = -3; dz <= 3; dz++) {
-                if (!this.test(level.getBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0)) || random.nextInt(4) != 0) {
+                if (!this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz, 0))) || random.nextInt(4) != 0) {
                     continue;
                 }
 
-                if (level.getBlockRuntimeIdUnsafe(x + dx + 1, y, z + dz, 0) == leaves) {
+                if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx + 1, y, z + dz, 0)) == leaves) {
                     this.placeVines(level, random, x + dx, y, z + dz, Direction.WEST, leaves);
-                } else if (level.getBlockRuntimeIdUnsafe(x + dx - 1, y, z + dz, 0) == leaves) {
+                } else if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx - 1, y, z + dz, 0)) == leaves) {
                     this.placeVines(level, random, x + dx, y, z + dz, Direction.EAST, leaves);
-                } else if (level.getBlockRuntimeIdUnsafe(x + dx, y, z + dz + 1, 0) == leaves) {
+                } else if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz + 1, 0)) == leaves) {
                     this.placeVines(level, random, x + dx, y, z + dz, Direction.NORTH, leaves);
-                } else if (level.getBlockRuntimeIdUnsafe(x + dx, y, z + dz - 1, 0) == leaves) {
+                } else if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz - 1, 0)) == leaves) {
                     this.placeVines(level, random, x + dx, y, z + dz, Direction.SOUTH, leaves);
                 }
             }
@@ -51,9 +48,9 @@ public class FeatureSwampTree extends FeatureNormalTree {
     }
 
     protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, Direction face, int leaves) {
-        int block = BlockRegistry.get().getRuntimeId(BlockTypes.VINE, BlockBehaviorVine.getMeta(face.getOpposite()));
-        for (int dy = 0, id; dy < 4 && (id = level.getBlockRuntimeIdUnsafe(x, y - dy, z, 0)) != leaves && this.test(id); dy++) {
-            level.setBlockRuntimeIdUnsafe(x, y - dy, z, 0, block);
-        }
+//        int block = BlockRegistry.get().getRuntimeId(BlockTypes.VINE, BlockBehaviorVine.getMeta(face.getOpposite()));
+//        for (int dy = 0, id; dy < 4 && (id = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y - dy, z, 0))) != leaves && this.test(id); dy++) {
+//            level.setBlockRuntimeIdUnsafe(x, y - dy, z, 0, block);
+//        }
     }
 }

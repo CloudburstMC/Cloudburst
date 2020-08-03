@@ -27,7 +27,7 @@ public class FeatureNormalTree extends FeatureAbstractTree {
     @Override
     protected boolean canPlace(ChunkManager level, PRandom random, int x, int y, int z, int height) {
         for (int dy = 0; dy <= height; dy++) {
-            if (y + dy < 0 || y + dy >= 256 || !this.test(level.getBlockRuntimeIdUnsafe(x, y + dy, z, 0))) {
+            if (y + dy < 0 || y + dy >= 256 || !this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y + dy, z, 0)))) {
                 return false;
             }
         }
@@ -43,8 +43,8 @@ public class FeatureNormalTree extends FeatureAbstractTree {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if ((abs(dx) != radius || abs(dz) != radius || random.nextBoolean() && dy != 0)
-                            && this.test(level.getBlockRuntimeIdUnsafe(x + dx, yy, z + dz, 0))) {
-                        level.setBlockRuntimeIdUnsafe(x + dx, yy, z + dz, 0, leaves);
+                            && this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, yy, z + dz, 0)))) {
+//                        level.setBlockRuntimeIdUnsafe(x + dx, yy, z + dz, 0, leaves);
                     }
                 }
             }
@@ -54,7 +54,7 @@ public class FeatureNormalTree extends FeatureAbstractTree {
     @Override
     protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves) {
         for (int dy = 0; dy < height; dy++) {
-            level.setBlockRuntimeIdUnsafe(x, y + dy, z, 0, log);
+//            level.setBlockRuntimeIdUnsafe(x, y + dy, z, 0, log);
         }
     }
 
