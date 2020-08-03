@@ -75,6 +75,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<TreeSpecies> TREE_SPECIES = EnumBlockTrait.of("tree_species", TreeSpecies.class);
     public static final IntegerBlockTrait TURTLE_EGG_COUNT = IntegerBlockTrait.from("turtle_egg_count", 1, 4);
     public static final IntegerBlockTrait TWISTING_VINES_AGE = IntegerBlockTrait.from("twisting_vines_age", 26);
+    public static final IntegerBlockTrait VINE_DIRECTION_BITS = IntegerBlockTrait.from("vine_direction_bits", 16);
     public static final EnumBlockTrait<WallBlockType> WALL_BLOCK_TYPE = EnumBlockTrait.of("wall_block_type", WallBlockType.class);
     public static final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_NORTH = EnumBlockTrait.of("wall_connection_north", WallConnectionType.class);
     public static final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_EAST = EnumBlockTrait.of("wall_connection_east", WallConnectionType.class);
