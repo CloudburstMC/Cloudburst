@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.misc.FireworksRocket;
 import org.cloudburstmc.server.level.Level;
@@ -79,8 +80,8 @@ public class ItemFirework extends Item {
 
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
-        if (blockState.canPassThrough()) {
-            this.spawnFirework(level, blockState.getPosition().toFloat().add(0.5, 0.5, 0.5));
+        if (block.getState().getBehavior().canPassThrough()) {
+            this.spawnFirework(level, block.getPosition().toFloat().add(0.5, 0.5, 0.5));
 
             if (!player.isCreative()) {
                 player.getInventory().decreaseCount(player.getInventory().getHeldItemIndex());

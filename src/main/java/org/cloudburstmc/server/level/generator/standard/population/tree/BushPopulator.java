@@ -42,7 +42,7 @@ public class BushPopulator extends AbstractTreePopulator {
 
     @Override
     protected void placeTree(PRandom random, ChunkManager level, int x, int y, int z) {
-        level.setBlockRuntimeIdUnsafe(x, ++y, z, 0, this.log.selectRuntimeId(random));
+//        level.setBlockRuntimeIdUnsafe(x, ++y, z, 0, this.log.selectRuntimeId(random));
 
         final int leaves = this.leaves.selectRuntimeId(random);
         final int size = this.size;
@@ -52,8 +52,8 @@ public class BushPopulator extends AbstractTreePopulator {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if ((abs(dx) != radius || abs(dz) != radius || random.nextBoolean())
-                            && this.replace.test(level.getBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0))) {
-                        level.setBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0, leaves);
+                            && this.replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y + dy, z + dz, 0)))) {
+//                        level.setBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0, leaves);
                     }
                 }
             }

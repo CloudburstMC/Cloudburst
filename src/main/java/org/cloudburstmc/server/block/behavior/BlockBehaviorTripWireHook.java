@@ -3,8 +3,11 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import lombok.val;
+import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
@@ -15,20 +18,16 @@ import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
-    public Direction getFacing() {
-        return Direction.fromHorizontalIndex(getMeta() & 0b11);
-    }
-
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (!this.getSide(this.getFacing().getOpposite()).isNormalBlock()) {
-                this.level.useBreakOn(this.getPosition());
+            if (!_isNormalBlock(block.getSide(block.getState().ensureTrait(BlockTraits.DIRECTION).getOpposite()))) {
+                block.getLevel().useBreakOn(block.getPosition());
             }
 
             return type;
         } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
-            this.calculateState(false, true, -1, null);
+            this.calculateState(block, false, true, -1, null);
             return type;
         }
 
@@ -37,18 +36,14 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (!this.getSide(face.getOpposite()).isNormalBlock() || face == Direction.DOWN || face == Direction.UP) {
+        if (!_isNormalBlock(block.getSide(face.getOpposite())) || face.getAxis().isVertical()) {
             return false;
         }
 
-        if (face.getAxis().isHorizontal()) {
-            this.setFace(face);
-        }
-
-        this.level.setBlock(this.getPosition(), this);
+        placeBlock(block, item.getBlock().withTrait(BlockTraits.DIRECTION, face));
 
         if (player != null) {
-            this.calculateState(false, false, -1, null);
+            this.calculateState(block, false, false, -1, null);
         }
         return true;
     }
@@ -56,26 +51,30 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     @Override
     public boolean onBreak(Block block, Item item) {
         super.onBreak(block, item);
-        boolean attached = isAttached();
-        boolean powered = isPowered();
+        val state = block.getState();
+        boolean attached = isAttached(state);
+        boolean powered = isPowered(state);
 
         if (attached || powered) {
-            this.calculateState(true, false, -1, null);
+            this.calculateState(block, true, false, -1, null);
         }
 
         if (powered) {
-            this.level.updateAroundRedstone(this.getPosition(), null);
-            this.level.updateAroundRedstone(this.getFacing().getOpposite().getOffset(this.getPosition()), null);
+            block.getLevel().updateAroundRedstone(block.getPosition(), null);
+            block.getLevel().updateAroundRedstone(state.ensureTrait(BlockTraits.DIRECTION).getOpposite().getOffset(block.getPosition()), null);
         }
 
         return true;
     }
 
-    public void calculateState(boolean onBreak, boolean updateAround, int pos, BlockState blockState) {
-        Direction facing = getFacing();
-        Vector3i v = this.getPosition();
-        boolean attached = isAttached();
-        boolean powered = isPowered();
+    public void calculateState(Block block, boolean onBreak, boolean updateAround, int pos, BlockState blockState) {
+        val state = block.getState();
+        Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
+        Vector3i v = block.getPosition();
+        val level = block.getLevel();
+
+        boolean attached = isAttached(state);
+        boolean powered = isPowered(state);
         boolean canConnect = !onBreak;
         boolean nextPowered = false;
         int distance = 0;
@@ -83,16 +82,16 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
         for (int i = 1; i < 42; ++i) {
             Vector3i vector = v.add(facing.getUnitVector().mul(i));
-            BlockState b = this.level.getBlock(vector);
+            BlockState b = level.getBlockAt(vector);
 
-            if (b instanceof BlockBehaviorTripWireHook) {
-                if (((BlockBehaviorTripWireHook) b).getFacing() == facing.getOpposite()) {
+            if (b.getType() == TRIPWIRE_HOOK) {
+                if (b.ensureTrait(BlockTraits.DIRECTION) == facing.getOpposite()) {
                     distance = i;
                 }
                 break;
             }
 
-            if (b.getId() != TRIPWIRE && i != pos) {
+            if (b.getType() != TRIPWIRE && i != pos) {
                 blockStates[i] = null;
                 canConnect = false;
             } else {
@@ -100,13 +99,15 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
                     b = blockState != null ? blockState : b;
                 }
 
-                if (b instanceof BlockBehaviorTripWire) {
-                    boolean disarmed = !((BlockBehaviorTripWire) b).isDisarmed();
-                    boolean wirePowered = ((BlockBehaviorTripWire) b).isPowered();
+                if (b.getType() == TRIPWIRE) {
+                    val behavior = (BlockBehaviorTripWire) b.getBehavior();
+
+                    boolean disarmed = !behavior.isDisarmed(b);
+                    boolean wirePowered = behavior.isPowered(b);
                     nextPowered |= disarmed && wirePowered;
 
                     if (i == pos) {
-                        this.level.scheduleUpdate(this, 10);
+                        level.scheduleUpdate(block, 10);
                         canConnect &= disarmed;
                     }
                 }
@@ -116,30 +117,30 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
         canConnect = canConnect & distance > 1;
         nextPowered = nextPowered & canConnect;
-        BlockBehaviorTripWireHook hook = (BlockBehaviorTripWireHook) BlockState.get(TRIPWIRE_HOOK);
-        hook.setAttached(canConnect);
-        hook.setPowered(nextPowered);
+
+        var hook = BlockState.get(TRIPWIRE_HOOK)
+                .withTrait(BlockTraits.IS_ATTACHED, canConnect)
+                .withTrait(BlockTraits.IS_POWERED, nextPowered);
 
 
         if (distance > 0) {
             Vector3i vec = v.add(facing.getUnitVector().mul(distance));
             Direction face = facing.getOpposite();
-            hook.setFace(face);
-            this.level.setBlock(vec, hook, true, false);
-            this.level.updateAroundRedstone(vec, null);
-            this.level.updateAroundRedstone(face.getOpposite().getOffset(vec), null);
-            this.addSound(vec.toFloat(), canConnect, nextPowered, attached, powered);
+
+            level.setBlock(vec, hook.withTrait(BlockTraits.DIRECTION, face), true, false);
+            level.updateAroundRedstone(vec, null);
+            level.updateAroundRedstone(face.getOpposite().getOffset(vec), null);
+            this.addSound(block, vec.toFloat(), canConnect, nextPowered, attached, powered);
         }
 
-        this.addSound(v.toFloat(), canConnect, nextPowered, attached, powered);
+        this.addSound(block, v.toFloat(), canConnect, nextPowered, attached, powered);
 
         if (!onBreak) {
-            hook.setFace(facing);
-            this.level.setBlock(v, hook, true, false);
+            level.setBlock(v, hook.withTrait(BlockTraits.DIRECTION, facing), true, false);
 
             if (updateAround) {
-                this.level.updateAroundRedstone(v, null);
-                this.level.updateAroundRedstone(facing.getOpposite().getOffset(v), null);
+                level.updateAroundRedstone(v, null);
+                level.updateAroundRedstone(facing.getOpposite().getOffset(v), null);
             }
         }
 
@@ -148,54 +149,34 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
                 Vector3i vc = v.add(facing.getUnitVector().mul(i));
                 blockState = blockStates[i];
 
-                if (blockState != null && this.level.getBlockId(vc) != AIR) {
-                    if (canConnect ^ ((blockState.getMeta() & 0x04) > 0)) {
-                        blockState.setMeta(blockState.getMeta() ^ 0x04);
-                    }
-
-                    this.level.setBlock(vc, blockState, true, false);
+                if (blockState != null && level.getBlockAt(vc).getType() != AIR) {
+                    level.setBlock(vc, blockState.withTrait(BlockTraits.IS_ATTACHED, canConnect), true, false);
                 }
             }
         }
     }
 
-    private void addSound(Vector3f pos, boolean canConnect, boolean nextPowered, boolean attached, boolean powered) {
+    private void addSound(Block block, Vector3f pos, boolean canConnect, boolean nextPowered, boolean attached, boolean powered) {
+        val level = block.getLevel();
         if (nextPowered && !powered) {
-            this.level.addLevelSoundEvent(pos, SoundEvent.POWER_ON);
-            this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 0, 15));
+            level.addLevelSoundEvent(pos, SoundEvent.POWER_ON);
+            level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 0, 15));
         } else if (!nextPowered && powered) {
-            this.level.addLevelSoundEvent(pos, SoundEvent.POWER_OFF);
-            this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 15, 0));
+            level.addLevelSoundEvent(pos, SoundEvent.POWER_OFF);
+            level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
         } else if (canConnect && !attached) {
-            this.level.addLevelSoundEvent(pos, SoundEvent.ATTACH);
+            level.addLevelSoundEvent(pos, SoundEvent.ATTACH);
         } else if (!canConnect && attached) {
-            this.level.addLevelSoundEvent(pos, SoundEvent.DETACH);
+            level.addLevelSoundEvent(pos, SoundEvent.DETACH);
         }
     }
 
-    public boolean isAttached() {
-        return (getMeta() & 0x04) > 0;
+    public boolean isAttached(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_ATTACHED);
     }
 
-    public void setAttached(boolean value) {
-        if (value ^ this.isAttached()) {
-            this.setMeta(this.getMeta() ^ 0x04);
-        }
-    }
-
-    public boolean isPowered() {
-        return (this.getMeta() & 0x08) > 0;
-    }
-
-    public void setPowered(boolean value) {
-        if (value ^ this.isPowered()) {
-            this.setMeta(this.getMeta() ^ 0x08);
-        }
-    }
-
-    public void setFace(Direction face) {
-        this.setMeta(this.getMeta() - this.getMeta() % 4);
-        this.setMeta(this.getMeta() | face.getHorizontalIndex());
+    public boolean isPowered(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_POWERED);
     }
 
     @Override
@@ -205,17 +186,18 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
     @Override
     public int getWeakPower(Block block, Direction face) {
-        return isPowered() ? 15 : 0;
+        return isPowered(block.getState()) ? 15 : 0;
     }
 
     @Override
     public int getStrongPower(Block block, Direction side) {
-        return !isPowered() ? 0 : getFacing() == side ? 15 : 0;
+        val state = block.getState();
+        return !isPowered(state) ? 0 : state.ensureTrait(BlockTraits.DIRECTION) == side ? 15 : 0;
     }
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(id, 0);
+        return Item.get(block.getState().defaultState());
     }
 
     @Override
@@ -226,5 +208,9 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     @Override
     public boolean canWaterlogFlowing() {
         return true;
+    }
+
+    private boolean _isNormalBlock(Block block) {
+        return block.getState().getBehavior().isNormalBlock(block);
     }
 }

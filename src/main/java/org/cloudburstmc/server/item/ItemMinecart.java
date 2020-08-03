@@ -1,7 +1,8 @@
 package org.cloudburstmc.server.item;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorRail;
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.vehicle.Minecart;
 import org.cloudburstmc.server.level.Level;
@@ -11,6 +12,7 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Rail;
+import org.cloudburstmc.server.utils.data.RailDirection;
 
 /**
  * author: MagicDroidX
@@ -29,8 +31,8 @@ public class ItemMinecart extends Item {
 
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
-        if (Rail.isRailBlock(target)) {
-            Rail.Orientation type = ((BlockBehaviorRail) target).getOrientation();
+        if (Rail.isRailBlock(target.getState())) {
+            RailDirection type = target.getState().ensureTrait(BlockTraits.RAIL_DIRECTION); //TODO: check errors
             double adjacent = 0.0D;
             if (type.isAscending()) {
                 adjacent = 0.5D;

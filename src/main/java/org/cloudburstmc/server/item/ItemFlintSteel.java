@@ -1,13 +1,12 @@
 package org.cloudburstmc.server.item;
 
-import cn.nukkit.block.*;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehavior;
+import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLeaves;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorSolid;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
@@ -193,7 +192,7 @@ public class ItemFlintSteel extends ItemTool {
 
                     int innerWidth = 0;
                     for (int i = 0; i < MAX_PORTAL_SIZE - 2; i++) {
-                        BlockState state = level.getBlock(scanX, scanY, scanZ - i);
+                        BlockState state = level.getBlockAt(scanX, scanY, scanZ - i);
                         if (state == BlockState.AIR) {
                             innerWidth++;
                         } else if (state.getType() == OBSIDIAN) {
@@ -252,9 +251,9 @@ public class ItemFlintSteel extends ItemTool {
                 }
             }
             BlockState fire = BlockState.get(BlockTypes.FIRE);
-            BlockBehavior fireBehavior = BlockRegistry.get().getBehavior(BlockTypes.FIRE);
+            BlockBehaviorFire fireBehavior = (BlockBehaviorFire) BlockRegistry.get().getBehavior(BlockTypes.FIRE);
 
-            if (fireBehavior.isBlockTopFacingSurfaceSolid(block.getSide(Direction.DOWN)) || fireBehavior.canNeighborBurn()) {
+            if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
                 block.getLevel().getServer().getPluginManager().callEvent(e);
 

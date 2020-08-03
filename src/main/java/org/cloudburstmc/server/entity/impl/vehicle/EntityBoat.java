@@ -4,7 +4,9 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
+import lombok.val;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
@@ -173,7 +175,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                friction *= this.getLevel().getBlock(this.getPosition().down()).getFrictionFactor();
+                friction *= this.getLevel().getBlockAt(this.getPosition().down().toInt()).getBehavior().getFrictionFactor();
             }
 
             this.motion = motion.mul(friction, 1, friction);
@@ -284,10 +286,11 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
             @Override
             public void accept(int x, int y, int z) {
-                BlockState blockState = EntityBoat.this.getLevel().getBlock(x, y, z);
+                val block = getLevel().getBlock(x, y, z);
+                BlockState state = block.getState();
 
-                if (blockState instanceof BlockBehaviorWater) {
-                    double level = blockState.getMaxY();
+                if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {
+                    double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
 
                     diffY = Math.min(maxY - level, diffY);
                 }

@@ -10,6 +10,8 @@ import static org.cloudburstmc.server.block.BlockTypes.WATER;
 
 public class CloudBlock extends CloudBlockSnapshot implements Block {
 
+    public static BlockState[] EMPTY = new BlockState[]{BlockState.AIR, BlockState.AIR};
+
     private final Level level;
     private final Vector3i position;
 
@@ -37,6 +39,21 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     @Override
     public Block getSide(Direction face, int step) {
         return this.level.getBlock(face.getOffset(this.position, step));
+    }
+
+    @Override
+    public BlockState getRelativeState(int x, int y, int z, int layer) {
+        return this.level.getBlockAt(getX() + x, getY() + y, getZ() + z, layer);
+    }
+
+    @Override
+    public BlockState getSideState(Direction face, int step, int layer) {
+        return this.level.getBlockAt(
+                getX() + face.getXOffset() * step,
+                getY() + face.getXOffset() * step,
+                getZ() + face.getZOffset() * step,
+                layer
+        );
     }
 
     @Override

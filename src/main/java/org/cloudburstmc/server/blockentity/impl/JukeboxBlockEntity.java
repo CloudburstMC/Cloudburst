@@ -67,7 +67,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
 
     @Override
     public boolean isValid() {
-        return this.getBlock().getId() == BlockTypes.JUKEBOX;
+        return this.getBlockState().getType() == BlockTypes.JUKEBOX;
     }
 
     public Item getRecordItem() {

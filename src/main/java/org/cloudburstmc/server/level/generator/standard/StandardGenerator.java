@@ -207,11 +207,11 @@ public final class StandardGenerator implements Generator {
                                 int blockY = sectionY * STEP_Y | stepY;
                                 int blockZ = sectionZ * STEP_Z | stepZ;
 
-                                if (iz > 0.0d) {
-                                    chunk.setBlockRuntimeIdUnsafe(blockX, blockY, blockZ, 0, this.ground);
-                                } else if (blockY <= this.seaLevel) {
-                                    chunk.setBlockRuntimeIdUnsafe(blockX, blockY, blockZ, 0, this.sea);
-                                }
+//                                if (iz > 0.0d) {
+//                                    chunk.setBlockRuntimeIdUnsafe(blockX, blockY, blockZ, 0, this.ground);
+//                                } else if (blockY <= this.seaLevel) {
+//                                    chunk.setBlockRuntimeIdUnsafe(blockX, blockY, blockZ, 0, this.sea);
+//                                }
                             }
                         }
                     }

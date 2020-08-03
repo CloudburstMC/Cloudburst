@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorBarrel;
+import lombok.val;
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Barrel;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
@@ -23,19 +25,7 @@ public class BarrelInventory extends ContainerInventory {
         super.onOpen(who);
 
         if (this.getViewers().size() == 1) {
-            Barrel barrel = this.getHolder();
-            Level level = barrel.getLevel();
-            if (level != null) {
-                BlockState blockState = barrel.getBlock();
-                if (blockState instanceof BlockBehaviorBarrel) {
-                    BlockBehaviorBarrel blockBarrel = (BlockBehaviorBarrel) blockState;
-                    if (!blockBarrel.isOpen()) {
-                        blockBarrel.setOpen(true);
-                        level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.BARREL_OPEN);
-                        sendBlockEventPacket(this.getHolder(), 1);
-                    }
-                }
-            }
+            toggle(true);
         }
     }
 
@@ -44,17 +34,22 @@ public class BarrelInventory extends ContainerInventory {
         super.onClose(who);
 
         if (this.getViewers().isEmpty()) {
-            Barrel barrel = this.getHolder();
-            Level level = barrel.getLevel();
-            if (level != null) {
-                BlockState blockState = barrel.getBlock();
-                if (blockState instanceof BlockBehaviorBarrel) {
-                    BlockBehaviorBarrel blockBarrel = (BlockBehaviorBarrel) blockState;
-                    if (blockBarrel.isOpen()) {
-                        blockBarrel.setOpen(false);
-                        level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.BARREL_CLOSE);
-                        sendBlockEventPacket(this.getHolder(), 0);
-                    }
+            toggle(false);
+        }
+    }
+
+    protected void toggle(boolean open) {
+        Barrel barrel = this.getHolder();
+        Level level = barrel.getLevel();
+        if (level != null) {
+            Block block = barrel.getBlock();
+            val state = block.getState();
+
+            if (state.getType() == BlockTypes.BARREL) {
+                if (state.ensureTrait(BlockTraits.IS_OPEN) != open) {
+                    block.set(state.withTrait(BlockTraits.IS_OPEN, open));
+                    level.addLevelSoundEvent(this.getHolder().getPosition(), open ? SoundEvent.BARREL_OPEN : SoundEvent.BARREL_CLOSE);
+                    sendBlockEventPacket(this.getHolder(), open ? 1 : 0);
                 }
             }
         }

@@ -1,5 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -23,7 +26,7 @@ public class BlockBehaviorTerracottaStained extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(BlockState blockState, Item hand) {
+    public Item[] getDrops(Block blockState, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
             return new Item[]{toItem(blockState)};
         } else {
@@ -32,12 +35,12 @@ public class BlockBehaviorTerracottaStained extends BlockBehaviorSolid {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
-        return DyeColor.getByWoolData(getMeta()).getColor();
+    public BlockColor getColor(Block block) {
+        return getDyeColor(block.getState()).getColor();
     }
 
-    public DyeColor getDyeColor() {
-        return DyeColor.getByWoolData(getMeta());
+    public DyeColor getDyeColor(BlockState state) {
+        return state.ensureTrait(BlockTraits.COLOR);
     }
 
 }

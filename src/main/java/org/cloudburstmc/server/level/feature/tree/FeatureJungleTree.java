@@ -2,8 +2,6 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorVine;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
@@ -38,8 +36,8 @@ public class FeatureJungleTree extends FeatureNormalTree {
     protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, Direction face) {
         x -= face.getUnitVector().getX();
         z -= face.getUnitVector().getZ();
-        if (random.nextInt(4) != 0 && this.test(level.getBlockRuntimeIdUnsafe(x, y, z, 0))) {
-            level.setBlockAt(x, y, z, 0, BlockTypes.VINE, BlockBehaviorVine.getMeta(face));
+        if (random.nextInt(4) != 0 && this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y, z, 0)))) {
+//            level.setBlockAt(x, y, z, 0, BlockTypes.VINE, BlockBehaviorVine.getMeta(face));
         }
     }
 }

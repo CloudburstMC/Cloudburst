@@ -20,6 +20,10 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
     @Override
     public boolean canBeReplaced(Block block) {
+        if (block == null) {
+            return true;
+        }
+
         DoublePlantType type = block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE);
         return type == DoublePlantType.GRASS || type == DoublePlantType.FERN;
     }
@@ -107,7 +111,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

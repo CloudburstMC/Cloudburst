@@ -2,6 +2,7 @@ package org.cloudburstmc.server.blockentity.impl;
 
 import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlastFurnace;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
@@ -17,7 +18,7 @@ public class BlastFurnaceBlockEntity extends FurnaceBlockEntity implements Blast
 
     @Override
     public boolean isValid() {
-        Identifier id = getBlock().getId();
+        Identifier id = getBlockState().getType();
         return id == BlockTypes.BLAST_FURNACE || id == BlockTypes.LIT_BLAST_FURNACE;
     }
 
@@ -28,11 +29,11 @@ public class BlastFurnaceBlockEntity extends FurnaceBlockEntity implements Blast
 
     @Override
     protected void extinguishFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockTypes.BLAST_FURNACE, this.getBlock().getMeta()), true);
+        this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockTypes.BLAST_FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
     }
 
     @Override
     protected void lightFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockTypes.LIT_BLAST_FURNACE, this.getBlock().getMeta()), true);
+        this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockTypes.LIT_BLAST_FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
     }
 }

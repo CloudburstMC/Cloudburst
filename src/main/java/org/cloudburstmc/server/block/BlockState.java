@@ -40,6 +40,9 @@ public interface BlockState {
     }
 
     @Nonnull
+    BlockState copyTraits(BlockState from);
+
+    @Nonnull
     BlockState withTrait(IntegerBlockTrait trait, int value);
 
     @Nonnull

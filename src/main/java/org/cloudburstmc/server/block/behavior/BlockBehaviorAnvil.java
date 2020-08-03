@@ -23,7 +23,7 @@ import static org.cloudburstmc.server.block.BlockTypes.SNOW_LAYER;
 public class BlockBehaviorAnvil extends BlockBehaviorFallable {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -71,7 +71,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            player.addWindow(new AnvilInventory(player.getUIInventory(), block.getState()), ContainerIds.ANVIL);
+            player.addWindow(new AnvilInventory(player.getUIInventory(), block), ContainerIds.ANVIL);
         }
         return true;
     }

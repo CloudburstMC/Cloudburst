@@ -71,7 +71,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         val position = block.getPosition();
 
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_RANDOM) {
-            if (!this.isBlockTopFacingSurfaceSolid(block.down().getState()) && !this.canNeighborBurn(block)) {
+            if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.down().getState()) && !BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockState.AIR);
                 level.getServer().getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
@@ -88,7 +88,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
             //TODO: END
 
-            if (!this.isBlockTopFacingSurfaceSolid(down) && !this.canNeighborBurn(block)) {
+            if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(down) && !BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
                 level.getServer().getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
@@ -119,8 +119,8 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
                 level.scheduleUpdate(block, this.tickRate() + random.nextInt(10));
 
-                if (!forever && !this.canNeighborBurn(block)) {
-                    if (!this.isBlockTopFacingSurfaceSolid(down) || age > 3) {
+                if (!forever && !BlockBehaviorFire.canNeighborBurn(block)) {
+                    if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(down) || age > 3) {
                         BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
                         level.getServer().getPluginManager().callEvent(event);
                         if (!event.isCancelled()) {
@@ -225,7 +225,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
             }
 
             if (state.getType() == BlockTypes.TNT && behavior instanceof BlockBehaviorTNT) {
-                ((BlockBehaviorTNT) behavior).prime();
+                ((BlockBehaviorTNT) behavior).prime(block);
             }
         }
     }
@@ -245,7 +245,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         }
     }
 
-    public boolean canNeighborBurn(Block block) {
+    public static boolean canNeighborBurn(Block block) {
         for (Direction face : Direction.values()) {
             if (block.getSide(face).getState().getBehavior().getBurnChance() > 0) {
                 return true;
@@ -255,7 +255,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         return false;
     }
 
-    public boolean isBlockTopFacingSurfaceSolid(BlockState state) {
+    public static boolean isBlockTopFacingSurfaceSolid(BlockState state) {
         if (state.inCategory(BlockCategory.SOLID)) {
             return true;
         } else {

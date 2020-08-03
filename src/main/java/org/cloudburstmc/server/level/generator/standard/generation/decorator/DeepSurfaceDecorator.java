@@ -42,19 +42,19 @@ public class DeepSurfaceDecorator extends SurfaceDecorator {
         final int depth = this.getDepthNoise(chunk, random, x, z);
 
         for (int y = 255; y >= 0; y--) {
-            if (chunk.getBlockRuntimeIdUnsafe(x, y, z, 0) == this.ground) {
+            if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(x, y, z, 0)) == this.ground) {
                 PLACE:
                 if (!placed) {
                     placed = true;
                     if (y + 1 > this.seaLevel) {
                         if (y < 255 && this.cover >= 0) {
-                            chunk.setBlockRuntimeIdUnsafe(x, y + 1, z, 0, this.cover);
+//                            chunk.setBlockRuntimeIdUnsafe(x, y + 1, z, 0, this.cover);
                         }
-                        chunk.setBlockRuntimeIdUnsafe(x, y--, z, 0, this.top);
+//                        chunk.setBlockRuntimeIdUnsafe(x, y--, z, 0, this.top);
                     }
                     for (int i = depth - 1; i >= 0 && y >= 0; i--, y--) {
-                        if (chunk.getBlockRuntimeIdUnsafe(x, y, z, 0) == this.ground) {
-                            chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, this.filler);
+                        if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(x, y, z, 0)) == this.ground) {
+//                            chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, this.filler);
                         } else {
                             //we hit air prematurely, abort!
                             placed = false;
@@ -62,8 +62,8 @@ public class DeepSurfaceDecorator extends SurfaceDecorator {
                         }
                     }
                     for (int i = this.deepSize.rand(random); i >= 0 && y >= 0; i--, y--) {
-                        if (chunk.getBlockRuntimeIdUnsafe(x, y, z, 0) == this.ground) {
-                            chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, this.deep);
+                        if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(x, y, z, 0)) == this.ground) {
+//                            chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, this.deep);
                         } else {
                             //we hit air prematurely, abort!
                             placed = false;

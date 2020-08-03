@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.server.event.inventory.InventoryOpenEvent;
 import org.cloudburstmc.server.player.Player;
@@ -12,10 +12,10 @@ import org.cloudburstmc.server.player.Player;
 public class FakeBlockUIComponent extends PlayerUIComponent {
     private final InventoryType type;
 
-    FakeBlockUIComponent(PlayerUIInventory playerUI, InventoryType type, int offset, BlockState blockState) {
+    FakeBlockUIComponent(PlayerUIInventory playerUI, InventoryType type, int offset, Block block) {
         super(playerUI, offset, type.getDefaultSize());
         this.type = type;
-        this.holder = new FakeBlockMenu(this, blockState);
+        this.holder = new FakeBlockMenu(this, block);
     }
 
 

@@ -2,7 +2,8 @@ package org.cloudburstmc.server.item;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.BlockState;
+import lombok.val;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.utils.Identifier;
@@ -72,22 +73,25 @@ public abstract class ItemTool extends Item implements ItemDurable {
     }
 
     @Override
-    public boolean useOn(BlockState blockState) {
+    public boolean useOn(Block block) {
         if (this.isUnbreakable() || isDurable()) {
             return true;
         }
 
-        if (blockState.getToolType() == ItemTool.TYPE_PICKAXE && this.isPickaxe() ||
-                blockState.getToolType() == ItemTool.TYPE_SHOVEL && this.isShovel() ||
-                blockState.getToolType() == ItemTool.TYPE_AXE && this.isAxe() ||
-                blockState.getToolType() == ItemTool.TYPE_SWORD && this.isSword() ||
-                blockState.getToolType() == ItemTool.TYPE_SHEARS && this.isShears()
+        val state = block.getState();
+        val behavior = state.getBehavior();
+
+        if (behavior.getToolType() == ItemTool.TYPE_PICKAXE && this.isPickaxe() ||
+                behavior.getToolType() == ItemTool.TYPE_SHOVEL && this.isShovel() ||
+                behavior.getToolType() == ItemTool.TYPE_AXE && this.isAxe() ||
+                behavior.getToolType() == ItemTool.TYPE_SWORD && this.isSword() ||
+                behavior.getToolType() == ItemTool.TYPE_SHEARS && this.isShears()
         ) {
             this.setMeta(getMeta() + 1);
-        } else if (!this.isShears() && blockState.getBreakTime(this) > 0) {
+        } else if (!this.isShears() && behavior.getBreakTime(this) > 0) {
             this.setMeta(getMeta() + 2);
         } else if (this.isHoe()) {
-            if (blockState.getId() == GRASS || blockState.getId() == DIRT) {
+            if (state.getType() == GRASS || state.getType() == DIRT) {
                 this.setMeta(getMeta() + 1);
             }
         } else {

@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.item;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.entity.CreatureSpawnEvent;
 import org.cloudburstmc.server.level.Level;
@@ -30,13 +31,13 @@ public class ItemSpawnEgg extends Item {
 
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
-        Chunk chunk = level.getLoadedChunk(blockState.getPosition());
+        Chunk chunk = level.getLoadedChunk(block.getPosition());
 
         if (chunk == null) {
             return false;
         }
 
-        Location location = Location.from(blockState.getPosition().toFloat().add(0.5, 0, 0.5),
+        Location location = Location.from(block.getPosition().toFloat().add(0.5, 0, 0.5),
                 ThreadLocalRandom.current().nextFloat() * 360, 0, level);
         CreatureSpawnEvent ev = new CreatureSpawnEvent(EntityRegistry.get().getEntityType(this.getMeta()), // FIXME: 04/01/2020 Use string identifier in NBT
                 location, CreatureSpawnEvent.SpawnReason.SPAWN_EGG);

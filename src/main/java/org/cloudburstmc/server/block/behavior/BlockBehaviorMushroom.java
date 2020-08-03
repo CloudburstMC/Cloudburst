@@ -43,7 +43,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -65,14 +65,15 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     public boolean grow(Block block) {
-        this.level.setBlock(this.getPosition(), BlockState.AIR, true, false);
+        block.set(BlockState.AIR, true, false);
 
-        WorldFeature feature = TreeSpecies.fromItem(this.getId(), this.getMeta()).getDefaultGenerator();
+        val item = Item.get(block.getState());
+        WorldFeature feature = TreeSpecies.fromItem(item.getId(), item.getMeta()).getDefaultGenerator();
 
-        if (feature.place(this.level, ThreadLocalPRandom.current(), this.getX(), this.getY(), this.getZ())) {
+        if (feature.place(block.getLevel(), ThreadLocalPRandom.current(), block.getX(), block.getY(), block.getZ())) {
             return true;
         } else {
-            this.level.setBlock(this.getPosition(), this, true, false);
+            block.set(block.getState(), true, false);
             return false;
         }
     }

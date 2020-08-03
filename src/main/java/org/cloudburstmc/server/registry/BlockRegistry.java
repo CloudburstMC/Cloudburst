@@ -18,6 +18,7 @@ import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.serializer.NoopBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
+import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -197,9 +198,9 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(SAPLING, new BlockBehaviorSapling(), BlockTraits.TREE_SPECIES, BlockTraits.HAS_AGE); //6
         this.registerVanilla(BEDROCK, new BlockBehaviorBedrock(), BlockTraits.HAS_INFINIBURN); //7
         this.registerVanilla(FLOWING_WATER, new BlockBehaviorWater(), BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //8
-        this.registerVanilla(WATER, new BlockBehaviorWaterStill(), BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //9
+        this.registerVanilla(WATER, new BlockBehaviorWater(), BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //9
         this.registerVanilla(FLOWING_LAVA, new BlockBehaviorLava(), BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //10
-        this.registerVanilla(LAVA, new BlockBehaviorLavaStill(), BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //11
+        this.registerVanilla(LAVA, new BlockBehaviorLava(), BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //11
         this.registerVanilla(SAND, new BlockBehaviorSand(), BlockTraits.SAND_TYPE); //12
         this.registerVanilla(GRAVEL, new BlockBehaviorGravel()); //13
         this.registerVanilla(GOLD_ORE, new BlockBehaviorOreGold()); //14
@@ -230,8 +231,8 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(RED_MUSHROOM, new BlockBehaviorMushroomRed()); //40
         this.registerVanilla(GOLD_BLOCK, new BlockBehaviorGold()); //41
         this.registerVanilla(IRON_BLOCK, new BlockBehaviorIron()); //42
-        this.registerVanilla(DOUBLE_STONE_SLAB, new BlockBehaviorDoubleSlab(), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //43
-        this.registerVanilla(STONE_SLAB, new BlockBehaviorSlab(), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //44
+        this.registerVanilla(DOUBLE_STONE_SLAB, new BlockBehaviorDoubleSlab(STONE_SLAB, BlockTraits.STONE_SLAB_TYPE), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //43
+        this.registerVanilla(STONE_SLAB, new BlockBehaviorSlab(STONE_SLAB, DOUBLE_STONE_SLAB), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //44
         this.registerVanilla(BRICK_BLOCK, new BlockBehaviorBricks()); //45
         this.registerVanilla(TNT, new BlockBehaviorTNT()); //46
         this.registerVanilla(BOOKSHELF, new BlockBehaviorBookshelf()); //47
@@ -248,12 +249,12 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(CRAFTING_TABLE, new BlockBehaviorCraftingTable()); //58
         this.registerVanilla(WHEAT, new BlockBehaviorWheat(), BlockTraits.GROWTH); //59
         this.registerVanilla(FARMLAND, new BlockBehaviorFarmland(), BlockTraits.MOISTURIZED_AMOUNT); //60
-        this.registerVanilla(FURNACE, new BlockBehaviorFurnace(), BlockTraits.FACING_DIRECTION); //61
-        this.registerVanilla(LIT_FURNACE, new BlockBehaviorFurnaceBurning(), BlockTraits.FACING_DIRECTION); //62
+        this.registerVanilla(FURNACE, new BlockBehaviorFurnace(BlockEntityTypes.FURNACE), BlockTraits.FACING_DIRECTION); //61
+        this.registerVanilla(LIT_FURNACE, new BlockBehaviorFurnaceBurning(BlockEntityTypes.FURNACE), BlockTraits.FACING_DIRECTION); //62
         this.registerVanilla(STANDING_SIGN, new BlockBehaviorSignPost(), BlockTraits.CARDINAL_DIRECTION); //63
         this.registerVanilla(WOODEN_DOOR, new BlockBehaviorDoorWood(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK); //64
         this.registerVanilla(LADDER, new BlockBehaviorLadder(), BlockTraits.FACING_DIRECTION); //65
-        this.registerVanilla(RAIL, new BlockBehaviorRail(), BlockTraits.RAIL_DIRECTION); //66
+        this.registerVanilla(RAIL, new BlockBehaviorRail(RAIL, BlockTraits.RAIL_DIRECTION), BlockTraits.RAIL_DIRECTION); //66
         this.registerVanilla(STONE_STAIRS, new BlockBehaviorStairsCobblestone(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //67
         this.registerVanilla(WALL_SIGN, new BlockBehaviorWallSign(), BlockTraits.FACING_DIRECTION); //68
         this.registerVanilla(LEVER, new BlockBehaviorLever(), BlockTraits.FACING_DIRECTION, BlockTraits.IS_OPEN); //69
@@ -262,7 +263,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(WOODEN_PRESSURE_PLATE, new BlockBehaviorPressurePlateWood(), BlockTraits.REDSTONE_SIGNAL); //72
         this.registerVanilla(REDSTONE_ORE, new BlockBehaviorOreRedstone()); //73
         this.registerVanilla(LIT_REDSTONE_ORE, new BlockBehaviorOreRedstoneGlowing()); //74
-        this.registerVanilla(UNLIT_REDSTONE_TORCH, new BlockBehaviorRedstoneTorchUnlit(), BlockTraits.TORCH_DIRECTION);
+        this.registerVanilla(UNLIT_REDSTONE_TORCH, new BlockBehaviorRedstoneTorch(), BlockTraits.TORCH_DIRECTION);
         this.registerVanilla(REDSTONE_TORCH, new BlockBehaviorRedstoneTorch(), BlockTraits.TORCH_DIRECTION); //76
         this.registerVanilla(STONE_BUTTON, new BlockBehaviorButtonStone(), BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED); //77
         this.registerVanilla(SNOW_LAYER, new BlockBehaviorSnowLayer(), BlockTraits.HEIGHT, BlockTraits.IS_COVERED); //78
@@ -273,15 +274,15 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(REEDS, new ReedsBlockBehavior(), BlockTraits.AGE); //83
         this.registerVanilla(JUKEBOX, new BlockBehaviorJukebox()); //84
         this.registerVanilla(FENCE, new BlockBehaviorFenceWooden(), BlockTraits.TREE_SPECIES); //85
-        this.registerVanilla(PUMPKIN, new BlockBehaviorPumpkin(), BlockTraits.DIRECTION); //86
+        this.registerVanilla(PUMPKIN, new BlockBehaviorPumpkin(PUMPKIN), BlockTraits.DIRECTION); //86
         this.registerVanilla(NETHERRACK, new BlockBehaviorNetherrack()); //87
         this.registerVanilla(SOUL_SAND, new BlockBehaviorSoulSand()); //88
         this.registerVanilla(GLOWSTONE, new BlockBehaviorGlowstone()); //89
         this.registerVanilla(PORTAL, new BlockBehaviorNetherPortal(), BlockTraits.PORTAL_AXIS); //90
         this.registerVanilla(LIT_PUMPKIN, new BlockBehaviorPumpkinLit(), BlockTraits.DIRECTION); //91
         this.registerVanilla(CAKE, new BlockBehaviorCake(), BlockTraits.BITE_COUNTER); //92
-        this.registerVanilla(UNPOWERED_REPEATER, new BlockBehaviorRedstoneRepeaterUnpowered(), BlockTraits.DIRECTION, BlockTraits.REPEATER_DELAY); //93
-        this.registerVanilla(POWERED_REPEATER, new BlockBehaviorRedstoneRepeaterPowered(), BlockTraits.DIRECTION, BlockTraits.REPEATER_DELAY); //94
+        this.registerVanilla(UNPOWERED_REPEATER, new BlockBehaviorRedstoneRepeater(UNPOWERED_REPEATER), BlockTraits.DIRECTION, BlockTraits.REPEATER_DELAY); //93
+        this.registerVanilla(POWERED_REPEATER, new BlockBehaviorRedstoneRepeater(POWERED_REPEATER), BlockTraits.DIRECTION, BlockTraits.REPEATER_DELAY); //94
         this.registerVanilla(INVISIBLE_BEDROCK, new BlockBehaviorBedrockInvisible()); //95
         this.registerVanilla(TRAPDOOR, new BlockBehaviorTrapdoor(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //96
         this.registerVanilla(MONSTER_EGG, new BlockBehaviorMonsterEgg()); //97
@@ -293,7 +294,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(MELON_BLOCK, new BlockBehaviorMelon()); //103
         this.registerVanilla(PUMPKIN_STEM, new BlockBehaviorStemPumpkin(), BlockTraits.GROWTH, BlockTraits.FACING_DIRECTION); //104
         this.registerVanilla(MELON_STEM, new BlockBehaviorStemMelon(), BlockTraits.GROWTH, BlockTraits.FACING_DIRECTION); //105
-        this.registerVanilla(VINE, new BlockBehaviorVine(), BlockTraits.VINE_DIRECTION_BITS); //106
+        this.registerVanilla(VINE, new BlockBehaviorVine(), BlockTraits.FACING_DIRECTION); //106
         this.registerVanilla(FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL); //107
         this.registerVanilla(BRICK_STAIRS, new BlockBehaviorStairsBrick(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //108
         this.registerVanilla(STONE_BRICK_STAIRS, new BlockBehaviorStairsStoneBrick(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //109
@@ -311,7 +312,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(END_STONE, new BlockBehaviorEndStone()); //121
         this.registerVanilla(DRAGON_EGG, new BlockBehaviorDragonEgg()); //122
         this.registerVanilla(REDSTONE_LAMP, new BlockBehaviorRedstoneLamp()); //123
-        this.registerVanilla(LIT_REDSTONE_LAMP, new BlockBehaviorRedstoneLampLit()); //124
+        this.registerVanilla(LIT_REDSTONE_LAMP, new BlockBehaviorRedstoneLamp()); //124
         this.registerVanilla(DROPPER, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_TRIGGERED);
         this.registerVanilla(ACTIVATOR_RAIL, new BlockBehaviorRailActivator(), BlockTraits.IS_POWERED, BlockTraits.SIMPLE_RAIL_DIRECTION); //126
         this.registerVanilla(COCOA, new BlockBehaviorCocoa(), BlockTraits.COCOA_AGE, BlockTraits.DIRECTION); //127
@@ -336,8 +337,8 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(TRAPPED_CHEST, new BlockBehaviorTrappedChest(), BlockTraits.FACING_DIRECTION); //146
         this.registerVanilla(LIGHT_WEIGHTED_PRESSURE_PLATE, new BlockBehaviorWeightedPressurePlateLight(), BlockTraits.REDSTONE_SIGNAL); //147
         this.registerVanilla(HEAVY_WEIGHTED_PRESSURE_PLATE, new BlockBehaviorWeightedPressurePlateHeavy(), BlockTraits.REDSTONE_SIGNAL); //148
-        this.registerVanilla(UNPOWERED_COMPARATOR, new BlockBehaviorRedstoneComparatorUnpowered(), BlockTraits.DIRECTION, BlockTraits.IS_OUTPUT_LIT, BlockTraits.IS_OUTPUT_SUBTRACT); //149
-        this.registerVanilla(POWERED_COMPARATOR, new BlockBehaviorRedstoneComparatorPowered(), BlockTraits.DIRECTION, BlockTraits.IS_OUTPUT_LIT, BlockTraits.IS_OUTPUT_SUBTRACT); //150
+        this.registerVanilla(UNPOWERED_COMPARATOR, new BlockBehaviorRedstoneComparator(UNPOWERED_COMPARATOR), BlockTraits.DIRECTION, BlockTraits.IS_OUTPUT_LIT, BlockTraits.IS_OUTPUT_SUBTRACT); //149
+        this.registerVanilla(POWERED_COMPARATOR, new BlockBehaviorRedstoneComparator(POWERED_COMPARATOR), BlockTraits.DIRECTION, BlockTraits.IS_OUTPUT_LIT, BlockTraits.IS_OUTPUT_SUBTRACT); //150
         this.registerVanilla(DAYLIGHT_DETECTOR, new BlockBehaviorDaylightDetector(), BlockTraits.REDSTONE_SIGNAL); //151
         this.registerVanilla(REDSTONE_BLOCK, new BlockBehaviorRedstone()); //152
         this.registerVanilla(QUARTZ_ORE, new BlockBehaviorOreQuartz()); //153
@@ -375,8 +376,8 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(JUNGLE_FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL); //185
         this.registerVanilla(DARK_OAK_FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL); //186
         this.registerVanilla(ACACIA_FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL); //187
-        this.registerVanilla(REPEATING_COMMAND_BLOCK, new BlockBehavior(), BlockTraits.FACING_DIRECTION, BlockTraits.IS_CONDITIONAL); //188
-        this.registerVanilla(CHAIN_COMMAND_BLOCK, new BlockBehavior(), BlockTraits.FACING_DIRECTION, BlockTraits.IS_CONDITIONAL); //189
+        this.registerVanilla(REPEATING_COMMAND_BLOCK, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_CONDITIONAL); //188
+        this.registerVanilla(CHAIN_COMMAND_BLOCK, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_CONDITIONAL); //189
         this.registerVanilla(HARD_GLASS_PANE, NoopBlockBehavior.INSTANCE);
         this.registerVanilla(HARD_STAINED_GLASS_PANE, NoopBlockBehavior.INSTANCE, BlockTraits.COLOR);
         this.registerVanilla(CHEMICAL_HEAT, NoopBlockBehavior.INSTANCE);
@@ -521,10 +522,10 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(DARK_OAK_WALL_SIGN, new BlockBehaviorWallSign(), BlockTraits.FACING_DIRECTION); //447
         this.registerVanilla(LECTERN, new BlockBehaviorLectern(), BlockTraits.DIRECTION, BlockTraits.IS_POWERED); //448
         this.registerVanilla(GRINDSTONE, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.ATTACHMENT);
-        this.registerVanilla(BLAST_FURNACE, new BlockBehaviorFurnace(), BlockTraits.FACING_DIRECTION); // 450
+        this.registerVanilla(BLAST_FURNACE, new BlockBehaviorFurnace(BlockEntityTypes.BLAST_FURNACE), BlockTraits.FACING_DIRECTION); // 450
         this.registerVanilla(STONECUTTER_BLOCK, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION); // 451
-        this.registerVanilla(SMOKER, new BlockBehaviorFurnace(), BlockTraits.FACING_DIRECTION); //452
-        this.registerVanilla(LIT_SMOKER, new BlockBehaviorFurnaceBurning(), BlockTraits.FACING_DIRECTION); //453
+        this.registerVanilla(SMOKER, new BlockBehaviorFurnace(BlockEntityTypes.FURNACE), BlockTraits.FACING_DIRECTION); //452
+        this.registerVanilla(LIT_SMOKER, new BlockBehaviorFurnaceBurning(BlockEntityTypes.FURNACE), BlockTraits.FACING_DIRECTION); //453
         this.registerVanilla(CARTOGRAPHY_TABLE, NoopBlockBehavior.INSTANCE); //454
         this.registerVanilla(FLETCHING_TABLE, NoopBlockBehavior.INSTANCE); //455
         this.registerVanilla(SMITHING_TABLE, NoopBlockBehavior.INSTANCE); //456
@@ -538,7 +539,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(JIGSAW, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.DIRECTION);
         this.registerVanilla(WOOD, new BlockBehaviorWood(), BlockTraits.TREE_SPECIES, BlockTraits.IS_STRIPPED); //465
         this.registerVanilla(COMPOSTER, NoopBlockBehavior.INSTANCE, BlockTraits.COMPOSTER_FILL_LEVEL);
-        this.registerVanilla(LIT_BLAST_FURNACE, new BlockBehaviorFurnaceBurning(), BlockTraits.FACING_DIRECTION); //467
+        this.registerVanilla(LIT_BLAST_FURNACE, new BlockBehaviorFurnaceBurning(BlockEntityTypes.BLAST_FURNACE), BlockTraits.FACING_DIRECTION); //467
         this.registerVanilla(LIGHT_BLOCK, new BlockBehaviorLight(), BlockTraits.LIGHT_LEVEL); //468
         this.registerVanilla(WITHER_ROSE, NoopBlockBehavior.INSTANCE);
         this.registerVanilla(STICKY_PISTON_ARM_COLLISION, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION);

@@ -23,7 +23,7 @@ public class BlockTraitSerializers {
     private final Reference2ObjectMap<Class<? extends Comparable<?>>, TraitNameSerializer> nameSerializers = new Reference2ObjectOpenHashMap<>();
 
     public void init() {
-        register(Direction.class, (builder, state, value) -> DirectionHelper.serialize(builder, state));
+        register(Direction.class, (NbtMapBuilder builder, BlockState state, Direction value) -> DirectionHelper.serialize(builder, state));
 
         registerName(WoodType.class, new WoodTypeSerializer());
     }

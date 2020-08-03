@@ -17,8 +17,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
-
 public class BlockBehaviorTNT extends BlockBehaviorSolid {
 
     @Override
@@ -32,7 +30,7 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -46,31 +44,33 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
         return 100;
     }
 
-    public void prime() {
-        this.prime(80);
+    public void prime(Block block) {
+        this.prime(block, 80);
     }
 
-    public void prime(int fuse) {
-        prime(fuse, null);
+    public void prime(Block block, int fuse) {
+        prime(block, fuse, null);
     }
 
-    public void prime(int fuse, Entity source) {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(AIR), true);
+    public void prime(Block block, int fuse, Entity source) {
+        block.set(BlockState.AIR, true);
+
         float mot = ThreadLocalRandom.current().nextFloat() * (float) Math.PI * 2f;
 
         PrimedTnt primedTnt = EntityRegistry.get().newEntity(EntityTypes.TNT,
-                Location.from(this.getPosition().toFloat().add(0.5, 0, 0.5), this.getLevel()));
+                Location.from(block.getPosition().toFloat().add(0.5, 0, 0.5), block.getLevel()));
         primedTnt.setMotion(Vector3f.from(-Math.sin(mot) * 0.02, 0.2, -Math.cos(mot) * 0.02));
         primedTnt.setFuse(fuse);
         primedTnt.setSource(source);
         primedTnt.spawnToAll();
-        this.level.addSound(this.getPosition(), Sound.RANDOM_FUSE);
+
+        block.getLevel().addSound(block.getPosition(), Sound.RANDOM_FUSE);
     }
 
     @Override
     public int onUpdate(Block block, int type) {
-        if ((type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) && this.level.isBlockPowered(this.getPosition())) {
-            this.prime();
+        if ((type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) && block.getLevel().isBlockPowered(block.getPosition())) {
+            this.prime(block);
         }
 
         return 0;
@@ -79,14 +79,14 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.FLINT_AND_STEEL) {
-            item.useOn(this);
-            this.prime(80, player);
+            item.useOn(block);
+            this.prime(block, 80, player);
             return true;
         }
         if (item.getId() == ItemIds.FIREBALL) {
             if (!player.isCreative()) player.getInventory().removeItem(Item.get(ItemIds.FIREBALL, 0, 1));
-            this.level.addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
-            this.prime(80, player);
+            block.getLevel().addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
+            this.prime(block, 80, player);
             return true;
         }
         return false;

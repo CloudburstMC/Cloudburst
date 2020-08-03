@@ -8,7 +8,6 @@ import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.chunk.LockableChunk;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * Implementation of {@link ChunkManager} used during chunk population.
@@ -48,35 +47,35 @@ public final class PopulationChunkManager implements ChunkManager {
         return this.chunks[relativeX * 3 + relativeZ];
     }
 
-    @Override
-    public Identifier getBlockId(int x, int y, int z, int layer) {
-        return this.chunkFromBlock(x, z).getBlockId(x & 0xF, y, z & 0xF, layer);
-    }
-
-    @Override
-    public void setBlockId(int x, int y, int z, int layer, Identifier id) {
-        this.chunkFromBlock(x, z).setBlockId(x & 0xF, y, z & 0xF, layer, id);
-    }
-
-    @Override
-    public int getBlockRuntimeIdUnsafe(int x, int y, int z, int layer) {
-        return this.chunkFromBlock(x, z).getBlockRuntimeIdUnsafe(x & 0xF, y, z & 0xF, layer);
-    }
-
-    @Override
-    public void setBlockRuntimeIdUnsafe(int x, int y, int z, int layer, int runtimeId) {
-        this.chunkFromBlock(x, z).setBlockRuntimeIdUnsafe(x & 0xF, y, z & 0xF, layer, runtimeId);
-    }
-
-    @Override
-    public int getBlockDataAt(int x, int y, int z, int layer) {
-        return this.chunkFromBlock(x, z).getBlockData(x & 0xF, y, z & 0xF, layer);
-    }
-
-    @Override
-    public void setBlockDataAt(int x, int y, int z, int layer, int data) {
-        this.chunkFromBlock(x, z).setBlockData(x & 0xF, y, z & 0xF, layer, data);
-    }
+//    @Override
+//    public Identifier getBlockId(int x, int y, int z, int layer) {
+//        return this.chunkFromBlock(x, z).getBlockId(x & 0xF, y, z & 0xF, layer);
+//    }
+//
+//    @Override
+//    public void setBlockId(int x, int y, int z, int layer, Identifier id) {
+//        this.chunkFromBlock(x, z).setBlockId(x & 0xF, y, z & 0xF, layer, id);
+//    }
+//
+//    @Override
+//    public int getBlockRuntimeIdUnsafe(int x, int y, int z, int layer) {
+//        return this.chunkFromBlock(x, z).getBlockRuntimeIdUnsafe(x & 0xF, y, z & 0xF, layer);
+//    }
+//
+//    @Override
+//    public void setBlockRuntimeIdUnsafe(int x, int y, int z, int layer, int runtimeId) {
+//        this.chunkFromBlock(x, z).setBlockRuntimeIdUnsafe(x & 0xF, y, z & 0xF, layer, runtimeId);
+//    }
+//
+//    @Override
+//    public int getBlockDataAt(int x, int y, int z, int layer) {
+//        return this.chunkFromBlock(x, z).getBlockData(x & 0xF, y, z & 0xF, layer);
+//    }
+//
+//    @Override
+//    public void setBlockDataAt(int x, int y, int z, int layer, int data) {
+//        this.chunkFromBlock(x, z).setBlockData(x & 0xF, y, z & 0xF, layer, data);
+//    }
 
     @Override
     public BlockState getBlockAt(int x, int y, int z, int layer) {

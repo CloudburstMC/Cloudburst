@@ -1,8 +1,5 @@
 package org.cloudburstmc.server.registry;
 
-import cn.nukkit.command.*;
-import cn.nukkit.command.defaults.*;
-import cn.nukkit.command.simple.*;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.data.command.CommandData;
@@ -31,7 +28,7 @@ import java.util.regex.Pattern;
  * method to pass a <code>{@link PluginCommand}</code> object with a reference to your {@link PluginBase Plugin}.
  * If the name used in the Command constructor is not unique, the registry will try to prefix the command with the
  * lower cased version of your plugin name (ex: <code>nukkitx:commnad</code>).</p>
- * <p>You may also use the {@link cn.nukkit.command.simple SimpleCommand} annotations to create your Command,
+ * <p>You may also use the {@link org.cloudburstmc.server.command.simple.SimpleCommand} annotations to create your Command,
  * in which case you would use {@link #registerSimpleCommand(Plugin, Object) registerSimpleCommand()}
  * method to register the command.</p>
  *
@@ -119,7 +116,7 @@ public class CommandRegistry implements Registry {
         checkClosed();
 
         for (Method method : simpleCommand.getClass().getDeclaredMethods()) {
-            Command def = method.getAnnotation(Command.class);
+            org.cloudburstmc.server.command.simple.Command def = method.getAnnotation(org.cloudburstmc.server.command.simple.Command.class);
             if (def != null) {
                 String cmd = def.name();
                 NAME_MATCHER.reset(cmd);

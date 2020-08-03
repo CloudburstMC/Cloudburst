@@ -20,7 +20,7 @@ public class BlockBehaviorRedSandstone extends BlockBehaviorSandstone {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(id, this.getMeta() & 0x03);
+        return Item.get(block.getState());
     }
 
     @Override

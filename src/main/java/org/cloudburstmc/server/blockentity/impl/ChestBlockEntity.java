@@ -116,7 +116,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
 
     @Override
     public boolean isValid() {
-        Identifier blockId = this.getBlock().getId();
+        Identifier blockId = this.getBlockState().getType();
         return blockId == BlockTypes.CHEST || blockId == BlockTypes.TRAPPED_CHEST;
     }
 
@@ -178,7 +178,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
     }
 
     public boolean pairWith(Chest chest) {
-        if (this.isPaired() || chest.isPaired() || this.getBlock().getId() != chest.getBlock().getId()) {
+        if (this.isPaired() || chest.isPaired() || this.getBlockState().getType() != chest.getBlockState().getType()) {
             return false;
         }
 

@@ -1,8 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -31,7 +34,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox(Block block) {
+    public AxisAlignedBB getBoundingBox() {
         return null;
     }
 
@@ -40,34 +43,16 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
         return Item.get(ItemIds.STRING);
     }
 
-    public boolean isPowered() {
-        return (this.getMeta() & 1) > 0;
+    public boolean isPowered(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_POWERED);
     }
 
-    public void setPowered(boolean value) {
-        if (value ^ this.isPowered()) {
-            this.setMeta(this.getMeta() ^ 0x01);
-        }
+    public boolean isAttached(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_ATTACHED);
     }
 
-    public boolean isAttached() {
-        return (this.getMeta() & 4) > 0;
-    }
-
-    public void setAttached(boolean value) {
-        if (value ^ this.isAttached()) {
-            this.setMeta(this.getMeta() ^ 0x04);
-        }
-    }
-
-    public boolean isDisarmed() {
-        return (this.getMeta() & 8) > 0;
-    }
-
-    public void setDisarmed(boolean value) {
-        if (value ^ this.isDisarmed()) {
-            this.setMeta(this.getMeta() ^ 0x08);
-        }
+    public boolean isDisarmed(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_DISARMED);
     }
 
     @Override
@@ -76,27 +61,27 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
             return;
         }
 
-        boolean powered = this.isPowered();
+        val state = block.getState();
+        boolean powered = this.isPowered(state);
 
         if (!powered) {
-            this.setPowered(true);
-            this.level.setBlock(this.getPosition(), this, true, false);
-            this.updateHook(false);
+            val bs = state.withTrait(BlockTraits.IS_POWERED, true);
+            block.set(bs, true, false);
+            this.updateHook(block, bs, false);
 
-            this.level.scheduleUpdate(this, 10);
+            block.getLevel().scheduleUpdate(block.refresh(), 10);
         }
     }
 
-    public void updateHook(boolean scheduleUpdate) {
+    public void updateHook(Block block, BlockState blockState, boolean scheduleUpdate) {
         for (Direction side : new Direction[]{Direction.SOUTH, Direction.WEST}) {
             for (int i = 1; i < 42; ++i) {
-                BlockState blockState = this.getSide(side, i);
+                val b = block.getSide(side, i);
+                BlockState state = b.getState();
 
-                if (blockState instanceof BlockBehaviorTripWireHook) {
-                    BlockBehaviorTripWireHook hook = (BlockBehaviorTripWireHook) blockState;
-
-                    if (hook.getFacing() == side.getOpposite()) {
-                        hook.calculateState(false, true, i, this);
+                if (state.getType() == BlockTypes.TRIPWIRE_HOOK) {
+                    if (state.ensureTrait(BlockTraits.DIRECTION) == side.getOpposite()) {
+                        ((BlockBehaviorTripWireHook) state.getBehavior()).calculateState(b, false, true, i, blockState);
                     }
 
                     /*if(scheduleUpdate) {
@@ -105,7 +90,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
                     break;
                 }
 
-                if (blockState.getId() != TRIPWIRE) {
+                if (state.getType() != TRIPWIRE) {
                     break;
                 }
             }
@@ -115,12 +100,12 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
-            if (!isPowered()) {
+            if (!isPowered(block.getState())) {
                 return type;
             }
 
             boolean found = false;
-            for (Entity entity : this.level.getCollidingEntities(this.getCollisionBoxes())) {
+            for (Entity entity : block.getLevel().getCollidingEntities(this.getCollisionBoxes(block))) {
                 if (!entity.canTriggerPressurePlate()) {
                     continue;
                 }
@@ -129,11 +114,11 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
             }
 
             if (found) {
-                this.level.scheduleUpdate(this, 10);
+                block.getLevel().scheduleUpdate(block, 10);
             } else {
-                this.setPowered(false);
-                this.level.setBlock(this.getPosition(), this, true, false);
-                this.updateHook(false);
+                val state = block.getState().withTrait(BlockTraits.IS_POWERED, false);
+                block.set(state, true, false);
+                this.updateHook(block, state, false);
             }
             return type;
         }
@@ -143,8 +128,9 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        this.getLevel().setBlock(this.getPosition(), this, true, true);
-        this.updateHook(false);
+        val state = BlockState.get(TRIPWIRE);
+        placeBlock(block, state);
+        this.updateHook(block, state, false);
 
         return true;
     }
@@ -152,28 +138,28 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     @Override
     public boolean onBreak(Block block, Item item) {
         if (item.getId() == ItemIds.SHEARS) {
-            this.setDisarmed(true);
-            this.level.setBlock(this.getPosition(), this, true, false);
-            this.updateHook(false);
+            val state = block.getState().withTrait(BlockTraits.IS_DISARMED, true);
+            block.set(state, true, false);
+
+            this.updateHook(block, state, false);
             super.onBreak(block, item);
         } else {
-            this.setPowered(true);
             super.onBreak(block, item);
-            this.updateHook(true);
+            this.updateHook(block, block.getState().withTrait(BlockTraits.IS_POWERED, true), true);
         }
 
         return true;
     }
 
-    @Override
-    public float getMaxY() {
-        return this.getY() + 0.5f;
-    }
-
-    @Override
-    protected AxisAlignedBB recalculateCollisionBoundingBox() {
-        return this;
-    }
+//    @Override //TODO: bounding box
+//    public float getMaxY() {
+//        return this.getY() + 0.5f;
+//    }
+//
+//    @Override
+//    protected AxisAlignedBB recalculateCollisionBoundingBox() {
+//        return this;
+//    }
 
     @Override
     public boolean canWaterlogSource() {
