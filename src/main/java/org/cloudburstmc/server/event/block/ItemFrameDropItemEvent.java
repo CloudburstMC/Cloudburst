@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.block;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.ItemFrame;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
@@ -17,8 +17,8 @@ public class ItemFrameDropItemEvent extends BlockEvent implements Cancellable {
     private final Item item;
     private final ItemFrame itemFrame;
 
-    public ItemFrameDropItemEvent(Player player, BlockState blockState, ItemFrame itemFrame, Item item) {
-        super(blockState);
+    public ItemFrameDropItemEvent(Player player, Block block, ItemFrame itemFrame, Item item) {
+        super(block);
         this.player = player;
         this.itemFrame = itemFrame;
         this.item = item;

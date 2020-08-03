@@ -68,6 +68,10 @@ public class BlockStateMetaMappings {
         });
     }
 
+    public boolean hasMeta(Identifier type, int meta) {
+        return getStateFromMeta(type, meta) != null;
+    }
+
     public int getMetaFromState(BlockState state) {
         return state2meta.getOrDefault(state, -1);
     }

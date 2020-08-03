@@ -76,7 +76,7 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
 
     @Override
     public boolean isValid() {
-        Identifier blockId = this.getBlock().getId();
+        Identifier blockId = this.getBlockState().getType();
         return blockId == BlockTypes.SHULKER_BOX || blockId == BlockTypes.UNDYED_SHULKER_BOX;
     }
 

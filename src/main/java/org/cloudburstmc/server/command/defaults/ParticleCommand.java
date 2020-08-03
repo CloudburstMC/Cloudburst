@@ -2,7 +2,6 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -13,6 +12,7 @@ import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.particle.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Random;
@@ -175,7 +175,7 @@ public class ParticleCommand extends Command {
                 break;
             case "terrain":
                 if (data != -1 && data != 0) {
-                    return new TerrainParticle(pos, BlockState.get(data));
+//                    return new TerrainParticle(pos, BlockState.get(data)); //TODO: block name
                 }
                 break;
             case "heart":
@@ -202,7 +202,7 @@ public class ParticleCommand extends Command {
         } else if (name.startsWith("blockcrack_")) {
             String[] d = name.split("_");
             if (d.length == 2) {
-                return new TerrainParticle(pos, BlockState.get(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
+                return new TerrainParticle(pos, BlockRegistry.get().getBlock(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
             }
         } else if (name.startsWith("blockdust_")) {
             String[] d = name.split("_");

@@ -102,7 +102,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
     @Override
     public boolean isValid() {
-        return getBlock().getType() == BlockTypes.BREWING_STAND;
+        return getBlockState().getType() == BlockTypes.BREWING_STAND;
     }
 
     @Override
@@ -263,7 +263,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     public void updateBlock() {
-        BlockState blockState = this.getBlock();
+        BlockState blockState = this.getBlockState();
 
         if (!(blockState instanceof BlockBehaviorBrewingStand)) {
             return;

@@ -3,8 +3,8 @@ package org.cloudburstmc.server.blockentity.impl;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorCampfire;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Campfire;
 import org.cloudburstmc.server.item.Item;
@@ -65,7 +65,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     @Override
     public boolean isValid() {
-        return getLevel().getBlock(this.getPosition()).getId() == BlockTypes.CAMPFIRE;
+        return getBlockState().getType() == BlockTypes.CAMPFIRE;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         if (this.closed) {
             return false;
         }
-        if (!((BlockBehaviorCampfire) getBlock()).isLit()) {
+        if (getBlockState().ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
             return false;
         }
 

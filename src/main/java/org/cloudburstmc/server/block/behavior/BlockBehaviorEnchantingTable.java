@@ -73,7 +73,7 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
                 BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, block);
             }
 
-            player.addWindow(new EnchantInventory(player.getUIInventory(), block.getState()), ContainerIds.ENCHANTING_TABLE);
+            player.addWindow(new EnchantInventory(player.getUIInventory(), block), ContainerIds.ENCHANTING_TABLE);
         }
 
         return true;

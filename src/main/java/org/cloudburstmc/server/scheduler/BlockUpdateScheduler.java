@@ -3,7 +3,8 @@ package org.cloudburstmc.server.scheduler;
 import com.google.common.collect.Maps;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector4i;
-import org.cloudburstmc.server.block.BlockState;
+import lombok.val;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
@@ -51,10 +52,11 @@ public class BlockUpdateScheduler {
                 for (BlockUpdateEntry entry : updates) {
                     Vector3i pos = entry.pos;
                     if (level.isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) {
-                        BlockState blockState = level.getBlock(entry.pos);
+                        Block block = level.getBlock(entry.pos);
+                        val state = block.getState();
 
-                        if (BlockState.equals(blockState, entry.block, false)) {
-                            blockState.onUpdate(Level.BLOCK_UPDATE_SCHEDULED);
+                        if (entry.block.getState().getType() == state.getType()) {
+                            state.getBehavior().onUpdate(block, Level.BLOCK_UPDATE_SCHEDULED);
                         }
                     } else {
                         level.scheduleUpdate(entry.block, entry.pos, 0);
@@ -87,7 +89,7 @@ public class BlockUpdateScheduler {
         return set;
     }
 
-    public boolean isBlockTickPending(Vector3i pos, BlockState blockState) {
+    public boolean isBlockTickPending(Vector3i pos, Block blockState) {
         Set<BlockUpdateEntry> tmpUpdates = pendingUpdates;
         if (tmpUpdates == null || tmpUpdates.isEmpty()) return false;
         return tmpUpdates.contains(new BlockUpdateEntry(pos, blockState));

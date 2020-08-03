@@ -13,8 +13,10 @@ import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorPumpkin extends BlockBehaviorSolid {
 
+    protected final Identifier type;
+
     public BlockBehaviorPumpkin(Identifier type) {
-        super(type);
+        this.type = type;
     }
 
     @Override

@@ -294,7 +294,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(MELON_BLOCK, new BlockBehaviorMelon()); //103
         this.registerVanilla(PUMPKIN_STEM, new BlockBehaviorStemPumpkin(), BlockTraits.GROWTH, BlockTraits.FACING_DIRECTION); //104
         this.registerVanilla(MELON_STEM, new BlockBehaviorStemMelon(), BlockTraits.GROWTH, BlockTraits.FACING_DIRECTION); //105
-        this.registerVanilla(VINE, new BlockBehaviorVine(), BlockTraits.VINE_DIRECTION_BITS); //106
+        this.registerVanilla(VINE, new BlockBehaviorVine(), BlockTraits.FACING_DIRECTION); //106
         this.registerVanilla(FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL); //107
         this.registerVanilla(BRICK_STAIRS, new BlockBehaviorStairsBrick(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //108
         this.registerVanilla(STONE_BRICK_STAIRS, new BlockBehaviorStairsStoneBrick(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //109

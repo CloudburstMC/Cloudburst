@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -8,8 +8,8 @@ import org.cloudburstmc.server.player.Player;
  */
 public class BeaconInventory extends FakeBlockUIComponent {
 
-    public BeaconInventory(PlayerUIInventory playerUI, BlockState blockState) {
-        super(playerUI, InventoryType.BEACON, 27, blockState);
+    public BeaconInventory(PlayerUIInventory playerUI, Block block) {
+        super(playerUI, InventoryType.BEACON, 27, block);
     }
 
     @Override

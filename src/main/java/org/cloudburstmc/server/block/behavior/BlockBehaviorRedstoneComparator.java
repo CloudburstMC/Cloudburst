@@ -56,7 +56,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
     @Override
     public void updateState(Block block) {
         val state = block.getState();
-        if (!block.getLevel().isBlockTickPending(block.getPosition(), state)) {
+        if (!block.getLevel().isBlockTickPending(block.getPosition(), block)) {
             int output = this.calculateOutput(block);
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             int power = blockEntity instanceof Comparator ? ((Comparator) blockEntity).getOutputSignal() : 0;

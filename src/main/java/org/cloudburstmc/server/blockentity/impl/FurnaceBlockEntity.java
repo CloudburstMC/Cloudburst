@@ -5,7 +5,9 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
+import lombok.val;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Furnace;
@@ -95,7 +97,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
     @Override
     public boolean isValid() {
-        Identifier blockId = getBlock().getId();
+        Identifier blockId = getBlockState().getType();
         return blockId == FURNACE || blockId == LIT_FURNACE;
     }
 
@@ -118,9 +120,10 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         maxTime = (short) (ev.getBurnTime() / getBurnRate());
         burnTime = (short) (ev.getBurnTime() / getBurnRate());
 
-        if (this.getBlock().getId() == BlockTypes.FURNACE
-                || this.getBlock().getId() == BlockTypes.SMOKER
-                || this.getBlock().getId() == BlockTypes.BLAST_FURNACE) {
+        val type = getBlockState().getType();
+        if (type == BlockTypes.FURNACE
+                || type == BlockTypes.SMOKER
+                || type == BlockTypes.BLAST_FURNACE) {
             lightFurnace();
         }
 
@@ -158,7 +161,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         Item fuel = this.inventory.getFuel();
         Item raw = this.inventory.getSmelting();
         Item product = this.inventory.getResult();
-        Identifier blockId = getBlock().getId();
+        Identifier blockId = getBlockState().getType();
         FurnaceRecipe smelt = this.server.getCraftingManager().matchFurnaceRecipe(raw, blockId);
         boolean canSmelt = (smelt != null && raw.getCount() > 0 && ((smelt.getResult().equals(product, true)
                 && product.getCount() < product.getMaxStackSize()) || product.getId() == AIR));
@@ -228,11 +231,11 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     protected void extinguishFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(FURNACE, this.getBlock().getMeta()), true);
+        this.getLevel().setBlock(this.getPosition(), BlockState.get(FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
     }
 
     protected void lightFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(LIT_FURNACE, this.getBlock().getMeta()), true);
+        this.getLevel().setBlock(this.getPosition(), BlockState.get(LIT_FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
     }
 
     public int getBurnTime() {

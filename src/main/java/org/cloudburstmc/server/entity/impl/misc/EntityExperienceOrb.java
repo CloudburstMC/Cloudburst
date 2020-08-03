@@ -160,7 +160,7 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
             double friction = 1d - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                friction = this.getLevel().getBlock(this.getPosition().add(0, -1, -1)).getFrictionFactor() * friction;
+                friction = this.getLevel().getBlockAt(this.getPosition().add(0, -1, -1).toInt()).getBehavior().getFrictionFactor() * friction;
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);

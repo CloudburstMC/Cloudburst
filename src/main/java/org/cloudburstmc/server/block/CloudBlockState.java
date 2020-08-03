@@ -96,7 +96,7 @@ public final class CloudBlockState implements BlockState {
 
         //TODO: direct access?
         for (Entry<BlockTrait<?>, Comparable<?>> entry : from.getTraits().entrySet()) {
-            result = result.withTrait(entry.getKey(), (Comparable) entry.getValue());
+            result = result.withTrait((BlockTrait) entry.getKey(), (Comparable) entry.getValue());
         }
 
         return result;

@@ -98,7 +98,7 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
 
     @Override
     public boolean isValid() {
-        return getBlock().getId() == BlockTypes.CAULDRON;
+        return getBlockState().getType() == BlockTypes.CAULDRON;
     }
 
     @Override

@@ -787,9 +787,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
         ItemFrame itemFrame = (ItemFrame) blockEntity;
-        BlockState state = itemFrame.getBlock();
+        Block block = itemFrame.getBlock();
         Item itemDrop = itemFrame.getItem();
-        ItemFrameDropItemEvent itemFrameDropItemEvent = new ItemFrameDropItemEvent(player, state, itemFrame, itemDrop);
+        ItemFrameDropItemEvent itemFrameDropItemEvent = new ItemFrameDropItemEvent(player, block, itemFrame, itemDrop);
         player.getServer().getPluginManager().callEvent(itemFrameDropItemEvent);
         if (!itemFrameDropItemEvent.isCancelled()) {
             if (itemDrop.getId() != AIR) {
@@ -1252,9 +1252,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 if (!lecternPageChangeEvent.isCancelled()) {
                     lectern.setPage(lecternPageChangeEvent.getNewRawPage());
                     lectern.spawnToAll();
-                    val behavior = lectern.getBlock().getBehavior(); //TODO: check
-                    if (behavior instanceof BlockBehaviorLectern) {
-                        ((BlockBehaviorLectern) behavior).executeRedstonePulse(player.getLevel().getBlock(lectern.getPosition()));
+                    val block = lectern.getBlock();
+                    val state = block.getState();
+                    if (state.getType() == BlockTypes.LECTERN) {
+                        ((BlockBehaviorLectern) state.getBehavior()).executeRedstonePulse(block);
                     }
                 }
             }

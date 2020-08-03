@@ -86,12 +86,11 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         return null;
     }
 
-//    @Override //TODO: bounding box
-//    public float getMaxY() {
-//        return this.getY() + 1 - getFluidHeightPercent();
-//    }
+    public float getMaxY(Block block) {
+        return block.getY() + 1 - getFluidHeightPercent(block.getState());
+    }
 //
-//    @Override
+//    @Override //TODO: bounding box
 //    protected AxisAlignedBB recalculateCollisionBoundingBox() {
 //        return this;
 //    }

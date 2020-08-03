@@ -16,8 +16,10 @@ import org.cloudburstmc.server.utils.Identifier;
 
 public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
 
+    protected final Identifier type;
+
     public BlockBehaviorButton(Identifier type) {
-        super(type);
+        this.type = type;
     }
 
     @Override

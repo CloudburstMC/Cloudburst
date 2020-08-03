@@ -1128,8 +1128,8 @@ public class Level implements ChunkManager, Metadatable {
         return collides.toArray(new Block[0]);
     }
 
-    public boolean isBlockTickPending(Vector3i pos, BlockState blockState) {
-        return this.updateQueue.isBlockTickPending(pos, blockState);
+    public boolean isBlockTickPending(Vector3i pos, Block block) {
+        return this.updateQueue.isBlockTickPending(pos, block);
     }
 
     public AxisAlignedBB[] getCollisionCubes(BaseEntity entity, AxisAlignedBB bb) {
