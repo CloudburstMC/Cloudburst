@@ -17,7 +17,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @ParametersAreNonnullByDefault
 public interface BlockState {
 
-    BlockState AIR = BlockPalette.INSTANCE.air;
+    BlockState AIR = null;//BlockPalette.INSTANCE.air;
 
     @Nonnull
     Identifier getType();

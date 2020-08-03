@@ -121,16 +121,29 @@ public final class CloudBlockState implements BlockState {
         for (Map.Entry<BlockTrait<?>, Comparable<?>> entry : this.traits.entrySet()) {
             BlockTrait<?> trait = entry.getKey();
             int traitIndex = this.traitPalette.getInt(trait);
+            this.table[traitIndex] = new CloudBlockState[trait.getPossibleValues().size()];
 
             for (Comparable<?> comparable : trait.getPossibleValues()) {
-                if (comparable != entry.getValue()) {
                     this.table[traitIndex][trait.getIndex(comparable)] = map.get(this.getTraitsWithValue(trait, comparable));
-                }
             }
         }
     }
 
     private ImmutableMap<BlockTrait<?>, Comparable<?>> getTraitsWithValue(BlockTrait<?> trait, Comparable<?> comparable) {
-        return ImmutableMap.<BlockTrait<?>, Comparable<?>>builder().putAll(this.traits).put(trait, comparable).build();
+        ImmutableMap.Builder<BlockTrait<?>, Comparable<?>> builder = ImmutableMap.builder();
+        this.traits.forEach((k, v) -> builder.put(k, k == trait ? comparable : v)); //this actually performs better than using a loop
+        return builder.build();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(this.type);
+        if (!this.traits.isEmpty()) {
+            builder.append('{');
+            this.traits.forEach((trait, value) -> builder.append(trait).append('=').append(value.toString().toLowerCase()).append(',').append(' '));
+            builder.setCharAt(builder.length() - 1, '}');
+        }
+        return builder.toString();
     }
 }

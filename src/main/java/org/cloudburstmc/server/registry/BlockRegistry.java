@@ -74,7 +74,7 @@ public class BlockRegistry implements Registry {
         checkClosed();
         if (this.behaviorMap.containsKey(id)) throw new RegistryException(id + " is already registered");
 
-        this.registerVanilla(id, behavior);
+        //this.registerVanilla(id, behavior);
         this.palette.addBlock(id, serializer, traits);
     }
 
