@@ -57,7 +57,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
 
     @Override
     public boolean isValid() {
-        return this.getBlock().getType() == BlockTypes.FLOWER_POT;
+        return this.getBlockState().getType() == BlockTypes.FLOWER_POT;
     }
 
     public BlockState getPlant() {

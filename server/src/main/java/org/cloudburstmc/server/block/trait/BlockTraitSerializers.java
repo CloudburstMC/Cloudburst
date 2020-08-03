@@ -7,8 +7,10 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.function.plain.TriFunction;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.serializer.DirectionHelper;
+import org.cloudburstmc.server.block.trait.serializer.VineDirectionSerializer;
 import org.cloudburstmc.server.block.trait.serializer.WoodTypeSerializer;
 import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.server.utils.data.VineDirection;
 import org.cloudburstmc.server.utils.data.WoodType;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -24,6 +26,7 @@ public class BlockTraitSerializers {
 
     public void init() {
         register(Direction.class, (builder, state, value) -> DirectionHelper.serialize(builder, state));
+        register(VineDirection.class, new VineDirectionSerializer());
 
         registerName(WoodType.class, new WoodTypeSerializer());
     }

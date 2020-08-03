@@ -99,7 +99,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
 
             Level level = block.getLevel();
             if ((this.isPowered && !shouldPowered || !this.isPowered && shouldPowered) &&
-                    !level.isBlockTickPending(block.getPosition(), block.getState())) {
+                    !level.isBlockTickPending(block.getPosition(), block)) {
                 /*int priority = -1;
 
                 if (this.isFacingTowardsRepeater()) {

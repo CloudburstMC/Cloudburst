@@ -70,7 +70,7 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
 
     @Override
     public boolean isValid() {
-        return getBlock().getId() == BlockTypes.BARREL;
+        return getBlockState().getType() == BlockTypes.BARREL;
     }
 
     @Override

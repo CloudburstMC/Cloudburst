@@ -44,7 +44,7 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
 
     @Override
     public boolean isValid() {
-        return getBlock().getId() == BlockTypes.SKULL;
+        return getBlockState().getType() == BlockTypes.SKULL;
     }
 
     public float getRotation() {

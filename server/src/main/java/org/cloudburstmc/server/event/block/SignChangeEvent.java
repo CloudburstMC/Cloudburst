@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.block;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.player.Player;
@@ -20,8 +20,8 @@ public class SignChangeEvent extends BlockEvent implements Cancellable {
 
     private String[] lines = new String[4];
 
-    public SignChangeEvent(BlockState blockState, Player player, String[] lines) {
-        super(blockState);
+    public SignChangeEvent(Block block, Player player, String[] lines) {
+        super(block);
         this.player = player;
         this.lines = lines;
     }

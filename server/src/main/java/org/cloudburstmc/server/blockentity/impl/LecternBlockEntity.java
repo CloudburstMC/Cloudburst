@@ -33,7 +33,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     @Override
     public boolean isValid() {
-        return getBlock().getId() == BlockTypes.LECTERN;
+        return getBlockState().getType() == BlockTypes.LECTERN;
     }
 
     @Override

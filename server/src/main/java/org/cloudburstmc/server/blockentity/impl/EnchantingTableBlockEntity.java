@@ -18,7 +18,7 @@ public class EnchantingTableBlockEntity extends BaseBlockEntity implements Encha
 
     @Override
     public boolean isValid() {
-        return getBlock().getId() == BlockTypes.ENCHANTING_TABLE;
+        return getBlockState().getType() == BlockTypes.ENCHANTING_TABLE;
     }
 
 }
