@@ -3,6 +3,7 @@ package org.cloudburstmc.server.level.generator.standard.population.plant;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
@@ -52,7 +53,7 @@ public class ShrubPopulator extends AbstractPlantPopulator {
     protected void placeCluster(PRandom random, ChunkManager level, int x, int y, int z) {
         final BlockFilter on = this.on;
         final BlockFilter replace = this.replace;
-        final int block = this.block.select(random);
+        final BlockState block = this.block.select(random);
 
         for (int i = this.patchSize - 1; i >= 0; i--) {
             int blockY = y + random.nextInt(4) - random.nextInt(4);
@@ -63,9 +64,9 @@ public class ShrubPopulator extends AbstractPlantPopulator {
             int blockZ = z + random.nextInt(8) - random.nextInt(8);
 
             IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-            if (on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, blockY, blockZ & 0xF, 0)))
-                    && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, blockY + 1, blockZ & 0xF, 0)))) {
-//                chunk.setBlockRuntimeIdUnsafe(blockX & 0xF, blockY + 1, blockZ & 0xF, 0, block);
+            if (on.test(chunk.getBlock(blockX & 0xF, blockY, blockZ & 0xF, 0))
+                    && replace.test(chunk.getBlock(blockX & 0xF, blockY + 1, blockZ & 0xF, 0))) {
+                chunk.setBlock(blockX & 0xF, blockY + 1, blockZ & 0xF, 0, block);
             }
         }
     }

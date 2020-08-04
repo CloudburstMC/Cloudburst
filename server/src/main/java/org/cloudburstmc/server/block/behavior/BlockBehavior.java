@@ -127,6 +127,10 @@ public abstract class BlockBehavior {
         return true;
     }
 
+    public boolean isLiquid()   {
+        return false;
+    }
+
     public int getFilterLevel() {
         if (isSolid()) {
             if (isTransparent()) {

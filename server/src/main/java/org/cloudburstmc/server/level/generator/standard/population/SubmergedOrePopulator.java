@@ -3,6 +3,7 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
@@ -49,24 +50,24 @@ public class SubmergedOrePopulator extends ChancePopulator.Column {
         IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
         int y = chunk.getHighestBlock(blockX & 0xF, blockZ & 0xF);
         for (; y > 0; y--) {
-            if (this.replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0)))) {
+            if (this.replace.test(chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0))) {
                 break;
             }
         }
-        if (y <= 0 || y >= 255 || !this.start.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, y + 1, blockZ, 0)))) {
+        if (y <= 0 || y >= 255 || !this.start.test(level.getBlockAt(blockX, y + 1, blockZ, 0))) {
             return;
         }
 
         final int radius = this.radius.rand(random);
         final int radiusSq = radius * radius;
-        final int block = this.block.select(random);
+        final BlockState block = this.block.select(random);
 
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
                 if (dx * dx + dz * dz <= radiusSq) {
                     for (int dy = -1; dy < 1; dy++) {
-                        if (this.replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + dx, y + dy, blockZ + dz, 0)))) {
-//                            level.setBlockRuntimeIdUnsafe(blockX + dx, y + dy, blockZ + dz, 0, block);
+                        if (this.replace.test(level.getBlockAt(blockX + dx, y + dy, blockZ + dz, 0))) {
+                            level.setBlockAt(blockX + dx, y + dy, blockZ + dz, 0, block);
                         }
                     }
                 }

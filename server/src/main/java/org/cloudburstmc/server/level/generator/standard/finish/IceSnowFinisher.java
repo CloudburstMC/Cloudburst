@@ -34,7 +34,7 @@ public class IceSnowFinisher implements Finisher {
         Biome biome = BiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, blockZ & 0xF));
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
         if (this.height.contains(y) && biome.canSnowAt(level, blockX, y + 1, blockZ)) {
-            BlockState blockState = BlockRegistry.get().getBlock(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, y, blockZ, 0)));
+            BlockState blockState = BlockRegistry.get().getBlock(level.getBlockAt(blockX, y, blockZ, 0)));
 //            if (blockState.getId() == BlockTypes.WATER) {
 //                level.setBlockId(blockX, y, blockZ, 0, BlockTypes.ICE);
 //            } else if (y < 255 && blockState.isSolid()) {
