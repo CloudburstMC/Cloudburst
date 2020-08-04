@@ -5,6 +5,7 @@ import com.google.common.collect.HashBiMap;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -27,6 +28,8 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.EnumMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -57,6 +60,7 @@ public class BlockRegistry implements Registry {
     private final BlockPalette palette = BlockPalette.INSTANCE;
     private NbtMap propertiesTag;
     private volatile boolean closed;
+    private transient NbtList<NbtMap> serializedPalette;
 
     private BlockRegistry() {
         this.registerVanillaBlocks();
@@ -188,7 +192,20 @@ public class BlockRegistry implements Registry {
     }
 
     public NbtList<NbtMap> getPaletteTag() {
-        return palette.getPalette();
+        if (this.serializedPalette != null) {
+            return serializedPalette;
+        }
+        Map<BlockState, NbtMap> palette = this.palette.getSerializedPalette();
+        List<NbtMap> serialized = new ArrayList<>(palette.size());
+        palette.forEach((state, serializedState) -> {
+            serialized.add(NbtMap.builder()
+                    .putCompound("block", serializedState)
+                    .putShort("id", (short) this.getLegacyId(state.getType()))
+                    .build());
+        });
+
+        this.serializedPalette = new NbtList<>(NbtType.COMPOUND, serialized);
+        return this.serializedPalette;
     }
 
     public NbtMap getPropertiesTag() {
@@ -368,7 +385,7 @@ public class BlockRegistry implements Registry {
         //166: glow_stick
         this.registerVanilla(IRON_TRAPDOOR, new BlockBehaviorTrapdoorIron(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN); //167
         this.registerVanilla(PRISMARINE, new BlockBehaviorPrismarine(), BlockTraits.PRISMARINE_BLOCK_TYPE); //168
-        this.registerVanilla(SEALANTERN, new BlockBehaviorSeaLantern()); //169
+        this.registerVanilla(SEA_LANTERN, new BlockBehaviorSeaLantern()); //169
         this.registerVanilla(HAY_BLOCK, new BlockBehaviorHayBale(), BlockTraits.AXIS, BlockTraits.DEPRECATED); //170
         this.registerVanilla(CARPET, new BlockBehaviorCarpet(), BlockTraits.COLOR); //171
         this.registerVanilla(HARDENED_CLAY, new BlockBehaviorTerracotta()); //172

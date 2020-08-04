@@ -419,7 +419,7 @@ public class BlockCategories {
                 SAND,
                 SANDSTONE,
                 SANDSTONE_STAIRS,
-                SEALANTERN,
+                SEA_LANTERN,
                 SHROOMLIGHT,
                 SHULKER_BOX,
                 SILVER_GLAZED_TERRACOTTA,

@@ -445,7 +445,7 @@ public class BlockStates {
     public static final BlockState SAPLING = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SAPLING);
     public static final BlockState SCAFFOLDING = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SCAFFOLDING);
     public static final BlockState SEAGRASS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SEAGRASS);
-    public static final BlockState SEALANTERN = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SEALANTERN);
+    public static final BlockState SEA_LANTERN = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SEA_LANTERN);
     public static final BlockState SEA_PICKLE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SEA_PICKLE);
     public static final BlockState SHROOMLIGHT = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SHROOMLIGHT);
     public static final BlockState SHULKER_BOX = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SHULKER_BOX);

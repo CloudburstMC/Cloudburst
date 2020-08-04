@@ -85,7 +85,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         INSTRUMENTS.put(BlockTypes.STAINED_GLASS_PANE, Instrument.STICKS);
         INSTRUMENTS.put(BlockTypes.STAINED_GLASS, Instrument.STICKS);
         INSTRUMENTS.put(BlockTypes.BEACON, Instrument.STICKS);
-        INSTRUMENTS.put(BlockTypes.LANTERN, Instrument.STICKS);
+        INSTRUMENTS.put(BlockTypes.SEA_LANTERN, Instrument.STICKS);
         INSTRUMENTS.put(BlockTypes.STONE, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.SANDSTONE, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.RED_SANDSTONE, Instrument.BASS_DRUM);
