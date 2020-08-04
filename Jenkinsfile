@@ -15,7 +15,7 @@ pipeline {
             post {
                 success {
                     junit 'target/surefire-reports/**/*.xml'
-                    archiveArtifacts artifacts: 'target/Cloudburst Server.jar', fingerprint: true
+                    archiveArtifacts artifacts: 'target/Cloudburst.jar', fingerprint: true
                 }
             }
         }

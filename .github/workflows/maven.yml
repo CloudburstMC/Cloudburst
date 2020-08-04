@@ -28,4 +28,4 @@ jobs:
         if: success()
         with:
           name: Nukkit
-          path: target/Cloudburst Server.jar
+          path: target/Cloudburst.jar
