@@ -568,7 +568,7 @@ public class PlayerInventory extends BaseInventory {
         CreativeContentPacket pk = new CreativeContentPacket();
 
         if (!p.isSpectator()) { //fill it for all gamemodes except spectator
-            int i = 1;
+            int i = 0;
             val items = Item.getCreativeItems();
             ItemData[] contents = new ItemData[items.size()];
 
