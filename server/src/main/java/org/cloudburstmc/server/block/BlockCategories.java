@@ -16,6 +16,11 @@ public class BlockCategories {
 
     private final EnumMap<BlockCategory, ReferenceSet<Identifier>> categoryMap = new EnumMap<>(BlockCategory.class);
 
+    static {
+        init();
+        initDefaultCategories();
+    }
+
     public void init() {
         for (BlockCategory category : BlockCategory.values()) {
             categoryMap.put(category, new ReferenceOpenHashSet<>());
