@@ -48,7 +48,7 @@ public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
         checkNotNull(enumClass, "enumClass");
         checkNotNull(possibleValues, "possibleValues");
         checkNotNull(defaultValue, "defaultValues");
-        return new EnumBlockTrait<>(name, vanillaName, enumClass, ImmutableList.copyOf(new HashSet<>(possibleValues)), defaultValue);
+        return new EnumBlockTrait<>(name, vanillaName, enumClass, ImmutableList.copyOf(possibleValues), defaultValue);
     }
 
     @Override

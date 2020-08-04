@@ -9,6 +9,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.Entity;
@@ -455,7 +456,7 @@ public abstract class Item implements Cloneable {
     }
 
     public BlockState getBlock() {
-        return BlockState.AIR;
+        return BlockStates.AIR;
     }
 
     public Identifier getId() {

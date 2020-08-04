@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
@@ -48,7 +49,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
         val targetType = target.getState().getType();
         if (targetType == BlockTypes.WATER || targetType == BlockTypes.FLOWING_WATER) {
             Block up = target.up();
-            if (up.getState() == BlockState.AIR) {
+            if (up.getState() == BlockStates.AIR) {
                 placeBlock(block, BlockState.get(BlockTypes.WATERLILY));
                 return true;
             }

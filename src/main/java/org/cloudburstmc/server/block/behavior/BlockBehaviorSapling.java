@@ -7,6 +7,7 @@ import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.item.Item;
@@ -106,17 +107,17 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
         }
 
         if (bigTree) {
-            level.setBlock(block.getPosition().add(x, 0, z), BlockState.AIR, true, false);
-            level.setBlock(block.getPosition().add(x + 1, 0, z), BlockState.AIR, true, false);
-            level.setBlock(block.getPosition().add(x, 0, z + 1), BlockState.AIR, true, false);
-            level.setBlock(block.getPosition().add(x + 1, 0, z + 1), BlockState.AIR, true, false);
+            level.setBlock(block.getPosition().add(x, 0, z), BlockStates.AIR, true, false);
+            level.setBlock(block.getPosition().add(x + 1, 0, z), BlockStates.AIR, true, false);
+            level.setBlock(block.getPosition().add(x, 0, z + 1), BlockStates.AIR, true, false);
+            level.setBlock(block.getPosition().add(x + 1, 0, z + 1), BlockStates.AIR, true, false);
         } else {
             feature = species.getDefaultGenerator();
             if (feature == null) {
                 return;
             }
 
-            block.set(BlockState.AIR, true, false);
+            block.set(BlockStates.AIR, true, false);
         }
 
         if (!feature.place(level, ThreadLocalPRandom.current(), block.getX() + x, block.getY(), block.getZ() + z)) {

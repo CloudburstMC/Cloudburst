@@ -86,7 +86,7 @@ public class ItemBucket extends Item {
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         BlockState bucketContents = BlockState.get(getBlockIdFromDamage(this.getMeta()));
 
-        if (bucketContents == BlockState.AIR) {
+        if (bucketContents == BlockStates.AIR) {
             BlockState liquid;
 
             if (target.isWaterlogged()) {
@@ -100,7 +100,7 @@ public class ItemBucket extends Item {
                 PlayerBucketFillEvent ev;
                 player.getServer().getPluginManager().callEvent(ev = new PlayerBucketFillEvent(player, block, face, this, result));
                 if (!ev.isCancelled()) {
-                    target.set(BlockState.AIR, true);
+                    target.set(BlockStates.AIR, true);
 
                     // When water is removed ensure any adjacent still water is
                     // replaced with water that can flow.

@@ -5,6 +5,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLeaves;
@@ -42,7 +43,7 @@ public class ItemFlintSteel extends ItemTool {
 
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
-        if (block.getState() == BlockState.AIR && target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves) {
+        if (block.getState() == BlockStates.AIR && target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves) {
             PORTAL:
             if (target.getState().getType() == OBSIDIAN) {
                 final Vector3i pos = target.getPosition();
@@ -51,7 +52,7 @@ public class ItemFlintSteel extends ItemTool {
                 final int targZ = pos.getZ();
                 //check if there's air above (at least 3 blocks)
                 for (int i = 1; i < 4; i++) {
-                    if (level.getBlockAt(targX, targY + i, targZ) != BlockState.AIR) {
+                    if (level.getBlockAt(targX, targY + i, targZ) != BlockStates.AIR) {
                         break PORTAL;
                     }
                 }
@@ -98,7 +99,7 @@ public class ItemFlintSteel extends ItemTool {
                     int scanZ = targZ;
                     for (int i = 0; i < sizePosX + 1; i++) {
                         //this must be air
-                        if (level.getBlockAt(scanX + i, scanY, scanZ) != BlockState.AIR) {
+                        if (level.getBlockAt(scanX + i, scanY, scanZ) != BlockStates.AIR) {
                             break PORTAL;
                         }
                         if (level.getBlockAt(scanX + i + 1, scanY, scanZ).getType() == OBSIDIAN) {
@@ -114,7 +115,7 @@ public class ItemFlintSteel extends ItemTool {
                     int innerWidth = 0;
                     for (int i = 0; i < MAX_PORTAL_SIZE - 2; i++) {
                         BlockState state = level.getBlockAt(scanX - i, scanY, scanZ);
-                        if (state == BlockState.AIR) {
+                        if (state == BlockStates.AIR) {
                             innerWidth++;
                         } else if (state.getType() == OBSIDIAN) {
                             break;
@@ -125,7 +126,7 @@ public class ItemFlintSteel extends ItemTool {
                     int innerHeight = 0;
                     for (int i = 0; i < MAX_PORTAL_SIZE - 2; i++) {
                         BlockState state = level.getBlockAt(scanX, scanY + i, scanZ);
-                        if (state == BlockState.AIR) {
+                        if (state == BlockStates.AIR) {
                             innerHeight++;
                         } else if (state.getType() == OBSIDIAN) {
                             break;
@@ -154,7 +155,7 @@ public class ItemFlintSteel extends ItemTool {
                             }
 
                             for (int width = 0; width < innerWidth; width++) {
-                                if (level.getBlockAt(scanX - width, scanY + height, scanZ) != BlockState.AIR) {
+                                if (level.getBlockAt(scanX - width, scanY + height, scanZ) != BlockStates.AIR) {
                                     break PORTAL;
                                 }
                             }
@@ -177,7 +178,7 @@ public class ItemFlintSteel extends ItemTool {
                     int scanZ = targZ;
                     for (int i = 0; i < sizePosZ + 1; i++) {
                         //this must be air
-                        if (level.getBlockAt(scanX, scanY, scanZ + i) != BlockState.AIR) {
+                        if (level.getBlockAt(scanX, scanY, scanZ + i) != BlockStates.AIR) {
                             break PORTAL;
                         }
                         if (level.getBlockAt(scanX, scanY, scanZ + i + 1).getType() == OBSIDIAN) {
@@ -193,7 +194,7 @@ public class ItemFlintSteel extends ItemTool {
                     int innerWidth = 0;
                     for (int i = 0; i < MAX_PORTAL_SIZE - 2; i++) {
                         BlockState state = level.getBlockAt(scanX, scanY, scanZ - i);
-                        if (state == BlockState.AIR) {
+                        if (state == BlockStates.AIR) {
                             innerWidth++;
                         } else if (state.getType() == OBSIDIAN) {
                             break;
@@ -204,7 +205,7 @@ public class ItemFlintSteel extends ItemTool {
                     int innerHeight = 0;
                     for (int i = 0; i < MAX_PORTAL_SIZE - 2; i++) {
                         BlockState state = level.getBlockAt(scanX, scanY + i, scanZ);
-                        if (state == BlockState.AIR) {
+                        if (state == BlockStates.AIR) {
                             innerHeight++;
                         } else if (state.getType() == OBSIDIAN) {
                             break;
@@ -233,7 +234,7 @@ public class ItemFlintSteel extends ItemTool {
                             }
 
                             for (int width = 0; width < innerWidth; width++) {
-                                if (level.getBlockAt(scanX, scanY + height, scanZ - width) != BlockState.AIR) {
+                                if (level.getBlockAt(scanX, scanY + height, scanZ - width) != BlockStates.AIR) {
                                     break PORTAL;
                                 }
                             }

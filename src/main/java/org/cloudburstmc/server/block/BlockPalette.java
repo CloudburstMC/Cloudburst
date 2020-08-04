@@ -14,11 +14,13 @@ import org.cloudburstmc.server.block.serializer.NoopBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.utils.Identifier;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class BlockPalette {
     public static final BlockPalette INSTANCE = new BlockPalette();
@@ -44,7 +46,7 @@ public class BlockPalette {
             map.put(state.getTraits(), state);
         }
 
-        BlockState defaultState = states.get(0);
+        BlockState defaultState = map.get(Arrays.stream(traits).collect(Collectors.toMap(t -> t, BlockTrait::getDefaultValue)));
         this.defaultStateMap.put(identifier, defaultState);
 
         for (CloudBlockState state : states) {
