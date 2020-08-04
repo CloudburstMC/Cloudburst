@@ -62,11 +62,11 @@ public abstract class FeatureAbstractTree extends ReplacingWorldFeature {
     protected abstract boolean canPlace(ChunkManager level, PRandom random, int x, int y, int z, int height);
 
     protected BlockState selectLog(ChunkManager level, PRandom random, int x, int y, int z, int height) {
-        return this.log.select(random);
+        return this.log.selectWeighted(random);
     }
 
     protected BlockState selectLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height) {
-        return this.leaves.select(random);
+        return this.leaves.selectWeighted(random);
     }
 
     protected abstract void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves);

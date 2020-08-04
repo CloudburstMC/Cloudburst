@@ -43,9 +43,9 @@ public class BushPopulator extends AbstractTreePopulator {
 
     @Override
     protected void placeTree(PRandom random, ChunkManager level, int x, int y, int z) {
-        level.setBlockAt(x, ++y, z, 0, this.log.select(random));
+        level.setBlockAt(x, ++y, z, 0, this.log.selectWeighted(random));
 
-        final BlockState leaves = this.leaves.select(random);
+        final BlockState leaves = this.leaves.selectWeighted(random);
         final int size = this.size;
 
         for (int dy = 0; dy <= size; dy++) {

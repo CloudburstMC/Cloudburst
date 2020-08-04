@@ -51,7 +51,7 @@ public class ScatteredCoverDecorator implements Decorator {
             if (random.nextDouble() < chance
                     && on.test(chunk.getBlock(x, y, z, 0))
                     && replace.test(chunk.getBlock(x, y + 1, z, 0))) {
-                chunk.setBlock(x, y + 1, z, 0, block.select(random));
+                chunk.setBlock(x, y + 1, z, 0, block.selectWeighted(random));
             }
         }
     }

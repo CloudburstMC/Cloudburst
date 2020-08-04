@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
@@ -34,12 +36,12 @@ public class IceSnowFinisher implements Finisher {
         Biome biome = BiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, blockZ & 0xF));
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
         if (this.height.contains(y) && biome.canSnowAt(level, blockX, y + 1, blockZ)) {
-            BlockState blockState = BlockRegistry.get().getBlock(level.getBlockAt(blockX, y, blockZ, 0)));
-//            if (blockState.getId() == BlockTypes.WATER) {
-//                level.setBlockId(blockX, y, blockZ, 0, BlockTypes.ICE);
-//            } else if (y < 255 && blockState.isSolid()) {
-//                level.setBlockId(blockX, y + 1, blockZ, 0, BlockTypes.SNOW_LAYER);
-//            }
+            BlockState state = level.getBlockAt(blockX, y, blockZ, 0);
+            if (state.getType() == BlockTypes.WATER) {
+                level.setBlockAt(blockX, y, blockZ, 0, BlockStates.ICE);
+            } else if (y < 255 && state.getBehavior().isSolid()) {
+                level.setBlockAt(blockX, y + 1, blockZ, 0, BlockStates.SNOW_LAYER);
+            }
         }
     }
 

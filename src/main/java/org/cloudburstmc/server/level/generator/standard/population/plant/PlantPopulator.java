@@ -45,7 +45,7 @@ public class PlantPopulator extends AbstractPlantPopulator {
         final BlockFilter on = this.on;
         final BlockFilter water = this.water;
         final BlockFilter replace = this.replace;
-        final BlockState block = this.block.select(random);
+        final BlockState block = this.block.selectWeighted(random);
 
         for (int i = this.patchSize - 1; i >= 0; i--) {
             int blockY = y + random.nextInt(4) - random.nextInt(4);

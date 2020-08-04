@@ -52,7 +52,7 @@ public class OrePopulator extends AbstractReplacingPopulator {
     protected void populate0(PRandom random, ChunkManager level, int x, int z) {
         final int y = this.height.rand(random);
 
-        final BlockState block = this.block.select(random);
+        final BlockState block = this.block.selectWeighted(random);
         final int size = this.size;
 
         double seed = random.nextDouble() * Math.PI;

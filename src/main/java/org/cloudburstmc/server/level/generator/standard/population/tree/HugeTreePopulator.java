@@ -92,7 +92,7 @@ public class HugeTreePopulator extends AbstractTreePopulator {
         }
 
         if (this.types[random.nextInt(this.types.length)].place(level, random, x, y + 1, z)) {
-            BlockState below = this.below.select(random);
+            BlockState below = this.below.selectWeighted(random);
             for (int dx = 0; dx <= 1; dx++) {
                 for (int dz = 0; dz <= 1; dz++) {
                     level.setBlockAt(x + dx, y, z + dz, 0, below);
