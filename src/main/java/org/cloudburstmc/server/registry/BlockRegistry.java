@@ -4,6 +4,7 @@ import com.google.common.collect.HashBiMap;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
@@ -19,6 +20,9 @@ import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.utils.Identifier;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -35,6 +39,7 @@ public class BlockRegistry implements Registry {
     private final BlockPalette palette = BlockPalette.INSTANCE;
     private NbtMap propertiesTag;
     private volatile boolean closed;
+    private transient NbtList<NbtMap> serializedPalette;
 
     private BlockRegistry() {
         this.registerVanillaBlocks();
@@ -154,7 +159,20 @@ public class BlockRegistry implements Registry {
     }
 
     public NbtList<NbtMap> getPaletteTag() {
-        return palette.getPalette();
+        if (this.serializedPalette != null) {
+            return serializedPalette;
+        }
+        Map<BlockState, NbtMap> palette = this.palette.getSerializedPalette();
+        List<NbtMap> serialized = new ArrayList<>(palette.size());
+        palette.forEach((state, serializedState) -> {
+            serialized.add(NbtMap.builder()
+                    .putCompound("block", serializedState)
+                    .putShort("id", (short) this.getLegacyId(state.getType()))
+                    .build());
+        });
+
+        this.serializedPalette = new NbtList<>(NbtType.COMPOUND, serialized);
+        return this.serializedPalette;
     }
 
     public NbtMap getPropertiesTag() {
