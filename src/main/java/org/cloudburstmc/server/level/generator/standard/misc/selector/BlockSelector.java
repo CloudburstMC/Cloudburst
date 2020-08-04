@@ -21,12 +21,4 @@ public interface BlockSelector {
      * @return the selected {@link BlockState}
      */
     BlockState select(@NonNull PRandom random);
-
-    /**
-     * Selects a random block.
-     *
-     * @param random the instance of {@link PRandom} to use for generating random numbers
-     * @return the selected block's runtime ID
-     */
-    int selectRuntimeId(@NonNull PRandom random);
 }

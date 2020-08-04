@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.level.generator.standard.misc.selector;
 
+import lombok.AccessLevel;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
@@ -13,29 +15,19 @@ import java.util.Arrays;
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public final class MultiBlockSelector implements BlockSelector {
-    protected final int[] ids;
+    @NonNull
+    protected final BlockState[] states;
 
     protected MultiBlockSelector(@NonNull ConstantBlock[] blocks) {
-        this.ids = Arrays.stream(blocks)
-                .mapToInt(ConstantBlock::runtimeId)
-                .toArray();
-    }
-
-    protected MultiBlockSelector(@NonNull int[] blocks) {
-        this.ids = blocks.clone();
-        for (int i : this.ids) {
-            BlockRegistry.get().getBlock(i); //make sure id is valid
-        }
+        this(Arrays.stream(blocks)
+                .map(ConstantBlock::state)
+                .toArray(BlockState[]::new));
     }
 
     @Override
     public BlockState select(@NonNull PRandom random) {
-        return BlockRegistry.get().getBlock(this.ids[random.nextInt(this.ids.length)]);
-    }
-
-    @Override
-    public int selectRuntimeId(@NonNull PRandom random) {
-        return this.ids[random.nextInt(this.ids.length)];
+        return this.states[random.nextInt(this.states.length)];
     }
 }

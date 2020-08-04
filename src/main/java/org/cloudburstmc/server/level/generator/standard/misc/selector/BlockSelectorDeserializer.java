@@ -15,11 +15,14 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PValidation;
 import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -48,13 +51,12 @@ final class BlockSelectorDeserializer extends JsonDeserializer<BlockSelector> {
         public BlockSelector toActualSelector() {
             Preconditions.checkState(this.entries.length > 0, "block selector must have at least 1 entry");
             if (this.entries.length == 1) {
-                return this.entries[0].block;
+                return new ConstantBlock(this.entries[0].state);
             } else {
                 return new MultiBlockSelector(Arrays.stream(this.entries)
                         .flatMap(entry -> entry.weight == 1 ? Stream.of(entry) : IntStream.range(0, entry.weight).mapToObj(i -> entry))
-                        .map(SelectionEntry::getBlock)
-                        .mapToInt(ConstantBlock::runtimeId)
-                        .toArray());
+                        .map(SelectionEntry::getState)
+                        .toArray(BlockState[]::new));
             }
         }
     }
@@ -62,30 +64,29 @@ final class BlockSelectorDeserializer extends JsonDeserializer<BlockSelector> {
     @JsonDeserialize
     @Getter
     private static final class SelectionEntry {
-        private static final Ref<Matcher> ENTRY_MATCHER_CACHE = ThreadRef.regex("^(?:([0-9]+(?:-[0-9]+)?)\\*)?((?:[a-zA-Z0-9_]+:)?[a-zA-Z0-9_]+(?:#[0-9]+)?)$");
+        private static final Ref<Matcher> ENTRY_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("^(?:(\\d+)\\*)(.+)$"));
 
-        private final ConstantBlock block;
+        private final BlockState state;
         private final int weight;
 
         @JsonCreator
         public SelectionEntry(
                 @JsonProperty(value = "block", required = true) ConstantBlock block,
                 @JsonProperty(value = "weight", required = true) int weight) {
-            this.block = block;
+            this.state = block.state();
             this.weight = PValidation.ensurePositive(weight);
         }
 
         public SelectionEntry(ConstantBlock block) {
-            this.block = block;
+            this.state = block.state();
             this.weight = 1;
         }
 
         @JsonCreator
         public SelectionEntry(String value) {
             Matcher matcher = ENTRY_MATCHER_CACHE.get().reset(value);
-            Preconditions.checkArgument(matcher.find(), "Cannot parse layer: \"%s\"", value);
 
-            this.block = new ConstantBlock(matcher.group(2));
+            this.state = StandardGeneratorUtils.parseState(matcher.group(2));
             this.weight = matcher.group(1) == null ? 1 : PValidation.ensurePositive(Integer.parseUnsignedInt(matcher.group(1)));
         }
     }

@@ -9,12 +9,10 @@ import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PorkUtil;
 import org.cloudburstmc.server.Nukkit;
 import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.plugin.Plugin;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.BufferedInputStream;
@@ -40,14 +38,14 @@ import static net.daporkchop.lib.common.util.PorkUtil.*;
 @UtilityClass
 public class StandardGeneratorUtils {
     private static final Ref<Matcher> SINGLE_STATE_PATTERN = ThreadRef.regex(Pattern.compile(
-            "^((?:[a-z0-9_]+:)?[a-z0-9_]+)(\\{(?:[a-z_]+=[a-z0-9_]+,?)+\\})?$", Pattern.CASE_INSENSITIVE));
+            "^((?:[a-z0-9_]+:)?[a-z0-9_]+)(\\{(?:[a-z_]+=[a-z0-9_]+(?:,\\s*)?)+\\})?$", Pattern.CASE_INSENSITIVE));
     private static final Ref<Matcher> SINGLE_TRAIT_PATTERN = ThreadRef.regex(Pattern.compile(
-            "(?<=^\\{|,)([a-z_]+)=([a-z0-9_]+),?(?=\\}$|,)", Pattern.CASE_INSENSITIVE));
+            "(?<=^\\{|,|\\s)([a-z_]+)=([a-z0-9_]+),?(?=\\}$|,)", Pattern.CASE_INSENSITIVE));
 
     private static final Ref<Matcher> WILDCARD_STATE_PATTERN = ThreadRef.regex(Pattern.compile(
-            "^((?:[a-z0-9_]+:)?[a-z0-9_]+)(\\{(?:[a-z_]+=(?:[a-z0-9_]+|\\*),?)+\\})?$", Pattern.CASE_INSENSITIVE));
+            "^((?:[a-z0-9_]+:)?[a-z0-9_]+)(\\{(?:[a-z_]+=(?:[a-z0-9_]+|\\*)(?:,\\s*)?)+\\})?$", Pattern.CASE_INSENSITIVE));
     private static final Ref<Matcher> WILDCARD_TRAIT_PATTERN = ThreadRef.regex(Pattern.compile(
-            "(?<=^\\{|,)([a-z_]+)=([a-z0-9_]+|\\*),?(?=\\}$|,)", Pattern.CASE_INSENSITIVE));
+            "(?<=^\\{|,|\\s)([a-z_]+)=([a-z0-9_]+|\\*),?(?=\\}$|,)", Pattern.CASE_INSENSITIVE));
 
     public static <T extends Comparable<T>> BlockTrait<T> findTrait(@NonNull BlockState state, @NonNull String traitName) {
         BlockTrait<?> trait = BlockTraits.from(traitName);
@@ -135,7 +133,7 @@ public class StandardGeneratorUtils {
             while (matcher.find()) {
                 String traitName = matcher.group(1);
                 String valueText = matcher.group(2);
-                if ("*".equals(valueText))  {
+                if ("*".equals(valueText)) {
                     stream = stream.flatMap(state -> {
                         BlockTrait<?> trait = findTrait(state, traitName);
                         return trait.getPossibleValues().stream()
@@ -185,11 +183,5 @@ public class StandardGeneratorUtils {
     public static long hash(@NonNull String text) {
         UUID uuid = UUID.nameUUIDFromBytes(text.getBytes(StandardCharsets.UTF_8));
         return uuid.getLeastSignificantBits() ^ uuid.getMostSignificantBits();
-    }
-
-    public static void main(String... args) {
-        BlockRegistry.get();
-        parseStateWildcard("minecraft:golden_rail{is_powered=*,simple_rail_direction=north_south}")
-                .forEach(System.out::println);
     }
 }
