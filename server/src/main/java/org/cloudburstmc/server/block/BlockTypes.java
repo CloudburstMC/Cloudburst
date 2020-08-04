@@ -447,7 +447,7 @@ public final class BlockTypes {
     public static final Identifier SAPLING = Identifier.fromString("sapling");
     public static final Identifier SCAFFOLDING = Identifier.fromString("scaffolding");
     public static final Identifier SEAGRASS = Identifier.fromString("seagrass");
-    public static final Identifier SEALANTERN = Identifier.fromString("sealantern");
+    public static final Identifier SEA_LANTERN = Identifier.fromString("sealantern");
     public static final Identifier SEA_PICKLE = Identifier.fromString("sea_pickle");
     public static final Identifier SHROOMLIGHT = Identifier.fromString("shroomlight");
     public static final Identifier SHULKER_BOX = Identifier.fromString("shulker_box");

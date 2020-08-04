@@ -334,7 +334,7 @@ public class BlockRegistry implements Registry {
         //166: glow_stick
         this.registerVanilla(IRON_TRAPDOOR, new BlockBehaviorTrapdoorIron(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN); //167
         this.registerVanilla(PRISMARINE, new BlockBehaviorPrismarine(), BlockTraits.PRISMARINE_BLOCK_TYPE); //168
-        this.registerVanilla(LANTERN, new BlockBehaviorSeaLantern()); //169
+        this.registerVanilla(SEA_LANTERN, new BlockBehaviorSeaLantern()); //169
         this.registerVanilla(HAY_BLOCK, new BlockBehaviorHayBale(), BlockTraits.AXIS, BlockTraits.DEPRECATED); //170
         this.registerVanilla(CARPET, new BlockBehaviorCarpet(), BlockTraits.COLOR); //171
         this.registerVanilla(HARDENED_CLAY, new BlockBehaviorTerracotta()); //172
