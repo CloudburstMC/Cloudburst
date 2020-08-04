@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSet;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockPalette;
@@ -70,9 +71,13 @@ public class BlockRegistry implements Registry {
         checkNotNull(id, "id");
         checkNotNull(behavior, "behavior");
         checkNotNull(serializer, "serializer");
-        checkNotNull(traits, "traits");
+        if (traits == null) {
+            traits = new BlockTrait[0];
+        }
         checkClosed();
-        if (this.behaviorMap.containsKey(id)) throw new RegistryException(id + " is already registered");
+
+        if (this.behaviorMap.putIfAbsent(id, behavior) != null) throw new RegistryException(id + " is already registered");
+        this.serializerMap.put(id, serializer);
 
         //this.registerVanilla(id, behavior);
         this.palette.addBlock(id, serializer, traits);
@@ -93,7 +98,7 @@ public class BlockRegistry implements Registry {
     }
 
     boolean isBlock(Identifier id) {
-        return this.idLegacyMap.containsKey(id);
+        return this.behaviorMap.containsKey(id);
     }
 
     public int getRuntimeId(BlockState blockState) {
