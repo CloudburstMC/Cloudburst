@@ -18,7 +18,7 @@ public class FeatureLargeOakTree extends FeatureNormalTree {
 
     protected final IntRange largeHeight;
 
-    public FeatureLargeOakTree(@NonNull IntRange normalHeight, @NonNull TreeSpecies species, double chance, @NonNull IntRange largeHeight) {
+    public FeatureLargeOakTree(@NonNull IntRange normalHeight, @NonNull GenerationTreeSpecies species, double chance, @NonNull IntRange largeHeight) {
         super(normalHeight, species);
 
         this.chance = chance;

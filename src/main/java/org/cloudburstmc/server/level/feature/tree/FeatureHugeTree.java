@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
@@ -12,7 +13,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelec
  * @author DaPorkchop_
  */
 public abstract class FeatureHugeTree extends FeatureAbstractTree {
-    public FeatureHugeTree(@NonNull IntRange height, @NonNull TreeSpecies species) {
+    public FeatureHugeTree(@NonNull IntRange height, @NonNull GenerationTreeSpecies species) {
         super(height, species);
     }
 
@@ -28,8 +29,8 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
             return false;
         }
 
-        final int log = this.log.selectRuntimeId(random);
-        final int leaves = this.leaves.selectRuntimeId(random);
+        final BlockState log = this.log.selectWeighted(random);
+        final BlockState leaves = this.leaves.selectWeighted(random);
 
         this.placeLeaves(level, random, x, y, z, height, log, leaves);
         this.placeTrunk(level, random, x, y, z, height, log, leaves);
@@ -47,7 +48,7 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
             int radius = dy == 0 ? 1 : 2;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y + dy, z + dz, 0)))) {
+                    if (!this.test(level.getBlockAt(x + dx, y + dy, z + dz, 0))) {
                         return false;
                     }
                 }
@@ -58,24 +59,24 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
     }
 
     @Override
-    protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves) {
+    protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dy = 0; dy < height - 2; dy++) {
-//            level.setBlockRuntimeIdUnsafe(x, y + dy, z, 0, log);
-//            level.setBlockRuntimeIdUnsafe(x + 1, y + dy, z, 0, log);
-//            level.setBlockRuntimeIdUnsafe(x, y + dy, z + 1, 0, log);
-//            level.setBlockRuntimeIdUnsafe(x + 1, y + dy, z + 1, 0, log);
+            level.setBlockAt(x, y + dy, z, 0, log);
+            level.setBlockAt(x + 1, y + dy, z, 0, log);
+            level.setBlockAt(x, y + dy, z + 1, 0, log);
+            level.setBlockAt(x + 1, y + dy, z + 1, 0, log);
         }
     }
 
     @Override
-    protected void finish(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves) {
+    protected void finish(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         this.replaceGrassWithDirt(level, x, y - 1, z);
         this.replaceGrassWithDirt(level, x + 1, y - 1, z);
         this.replaceGrassWithDirt(level, x, y - 1, z + 1);
         this.replaceGrassWithDirt(level, x + 1, y - 1, z + 1);
     }
 
-    protected void placeCircularLeafLayer(ChunkManager level, int x, int y, int z, int radius, int block) {
+    protected void placeCircularLeafLayer(ChunkManager level, int x, int y, int z, int radius, BlockState block) {
         if (y < 0 || y >= 256) {
             return;
         }
@@ -85,8 +86,8 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
             for (int dz = -radius; dz <= radius + 1; dz++) {
                 int dxSq = dx > 0 ? (dx - 1) * (dx - 1) : dx * dx;
                 int dzSq = dz > 0 ? (dz - 1) * (dz - 1) : dz * dz;
-                if (dxSq + dzSq <= radiusSq && this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz, 0)))) {
-//                    level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, block);
+                if (dxSq + dzSq <= radiusSq && this.test(level.getBlockAt(x + dx, y, z + dz, 0))) {
+                    level.setBlockAt(x + dx, y, z + dz, 0, block);
                 }
             }
         }

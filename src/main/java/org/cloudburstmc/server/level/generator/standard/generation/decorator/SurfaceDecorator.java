@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
@@ -24,13 +25,13 @@ public class SurfaceDecorator extends DepthNoiseDecorator {
     protected IntRange height = null;
 
     @JsonProperty
-    protected int ground = -1;
+    protected BlockState ground = null;
     @JsonProperty
-    protected int cover = -1;
+    protected BlockState cover = null;
     @JsonProperty
-    protected int top = -1;
+    protected BlockState top = null;
     @JsonProperty
-    protected int filler = -1;
+    protected BlockState filler = null;
 
     @JsonProperty
     protected int seaLevel = -1;
@@ -39,9 +40,9 @@ public class SurfaceDecorator extends DepthNoiseDecorator {
     protected void init0(long levelSeed, long localSeed, StandardGenerator generator) {
         super.init0(levelSeed, localSeed, generator);
 
-        this.ground = this.ground < 0 ? generator.ground() : this.ground;
-        Preconditions.checkState(this.top >= 0, "top must be set!");
-        Preconditions.checkState(this.filler >= 0, "filler must be set!");
+        this.ground = this.ground == null ? generator.ground() : this.ground;
+        Preconditions.checkState(this.top != null, "top must be set!");
+        Preconditions.checkState(this.filler != null, "filler must be set!");
 
         this.seaLevel = this.seaLevel < 0 ? generator.seaLevel() : this.seaLevel;
     }
@@ -55,19 +56,19 @@ public class SurfaceDecorator extends DepthNoiseDecorator {
         final int min = this.height == null ? 0 : this.height.min;
 
         for (int y = chunk.getHighestBlock(x, z); y >= min; y--) {
-            if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(x, y, z, 0)) == this.ground) {
+            if (chunk.getBlock(x, y, z, 0) == this.ground) {
                 if (!placed) {
                     placed = true;
                     if (y <= max) {
                         if (y + 1 > this.seaLevel) {
-                            if (y < 255 && this.cover >= 0) {
-//                                chunk.setBlockRuntimeIdUnsafe(x, y + 1, z, 0, this.cover);
+                            if (y < 255 && this.cover != null) {
+                                chunk.setBlock(x, y + 1, z, 0, this.cover);
                             }
-//                            chunk.setBlockRuntimeIdUnsafe(x, y--, z, 0, this.top);
+                            chunk.setBlock(x, y--, z, 0, this.top);
                         }
                         for (int i = depth - 1; i >= 0 && y >= 0; i--, y--) {
-                            if (org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(x, y, z, 0)) == this.ground) {
-//                                chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, this.filler);
+                            if (chunk.getBlock(x, y, z, 0) == this.ground) {
+                                chunk.setBlock(x, y, z, 0, this.filler);
                             } else {
                                 //we hit air prematurely, abort!
                                 placed = false;
@@ -90,21 +91,21 @@ public class SurfaceDecorator extends DepthNoiseDecorator {
 
     @JsonSetter("ground")
     private void setGround(ConstantBlock block) {
-        this.ground = block.runtimeId();
+        this.ground = block.state();
     }
 
     @JsonSetter("cover")
     private void setCover(ConstantBlock block) {
-        this.cover = block.runtimeId();
+        this.cover = block.state();
     }
 
     @JsonSetter("top")
     private void setTop(ConstantBlock block) {
-        this.top = block.runtimeId();
+        this.top = block.state();
     }
 
     @JsonSetter("filler")
     private void setFiller(ConstantBlock block) {
-        this.filler = block.runtimeId();
+        this.filler = block.state();
     }
 }

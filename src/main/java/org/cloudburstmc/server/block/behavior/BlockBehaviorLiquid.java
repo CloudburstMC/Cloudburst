@@ -78,6 +78,11 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     @Override
+    public boolean isLiquid() {
+        return true;
+    }
+
+    @Override
     public boolean canHarvestWithHand() {
         return false;
     }

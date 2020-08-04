@@ -15,6 +15,7 @@ import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.Generator;
@@ -97,10 +98,10 @@ public final class StandardGenerator implements Generator {
 
     @JsonProperty("groundBlock")
     @Getter
-    private int ground = -1;
+    private BlockState ground = null;
     @JsonProperty("seaBlock")
     @Getter
-    private int sea = -1;
+    private BlockState sea = null;
     @JsonProperty
     @Getter
     private int seaLevel = -1;
@@ -109,8 +110,8 @@ public final class StandardGenerator implements Generator {
         try {
             Collection<GenerationBiome> biomes = this.biomes.possibleBiomes();
 
-            Preconditions.checkState(this.ground >= 0, "groundBlock must be set!");
-            Preconditions.checkState(this.seaLevel < 0 || this.sea >= 0, "seaBlock and seaLevel must either both be set or be omitted!");
+            Preconditions.checkState(this.ground != null, "groundBlock must be set!");
+            Preconditions.checkState(this.seaLevel < 0 || this.sea != null, "seaBlock and seaLevel must either both be set or be omitted!");
 
             Collection<GenerationPass> generationPasses = new LinkedHashSet<>(); //preserve order but don't allow duplicates
             generationPasses.add(Objects.requireNonNull(this.density, "density must be set!"));
@@ -207,11 +208,11 @@ public final class StandardGenerator implements Generator {
                                 int blockY = sectionY * STEP_Y | stepY;
                                 int blockZ = sectionZ * STEP_Z | stepZ;
 
-//                                if (iz > 0.0d) {
-//                                    chunk.setBlockRuntimeIdUnsafe(blockX, blockY, blockZ, 0, this.ground);
-//                                } else if (blockY <= this.seaLevel) {
-//                                    chunk.setBlockRuntimeIdUnsafe(blockX, blockY, blockZ, 0, this.sea);
-//                                }
+                                if (iz > 0.0d) {
+                                    chunk.setBlock(blockX, blockY, blockZ, 0, this.ground);
+                                } else if (blockY <= this.seaLevel) {
+                                    chunk.setBlock(blockX, blockY, blockZ, 0, this.sea);
+                                }
                             }
                         }
                     }
@@ -314,12 +315,12 @@ public final class StandardGenerator implements Generator {
 
     @JsonSetter("groundBlock")
     private void setGroundBlock(@NonNull ConstantBlock groundBlock) {
-        this.ground = groundBlock.runtimeId();
+        this.ground = groundBlock.state();
     }
 
     @JsonSetter("seaBlock")
     private void setSeaBlock(@NonNull ConstantBlock seaBlock) {
-        this.sea = seaBlock.runtimeId();
+        this.sea = seaBlock.state();
     }
 
     private static final class ThreadData {

@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level.generator.standard.misc.filter;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
@@ -14,38 +15,10 @@ import java.util.function.Predicate;
  */
 @JsonDeserialize(using = BlockFilterDeserializer.class)
 public interface BlockFilter extends Predicate<BlockState> {
-    BlockFilter AIR = new BlockFilter() {
-        @Override
-        public boolean test(BlockState blockState) {
-            return blockState.getType() == BlockTypes.AIR;
-        }
+    BlockFilter AIR = state -> state == BlockStates.AIR;
 
-        @Override
-        public boolean test(int runtimeId) {
-            return runtimeId == 0;
-        }
-    };
-
-    BlockFilter REPLACEABLE = new BlockFilter() {
-        @Override
-        public boolean test(BlockState blockState) {
-            return false;
-        }
-
-        @Override
-        public boolean test(int runtimeId) {
-            return runtimeId == 0 || this.test(BlockRegistry.get().getBlock(runtimeId));
-        }
-    };
+    BlockFilter REPLACEABLE = state -> state.getBehavior().canBeReplaced(null);
 
     @Override
-    boolean test(BlockState blockState);
-
-    /**
-     * Checks if the given runtime ID matches this filter.
-     *
-     * @param runtimeId the runtime ID to check
-     * @return whether or not the given runtime ID matches this filter
-     */
-    boolean test(int runtimeId);
+    boolean test(BlockState state);
 }

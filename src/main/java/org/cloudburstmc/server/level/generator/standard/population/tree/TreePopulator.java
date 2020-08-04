@@ -9,7 +9,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.feature.WorldFeature;
-import org.cloudburstmc.server.level.feature.tree.TreeSpecies;
+import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.utils.Identifier;
@@ -60,13 +60,13 @@ public class TreePopulator extends AbstractTreePopulator {
 
     @JsonDeserialize
     private static final class ConfigTree {
-        private final TreeSpecies species;
+        private final GenerationTreeSpecies species;
         private IntRange height;
         private boolean fallen;
 
         @JsonCreator
         public ConfigTree(String species) {
-            this.species = TreeSpecies.valueOf(species.toUpperCase());
+            this.species = GenerationTreeSpecies.valueOf(species.toUpperCase());
         }
 
         @JsonCreator
