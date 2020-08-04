@@ -129,7 +129,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
             Block top = block.up();
-            if (!BlockRegistry.get().inCategory(top.getState().getType(), BlockCategory.TRANSPARENT)) {
+            if (!top.getState().inCategory(BlockCategory.TRANSPARENT)) {
                 return true;
             }
 

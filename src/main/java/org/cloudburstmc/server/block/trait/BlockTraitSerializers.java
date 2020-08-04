@@ -4,40 +4,34 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.experimental.UtilityClass;
-import net.daporkchop.lib.common.function.plain.TriFunction;
+import lombok.val;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.serializer.DirectionHelper;
+import org.cloudburstmc.server.block.trait.serializer.DirectionSerializer;
+import org.cloudburstmc.server.block.trait.serializer.StoneSlabSerializer;
 import org.cloudburstmc.server.block.trait.serializer.WoodTypeSerializer;
 import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.server.utils.data.StoneSlabType;
 import org.cloudburstmc.server.utils.data.WoodType;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
-import java.util.function.BiFunction;
 
 @UtilityClass
 @ParametersAreNonnullByDefault
 public class BlockTraitSerializers {
 
-    private final Reference2ObjectMap<Class<? extends Comparable<?>>, BlockTraitSerializer<?>> serializers = new Reference2ObjectOpenHashMap<>();
-    private final Reference2ObjectMap<Class<? extends Comparable<?>>, TraitNameSerializer> nameSerializers = new Reference2ObjectOpenHashMap<>();
+    private final Reference2ObjectMap<Class<? extends Comparable<?>>, TraitSerializer<?>> serializers = new Reference2ObjectOpenHashMap<>();
 
     public void init() {
-        register(Direction.class, (NbtMapBuilder builder, BlockState state, Direction value) -> DirectionHelper.serialize(builder, state));
-
-        registerName(WoodType.class, new WoodTypeSerializer());
+        register(Direction.class, new DirectionSerializer());
+        register(WoodType.class, new WoodTypeSerializer());
+        register(StoneSlabType.class, new StoneSlabSerializer());
     }
 
-    public void register(Class<? extends Comparable<?>> clazz, BlockTraitSerializer<?> serializer) {
+    public void register(Class<? extends Comparable<?>> clazz, TraitSerializer<?> serializer) {
         Objects.requireNonNull(clazz);
         Objects.requireNonNull(serializer);
         serializers.put(clazz, serializer);
-    }
-
-    public void registerName(Class<? extends Comparable<?>> clazz, TraitNameSerializer serializer) {
-        Objects.requireNonNull(clazz);
-        Objects.requireNonNull(serializer);
-        nameSerializers.put(clazz, serializer);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -47,21 +41,20 @@ public class BlockTraitSerializers {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void serialize(NbtMapBuilder builder, BlockState state, BlockTrait<?> trait, Comparable<?> value) {
-        BlockTraitSerializer serializer = serializers.get(trait.getValueClass());
-        TraitNameSerializer nameSerializer = nameSerializers.get(trait.getValueClass());
+        TraitSerializer serializer = serializers.get(trait.getValueClass());
 
+        String traitName = null;
         if (serializer != null) {
-            value = serializer.apply(builder, state, value);
+            val v = serializer.serialize(builder, state, value);
+            if (v != null) {
+                value = v;
+            }
+
+            traitName = serializer.getName(state, trait);
         }
 
         if (value instanceof Enum<?>) {
             value = ((Enum<?>) value).name().toLowerCase();
-        }
-
-        String traitName = null;
-
-        if (nameSerializer != null) {
-            traitName = nameSerializer.apply(state, trait);
         }
 
         if (traitName == null) {
@@ -71,16 +64,14 @@ public class BlockTraitSerializers {
         builder.put(traitName, value);
     }
 
-    @FunctionalInterface
-    public interface BlockTraitSerializer<T extends Comparable<T>> extends TriFunction<NbtMapBuilder, BlockState, T, Comparable<?>> {
+    public interface TraitSerializer<T extends Comparable<T>> {
 
-        @Override
-        Comparable<?> apply(NbtMapBuilder builder, BlockState state, T t);
-    }
+        default String getName(BlockState state, BlockTrait<?> blockTrait) {
+            return blockTrait.getVanillaName();
+        }
 
-    public interface TraitNameSerializer extends BiFunction<BlockState, BlockTrait<?>, String> {
-
-        @Override
-        String apply(BlockState state, BlockTrait<?> blockTrait);
+        default Comparable<?> serialize(NbtMapBuilder builder, BlockState state, T t) {
+            return null;
+        }
     }
 }

@@ -7,6 +7,7 @@ public enum BlockCategory {
     SLAB,
     DOUBLE_SLAB,
     DOOR,
+    TRAPDOOR,
     LOG,
     LEAVES,
     LIQUID,
