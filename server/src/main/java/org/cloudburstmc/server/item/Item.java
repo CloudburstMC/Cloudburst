@@ -63,7 +63,7 @@ public abstract class Item implements Cloneable {
         clearCreativeItems();
 
         Config config = new Config(Config.JSON);
-        config.load(Server.class.getClassLoader().getResourceAsStream("creativeitems.json"));
+        config.load(Server.class.getClassLoader().getResourceAsStream("data/creative_items.json"));
         List<Map> list = config.getMapList("items");
 
         for (Map map : list) {
