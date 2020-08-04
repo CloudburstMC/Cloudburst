@@ -11,7 +11,6 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -63,7 +62,7 @@ public class BlockBehaviorConcretePowder extends BlockBehaviorFallable {
         for (Direction direction : Plane.HORIZONTAL) {
             Block side = block.getSide(direction);
 
-            if (BlockRegistry.get().inCategory(side.getState().getType(), BlockCategory.LIQUID)) {
+            if (side.getState().inCategory(BlockCategory.LIQUID)) {
                 return true;
             }
         }
