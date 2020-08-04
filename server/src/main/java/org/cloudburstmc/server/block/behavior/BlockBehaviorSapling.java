@@ -13,7 +13,7 @@ import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.feature.WorldFeature;
-import org.cloudburstmc.server.level.feature.tree.TreeSpecies;
+import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -90,7 +90,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
 
         val state = block.getState();
         val level = block.getLevel();
-        TreeSpecies species = TreeSpecies.fromItem(state.getType(), BlockStateMetaMappings.getMetaFromState(state));
+        GenerationTreeSpecies species = GenerationTreeSpecies.fromItem(state.getType(), BlockStateMetaMappings.getMetaFromState(state));
         WorldFeature feature = species.getHugeGenerator();
         BIG_TREE:
         if (bigTree = feature != null) {

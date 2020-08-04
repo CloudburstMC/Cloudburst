@@ -3,6 +3,8 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
@@ -50,7 +52,7 @@ public class SpringPopulator extends AbstractReplacingPopulator {
     protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
         int blockY = this.height.rand(random);
 
-        if (blockY <= 0 || !this.replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY, blockZ, 0)))) {
+        if (blockY <= 0 || !this.replace.test(level.getBlockAt(blockX, blockY, blockZ, 0))) {
             return;
         }
 
@@ -59,39 +61,39 @@ public class SpringPopulator extends AbstractReplacingPopulator {
         int neighbors = 0;
         int air = 0;
 
-        int id = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY - 1, blockZ, 0));
+        BlockState id = level.getBlockAt(blockX, blockY - 1, blockZ, 0);
         if (neighbor.test(id)) {
             neighbors++;
-        } else if (id == 0) {
+        } else if (id == BlockStates.AIR) {
             air++;
         }
-        id = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX - 1, blockY, blockZ, 0));
+        id = level.getBlockAt(blockX - 1, blockY, blockZ, 0);
         if (neighbor.test(id)) {
             neighbors++;
-        } else if (id == 0) {
+        } else if (id == BlockStates.AIR) {
             air++;
         }
-        id = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX + 1, blockY, blockZ, 0));
+        id = level.getBlockAt(blockX + 1, blockY, blockZ, 0);
         if (neighbor.test(id)) {
             neighbors++;
-        } else if (id == 0) {
+        } else if (id == BlockStates.AIR) {
             air++;
         }
-        id = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY, blockZ - 1, 0));
+        id = level.getBlockAt(blockX, blockY, blockZ - 1, 0);
         if (neighbor.test(id)) {
             neighbors++;
-        } else if (id == 0) {
+        } else if (id == BlockStates.AIR) {
             air++;
         }
-        id = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY, blockZ + 1, 0));
+        id = level.getBlockAt(blockX, blockY, blockZ + 1, 0);
         if (neighbor.test(id)) {
             neighbors++;
-        } else if (id == 0) {
+        } else if (id == BlockStates.AIR) {
             air++;
         }
 
         if (this.neighborCount.contains(neighbors) && this.airCount.contains(air)) {
-//            level.setBlockAt(blockX, blockY, blockZ, 0, org.cloudburstmc.server.registry.BlockRegistry.get().getBlock(this.block.selectRuntimeId(random))));
+            level.setBlockAt(blockX, blockY, blockZ, 0, this.block.selectWeighted(random));
             //TODO: request immediate block update
         }
     }

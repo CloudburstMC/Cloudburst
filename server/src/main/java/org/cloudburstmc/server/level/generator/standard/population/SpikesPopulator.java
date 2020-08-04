@@ -3,6 +3,7 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
@@ -56,12 +57,12 @@ public class SpikesPopulator extends ChancePopulator.Column {
     @Override
     protected void populate0(PRandom random, ChunkManager level, int x, int z) {
         int y = level.getChunk(x >> 4, z >> 4).getHighestBlock(x & 0xF, z & 0xF);
-        if (y < 0 || !this.on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y, z, 0)))) {
+        if (y < 0 || !this.on.test(level.getBlockAt(x, y, z, 0))) {
             return;
         }
 
         final BlockFilter replace = this.replace;
-        final int block = this.block.selectRuntimeId(random);
+        final BlockState block = this.block.selectWeighted(random);
 
         int height = this.height.rand(random);
         final int sink = (height >> 2) + random.nextInt(2);
@@ -79,13 +80,11 @@ public class SpikesPopulator extends ChancePopulator.Column {
                     double fz = abs(dz) - 0.25d;
                     if (((dx == 0 && dz == 0) || fx * fx + fz * fz < rf)
                             && ((abs(dx) != radius && abs(dz) != radius) || random.nextInt(4) == 0)) {
-                        if (y + dy < 255 && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y + dy, z + dz, 0)))) {
-//                            level.setBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0, block
-//                            );
+                        if (y + dy < 255 && replace.test(level.getBlockAt(x + dx, y + dy, z + dz, 0))) {
+                            level.setBlockAt(x + dx, y + dy, z + dz, 0, block);
                         }
-                        if (dy != 0 && radius > 1 && y - dy < 255 && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y - dy, z + dz, 0)))) {
-//                            level.setBlockRuntimeIdUnsafe(x + dx, y - dy, z + dz, 0, block
-//                            );
+                        if (dy != 0 && radius > 1 && y - dy < 255 && replace.test(level.getBlockAt(x + dx, y - dy, z + dz, 0))) {
+                            level.setBlockAt(x + dx, y - dy, z + dz, 0, block);
                         }
                     }
                 }
@@ -93,16 +92,14 @@ public class SpikesPopulator extends ChancePopulator.Column {
         }
 
         for (; y >= 0; y--) {
-            int id = org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y, z, 0));
-            if (id != block
-                    && !replace.test(id)) {
+            BlockState test = level.getBlockAt(x, y, z, 0);
+            if (test != block && !replace.test(test)) {
                 return;
             }
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
-                    if ((dx == 0 || dz == 0 || random.nextBoolean()) && replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz, 0)))) {
-//                        level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, block
-//                        );
+                    if ((dx == 0 || dz == 0 || random.nextBoolean()) && replace.test(level.getBlockAt(x + dx, y, z + dz, 0))) {
+                        level.setBlockAt(x + dx, y, z + dz, 0, block);
                     }
                 }
             }

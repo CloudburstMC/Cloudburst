@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
@@ -51,7 +52,7 @@ public class OrePopulator extends AbstractReplacingPopulator {
     protected void populate0(PRandom random, ChunkManager level, int x, int z) {
         final int y = this.height.rand(random);
 
-        final int block = this.block.selectRuntimeId(random);
+        final BlockState block = this.block.selectWeighted(random);
         final int size = this.size;
 
         double seed = random.nextDouble() * Math.PI;
@@ -95,8 +96,8 @@ public class OrePopulator extends AbstractReplacingPopulator {
                         if (sideX * sideX + sideY * sideY + sideZ * sideZ >= 1.0d) {
                             continue;
                         }
-                        if (this.replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(dx, dy, dz, 0)))) {
-//                            level.setBlockAt(dx, dy, dz, 0, org.cloudburstmc.server.registry.BlockRegistry.get().getBlock(block)));
+                        if (this.replace.test(level.getBlockAt(dx, dy, dz, 0))) {
+                            level.setBlockAt(dx, dy, dz, 0, block);
                         }
                     }
                 }

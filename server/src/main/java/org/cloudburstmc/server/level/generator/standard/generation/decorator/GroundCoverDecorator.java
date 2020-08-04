@@ -45,9 +45,9 @@ public class GroundCoverDecorator implements Decorator {
     @Override
     public void decorate(PRandom random, IChunk chunk, int x, int z) {
         int y = chunk.getHighestBlock(x, z);
-        if (y >= 0 && y < 255 && (this.on == null || this.on.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(x, y, z, 0))))
-                && this.replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(chunk.getBlock(x, y + 1, z, 0))) && random.nextDouble() < this.chance) {
-//            chunk.setBlockRuntimeIdUnsafe(x, y + 1, z, 0, this.cover.selectRuntimeId(random));
+        if (y >= 0 && y < 255 && (this.on == null || this.on.test(chunk.getBlock(x, y, z, 0)))
+                && this.replace.test(chunk.getBlock(x, y + 1, z, 0)) && random.nextDouble() < this.chance) {
+            chunk.setBlock(x, y + 1, z, 0, this.cover.selectWeighted(random));
         }
     }
 
