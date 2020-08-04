@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
@@ -17,7 +18,7 @@ import static java.lang.Math.abs;
 public class FeatureSavannaTree extends FeatureNormalTree {
     public static final IntRange DEFAULT_HEIGHT = new IntRange(5, 9);
 
-    public FeatureSavannaTree(@NonNull IntRange height, @NonNull TreeSpecies species) {
+    public FeatureSavannaTree(@NonNull IntRange height, @NonNull GenerationTreeSpecies species) {
         super(height, species);
     }
 
@@ -37,8 +38,8 @@ public class FeatureSavannaTree extends FeatureNormalTree {
             return false;
         }
 
-        final int log = this.selectLog(level, random, x, y, z, height);
-        final int leaves = this.selectLeaves(level, random, x, y, z, height);
+        final BlockState log = this.selectLog(level, random, x, y, z, height);
+        final BlockState leaves = this.selectLeaves(level, random, x, y, z, height);
 
         int bendHeight = height - random.nextInt(4) - 1;
         int bendSize = 3 - random.nextInt(3);
@@ -55,8 +56,8 @@ public class FeatureSavannaTree extends FeatureNormalTree {
                 bendSize--;
             }
 
-            if (this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y + dy, z + dz, 0)))) {
-//                level.setBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0, log);
+            if (this.test(level.getBlockAt(x + dx, y + dy, z + dz, 0))) {
+                level.setBlockAt(x + dx, y + dy, z + dz, 0, log);
             }
         }
         this.placeLeaves(level, random, x + dx, y + height - 1, z + dz, height, log, leaves);
@@ -75,8 +76,8 @@ public class FeatureSavannaTree extends FeatureNormalTree {
             dx += secondDirection.getXOffset();
             dz += secondDirection.getZOffset();
 
-            if (this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y + secondBendHeight, z + dz, 0)))) {
-//                level.setBlockRuntimeIdUnsafe(x + dx, y + secondBendHeight, z + dz, 0, log);
+            if (this.test(level.getBlockAt(x + dx, y + secondBendHeight, z + dz, 0))) {
+                level.setBlockAt(x + dx, y + secondBendHeight, z + dz, 0, log);
                 lastPlacedY = y + secondBendHeight;
             }
         }
@@ -97,7 +98,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
             int radius = dy == 0 ? 0 : 2;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y + dy, z, 0)))) {
+                    if (!this.test(level.getBlockAt(x, y + dy, z, 0))) {
                         return false;
                     }
                 }
@@ -108,11 +109,11 @@ public class FeatureSavannaTree extends FeatureNormalTree {
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves) {
+    protected void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dx = -3; dx <= 3; dx++) {
             for (int dz = -3; dz <= 3; dz++) {
-                if ((abs(dx) != 3 || abs(dz) != 3) && this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz, 0)))) {
-//                    level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, leaves);
+                if ((abs(dx) != 3 || abs(dz) != 3) && this.test(level.getBlockAt(x + dx, y, z + dz, 0))) {
+                    level.setBlockAt(x + dx, y, z + dz, 0, leaves);
                 }
             }
         }
@@ -121,8 +122,8 @@ public class FeatureSavannaTree extends FeatureNormalTree {
 
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
-                if ((abs(dx) != 2 || abs(dz) != 2) && this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz, 0)))) {
-//                    level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, leaves);
+                if ((abs(dx) != 2 || abs(dz) != 2) && this.test(level.getBlockAt(x + dx, y, z + dz, 0))) {
+                    level.setBlockAt(x + dx, y, z + dz, 0, leaves);
                 }
             }
         }

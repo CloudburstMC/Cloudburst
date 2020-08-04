@@ -10,7 +10,7 @@ import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.feature.WorldFeature;
-import org.cloudburstmc.server.level.feature.tree.TreeSpecies;
+import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
@@ -124,7 +124,7 @@ public class HugeTreePopulator extends AbstractTreePopulator {
 
         @JsonCreator
         public ConfigTree(String species) {
-            this.feature = Preconditions.checkNotNull(TreeSpecies.valueOf(species.toUpperCase()).getHugeGenerator(), "%s does not support huge trees!", species);
+            this.feature = Preconditions.checkNotNull(GenerationTreeSpecies.valueOf(species.toUpperCase()).getHugeGenerator(), "%s does not support huge trees!", species);
         }
 
         public WorldFeature build() {

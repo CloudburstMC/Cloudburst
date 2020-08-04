@@ -13,7 +13,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelec
  * @author DaPorkchop_
  */
 public class FeatureHugePineTree extends FeatureHugeSpruceTree {
-    public FeatureHugePineTree(@NonNull IntRange height, @NonNull TreeSpecies species) {
+    public FeatureHugePineTree(@NonNull IntRange height, @NonNull GenerationTreeSpecies species) {
         super(height, species);
     }
 

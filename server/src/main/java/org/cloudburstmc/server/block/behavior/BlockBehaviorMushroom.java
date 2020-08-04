@@ -11,7 +11,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.feature.WorldFeature;
-import org.cloudburstmc.server.level.feature.tree.TreeSpecies;
+import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -68,7 +68,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
         block.set(BlockStates.AIR, true, false);
 
         val item = Item.get(block.getState());
-        WorldFeature feature = TreeSpecies.fromItem(item.getId(), item.getMeta()).getDefaultGenerator();
+        WorldFeature feature = GenerationTreeSpecies.fromItem(item.getId(), item.getMeta()).getDefaultGenerator();
 
         if (feature.place(block.getLevel(), ThreadLocalPRandom.current(), block.getX(), block.getY(), block.getZ())) {
             return true;
