@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.serializer;
 
-import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +20,6 @@ public class FluidBlockSerializer implements BlockSerializer {
             fluidLevel |= 8;
         }
 
-        builder.putCompound(TAG_STATES, NbtMap.builder()
-                .putInt(TAG_LIQUID_DEPTH, fluidLevel)
-                .build());
+        builder.putInt(TAG_LIQUID_DEPTH, fluidLevel);
     }
 }

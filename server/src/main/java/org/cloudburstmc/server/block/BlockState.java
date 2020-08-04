@@ -5,7 +5,6 @@ import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
@@ -74,7 +73,7 @@ public interface BlockState {
     BlockState defaultState();
 
     default boolean inCategory(BlockCategory category) {
-        return BlockRegistry.get().inCategory(this.getType(), category);
+        return BlockCategories.inCategory(this.getType(), category);
     }
 
     static BlockState get(@Nonnull Identifier blockType) {

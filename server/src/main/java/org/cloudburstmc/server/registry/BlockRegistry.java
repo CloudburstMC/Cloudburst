@@ -6,10 +6,7 @@ import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -22,7 +19,6 @@ import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -35,17 +31,12 @@ public class BlockRegistry implements Registry {
     private final Reference2ReferenceMap<Identifier, BlockBehavior> behaviorMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, BlockSerializer> serializerMap = new Reference2ReferenceOpenHashMap<>();
     private final HashBiMap<Identifier, Integer> idLegacyMap = HashBiMap.create();
-    private final EnumMap<BlockCategory, ReferenceSet<Identifier>> categoryMap = new EnumMap<>(BlockCategory.class);
     private final AtomicInteger customIdAllocator = new AtomicInteger(1000);
     private final BlockPalette palette = BlockPalette.INSTANCE;
     private NbtMap propertiesTag;
     private volatile boolean closed;
 
     private BlockRegistry() {
-        for (BlockCategory category : BlockCategory.values()) {
-            categoryMap.put(category, new ReferenceOpenHashSet<>());
-        }
-
         this.registerVanillaBlocks();
     }
 
@@ -76,20 +67,6 @@ public class BlockRegistry implements Registry {
 
         //this.registerVanilla(id, behavior);
         this.palette.addBlock(id, serializer, traits);
-    }
-
-    public boolean inCategory(Identifier type, BlockCategory category) {
-        return categoryMap.get(category).add(type);
-    }
-
-    public boolean inCategories(Identifier type, BlockCategory... categories) {
-        for (BlockCategory category : categories) {
-            if (!inCategory(type, category)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     boolean isBlock(Identifier id) {
@@ -357,7 +334,7 @@ public class BlockRegistry implements Registry {
         //166: glow_stick
         this.registerVanilla(IRON_TRAPDOOR, new BlockBehaviorTrapdoorIron(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN); //167
         this.registerVanilla(PRISMARINE, new BlockBehaviorPrismarine(), BlockTraits.PRISMARINE_BLOCK_TYPE); //168
-        this.registerVanilla(SEA_LANTERN, new BlockBehaviorSeaLantern()); //169
+        this.registerVanilla(LANTERN, new BlockBehaviorSeaLantern()); //169
         this.registerVanilla(HAY_BLOCK, new BlockBehaviorHayBale(), BlockTraits.AXIS, BlockTraits.DEPRECATED); //170
         this.registerVanilla(CARPET, new BlockBehaviorCarpet(), BlockTraits.COLOR); //171
         this.registerVanilla(HARDENED_CLAY, new BlockBehaviorTerracotta()); //172
