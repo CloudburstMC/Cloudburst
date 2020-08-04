@@ -4,15 +4,16 @@ import lombok.val;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitNameSerializer;
+import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
+import org.cloudburstmc.server.utils.data.WoodType;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-public class WoodTypeSerializer implements TraitNameSerializer {
+public class WoodTypeSerializer implements TraitSerializer<WoodType> {
 
     @Override
-    public String apply(BlockState state, BlockTrait<?> blockTrait) {
+    public String getName(BlockState state, BlockTrait<?> blockTrait) {
         val type = state.getType();
 
         if (type == BlockTypes.LOG) {

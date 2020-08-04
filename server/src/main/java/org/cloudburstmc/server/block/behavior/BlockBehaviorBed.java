@@ -93,13 +93,13 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         BlockState down = block.down().getState();
         BlockRegistry registry = BlockRegistry.get();
 
-        if (!registry.inCategory(down.getType(), BlockCategory.TRANSPARENT)) {
+        if (!down.inCategory(BlockCategory.TRANSPARENT)) {
             Block next = block.getSide(player.getHorizontalDirection());
             BlockBehavior nextBehavior = next.getState().getBehavior();
 
             BlockState downNext = next.down().getState();
 
-            if (nextBehavior.canBeReplaced(next) && !registry.inCategory(downNext.getType(), BlockCategory.TRANSPARENT)) {
+            if (nextBehavior.canBeReplaced(next) && !downNext.inCategory(BlockCategory.TRANSPARENT)) {
                 BlockState bed = registry.getBlock(BlockTypes.BED)
                         .withTrait(BlockTraits.DIRECTION, player.getDirection());
 

@@ -34,7 +34,7 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (BlockRegistry.get().inCategory(target.getState().getType(), BlockCategory.TRANSPARENT)) {
+        if (target.getState().inCategory(BlockCategory.TRANSPARENT)) {
             return false;
         }
 
@@ -70,7 +70,7 @@ public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (BlockRegistry.get().inCategory(block.getSide(getFacing(block).getOpposite()).getState().getType(), BlockCategory.TRANSPARENT)) {
+            if (block.getSide(getFacing(block).getOpposite()).getState().inCategory(BlockCategory.TRANSPARENT)) {
                 block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
