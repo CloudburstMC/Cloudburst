@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.registry;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NbtList;
@@ -10,6 +11,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.server.Nukkit;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
@@ -23,7 +25,10 @@ import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.utils.Identifier;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.EnumMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -31,7 +36,20 @@ import static org.cloudburstmc.server.block.BlockTypes.*;
 
 @Log4j2
 public class BlockRegistry implements Registry {
-    private static final BlockRegistry INSTANCE = new BlockRegistry();
+    private static final BlockRegistry INSTANCE;
+    private static final Map<Identifier, Integer> VANILLA_LEGACY_IDS;
+
+    static {
+        InputStream stream = RegistryUtils.getOrAssertResource("data/legacy_block_ids.json");
+
+        try {
+            VANILLA_LEGACY_IDS = Nukkit.JSON_MAPPER.readValue(stream, new TypeReference<Map<Identifier, Integer>>() {});
+        } catch (IOException e) {
+            throw new AssertionError("Unable to load legacy IDs", e);
+        }
+
+        INSTANCE = new BlockRegistry(); // Needs to be initialized afterwards
+    }
 
     private final Reference2ReferenceMap<Identifier, BlockBehavior> behaviorMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, BlockSerializer> serializerMap = new Reference2ReferenceOpenHashMap<>();
@@ -48,6 +66,14 @@ public class BlockRegistry implements Registry {
         }
 
         this.registerVanillaBlocks();
+
+        //register vanilla legacy IDs
+        VANILLA_LEGACY_IDS.forEach((id, legacyId) -> {
+            if (!this.idLegacyMap.containsKey(id))  {
+                log.debug("Non-implemented block found: {}", id);
+            }
+        });
+        this.idLegacyMap.putAll(VANILLA_LEGACY_IDS);
     }
 
     public static BlockRegistry get() {
@@ -239,7 +265,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(DOUBLE_STONE_SLAB, new BlockBehaviorDoubleSlab(STONE_SLAB, BlockTraits.STONE_SLAB_TYPE), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //43
         this.registerVanilla(STONE_SLAB, new BlockBehaviorSlab(STONE_SLAB, DOUBLE_STONE_SLAB), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //44
         this.registerVanilla(BRICK_BLOCK, new BlockBehaviorBricks()); //45
-        this.registerVanilla(TNT, new BlockBehaviorTNT()); //46
+        this.registerVanilla(TNT, new BlockBehaviorTNT(), BlockTraits.EXPLODE); //46
         this.registerVanilla(BOOKSHELF, new BlockBehaviorBookshelf()); //47
         this.registerVanilla(MOSSY_COBBLESTONE, new BlockBehaviorMossStone()); //48
         this.registerVanilla(OBSIDIAN, new BlockBehaviorObsidian()); //49
@@ -291,7 +317,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(INVISIBLE_BEDROCK, new BlockBehaviorBedrockInvisible()); //95
         this.registerVanilla(TRAPDOOR, new BlockBehaviorTrapdoor(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //96
         this.registerVanilla(MONSTER_EGG, new BlockBehaviorMonsterEgg()); //97
-        this.registerVanilla(STONEBRICK, new BlockBehaviorBricksStone()); //98
+        this.registerVanilla(STONEBRICK, new BlockBehaviorBricksStone(), BlockTraits.STONE_BRICK_TYPE); //98
         this.registerVanilla(BROWN_MUSHROOM_BLOCK, new BlockBehaviorHugeMushroomBrown(), BlockTraits.HUGE_MUSHROOM_BITS); //99
         this.registerVanilla(RED_MUSHROOM_BLOCK, new BlockBehaviorHugeMushroomRed(), BlockTraits.HUGE_MUSHROOM_BITS); //100
         this.registerVanilla(IRON_BARS, new BlockBehaviorIronBars()); //101
@@ -299,7 +325,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(MELON_BLOCK, new BlockBehaviorMelon()); //103
         this.registerVanilla(PUMPKIN_STEM, new BlockBehaviorStemPumpkin(), BlockTraits.GROWTH, BlockTraits.FACING_DIRECTION); //104
         this.registerVanilla(MELON_STEM, new BlockBehaviorStemMelon(), BlockTraits.GROWTH, BlockTraits.FACING_DIRECTION); //105
-        this.registerVanilla(VINE, new BlockBehaviorVine(), BlockTraits.FACING_DIRECTION); //106
+        this.registerVanilla(VINE, new BlockBehaviorVine(), BlockTraits.VINE_DIRECTION_BITS); //106
         this.registerVanilla(FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL); //107
         this.registerVanilla(BRICK_STAIRS, new BlockBehaviorStairsBrick(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //108
         this.registerVanilla(STONE_BRICK_STAIRS, new BlockBehaviorStairsStoneBrick(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //109
@@ -372,7 +398,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(STANDING_BANNER, new BlockBehaviorBanner(), BlockTraits.CARDINAL_DIRECTION); //176
         this.registerVanilla(WALL_BANNER, new BlockBehaviorWallBanner(), BlockTraits.FACING_DIRECTION); //177
         this.registerVanilla(DAYLIGHT_DETECTOR_INVERTED, new BlockBehaviorDaylightDetectorInverted(), BlockTraits.REDSTONE_SIGNAL); //178
-        this.registerVanilla(RED_SANDSTONE, new BlockBehaviorRedSandstone()); //179
+        this.registerVanilla(RED_SANDSTONE, new BlockBehaviorRedSandstone(), BlockTraits.SAND_STONE_TYPE); //179
         this.registerVanilla(RED_SANDSTONE_STAIRS, new BlockBehaviorStairsRedSandstone()); //180
 //        this.registerVanilla(DOUBLE_STONE_SLAB2, BlockBehaviorDoubleSlab.factory(STONE_SLAB2, BlockBehaviorSlab.COLORS_2)); //181
 //        this.registerVanilla(STONE_SLAB2, BlockBehaviorSlab.factory(DOUBLE_STONE_SLAB2, BlockBehaviorSlab.COLORS_2)); //182

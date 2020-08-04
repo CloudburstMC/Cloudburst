@@ -25,7 +25,7 @@ public class ItemRegistry implements Registry {
     private static final List<ItemData> VANILLA_ITEMS;
 
     static {
-        InputStream stream = RegistryUtils.getOrAssertResource("runtime_item_ids.json");
+        InputStream stream = RegistryUtils.getOrAssertResource("data/runtime_item_states.json"); //TODO: use legacy_item_ids.json instead
 
         try {
             VANILLA_ITEMS = Nukkit.JSON_MAPPER.readValue(stream, new TypeReference<List<ItemData>>() {
