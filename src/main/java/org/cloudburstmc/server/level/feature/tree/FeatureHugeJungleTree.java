@@ -2,6 +2,9 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
@@ -19,7 +22,7 @@ import static net.daporkchop.lib.math.primitive.PMath.floorI;
 public class FeatureHugeJungleTree extends FeatureHugeTree {
     public static final IntRange DEFAULT_HEIGHT = new IntRange(12, 31);
 
-    public FeatureHugeJungleTree(@NonNull IntRange height, @NonNull TreeSpecies species) {
+    public FeatureHugeJungleTree(@NonNull IntRange height, @NonNull GenerationTreeSpecies species) {
         super(height, species);
     }
 
@@ -28,14 +31,14 @@ public class FeatureHugeJungleTree extends FeatureHugeTree {
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves) {
+    protected void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dy = -2; dy <= 0; dy++) {
             this.placeCircularLeafLayer(level, x, y + height + dy, z, 3 - dy, leaves);
         }
     }
 
     @Override
-    protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves) {
+    protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         super.placeTrunk(level, random, x, y, z, height, log, leaves);
 
         //vines
@@ -63,8 +66,8 @@ public class FeatureHugeJungleTree extends FeatureHugeTree {
                 dx = floorI(1.5d + dirCos * branchLength);
                 dz = floorI(1.5d + dirSin * branchLength);
                 int ddy = (branchLength >> 1) - 3;
-                if (this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y + dy + ddy, z + dz, 0)))) {
-//                    level.setBlockRuntimeIdUnsafe(x + dx, y + dy + ddy, z + dz, 0, log);
+                if (this.test(level.getBlockAt(x + dx, y + dy + ddy, z + dz, 0))) {
+                    level.setBlockAt(x + dx, y + dy + ddy, z + dz, 0, log);
                 }
             }
 
@@ -77,8 +80,8 @@ public class FeatureHugeJungleTree extends FeatureHugeTree {
     protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, Direction face) {
         x -= face.getUnitVector().getX();
         z -= face.getUnitVector().getZ();
-        if (random.nextInt(4) != 0 && this.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x, y, z, 0)))) {
-//            level.setBlockAt(x, y, z, 0, BlockTypes.VINE, BlockBehaviorVine.getMeta(face));
+        if (random.nextInt(4) != 0 && this.test(level.getBlockAt(x, y, z, 0))) {
+            level.setBlockAt(x, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, face));
         }
     }
 }
