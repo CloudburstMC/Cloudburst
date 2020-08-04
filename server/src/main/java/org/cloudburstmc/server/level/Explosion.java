@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorTNT;
 import org.cloudburstmc.server.entity.Entity;
@@ -102,7 +103,7 @@ public class Explosion {
                             }
                             Block block = this.level.getLoadedBlock(vBlock);
 
-                            if (block != null && block.getState() != BlockState.AIR) {
+                            if (block != null && block.getState() != BlockStates.AIR) {
                                 val state = block.getState();
                                 BlockState layer1 = block.getExtra();
                                 double resistance = Math.max(state.getBehavior().getResistance(), layer1.getBehavior().getResistance());

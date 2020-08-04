@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
@@ -81,7 +82,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     @Override
     public Item[] getDrops(Block block, Item hand) {
         boolean dropInside = false;
-        BlockState blockState = BlockState.AIR;
+        BlockState blockState = BlockStates.AIR;
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         if (blockEntity instanceof FlowerPot) {
             dropInside = true;

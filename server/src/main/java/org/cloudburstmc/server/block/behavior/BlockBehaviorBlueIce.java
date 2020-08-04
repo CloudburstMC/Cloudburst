@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.player.Player;
@@ -40,7 +40,7 @@ public class BlockBehaviorBlueIce extends BlockBehaviorIce {
 
     @Override
     public boolean onBreak(Block block, Item item) {
-        block.set(BlockState.AIR);
+        block.set(BlockStates.AIR);
         return true;
     }
 

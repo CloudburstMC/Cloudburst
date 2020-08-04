@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.Item;
@@ -219,7 +220,7 @@ public abstract class BlockBehavior {
             block.getLevel().setBlock(block.getPosition(), water, true, false);
         }
 
-        return block.getLevel().setBlock(block.getPosition(), BlockState.AIR, true, update);
+        return block.getLevel().setBlock(block.getPosition(), BlockStates.AIR, true, update);
     }
 
     public boolean onBreak(Block block, Item item, Player player) {

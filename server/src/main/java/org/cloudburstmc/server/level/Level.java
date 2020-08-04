@@ -1106,7 +1106,7 @@ public class Level implements ChunkManager, Metadatable {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
                         Block block = this.getLoadedBlock(x, y, z);
-                        if (block != null && block.getState() != BlockState.AIR && block.getState().getBehavior().collidesWithBB(block, bb)) {
+                        if (block != null && block.getState() != BlockStates.AIR && block.getState().getBehavior().collidesWithBB(block, bb)) {
                             return new Block[]{block};
                         }
                     }
@@ -1117,7 +1117,7 @@ public class Level implements ChunkManager, Metadatable {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
                         Block block = this.getLoadedBlock(x, y, z);
-                        if (block != null && block.getState() != BlockState.AIR && block.getState().getBehavior().collidesWithBB(block, bb)) {
+                        if (block != null && block.getState() != BlockStates.AIR && block.getState().getBehavior().collidesWithBB(block, bb)) {
                             collides.add(block);
                         }
                     }
@@ -1306,7 +1306,7 @@ public class Level implements ChunkManager, Metadatable {
         Chunk chunk = this.getChunk(chunkX, chunkZ);
 
         if (y < 0 || y > 255) {
-            return new CloudBlock(this, Vector3i.from(x, y, z), CloudBlockState.EMPTY_STATES);
+            return new CloudBlock(this, Vector3i.from(x, y, z), BlockStates.EMPTY_STATES);
         }
 
         return new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
@@ -1700,7 +1700,7 @@ public class Level implements ChunkManager, Metadatable {
         Block above = this.getLoadedBlock(target.getPosition().add(0, 1, 0));
         if (above != null) {
             if (above.getState().getType() == BlockTypes.FIRE) {
-                this.setBlock(above.getPosition(), BlockState.AIR, true);
+                this.setBlock(above.getPosition(), BlockStates.AIR, true);
             }
         }
 
@@ -1824,7 +1824,7 @@ public class Level implements ChunkManager, Metadatable {
                 }
             } else {
                 if (item.getId() == ItemIds.BUCKET && ItemBucket.getBlockIdFromDamage(item.getMeta()) == BlockTypes.FLOWING_WATER) {
-                    player.getLevel().sendBlocks(new Player[]{player}, new Block[]{new CloudBlock(this, block.getPosition(), new BlockState[]{BlockState.AIR, BlockState.AIR})}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                    player.getLevel().sendBlocks(new Player[]{player}, new Block[]{new CloudBlock(this, block.getPosition(), new BlockState[]{BlockStates.AIR, BlockStates.AIR})}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
                 }
                 return null;
             }
@@ -1896,8 +1896,8 @@ public class Level implements ChunkManager, Metadatable {
         BlockState air = block.getExtra();
 
         Vector3i pos = null;
-        if (air == BlockState.AIR && (liquidBehavior instanceof BlockBehaviorLiquid) && ((BlockBehaviorLiquid) liquidBehavior).usesWaterLogging()
-                && (block.getState().ensureTrait(BlockTraits.FLUID_LEVEL) == 0) // Remove this line when MCPE-33345 is resolved
+        if (air == BlockStates.AIR && (liquidBehavior instanceof BlockBehaviorLiquid) && ((BlockBehaviorLiquid) liquidBehavior).usesWaterLogging()
+            && (block.getState().ensureTrait(BlockTraits.FLUID_LEVEL) == 0) // Remove this line when MCPE-33345 is resolved
         ) {
             pos = block.getPosition();
 

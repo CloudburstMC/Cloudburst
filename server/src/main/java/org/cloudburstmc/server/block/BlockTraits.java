@@ -37,7 +37,8 @@ public class BlockTraits {
     public static final EnumBlockTrait<DyeColor> CORAL_COLOR = EnumBlockTrait.of("coral_color", DyeColor.class,
             DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW);
     public static final EnumBlockTrait<DyeColor> CORAL_HANG_COLOR = EnumBlockTrait.of("coral_color", DyeColor.class,
-            DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW, null);
+            DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW,
+            DyeColor.ORANGE); //TODO: this was null
     public static final EnumBlockTrait<CrackedState> CRACKED_STATE = EnumBlockTrait.of("cracked_state", CrackedState.class);
     public static final EnumBlockTrait<AnvilDamage> DAMAGE = EnumBlockTrait.of("damage", AnvilDamage.class, AnvilDamage.UNDAMAGED);
     public static final EnumBlockTrait<DirtType> DIRT_TYPE = EnumBlockTrait.of("dirt_type", DirtType.class);
@@ -73,7 +74,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<StructureVoidType> STRUCTURE_VOID_TYPE = EnumBlockTrait.of("structure_void_type", StructureVoidType.class);
     public static final EnumBlockTrait<TallGrassType> TALL_GRASS_TYPE = EnumBlockTrait.of("tall_grass_type", TallGrassType.class);
     public static final EnumBlockTrait<TreeSpecies> TREE_SPECIES = EnumBlockTrait.of("tree_species", TreeSpecies.class);
-    public static final IntegerBlockTrait TURTLE_EGG_COUNT = IntegerBlockTrait.from("turtle_egg_count", 1, 4);
+    public static final IntegerBlockTrait TURTLE_EGG_COUNT = IntegerBlockTrait.from("turtle_egg_count", 1, 4, 1);
     public static final IntegerBlockTrait TWISTING_VINES_AGE = IntegerBlockTrait.from("twisting_vines_age", 26);
     public static final IntegerBlockTrait VINE_DIRECTION_BITS = IntegerBlockTrait.from("vine_direction_bits", 16);
     public static final EnumBlockTrait<WallBlockType> WALL_BLOCK_TYPE = EnumBlockTrait.of("wall_block_type", WallBlockType.class);
@@ -85,12 +86,16 @@ public class BlockTraits {
     public static final EnumBlockTrait<WoodType> WOOD_TYPE = EnumBlockTrait.of("wood_type", WoodType.class);
 
     public static final EnumBlockTrait<Axis> AXIS = EnumBlockTrait.of("axis", "pillar_axis", Axis.class);
-    public static final EnumBlockTrait<Direction.Axis> PORTAL_AXIS = EnumBlockTrait.of("portal_axis", Direction.Axis.class, null, Direction.Axis.X, Direction.Axis.Z);
+    public static final EnumBlockTrait<Direction.Axis> PORTAL_AXIS = EnumBlockTrait.of("portal_axis", Direction.Axis.class,
+            Direction.Axis.Y, //TODO: this was null
+            Direction.Axis.X, Direction.Axis.Z);
     public static final EnumBlockTrait<Direction> FACING_DIRECTION = EnumBlockTrait.of("facing_direction", Direction.class, Direction.UP, Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
     public static final EnumBlockTrait<Direction> DIRECTION = EnumBlockTrait.of("direction", Direction.class, Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST);
     public static final EnumBlockTrait<RailDirection> RAIL_DIRECTION = EnumBlockTrait.of("rail_direction", RailDirection.class);
     public static final EnumBlockTrait<RailDirection> SIMPLE_RAIL_DIRECTION = EnumBlockTrait.of("simple_rail_direction", RailDirection.class, RailDirection.simpleValues());
-    public static final EnumBlockTrait<Direction> TORCH_DIRECTION = EnumBlockTrait.of("torch_direction", Direction.class, null, Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.UP);
+    public static final EnumBlockTrait<Direction> TORCH_DIRECTION = EnumBlockTrait.of("torch_direction", Direction.class,
+            Direction.DOWN, //TODO: this was null
+            Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.UP);
     public static final EnumBlockTrait<CardinalDirection> CARDINAL_DIRECTION = EnumBlockTrait.of("cardinal_direction", "ground_sign_direction", CardinalDirection.class);
     public static final EnumBlockTrait<LeverDirection> LEVER_DIRECTION = EnumBlockTrait.of("lever_direction", LeverDirection.class);
 

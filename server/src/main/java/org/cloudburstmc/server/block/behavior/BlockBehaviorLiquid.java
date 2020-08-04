@@ -10,6 +10,7 @@ import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.block.BlockFromToEvent;
@@ -180,7 +181,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             this.checkForHarden(block);
             // This check exists because if water is at layer1 with air at layer0, the water gets invisible
-            if (usesWaterLogging() && block.getExtra() != BlockState.AIR) {
+            if (usesWaterLogging() && block.getExtra() != BlockStates.AIR) {
                 val mainBlockState = block.getState();
                 val behavior = mainBlockState.getBehavior();
                 val liquid = block.getExtra();
@@ -199,7 +200,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             BlockState currentState;
 
-            if (block.getExtra() != BlockState.AIR) {
+            if (block.getExtra() != BlockStates.AIR) {
                 currentState = block.getExtra();
             } else {
                 currentState = block.getState();
@@ -449,7 +450,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     @Nonnull
     public BlockState getLiquidBlock(Block block) {
-        if (block.getExtra() != BlockState.AIR) {
+        if (block.getExtra() != BlockStates.AIR) {
             return block.getExtra();
         }
 

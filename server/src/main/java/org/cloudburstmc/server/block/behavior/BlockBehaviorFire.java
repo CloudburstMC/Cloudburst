@@ -72,7 +72,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_RANDOM) {
             if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.down().getState()) && !BlockBehaviorFire.canNeighborBurn(block)) {
-                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.AIR);
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockStates.AIR);
                 level.getServer().getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
                     level.setBlock(position, event.getNewState(), true);

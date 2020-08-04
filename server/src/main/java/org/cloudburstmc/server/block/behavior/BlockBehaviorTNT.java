@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.misc.PrimedTnt;
@@ -53,7 +53,7 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
     }
 
     public void prime(Block block, int fuse, Entity source) {
-        block.set(BlockState.AIR, true);
+        block.set(BlockStates.AIR, true);
 
         float mot = ThreadLocalRandom.current().nextFloat() * (float) Math.PI * 2f;
 

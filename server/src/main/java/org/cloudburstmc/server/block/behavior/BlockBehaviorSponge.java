@@ -5,7 +5,7 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
@@ -86,7 +86,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
                 val faceBlock = entry.block.getSide(face);
                 val faceState = faceBlock.getState();
                 if (faceState.getType() == FLOWING_WATER || faceState.getType() == WATER) {
-                    faceBlock.set(BlockState.AIR);
+                    faceBlock.set(BlockStates.AIR);
 
                     ++waterRemoved;
                     if (entry.distance < 6) {

@@ -10,7 +10,7 @@ import static org.cloudburstmc.server.block.BlockTypes.WATER;
 
 public class CloudBlock extends CloudBlockSnapshot implements Block {
 
-    public static BlockState[] EMPTY = new BlockState[]{BlockState.AIR, BlockState.AIR};
+    public static BlockState[] EMPTY = new BlockState[]{BlockStates.AIR, BlockStates.AIR};
 
     private final Level level;
     private final Vector3i position;

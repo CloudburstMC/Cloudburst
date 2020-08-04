@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLeaves;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorSolid;
@@ -34,7 +35,7 @@ public class ItemFireCharge extends Item {
 
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
-        if (block.getState() == BlockState.AIR && (target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves)) {
+        if (block.getState() == BlockStates.AIR && (target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves)) {
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
                 block.getLevel().getServer().getPluginManager().callEvent(e);
