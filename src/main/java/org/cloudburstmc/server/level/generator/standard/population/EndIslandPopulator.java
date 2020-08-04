@@ -3,6 +3,7 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
@@ -42,7 +43,7 @@ public class EndIslandPopulator extends ChancePopulator.Column {
     @Override
     protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
         final int blockY = this.height.rand(random);
-        final int block = this.block.select(random);
+        final BlockState block = this.block.select(random);
         double radius = this.radius.rand(random);
 
         for (int dy = 0; radius > 0.5d; dy--) {
@@ -53,7 +54,7 @@ public class EndIslandPopulator extends ChancePopulator.Column {
             for (int f = floorI(-radius), c = ceilI(radius), dx = f; dx <= c; dx++) {
                 for (int dz = f; dz <= c; dz++) {
                     if (dx * dx + dz * dz <= (radius + 1.0d) * (radius + 1.0d)) {
-//                        level.setBlockRuntimeIdUnsafe(blockX + dx, blockY + dy, blockZ + dz, 0, block);
+                        level.setBlockAt(blockX + dx, blockY + dy, blockZ + dz, 0, block);
                     }
                 }
             }
