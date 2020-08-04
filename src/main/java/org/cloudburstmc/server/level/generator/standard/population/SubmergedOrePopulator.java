@@ -59,7 +59,7 @@ public class SubmergedOrePopulator extends ChancePopulator.Column {
 
         final int radius = this.radius.rand(random);
         final int radiusSq = radius * radius;
-        final int block = this.block.selectRuntimeId(random);
+        final int block = this.block.select(random);
 
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {

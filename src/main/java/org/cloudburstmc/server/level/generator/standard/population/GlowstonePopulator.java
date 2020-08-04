@@ -47,7 +47,7 @@ public class GlowstonePopulator extends AbstractReplacingPopulator {
     protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
         final BlockFilter replace = this.replace;
         final int blockY = this.height.rand(random);
-        final int block = this.block.selectRuntimeId(random);
+        final int block = this.block.select(random);
         final int ground = this.ground;
 
         if (blockY >= 255 || !replace.test(org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY, blockZ, 0))) || org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(blockX, blockY + 1, blockZ, 0)) != ground) {

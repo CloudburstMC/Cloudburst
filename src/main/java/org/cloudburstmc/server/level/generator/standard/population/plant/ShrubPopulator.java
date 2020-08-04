@@ -52,7 +52,7 @@ public class ShrubPopulator extends AbstractPlantPopulator {
     protected void placeCluster(PRandom random, ChunkManager level, int x, int y, int z) {
         final BlockFilter on = this.on;
         final BlockFilter replace = this.replace;
-        final int block = this.block.selectRuntimeId(random);
+        final int block = this.block.select(random);
 
         for (int i = this.patchSize - 1; i >= 0; i--) {
             int blockY = y + random.nextInt(4) - random.nextInt(4);

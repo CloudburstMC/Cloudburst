@@ -61,7 +61,7 @@ public class SpikesPopulator extends ChancePopulator.Column {
         }
 
         final BlockFilter replace = this.replace;
-        final int block = this.block.selectRuntimeId(random);
+        final int block = this.block.select(random);
 
         int height = this.height.rand(random);
         final int sink = (height >> 2) + random.nextInt(2);

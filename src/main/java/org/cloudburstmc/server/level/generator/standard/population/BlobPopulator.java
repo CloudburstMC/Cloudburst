@@ -51,7 +51,7 @@ public class BlobPopulator extends ChancePopulator.Column {
         }
 
         final BlockFilter replace = this.replace;
-        final int block = this.block.selectRuntimeId(random);
+        final int block = this.block.select(random);
         final int min = this.radius.min;
 
         for (int i = 0; i < 3; i++) {
