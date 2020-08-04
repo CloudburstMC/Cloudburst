@@ -45,8 +45,6 @@ public class ItemRegistry implements Registry {
     private List<StartGamePacket.ItemEntry> itemEntries;
     private volatile boolean closed;
 
-    private final BiMap<Integer, Identifier> blockRuntimeIdMap = HashBiMap.create(); //TODO: remove this after i figure out what the heck BlockRegistry is supposed to be doing with vanilla block's legacy IDs
-
     private ItemRegistry(BlockRegistry blockRegistry) {
         this.blockRegistry = blockRegistry;
         try {
@@ -58,7 +56,6 @@ public class ItemRegistry implements Registry {
         // register missing vanilla items.
         for (ItemData item : VANILLA_ITEMS) {
             if (item.id < 256) {
-                this.blockRuntimeIdMap.put(item.id, Identifier.fromString(item.name.replace("item.", "")));
                 continue;
             }
             Identifier identifier = Identifier.fromString(item.name);
@@ -127,9 +124,6 @@ public class ItemRegistry implements Registry {
             if (runtimeId < 0) {
                 runtimeId = 255 - runtimeId;
             }
-            if (this.blockRuntimeIdMap.containsKey(runtimeId))  {
-                identifier = this.blockRuntimeIdMap.get(runtimeId);
-            }
             try {
                 identifier = this.blockRegistry.getNameFromLegacyId(runtimeId);
             } catch (RegistryException e) {
@@ -146,7 +140,7 @@ public class ItemRegistry implements Registry {
 
     public int getRuntimeId(Identifier identifier) throws RegistryException {
         int runtimeId = runtimeIdMap.inverse().getOrDefault(identifier, Integer.MAX_VALUE);
-        if (runtimeId == Integer.MAX_VALUE && (runtimeId = this.blockRuntimeIdMap.inverse().getOrDefault(identifier, Integer.MAX_VALUE)) == Integer.MAX_VALUE) {
+        if (runtimeId == Integer.MAX_VALUE) {
             try {
                 int blockId = this.blockRegistry.getLegacyId(identifier);
                 if (blockId > 255) {

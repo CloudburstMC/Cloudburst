@@ -9,7 +9,6 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSet;
-import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Nukkit;
 import org.cloudburstmc.server.block.BlockCategory;
@@ -105,7 +104,7 @@ public class BlockRegistry implements Registry {
     }
 
     boolean isBlock(Identifier id) {
-        return this.behaviorMap.containsKey(id);
+        return this.idLegacyMap.containsKey(id);
     }
 
     public int getRuntimeId(BlockState blockState) {
@@ -369,7 +368,7 @@ public class BlockRegistry implements Registry {
         //166: glow_stick
         this.registerVanilla(IRON_TRAPDOOR, new BlockBehaviorTrapdoorIron(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN); //167
         this.registerVanilla(PRISMARINE, new BlockBehaviorPrismarine(), BlockTraits.PRISMARINE_BLOCK_TYPE); //168
-        this.registerVanilla(LANTERN, new BlockBehaviorSeaLantern()); //169
+        this.registerVanilla(SEALANTERN, new BlockBehaviorSeaLantern()); //169
         this.registerVanilla(HAY_BLOCK, new BlockBehaviorHayBale(), BlockTraits.AXIS, BlockTraits.DEPRECATED); //170
         this.registerVanilla(CARPET, new BlockBehaviorCarpet(), BlockTraits.COLOR); //171
         this.registerVanilla(HARDENED_CLAY, new BlockBehaviorTerracotta()); //172
