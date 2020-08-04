@@ -66,7 +66,7 @@ public class LakePopulator extends ChancePopulator.Column {
             return;
         }
 
-        final int block = this.block.selectRuntimeId(random);
+        final int block = this.block.select(random);
 
         try (Handle<BitSet> handle = BITSET_CACHE.get()) {
             //BitSet has 8x greater storage density than a boolean[], so the additional overhead is negligible compared to the better cache utilization
@@ -178,7 +178,7 @@ public class LakePopulator extends ChancePopulator.Column {
             }
 
             if (this.border != null) {
-                final int border = this.border.selectRuntimeId(random);
+                final int border = this.border.select(random);
 
                 //place border
                 for (int y = 0; y < 8; y++) {

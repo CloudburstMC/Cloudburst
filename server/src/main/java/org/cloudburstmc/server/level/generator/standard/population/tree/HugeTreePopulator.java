@@ -90,7 +90,7 @@ public class HugeTreePopulator extends AbstractTreePopulator {
         }
 
         if (this.types[random.nextInt(this.types.length)].place(level, random, x, y + 1, z)) {
-            int belowId = this.below.selectRuntimeId(random);
+            int belowId = this.below.select(random);
             for (int dx = 0; dx <= 1; dx++) {
                 for (int dz = 0; dz <= 1; dz++) {
 //                    level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, belowId);

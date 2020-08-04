@@ -42,9 +42,9 @@ public class BushPopulator extends AbstractTreePopulator {
 
     @Override
     protected void placeTree(PRandom random, ChunkManager level, int x, int y, int z) {
-//        level.setBlockRuntimeIdUnsafe(x, ++y, z, 0, this.log.selectRuntimeId(random));
+//        level.setBlockRuntimeIdUnsafe(x, ++y, z, 0, this.log.select(random));
 
-        final int leaves = this.leaves.selectRuntimeId(random);
+        final int leaves = this.leaves.select(random);
         final int size = this.size;
 
         for (int dy = 0; dy <= size; dy++) {
