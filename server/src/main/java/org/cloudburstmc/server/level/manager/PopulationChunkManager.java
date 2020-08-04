@@ -47,35 +47,10 @@ public final class PopulationChunkManager implements ChunkManager {
         return this.chunks[relativeX * 3 + relativeZ];
     }
 
-//    @Override
-//    public Identifier getBlockId(int x, int y, int z, int layer) {
-//        return this.chunkFromBlock(x, z).getBlockId(x & 0xF, y, z & 0xF, layer);
-//    }
-//
-//    @Override
-//    public void setBlockId(int x, int y, int z, int layer, Identifier id) {
-//        this.chunkFromBlock(x, z).setBlockId(x & 0xF, y, z & 0xF, layer, id);
-//    }
-//
-//    @Override
-//    public int getBlockRuntimeIdUnsafe(int x, int y, int z, int layer) {
-//        return this.chunkFromBlock(x, z).getBlockRuntimeIdUnsafe(x & 0xF, y, z & 0xF, layer);
-//    }
-//
-//    @Override
-//    public void setBlockRuntimeIdUnsafe(int x, int y, int z, int layer, int runtimeId) {
-//        this.chunkFromBlock(x, z).setBlockRuntimeIdUnsafe(x & 0xF, y, z & 0xF, layer, runtimeId);
-//    }
-//
-//    @Override
-//    public int getBlockDataAt(int x, int y, int z, int layer) {
-//        return this.chunkFromBlock(x, z).getBlockData(x & 0xF, y, z & 0xF, layer);
-//    }
-//
-//    @Override
-//    public void setBlockDataAt(int x, int y, int z, int layer, int data) {
-//        this.chunkFromBlock(x, z).setBlockData(x & 0xF, y, z & 0xF, layer, data);
-//    }
+    @Override
+    public BlockState getBlockAt(int x, int y, int z) {
+        return this.chunkFromBlock(x, z).getBlock(x & 0xF, y, z & 0xF, 0);
+    }
 
     @Override
     public BlockState getBlockAt(int x, int y, int z, int layer) {
@@ -83,8 +58,13 @@ public final class PopulationChunkManager implements ChunkManager {
     }
 
     @Override
-    public void setBlockAt(int x, int y, int z, int layer, BlockState blockState) {
-        this.chunkFromBlock(x, z).setBlock(x & 0xF, y, z & 0xF, layer, blockState);
+    public void setBlockAt(int x, int y, int z, BlockState state) {
+        this.chunkFromBlock(x, z).setBlock(x & 0xF, y, z & 0xF, 0, state);
+    }
+
+    @Override
+    public void setBlockAt(int x, int y, int z, int layer, BlockState state) {
+        this.chunkFromBlock(x, z).setBlock(x & 0xF, y, z & 0xF, layer, state);
     }
 
     @Override

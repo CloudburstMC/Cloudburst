@@ -8,13 +8,11 @@ import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.BitSet;
@@ -68,7 +66,7 @@ public class LakePopulator extends ChancePopulator.Column {
             return;
         }
 
-        final BlockState block = this.block.select(random);
+        final BlockState block = this.block.selectWeighted(random);
 
         try (Handle<BitSet> handle = BITSET_CACHE.get()) {
             //BitSet has 8x greater storage density than a boolean[], so the additional overhead is negligible compared to the better cache utilization
@@ -180,7 +178,7 @@ public class LakePopulator extends ChancePopulator.Column {
             }
 
             if (this.border != null) {
-                final BlockState border = this.border.select(random);
+                final BlockState border = this.border.selectWeighted(random);
 
                 //place border
                 for (int y = 0; y < 8; y++) {

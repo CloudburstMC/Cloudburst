@@ -50,8 +50,8 @@ public class FeatureSpruceTree extends FeatureNormalTree {
             }
         }
 
-        final BlockState log = this.log.select(random);
-        final BlockState leaves = this.leaves.select(random);
+        final BlockState log = this.log.selectWeighted(random);
+        final BlockState leaves = this.leaves.selectWeighted(random);
 
         //place leaves
         int radius = random.nextInt(2);

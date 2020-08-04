@@ -43,7 +43,7 @@ public class EndIslandPopulator extends ChancePopulator.Column {
     @Override
     protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
         final int blockY = this.height.rand(random);
-        final BlockState block = this.block.select(random);
+        final BlockState block = this.block.selectWeighted(random);
         double radius = this.radius.rand(random);
 
         for (int dy = 0; radius > 0.5d; dy--) {

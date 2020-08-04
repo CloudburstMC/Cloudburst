@@ -29,8 +29,8 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
             return false;
         }
 
-        final BlockState log = this.log.select(random);
-        final BlockState leaves = this.leaves.select(random);
+        final BlockState log = this.log.selectWeighted(random);
+        final BlockState leaves = this.leaves.selectWeighted(random);
 
         this.placeLeaves(level, random, x, y, z, height, log, leaves);
         this.placeTrunk(level, random, x, y, z, height, log, leaves);
