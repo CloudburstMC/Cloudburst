@@ -56,10 +56,16 @@ public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
         return this.defaultValue;
     }
 
+    @Override
     public int getIndex(Object value) {
         checkNotNull(value, "value");
         int index = this.possibleValues.indexOf(value);
         checkArgument(index != -1, "Invalid block trait");
         return index;
+    }
+
+    @Override
+    public E parseValue(String text) {
+        return this.getPossibleValues().stream().filter(e -> e.name().equalsIgnoreCase(text)).findAny().orElse(this.defaultValue);
     }
 }

@@ -48,4 +48,9 @@ public class BooleanBlockTrait extends BlockTrait<Boolean> {
     public int getIndex(boolean value) {
         return value ? 1 : 0;
     }
+
+    @Override
+    public Boolean parseValue(String text) {
+        return Boolean.parseBoolean(text);
+    }
 }
