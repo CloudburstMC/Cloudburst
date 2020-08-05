@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level.generator.standard;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -14,6 +15,7 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import org.cloudburstmc.server.Nukkit;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
@@ -22,10 +24,12 @@ import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.generator.GeneratorFactory;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
 import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
+import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMapReferenceDeserializer;
 import org.cloudburstmc.server.level.generator.standard.biome.map.CachingBiomeMap;
 import org.cloudburstmc.server.level.generator.standard.finish.Finisher;
 import org.cloudburstmc.server.level.generator.standard.generation.decorator.Decorator;
 import org.cloudburstmc.server.level.generator.standard.generation.density.DensitySource;
+import org.cloudburstmc.server.level.generator.standard.generation.density.DensitySourceReferenceDeserializer;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 import org.cloudburstmc.server.level.generator.standard.misc.GenerationPass;
 import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
@@ -59,7 +63,7 @@ public final class StandardGenerator implements Generator {
                 return Nukkit.YAML_MAPPER.readValue(in, StandardGenerator.class).init(seed);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("While decoding preset " + presetId, e);
         }
     };
 
@@ -82,8 +86,10 @@ public final class StandardGenerator implements Generator {
     private static final Ref<ThreadData> THREAD_DATA_CACHE = ThreadRef.soft(ThreadData::new);
 
     @JsonProperty
+    @JsonDeserialize(using = BiomeMapReferenceDeserializer.class)
     private BiomeMap biomes;
     @JsonProperty
+    @JsonDeserialize(using = DensitySourceReferenceDeserializer.class)
     private DensitySource density;
     @JsonProperty
     private Decorator[] decorators = Decorator.EMPTY_ARRAY;
@@ -293,34 +299,6 @@ public final class StandardGenerator implements Generator {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @JsonSetter("biomes")
-    private void setBiomes(Identifier id) {
-        try (InputStream in = StandardGeneratorUtils.read("biomemap", id)) {
-            this.biomes = Nukkit.YAML_MAPPER.readValue(in, BiomeMap.class);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @JsonSetter("density")
-    private void setDensity(Identifier id) {
-        try (InputStream in = StandardGeneratorUtils.read("density", id)) {
-            this.density = Nukkit.YAML_MAPPER.readValue(in, DensitySource.class);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @JsonSetter("groundBlock")
-    private void setGroundBlock(@NonNull ConstantBlock groundBlock) {
-        this.ground = groundBlock.state();
-    }
-
-    @JsonSetter("seaBlock")
-    private void setSeaBlock(@NonNull ConstantBlock seaBlock) {
-        this.sea = seaBlock.state();
     }
 
     private static final class ThreadData {

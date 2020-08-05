@@ -77,7 +77,10 @@ populators:
   - id: "nukkitx:shrub"
     chance: 0.00390625 # about 1 per chunk
     replace: "air"
-    on: "netherrack,bedrock"
+    #on: "netherrack,bedrock"
+    on:
+      - "netherrack"
+      - "bedrock"
     block: "brown_mushroom,red_mushroom"
 
     # Quartz ore

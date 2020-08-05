@@ -23,7 +23,11 @@ final class PopulatorDeserializer extends JsonDeserializer<Populator> {
         Identifier id = Identifier.fromString(p.nextTextValue());
         p.nextToken();
 
-        return id == NextGenerationPass.ID
-                ? NextGenerationPass.INSTANCE : Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.populator().get(id));
+        try {
+            return id == NextGenerationPass.ID
+                    ? NextGenerationPass.INSTANCE : Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.populator().get(id));
+        } catch (Exception e) {
+            throw new RuntimeException("While decoding populator " + id, e);
+        }
     }
 }

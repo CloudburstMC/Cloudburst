@@ -6,26 +6,26 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.google.common.base.Preconditions;
 import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
+import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
 import org.cloudburstmc.server.level.generator.standard.registry.StandardGeneratorRegistries;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author DaPorkchop_
  */
-final class DensitySourceDeserializer extends JsonDeserializer<DensitySource> {
+public final class DensitySourceReferenceDeserializer extends JsonDeserializer<DensitySource> {
     @Override
     public DensitySource deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-        String nextName = p.nextFieldName();
-        Preconditions.checkState("id".equals(nextName), "first field must be \"id\", not \"%s\"", nextName);
-        Identifier id = Identifier.fromString(p.nextTextValue());
-        p.nextToken();
+        Identifier id = Identifier.fromString(p.getText());
 
-        try {
-            return Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.densitySource().get(id));
-        } catch (Exception e)   {
-            throw new RuntimeException("While decoding density source type " + id, e);
+        try (InputStream in = StandardGeneratorUtils.read("density", id)) {
+            return Nukkit.YAML_MAPPER.readValue(in, DensitySource.class);
+        } catch (IOException e) {
+            throw new RuntimeException("While decoding density source " + id, e);
         }
     }
 }

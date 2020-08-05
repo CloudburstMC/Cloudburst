@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableMap;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.trait.BlockTrait;
@@ -14,6 +15,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @ParametersAreNonnullByDefault
+@JsonDeserialize(using = BlockStateDeserializer.class)
 public interface BlockState {
 
     @Nonnull
