@@ -21,6 +21,7 @@ import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.IntConsumer;
 
@@ -120,6 +121,7 @@ public class BlockStorage {
 
         try (ByteBufInputStream stream = new ByteBufInputStream(buffer);
              NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
+            Map<NbtMap, BlockState> tags = new LinkedHashMap<>();
             for (int i = 0; i < paletteSize; i++) {
                 NbtMap tag = (NbtMap) nbtInputStream.readTag();
                 Identifier id = Identifier.fromString(tag.getString("name"));
@@ -135,10 +137,11 @@ public class BlockStorage {
                 } else {
                     state = BlockStateMetaMappings.getStateFromMeta(id, tag.getShort("val"));
                 }
+                tags.put(tag, state);
 
                 int runtimeId = BlockRegistry.get().getRuntimeId(state);
                 checkArgument(!this.palette.contains(runtimeId),
-                        "Palette contains block state (%s) twice!", state);
+                        "Palette contains block state (%s) twice! (%s) (palette: %s)", state, tags, this.palette);
                 this.palette.add(runtimeId);
             }
         } catch (IOException e) {
