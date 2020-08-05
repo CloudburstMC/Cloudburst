@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.biome.map.complex.filter;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -86,11 +87,6 @@ public class ZoomBiomeFilter extends AbstractBiomeFilter.Next {
             default:
                 throw new IllegalStateException();
         }
-    }
-
-    @JsonSetter("mode")
-    private void setMode(String mode) {
-        this.mode = Mode.valueOf(mode.toUpperCase());
     }
 
     protected enum Mode {

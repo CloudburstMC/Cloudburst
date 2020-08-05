@@ -35,13 +35,13 @@ populators:
         replace: "air,tallgrass"
         roundDown: false
         block:
-          - "red_flower#4" # Red Tulip
-          - "red_flower#5" # Orange Tulip
-          - "red_flower#6" # White Tulip
-          - "red_flower#7" # Pink Tulip
-          - "red_flower#3" # Azure Bluet
-          - "red_flower#8" # Oxeye Daisy
-          - "red_flower#9" # Cornflower
+          - "red_flower{flower_type=tulip_red}"
+          - "red_flower{flower_type=tulip_orange}"
+          - "red_flower{flower_type=tulip_white}"
+          - "red_flower{flower_type=tulip_pink}"
+          - "red_flower{flower_type=houstonia}"
+          - "red_flower{flower_type=oxeye}"
+          - "red_flower{flower_type=cornflower}"
     below:
         # Flowers
       - id: "nukkitx:shrub"
@@ -50,13 +50,13 @@ populators:
         replace: "air,tallgrass"
         roundDown: false
         block:
-          - "red_flower#4" # Red Tulip
-          - "red_flower#5" # Orange Tulip
-          - "red_flower#6" # White Tulip
-          - "red_flower#7" # Pink Tulip
-          - "red_flower#3" # Azure Bluet
-          - "red_flower#8" # Oxeye Daisy
-          - "red_flower#9" # Cornflower
+          - "red_flower{flower_type=tulip_red}"
+          - "red_flower{flower_type=tulip_orange}"
+          - "red_flower{flower_type=tulip_white}"
+          - "red_flower{flower_type=tulip_pink}"
+          - "red_flower{flower_type=houstonia}"
+          - "red_flower{flower_type=oxeye}"
+          - "red_flower{flower_type=cornflower}"
 
     # Oak trees
   - id: "nukkitx:tree"

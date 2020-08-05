@@ -25,25 +25,25 @@ decorators:
             height: "86-255"
             replace:
               - "hardened_clay"
-              - "stained_hardened_clay" # white
-              - "stained_hardened_clay#1" # orange
-              - "stained_hardened_clay#4" # yellow
-              - "stained_hardened_clay#8" # light gray
-              - "stained_hardened_clay#12" # brown
-              - "stained_hardened_clay#14" # red
+              - "stained_hardened_clay{color=white}"
+              - "stained_hardened_clay{color=orange}"
+              - "stained_hardened_clay{color=yellow}"
+              - "stained_hardened_clay{color=light_gray}"
+              - "stained_hardened_clay{color=brown}"
+              - "stained_hardened_clay{color=red}"
             block: "grass"
         below:
           - id: "nukkitx:replace_top"
             height: "86-255"
             replace:
               - "hardened_clay"
-              - "stained_hardened_clay" # white
-              - "stained_hardened_clay#1" # orange
-              - "stained_hardened_clay#4" # yellow
-              - "stained_hardened_clay#8" # light gray
-              - "stained_hardened_clay#12" # brown
-              - "stained_hardened_clay#14" # red
-            block: "dirt#1" # coarse dirt
+              - "stained_hardened_clay{color=white}"
+              - "stained_hardened_clay{color=orange}"
+              - "stained_hardened_clay{color=yellow}"
+              - "stained_hardened_clay{color=light_gray}"
+              - "stained_hardened_clay{color=brown}"
+              - "stained_hardened_clay{color=red}"
+            block: "dirt{dirt_type=coarse}"
 
 populators:
   - id: "nukkitx:next"
@@ -51,11 +51,11 @@ populators:
     # Trees
   - id: "nukkitx:tree"
     chance: 0.01953125 # about 5 per chunk
-    on: "grass,dirt#1"
+    on: "grass,dirt{dirt_type=coarse}"
     type: "oak"
 
     # Tall grass
   - id: "nukkitx:shrub"
     chance: 0.00390625 # about 1 per chunk
-    on: "grass,dirt#1"
+    on: "grass,dirt{dirt_type=coarse}"
     block: "tallgrass"

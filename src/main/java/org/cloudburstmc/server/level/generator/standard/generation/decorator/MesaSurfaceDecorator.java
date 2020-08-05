@@ -30,6 +30,7 @@ public class MesaSurfaceDecorator extends DepthNoiseDecorator {
     protected static final int BAND_COUNT = 64;
     protected static final int BAND_MASK = BAND_COUNT - 1;
 
+    @JsonProperty
     protected BlockState ground = null;
 
     @JsonProperty
@@ -89,11 +90,6 @@ public class MesaSurfaceDecorator extends DepthNoiseDecorator {
     @Override
     public Identifier getId() {
         return ID;
-    }
-
-    @JsonSetter("ground")
-    private void setGround(ConstantBlock block) {
-        this.ground = block.state();
     }
 
     @JsonDeserialize

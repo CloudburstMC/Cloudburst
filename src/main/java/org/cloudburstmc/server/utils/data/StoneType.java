@@ -6,6 +6,6 @@ public enum StoneType {
     GRANITE_SMOOTH,
     DIORITE,
     DIORITE_SMOOTH,
-    ANDESTIE,
+    ANDESITE,
     ANDESITE_SMOOTH
 }

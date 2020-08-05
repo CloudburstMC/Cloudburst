@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.level.generator.standard.population.plant;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -29,6 +31,7 @@ public class DoublePlantPopulator extends AbstractPlantPopulator {
     public static final Identifier ID = Identifier.fromString("nukkitx:double_plant");
 
     @JsonProperty
+    @JsonAlias("type")
     protected DoublePlantType[] types;
 
     @Override
@@ -69,10 +72,5 @@ public class DoublePlantPopulator extends AbstractPlantPopulator {
     @Override
     public Identifier getId() {
         return ID;
-    }
-
-    @JsonSetter("type")
-    private void setType(DoublePlantType type) {
-        this.types = new DoublePlantType[]{type};
     }
 }

@@ -88,24 +88,4 @@ public class SurfaceDecorator extends DepthNoiseDecorator {
     public Identifier getId() {
         return ID;
     }
-
-    @JsonSetter("ground")
-    private void setGround(ConstantBlock block) {
-        this.ground = block.state();
-    }
-
-    @JsonSetter("cover")
-    private void setCover(ConstantBlock block) {
-        this.cover = block.state();
-    }
-
-    @JsonSetter("top")
-    private void setTop(ConstantBlock block) {
-        this.top = block.state();
-    }
-
-    @JsonSetter("filler")
-    private void setFiller(ConstantBlock block) {
-        this.filler = block.state();
-    }
 }

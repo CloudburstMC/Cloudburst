@@ -29,14 +29,9 @@ public abstract class DefaultNoiseGenerator implements NoiseGenerator {
 
     @Override
     public NoiseSource create(@NonNull PRandom random) {
+        Preconditions.checkArgument(this.octaves >= 1, "octaves (%d) must be at least 1!", this.octaves);
         return new ScaleOctavesOffsetFilter(this.create0(random), this.scale.getX(), this.scale.getY(), this.scale.getZ(), this.octaves, this.factor, this.offset);
     }
 
     protected abstract NoiseSource create0(@NonNull PRandom random);
-
-    @JsonSetter("octaves")
-    private void setOctaves(int octaves) {
-        Preconditions.checkArgument(octaves >= 1, "octaves (%d) must be at least 1!", octaves);
-        this.octaves = octaves;
-    }
 }

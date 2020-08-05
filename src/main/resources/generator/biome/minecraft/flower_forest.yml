@@ -24,18 +24,7 @@ populators:
     on: "grass"
     replace: "air"
     roundDown: false
-    block:
-      - "yellow_flower"
-      - "red_flower"
-      - "red_flower#2"
-      - "red_flower#3"
-      - "red_flower#4"
-      - "red_flower#5"
-      - "red_flower#6"
-      - "red_flower#7"
-      - "red_flower#8"
-      - "red_flower#9"
-      - "red_flower#10"
+    block: "yellow_flower,red_flower{flower_type=*}"
 
     # Double plants
   - id: "nukkitx:double_plant"
@@ -43,9 +32,9 @@ populators:
     on: "grass"
     replace: "air"
     types:
-      - 1 # lilac
-      - 4 # rose
-      - 5 # peony
+      - syringa
+      - rose
+      - paeonia
 
     # Tall grass
   - id: "nukkitx:shrub"
