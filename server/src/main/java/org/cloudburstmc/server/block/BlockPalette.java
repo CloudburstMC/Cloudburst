@@ -6,6 +6,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.serializer.BlockSerializers;
 import org.cloudburstmc.server.block.serializer.NoopBlockSerializer;
@@ -16,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+@Log4j2
 public class BlockPalette {
     public static final BlockPalette INSTANCE = new BlockPalette();
 
@@ -25,14 +27,12 @@ public class BlockPalette {
     private final Reference2ObjectMap<BlockState, NbtMap> stateSerializedMap = new Reference2ObjectLinkedOpenHashMap<>();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
     private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
-    public final BlockState air;
-
-    private BlockPalette() {
-        this.addBlock(BlockTypes.AIR, NoopBlockSerializer.INSTANCE, new BlockTrait[0]);
-        this.air = this.getBlockState(0);
-    }
 
     public void addBlock(Identifier identifier, BlockSerializer serializer, BlockTrait<?>[] traits) {
+        if (this.defaultStateMap.containsKey(identifier))   {
+            log.warn("Duplicate block identifier: {}", identifier);
+        }
+
         List<CloudBlockState> states = getBlockPermutations(identifier, traits);
 
         Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map = new HashMap<>();
