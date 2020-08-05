@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.level.generator.GeneratorFactory;
 import org.cloudburstmc.server.level.generator.impl.FlatGenerator;
 import org.cloudburstmc.server.level.generator.impl.VoidGenerator;
+import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
@@ -67,7 +68,7 @@ public class GeneratorRegistry implements Registry {
     }
 
     private void registerVanillaStorage() throws RegistryException {
-//        this.register(StandardGenerator.ID, StandardGenerator.FACTORY, 1000);
+        this.register(StandardGenerator.ID, StandardGenerator.FACTORY, 1000);
         this.register(FlatGenerator.ID, FlatGenerator::new, 500);
         this.register(VoidGenerator.ID, VoidGenerator::new, 1);
     }

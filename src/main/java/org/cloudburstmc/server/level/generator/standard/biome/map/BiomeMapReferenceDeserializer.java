@@ -5,27 +5,27 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.google.common.base.Preconditions;
+import net.daporkchop.lib.unsafe.PUnsafe;
 import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
 import org.cloudburstmc.server.level.generator.standard.registry.StandardGeneratorRegistries;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author DaPorkchop_
  */
-final class BiomeMapDeserializer extends JsonDeserializer<BiomeMap> {
+public final class BiomeMapReferenceDeserializer extends JsonDeserializer<BiomeMap> {
     @Override
     public BiomeMap deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-        String nextName = p.nextFieldName();
-        Preconditions.checkState("id".equals(nextName), "first field must be \"id\", not \"%s\"", nextName);
-        Identifier id = Identifier.fromString(p.nextTextValue());
-        p.nextToken();
+        Identifier id = Identifier.fromString(p.getText());
 
-        try {
-            return Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.biomeMap().get(id));
-        } catch (Exception e)   {
-            throw new RuntimeException("While decoding biome map type " + id, e);
+        try (InputStream in = StandardGeneratorUtils.read("biomemap", id)) {
+            return Nukkit.YAML_MAPPER.readValue(in, BiomeMap.class);
+        } catch (IOException e) {
+            throw new RuntimeException("While decoding biome map " + id, e);
         }
     }
 }
