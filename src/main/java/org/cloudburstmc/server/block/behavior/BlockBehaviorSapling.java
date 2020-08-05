@@ -4,11 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
@@ -143,7 +139,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
         val blockState = block.getState();
 
         BlockState state = block.getLevel().getBlock(pos).getState();
-        return state.getType() == blockState.getType() && state.ensureTrait(BlockTraits.WOOD_TYPE) == blockState.ensureTrait(BlockTraits.WOOD_TYPE);
+        return state.getType() == blockState.getType() && state.ensureTrait(BlockTraits.TREE_SPECIES) == blockState.ensureTrait(BlockTraits.TREE_SPECIES);
     }
 
     @Override

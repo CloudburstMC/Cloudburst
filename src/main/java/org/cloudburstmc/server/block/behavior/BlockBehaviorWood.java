@@ -9,7 +9,7 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.WoodType;
+import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 //Block state information: https://hastebin.com/emuvawasoj.js
 public class BlockBehaviorWood extends BlockBehaviorSolid {
@@ -83,8 +83,8 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
         return placeBlock(block, item.getBlock().withTrait(BlockTraits.AXIS, face.getAxis()));
     }
 
-    public WoodType getWoodType(BlockState state) {
-        return state.ensureTrait(BlockTraits.WOOD_TYPE);
+    public TreeSpecies getWoodType(BlockState state) {
+        return state.ensureTrait(BlockTraits.TREE_SPECIES);
     }
 
     @Override

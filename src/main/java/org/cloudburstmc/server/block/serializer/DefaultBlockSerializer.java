@@ -6,6 +6,8 @@ import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 
 public class DefaultBlockSerializer implements BlockSerializer {
 
+    public static final DefaultBlockSerializer INSTANCE = new DefaultBlockSerializer();
+
     @Override
     public void serialize(NbtMapBuilder builder, BlockState state) {
         state.getTraits().forEach((trait, value) ->

@@ -34,7 +34,7 @@ public class BlockBehaviorPlanks extends BlockBehaviorSolid {
 
     @Override
     public BlockColor getColor(Block block) {
-        switch (block.getState().ensureTrait(BlockTraits.WOOD_TYPE)) {
+        switch (block.getState().ensureTrait(BlockTraits.TREE_SPECIES)) {
             default:
             case OAK:
                 return BlockColor.WOOD_BLOCK_COLOR;

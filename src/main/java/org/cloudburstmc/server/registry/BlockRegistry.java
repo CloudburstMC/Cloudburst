@@ -8,18 +8,18 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ReferenceSet;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Nukkit;
-import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.behavior.*;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
-import org.cloudburstmc.server.block.serializer.NoopBlockSerializer;
+import org.cloudburstmc.server.block.serializer.DefaultBlockSerializer;
+import org.cloudburstmc.server.block.serializer.FluidBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTrait;
+import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.item.Item;
@@ -27,7 +27,6 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.EnumMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +44,8 @@ public class BlockRegistry implements Registry {
         InputStream stream = RegistryUtils.getOrAssertResource("data/legacy_block_ids.json");
 
         try {
-            VANILLA_LEGACY_IDS = Nukkit.JSON_MAPPER.readValue(stream, new TypeReference<Map<Identifier, Integer>>() {});
+            VANILLA_LEGACY_IDS = Nukkit.JSON_MAPPER.readValue(stream, new TypeReference<Map<Identifier, Integer>>() {
+            });
         } catch (IOException e) {
             throw new AssertionError("Unable to load legacy IDs", e);
         }
@@ -62,12 +62,14 @@ public class BlockRegistry implements Registry {
     private volatile boolean closed;
     private transient NbtList<NbtMap> serializedPalette;
 
+    @SneakyThrows
     private BlockRegistry() {
+        BlockTraitSerializers.init();
         this.registerVanillaBlocks();
 
         //register vanilla legacy IDs
         VANILLA_LEGACY_IDS.forEach((id, legacyId) -> {
-            if (!this.idLegacyMap.containsKey(id))  {
+            if (!this.idLegacyMap.containsKey(id)) {
                 log.debug("Non-implemented block found: {}", id);
             }
         });
@@ -87,7 +89,7 @@ public class BlockRegistry implements Registry {
     }
 
     private void registerVanilla(Identifier id, BlockBehavior behavior, BlockTrait<?>... traits) throws RegistryException {
-        this.registerVanilla(id, behavior, NoopBlockSerializer.INSTANCE, traits);
+        this.registerVanilla(id, behavior, DefaultBlockSerializer.INSTANCE, traits);
     }
 
     private synchronized void registerVanilla(Identifier id, BlockBehavior behavior, BlockSerializer serializer,
@@ -100,7 +102,8 @@ public class BlockRegistry implements Registry {
         }
         checkClosed();
 
-        if (this.behaviorMap.putIfAbsent(id, behavior) != null) throw new RegistryException(id + " is already registered");
+        if (this.behaviorMap.putIfAbsent(id, behavior) != null)
+            throw new RegistryException(id + " is already registered");
         this.serializerMap.put(id, serializer);
 
         //this.registerVanilla(id, behavior);
@@ -225,10 +228,10 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(PLANKS, new BlockBehaviorPlanks(), BlockTraits.TREE_SPECIES); //5
         this.registerVanilla(SAPLING, new BlockBehaviorSapling(), BlockTraits.TREE_SPECIES, BlockTraits.HAS_AGE); //6
         this.registerVanilla(BEDROCK, new BlockBehaviorBedrock(), BlockTraits.HAS_INFINIBURN); //7
-        this.registerVanilla(FLOWING_WATER, new BlockBehaviorWater(), BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //8
-        this.registerVanilla(WATER, new BlockBehaviorWater(), BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //9
-        this.registerVanilla(FLOWING_LAVA, new BlockBehaviorLava(), BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //10
-        this.registerVanilla(LAVA, new BlockBehaviorLava(), BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //11
+        this.registerVanilla(FLOWING_WATER, new BlockBehaviorWater(), FluidBlockSerializer.INSTANCE, BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //8
+        this.registerVanilla(WATER, new BlockBehaviorWater(), FluidBlockSerializer.INSTANCE, BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //9
+        this.registerVanilla(FLOWING_LAVA, new BlockBehaviorLava(), FluidBlockSerializer.INSTANCE, BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //10
+        this.registerVanilla(LAVA, new BlockBehaviorLava(), FluidBlockSerializer.INSTANCE, BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL); //11
         this.registerVanilla(SAND, new BlockBehaviorSand(), BlockTraits.SAND_TYPE); //12
         this.registerVanilla(GRAVEL, new BlockBehaviorGravel()); //13
         this.registerVanilla(GOLD_ORE, new BlockBehaviorOreGold()); //14
@@ -240,7 +243,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(GLASS, new BlockBehaviorGlass()); //20
         this.registerVanilla(LAPIS_ORE, new BlockBehaviorOreLapis()); //21
         this.registerVanilla(LAPIS_BLOCK, new BlockBehaviorLapis()); //22
-        this.registerVanilla(DISPENSER, new BlockBehaviorDispenser(), BlockTraits.IS_TRIGGERED, BlockTraits.DIRECTION); //23
+        this.registerVanilla(DISPENSER, new BlockBehaviorDispenser(), BlockTraits.IS_TRIGGERED, BlockTraits.FACING_DIRECTION); //23
         this.registerVanilla(SANDSTONE, new BlockBehaviorSandstone(), BlockTraits.SAND_STONE_TYPE); //24
         this.registerVanilla(NOTEBLOCK, new BlockBehaviorNoteblock()); //25
         this.registerVanilla(BED, new BlockBehaviorBed(), BlockTraits.IS_OCCUPIED, BlockTraits.IS_HEAD_PIECE, BlockTraits.DIRECTION); //26
@@ -285,7 +288,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(RAIL, new BlockBehaviorRail(RAIL, BlockTraits.RAIL_DIRECTION), BlockTraits.RAIL_DIRECTION); //66
         this.registerVanilla(STONE_STAIRS, new BlockBehaviorStairsCobblestone(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //67
         this.registerVanilla(WALL_SIGN, new BlockBehaviorWallSign(), BlockTraits.FACING_DIRECTION); //68
-        this.registerVanilla(LEVER, new BlockBehaviorLever(), BlockTraits.FACING_DIRECTION, BlockTraits.IS_OPEN); //69
+        this.registerVanilla(LEVER, new BlockBehaviorLever(), BlockTraits.LEVER_DIRECTION, BlockTraits.IS_OPEN); //69
         this.registerVanilla(STONE_PRESSURE_PLATE, new BlockBehaviorPressurePlateStone(), BlockTraits.REDSTONE_SIGNAL); //70
         this.registerVanilla(IRON_DOOR, new BlockBehaviorDoorIron(), BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK); //71
         this.registerVanilla(WOODEN_PRESSURE_PLATE, new BlockBehaviorPressurePlateWood(), BlockTraits.REDSTONE_SIGNAL); //72
@@ -344,15 +347,15 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(DROPPER, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_TRIGGERED);
         this.registerVanilla(ACTIVATOR_RAIL, new BlockBehaviorRailActivator(), BlockTraits.IS_POWERED, BlockTraits.SIMPLE_RAIL_DIRECTION); //126
         this.registerVanilla(COCOA, new BlockBehaviorCocoa(), BlockTraits.COCOA_AGE, BlockTraits.DIRECTION); //127
-        this.registerVanilla(SANDSTONE_STAIRS, new BlockBehaviorStairsSandstone()); //128
+        this.registerVanilla(SANDSTONE_STAIRS, new BlockBehaviorStairsSandstone(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //128
         this.registerVanilla(EMERALD_ORE, new BlockBehaviorOreEmerald()); //129
         this.registerVanilla(ENDER_CHEST, new BlockBehaviorEnderChest(), BlockTraits.FACING_DIRECTION); //130
         this.registerVanilla(TRIPWIRE_HOOK, new BlockBehaviorTripWireHook(), BlockTraits.DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_POWERED); //131
         this.registerVanilla(TRIPWIRE, new BlockBehaviorTripWire(), BlockTraits.IS_POWERED, BlockTraits.IS_ATTACHED, BlockTraits.IS_DISARMED); //132
         this.registerVanilla(EMERALD_BLOCK, new BlockBehaviorEmerald()); //133
-//        this.registerVanilla(SPRUCE_STAIRS, new BlockBehaviorStairsWood()); //134
-//        this.registerVanilla(BIRCH_STAIRS, new BlockBehaviorStairsWood()); //135
-//        this.registerVanilla(JUNGLE_STAIRS, new BlockBehaviorStairsWood()); //136
+        this.registerVanilla(SPRUCE_STAIRS, new BlockBehaviorStairsWood(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //134
+        this.registerVanilla(BIRCH_STAIRS, new BlockBehaviorStairsWood(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //135
+        this.registerVanilla(JUNGLE_STAIRS, new BlockBehaviorStairsWood(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //136
         this.registerVanilla(COMMAND_BLOCK, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_CONDITIONAL);
         this.registerVanilla(BEACON, new BlockBehaviorBeacon()); //138
         this.registerVanilla(COBBLESTONE_WALL, new BlockBehaviorWall(), BlockTraits.WALL_BLOCK_TYPE, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //139
@@ -371,16 +374,16 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(REDSTONE_BLOCK, new BlockBehaviorRedstone()); //152
         this.registerVanilla(QUARTZ_ORE, new BlockBehaviorOreQuartz()); //153
         this.registerVanilla(HOPPER, new BlockBehaviorHopper(), BlockTraits.FACING_DIRECTION, BlockTraits.IS_TOGGLED); //154
-        this.registerVanilla(QUARTZ_BLOCK, new BlockBehaviorQuartz()); //155
-        this.registerVanilla(QUARTZ_STAIRS, new BlockBehaviorStairsQuartz()); //156
+        this.registerVanilla(QUARTZ_BLOCK, new BlockBehaviorQuartz(), BlockTraits.AXIS, BlockTraits.CHISEL_TYPE); //155
+        this.registerVanilla(QUARTZ_STAIRS, new BlockBehaviorStairsQuartz(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //156
         this.registerVanilla(DOUBLE_WOODEN_SLAB, new BlockBehaviorDoubleSlabWood(), BlockTraits.TREE_SPECIES, BlockTraits.IS_TOP_SLOT); //157
         this.registerVanilla(WOODEN_SLAB, new BlockBehaviorSlabWood(), BlockTraits.TREE_SPECIES, BlockTraits.IS_TOP_SLOT); //158
         this.registerVanilla(STAINED_HARDENED_CLAY, new BlockBehaviorTerracottaStained(), BlockTraits.COLOR); //159
         this.registerVanilla(STAINED_GLASS_PANE, new BlockBehaviorGlassPaneStained(), BlockTraits.COLOR); //160
-//        this.registerVanilla(LEAVES2, new BlockBehaviorLeaves2()); //161
-//        this.registerVanilla(LOG2, new BlockBehaviorLog2()); //162
-//        this.registerVanilla(ACACIA_STAIRS, new BlockBehaviorStairsWood()); //163
-//        this.registerVanilla(DARK_OAK_STAIRS, new BlockBehaviorStairsWood()); //164
+        this.registerVanilla(LEAVES2, new BlockBehaviorLeaves(), BlockTraits.TREE_SPECIES, BlockTraits.IS_PERSISTENT, BlockTraits.HAS_UPDATE); //161
+        this.registerVanilla(LOG2, new BlockBehaviorLog2(), BlockTraits.TREE_SPECIES, BlockTraits.AXIS); //162
+        this.registerVanilla(ACACIA_STAIRS, new BlockBehaviorStairsWood(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //163
+        this.registerVanilla(DARK_OAK_STAIRS, new BlockBehaviorStairsWood(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //164
         this.registerVanilla(SLIME, new BlockBehaviorSlime()); //165
         //166: glow_stick
         this.registerVanilla(IRON_TRAPDOOR, new BlockBehaviorTrapdoorIron(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN); //167
@@ -396,9 +399,9 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(WALL_BANNER, new BlockBehaviorWallBanner(), BlockTraits.FACING_DIRECTION); //177
         this.registerVanilla(DAYLIGHT_DETECTOR_INVERTED, new BlockBehaviorDaylightDetectorInverted(), BlockTraits.REDSTONE_SIGNAL); //178
         this.registerVanilla(RED_SANDSTONE, new BlockBehaviorRedSandstone(), BlockTraits.SAND_STONE_TYPE); //179
-        this.registerVanilla(RED_SANDSTONE_STAIRS, new BlockBehaviorStairsRedSandstone()); //180
-//        this.registerVanilla(DOUBLE_STONE_SLAB2, BlockBehaviorDoubleSlab.factory(STONE_SLAB2, BlockBehaviorSlab.COLORS_2)); //181
-//        this.registerVanilla(STONE_SLAB2, BlockBehaviorSlab.factory(DOUBLE_STONE_SLAB2, BlockBehaviorSlab.COLORS_2)); //182
+        this.registerVanilla(RED_SANDSTONE_STAIRS, new BlockBehaviorStairsRedSandstone(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //180
+        this.registerVanilla(DOUBLE_STONE_SLAB2, new BlockBehaviorDoubleSlab(STONE_SLAB2, BlockTraits.STONE_SLAB_TYPE), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //181
+        this.registerVanilla(STONE_SLAB2, new BlockBehaviorSlab(STONE_SLAB, DOUBLE_STONE_SLAB), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //182
         this.registerVanilla(SPRUCE_FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL); //183
         this.registerVanilla(BIRCH_FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL); //184
         this.registerVanilla(JUNGLE_FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL); //185
@@ -516,13 +519,13 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(TURTLE_EGG, NoopBlockBehavior.INSTANCE, BlockTraits.CRACKED_STATE, BlockTraits.TURTLE_EGG_COUNT);
         this.registerVanilla(BUBBLE_COLUMN, NoopBlockBehavior.INSTANCE, BlockTraits.HAS_DRAG_DOWN);
         this.registerVanilla(BARRIER, new BlockBehaviorBarrier()); //415
-//        this.registerVanilla(STONE_SLAB3, BlockBehaviorSlab.factory(DOUBLE_STONE_SLAB3, BlockBehaviorSlab.COLORS_3)); //416
-        this.registerVanilla(BAMBOO, NoopBlockBehavior.INSTANCE, BlockTraits.BAMBOO_LEAF_SIZE, BlockTraits.BAMBOO_STALK_THICKNESS);
+        this.registerVanilla(STONE_SLAB3, new BlockBehaviorSlab(STONE_SLAB3, DOUBLE_STONE_SLAB3), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //416
+        this.registerVanilla(BAMBOO, NoopBlockBehavior.INSTANCE, BlockTraits.BAMBOO_LEAF_SIZE, BlockTraits.BAMBOO_STALK_THICKNESS, BlockTraits.HAS_AGE);
         this.registerVanilla(BAMBOO_SAPLING, NoopBlockBehavior.INSTANCE, BlockTraits.TREE_SPECIES, BlockTraits.HAS_AGE);
         this.registerVanilla(SCAFFOLDING, NoopBlockBehavior.INSTANCE, BlockTraits.STABILITY, BlockTraits.HAS_STABILITY_CHECK);
-//        this.registerVanilla(STONE_SLAB4, BlockBehaviorSlab.factory(DOUBLE_STONE_SLAB4, BlockBehaviorSlab.COLORS_4)); //420
-//        this.registerVanilla(DOUBLE_STONE_SLAB3, BlockBehaviorDoubleSlab.factory(STONE_SLAB3, BlockBehaviorSlab.COLORS_3)); //421
-//        this.registerVanilla(DOUBLE_STONE_SLAB4, BlockBehaviorDoubleSlab.factory(DOUBLE_STONE_SLAB4, BlockBehaviorSlab.COLORS_4)); //422
+        this.registerVanilla(STONE_SLAB4, new BlockBehaviorSlab(STONE_SLAB4, DOUBLE_STONE_SLAB4), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //420
+        this.registerVanilla(DOUBLE_STONE_SLAB3, new BlockBehaviorDoubleSlab(STONE_SLAB4, BlockTraits.STONE_SLAB_TYPE), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //421
+        this.registerVanilla(DOUBLE_STONE_SLAB4, new BlockBehaviorDoubleSlab(STONE_SLAB, BlockTraits.STONE_SLAB_TYPE), BlockTraits.IS_TOP_SLOT, BlockTraits.STONE_SLAB_TYPE); //422
         this.registerVanilla(GRANITE_STAIRS, new BlockBehaviorStairsGranite(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //423
         this.registerVanilla(DIORITE_STAIRS, new BlockBehaviorStairsDiorite(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //424
         this.registerVanilla(ANDESITE_STAIRS, new BlockBehaviorStairsAndesite(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //425
@@ -562,18 +565,98 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(BELL, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.ATTACHMENT, BlockTraits.IS_TOGGLED);
         this.registerVanilla(SWEET_BERRY_BUSH, NoopBlockBehavior.INSTANCE, BlockTraits.GROWTH);
         this.registerVanilla(LANTERN, NoopBlockBehavior.INSTANCE, BlockTraits.IS_HANGING);
-        this.registerVanilla(CAMPFIRE, new BlockBehaviorCampfire(), BlockTraits.DIRECTION, BlockTraits.IS_EXTINGUISHED); //462
-        this.registerVanilla(LAVA_CAULDRON, NoopBlockBehavior.INSTANCE, BlockTraits.FILL_LEVEL, BlockTraits.FLUID_TYPE);
-        this.registerVanilla(JIGSAW, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.DIRECTION);
-        this.registerVanilla(WOOD, new BlockBehaviorWood(), BlockTraits.TREE_SPECIES, BlockTraits.IS_STRIPPED); //465
-        this.registerVanilla(COMPOSTER, NoopBlockBehavior.INSTANCE, BlockTraits.COMPOSTER_FILL_LEVEL);
-        this.registerVanilla(LIT_BLAST_FURNACE, new BlockBehaviorFurnaceBurning(BlockEntityTypes.BLAST_FURNACE), BlockTraits.FACING_DIRECTION); //467
-        this.registerVanilla(LIGHT_BLOCK, new BlockBehaviorLight(), BlockTraits.LIGHT_LEVEL); //468
-        this.registerVanilla(WITHER_ROSE, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(STICKY_PISTON_ARM_COLLISION, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION);
-        this.registerVanilla(BEE_NEST, NoopBlockBehavior.INSTANCE, BlockTraits.HONEY_LEVEL, BlockTraits.DIRECTION);
-        this.registerVanilla(BEEHIVE, NoopBlockBehavior.INSTANCE, BlockTraits.HONEY_LEVEL, BlockTraits.DIRECTION);
-        this.registerVanilla(HONEY_BLOCK, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(HONEYCOMB_BLOCK, new BlockHoneycombBlockBehavior()); //474
+        this.registerVanilla(CAMPFIRE, new BlockBehaviorCampfire(), BlockTraits.DIRECTION, BlockTraits.IS_EXTINGUISHED);//464
+        this.registerVanilla(LAVA_CAULDRON, NoopBlockBehavior.INSTANCE, BlockTraits.FILL_LEVEL, BlockTraits.FLUID_TYPE);//465
+        this.registerVanilla(JIGSAW, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.DIRECTION);//466
+        this.registerVanilla(WOOD, new BlockBehaviorWood(), BlockTraits.TREE_SPECIES, BlockTraits.IS_STRIPPED, BlockTraits.AXIS); //467
+        this.registerVanilla(COMPOSTER, NoopBlockBehavior.INSTANCE, BlockTraits.COMPOSTER_FILL_LEVEL);//468
+        this.registerVanilla(LIT_BLAST_FURNACE, new BlockBehaviorFurnaceBurning(BlockEntityTypes.BLAST_FURNACE), BlockTraits.FACING_DIRECTION);//469
+        this.registerVanilla(LIGHT_BLOCK, new BlockBehaviorLight(), BlockTraits.LIGHT_LEVEL);//470
+        this.registerVanilla(WITHER_ROSE, NoopBlockBehavior.INSTANCE);//471
+        this.registerVanilla(STICKY_PISTON_ARM_COLLISION, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION);//472
+        this.registerVanilla(BEE_NEST, NoopBlockBehavior.INSTANCE, BlockTraits.HONEY_LEVEL, BlockTraits.DIRECTION);//473
+        this.registerVanilla(BEEHIVE, NoopBlockBehavior.INSTANCE, BlockTraits.HONEY_LEVEL, BlockTraits.DIRECTION);//474
+        this.registerVanilla(HONEY_BLOCK, NoopBlockBehavior.INSTANCE);//475
+        this.registerVanilla(HONEYCOMB_BLOCK, new BlockHoneycombBlockBehavior()); //476
+        this.registerVanilla(CRIMSON_ROOTS, NoopBlockBehavior.INSTANCE);//477
+        this.registerVanilla(WARPED_ROOTS, NoopBlockBehavior.INSTANCE);//478
+        this.registerVanilla(CRIMSON_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//479
+        this.registerVanilla(WARPED_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//480
+        this.registerVanilla(WARPED_WART_BLOCK, NoopBlockBehavior.INSTANCE);//481
+        this.registerVanilla(CRIMSON_FUNGUS, NoopBlockBehavior.INSTANCE);//482
+        this.registerVanilla(WARPED_FUNGUS, NoopBlockBehavior.INSTANCE);//483
+        this.registerVanilla(SHROOMLIGHT, NoopBlockBehavior.INSTANCE);//484
+        this.registerVanilla(WEEPING_VINES, NoopBlockBehavior.INSTANCE, BlockTraits.WEEPING_VINES_AGE);//485
+        this.registerVanilla(CRIMSON_NYLIUM, NoopBlockBehavior.INSTANCE);//486
+        this.registerVanilla(WARPED_NYLIUM, NoopBlockBehavior.INSTANCE);//487
+        this.registerVanilla(BASALT, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//490
+        this.registerVanilla(POLISHED_BASALT, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//590
+        this.registerVanilla(SOUL_SOIL, NoopBlockBehavior.INSTANCE);//491
+        this.registerVanilla(SOUL_FIRE, NoopBlockBehavior.INSTANCE, BlockTraits.AGE);//492
+        this.registerVanilla(NETHER_SPROUTS, NoopBlockBehavior.INSTANCE);//493
+        this.registerVanilla(TARGET, NoopBlockBehavior.INSTANCE);//494
+        this.registerVanilla(STRIPPED_CRIMSON_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//496
+        this.registerVanilla(STRIPPED_WARPED_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//497
+        this.registerVanilla(CRIMSON_PLANKS, NoopBlockBehavior.INSTANCE);//498
+        this.registerVanilla(WARPED_PLANKS, NoopBlockBehavior.INSTANCE);//499
+        this.registerVanilla(CRIMSON_DOOR, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK);//499
+        this.registerVanilla(WARPED_DOOR, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK);//500
+        this.registerVanilla(CRIMSON_TRAPDOOR, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN);//502
+        this.registerVanilla(WARPED_TRAPDOOR, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN);//503
+        this.registerVanilla(CRIMSON_STANDING_SIGN, NoopBlockBehavior.INSTANCE, BlockTraits.CARDINAL_DIRECTION);//505
+        this.registerVanilla(WARPED_STANDING_SIGN, NoopBlockBehavior.INSTANCE, BlockTraits.CARDINAL_DIRECTION);//506
+        this.registerVanilla(CRIMSON_WALL_SIGN, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION);//507
+        this.registerVanilla(WARPED_WALL_SIGN, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION);//508
+        this.registerVanilla(CRIMSON_STAIRS, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//509
+        this.registerVanilla(WARPED_STAIRS, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//510
+        this.registerVanilla(CRIMSON_FENCE, NoopBlockBehavior.INSTANCE);//511
+        this.registerVanilla(WARPED_FENCE, NoopBlockBehavior.INSTANCE);//512
+        this.registerVanilla(CRIMSON_FENCE_GATE, NoopBlockBehavior.INSTANCE, BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL);//513
+        this.registerVanilla(WARPED_FENCE_GATE, NoopBlockBehavior.INSTANCE, BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL);//514
+        this.registerVanilla(CRIMSON_BUTTON, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED);//515
+        this.registerVanilla(WARPED_BUTTON, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED);//516
+        this.registerVanilla(CRIMSON_PRESSURE_PLATE, new BlockBehaviorPressurePlateWood(), BlockTraits.REDSTONE_SIGNAL);//517
+        this.registerVanilla(WARPED_PRESSURE_PLATE, new BlockBehaviorPressurePlateWood(), BlockTraits.REDSTONE_SIGNAL);//518
+        this.registerVanilla(CRIMSON_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//519
+        this.registerVanilla(WARPED_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//520
+        this.registerVanilla(CRIMSON_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//521
+        this.registerVanilla(WARPED_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//522
+        this.registerVanilla(SOUL_TORCH, NoopBlockBehavior.INSTANCE, BlockTraits.TORCH_DIRECTION);//523
+        this.registerVanilla(SOUL_LANTERN, NoopBlockBehavior.INSTANCE, BlockTraits.IS_HANGING);//524
+        this.registerVanilla(NETHERITE_BLOCK, NoopBlockBehavior.INSTANCE);//525
+        this.registerVanilla(ANCIENT_DEBRIS, NoopBlockBehavior.INSTANCE);//526
+        this.registerVanilla(RESPAWN_ANCHOR, NoopBlockBehavior.INSTANCE, BlockTraits.RESPAWN_ANCHOR_CHARGE);//527
+        this.registerVanilla(BLACKSTONE, NoopBlockBehavior.INSTANCE);//528
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICKS, NoopBlockBehavior.INSTANCE);//529
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_STAIRS, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//530
+        this.registerVanilla(BLACKSTONE_STAIRS, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//531
+        this.registerVanilla(BLACKSTONE_WALL, new BlockBehaviorWall(), BlockTraits.WALL_BLOCK_TYPE, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //532
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_WALL, new BlockBehaviorWall(), BlockTraits.WALL_BLOCK_TYPE, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //533
+        this.registerVanilla(CHISELED_POLISHED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//534
+        this.registerVanilla(CRACKED_POLISHED_BLACKSTONE_BRICKS, NoopBlockBehavior.INSTANCE);//535
+        this.registerVanilla(GILDED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//536
+        this.registerVanilla(BLACKSTONE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//537
+        this.registerVanilla(BLACKSTONE_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//538
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//539
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//540
+        this.registerVanilla(CHAIN, NoopBlockBehavior.INSTANCE);//541
+        this.registerVanilla(TWISTING_VINES, NoopBlockBehavior.INSTANCE, BlockTraits.TWISTING_VINES_AGE);//542
+        this.registerVanilla(NETHER_GOLD_ORE, NoopBlockBehavior.INSTANCE);//543
+        this.registerVanilla(CRYING_OBSIDIAN, NoopBlockBehavior.INSTANCE);//544
+        this.registerVanilla(SOUL_CAMPFIRE, NoopBlockBehavior.INSTANCE);//545
+        this.registerVanilla(POLISHED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//546
+        this.registerVanilla(POLISHED_BLACKSTONE_STAIRS, new BlockBehaviorStairsStone(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//547
+        this.registerVanilla(POLISHED_BLACKSTONE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//548
+        this.registerVanilla(POLISHED_BLACKSTONE_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//549
+        this.registerVanilla(POLISHED_BLACKSTONE_PRESSURE_PLATE, new BlockBehaviorPressurePlateWood(), BlockTraits.REDSTONE_SIGNAL);//550
+        this.registerVanilla(POLISHED_BLACKSTONE_BUTTON, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED); //551
+        this.registerVanilla(POLISHED_BLACKSTONE_WALL, new BlockBehaviorWall(), BlockTraits.WALL_BLOCK_TYPE, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //552
+        this.registerVanilla(WARPED_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS); //553
+        this.registerVanilla(CRIMSON_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//554
+        this.registerVanilla(STRIPPED_CRIMSON_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//555
+        this.registerVanilla(STRIPPED_WARPED_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//556
+        this.registerVanilla(CHISELED_NETHER_BRICKS, NoopBlockBehavior.INSTANCE);//557
+        this.registerVanilla(CRACKED_NETHER_BRICKS, NoopBlockBehavior.INSTANCE);//558
+        this.registerVanilla(QUARTZ_BRICKS, NoopBlockBehavior.INSTANCE);//559
     }
 }
