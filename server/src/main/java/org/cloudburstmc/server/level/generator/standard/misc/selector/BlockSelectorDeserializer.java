@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.misc.selector;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
@@ -11,6 +12,7 @@ import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PValidation;
@@ -32,10 +34,36 @@ import java.util.stream.Stream;
 final class BlockSelectorDeserializer extends JsonDeserializer<BlockSelector> {
     @Override
     public BlockSelector deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-        BlockSelector selector = Nukkit.YAML_MAPPER.readValue(p, MultiBlockSelector.class);
-        if (selector.size() == 1)   {
-            return new ConstantBlock(selector.get(0));
+        BlockSelector.Entry[] entries = Arrays.stream(Nukkit.YAML_MAPPER.readValue(p, String[].class))
+                .flatMap(value -> Arrays.stream(value.split(",")))
+                .map(TempEntry::new)
+                .flatMap(TempEntry::flatten)
+                .toArray(BlockSelector.Entry[]::new);
+        if (entries.length == 1)   {
+            return new ConstantBlock(entries[0].state());
         }
-        return selector;
+        return new MultiBlockSelector(entries);
+    }
+
+    @JsonDeserialize
+    private static final class TempEntry {
+        private static final Ref<Matcher> ENTRY_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("^(?:(\\d+)\\*)?(.+)$"));
+
+        private final BlockState[] states;
+        private final int weight;
+
+        @JsonCreator
+        public TempEntry(String value) {
+            Matcher matcher = ENTRY_MATCHER_CACHE.get().reset(value);
+
+            Preconditions.checkArgument(matcher.find(), "invalid input: \"%s\"", value);
+
+            this.states = StandardGeneratorUtils.parseStateWildcard(matcher.group(2)).toArray(BlockState[]::new);
+            this.weight = matcher.group(1) == null ? 1 : PValidation.ensurePositive(Integer.parseUnsignedInt(matcher.group(1)));
+        }
+
+        public Stream<BlockSelector.Entry> flatten()    {
+            return Arrays.stream(this.states).map(state -> new MultiBlockSelector.SelectionEntry(state, this.weight));
+        }
     }
 }

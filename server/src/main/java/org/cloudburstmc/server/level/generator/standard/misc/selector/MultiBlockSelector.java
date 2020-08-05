@@ -30,23 +30,10 @@ import java.util.stream.Stream;
  *
  * @author DaPorkchop_
  */
-@JsonDeserialize
 public final class MultiBlockSelector implements BlockSelector {
     protected final BlockState[] states;
     protected final BlockState[] statesWeighted;
     protected final Entry[] entries;
-
-    @JsonCreator
-    public MultiBlockSelector(String value) {
-        this(Arrays.stream(value.split(","))
-                .map(SelectionEntry::new)
-                .toArray(Entry[]::new));
-    }
-
-    @JsonCreator
-    public MultiBlockSelector(SelectionEntry[] entries) { //dummy constructor to allow jackson deserialization
-        this((Entry[]) entries);
-    }
 
     public MultiBlockSelector(@NonNull Entry[] entries) {
         this.entries = Arrays.stream(entries).map(SelectionEntry::new).toArray(Entry[]::new);
@@ -98,12 +85,9 @@ public final class MultiBlockSelector implements BlockSelector {
         return Arrays.stream(this.entries);
     }
 
-    @JsonDeserialize
     @Getter
     @Accessors(fluent = true)
     public static final class SelectionEntry implements Entry {
-        private static final Ref<Matcher> ENTRY_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("^(?:(\\d+)\\*)?(.+)$"));
-
         private final BlockState state;
         private final int weight;
 
@@ -112,25 +96,8 @@ public final class MultiBlockSelector implements BlockSelector {
             this.weight = PValidation.ensurePositive(weight);
         }
 
-        @JsonCreator
-        public SelectionEntry(
-                @JsonProperty(value = "block", required = true) ConstantBlock block,
-                @JsonProperty(value = "weight", required = true) @JsonAlias({"count", "size"}) int weight) {
-            this(block.state(), weight);
-        }
-
-        public SelectionEntry(Entry entry) {
+        public SelectionEntry(@NonNull Entry entry) {
             this(entry.state(), entry.weight());
-        }
-
-        @JsonCreator
-        public SelectionEntry(String value) {
-            Matcher matcher = ENTRY_MATCHER_CACHE.get().reset(value);
-
-            Preconditions.checkArgument(matcher.find(), "invalid input: \"%s\"", value);
-
-            this.state = StandardGeneratorUtils.parseState(matcher.group(2));
-            this.weight = matcher.group(1) == null ? 1 : PValidation.ensurePositive(Integer.parseUnsignedInt(matcher.group(1)));
         }
     }
 }

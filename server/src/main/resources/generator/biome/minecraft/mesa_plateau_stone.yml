@@ -17,10 +17,10 @@ decorators:
       - id: "nukkitx:replace_top"
         height: "86-255"
         replace:
-          - "stained_hardened_clay" # white
-          - "stained_hardened_clay#1" # orange
-          - "stained_hardened_clay#4" # yellow
-          - "stained_hardened_clay#8" # light gray
-          - "stained_hardened_clay#12" # brown
-          - "stained_hardened_clay#14" # red
+          - "stained_hardened_clay{color=white}"
+          - "stained_hardened_clay{color=orange}"
+          - "stained_hardened_clay{color=yellow}"
+          - "stained_hardened_clay{color=light_gray}"
+          - "stained_hardened_clay{color=brown}"
+          - "stained_hardened_clay{color=red}"
         block: "hardened_clay"

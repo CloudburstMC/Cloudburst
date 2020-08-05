@@ -83,9 +83,4 @@ public class DeepSurfaceDecorator extends SurfaceDecorator {
     public Identifier getId() {
         return ID;
     }
-
-    @JsonSetter("deep")
-    private void setDeep(ConstantBlock block) {
-        this.deep = block.state();
-    }
 }

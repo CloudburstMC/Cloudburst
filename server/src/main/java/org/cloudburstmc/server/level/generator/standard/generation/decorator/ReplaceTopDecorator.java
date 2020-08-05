@@ -52,9 +52,4 @@ public class ReplaceTopDecorator implements Decorator {
     public Identifier getId() {
         return ID;
     }
-
-    @JsonSetter("block")
-    private void setBlock(ConstantBlock block) {
-        this.block = block.state();
-    }
 }
