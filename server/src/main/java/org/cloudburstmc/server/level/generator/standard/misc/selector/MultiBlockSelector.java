@@ -102,7 +102,7 @@ public final class MultiBlockSelector implements BlockSelector {
     @Getter
     @Accessors(fluent = true)
     public static final class SelectionEntry implements Entry {
-        private static final Ref<Matcher> ENTRY_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("^(?:(\\d+)\\*)(.+)$"));
+        private static final Ref<Matcher> ENTRY_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("^(?:(\\d+)\\*)?(.+)$"));
 
         private final BlockState state;
         private final int weight;
@@ -126,6 +126,8 @@ public final class MultiBlockSelector implements BlockSelector {
         @JsonCreator
         public SelectionEntry(String value) {
             Matcher matcher = ENTRY_MATCHER_CACHE.get().reset(value);
+
+            Preconditions.checkArgument(matcher.find(), "invalid input: \"%s\"", value);
 
             this.state = StandardGeneratorUtils.parseState(matcher.group(2));
             this.weight = matcher.group(1) == null ? 1 : PValidation.ensurePositive(Integer.parseUnsignedInt(matcher.group(1)));

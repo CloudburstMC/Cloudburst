@@ -819,7 +819,7 @@ public class Level implements ChunkManager, Metadatable {
         for (int i = 0; i < packets.length; i += 2) {
             boolean first = !optimizeRebuilds;
 
-            Block block = blocks[i];
+            Block block = blocks[i >> 1];
             int chunkX = block.getChunk().getX();
             int chunkZ = block.getChunk().getZ();
 

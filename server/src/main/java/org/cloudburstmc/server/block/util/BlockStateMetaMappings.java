@@ -29,27 +29,35 @@ public class BlockStateMetaMappings {
     private final Reference2IntMap<BlockState> state2meta = new Reference2IntOpenHashMap<>();
     private final Reference2ObjectMap<Identifier, Int2ReferenceMap<BlockState>> meta2state = new Reference2ObjectOpenHashMap<>();
 
+    static {
+        init();
+    }
+
     @SuppressWarnings("rawtypes")
     @SneakyThrows
     public void init() {
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, List<Map<String, Comparable>>> data = mapper.readValue(
-                BlockStateMetaMappings.class.getClassLoader().getResourceAsStream("legacy_block_data_map.json"),
-                new TypeReference<Map<String, List<Map<String, Comparable>>>>() {
+        Map<String, List<Map<String, String>>> data = mapper.readValue(
+                BlockStateMetaMappings.class.getClassLoader().getResourceAsStream("data/legacy_block_data_map.json"),
+                new TypeReference<Map<String, List<Map<String, String>>>>() {
                 });
 
         data.forEach((name, states) -> {
             Identifier type = Identifier.fromString(name);
             BlockState defaultState = BlockPalette.INSTANCE.getDefaultState(type);
+            if (defaultState == null) {
+                log.warn("unregistered block: {}", type);
+                return;
+            }
 
             Int2ReferenceMap<BlockState> mapping = new Int2ReferenceOpenHashMap<>();
             meta2state.put(type, mapping);
 
             for (int i = 0; i < states.size(); i++) {
-                Map<String, Comparable> traits = states.get(i);
+                Map<String, String> traits = states.get(i);
                 BlockState state = defaultState;
 
-                for (Entry<String, Comparable> entry : traits.entrySet()) {
+                for (Entry<String, String> entry : traits.entrySet()) {
                     String key = entry.getKey();
 
                     BlockTrait trait = BlockTraits.fromVanilla(key);
@@ -57,9 +65,12 @@ public class BlockStateMetaMappings {
                     if (trait == null) {
                         log.warn("Unknown trait {}", key);
                         return;
+                    } else if (state.getTrait(trait) == null)   {
+                        log.warn("trait {} is unknown for block {}", key, type);
+                        return;
                     }
 
-                    state = state.withTrait(trait, entry.getValue());
+                    state = state.withTrait(trait, trait.parseValue(entry.getValue()));
                 }
 
                 state2meta.put(state, i);

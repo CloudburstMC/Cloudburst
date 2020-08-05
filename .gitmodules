@@ -7,3 +7,6 @@
 [submodule "src/main/resources/locale/vanilla"]
 	path = server/src/main/resources/locale/vanilla
 	url = https://github.com/NukkitX/Language/
+[submodule "src/main/resources/data"]
+	path = server/src/main/resources/data
+	url = https://github.com/CloudburstMC/Data.git

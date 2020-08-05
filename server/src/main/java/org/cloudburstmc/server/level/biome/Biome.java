@@ -24,7 +24,7 @@ public class Biome {
     public static final NoiseSource TEMPERATURE_NOISE = new PerlinNoiseEngine(new FastPRandom(123456789L));
 
     static {
-        InputStream inputStream = Nukkit.class.getClassLoader().getResourceAsStream("biome_definitions.dat");
+        InputStream inputStream = Nukkit.class.getClassLoader().getResourceAsStream("data/biome_definitions.dat");
         if (inputStream == null) {
             throw new AssertionError("Could not find biome_definitions.dat");
         }

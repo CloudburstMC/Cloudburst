@@ -58,7 +58,7 @@ public class EntityRegistry implements Registry {
             throw new AssertionError("Unable to load legacy entity names", e);
         }
 
-        try (InputStream stream = RegistryUtils.getOrAssertResource("entity_identifiers.dat");
+        try (InputStream stream = RegistryUtils.getOrAssertResource("data/entity_identifiers.dat");
              NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
             NbtMap tag = (NbtMap) nbtInputStream.readTag();
             VANILLA_ENTITIES = tag.getList("idlist", NbtType.COMPOUND);
