@@ -13,6 +13,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class DirectionSerializer implements TraitSerializer<Direction> {
 
+    static {
+        DirectionHelper.init();
+    }
+
     @Override
     public Comparable<?> serialize(NbtMapBuilder builder, BlockState state, Direction direction) {
         return DirectionHelper.serialize(builder, state);

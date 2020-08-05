@@ -14,7 +14,7 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.WoodType;
+import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -51,7 +51,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(BlockState.get(LEAVES).copyTrait(BlockTraits.WOOD_TYPE, block.getState()));
+        return Item.get(BlockState.get(LEAVES).copyTrait(BlockTraits.TREE_SPECIES, block.getState()));
     }
 
     @Override
@@ -72,7 +72,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
                     return new Item[]{
                             Item.get(STICK, 0, ThreadLocalRandom.current().nextInt(1, 2))
                     };
-                } else if (state.ensureTrait(BlockTraits.WOOD_TYPE) != WoodType.JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
+                } else if (state.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
                     return new Item[]{
                             this.getSapling(state)
                     };
@@ -134,12 +134,12 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     }
 
     protected boolean canDropApple(BlockState state) {
-        val type = state.ensureTrait(BlockTraits.WOOD_TYPE);
-        return type == WoodType.OAK || type == WoodType.DARK_OAK;
+        val type = state.ensureTrait(BlockTraits.TREE_SPECIES);
+        return type == TreeSpecies.OAK || type == TreeSpecies.DARK_OAK;
     }
 
     protected Item getSapling(BlockState state) {
-        return Item.get(BlockState.get(SAPLING).copyTrait(BlockTraits.WOOD_TYPE, state));
+        return Item.get(BlockState.get(SAPLING).copyTrait(BlockTraits.TREE_SPECIES, state));
     }
 
     @Override

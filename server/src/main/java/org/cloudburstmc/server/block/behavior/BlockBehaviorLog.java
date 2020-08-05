@@ -14,22 +14,22 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
-import org.cloudburstmc.server.utils.data.WoodType;
+import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.EnumMap;
 import java.util.Map;
 
 public class BlockBehaviorLog extends BlockBehaviorSolid {
 
-    protected static final Map<WoodType, Identifier> STRIPPED_MAP = new EnumMap<>(WoodType.class);
+    protected static final Map<TreeSpecies, Identifier> STRIPPED_MAP = new EnumMap<>(TreeSpecies.class);
 
     static {
-        STRIPPED_MAP.put(WoodType.OAK, BlockTypes.STRIPPED_OAK_LOG);
-        STRIPPED_MAP.put(WoodType.SPRUCE, BlockTypes.STRIPPED_SPRUCE_LOG);
-        STRIPPED_MAP.put(WoodType.BIRCH, BlockTypes.STRIPPED_BIRCH_LOG);
-        STRIPPED_MAP.put(WoodType.JUNGLE, BlockTypes.STRIPPED_JUNGLE_LOG);
-        STRIPPED_MAP.put(WoodType.ACACIA, BlockTypes.STRIPPED_ACACIA_LOG);
-        STRIPPED_MAP.put(WoodType.DARK_OAK, BlockTypes.STRIPPED_DARK_OAK_LOG);
+        STRIPPED_MAP.put(TreeSpecies.OAK, BlockTypes.STRIPPED_OAK_LOG);
+        STRIPPED_MAP.put(TreeSpecies.SPRUCE, BlockTypes.STRIPPED_SPRUCE_LOG);
+        STRIPPED_MAP.put(TreeSpecies.BIRCH, BlockTypes.STRIPPED_BIRCH_LOG);
+        STRIPPED_MAP.put(TreeSpecies.JUNGLE, BlockTypes.STRIPPED_JUNGLE_LOG);
+        STRIPPED_MAP.put(TreeSpecies.ACACIA, BlockTypes.STRIPPED_ACACIA_LOG);
+        STRIPPED_MAP.put(TreeSpecies.DARK_OAK, BlockTypes.STRIPPED_DARK_OAK_LOG);
     }
 
     protected Identifier identifier = BlockTypes.LOG;
@@ -73,7 +73,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
         }
 
         val state = block.getState();
-        val stripped = STRIPPED_MAP.get(state.ensureTrait(BlockTraits.WOOD_TYPE));
+        val stripped = STRIPPED_MAP.get(state.ensureTrait(BlockTraits.TREE_SPECIES));
         block.set(BlockState.get(stripped).copyTrait(BlockTraits.AXIS, state), true);
         return true;
     }
@@ -96,7 +96,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     @Override
     public BlockColor getColor(Block block) {
-        switch (block.getState().ensureTrait(BlockTraits.WOOD_TYPE)) {
+        switch (block.getState().ensureTrait(BlockTraits.TREE_SPECIES)) {
             default:
             case OAK:
                 return BlockColor.WOOD_BLOCK_COLOR;

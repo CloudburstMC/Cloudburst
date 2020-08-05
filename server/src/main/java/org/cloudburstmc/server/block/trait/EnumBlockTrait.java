@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.HashSet;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -32,7 +31,12 @@ public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
 
     @SafeVarargs
     public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, E... possibleValues) {
-        return of(name, enumClass, ImmutableSet.copyOf(possibleValues), possibleValues[0]);
+        return of(name, null, enumClass, possibleValues);
+    }
+
+    @SafeVarargs
+    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, @Nullable String vanillaName, Class<E> enumClass, E... possibleValues) {
+        return of(name, vanillaName, enumClass, ImmutableSet.copyOf(possibleValues), possibleValues[0]);
     }
 
     public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, E defaultValue) {
