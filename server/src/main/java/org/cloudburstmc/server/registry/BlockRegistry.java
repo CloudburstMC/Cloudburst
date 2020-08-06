@@ -431,7 +431,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(MAGMA, new BlockBehaviorMagma()); //213
         this.registerVanilla(NETHER_WART_BLOCK, new BlockNetherWartBlockBehavior()); //214
         this.registerVanilla(RED_NETHER_BRICK, new BlockBehaviorBricksRedNether()); //215
-        this.registerVanilla(BONE_BLOCK, new BlockBehaviorBone(), BlockTraits.AXIS); //216
+        this.registerVanilla(BONE_BLOCK, new BlockBehaviorBone(), BlockTraits.AXIS, BlockTraits.DEPRECATED); //216
         this.registerVanilla(STRUCTURE_VOID, NoopBlockBehavior.INSTANCE, BlockTraits.STRUCTURE_VOID_TYPE);
         this.registerVanilla(SHULKER_BOX, new BlockBehaviorShulkerBox(), BlockTraits.COLOR); //218
         this.registerVanilla(PURPLE_GLAZED_TERRACOTTA, new BlockBehaviorTerracottaGlazed(), BlockTraits.FACING_DIRECTION); //219
@@ -580,7 +580,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(CRIMSON_ROOTS, NoopBlockBehavior.INSTANCE);//478
         this.registerVanilla(WARPED_ROOTS, NoopBlockBehavior.INSTANCE);//478
         this.registerVanilla(CRIMSON_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//479
-        this.registerVanilla(WARPED_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//480
+        this.registerVanilla(WARPED_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS, BlockTraits.DEPRECATED);//480
         this.registerVanilla(WARPED_WART_BLOCK, NoopBlockBehavior.INSTANCE);//481
         this.registerVanilla(CRIMSON_FUNGUS, NoopBlockBehavior.INSTANCE);//482
         this.registerVanilla(WARPED_FUNGUS, NoopBlockBehavior.INSTANCE);//483
@@ -594,8 +594,8 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(SOUL_FIRE, NoopBlockBehavior.INSTANCE, BlockTraits.AGE);//492
         this.registerVanilla(NETHER_SPROUTS, NoopBlockBehavior.INSTANCE);//493
         this.registerVanilla(TARGET, NoopBlockBehavior.INSTANCE);//494
-        this.registerVanilla(STRIPPED_CRIMSON_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//496
-        this.registerVanilla(STRIPPED_WARPED_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//497
+        this.registerVanilla(STRIPPED_CRIMSON_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS, BlockTraits.DEPRECATED);//496
+        this.registerVanilla(STRIPPED_WARPED_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS, BlockTraits.DEPRECATED);//497
         this.registerVanilla(CRIMSON_PLANKS, NoopBlockBehavior.INSTANCE);//498
         this.registerVanilla(WARPED_PLANKS, NoopBlockBehavior.INSTANCE);//499
         this.registerVanilla(CRIMSON_DOOR, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK);//499
@@ -652,8 +652,8 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(POLISHED_BLACKSTONE_WALL, new BlockBehaviorWall(), BlockTraits.WALL_BLOCK_TYPE, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //552
         this.registerVanilla(WARPED_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS); //553
         this.registerVanilla(CRIMSON_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//554
-        this.registerVanilla(STRIPPED_CRIMSON_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//555
-        this.registerVanilla(STRIPPED_WARPED_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//556
+        this.registerVanilla(STRIPPED_CRIMSON_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS, BlockTraits.DEPRECATED);//555
+        this.registerVanilla(STRIPPED_WARPED_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS, BlockTraits.DEPRECATED);//556
         this.registerVanilla(CHISELED_NETHER_BRICKS, NoopBlockBehavior.INSTANCE);//557
         this.registerVanilla(CRACKED_NETHER_BRICKS, NoopBlockBehavior.INSTANCE);//558
         this.registerVanilla(QUARTZ_BRICKS, NoopBlockBehavior.INSTANCE);//559
