@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -152,6 +153,10 @@ public class ItemRegistry implements Registry {
             }
         }
         return runtimeId;
+    }
+
+    public ImmutableList<Identifier> getItems() {
+        return ImmutableList.copyOf(this.runtimeIdMap.values());
     }
 
     @Override
