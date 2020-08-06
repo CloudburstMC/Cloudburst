@@ -79,7 +79,7 @@ public class BlockRegistry implements Registry {
     }
 
     public synchronized void register(Identifier id, BlockBehavior behavior) throws RegistryException {
-        registerVanilla(id, behavior, null);
+        registerVanilla(id, behavior);
 
         // generate legacy ID (Not sure why we need to but it's a requirement)
         int legacyId = this.customIdAllocator.getAndIncrement();
@@ -427,7 +427,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(END_GATEWAY, new BlockBehaviorEndGateway()); //209
         this.registerVanilla(ALLOW, NoopBlockBehavior.INSTANCE); //210
         this.registerVanilla(DENY, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(BORDER_BLOCK, NoopBlockBehavior.INSTANCE, BlockTraits.WALL_BLOCK_TYPE, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST);
+        this.registerVanilla(BORDER_BLOCK, NoopBlockBehavior.INSTANCE, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST);
         this.registerVanilla(MAGMA, new BlockBehaviorMagma()); //213
         this.registerVanilla(NETHER_WART_BLOCK, new BlockNetherWartBlockBehavior()); //214
         this.registerVanilla(RED_NETHER_BRICK, new BlockBehaviorBricksRedNether()); //215
