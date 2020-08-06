@@ -49,6 +49,8 @@ public abstract class BlockTrait<E extends Comparable<E>> {
 
     public abstract E parseValue(String text);
 
+    public abstract E parseStorageValue(Object value);
+
     @Override
     public String toString() {
         return this.name;

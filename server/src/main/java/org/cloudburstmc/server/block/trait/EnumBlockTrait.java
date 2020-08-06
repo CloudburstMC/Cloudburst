@@ -72,4 +72,13 @@ public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
     public E parseValue(String text) {
         return this.getPossibleValues().stream().filter(e -> e.name().equalsIgnoreCase(text)).findAny().orElse(this.defaultValue);
     }
+
+    @Override
+    public E parseStorageValue(Object value) {
+        if (value instanceof String) {
+            return parseValue((String) value);
+        }
+
+        return this.valueClass.getEnumConstants()[(int) value];
+    }
 }

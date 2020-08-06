@@ -43,7 +43,17 @@ public class DirectionHelper {
     private void registerDefaultMappings() {
         register(TYPE_1,
                 END_PORTAL_FRAME,
-                BELL
+                //TODO: check below
+                BELL,
+                CHEMISTRY_TABLE,
+                GRINDSTONE,
+                CAMPFIRE,
+                SOUL_CAMPFIRE,
+                CORAL_FAN_HANG,
+                CORAL_FAN_HANG2,
+                CORAL_FAN_HANG3,
+                LECTERN,
+                LOOM
         );
 
         register(TYPE_2,
@@ -53,6 +63,7 @@ public class DirectionHelper {
                 ACACIA_FENCE_GATE,
                 NETHER_BRICK_FENCE,
                 BIRCH_FENCE_GATE,
+                SPRUCE_FENCE_GATE,
                 DARK_OAK_FENCE_GATE,
                 JUNGLE_FENCE_GATE,
                 CRIMSON_FENCE_GATE,
@@ -72,7 +83,9 @@ public class DirectionHelper {
                 IRON_DOOR,
                 JUNGLE_DOOR,
                 SPRUCE_DOOR,
-                WOODEN_DOOR
+                WOODEN_DOOR,
+                CRIMSON_DOOR,
+                WARPED_DOOR
         );
 
         register(TYPE_4,
