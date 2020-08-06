@@ -79,7 +79,7 @@ public class BlockRegistry implements Registry {
     }
 
     public synchronized void register(Identifier id, BlockBehavior behavior) throws RegistryException {
-        registerVanilla(id, behavior, null);
+        registerVanilla(id, behavior);
 
         // generate legacy ID (Not sure why we need to but it's a requirement)
         int legacyId = this.customIdAllocator.getAndIncrement();
