@@ -66,4 +66,9 @@ public final class IntegerBlockTrait extends BlockTrait<Integer> {
     public Integer parseValue(String text) {
         return Integer.parseInt(text);
     }
+
+    @Override
+    public Integer parseStorageValue(Object value) {
+        return (int) value;
+    }
 }

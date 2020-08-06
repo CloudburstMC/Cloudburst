@@ -132,7 +132,7 @@ public class BlockStorage {
                     state = BlockState.get(id);
                     for (Map.Entry<String, Object> entry : states.entrySet())   {
                         BlockTrait trait = BlockTraits.fromVanilla(entry.getKey());
-                        state = state.withTrait(trait, trait.parseValue((String) entry.getValue()));
+                        state = state.withTrait(trait, trait.parseStorageValue(entry.getValue()));
                     }
                 } else {
                     state = BlockStateMetaMappings.getStateFromMeta(id, tag.getShort("val"));

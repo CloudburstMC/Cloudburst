@@ -53,4 +53,9 @@ public class BooleanBlockTrait extends BlockTrait<Boolean> {
     public Boolean parseValue(String text) {
         return Boolean.parseBoolean(text);
     }
+
+    @Override
+    public Boolean parseStorageValue(Object value) {
+        return (byte) value == 1;
+    }
 }

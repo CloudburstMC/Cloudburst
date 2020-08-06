@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.block.trait.serializer;
 
 import com.nukkitx.nbt.NbtMapBuilder;
+import lombok.val;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.serializer.DirectionHelper;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
@@ -26,6 +28,12 @@ public class DirectionSerializer implements TraitSerializer<Direction> {
     public String getName(BlockState state, BlockTrait<?> blockTrait) {
         if (state.inCategory(BlockCategory.STAIRS)) {
             return "weirdo_direction";
+        }
+
+        val type = state.getType();
+
+        if (type == BlockTypes.CORAL_FAN_HANG || type == BlockTypes.CORAL_FAN_HANG2 || type == BlockTypes.CORAL_FAN_HANG3) {
+            return "coral_direction";
         }
 
         return null;
