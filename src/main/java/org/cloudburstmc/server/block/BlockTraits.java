@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block;
 
+import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.experimental.UtilityClass;
@@ -86,7 +87,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_WEST = EnumBlockTrait.of("wall_connection_west", "wall_connection_type_west", WallConnectionType.class);
     public static final IntegerBlockTrait WEEPING_VINES_AGE = IntegerBlockTrait.from("weeping_vines_age", 26);
 
-    public static final EnumBlockTrait<Axis> AXIS = EnumBlockTrait.of("axis", "pillar_axis", Axis.class);
+    public static final EnumBlockTrait<Axis> AXIS = EnumBlockTrait.of("axis", "pillar_axis", Axis.class, ImmutableSet.copyOf(Axis.values()), Axis.Y);
     public static final EnumBlockTrait<Direction.Axis> PORTAL_AXIS = EnumBlockTrait.of("portal_axis", Direction.Axis.class,
             Direction.Axis.Y, //TODO: this was null
             Direction.Axis.X, Direction.Axis.Z);
