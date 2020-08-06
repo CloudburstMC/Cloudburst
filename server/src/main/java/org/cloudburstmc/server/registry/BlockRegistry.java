@@ -629,8 +629,8 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(POLISHED_BLACKSTONE_BRICKS, NoopBlockBehavior.INSTANCE);//529
         this.registerVanilla(POLISHED_BLACKSTONE_BRICK_STAIRS, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//530
         this.registerVanilla(BLACKSTONE_STAIRS, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//531
-        this.registerVanilla(BLACKSTONE_WALL, new BlockBehaviorWall(), BlockTraits.WALL_BLOCK_TYPE, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //532
-        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_WALL, new BlockBehaviorWall(), BlockTraits.WALL_BLOCK_TYPE, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //533
+        this.registerVanilla(BLACKSTONE_WALL, new BlockBehaviorWall(), BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //532
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_WALL, new BlockBehaviorWall(), BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //533
         this.registerVanilla(CHISELED_POLISHED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//534
         this.registerVanilla(CRACKED_POLISHED_BLACKSTONE_BRICKS, NoopBlockBehavior.INSTANCE);//535
         this.registerVanilla(GILDED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//536
@@ -649,7 +649,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(POLISHED_BLACKSTONE_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//549
         this.registerVanilla(POLISHED_BLACKSTONE_PRESSURE_PLATE, new BlockBehaviorPressurePlateWood(), BlockTraits.REDSTONE_SIGNAL);//550
         this.registerVanilla(POLISHED_BLACKSTONE_BUTTON, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED); //551
-        this.registerVanilla(POLISHED_BLACKSTONE_WALL, new BlockBehaviorWall(), BlockTraits.WALL_BLOCK_TYPE, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //552
+        this.registerVanilla(POLISHED_BLACKSTONE_WALL, new BlockBehaviorWall(), BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //552
         this.registerVanilla(WARPED_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS); //553
         this.registerVanilla(CRIMSON_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//554
         this.registerVanilla(STRIPPED_CRIMSON_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS, BlockTraits.DEPRECATED);//555
