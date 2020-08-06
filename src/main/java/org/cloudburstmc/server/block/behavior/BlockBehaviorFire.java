@@ -1,9 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
+import lombok.val;
 import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.projectile.EntityArrow;
 import org.cloudburstmc.server.event.block.BlockBurnEvent;
@@ -15,8 +14,8 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.gamerule.GameRules;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -41,17 +40,17 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean canBeReplaced() {
+    public boolean canBeReplaced(Block block) {
         return true;
     }
 
     @Override
     public void onEntityCollide(Block block, Entity entity) {
         if (!entity.hasEffect(Effect.FIRE_RESISTANCE)) {
-            entity.attack(new EntityDamageByBlockEvent(this, entity, EntityDamageEvent.DamageCause.FIRE, 1));
+            entity.attack(new EntityDamageByBlockEvent(block, entity, EntityDamageEvent.DamageCause.FIRE, 1));
         }
 
-        EntityCombustByBlockEvent ev = new EntityCombustByBlockEvent(this, entity, 8);
+        EntityCombustByBlockEvent ev = new EntityCombustByBlockEvent(block, entity, 8);
         if (entity instanceof EntityArrow) {
             ev.setCancelled();
         }
@@ -68,111 +67,116 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
+        val level = block.getLevel();
+        val position = block.getPosition();
+
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_RANDOM) {
-            if (!this.isBlockTopFacingSurfaceSolid(this.down()) && !this.canNeighborBurn()) {
-                BlockFadeEvent event = new BlockFadeEvent(this, BlockState.AIR);
+            if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.down().getState()) && !BlockBehaviorFire.canNeighborBurn(block)) {
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockStates.AIR);
                 level.getServer().getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
-                    level.setBlock(this.getPosition(), event.getNewState(), true);
+                    level.setBlock(position, event.getNewState(), true);
                 }
             }
 
             return Level.BLOCK_UPDATE_NORMAL;
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED && this.level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
-            boolean forever = this.down().getId() == BlockTypes.NETHERRACK || this.down().getId() == BlockTypes.MAGMA;
+        } else if (type == Level.BLOCK_UPDATE_SCHEDULED && level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
+            val down = block.down().getState();
+            boolean forever = down.getType() == BlockTypes.NETHERRACK || down.getType() == BlockTypes.MAGMA;
 
             ThreadLocalRandom random = ThreadLocalRandom.current();
 
             //TODO: END
 
-            if (!this.isBlockTopFacingSurfaceSolid(this.down()) && !this.canNeighborBurn()) {
-                BlockFadeEvent event = new BlockFadeEvent(this, get(BlockTypes.AIR));
+            if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(down) && !BlockBehaviorFire.canNeighborBurn(block)) {
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
                 level.getServer().getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
-                    level.setBlock(this.getPosition(), event.getNewState(), true);
+                    level.setBlock(position, event.getNewState(), true);
                 }
             }
 
-            if (!forever && this.getLevel().isRaining() &&
-                    (this.getLevel().canBlockSeeSky(this.getPosition()) ||
-                            this.getLevel().canBlockSeeSky(this.getPosition().east()) ||
-                            this.getLevel().canBlockSeeSky(this.getPosition().west()) ||
-                            this.getLevel().canBlockSeeSky(this.getPosition().south()) ||
-                            this.getLevel().canBlockSeeSky(this.getPosition().north()))
+            if (!forever && level.isRaining() &&
+                    (level.canBlockSeeSky(position) ||
+                            level.canBlockSeeSky(position.east()) ||
+                            level.canBlockSeeSky(position.west()) ||
+                            level.canBlockSeeSky(position.south()) ||
+                            level.canBlockSeeSky(position.north()))
             ) {
-                BlockFadeEvent event = new BlockFadeEvent(this, get(BlockTypes.AIR));
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
                 level.getServer().getPluginManager().callEvent(event);
                 if (!event.isCancelled()) {
-                    level.setBlock(this.getPosition(), event.getNewState(), true);
+                    block.set(event.getNewState(), true);
                 }
             } else {
-                int meta = this.getMeta();
+                val state = block.getState();
+                int age = state.ensureTrait(BlockTraits.AGE);
 
-                if (meta < 15) {
-                    int newMeta = meta + random.nextInt(3);
-                    this.setMeta(Math.min(newMeta, 15));
-                    this.getLevel().setBlock(this.getPosition(), this, true);
+                if (age < 15) {
+                    int newAge = age + random.nextInt(3);
+                    block.set(state.withTrait(BlockTraits.AGE, Math.min(newAge, 15)));
                 }
 
-                this.getLevel().scheduleUpdate(this, this.tickRate() + random.nextInt(10));
+                level.scheduleUpdate(block, this.tickRate() + random.nextInt(10));
 
-                if (!forever && !this.canNeighborBurn()) {
-                    if (!this.isBlockTopFacingSurfaceSolid(this.down()) || meta > 3) {
-                        BlockFadeEvent event = new BlockFadeEvent(this, get(BlockTypes.AIR));
+                if (!forever && !BlockBehaviorFire.canNeighborBurn(block)) {
+                    if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(down) || age > 3) {
+                        BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
                         level.getServer().getPluginManager().callEvent(event);
                         if (!event.isCancelled()) {
-                            level.setBlock(this.getPosition(), event.getNewState(), true);
+                            level.setBlock(position, event.getNewState(), true);
                         }
                     }
-                } else if (!forever && !(this.down().getBurnAbility() > 0) && meta == 15 && random.nextInt(4) == 0) {
-                    BlockFadeEvent event = new BlockFadeEvent(this, get(BlockTypes.AIR));
+                } else if (!forever && !(down.getBehavior().getBurnAbility() > 0) && age == 15 && random.nextInt(4) == 0) {
+                    BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
                     level.getServer().getPluginManager().callEvent(event);
                     if (!event.isCancelled()) {
-                        level.setBlock(this.getPosition(), event.getNewState(), true);
+                        level.setBlock(position, event.getNewState(), true);
                     }
                 } else {
                     int o = 0;
 
                     //TODO: decrease the o if the rainfall values are high
 
-                    this.tryToCatchBlockOnFire(this.east(), 300 + o, meta);
-                    this.tryToCatchBlockOnFire(this.west(), 300 + o, meta);
-                    this.tryToCatchBlockOnFire(this.down(), 250 + o, meta);
-                    this.tryToCatchBlockOnFire(this.up(), 250 + o, meta);
-                    this.tryToCatchBlockOnFire(this.south(), 300 + o, meta);
-                    this.tryToCatchBlockOnFire(this.north(), 300 + o, meta);
+                    for (Direction direction : Plane.HORIZONTAL) {
+                        this.tryToCatchBlockOnFire(block, block.getSide(direction), 300 + o, age);
+                    }
 
-                    for (int x = (int) (this.getX() - 1); x <= (int) (this.getX() + 1); ++x) {
-                        for (int z = (int) (this.getZ() - 1); z <= (int) (this.getZ() + 1); ++z) {
-                            for (int y = (int) (this.getY() - 1); y <= (int) (this.getY() + 4); ++y) {
-                                if (x != (int) this.getX() || y != (int) this.getY() || z != (int) this.getZ()) {
+                    for (Direction direction : Plane.VERTICAL) {
+                        this.tryToCatchBlockOnFire(block, block.getSide(direction), 250 + o, age);
+                    }
+
+                    for (int x = block.getX() - 1; x <= (block.getX() + 1); ++x) {
+                        for (int z = block.getZ() - 1; z <= (block.getZ() + 1); ++z) {
+                            for (int y = block.getY() - 1; y <= (block.getY() + 4); ++y) {
+                                if (x != block.getX() || y != block.getY() || z != block.getZ()) {
                                     int k = 100;
 
-                                    if (y > this.getY() + 1) {
-                                        k += (y - (this.getY() + 1)) * 100;
+                                    if (y > block.getY() + 1) {
+                                        k += (y - (block.getY() + 1)) * 100;
                                     }
 
-                                    BlockState blockState = this.getLevel().getBlock(x, y, z);
+                                    val blockState = level.getBlock(x, y, z);
                                     int chance = this.getChanceOfNeighborsEncouragingFire(blockState);
 
                                     if (chance > 0) {
-                                        int t = (chance + 40 + this.getLevel().getServer().getDifficulty().ordinal() * 7) / (meta + 30);
+                                        int t = (chance + 40 + level.getServer().getDifficulty().ordinal() * 7) / (age + 30);
 
                                         //TODO: decrease the t if the rainfall values are high
 
                                         if (t > 0 && random.nextInt(k) <= t) {
-                                            int damage = meta + random.nextInt(5) / 4;
+                                            int age_ = age + random.nextInt(5) / 4;
 
-                                            if (damage > 15) {
-                                                damage = 15;
+                                            if (age_ > 15) {
+                                                age_ = 15;
                                             }
 
-                                            BlockIgniteEvent e = new BlockIgniteEvent(blockState, this, null, BlockIgniteEvent.BlockIgniteCause.SPREAD);
-                                            this.level.getServer().getPluginManager().callEvent(e);
+                                            BlockIgniteEvent e = new BlockIgniteEvent(blockState, block, null, BlockIgniteEvent.BlockIgniteCause.SPREAD);
+                                            level.getServer().getPluginManager().callEvent(e);
 
                                             if (!e.isCancelled()) {
-                                                this.getLevel().setBlock(blockState.getPosition(), BlockState.get(BlockTypes.FIRE, damage), true);
-                                                this.getLevel().scheduleUpdate(blockState, this.tickRate());
+                                                blockState.set(BlockState.get(BlockTypes.FIRE).withTrait(BlockTraits.AGE, age_));
+                                                level.scheduleUpdate(blockState, this.tickRate());
                                             }
                                         }
                                     }
@@ -187,8 +191,11 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         return 0;
     }
 
-    private void tryToCatchBlockOnFire(BlockState blockState, int bound, int damage) {
-        int burnAbility = blockState.getBurnAbility();
+    private void tryToCatchBlockOnFire(Block fire, Block block, int bound, int damage) {
+        val state = block.getState();
+        val behavior = state.getBehavior();
+
+        int burnAbility = behavior.getBurnAbility();
 
         Random random = ThreadLocalRandom.current();
 
@@ -201,46 +208,46 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                     meta = 15;
                 }
 
-                BlockIgniteEvent e = new BlockIgniteEvent(blockState, this, null, BlockIgniteEvent.BlockIgniteCause.SPREAD);
-                this.level.getServer().getPluginManager().callEvent(e);
+                BlockIgniteEvent e = new BlockIgniteEvent(block, fire, null, BlockIgniteEvent.BlockIgniteCause.SPREAD);
+                block.getLevel().getServer().getPluginManager().callEvent(e);
 
                 if (!e.isCancelled()) {
-                    this.getLevel().setBlock(blockState.getPosition(), BlockState.get(BlockTypes.FIRE, meta), true);
-                    this.getLevel().scheduleUpdate(blockState, this.tickRate());
+                    block.set(BlockState.get(BlockTypes.FIRE).withTrait(BlockTraits.AGE, meta), true);
+                    block.getLevel().scheduleUpdate(block, this.tickRate());
                 }
             } else {
-                BlockBurnEvent ev = new BlockBurnEvent(blockState);
-                this.getLevel().getServer().getPluginManager().callEvent(ev);
+                BlockBurnEvent ev = new BlockBurnEvent(block);
+                block.getLevel().getServer().getPluginManager().callEvent(ev);
 
                 if (!ev.isCancelled()) {
-                    this.getLevel().setBlock(blockState.getPosition(), BlockState.AIR, true);
+                    removeBlock(block, true);
                 }
             }
 
-            if (blockState instanceof BlockBehaviorTNT) {
-                ((BlockBehaviorTNT) blockState).prime();
+            if (state.getType() == BlockTypes.TNT && behavior instanceof BlockBehaviorTNT) {
+                ((BlockBehaviorTNT) behavior).prime(block);
             }
         }
     }
 
-    private int getChanceOfNeighborsEncouragingFire(BlockState blockState) {
-        if (blockState.getId() != BlockTypes.AIR) {
+    private int getChanceOfNeighborsEncouragingFire(Block block) {
+        val state = block.getState();
+        if (state.getType() != BlockTypes.AIR) {
             return 0;
         } else {
             int chance = 0;
-            chance = Math.max(chance, blockState.east().getBurnChance());
-            chance = Math.max(chance, blockState.west().getBurnChance());
-            chance = Math.max(chance, blockState.down().getBurnChance());
-            chance = Math.max(chance, blockState.up().getBurnChance());
-            chance = Math.max(chance, blockState.south().getBurnChance());
-            chance = Math.max(chance, blockState.north().getBurnChance());
+
+            for (Direction direction : Direction.values()) {
+                chance = Math.max(chance, block.getSide(direction).getState().getBehavior().getBurnChance());
+            }
+
             return chance;
         }
     }
 
-    public boolean canNeighborBurn() {
+    public static boolean canNeighborBurn(Block block) {
         for (Direction face : Direction.values()) {
-            if (this.getSide(face).getBurnChance() > 0) {
+            if (block.getSide(face).getState().getBehavior().getBurnChance() > 0) {
                 return true;
             }
         }
@@ -248,24 +255,16 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         return false;
     }
 
-    public boolean isBlockTopFacingSurfaceSolid(BlockState blockState) {
-        if (blockState != null) {
-            if (blockState.isSolid()) {
-                return true;
-            } else {
-                if (blockState instanceof BlockBehaviorStairs &&
-                        (blockState.getMeta() & 4) == 4) {
-
-                    return true;
-                } else if (blockState instanceof BlockBehaviorSlab &&
-                        (blockState.getMeta() & 8) == 8) {
-
-                    return true;
-                } else if (blockState instanceof BlockBehaviorSnowLayer &&
-                        (blockState.getMeta() & 7) == 7) {
-
-                    return true;
-                }
+    public static boolean isBlockTopFacingSurfaceSolid(BlockState state) {
+        if (state.inCategory(BlockCategory.SOLID)) {
+            return true;
+        } else {
+            if (state.inCategory(BlockCategory.STAIRS)) {
+                return state.ensureTrait(BlockTraits.IS_UPSIDE_DOWN);
+            } else if (state.inCategory(BlockCategory.SLAB)) {
+                return state.ensureTrait(BlockTraits.IS_TOP_SLOT);
+            } else if (state.getType() == BlockTypes.SNOW_LAYER) {
+                return state.ensureTrait(BlockTraits.HEIGHT) == 7;
             }
         }
 
@@ -280,11 +279,6 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.LAVA_BLOCK_COLOR;
-    }
-
-    @Override
-    protected AxisAlignedBB recalculateCollisionBoundingBox() {
-        return this;
     }
 
     @Override

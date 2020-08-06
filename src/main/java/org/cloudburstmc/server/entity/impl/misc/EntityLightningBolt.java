@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.entity.impl.misc;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import lombok.val;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
@@ -44,20 +46,21 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
         this.liveTime = ThreadLocalRandom.current().nextInt(3) + 1;
 
         if (isEffect && this.level.getGameRules().get(GameRules.DO_FIRE_TICK) && (this.server.getDifficulty().ordinal() >= 2)) {
-            BlockState blockState = this.getLevel().getBlock(this.getPosition());
-            if (blockState.getId() == AIR || blockState.getId() == TALL_GRASS) {
-                BlockBehaviorFire fire = (BlockBehaviorFire) BlockState.get(BlockTypes.FIRE);
-                fire.setPosition(blockState.getPosition());
-                fire.setLevel(this.level);
-                this.getLevel().setBlock(fire.getPosition(), fire, true);
-                if (fire.isBlockTopFacingSurfaceSolid(fire.down()) || fire.canNeighborBurn()) {
+            Block block = this.getLevel().getBlock(this.getPosition());
+            val state = block.getState();
 
-                    BlockIgniteEvent e = new BlockIgniteEvent(blockState, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
+            if (state.getType() == AIR || state.getType() == TALL_GRASS) {
+
+                if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
+
+                    BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
                     getServer().getPluginManager().callEvent(e);
 
                     if (!e.isCancelled()) {
-                        level.setBlock(fire.getPosition(), fire, true);
-                        level.scheduleUpdate(fire, fire.tickRate() + ThreadLocalRandom.current().nextInt(10));
+                        val fire = BlockState.get(BlockTypes.FIRE);
+                        block.set(fire);
+
+                        level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
                     }
                 }
             }
@@ -113,16 +116,18 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                 this.state = 1;
 
                 if (this.isEffect && this.level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
-                    BlockState blockState = this.getLevel().getBlock(this.getPosition());
+                    Block block = this.getLevel().getBlock(this.getPosition());
+                    val state = block.getState();
 
-                    if (blockState.getId() == AIR || blockState.getId() == TALL_GRASS) {
-                        BlockIgniteEvent e = new BlockIgniteEvent(blockState, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
+                    if (state.getType() == AIR || state.getType() == TALL_GRASS) {
+                        BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
                         getServer().getPluginManager().callEvent(e);
 
                         if (!e.isCancelled()) {
                             BlockState fire = BlockState.get(BlockTypes.FIRE);
-                            this.level.setBlock(blockState.getPosition(), fire);
-                            this.getLevel().scheduleUpdate(fire, fire.tickRate());
+                            block.set(fire);
+
+                            this.getLevel().scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate());
                         }
                     }
                 }

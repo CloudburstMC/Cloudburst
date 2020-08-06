@@ -1,9 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
@@ -13,7 +14,6 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
-import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -24,17 +24,6 @@ import static org.cloudburstmc.server.block.BlockTypes.WEB;
 import static org.cloudburstmc.server.block.BlockTypes.WOOL;
 
 public abstract class BlockBehavior {
-
-    protected final Identifier type;
-
-    //TODO: remove
-    public BlockBehavior() {
-        this(null);
-    }
-
-    public BlockBehavior(Identifier type) {
-        this.type = type;
-    }
 
     //http://minecraft.gamepedia.com/Breaking
     private static float breakTime0(float blockHardness, boolean correctTool, boolean canHarvestWithHand,
@@ -126,7 +115,7 @@ public abstract class BlockBehavior {
         return true;
     }
 
-    public boolean canBeReplaced() {
+    public boolean canBeReplaced(Block block) {
         return false;
     }
 
@@ -136,6 +125,10 @@ public abstract class BlockBehavior {
 
     public boolean isSolid() {
         return true;
+    }
+
+    public boolean isLiquid()   {
+        return false;
     }
 
     public int getFilterLevel() {
@@ -151,7 +144,7 @@ public abstract class BlockBehavior {
         return 1;
     }
 
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return false;
     }
 
@@ -188,20 +181,50 @@ public abstract class BlockBehavior {
     }
 
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return block.getLevel().setBlock(block.getPosition(), item.getBlock(), true, true);
+        return placeBlock(block, item);
+    }
+
+    protected boolean placeBlock(Block block, Item item) {
+        return placeBlock(block, item, true);
+    }
+
+    protected boolean placeBlock(Block block, Item item, boolean update) {
+        return placeBlock(block, item.getBlock(), update);
+    }
+
+    protected boolean placeBlock(Block block, BlockState newState) {
+        return placeBlock(block, newState, true);
+    }
+
+    protected boolean placeBlock(Block block, BlockState newState, boolean update) {
+        BlockBehavior behavior = block.getState().getBehavior();
+        if (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging()) {
+            BlockState state = block.getState();
+            boolean flowing = state.ensureTrait(BlockTraits.IS_FLOWING) || state.ensureTrait(BlockTraits.FLUID_LEVEL) != 0;
+
+            if (!flowing && canWaterlogSource() || flowing && canWaterlogFlowing()) {
+                block.set(block.getState(), 1, true, false);
+            }
+        }
+
+        return block.getLevel().setBlock(block.getPosition(), newState, true, update);
     }
 
     public boolean onBreak(Block block, Item item) {
         return removeBlock(block, true);
     }
 
+    final protected boolean removeBlock(Block block) {
+        return removeBlock(block, true);
+    }
+
     final protected boolean removeBlock(Block block, boolean update) {
         if (block.isWaterlogged()) {
-            Block water = block.getLevel().getBlock(block.getPosition(), 1);
-            block.getLevel().setBlock(block.getPosition(), water.getState(), true, false);
+            BlockState water = block.getExtra();
+            block.getLevel().setBlock(block.getPosition(), water, true, false);
         }
 
-        return block.getLevel().setBlock(block.getPosition(), BlockState.AIR, true, update);
+        return block.getLevel().setBlock(block.getPosition(), BlockStates.AIR, true, update);
     }
 
     public boolean onBreak(Block block, Item item, Player player) {
@@ -224,7 +247,7 @@ public abstract class BlockBehavior {
         return 0.6f;
     }
 
-    public Vector3f addVelocityToEntity(Entity entity, Vector3f vector) {
+    public Vector3f addVelocityToEntity(Block block, Vector3f vector, Entity entity) {
         return vector;
     }
 
@@ -328,7 +351,7 @@ public abstract class BlockBehavior {
     }
 
     public boolean collidesWithBB(Block block, AxisAlignedBB bb, boolean collisionBB) {
-        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block) : this.getBoundingBox(block);
+        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block) : this.getBoundingBox();
         return bb1 != null && bb.intersectsWith(bb1);
     }
 
@@ -336,13 +359,14 @@ public abstract class BlockBehavior {
 
     }
 
-    public AxisAlignedBB getBoundingBox(Block block) {
-        Vector3i pos = block.getPosition();
-        return new SimpleAxisAlignedBB(pos, pos.add(1, 1, 1));
+    public AxisAlignedBB getBoundingBox() {
+//        Vector3i pos = block.getPosition();
+//        return new SimpleAxisAlignedBB(pos, pos.add(1, 1, 1));
+        return new SimpleAxisAlignedBB(0, 0, 0, 1, 1, 1);
     }
 
     public AxisAlignedBB getCollisionBoxes(Block block) {
-        return getBoundingBox(block);
+        return getBoundingBox();
     }
 
     public String getSaveId() {
@@ -350,15 +374,15 @@ public abstract class BlockBehavior {
         return name.substring(16);
     }
 
-    public int getWeakPower(Direction face) {
+    public int getWeakPower(Block block, Direction face) {
         return 0;
     }
 
-    public int getStrongPower(Direction side) {
+    public int getStrongPower(Block block, Direction side) {
         return 0;
     }
 
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return false;
     }
 
@@ -366,8 +390,8 @@ public abstract class BlockBehavior {
         return 0;
     }
 
-    public boolean isNormalBlock() {
-        return !isTransparent() && isSolid() && !isPowerSource();
+    public boolean isNormalBlock(Block block) {
+        return !isTransparent() && isSolid() && !isPowerSource(block);
     }
 
     public BlockBehavior clone() {
@@ -379,7 +403,7 @@ public abstract class BlockBehavior {
     }
 
     public Item toItem(Block block) {
-        return ItemRegistry.get().getItem(block.getState());
+        return Item.get(block.getState());
     }
 
     public boolean canSilkTouch() {

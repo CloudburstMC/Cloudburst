@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block;
 
 import com.nukkitx.math.vector.Vector3i;
-import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
@@ -9,18 +8,17 @@ import org.cloudburstmc.server.math.Direction;
 import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
 import static org.cloudburstmc.server.block.BlockTypes.WATER;
 
-@RequiredArgsConstructor
-public class CloudBlock implements Block {
+public class CloudBlock extends CloudBlockSnapshot implements Block {
 
-    private final BlockState state;
+    public static BlockState[] EMPTY = new BlockState[]{BlockStates.AIR, BlockStates.AIR};
+
     private final Level level;
-    private final Chunk chunk;
     private final Vector3i position;
-    private final int layer;
 
-    @Override
-    public BlockState getState(int layer) {
-        return state;
+    public CloudBlock(Level level, Vector3i position, BlockState[] states) {
+        super(states);
+        this.level = level;
+        this.position = position;
     }
 
     @Override
@@ -35,7 +33,7 @@ public class CloudBlock implements Block {
 
     @Override
     public Chunk getChunk() {
-        return chunk;
+        return level.getChunk(position);
     }
 
     @Override
@@ -44,14 +42,29 @@ public class CloudBlock implements Block {
     }
 
     @Override
-    public boolean isWaterlogged() {
-        BlockState fluidState = this.getExtra();
-        return (fluidState.getType() == WATER || fluidState.getType() == FLOWING_WATER);
+    public BlockState getRelativeState(int x, int y, int z, int layer) {
+        return this.level.getBlockAt(getX() + x, getY() + y, getZ() + z, layer);
     }
 
     @Override
-    public int getLayer() {
-        return layer;
+    public BlockState getSideState(Direction face, int step, int layer) {
+        return this.level.getBlockAt(
+                getX() + face.getXOffset() * step,
+                getY() + face.getXOffset() * step,
+                getZ() + face.getZOffset() * step,
+                layer
+        );
+    }
+
+    @Override
+    public Block getRelative(int x, int y, int z) {
+        return this.level.getBlock(this.position.add(x, y, z));
+    }
+
+    @Override
+    public boolean isWaterlogged() {
+        BlockState fluidState = this.getExtra();
+        return (fluidState.getType() == WATER || fluidState.getType() == FLOWING_WATER);
     }
 
     @Override
@@ -62,5 +75,10 @@ public class CloudBlock implements Block {
     @Override
     public BlockSnapshot snapshot() {
         return new CloudBlockSnapshot(new BlockState[]{this.getState(0), this.getState(1)});
+    }
+
+    @Override
+    public Block refresh() {
+        return level.getBlock(this.position);
     }
 }

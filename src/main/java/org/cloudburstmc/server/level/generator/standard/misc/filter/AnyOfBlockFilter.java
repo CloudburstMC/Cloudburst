@@ -2,8 +2,11 @@ package org.cloudburstmc.server.level.generator.standard.misc.filter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
+import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import java.util.Arrays;
@@ -14,35 +17,31 @@ import java.util.Arrays;
  * @author DaPorkchop_
  */
 @JsonDeserialize
-public final class AnyOfBlockFilter implements BlockFilter {
-    final int[] runtimeIds;
-
+public final class AnyOfBlockFilter extends ReferenceOpenHashSet<BlockState> implements BlockFilter {
     @JsonCreator
-    public AnyOfBlockFilter(ConstantBlock[] blocks) {
-        this.runtimeIds = Arrays.stream(blocks)
-                .mapToInt(ConstantBlock::runtimeId)
-                .distinct()
-                .sorted()
-                .toArray();
-    }
-
-    @JsonCreator
-    public AnyOfBlockFilter(String value) {
-        this.runtimeIds = Arrays.stream(value.split(","))
-                .map(ConstantBlock::new)
-                .mapToInt(ConstantBlock::runtimeId)
-                .distinct()
-                .sorted()
-                .toArray();
+    public AnyOfBlockFilter(String[] values) {
+        Arrays.stream(values)
+                .flatMap(value -> Arrays.stream(value.split(",")))
+                .flatMap(StandardGeneratorUtils::parseStateWildcard)
+                .forEach(this::add);
     }
 
     @Override
     public boolean test(BlockState blockState) {
-        return this.test(BlockRegistry.get().getRuntimeId(blockState));
+        return super.contains(BlockRegistry.get().getRuntimeId(blockState));
     }
 
-    @Override
-    public boolean test(int runtimeId) {
-        return Arrays.binarySearch(this.runtimeIds, runtimeId) >= 0;
+    @AllArgsConstructor
+    @JsonDeserialize
+    private static final class SingleWildcard {
+        @NonNull
+        protected final BlockState[] states;
+
+        @JsonCreator
+        public SingleWildcard(String value) {
+            this(Arrays.stream(value.split(","))
+                    .flatMap(StandardGeneratorUtils::parseStateWildcard)
+                    .toArray(BlockState[]::new));
+        }
     }
 }

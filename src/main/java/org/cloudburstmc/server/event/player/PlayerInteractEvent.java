@@ -3,7 +3,6 @@ package org.cloudburstmc.server.event.player;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
@@ -38,8 +37,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
     }
 
     public PlayerInteractEvent(Player player, Item item, Vector3f touchVector, Direction face, Action action) {
-        this(player, item, face, action, new CloudBlock(BlockState.AIR, player.getLevel(),
-                player.getLevel().getChunk(player.getPosition()), Vector3i.ZERO, 0), touchVector);
+        this(player, item, face, action, new CloudBlock(player.getLevel(), Vector3i.ZERO, CloudBlock.EMPTY), touchVector);
     }
 
     private PlayerInteractEvent(Player player, Item item, Direction face, Action action, Block block, Vector3f touchVector) {

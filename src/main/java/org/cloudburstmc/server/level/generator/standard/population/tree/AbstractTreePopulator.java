@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level.generator.standard.population.tree;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
@@ -46,8 +47,9 @@ public abstract class AbstractTreePopulator extends ChancePopulator {
         final int min = this.height.min;
 
         IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-        for (int y = max, id, lastId = chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, y + 1, blockZ & 0xF, 0); y >= min; y--) {
-            id = chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, y, blockZ & 0xF, 0);
+        BlockState lastId = chunk.getBlock(blockX & 0xF, max + 1, blockZ & 0xF, 0);
+        for (int y = max; y >= min; y--) {
+            BlockState id = chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0);
 
             if (replace.test(lastId) && on.test(id) && random.nextDouble() < this.chance) {
                 this.placeTree(random, level, blockX, y, blockZ);

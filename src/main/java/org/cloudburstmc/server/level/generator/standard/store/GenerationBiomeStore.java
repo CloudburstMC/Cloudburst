@@ -44,6 +44,8 @@ public final class GenerationBiomeStore extends AbstractGeneratorStore<Generatio
     protected GenerationBiome compute(@NonNull Identifier id) throws IOException {
         try (InputStream in = StandardGeneratorUtils.read("biome", id)) {
             return Nukkit.YAML_MAPPER.readValue(in, TempBiome.class).build(id, this.idToValues.size());
+        } catch (Exception e)   {
+            throw new RuntimeException("While decoding biome " + id, e);
         }
     }
 

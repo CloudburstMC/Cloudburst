@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.player.Player.CraftingType;
 
@@ -11,8 +11,8 @@ import org.cloudburstmc.server.player.Player.CraftingType;
  */
 public class EnchantInventory extends FakeBlockUIComponent {
 
-    public EnchantInventory(PlayerUIInventory playerUI, BlockState blockState) {
-        super(playerUI, InventoryType.ENCHANT_TABLE, 14, blockState);
+    public EnchantInventory(PlayerUIInventory playerUI, Block block) {
+        super(playerUI, InventoryType.ENCHANT_TABLE, 14, block);
     }
 
     @Override

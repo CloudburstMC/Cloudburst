@@ -9,14 +9,15 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.inventory.Fuel;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.registry.RegistryException;
 import org.cloudburstmc.server.utils.Config;
@@ -62,7 +63,7 @@ public abstract class Item implements Cloneable {
         clearCreativeItems();
 
         Config config = new Config(Config.JSON);
-        config.load(Server.class.getClassLoader().getResourceAsStream("creativeitems.json"));
+        config.load(Server.class.getClassLoader().getResourceAsStream("data/creative_items.json"));
         List<Map> list = config.getMapList("items");
 
         for (Map map : list) {
@@ -81,10 +82,6 @@ public abstract class Item implements Cloneable {
     }
 
     private static final ArrayList<Item> creative = new ArrayList<>();
-
-    public static Item get(Identifier id) {
-        return get(id, 0);
-    }
 
     public static void clearCreativeItems() {
         Item.creative.clear();
@@ -125,6 +122,18 @@ public abstract class Item implements Cloneable {
             }
         }
         return -1;
+    }
+
+    public static Item get(BlockState blockState) {
+        return get(blockState, 1);
+    }
+
+    public static Item get(BlockState blockState, int count) {
+        return get(blockState.getType(), BlockStateMetaMappings.getMetaFromState(blockState), count);
+    }
+
+    public static Item get(Identifier id) {
+        return get(id, 0);
     }
 
     public static Item get(Identifier id, int meta) {
@@ -442,12 +451,12 @@ public abstract class Item implements Cloneable {
 
     public final boolean canBePlaced() {
         BlockState state = this.getBlock();
-        BlockBehavior behavior = BlockRegistry.get().getBehavior(state.getType());
+        BlockBehavior behavior = state.getBehavior();
         return behavior.canBePlaced();
     }
 
     public BlockState getBlock() {
-        return BlockState.AIR;
+        return BlockStates.AIR;
     }
 
     public Identifier getId() {

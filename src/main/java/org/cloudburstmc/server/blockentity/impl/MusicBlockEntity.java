@@ -35,7 +35,7 @@ public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
 
     @Override
     public boolean isValid() {
-        return this.getBlock().getId() == BlockTypes.NOTEBLOCK;
+        return this.getBlockState().getType() == BlockTypes.NOTEBLOCK;
     }
 
     public byte getNote() {

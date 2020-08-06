@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.event.block;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
@@ -14,18 +13,18 @@ public class BlockIgniteEvent extends BlockEvent implements Cancellable {
         return handlers;
     }
 
-    private final BlockState source;
+    private final Block source;
     private final Entity entity;
     private final BlockIgniteCause cause;
 
-    public BlockIgniteEvent(Block block, BlockState source, Entity entity, BlockIgniteCause cause) {
+    public BlockIgniteEvent(Block block, Block source, Entity entity, BlockIgniteCause cause) {
         super(block);
         this.source = source;
         this.entity = entity;
         this.cause = cause;
     }
 
-    public BlockState getSource() {
+    public Block getSource() {
         return source;
     }
 

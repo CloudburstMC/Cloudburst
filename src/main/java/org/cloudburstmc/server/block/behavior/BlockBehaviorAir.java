@@ -30,7 +30,7 @@ public class BlockBehaviorAir extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeReplaced() {
+    public boolean canBeReplaced(Block block) {
         return true;
     }
 
@@ -40,7 +40,7 @@ public class BlockBehaviorAir extends BlockBehaviorTransparent {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox(Block block) {
+    public AxisAlignedBB getBoundingBox() {
         return null;
     }
 

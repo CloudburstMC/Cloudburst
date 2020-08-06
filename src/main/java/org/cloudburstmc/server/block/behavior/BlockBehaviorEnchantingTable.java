@@ -38,7 +38,7 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -55,9 +55,9 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        this.getLevel().setBlock(block.getPosition(), this, true, true);
+        placeBlock(block, item);
 
-        EnchantingTable enchantingTable = BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, this.getChunk(), this.getPosition());
+        EnchantingTable enchantingTable = BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, block);
         enchantingTable.loadAdditionalData(item.getTag());
         if (item.hasCustomName()) {
             enchantingTable.setCustomName(item.getCustomName());
@@ -68,12 +68,12 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
+            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             if (!(blockEntity instanceof EnchantingTable)) {
-                BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, this.getChunk(), this.getPosition());
+                BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, block);
             }
 
-            player.addWindow(new EnchantInventory(player.getUIInventory(), this), ContainerIds.ENCHANTING_TABLE);
+            player.addWindow(new EnchantInventory(player.getUIInventory(), block), ContainerIds.ENCHANTING_TABLE);
         }
 
         return true;

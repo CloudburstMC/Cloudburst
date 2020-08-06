@@ -6,13 +6,13 @@ import net.daporkchop.lib.common.pool.handle.DefaultThreadHandledPool;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.BitSet;
@@ -66,7 +66,7 @@ public class LakePopulator extends ChancePopulator.Column {
             return;
         }
 
-        final int block = this.block.selectRuntimeId(random);
+        final BlockState block = this.block.selectWeighted(random);
 
         try (Handle<BitSet> handle = BITSET_CACHE.get()) {
             //BitSet has 8x greater storage density than a boolean[], so the additional overhead is negligible compared to the better cache utilization
@@ -116,14 +116,14 @@ public class LakePopulator extends ChancePopulator.Column {
                                 || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
                                 || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
                                 || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1)))) {
-                            int runtimeId = level.getBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0);
+                            BlockState state = level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0);
 
                             if (y < 4) {
-                                if (runtimeId != block && !BlockRegistry.get().getBlock(runtimeId).isSolid()) {
+                                if (state != block && !state.getBehavior().isSolid()) {
                                     return;
                                 }
                             } else {
-                                if (BlockRegistry.get().getBlock(runtimeId) instanceof BlockBehaviorLiquid) {
+                                if (state.getBehavior().isLiquid()) {
                                     return;
                                 }
                             }
@@ -132,7 +132,7 @@ public class LakePopulator extends ChancePopulator.Column {
                 }
             }
 
-            int surface = -1;
+            BlockState surface = null;
 
             //if needed: figure out what the current surface block is
             COMPUTE_SURFACE:
@@ -141,7 +141,7 @@ public class LakePopulator extends ChancePopulator.Column {
                 for (int y = 4; y < 8; y++) {
                     for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
-                            if (points.get((y << 8) | (x << 4) | z) && surfaceBlocks.test(surface = level.getBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0))) {
+                            if (points.get((y << 8) | (x << 4) | z) && surfaceBlocks.test(surface = level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0))) {
                                 break COMPUTE_SURFACE;
                             }
                         }
@@ -149,7 +149,7 @@ public class LakePopulator extends ChancePopulator.Column {
                 }
 
                 //couldn't find any surface
-                surface = -1;
+                surface = null;
             }
 
             //place actual liquid blocks
@@ -157,20 +157,20 @@ public class LakePopulator extends ChancePopulator.Column {
                 for (int x = 0; x < 16; x++) {
                     for (int z = 0; z < 16; z++) {
                         if (points.get((y << 8) | (x << 4) | z)) {
-                            level.setBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0, y >= 4 ? 0 : block);
+                            level.setBlockAt(blockX + x, blockY + y, blockZ + z, 0, y >= 4 ? BlockStates.AIR : block);
                         }
                     }
                 }
             }
 
             //if needed: replace ground with surface blocks
-            if (surface >= 0) {
+            if (surface != null) {
                 BlockFilter replaceWithSurface = this.replaceWithSurface;
                 for (int y = 4; y < 8; y++) {
                     for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
-                            if (points.get((y << 8) | (x << 4) | z) && replaceWithSurface.test(level.getBlockRuntimeIdUnsafe(blockX + x, blockY + y - 1, blockZ + z, 0))) {
-                                level.setBlockRuntimeIdUnsafe(blockX + x, blockY + y - 1, blockZ + z, 0, surface);
+                            if (points.get((y << 8) | (x << 4) | z) && replaceWithSurface.test(level.getBlockAt(blockX + x, blockY + y - 1, blockZ + z, 0))) {
+                                level.setBlockAt(blockX + x, blockY + y - 1, blockZ + z, 0, surface);
                             }
                         }
                     }
@@ -178,7 +178,7 @@ public class LakePopulator extends ChancePopulator.Column {
             }
 
             if (this.border != null) {
-                final int border = this.border.selectRuntimeId(random);
+                final BlockState border = this.border.selectWeighted(random);
 
                 //place border
                 for (int y = 0; y < 8; y++) {
@@ -194,8 +194,8 @@ public class LakePopulator extends ChancePopulator.Column {
                                     || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
                                     || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
                                     || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1))))
-                                    && BlockRegistry.get().getBlock(level.getBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0)).isSolid()) {
-                                level.setBlockRuntimeIdUnsafe(blockX + x, blockY + y, blockZ + z, 0, border);
+                                    && level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0).getBehavior().isSolid()) {
+                                level.setBlockAt(blockX + x, blockY + y, blockZ + z, 0, border);
                             }
                         }
                     }

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorDaylightDetector extends BlockBehaviorTransparent {
@@ -10,7 +11,7 @@ public class BlockBehaviorDaylightDetector extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 

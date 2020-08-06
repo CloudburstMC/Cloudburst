@@ -24,7 +24,7 @@ public class BlockBehaviorIronBars extends BlockBehaviorThin {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(id, 0);
+        return Item.get(block.getState().defaultState());
     }
 
     @Override

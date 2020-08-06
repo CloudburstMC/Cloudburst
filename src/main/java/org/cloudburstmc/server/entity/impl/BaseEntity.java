@@ -1,8 +1,5 @@
 package org.cloudburstmc.server.entity.impl;
 
-import cn.nukkit.block.*;
-import cn.nukkit.event.entity.*;
-import cn.nukkit.math.*;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import co.aikar.timings.TimingsHistory;
@@ -23,10 +20,13 @@ import com.spotify.futures.CompletableFutures;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
+import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorNetherPortal;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
 import org.cloudburstmc.server.entity.Attribute;
@@ -53,6 +53,7 @@ import org.cloudburstmc.server.plugin.Plugin;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.utils.data.CardinalDirection;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -63,8 +64,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.*;
-import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
-import static org.cloudburstmc.server.block.BlockTypes.PORTAL;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 /**
  * @author MagicDroidX
@@ -80,8 +80,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
     protected final SyncedEntityData data = new SyncedEntityData(this::onDataChange);
     private final EntityType<?> type;
     public Chunk chunk;
-    public List<BlockState> blocksAround = new ArrayList<>();
-    public List<BlockState> collisionBlockStates = new ArrayList<>();
+    public List<Block> blocksAround = new ArrayList<>();
+    public List<Block> collisionBlockStates = new ArrayList<>();
     public NbtMap tag;
     public float highestPosition;
     public boolean firstMove = true;
@@ -790,13 +790,13 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
         BlockRegistry registry = BlockRegistry.get();
 
-        if (!registry.getBlock(this.level.getBlockId(i, j, k), 0).isTransparent()) {
-            boolean flag = registry.getBlock(this.level.getBlockId(i - 1, j, k), 0).isTransparent();
-            boolean flag1 = registry.getBlock(this.level.getBlockId(i + 1, j, k), 0).isTransparent();
-            boolean flag2 = registry.getBlock(this.level.getBlockId(i, j - 1, k), 0).isTransparent();
-            boolean flag3 = registry.getBlock(this.level.getBlockId(i, j + 1, k), 0).isTransparent();
-            boolean flag4 = registry.getBlock(this.level.getBlockId(i, j, k - 1), 0).isTransparent();
-            boolean flag5 = registry.getBlock(this.level.getBlockId(i, j, k + 1), 0).isTransparent();
+        if (!this.level.getBlockAt(i, j, k).inCategory(BlockCategory.TRANSPARENT)) {
+            boolean flag = this.level.getBlockAt(i - 1, j, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag1 = this.level.getBlockAt(i + 1, j, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag2 = this.level.getBlockAt(i, j - 1, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag3 = this.level.getBlockAt(i, j + 1, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag4 = this.level.getBlockAt(i, j, k - 1).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag5 = this.level.getBlockAt(i, j, k + 1).inCategory(BlockCategory.TRANSPARENT);
 
             int direction = -1;
             float limit = 9999;
@@ -1015,8 +1015,12 @@ public abstract class BaseEntity implements Entity, Metadatable {
         return Vector2f.from(-Math.cos(Math.toRadians(this.yaw) - Math.PI / 2), -Math.sin(Math.toRadians(this.yaw) - Math.PI / 2)).normalize();
     }
 
-    public Direction getHorizontalFacing() {
+    public Direction getHorizontalDirection() {
         return Direction.fromHorizontalIndex(NukkitMath.floorDouble((this.yaw * 4.0F / 360.0F) + 0.5D) & 3);
+    }
+
+    public CardinalDirection getCardinalDirection() {
+        return CardinalDirection.values()[NukkitMath.floorDouble((((this.yaw + 180) % 360) / 22.5))];
     }
 
     public boolean onUpdate(int currentTick) {
@@ -1273,9 +1277,9 @@ public abstract class BaseEntity implements Entity, Metadatable {
         }
 
         if (fallDistance > 0.75) {
-            BlockState down = this.level.getBlock(Direction.DOWN.getUnitVector().add(this.getPosition().toInt()));
+            Block down = this.level.getBlock(Direction.DOWN.getUnitVector().add(this.getPosition().toInt()));
 
-            if (down.getId() == FARMLAND) {
+            if (down.getState().getType() == FARMLAND) {
                 Event ev;
 
                 if (this instanceof Player) {
@@ -1382,33 +1386,46 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     public boolean isInsideOfWater() {
         float y = this.getY() + this.getEyeHeight();
-        BlockState blockState = this.level.getLoadedBlock(this.position.getFloorX(), NukkitMath.floorDouble(y), this.position.getFloorZ());
+        Block block = this.level.getLoadedBlock(this.position.getFloorX(), NukkitMath.floorDouble(y), this.position.getFloorZ());
 
-        if (blockState instanceof BlockBehaviorWater || (blockState = blockState != null ? blockState.getExtra() : null) instanceof BlockBehaviorWater) {
-            double f = (blockState.getPosition().getY() + 1) - (((BlockBehaviorWater) blockState).getFluidHeightPercent() - 0.1111111);
-            return y < f;
+        if (block == null) {
+            return false;
         }
 
-        return false;
+        val state = block.getState().getType();
+        val extra = block.getState().getType();
+
+        float percent;
+
+        if (state == WATER || state == FLOWING_WATER) {
+            percent = BlockBehaviorLiquid.getFluidHeightPercent(block.getState());
+        } else if (extra == WATER || extra == FLOWING_WATER) {
+            percent = BlockBehaviorLiquid.getFluidHeightPercent(block.getExtra());
+        } else {
+            return false;
+        }
+
+        double f = (block.getPosition().getY() + 1) - (percent - 0.1111111);
+        return y < f;
     }
 
     public boolean isInsideOfSolid() {
         double y = this.getY() + this.getEyeHeight();
-        BlockState blockState = this.level.getLoadedBlock(Vector3i.from(this.getX(), y, this.getZ()));
+        BlockState state = this.level.getBlockAt(Vector3i.from(this.getX(), y, this.getZ()));
 
-        if (blockState == null) {
+        if (state == null) {
             return true;
         }
 
-        AxisAlignedBB bb = blockState.getBoundingBox();
+        AxisAlignedBB bb = state.getBehavior().getBoundingBox();
 
-        return bb != null && blockState.isSolid() && !blockState.isTransparent() && bb.intersectsWith(this.getBoundingBox());
+        return bb != null && state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT) && bb.intersectsWith(this.getBoundingBox());
 
     }
 
     public boolean isInsideOfFire() {
-        for (BlockState blockState : this.getCollisionBlocks()) {
-            if (blockState instanceof BlockBehaviorFire) {
+        for (Block block : this.getCollisionBlocks()) {
+            if (block.getState().getType() == FIRE) {
                 return true;
             }
         }
@@ -1575,7 +1592,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         this.onGround = (movY != dy && movY < 0);
     }
 
-    public List<BlockState> getBlocksAround() {
+    public List<Block> getBlocksAround() {
         if (this.blocksAround == null) {
             int minX = NukkitMath.floorDouble(this.boundingBox.getMinX());
             int minY = NukkitMath.floorDouble(this.boundingBox.getMinY());
@@ -1598,12 +1615,12 @@ public abstract class BaseEntity implements Entity, Metadatable {
         return this.blocksAround;
     }
 
-    public List<BlockState> getCollisionBlocks() {
+    public List<Block> getCollisionBlocks() {
         if (this.collisionBlockStates == null) {
             this.collisionBlockStates = new ArrayList<>();
 
-            for (BlockState b : getBlocksAround()) {
-                if (b.collidesWithBB(this.getBoundingBox(), true)) {
+            for (Block b : getBlocksAround()) {
+                if (b.getState().getBehavior().collidesWithBB(b, this.getBoundingBox(), true)) {
                     this.collisionBlockStates.add(b);
                 }
             }
@@ -1625,14 +1642,16 @@ public abstract class BaseEntity implements Entity, Metadatable {
         Vector3f vector = Vector3f.ZERO;
         boolean portal = false;
 
-        for (BlockState blockState : this.getCollisionBlocks()) {
-            if (blockState.getId() == PORTAL) {
+        for (Block block : this.getCollisionBlocks()) {
+            val state = block.getState();
+            if (state.getType() == PORTAL) {
                 portal = true;
                 continue;
             }
 
-            blockState.onEntityCollide(this);
-            vector = blockState.addVelocityToEntity(this, vector);
+            val behavior = state.getBehavior();
+            behavior.onEntityCollide(block, this);
+            vector = behavior.addVelocityToEntity(block, vector, this);
         }
 
         if (portal) {

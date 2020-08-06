@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableMap;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.trait.BlockTrait;
@@ -14,9 +15,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @ParametersAreNonnullByDefault
+@JsonDeserialize(using = BlockStateDeserializer.class)
 public interface BlockState {
-
-    BlockState AIR = BlockPalette.INSTANCE.air;
 
     @Nonnull
     Identifier getType();
@@ -32,6 +32,14 @@ public interface BlockState {
 
     @Nonnull
     <T extends Comparable<T>> BlockState withTrait(BlockTrait<T> trait, T value);
+
+    @Nonnull
+    default <T extends Comparable<T>> BlockState copyTrait(BlockTrait<T> trait, BlockState from) {
+        return withTrait(trait, from.ensureTrait(trait));
+    }
+
+    @Nonnull
+    BlockState copyTraits(BlockState from);
 
     @Nonnull
     BlockState withTrait(IntegerBlockTrait trait, int value);
@@ -57,7 +65,7 @@ public interface BlockState {
         return withTrait(trait, !ensureTrait(trait));
     }
 
-    default <T extends Comparable<T>> BlockState withDefaultTrait(BlockTrait<T> trait) {
+    default <T extends Comparable<T>> BlockState resetTrait(BlockTrait<T> trait) {
         return this.withTrait(trait, trait.getDefaultValue());
     }
 
@@ -65,6 +73,10 @@ public interface BlockState {
 
     @Nonnull
     BlockState defaultState();
+
+    default boolean inCategory(BlockCategory category) {
+        return BlockCategories.inCategory(this.getType(), category);
+    }
 
     static BlockState get(@Nonnull Identifier blockType) {
         return BlockPalette.INSTANCE.getDefaultState(blockType);

@@ -25,7 +25,7 @@ public class ItemRegistry implements Registry {
     private static final List<ItemData> VANILLA_ITEMS;
 
     static {
-        InputStream stream = RegistryUtils.getOrAssertResource("runtime_item_ids.json");
+        InputStream stream = RegistryUtils.getOrAssertResource("data/runtime_item_states.json"); //TODO: use legacy_item_ids.json instead
 
         try {
             VANILLA_ITEMS = Nukkit.JSON_MAPPER.readValue(stream, new TypeReference<List<ItemData>>() {
@@ -165,10 +165,10 @@ public class ItemRegistry implements Registry {
             itemEntries.add(new StartGamePacket.ItemEntry(data.name, (short) data.id));
         }
 
-        List<Identifier> customBlocks = this.blockRegistry.getCustomBlocks();
-        for (Identifier blockId : customBlocks) {
-            itemEntries.add(new StartGamePacket.ItemEntry(blockId.toString(), (short) this.getRuntimeId(blockId)));
-        }
+//        List<Identifier> customBlocks = this.blockRegistry.getCustomBlocks(); //TODO: custom blocks
+//        for (Identifier blockId : customBlocks) {
+//            itemEntries.add(new StartGamePacket.ItemEntry(blockId.toString(), (short) this.getRuntimeId(blockId)));
+//        }
 
         int startId = this.lastLegacyId + 1;
         int size = this.runtimeIdAllocator.get();

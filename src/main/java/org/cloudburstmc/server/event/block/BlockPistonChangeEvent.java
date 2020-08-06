@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.block;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.HandlerList;
 
 /**
@@ -17,8 +17,8 @@ public class BlockPistonChangeEvent extends BlockEvent {
     private int oldPower;
     private int newPower;
 
-    public BlockPistonChangeEvent(BlockState blockState, int oldPower, int newPower) {
-        super(blockState);
+    public BlockPistonChangeEvent(Block block, int oldPower, int newPower) {
+        super(block);
         this.oldPower = oldPower;
         this.newPower = newPower;
     }

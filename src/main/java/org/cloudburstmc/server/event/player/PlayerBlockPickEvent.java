@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.player;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.item.Item;
@@ -17,12 +17,12 @@ public class PlayerBlockPickEvent extends PlayerEvent implements Cancellable {
         return handlers;
     }
 
-    private final BlockState blockStateClicked;
+    private final Block blockStateClicked;
     private Item item;
 
-    public PlayerBlockPickEvent(Player player, BlockState blockStateClicked, Item item) {
+    public PlayerBlockPickEvent(Player player, Block blockClicked, Item item) {
         super(player);
-        this.blockStateClicked = blockStateClicked;
+        this.blockStateClicked = blockClicked;
         this.item = item;
     }
 
@@ -34,7 +34,7 @@ public class PlayerBlockPickEvent extends PlayerEvent implements Cancellable {
         this.item = item;
     }
 
-    public BlockState getBlockClicked() {
+    public Block getBlockClicked() {
         return blockStateClicked;
     }
 }

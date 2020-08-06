@@ -1,18 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.utils.Identifier;
 
 public abstract class FloodableBlockBehavior extends BlockBehaviorTransparent {
-
-    public FloodableBlockBehavior() {
-        this(null);
-    }
-
-    public FloodableBlockBehavior(Identifier type) {
-        super(type);
-    }
 
     @Override
     public boolean canBeFlooded() {
@@ -40,7 +30,7 @@ public abstract class FloodableBlockBehavior extends BlockBehaviorTransparent {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox(Block block) {
+    public AxisAlignedBB getBoundingBox() {
         return null;
     }
 }

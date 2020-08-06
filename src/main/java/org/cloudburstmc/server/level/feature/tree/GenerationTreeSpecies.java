@@ -1,14 +1,21 @@
 package org.cloudburstmc.server.level.feature.tree;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.*;
+import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomBrown;
+import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomRed;
+import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.feature.FeatureChorusTree;
 import org.cloudburstmc.server.level.feature.FeatureFallenTree;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 /**
  * The different tree varieties in Minecraft.
@@ -16,8 +23,9 @@ import org.cloudburstmc.server.utils.Identifier;
  * @author DaPorkchop_
  */
 @RequiredArgsConstructor
-public enum TreeSpecies {
-    OAK(BlockTypes.LOG, BlockBehaviorLog.OAK, BlockTypes.LEAVES, BlockBehaviorLeaves.OAK, BlockTypes.SAPLING, BlockBehaviorSapling.OAK) {
+@Getter
+public enum GenerationTreeSpecies {
+    OAK(TreeSpecies.OAK) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {
             return new FeatureLargeOakTree(height, this, 0.1d, FeatureLargeOakTree.DEFAULT_HEIGHT);
@@ -25,10 +33,10 @@ public enum TreeSpecies {
 
         @Override
         public WorldFeature getFallenGenerator() {
-            return new FeatureFallenTree(FeatureNormalTree.DEFAULT_HEIGHT, this.logId, this.logDamage, 0.75d);
+            return new FeatureFallenTree(FeatureNormalTree.DEFAULT_HEIGHT, this.log, 0.75d);
         }
     },
-    SWAMP(BlockTypes.LOG, BlockBehaviorLog.OAK, BlockTypes.LEAVES, BlockBehaviorLeaves.OAK, null, -1) {
+    SWAMP(TreeSpecies.OAK, false) {
         @Override
         public WorldFeature getDefaultGenerator() {
             return this.getDefaultGenerator(FeatureSwampTree.DEFAULT_HEIGHT);
@@ -39,7 +47,7 @@ public enum TreeSpecies {
             return new FeatureSwampTree(height, OAK);
         }
     },
-    SPRUCE(BlockTypes.LOG, BlockBehaviorLog.SPRUCE, BlockTypes.LEAVES, BlockBehaviorLeaves.SPRUCE, BlockTypes.SAPLING, BlockBehaviorSapling.SPRUCE) {
+    SPRUCE(TreeSpecies.SPRUCE) {
         @Override
         public WorldFeature getDefaultGenerator() {
             return this.getDefaultGenerator(FeatureSpruceTree.DEFAULT_HEIGHT);
@@ -57,10 +65,10 @@ public enum TreeSpecies {
 
         @Override
         public WorldFeature getFallenGenerator() {
-            return new FeatureFallenTree(FeatureSpruceTree.DEFAULT_HEIGHT, this.logId, this.logDamage, 0.0d);
+            return new FeatureFallenTree(FeatureSpruceTree.DEFAULT_HEIGHT, this.log, 0.0d);
         }
     },
-    PINE(BlockTypes.LOG, BlockBehaviorLog.SPRUCE, BlockTypes.LEAVES, BlockBehaviorLeaves.SPRUCE, null, -1) {
+    PINE(TreeSpecies.SPRUCE, false) {
         @Override
         public WorldFeature getDefaultGenerator() {
             return this.getDefaultGenerator(FeatureSpruceTree.DEFAULT_HEIGHT);
@@ -76,13 +84,13 @@ public enum TreeSpecies {
             return new FeatureHugePineTree(FeatureHugeSpruceTree.DEFAULT_HEIGHT, this);
         }
     },
-    BIRCH(BlockTypes.LOG, BlockBehaviorLog.BIRCH, BlockTypes.LEAVES, BlockBehaviorLeaves.BIRCH, BlockTypes.SAPLING, BlockBehaviorSapling.BIRCH) {
+    BIRCH(TreeSpecies.BIRCH) {
         @Override
         public WorldFeature getFallenGenerator() {
-            return new FeatureFallenTree(new IntRange(5, 8), this.logId, this.logDamage, 0.0d);
+            return new FeatureFallenTree(new IntRange(5, 8), this.log, 0.0d);
         }
     },
-    JUNGLE(BlockTypes.LOG, BlockBehaviorLog.JUNGLE, BlockTypes.LEAVES, BlockBehaviorLeaves.JUNGLE, BlockTypes.SAPLING, BlockBehaviorSapling.JUNGLE) {
+    JUNGLE(TreeSpecies.JUNGLE) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {
             return new FeatureJungleTree(height, this);
@@ -95,10 +103,10 @@ public enum TreeSpecies {
 
         @Override
         public WorldFeature getFallenGenerator() {
-            return new FeatureFallenTree(new IntRange(4, 11), this.logId, this.logDamage, 0.75d);
+            return new FeatureFallenTree(new IntRange(4, 11), this.log, 0.75d);
         }
     },
-    ACACIA(BlockTypes.LOG2, BlockBehaviorLog2.ACACIA, BlockTypes.LEAVES2, BlockBehaviorLeaves2.ACACIA, BlockTypes.SAPLING, BlockBehaviorSapling.ACACIA) {
+    ACACIA(TreeSpecies.ACACIA) {
         @Override
         public WorldFeature getDefaultGenerator() {
             return this.getDefaultGenerator(FeatureSavannaTree.DEFAULT_HEIGHT);
@@ -109,7 +117,7 @@ public enum TreeSpecies {
             return new FeatureSavannaTree(height, this);
         }
     },
-    DARK_OAK(BlockTypes.LOG2, BlockBehaviorLog2.DARK_OAK, BlockTypes.LEAVES2, BlockBehaviorLeaves2.DARK_OAK, BlockTypes.SAPLING, BlockBehaviorSapling.DARK_OAK) {
+    DARK_OAK(TreeSpecies.DARK_OAK) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {
             return null;
@@ -120,19 +128,23 @@ public enum TreeSpecies {
             return new FeatureDarkOakTree(FeatureDarkOakTree.DEFAULT_HEIGHT, this);
         }
     },
-    MUSHROOM_RED(BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.STEM, BlockTypes.RED_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomRed.ALL, BlockTypes.RED_MUSHROOM, 0) {
+    MUSHROOM_RED(BlockStates.RED_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.STEM),
+            BlockStates.RED_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.ALL),
+            BlockTypes.RED_MUSHROOM, 0) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {
             return new FeatureMushroomRed(height);
         }
     },
-    MUSHROOM_BROWN(BlockTypes.BROWN_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomBrown.STEM, BlockTypes.BROWN_MUSHROOM_BLOCK, BlockBehaviorHugeMushroomBrown.ALL, BlockTypes.BROWN_MUSHROOM, 0) {
+    MUSHROOM_BROWN(BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.STEM),
+            BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.ALL),
+            BlockTypes.BROWN_MUSHROOM, 0) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {
             return new FeatureMushroomBrown(height);
         }
     },
-    CHORUS(BlockTypes.CHORUS_PLANT, 0, BlockTypes.CHORUS_FLOWER, 5, BlockTypes.CHORUS_FLOWER, 0) {
+    CHORUS(BlockStates.CHORUS_PLANT, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.CHORUS_AGE, 5), BlockTypes.CHORUS_FLOWER, 0) {
         @Override
         public WorldFeature getDefaultGenerator() {
             return this.getDefaultGenerator(FeatureChorusTree.DEFAULT_BRANCH_HEIGHT);
@@ -144,10 +156,10 @@ public enum TreeSpecies {
         }
     };
 
-    private static final TreeSpecies[] VALUES = values();
+    private static final GenerationTreeSpecies[] VALUES = values();
 
-    public static TreeSpecies fromItem(Identifier id, int damage) {
-        for (TreeSpecies species : VALUES) {
+    public static GenerationTreeSpecies fromItem(Identifier id, int damage) {
+        for (GenerationTreeSpecies species : VALUES) {
             if (species.itemId == id && species.itemDamage == damage) {
                 return species;
             }
@@ -155,28 +167,20 @@ public enum TreeSpecies {
         throw new IllegalArgumentException(String.format("Unknown tree species item %s:%d", id, damage));
     }
 
-    protected final Identifier logId;
-    protected final int logDamage;
-    protected final Identifier leavesId;
-    protected final int leavesDamage;
+    protected final BlockState log;
+    protected final BlockState leaves;
 
     protected final Identifier itemId;
     protected final int itemDamage;
 
-    public Identifier getLogId() {
-        return this.logId;
+    GenerationTreeSpecies(@NonNull TreeSpecies species) {
+        this(species, true);
     }
 
-    public int getLogDamage() {
-        return this.logDamage;
-    }
-
-    public Identifier getLeavesId() {
-        return this.leavesId;
-    }
-
-    public int getLeavesDamage() {
-        return this.leavesDamage;
+    GenerationTreeSpecies(@NonNull TreeSpecies species, boolean hasSapling) {
+        this(BlockStates.LOG.withTrait(BlockTraits.TREE_SPECIES, species),
+                BlockStates.LEAVES.withTrait(BlockTraits.TREE_SPECIES, species),
+                hasSapling ? BlockTypes.SAPLING : null, hasSapling ? species.ordinal() : -1);
     }
 
     public Identifier getItemId() {

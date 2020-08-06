@@ -2,7 +2,9 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.EnderChest;
@@ -11,16 +13,15 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-
-import java.util.Set;
 
 import static org.cloudburstmc.server.block.BlockTypes.OBSIDIAN;
 
 public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -44,39 +45,38 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
         return ItemTool.TYPE_PICKAXE;
     }
 
-    @Override
-    public float getMinX() {
-        return this.getX() + 0.0625f;
-    }
-
-    @Override
-    public float getMinZ() {
-        return this.getZ() + 0.0625f;
-    }
-
-    @Override
-    public float getMaxX() {
-        return this.getX() + 0.9375f;
-    }
-
-    @Override
-    public float getMaxY() {
-        return this.getY() + 0.9475f;
-    }
-
-    @Override
-    public float getMaxZ() {
-        return this.getZ() + 0.9375f;
-    }
+//    @Override
+//    public float getMinX() {
+//        return this.getX() + 0.0625f;
+//    }
+//
+//    @Override
+//    public float getMinZ() {
+//        return this.getZ() + 0.0625f;
+//    }
+//
+//    @Override
+//    public float getMaxX() {
+//        return this.getX() + 0.9375f;
+//    }
+//
+//    @Override
+//    public float getMaxY() {
+//        return this.getY() + 0.9475f;
+//    }
+//
+//    @Override
+//    public float getMaxZ() {
+//        return this.getZ() + 0.9375f;
+//    }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         int[] faces = {2, 5, 3, 4};
-        this.setMeta(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
 
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+        placeBlock(block, item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
 
-        EnderChest enderChest = BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, this.getChunk(), this.getPosition());
+        EnderChest enderChest = BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, block);
         enderChest.loadAdditionalData(item.getTag());
         if (item.hasCustomName()) {
             enderChest.setCustomName(item.getCustomName());
@@ -87,17 +87,17 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockState top = this.up();
-            if (!top.isTransparent()) {
+            BlockState top = block.up().getState();
+            if (!top.inCategory(BlockCategory.TRANSPARENT)) {
                 return true;
             }
 
-            BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
-            if ((blockEntity instanceof EnderChest)) {
-                BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, this.getChunk(), this.getPosition());
+            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+            if (!(blockEntity instanceof EnderChest)) {
+                BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, block.getChunk(), block.getPosition());
             }
 
-            player.setViewingEnderChest(this);
+            player.setViewingEnderChest((EnderChest) blockEntity);
             player.addWindow(player.getEnderChestInventory());
         }
 
@@ -120,10 +120,6 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
         return BlockColor.OBSIDIAN_BLOCK_COLOR;
     }
 
-    public Set<Player> getViewers() {
-        return viewers;
-    }
-
     @Override
     public boolean canBePushed() {
         return false;
@@ -141,7 +137,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(id);
+        return ItemRegistry.get().getItem(block.getState().defaultState());
     }
 
     @Override

@@ -1,5 +1,8 @@
 package org.cloudburstmc.server;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -64,6 +67,9 @@ public class Nukkit {
     public static void main(String[] args) {
         Locale.setDefault(Locale.ENGLISH);
         System.setProperty("log4j.skipJansi", "false");
+
+        YAML_MAPPER.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
         // Force Mapped ByteBuffers for LevelDB till fixed.
         System.setProperty("leveldb.mmap", "true");

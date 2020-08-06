@@ -1,41 +1,38 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.server.math.Direction.Axis;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.data.TreeSpecies;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 public class BlockBehaviorLog extends BlockBehaviorSolid {
 
-    public static final int UP_DOWN = 0 << 2;
-    public static final int EAST_WEST = 1 << 2;
-    public static final int NORTH_SOUTH = 2 << 2;
-    public static final int ALL = 3 << 2;
+    protected static final Map<TreeSpecies, Identifier> STRIPPED_MAP = new EnumMap<>(TreeSpecies.class);
 
-    protected static final Identifier[] STRIPPED_IDS = new Identifier[]{
-            BlockTypes.STRIPPED_OAK_LOG,
-            BlockTypes.STRIPPED_SPRUCE_LOG,
-            BlockTypes.STRIPPED_BIRCH_LOG,
-            BlockTypes.STRIPPED_JUNGLE_LOG,
-            BlockTypes.STRIPPED_ACACIA_LOG,
-            BlockTypes.STRIPPED_DARK_OAK_LOG
-    };
+    static {
+        STRIPPED_MAP.put(TreeSpecies.OAK, BlockTypes.STRIPPED_OAK_LOG);
+        STRIPPED_MAP.put(TreeSpecies.SPRUCE, BlockTypes.STRIPPED_SPRUCE_LOG);
+        STRIPPED_MAP.put(TreeSpecies.BIRCH, BlockTypes.STRIPPED_BIRCH_LOG);
+        STRIPPED_MAP.put(TreeSpecies.JUNGLE, BlockTypes.STRIPPED_JUNGLE_LOG);
+        STRIPPED_MAP.put(TreeSpecies.ACACIA, BlockTypes.STRIPPED_ACACIA_LOG);
+        STRIPPED_MAP.put(TreeSpecies.DARK_OAK, BlockTypes.STRIPPED_DARK_OAK_LOG);
+    }
 
-    protected static final short[] FACES = new short[]{
-            0,
-            0,
-            0b1000,
-            0b1000,
-            0b0100,
-            0b0100
-    };
+    protected Identifier identifier = BlockTypes.LOG;
 
     @Override
     public float getHardness() {
@@ -65,33 +62,29 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        if (!item.isAxe() || !item.useOn(this)) {
+        if (!item.isAxe() || !item.useOn(block)) {
             return false;
         }
 
-        int log2Damage = this instanceof BlockBehaviorLog2 ? 4 : 0;
-        int damage = (this.getMeta() & -0b100) ^ this.getMeta();
-        BlockState strippedBlockState = BlockState.get(STRIPPED_IDS[damage + log2Damage], (this.getMeta() >> 2));
-        this.getLevel().setBlock(this.getPosition(), strippedBlockState, true, true);
+        val state = block.getState();
+        val stripped = STRIPPED_MAP.get(state.ensureTrait(BlockTraits.TREE_SPECIES));
+        block.set(BlockState.get(stripped).copyTrait(BlockTraits.AXIS, state), true);
         return true;
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         // Convert the old log bark to the new wood block
-        if ((this.getMeta() & 0b1100) == 0b1100) {
-            BlockState woodBlockState = BlockState.get(BlockTypes.WOOD, this.getMeta() & 0x03, this.getPosition(), this.getLevel());
-            return woodBlockState.place(item, blockState, target, face, clickPos, player);
-        }
-
-        this.setMeta(((this.getMeta() & 0x03) | FACES[face.getIndex()]));
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+        placeBlock(block, item.getBlock().withTrait(
+                BlockTraits.AXIS,
+                player != null ? player.getDirection().getAxis() : Axis.Y
+        ));
 
         return true;
     }
@@ -103,7 +96,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     @Override
     public BlockColor getColor(Block block) {
-        switch (getMeta() & 0x03) {
+        switch (block.getState().ensureTrait(BlockTraits.TREE_SPECIES)) {
             default:
             case OAK:
                 return BlockColor.WOOD_BLOCK_COLOR;
@@ -118,10 +111,6 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     @Override
     public Item toItem(Block block) {
-        if ((getMeta() & 0b1100) == 0b1100) {
-            return Item.get(BlockTypes.WOOD, this.getMeta() & 0x3);
-        } else {
-            return Item.get(id, this.getMeta() & 0x03);
-        }
+        return Item.get(block.getState().resetTrait(BlockTraits.AXIS));
     }
 }

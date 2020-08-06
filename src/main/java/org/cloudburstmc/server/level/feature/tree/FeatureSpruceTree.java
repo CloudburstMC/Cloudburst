@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
@@ -16,7 +17,7 @@ import static java.lang.Math.abs;
 public class FeatureSpruceTree extends FeatureNormalTree {
     public static final IntRange DEFAULT_HEIGHT = new IntRange(6, 10);
 
-    public FeatureSpruceTree(@NonNull IntRange height, @NonNull TreeSpecies species) {
+    public FeatureSpruceTree(@NonNull IntRange height, @NonNull GenerationTreeSpecies species) {
         super(height, species);
     }
 
@@ -42,15 +43,15 @@ public class FeatureSpruceTree extends FeatureNormalTree {
             int radius = dy < leavesStart ? 0 : maxRadius;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockRuntimeIdUnsafe(x, y + dy, z, 0))) {
+                    if (!this.test(level.getBlockAt(x, y + dy, z, 0))) {
                         return false;
                     }
                 }
             }
         }
 
-        final int log = this.log.selectRuntimeId(random);
-        final int leaves = this.leaves.selectRuntimeId(random);
+        final BlockState log = this.log.selectWeighted(random);
+        final BlockState leaves = this.leaves.selectWeighted(random);
 
         //place leaves
         int radius = random.nextInt(2);
@@ -61,8 +62,8 @@ public class FeatureSpruceTree extends FeatureNormalTree {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if ((abs(dx) != radius || abs(dz) != radius || radius <= 0)
-                            && this.test(level.getBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0))) {
-                        level.setBlockRuntimeIdUnsafe(x + dx, y + dy, z + dz, 0, leaves);
+                            && this.test(level.getBlockAt(x + dx, y + dy, z + dz, 0))) {
+                        level.setBlockAt(x + dx, y + dy, z + dz, 0, leaves);
                     }
                 }
             }
@@ -81,7 +82,7 @@ public class FeatureSpruceTree extends FeatureNormalTree {
 
         //place logs
         for (int dy = 0; dy < height - 1; dy++) {
-            level.setBlockRuntimeIdUnsafe(x, y + dy, z, 0, log);
+            level.setBlockAt(x, y + dy, z, 0, log);
         }
 
         this.replaceGrassWithDirt(level, x, y - 1, z);

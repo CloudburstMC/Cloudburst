@@ -2,8 +2,9 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorVine;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
@@ -15,7 +16,7 @@ import org.cloudburstmc.server.math.Direction;
  * @author DaPorkchop_
  */
 public class FeatureJungleTree extends FeatureNormalTree {
-    public FeatureJungleTree(@NonNull IntRange height, @NonNull TreeSpecies species) {
+    public FeatureJungleTree(@NonNull IntRange height, @NonNull GenerationTreeSpecies species) {
         super(height, species);
     }
 
@@ -24,7 +25,7 @@ public class FeatureJungleTree extends FeatureNormalTree {
     }
 
     @Override
-    protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves) {
+    protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         super.placeTrunk(level, random, x, y, z, height, log, leaves);
 
         for (int dy = 0; dy < height; dy++) {
@@ -38,8 +39,8 @@ public class FeatureJungleTree extends FeatureNormalTree {
     protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, Direction face) {
         x -= face.getUnitVector().getX();
         z -= face.getUnitVector().getZ();
-        if (random.nextInt(4) != 0 && this.test(level.getBlockRuntimeIdUnsafe(x, y, z, 0))) {
-            level.setBlockAt(x, y, z, 0, BlockTypes.VINE, BlockBehaviorVine.getMeta(face));
+        if (random.nextInt(4) != 0 && this.test(level.getBlockAt(x, y, z, 0))) {
+            level.setBlockAt(x, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, face));
         }
     }
 }

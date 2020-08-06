@@ -1,9 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
@@ -12,6 +14,7 @@ import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.TallGrassType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -21,12 +24,12 @@ import static org.cloudburstmc.server.item.ItemIds.DYE;
 public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
     @Override
-    public boolean canBeReplaced() {
+    public boolean canBeReplaced(Block block) {
         return true;
     }
 
@@ -43,12 +46,13 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         // Prevents from placing the same plant block on itself
-        if (item.getId() == target.getId() && item.getMeta() == blockState.getMeta()) {
+        val itemBlock = item.getBlock();
+        if (itemBlock.getType() == target.getState().getType() && itemBlock.ensureTrait(BlockTraits.TALL_GRASS_TYPE) == block.getState().ensureTrait(BlockTraits.TALL_GRASS_TYPE)) {
             return false;
         }
-        BlockState down = this.down();
-        if (down.getId() == GRASS || down.getId() == DIRT || down.getId() == PODZOL) {
-            this.getLevel().setBlock(blockState.getPosition(), this, true);
+        val down = block.down().getState().getType();
+        if (down == GRASS || down == DIRT || down == PODZOL) {
+            placeBlock(block, item.getBlock());
             return true;
         }
         return false;
@@ -57,8 +61,8 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.down().isTransparent()) {
-                this.getLevel().useBreakOn(this.getPosition());
+            if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
+                block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
         }
@@ -68,32 +72,20 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == DYE && item.getMeta() == 0x0f) {
-            BlockState up = this.up();
+            val up = block.up();
 
-            if (up.getId() == AIR) {
-                int meta;
-
-                switch (this.getMeta()) {
-                    case 0:
-                    case 1:
-                        meta = BlockBehaviorDoublePlant.TALL_GRASS;
-                        break;
-                    case 2:
-                    case 3:
-                        meta = BlockBehaviorDoublePlant.LARGE_FERN;
-                        break;
-                    default:
-                        meta = -1;
-                }
-
-                if (meta != -1) {
+            if (up.getState().getType() == AIR) {
+                val type = block.getState().ensureTrait(BlockTraits.TALL_GRASS_TYPE);
+                if (type == TallGrassType.DEFAULT) {
                     if (player != null && player.getGamemode().isSurvival()) {
                         item.decrementCount();
                     }
 
-                    this.level.addParticle(new BoneMealParticle(this.getPosition()));
-                    this.level.setBlock(this.getPosition(), get(DOUBLE_PLANT, meta), true, false);
-                    this.level.setBlock(up.getPosition(), get(DOUBLE_PLANT, meta ^ BlockBehaviorDoublePlant.TOP_HALF_BITMASK), true);
+                    block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+
+                    val dp = BlockState.get(DOUBLE_PLANT).withTrait(BlockTraits.TALL_GRASS_TYPE, type);
+                    block.set(dp, true);
+                    up.set(dp.withTrait(BlockTraits.IS_UPPER_BLOCK, true), true);
                 }
             }
 
@@ -109,7 +101,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
         if (hand.isShears()) {
             //todo enchantment
             return new Item[]{
-                    Item.get(BlockTypes.TALL_GRASS, this.getMeta(), 1)
+                    Item.get(block.getState().resetTrait(BlockTraits.IS_UPPER_BLOCK))
             };
         }
 

@@ -1,10 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
-import org.cloudburstmc.server.player.Player;
 
 public class BlockBehaviorIcePacked extends BlockBehaviorIce {
 
@@ -25,12 +23,7 @@ public class BlockBehaviorIcePacked extends BlockBehaviorIce {
 
     @Override
     public boolean onBreak(Block block, Item item) {
-        return this.getLevel().setBlock(this.getPosition(), BlockState.AIR, true); //no water
-    }
-
-    @Override
-    public boolean onBreak(Block block, Item item, Player player) {
-        return this.onBreak(item);
+        return removeBlock(block);
     }
 
     @Override

@@ -13,12 +13,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 @ParametersAreNonnullByDefault
 public final class CloudBlockState implements BlockState {
+
     private final Identifier type;
     private final ImmutableMap<BlockTrait<?>, Comparable<?>> traits;
     private final Reference2IntMap<BlockTrait<?>> traitPalette;
@@ -81,6 +83,20 @@ public final class CloudBlockState implements BlockState {
         return this.table[traitIndex][trait.getIndex(value)];
     }
 
+    @SuppressWarnings("rawtypes")
+    @Nonnull
+    @Override
+    public BlockState copyTraits(BlockState from) {
+        BlockState result = this;
+
+        //TODO: direct access?
+        for (Entry<BlockTrait<?>, Comparable<?>> entry : from.getTraits().entrySet()) {
+            result = result.withTrait((BlockTrait) entry.getKey(), (Comparable) entry.getValue());
+        }
+
+        return result;
+    }
+
     @Override
     public BlockBehavior getBehavior() {
         return BlockRegistry.get().getBehavior(this.type);
@@ -100,16 +116,30 @@ public final class CloudBlockState implements BlockState {
         for (Map.Entry<BlockTrait<?>, Comparable<?>> entry : this.traits.entrySet()) {
             BlockTrait<?> trait = entry.getKey();
             int traitIndex = this.traitPalette.getInt(trait);
+            this.table[traitIndex] = new CloudBlockState[trait.getPossibleValues().size()];
 
             for (Comparable<?> comparable : trait.getPossibleValues()) {
-                if (comparable != entry.getValue()) {
                     this.table[traitIndex][trait.getIndex(comparable)] = map.get(this.getTraitsWithValue(trait, comparable));
-                }
             }
         }
     }
 
     private ImmutableMap<BlockTrait<?>, Comparable<?>> getTraitsWithValue(BlockTrait<?> trait, Comparable<?> comparable) {
-        return ImmutableMap.<BlockTrait<?>, Comparable<?>>builder().putAll(this.traits).put(trait, comparable).build();
+        ImmutableMap.Builder<BlockTrait<?>, Comparable<?>> builder = ImmutableMap.builder();
+        this.traits.forEach((k, v) -> builder.put(k, k == trait ? comparable : v)); //this actually performs better than using a loop
+        return builder.build();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(this.type);
+        if (this != this.defaultState && !this.traits.isEmpty()) {
+            builder.append('{');
+            this.traits.forEach((trait, value) -> builder.append(trait).append('=').append(value.toString().toLowerCase()).append(',').append(' '));
+            builder.setLength(builder.length() - 1);
+            builder.setCharAt(builder.length() - 1, '}');
+        }
+        return builder.toString();
     }
 }

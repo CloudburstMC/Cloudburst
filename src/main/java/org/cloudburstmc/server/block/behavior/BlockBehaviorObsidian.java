@@ -1,9 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.server.block.BlockTypes.PORTAL;
@@ -39,16 +40,14 @@ public class BlockBehaviorObsidian extends BlockBehaviorSolid {
     @Override
     public boolean onBreak(Block block, Item item) {
         //destroy the nether portal
-        BlockState[] nearby = new BlockState[]{
-                this.up(), this.down(),
-                this.north(), south(),
-                this.west(), this.east(),
-        };
-        for (BlockState aNearby : nearby) {
-            if (aNearby != null) if (aNearby.getId() == PORTAL) {
-                aNearby.onBreak(item);
+        for (Direction direction : Direction.values()) {
+            val b = block.getSide(direction);
+            val state = b.getState();
+            if (state.getType() == PORTAL) {
+                state.getBehavior().onBreak(b, item);
             }
         }
+
         return super.onBreak(block, item);
     }
 

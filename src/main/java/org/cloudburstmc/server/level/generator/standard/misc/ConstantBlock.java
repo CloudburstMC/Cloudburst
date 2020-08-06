@@ -5,33 +5,29 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
+import org.cloudburstmc.server.level.generator.standard.misc.selector.MultiBlockSelector;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.util.regex.Matcher;
+import java.util.stream.Stream;
 
 /**
  * Represents a constant block configuration option.
  *
  * @author DaPorkchop_
  */
+@RequiredArgsConstructor
 @JsonDeserialize
-public final class ConstantBlock implements BlockFilter, BlockSelector {
-    private static final Ref<Matcher> BLOCK_MATCHER_CACHE = ThreadRef.regex("^((?:[a-zA-Z0-9_]+:)?[a-zA-Z0-9_]+)(?:#([0-9]+))?$");
-
-    private final BlockState blockState;
-    private final int runtimeId;
-
-    public ConstantBlock(int runtimeId) {
-        this.blockState = BlockRegistry.get().getBlock(runtimeId);
-        this.runtimeId = runtimeId;
-    }
+public final class ConstantBlock implements BlockFilter, BlockSelector, BlockSelector.Entry {
+    @NonNull
+    private final BlockState state;
 
     @JsonCreator
     public ConstantBlock(
@@ -40,49 +36,73 @@ public final class ConstantBlock implements BlockFilter, BlockSelector {
                     "damage",
                     "metadata"
             }) int meta) {
-        this.blockState = BlockRegistry.get().getBlock(id, meta);
-        this.runtimeId = BlockRegistry.get().getRuntimeId(id, meta);
+        this(BlockRegistry.get().getBlock(id, meta));
     }
 
     @JsonCreator
     public ConstantBlock(String value) {
-        Matcher matcher = BLOCK_MATCHER_CACHE.get().reset(value);
-        Preconditions.checkArgument(matcher.find(), "Cannot parse block: \"%s\"", value);
-
-        Identifier id = Identifier.fromString(matcher.group(1));
-        int meta = matcher.group(2) == null ? 0 : Integer.parseUnsignedInt(matcher.group(2));
-
-        this.blockState = BlockRegistry.get().getBlock(id, meta);
-        this.runtimeId = BlockRegistry.get().getRuntimeId(id, meta);
+        this(StandardGeneratorUtils.parseState(value));
     }
 
-    public BlockState block() {
-        return this.blockState;
+    public BlockState state() {
+        return this.state;
     }
 
-    public int runtimeId() {
-        return this.runtimeId;
-    }
+    //BlockFilter
 
-    //block filter methods
     @Override
-    public boolean test(BlockState blockState) {
-        return this.blockState == blockState || (this.blockState.getId() == blockState.getId() && this.blockState.getMeta() == blockState.getMeta());
+    public boolean test(BlockState state) {
+        return this.state == state;
+    }
+
+    //BlockSelector
+
+    @Override
+    public int size() {
+        return 1;
     }
 
     @Override
-    public boolean test(int runtimeId) {
-        return this.runtimeId == runtimeId;
-    }
-
-    //block selector methods
-    @Override
-    public BlockState select(PRandom random) {
-        return this.blockState;
+    public BlockState get(int index) {
+        Preconditions.checkElementIndex(index, 1);
+        return this.state;
     }
 
     @Override
-    public int selectRuntimeId(PRandom random) {
-        return this.runtimeId;
+    public BlockState select(PRandom random) {
+        return this.state;
+    }
+
+    @Override
+    public Stream<BlockState> states() {
+        return Stream.of(this.state);
+    }
+
+    @Override
+    public int sizeWeighted() {
+        return 1;
+    }
+
+    @Override
+    public BlockState getWeighted(int index) {
+        Preconditions.checkElementIndex(index, 1);
+        return this.state;
+    }
+
+    @Override
+    public BlockState selectWeighted(PRandom random) {
+        return this.state;
+    }
+
+    @Override
+    public Stream<Entry> entries() {
+        return Stream.of(this);
+    }
+
+    //BlockSelector.Entry
+
+    @Override
+    public int weight() {
+        return 1;
     }
 }

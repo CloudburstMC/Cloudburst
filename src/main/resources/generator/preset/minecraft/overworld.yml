@@ -70,7 +70,7 @@ populators:
     chance: 0.1171875 # about 30 per chunk
     size: 33
     height: "0-80"
-    block: "stone#1,stone#3,stone#5"
+    block: "stone{stone_type=granite},stone{stone_type=andesite},stone{stone_type=diorite}"
     replace: "stone"
 
     #

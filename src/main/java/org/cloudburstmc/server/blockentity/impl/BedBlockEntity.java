@@ -36,7 +36,7 @@ public class BedBlockEntity extends BaseBlockEntity implements Bed {
 
     @Override
     public boolean isValid() {
-        return this.getLevel().getBlockId(this.getPosition()) == BlockTypes.BED;
+        return this.getBlockState().getType() == BlockTypes.BED;
     }
 
     @Override

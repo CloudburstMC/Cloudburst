@@ -1,11 +1,13 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ItemFrame;
 import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -22,8 +24,8 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.getSide(getFacing()).isTransparent()) {
-                this.level.useBreakOn(this.getPosition());
+            if (block.getSide(block.getState().ensureTrait(BlockTraits.FACING_DIRECTION)).getState().inCategory(BlockCategory.TRANSPARENT)) {
+                block.getLevel().useBreakOn(block.getPosition());
                 return type;
             }
         }
@@ -32,13 +34,14 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
+        val level = block.getLevel();
+        BlockEntity blockEntity = level.getBlockEntity(block.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         if (itemFrame.getItem() == null || itemFrame.getItem().getId() == AIR) {
             Item itemOnFrame = item.clone();
@@ -48,39 +51,23 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
             }
             itemOnFrame.setCount(1);
             itemFrame.setItem(itemOnFrame);
-            this.getLevel().addSound(this.getPosition(), Sound.BLOCK_ITEMFRAME_ADD_ITEM);
+            level.addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_ADD_ITEM);
         } else {
             itemFrame.setItemRotation((itemFrame.getItemRotation() + 1) % 8);
-            this.getLevel().addSound(this.getPosition(), Sound.BLOCK_ITEMFRAME_ROTATE_ITEM);
+            level.addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_ROTATE_ITEM);
         }
         return true;
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (!target.isTransparent() && face.getIndex() > 1 && !blockState.isSolid()) {
-            switch (face) {
-                case NORTH:
-                    this.setMeta(3);
-                    break;
-                case SOUTH:
-                    this.setMeta(2);
-                    break;
-                case WEST:
-                    this.setMeta(1);
-                    break;
-                case EAST:
-                    this.setMeta(0);
-                    break;
-                default:
-                    return false;
-            }
-            this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+        if (!target.getState().inCategory(BlockCategory.TRANSPARENT) && face.getIndex() > 1 && !block.getState().inCategory(BlockCategory.SOLID)) {
+            placeBlock(block, item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, face));
 
-            ItemFrame frame = BlockEntityRegistry.get().newEntity(ITEM_FRAME, this.getChunk(), this.getPosition());
+            ItemFrame frame = BlockEntityRegistry.get().newEntity(ITEM_FRAME, block);
             frame.loadAdditionalData(item.getTag());
 
-            this.getLevel().addSound(this.getPosition(), Sound.BLOCK_ITEMFRAME_PLACE);
+            block.getLevel().addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_PLACE);
             return true;
         }
         return false;
@@ -89,13 +76,13 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     @Override
     public boolean onBreak(Block block, Item item) {
         super.onBreak(block, item);
-        this.getLevel().addSound(this.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
+        block.getLevel().addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
         return true;
     }
 
     @Override
     public Item[] getDrops(Block block, Item hand) {
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         int chance = new Random().nextInt(100) + 1;
         if (itemFrame != null && chance <= (itemFrame.getItemDropChance() * 100)) {
@@ -111,7 +98,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(ItemIds.FRAME);
+        return Item.get(block.getState().defaultState());
     }
 
     @Override
@@ -126,28 +113,13 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
 
     @Override
     public int getComparatorInputOverride(Block block) {
-        BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof ItemFrame) {
             return ((ItemFrame) blockEntity).getAnalogOutput();
         }
 
         return super.getComparatorInputOverride(block);
-    }
-
-    public Direction getFacing() {
-        switch (this.getMeta() & 3) {
-            case 0:
-                return Direction.WEST;
-            case 1:
-                return Direction.EAST;
-            case 2:
-                return Direction.NORTH;
-            case 3:
-                return Direction.SOUTH;
-        }
-
-        return null;
     }
 
     @Override

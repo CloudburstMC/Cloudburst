@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
@@ -30,30 +31,25 @@ public class ReplaceTopDecorator implements Decorator {
     protected IntRange height = IntRange.WHOLE_WORLD;
 
     @JsonProperty
-    protected int block = -1;
+    protected BlockState block = null;
 
     @Override
     public void init(long levelSeed, long localSeed, StandardGenerator generator) {
         Objects.requireNonNull(this.replace, "replace must be set!");
         Objects.requireNonNull(this.height, "height must be set!");
-        Preconditions.checkState(this.block >= 0, "block must be set!");
+        Preconditions.checkState(this.block != null, "block must be set!");
     }
 
     @Override
     public void decorate(PRandom random, IChunk chunk, int x, int z) {
         int y = chunk.getHighestBlock(x, z);
-        if (y >= 0 && this.replace.test(chunk.getBlockRuntimeIdUnsafe(x, y, z, 0)) && this.height.contains(y)) {
-            chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, this.block);
+        if (y >= 0 && this.replace.test(chunk.getBlock(x, y, z, 0)) && this.height.contains(y)) {
+            chunk.setBlock(x, y, z, 0, this.block);
         }
     }
 
     @Override
     public Identifier getId() {
         return ID;
-    }
-
-    @JsonSetter("block")
-    private void setBlock(ConstantBlock block) {
-        this.block = block.runtimeId();
     }
 }

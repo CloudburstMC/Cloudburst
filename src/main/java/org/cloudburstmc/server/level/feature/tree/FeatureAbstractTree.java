@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.feature.ReplacingWorldFeature;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
@@ -22,8 +23,8 @@ public abstract class FeatureAbstractTree extends ReplacingWorldFeature {
         this(height, null, null);
     }
 
-    public FeatureAbstractTree(@NonNull IntRange height, @NonNull TreeSpecies species) {
-        this(height, new ConstantBlock(species.getLogId(), species.getLogDamage()), new ConstantBlock(species.getLeavesId(), species.getLeavesDamage()));
+    public FeatureAbstractTree(@NonNull IntRange height, @NonNull GenerationTreeSpecies species) {
+        this(height, new ConstantBlock(species.getLog()), new ConstantBlock(species.getLeaves()));
     }
 
     public FeatureAbstractTree(@NonNull IntRange height, BlockSelector log, BlockSelector leaves) {
@@ -44,8 +45,8 @@ public abstract class FeatureAbstractTree extends ReplacingWorldFeature {
             return false;
         }
 
-        final int log = this.selectLog(level, random, x, y, z, height);
-        final int leaves = this.selectLeaves(level, random, x, y, z, height);
+        final BlockState log = this.selectLog(level, random, x, y, z, height);
+        final BlockState leaves = this.selectLeaves(level, random, x, y, z, height);
 
         this.placeLeaves(level, random, x, y, z, height, log, leaves);
         this.placeTrunk(level, random, x, y, z, height, log, leaves);
@@ -60,17 +61,17 @@ public abstract class FeatureAbstractTree extends ReplacingWorldFeature {
 
     protected abstract boolean canPlace(ChunkManager level, PRandom random, int x, int y, int z, int height);
 
-    protected int selectLog(ChunkManager level, PRandom random, int x, int y, int z, int height) {
-        return this.log.selectRuntimeId(random);
+    protected BlockState selectLog(ChunkManager level, PRandom random, int x, int y, int z, int height) {
+        return this.log.selectWeighted(random);
     }
 
-    protected int selectLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height) {
-        return this.leaves.selectRuntimeId(random);
+    protected BlockState selectLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height) {
+        return this.leaves.selectWeighted(random);
     }
 
-    protected abstract void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves);
+    protected abstract void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves);
 
-    protected abstract void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves);
+    protected abstract void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves);
 
-    protected abstract void finish(ChunkManager level, PRandom random, int x, int y, int z, int height, int log, int leaves);
+    protected abstract void finish(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves);
 }

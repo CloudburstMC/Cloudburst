@@ -15,10 +15,9 @@ import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationP
 import org.cloudburstmc.server.level.generator.standard.misc.TerrainDoubleCache;
 import org.cloudburstmc.server.utils.Identifier;
 
-import static java.lang.Math.sqrt;
-import static java.util.Objects.requireNonNull;
-import static net.daporkchop.lib.math.primitive.PMath.clamp;
-import static net.daporkchop.lib.math.primitive.PMath.lerp;
+import static java.lang.Math.*;
+import static java.util.Objects.*;
+import static net.daporkchop.lib.math.primitive.PMath.*;
 
 /**
  * A {@link NoiseSource} that provides noise similar to that of vanilla's end terrain.
@@ -90,8 +89,8 @@ public class EndDensitySource extends AbstractGenerationPass implements DensityS
 
                 for (int dy = 0, yy = y; dy < sizeY; dy++, yy += stepY) {
                     double selector = clamp(this.selector.get(xx, yy, (double) zz), 0.0d, 1.0d);
-                    double low = this.low.get(xx, yy, (double) zz);
-                    double high = this.high.get(xx, yy, (double) zz);
+                    double low = this.low.get(xx, yy, (double) zz) * NOISE_SCALE_FACTOR;
+                    double high = this.high.get(xx, yy, (double) zz) * NOISE_SCALE_FACTOR;
 
                     arr[i++] = this.cutOff(yy, lerp(low, high, selector) + islandNoise);
                 }
@@ -105,7 +104,10 @@ public class EndDensitySource extends AbstractGenerationPass implements DensityS
             double factor = clamp(((y * 0.125d) - (this.minHeightCutoff * 0.125d)) * 0.015625d, 0.0d, 1.0d);
             return noise * (1.0d - factor) - 3000.0d * factor;
         } else if (y < this.minHeightCutoff) {
-            double factor = (((this.minHeightCutoff * 0.125d) - (y * 0.125d)) / ((this.minHeightCutoff * 0.125d) - 1.0d));
+            if (y < 16) {
+                return 0.0d;
+            }
+            double factor = ((this.minHeightCutoff * 0.125d) - (y * 0.125d)) / ((this.minHeightCutoff * 0.125d) - 1.0d);
             return noise * (1.0d - factor) - 30.0d * factor;
         } else {
             return noise;

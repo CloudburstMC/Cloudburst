@@ -23,7 +23,11 @@ final class DecoratorDeserializer extends JsonDeserializer<Decorator> {
         Identifier id = Identifier.fromString(p.nextTextValue());
         p.nextToken();
 
-        return id == NextGenerationPass.ID
-                ? NextGenerationPass.INSTANCE : Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.decorator().get(id));
+        try {
+            return id == NextGenerationPass.ID
+                    ? NextGenerationPass.INSTANCE : Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.decorator().get(id));
+        } catch (Exception e) {
+            throw new RuntimeException("While decoding decorator " + id, e);
+        }
     }
 }

@@ -8,6 +8,7 @@ import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -23,7 +24,7 @@ public class Biome {
     public static final NoiseSource TEMPERATURE_NOISE = new PerlinNoiseEngine(new FastPRandom(123456789L));
 
     static {
-        InputStream inputStream = Nukkit.class.getClassLoader().getResourceAsStream("biome_definitions.dat");
+        InputStream inputStream = Nukkit.class.getClassLoader().getResourceAsStream("data/biome_definitions.dat");
         if (inputStream == null) {
             throw new AssertionError("Could not find biome_definitions.dat");
         }
@@ -73,7 +74,7 @@ public class Biome {
 
     public boolean canSnowAt(ChunkManager level, int x, int y, int z) {
         //TODO: light level must be less than 10
-        return y >= 0 && this.getTemperature(x, y, z) < 0.15d && (y >= 256 || level.getBlockRuntimeIdUnsafe(x, y, z, 0) == 0);
+        return y >= 0 && this.getTemperature(x, y, z) < 0.15d && (y >= 256 || level.getBlockAt(x, y, z) == BlockStates.AIR);
     }
 
     public double getDownfall() {

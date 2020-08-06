@@ -5,6 +5,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -13,8 +14,8 @@ public class PunchBlockParticle extends Particle {
 
     protected final int data;
 
-    public PunchBlockParticle(Vector3f pos, BlockState blockState, Direction face) {
-        this(pos, blockState.getId(), blockState.getMeta(), face);
+    public PunchBlockParticle(Vector3f pos, BlockState state, Direction face) {
+        this(pos, state.getType(), BlockStateMetaMappings.getMetaFromState(state), face);
     }
 
     public PunchBlockParticle(Vector3f pos, Identifier blockId, int blockDamage, Direction face) {

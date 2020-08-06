@@ -53,7 +53,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     public void toggleFire(Block block) {
         if (!this.isLit(block) && block.isWaterlogged()) return;
 
-        block.getLevel().setBlock(block.getPosition(), block.getState().toggleTrait(BlockTraits.IS_EXTINGUISHED));
+        block.set(block.getState().toggleTrait(BlockTraits.IS_EXTINGUISHED));
         Campfire cf = (Campfire) block.getLevel().getBlockEntity(block.getPosition());
         if (cf != null) block.getLevel().getBlockEntity(block.getPosition()).scheduleUpdate();
     }
@@ -61,26 +61,19 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
-        if (!state.getBehavior().canBeReplaced()) return false;
+        if (!state.getBehavior().canBeReplaced(block)) return false;
         if (block.down().getState().getType() == BlockTypes.CAMPFIRE) {
             return false;
         }
 
         BlockState campfire = BlockRegistry.get().getBlock(BlockTypes.CAMPFIRE)
-                .withTrait(BlockTraits.DIRECTION, player.getHorizontalFacing().getOpposite());
+                .withTrait(BlockTraits.DIRECTION, player.getHorizontalDirection().getOpposite());
 
-
-        int layer = 0;
-        if ((state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) && state.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
-            campfire = campfire.withTrait(BlockTraits.IS_EXTINGUISHED, true);
-            layer = 1;
-        }
-
-
-        if (block.getLevel().setBlock(block.getPosition(), layer, campfire, true, true)) {
+        if (placeBlock(block, campfire)) {
             BlockEntityRegistry.get().newEntity(BlockEntityTypes.CAMPFIRE, block.getChunk(), block.getPosition());
             return true;
         }
+
         return false;
     }
 
@@ -90,7 +83,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

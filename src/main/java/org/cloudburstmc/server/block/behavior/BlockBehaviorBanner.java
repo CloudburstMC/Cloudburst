@@ -14,13 +14,13 @@ import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.CardinalDirection;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.CardinalDirection;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
@@ -45,7 +45,7 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox(Block block) {
+    public AxisAlignedBB getBoundingBox() {
         return null;
     }
 
@@ -70,7 +70,7 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
                         .withTrait(BlockTraits.FACING_DIRECTION, face);
             }
 
-            block.getLevel().setBlock(block.getPosition(), banner, true);
+            block.set(banner, true);
 
             NbtMapBuilder tag = NbtMap.builder();
             item.saveAdditionalData(tag);

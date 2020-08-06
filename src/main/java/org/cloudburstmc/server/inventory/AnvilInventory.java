@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.player.Player;
@@ -22,8 +22,8 @@ public class AnvilInventory extends FakeBlockUIComponent {
     public static final int SACRIFICE = 1;
     public static final int RESULT = 50;
 
-    public AnvilInventory(PlayerUIInventory playerUI, BlockState blockState) {
-        super(playerUI, InventoryType.ANVIL, 1, blockState);
+    public AnvilInventory(PlayerUIInventory playerUI, Block block) {
+        super(playerUI, InventoryType.ANVIL, 1, block);
     }
 
     public boolean onRename(Player player, Item resultItem) {

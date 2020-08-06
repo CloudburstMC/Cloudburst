@@ -23,8 +23,6 @@ public class BlockBehaviorRedstone extends BlockBehaviorSolid {
         return ItemTool.TYPE_PICKAXE;
     }
 
-    //TODO: redstone
-
     @Override
     public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
@@ -42,12 +40,12 @@ public class BlockBehaviorRedstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return true;
     }
 
     @Override
-    public int getWeakPower(Direction face) {
+    public int getWeakPower(Block block, Direction face) {
         return 15;
     }
 

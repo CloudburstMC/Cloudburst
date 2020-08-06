@@ -12,11 +12,17 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.trait.BlockTrait;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.IntConsumer;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -95,6 +101,7 @@ public class BlockStorage {
         }
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void readFromStorage(ByteBuf buffer) {
         BitArrayVersion version = getVersionFromHeader(buffer.readByte());
 
@@ -114,17 +121,27 @@ public class BlockStorage {
 
         try (ByteBufInputStream stream = new ByteBufInputStream(buffer);
              NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
+            Map<NbtMap, BlockState> tags = new LinkedHashMap<>();
             for (int i = 0; i < paletteSize; i++) {
                 NbtMap tag = (NbtMap) nbtInputStream.readTag();
-                checkArgument(!tag.containsKey("states"), "Unsupported chunk version (flattened)"); // TODO: 19/04/2020 Support this
+                Identifier id = Identifier.fromString(tag.getString("name"));
+                BlockState state;
 
-                String name = tag.getString("name");
-                int id = BlockRegistry.get().getLegacyId(name);
-                int data = tag.getShort("val");
+                NbtMap states = tag.getCompound("states", null);
+                if (states != null) {
+                    state = BlockState.get(id);
+                    for (Map.Entry<String, Object> entry : states.entrySet())   {
+                        BlockTrait trait = BlockTraits.fromVanilla(entry.getKey());
+                        state = state.withTrait(trait, trait.parseValue((String) entry.getValue()));
+                    }
+                } else {
+                    state = BlockStateMetaMappings.getStateFromMeta(id, tag.getShort("val"));
+                }
+                tags.put(tag, state);
 
-                int runtimeId = BlockRegistry.get().getRuntimeId(id, data);
+                int runtimeId = BlockRegistry.get().getRuntimeId(state);
                 checkArgument(!this.palette.contains(runtimeId),
-                        "Palette contains block state (%s) twice!", name + ":" + data);
+                        "Palette contains block state (%s) twice! (%s) (palette: %s)", state, tags, this.palette);
                 this.palette.add(runtimeId);
             }
         } catch (IOException e) {

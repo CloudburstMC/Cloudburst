@@ -18,7 +18,7 @@ import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.data.DyeColor;
-import org.cloudburstmc.server.utils.data.WoodType;
+import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -105,10 +105,10 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (target.getState().getType() == BlockTypes.LOG && target.getState().ensureTrait(BlockTraits.WOOD_TYPE) == WoodType.JUNGLE) {
+        if (target.getState().getType() == BlockTypes.LOG && target.getState().ensureTrait(BlockTraits.TREE_SPECIES) == TreeSpecies.JUNGLE) {
             if (face != Direction.DOWN && face != Direction.UP) {
-                block.getLevel().setBlock(block.getPosition(), BlockRegistry.get().getBlock(BlockTypes.COCOA)
-                        .withTrait(BlockTraits.DIRECTION, face), true);
+                placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.COCOA)
+                        .withTrait(BlockTraits.DIRECTION, face));
                 return true;
             }
         }
@@ -120,7 +120,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             BlockState side = block.getSide(block.getState().ensureTrait(BlockTraits.DIRECTION)).getState();
 
-            if (side.getType() != BlockTypes.LOG || side.ensureTrait(BlockTraits.WOOD_TYPE) != WoodType.JUNGLE) {
+            if (side.getType() != BlockTypes.LOG || side.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE) {
                 block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
@@ -138,7 +138,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -168,7 +168,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
             Server.getInstance().getPluginManager().callEvent(ev);
 
             if (!ev.isCancelled()) {
-                block.getLevel().setBlock(block.getPosition(), ev.getNewState(), true, true);
+                block.set(ev.getNewState(), true, true);
                 return true;
             }
         }

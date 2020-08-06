@@ -3,7 +3,8 @@ package org.cloudburstmc.server.level.feature;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
@@ -33,8 +34,8 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
 
     @Override
     public boolean place(ChunkManager level, PRandom random, int x, int y, int z) {
-        if (this.test(level.getBlockRuntimeIdUnsafe(x, y, z, 0)) && this.place0(level, random, x, y, z, 0, 0, 0)) {
-            level.setBlockId(x, y, z, 0, BlockTypes.CHORUS_PLANT);
+        if (this.test(level.getBlockAt(x, y, z, 0)) && this.place0(level, random, x, y, z, 0, 0, 0)) {
+            level.setBlockAt(x, y, z, 0, BlockStates.CHORUS_PLANT);
             return true;
         } else {
             return false;
@@ -51,7 +52,7 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
         }
 
         for (int dy = 1; dy <= branchHeight; dy++) {
-            level.setBlockId(x, y + dy, z, 0, BlockTypes.CHORUS_PLANT);
+            level.setBlockAt(x, y + dy, z, 0, BlockStates.CHORUS_PLANT);
         }
 
         boolean generatedBranch = false;
@@ -63,18 +64,18 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
                 final int dz = face.getUnitVector().getZ();
 
                 if (abs(deltaX + dx) < this.maxOverhang && abs(deltaZ + dz) < this.maxOverhang
-                        && level.getBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0) == 0
-                        && level.getBlockRuntimeIdUnsafe(x + dx, y - 1, z + dz, 0) == 0
+                        && org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz, 0)) == 0
+                        && org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y - 1, z + dz, 0)) == 0
                         && this.allNeighborsMatch(level, x + dx, y, z + dz, BlockFilter.AIR, face.getOpposite())
                         && this.place0(level, random, x + dx, y, z + dz, depth + 1, deltaX + dx, deltaZ + dz)) {
-                    level.setBlockId(x + dx, y, z + dz, 0, BlockTypes.CHORUS_PLANT);
+                    level.setBlockAt(x + dx, y, z + dz, 0, BlockStates.CHORUS_PLANT);
                     generatedBranch = true;
                 }
             }
         }
 
         if (!generatedBranch) {
-            level.setBlockAt(x, y, z, 0, BlockTypes.CHORUS_FLOWER, 5);
+            level.setBlockAt(x, y, z, 0, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.CHORUS_AGE, 5));
         }
 
         return true;

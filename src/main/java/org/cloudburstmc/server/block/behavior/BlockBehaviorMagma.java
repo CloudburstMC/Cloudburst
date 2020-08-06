@@ -49,10 +49,10 @@ public class BlockBehaviorMagma extends BlockBehaviorSolid {
             if (entity instanceof Player) {
                 Player p = (Player) entity;
                 if (!p.isCreative() && !p.isSpectator() && !p.isSneaking()) {
-                    entity.attack(new EntityDamageByBlockEvent(this, entity, EntityDamageEvent.DamageCause.LAVA, 1));
+                    entity.attack(new EntityDamageByBlockEvent(block, entity, EntityDamageEvent.DamageCause.LAVA, 1));
                 }
             } else {
-                entity.attack(new EntityDamageByBlockEvent(this, entity, EntityDamageEvent.DamageCause.LAVA, 1));
+                entity.attack(new EntityDamageByBlockEvent(block, entity, EntityDamageEvent.DamageCause.LAVA, 1));
             }
         }
     }

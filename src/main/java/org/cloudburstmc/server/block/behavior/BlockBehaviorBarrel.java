@@ -33,10 +33,10 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
             } else if (block.getY() - y > 0) {
                 facing = Direction.DOWN;
             } else {
-                facing = player.getHorizontalFacing().getOpposite();
+                facing = player.getHorizontalDirection().getOpposite();
             }
         } else {
-            facing = player.getHorizontalFacing().getOpposite();
+            facing = player.getHorizontalDirection().getOpposite();
         }
 
         newState = newState.withTrait(BlockTraits.FACING_DIRECTION, facing);
@@ -68,7 +68,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 

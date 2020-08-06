@@ -51,7 +51,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public boolean isValid() {
-        return this.getBlock().getId() == BlockTypes.FRAME;
+        return this.getBlockState().getType() == BlockTypes.FRAME;
     }
 
     @Override

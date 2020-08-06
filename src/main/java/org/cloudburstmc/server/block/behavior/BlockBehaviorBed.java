@@ -21,7 +21,7 @@ import org.cloudburstmc.server.utils.data.DyeColor;
 public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -93,23 +93,18 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         BlockState down = block.down().getState();
         BlockRegistry registry = BlockRegistry.get();
 
-        if (!registry.inCategory(down.getType(), BlockCategory.TRANSPARENT)) {
-            Block next = block.getSide(player.getHorizontalFacing());
+        if (!down.inCategory(BlockCategory.TRANSPARENT)) {
+            Block next = block.getSide(player.getHorizontalDirection());
             BlockBehavior nextBehavior = next.getState().getBehavior();
 
             BlockState downNext = next.down().getState();
 
-            if (nextBehavior.canBeReplaced() && !registry.inCategory(downNext.getType(), BlockCategory.TRANSPARENT)) {
+            if (nextBehavior.canBeReplaced(next) && !downNext.inCategory(BlockCategory.TRANSPARENT)) {
                 BlockState bed = registry.getBlock(BlockTypes.BED)
                         .withTrait(BlockTraits.DIRECTION, player.getDirection());
 
-                block.getLevel().setBlock(block.getPosition(), bed, true);
-
-                if (nextBehavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) nextBehavior).usesWaterLogging()) {
-                    block.getLevel().setBlock(next.getPosition(), 1, next.getState(), true, false);
-                }
-
-                block.getLevel().setBlock(next.getPosition(), bed.withTrait(BlockTraits.IS_HEAD_PIECE, true), true);
+                placeBlock(block, bed);
+                placeBlock(next, bed.withTrait(BlockTraits.IS_HEAD_PIECE, true));
 
                 createBlockEntity(block, item.getMeta());
                 createBlockEntity(next, item.getMeta());

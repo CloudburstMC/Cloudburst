@@ -2,6 +2,8 @@ package org.cloudburstmc.server.item;
 
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -24,7 +26,8 @@ public class ItemGlassBottle extends Item {
 
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
-        if (target.getId() == WATER || target.getId() == FLOWING_WATER) {
+        val targetType = target.getState().getType();
+        if (targetType == WATER || targetType == FLOWING_WATER) {
             Item potion = Item.get(POTION);
 
             if (this.getCount() == 1) {

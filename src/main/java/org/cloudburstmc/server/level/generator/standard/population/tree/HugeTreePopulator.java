@@ -7,10 +7,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.feature.WorldFeature;
-import org.cloudburstmc.server.level.feature.tree.TreeSpecies;
+import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
@@ -64,8 +65,9 @@ public class HugeTreePopulator extends AbstractTreePopulator {
             final int min = this.height.min;
 
             IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-            for (int y = max, id, lastId = chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, y + 1, blockZ & 0xF, 0); y >= min; y--) {
-                id = chunk.getBlockRuntimeIdUnsafe(blockX & 0xF, y, blockZ & 0xF, 0);
+            BlockState lastId = chunk.getBlock(blockX & 0xF, max + 1, blockZ & 0xF, 0);
+            for (int y = max; y >= min; y--) {
+                BlockState id = chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0);
 
                 if (replace.test(lastId) && on.test(id)) {
                     this.placeTree(random, level, blockX, y, blockZ);
@@ -82,19 +84,19 @@ public class HugeTreePopulator extends AbstractTreePopulator {
     protected void placeTree(PRandom random, ChunkManager level, int x, int y, int z) {
         for (int dx = 0; dx <= 1; dx++) {
             for (int dz = 0; dz <= 1; dz++) {
-                int testId = level.getBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0);
-                if (!this.on.test(testId) && (!this.replace.test(testId) || !this.on.test(level.getBlockRuntimeIdUnsafe(x + dx, y - 1, z + dz, 0)))) {
+                BlockState test = level.getBlockAt(x + dx, y, z + dz, 0);
+                if (!this.on.test(test) && (!this.replace.test(test) || !this.on.test(level.getBlockAt(x + dx, y - 1, z + dz, 0)))) {
                     return;
                 }
             }
         }
 
         if (this.types[random.nextInt(this.types.length)].place(level, random, x, y + 1, z)) {
-            int belowId = this.below.selectRuntimeId(random);
+            BlockState below = this.below.selectWeighted(random);
             for (int dx = 0; dx <= 1; dx++) {
                 for (int dz = 0; dz <= 1; dz++) {
-                    level.setBlockRuntimeIdUnsafe(x + dx, y, z + dz, 0, belowId);
-                    level.setBlockRuntimeIdUnsafe(x + dx, y - 1, z + dz, 0, belowId);
+                    level.setBlockAt(x + dx, y, z + dz, 0, below);
+                    level.setBlockAt(x + dx, y - 1, z + dz, 0, below);
                 }
             }
         }
@@ -124,7 +126,7 @@ public class HugeTreePopulator extends AbstractTreePopulator {
 
         @JsonCreator
         public ConfigTree(String species) {
-            this.feature = Preconditions.checkNotNull(TreeSpecies.valueOf(species.toUpperCase()).getHugeGenerator(), "%s does not support huge trees!", species);
+            this.feature = Preconditions.checkNotNull(GenerationTreeSpecies.valueOf(species.toUpperCase()).getHugeGenerator(), "%s does not support huge trees!", species);
         }
 
         public WorldFeature build() {

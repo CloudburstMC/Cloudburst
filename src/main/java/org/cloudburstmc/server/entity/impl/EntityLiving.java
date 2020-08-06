@@ -13,9 +13,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorMagma;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityDamageable;
 import org.cloudburstmc.server.entity.EntityType;
@@ -40,6 +39,7 @@ import java.util.List;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.BREATHING;
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.MAGMA;
 
 /**
  * author: MagicDroidX
@@ -221,7 +221,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
                     this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.SUFFOCATION, 1));
                 }
 
-                Identifier block = this.getLevel().getBlock(this.getPosition()).getId();
+                Identifier block = this.getLevel().getBlockAt(this.getPosition().toInt()).getType();
                 boolean ignore = block == BlockTypes.LADDER || block == BlockTypes.VINE || block == BlockTypes.WEB;
                 if (ignore || this.hasEffect(Effect.LEVITATION)) {
                     this.resetFallDistance();
@@ -277,8 +277,8 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
             }
 
             // Used to check collisions with magma blocks
-            BlockState blockState = this.getLevel().getLoadedBlock(this.getPosition().sub(0, 1, 0));
-            if (blockState instanceof BlockBehaviorMagma) blockState.onEntityCollide(this);
+            Block block = this.getLevel().getBlock(this.getPosition().sub(0, 1, 0).toInt());
+            if (block.getState().getType() == MAGMA) block.getState().getBehavior().onEntityCollide(block, this);
             return hasUpdate;
         }
     }
@@ -287,15 +287,15 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
         return new Item[0];
     }
 
-    public BlockState[] getLineOfSight(int maxDistance) {
+    public Block[] getLineOfSight(int maxDistance) {
         return this.getLineOfSight(maxDistance, 0);
     }
 
-    public BlockState[] getLineOfSight(int maxDistance, int maxLength) {
+    public Block[] getLineOfSight(int maxDistance, int maxLength) {
         return this.getLineOfSight(maxDistance, maxLength, new Identifier[0]);
     }
 
-    public BlockState[] getLineOfSight(int maxDistance, int maxLength, Identifier[] transparent) {
+    public Block[] getLineOfSight(int maxDistance, int maxLength, Identifier[] transparent) {
         if (maxDistance > 120) {
             maxDistance = 120;
         }
@@ -304,21 +304,21 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
             transparent = null;
         }
 
-        List<BlockState> blockStates = new ArrayList<>();
+        List<Block> blocks = new ArrayList<>();
 
         Vector3f position = getPosition().add(0, this.getEyeHeight(), 0);
         for (Vector3i pos : BlockRayTrace.of(position, getDirectionVector(), maxDistance)) {
-            BlockState blockState = this.getLevel().getLoadedBlock(pos);
-            if (blockState == null) {
+            Block block = this.getLevel().getLoadedBlock(pos);
+            if (block == null) {
                 break;
             }
-            blockStates.add(blockState);
+            blocks.add(block);
 
-            if (maxLength != 0 && blockStates.size() > maxLength) {
-                blockStates.remove(0);
+            if (maxLength != 0 && blocks.size() > maxLength) {
+                blocks.remove(0);
             }
 
-            Identifier id = blockState.getId();
+            Identifier id = block.getState().getType();
 
             if (transparent == null) {
                 if (id != AIR) {
@@ -331,24 +331,24 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
             }
         }
 
-        return blockStates.toArray(new BlockState[0]);
+        return blocks.toArray(new Block[0]);
     }
 
-    public BlockState getTargetBlock(int maxDistance) {
+    public Block getTargetBlock(int maxDistance) {
         return getTargetBlock(maxDistance, new Identifier[0]);
     }
 
-    public BlockState getTargetBlock(int maxDistance, Identifier[] transparent) {
+    public Block getTargetBlock(int maxDistance, Identifier[] transparent) {
         try {
-            BlockState[] blockStates = this.getLineOfSight(maxDistance, 1, transparent);
-            BlockState blockState = blockStates[0];
-            if (blockState != null) {
+            Block[] blocks = this.getLineOfSight(maxDistance, 1, transparent);
+            Block block = blocks[0];
+            if (block != null) {
                 if (transparent != null && transparent.length != 0) {
-                    if (Arrays.binarySearch(transparent, blockState.getId()) < 0) {
-                        return blockState;
+                    if (Arrays.binarySearch(transparent, block.getState().getType()) < 0) {
+                        return block;
                     }
                 } else {
-                    return blockState;
+                    return block;
                 }
             }
         } catch (Exception ignored) {

@@ -1,82 +1,54 @@
 package org.cloudburstmc.server.utils;
 
-public enum TerracottaColor {
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import lombok.experimental.UtilityClass;
+import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.utils.data.DyeColor;
 
-    BLACK(0, 15, "Black", "Ink Sack", BlockColor.BLACK_TERRACOTA_BLOCK_COLOR),
-    RED(1, 14, "Red", "Rose Red", BlockColor.RED_TERRACOTA_BLOCK_COLOR),
-    GREEN(2, 13, "Green", "Cactus Green", BlockColor.GREEN_TERRACOTA_BLOCK_COLOR),
-    BROWN(3, 12, "Brown", "Cocoa Beans", BlockColor.BROWN_TERRACOTA_BLOCK_COLOR),
-    BLUE(4, 11, "Blue", "Lapis Lazuli", BlockColor.BLUE_TERRACOTA_BLOCK_COLOR),
-    PURPLE(5, 10, "Purple", BlockColor.PURPLE_TERRACOTA_BLOCK_COLOR),
-    CYAN(6, 9, "Cyan", BlockColor.CYAN_TERRACOTA_BLOCK_COLOR),
-    LIGHT_GRAY(7, 8, "Light Gray", BlockColor.LIGHT_GRAY_TERRACOTA_BLOCK_COLOR),
-    GRAY(8, 7, "Gray", BlockColor.GRAY_TERRACOTA_BLOCK_COLOR),
-    PINK(9, 6, "Pink", BlockColor.PINK_TERRACOTA_BLOCK_COLOR),
-    LIME(10, 5, "Lime", BlockColor.LIME_TERRACOTA_BLOCK_COLOR),
-    YELLOW(11, 4, "Yellow", "Dandelion Yellow", BlockColor.YELLOW_TERRACOTA_BLOCK_COLOR),
-    LIGHT_BLUE(12, 3, "Light Blue", BlockColor.LIGHT_BLUE_TERRACOTA_BLOCK_COLOR),
-    MAGENTA(13, 2, "Magenta", BlockColor.MAGENTA_TERRACOTA_BLOCK_COLOR),
-    ORANGE(14, 1, "Orange", BlockColor.ORANGE_TERRACOTA_BLOCK_COLOR),
-    WHITE(15, 0, "White", "Bone Meal", BlockColor.WHITE_TERRACOTA_BLOCK_COLOR);
+@UtilityClass
+public class TerracottaColor {
 
-
-    private final static TerracottaColor[] BY_TERRACOTA_DATA;
-    private final static TerracottaColor[] BY_DYE_DATA;
+    private final BiMap<Identifier, DyeColor> DYE_COLOR_MAP = HashBiMap.create(16);
+    private final BiMap<Identifier, BlockColor> BLOCK_COLOR_MAP = HashBiMap.create(16);
 
     static {
-        BY_DYE_DATA = values();
-        BY_TERRACOTA_DATA = values();
-
-        for (TerracottaColor color : values()) {
-            BY_TERRACOTA_DATA[color.terracottaColorMeta & 0x0f] = color;
-            BY_DYE_DATA[color.dyeColorMeta & 0x0f] = color;
-        }
+        register(BlockTypes.BLACK_GLAZED_TERRACOTTA, DyeColor.BLACK, BlockColor.BLACK_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.RED_GLAZED_TERRACOTTA, DyeColor.RED, BlockColor.RED_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.GREEN_GLAZED_TERRACOTTA, DyeColor.GREEN, BlockColor.GREEN_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.BROWN_GLAZED_TERRACOTTA, DyeColor.BROWN, BlockColor.BROWN_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.BLUE_GLAZED_TERRACOTTA, DyeColor.BLUE, BlockColor.BLUE_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.PURPLE_GLAZED_TERRACOTTA, DyeColor.PURPLE, BlockColor.PURPLE_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.CYAN_GLAZED_TERRACOTTA, DyeColor.CYAN, BlockColor.CYAN_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.SILVER_GLAZED_TERRACOTTA, DyeColor.LIGHT_GRAY, BlockColor.LIGHT_GRAY_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.GRAY_GLAZED_TERRACOTTA, DyeColor.GRAY, BlockColor.GRAY_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.PINK_GLAZED_TERRACOTTA, DyeColor.PINK, BlockColor.PINK_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.LIME_GLAZED_TERRACOTTA, DyeColor.LIME, BlockColor.LIME_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.YELLOW_GLAZED_TERRACOTTA, DyeColor.YELLOW, BlockColor.YELLOW_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.LIGHT_BLUE_GLAZED_TERRACOTTA, DyeColor.LIGHT_BLUE, BlockColor.LIGHT_BLUE_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.MAGENTA_GLAZED_TERRACOTTA, DyeColor.MAGENTA, BlockColor.MAGENTA_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.ORANGE_GLAZED_TERRACOTTA, DyeColor.ORANGE, BlockColor.ORANGE_TERRACOTA_BLOCK_COLOR);
+        register(BlockTypes.WHITE_GLAZED_TERRACOTTA, DyeColor.WHITE, BlockColor.WHITE_TERRACOTA_BLOCK_COLOR);
     }
 
-    private int dyeColorMeta;
-    private int terracottaColorMeta;
-    private String colorName;
-    private String dyeName;
-    private BlockColor blockColor;
-
-    TerracottaColor(int dyeColorMeta, int terracottaColorMeta, String colorName, BlockColor blockColor) {
-        this(dyeColorMeta, terracottaColorMeta, colorName, colorName + " Dye", blockColor);
+    private void register(Identifier type, DyeColor color, BlockColor blockColor) {
+        DYE_COLOR_MAP.put(type, color);
+        BLOCK_COLOR_MAP.put(type, blockColor);
     }
 
-    TerracottaColor(int dyeColorMeta, int terracottaColorMeta, String colorName, String dyeName, BlockColor blockColor) {
-        this.dyeColorMeta = dyeColorMeta;
-        this.terracottaColorMeta = terracottaColorMeta;
-        this.colorName = colorName;
-        this.blockColor = blockColor;
-        this.dyeName = dyeName;
+    public DyeColor getDyeColor(Identifier type) {
+        return DYE_COLOR_MAP.get(type);
     }
 
-    public static TerracottaColor getByDyeData(int dyeColorMeta) {
-        return BY_DYE_DATA[dyeColorMeta & 0x0f];
+    public BlockColor getBlockColor(Identifier type) {
+        return BLOCK_COLOR_MAP.get(type);
     }
 
-    public static TerracottaColor getByTerracottaData(int terracottaColorMeta) {
-        return BY_TERRACOTA_DATA[terracottaColorMeta & 0x0f];
+    public Identifier fromDyeColor(DyeColor color) {
+        return DYE_COLOR_MAP.inverse().get(color);
     }
 
-    public BlockColor getColor() {
-        return this.blockColor;
+    public Identifier fromBlockColor(BlockColor color) {
+        return BLOCK_COLOR_MAP.inverse().get(color);
     }
-
-    public int getDyeData() {
-        return this.dyeColorMeta;
-    }
-
-    public int getTerracottaData() {
-        return this.terracottaColorMeta;
-    }
-
-    public String getName() {
-        return this.colorName;
-    }
-
-    public String getDyeName() {
-        return this.dyeName;
-    }
-
 }

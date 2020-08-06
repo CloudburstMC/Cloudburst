@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.level.Level;
 
 /**
@@ -11,9 +11,9 @@ import org.cloudburstmc.server.level.Level;
 public class FakeBlockMenu implements InventoryHolder {
 
     private final Inventory inventory;
-    private final BlockState blockState;
+    private final Block blockState;
 
-    public FakeBlockMenu(Inventory inventory, BlockState blockState) {
+    public FakeBlockMenu(Inventory inventory, Block blockState) {
         this.inventory = inventory;
         this.blockState = blockState;
     }

@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
@@ -75,7 +76,9 @@ public interface BlockEntity {
 
     boolean updateFromClient(NbtMap tag, Player player);
 
-    BlockState getBlock();
+    Block getBlock();
+
+    BlockState getBlockState();
 
     void spawnToAll();
 

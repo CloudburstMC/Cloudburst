@@ -5,7 +5,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorEnderChest;
+import org.cloudburstmc.server.blockentity.EnderChest;
 import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
@@ -30,7 +30,7 @@ public class PlayerEnderChestInventory extends BaseInventory {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setId(who.getWindowId(this));
         containerOpenPacket.setType(ContainerType.from(this.getType().getNetworkType()));
-        BlockBehaviorEnderChest chest = who.getViewingEnderChest();
+        EnderChest chest = who.getViewingEnderChest();
         if (chest != null) {
             containerOpenPacket.setBlockPosition(chest.getPosition());
         } else {
@@ -41,7 +41,7 @@ public class PlayerEnderChestInventory extends BaseInventory {
 
         this.sendContents(who);
 
-        if (chest != null && chest.getViewers().size() == 1) {
+        if (chest != null && chest.getInventory().getViewers().size() == 1) {
             Level level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition().add(0.5, 0.5, 0.5), SoundEvent.ENDERCHEST_OPEN);
@@ -57,8 +57,8 @@ public class PlayerEnderChestInventory extends BaseInventory {
         who.sendPacket(containerClosePacket);
         super.onClose(who);
 
-        BlockBehaviorEnderChest chest = who.getViewingEnderChest();
-        if (chest != null && chest.getViewers().size() == 1) {
+        EnderChest chest = who.getViewingEnderChest();
+        if (chest != null && chest.getInventory().getViewers().size() == 1) {
             Level level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition().add(0.5, 0.5, 0.5), SoundEvent.ENDERCHEST_CLOSED);

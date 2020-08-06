@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -19,14 +21,14 @@ import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
 public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (block.down().getId() == FARMLAND) {
-            this.getLevel().setBlock(block.getPosition(), this, true, true);
+        if (block.down().getState().getType() == FARMLAND) {
+            placeBlock(block, item);
             return true;
         }
         return false;
@@ -36,21 +38,16 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
     public boolean onActivate(Block block, Item item, Player player) {
         //Bone meal
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) {
-            if (this.getMeta() < 7) {
-                BlockBehaviorCrops block = (BlockBehaviorCrops) this.clone();
-                block.setMeta(block.getMeta() + ThreadLocalRandom.current().nextInt(3) + 2);
-                if (block.getMeta() > 7) {
-                    block.setMeta(7);
-                }
-                BlockGrowEvent ev = new BlockGrowEvent(this, block);
+            if (block.getState().ensureTrait(BlockTraits.GROWTH) < 7) {
+                BlockGrowEvent ev = new BlockGrowEvent(block, block.getState().incrementTrait(BlockTraits.GROWTH));
                 Server.getInstance().getPluginManager().callEvent(ev);
 
                 if (ev.isCancelled()) {
                     return false;
                 }
 
-                this.getLevel().setBlock(this.getPosition(), ev.getNewState(), false, true);
-                this.level.addParticle(new BoneMealParticle(this.getPosition()));
+                block.set(ev.getNewState(), false);
+                block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
 
                 if (player != null && player.getGamemode().isSurvival()) {
                     item.decrementCount();
@@ -66,20 +63,19 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.down().getId() != FARMLAND) {
-                this.getLevel().useBreakOn(this.getPosition());
+            if (block.down().getState().getType() != FARMLAND) {
+                removeBlock(block, true);
                 return Level.BLOCK_UPDATE_NORMAL;
             }
         } else if (type == Level.BLOCK_UPDATE_RANDOM) {
             if (ThreadLocalRandom.current().nextInt(2) == 1) {
-                if (this.getMeta() < 0x07) {
-                    BlockBehaviorCrops block = (BlockBehaviorCrops) this.clone();
-                    block.setMeta(block.getMeta() + 1);
-                    BlockGrowEvent ev = new BlockGrowEvent(this, block);
+                val state = block.getState();
+                if (state.ensureTrait(BlockTraits.GROWTH) < 0x07) {
+                    BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
                     Server.getInstance().getPluginManager().callEvent(ev);
 
                     if (!ev.isCancelled()) {
-                        this.getLevel().setBlock(this.getPosition(), ev.getNewState(), false, true);
+                        block.set(ev.getNewState(), false, true);
                     } else {
                         return Level.BLOCK_UPDATE_RANDOM;
                     }
@@ -93,7 +89,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block state) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 }

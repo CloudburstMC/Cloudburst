@@ -2,27 +2,25 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockFactory;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
+import static org.cloudburstmc.server.block.BlockTypes.WATER;
 
 public class BlockBehaviorWater extends BlockBehaviorLiquid {
 
-    protected BlockBehaviorWater(Identifier flowingId, Identifier stationaryId) {
-        super(flowingId, stationaryId);
+    public BlockBehaviorWater() {
+        super(FLOWING_WATER, WATER);
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        boolean success = target.getLevel().setBlock(blockState.getPosition(), this, true, false);
-        if (success) this.getLevel().scheduleUpdate(this, this.tickRate());
+        boolean success = target.getLevel().setBlock(block.getPosition(), item.getBlock(), true, false);
+        if (success) block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
 
         return success;
     }
@@ -30,11 +28,6 @@ public class BlockBehaviorWater extends BlockBehaviorLiquid {
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.WATER_BLOCK_COLOR;
-    }
-
-    @Override
-    public BlockState getBlock(int meta) {
-        return BlockState.get(FLOWING_WATER, meta);
     }
 
     @Override
@@ -54,9 +47,5 @@ public class BlockBehaviorWater extends BlockBehaviorLiquid {
     @Override
     public boolean usesWaterLogging() {
         return true;
-    }
-
-    public static BlockFactory factory(Identifier stationaryId) {
-        return id -> new BlockBehaviorWater(id, stationaryId);
     }
 }

@@ -5,5 +5,8 @@ import org.cloudburstmc.server.block.BlockState;
 
 public interface BlockSerializer {
 
+    String TAG_NAME = "name";
+    String TAG_STATES = "states";
+
     void serialize(NbtMapBuilder builder, BlockState state);
 }

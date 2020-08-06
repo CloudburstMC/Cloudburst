@@ -1,7 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
@@ -21,7 +24,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -40,10 +43,10 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         return ItemTool.TYPE_AXE;
     }
 
-    @Override
-    public float getMaxY() {
-        return this.getY() + 0.89999f;
-    }
+//    @Override //TODO: bounding box
+//    public float getMaxY() {
+//        return this.getY() + 0.89999f;
+//    }
 
     @Override
     public boolean hasComparatorInputOverride() {
@@ -55,7 +58,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         int power = 0;
         int page = 0;
         int maxPage = 0;
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         if (blockEntity instanceof Lectern) {
             Lectern lectern = (Lectern) blockEntity;
             if (lectern.hasBook()) {
@@ -67,38 +70,33 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         return power;
     }
 
-    public void setBlockFace(Direction face) {
-        final int dataMask = (1 << 6) - 1;
-
-        int horizontalIndex = face.getHorizontalIndex();
-        if (horizontalIndex >= 0) {
-            setMeta(getMeta() & (dataMask ^ 0b11) | (horizontalIndex & 0b11));
-        }
-    }
-
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        setBlockFace(player != null ? player.getDirection().getOpposite() : Direction.SOUTH);
+        if (placeBlock(block, BlockState.get(BlockTypes.LECTERN).withTrait(
+                BlockTraits.DIRECTION,
+                player != null ? player.getHorizontalDirection() : Direction.NORTH)
+        )) {
+            BlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, block);
 
-        Lectern lectern = BlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, this.getChunk(), this.getPosition());
+            return true;
+        }
 
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
-        return true;
+        return false;
     }
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockEntity t = this.getLevel().getBlockEntity(this.getPosition());
+            BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             Lectern lectern;
             if (t instanceof Lectern) {
                 lectern = (Lectern) t;
             } else {
-                lectern = BlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, this.getChunk(), this.getPosition());
+                lectern = BlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, block);
             }
 
             Item currentBook = lectern.getBook();
-            if (currentBook.getId() == BlockTypes.AIR) {
+            if (currentBook != null && currentBook.getId() == BlockTypes.AIR) {
                 if (item.getId() == ItemIds.WRITTEN_BOOK || item.getId() == ItemIds.WRITABLE_BOOK) {
                     Item newBook = item.clone();
                     if (player.isSurvival()) {
@@ -108,7 +106,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
                     newBook.setCount(1);
                     lectern.setBook(newBook);
                     lectern.spawnToAll();
-                    this.getLevel().addSound(this.getPosition(), Sound.ITEM_BOOK_PUT);
+                    block.getLevel().addSound(block.getPosition(), Sound.ITEM_BOOK_PUT);
                 }
             }
         }
@@ -117,56 +115,49 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean isPowerSource() {
+    public boolean isPowerSource(Block block) {
         return true;
     }
 
-    public boolean isActivated() {
-        return (this.getMeta() & 0x04) == 0x04;
+    public boolean isActivated(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_POWERED);
     }
 
-    public void setActivated(boolean activated) {
-        if (activated) {
-            setMeta(getMeta() | 0x04);
+    public void executeRedstonePulse(Block block) {
+        val level = block.getLevel();
+        if (isActivated(block.getState())) {
+            level.cancelSheduledUpdate(block.getPosition(), block);
         } else {
-            setMeta(getMeta() ^ 0x04);
-        }
-    }
-
-    public void executeRedstonePulse() {
-        if (isActivated()) {
-            level.cancelSheduledUpdate(this.getPosition(), this);
-        } else {
-            this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 0, 15));
+            level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 0, 15));
         }
 
-        level.scheduleUpdate(this, this.getPosition(), 4);
-        setActivated(true);
-        level.setBlock(this.getPosition(), this, true, false);
-        level.addSound(this.getPosition(), Sound.ITEM_BOOK_PAGE_TURN);
+        level.scheduleUpdate(block.getPosition(), 4);
 
-        level.updateAroundRedstone(this.getPosition(), null);
+        block.set(block.getState().withTrait(BlockTraits.IS_POWERED, false), true);
+        level.addSound(block.getPosition(), Sound.ITEM_BOOK_PAGE_TURN);
+
+        level.updateAroundRedstone(block.getPosition(), null);
     }
 
     @Override
-    public int getWeakPower(Direction face) {
-        return isActivated() ? 15 : 0;
+    public int getWeakPower(Block block, Direction face) {
+        return isActivated(block.getState()) ? 15 : 0;
     }
 
     @Override
-    public int getStrongPower(Direction side) {
+    public int getStrongPower(Block block, Direction side) {
         return 0;
     }
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
-            if (isActivated()) {
-                this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, 15, 0));
+            val state = block.getState();
+            if (isActivated(state)) {
+                block.getLevel().getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
 
-                setActivated(false);
-                level.setBlock(this.getPosition(), this, true, false);
-                level.updateAroundRedstone(this.getPosition(), null);
+                block.set(state.withTrait(BlockTraits.IS_POWERED, false));
+                block.getLevel().updateAroundRedstone(block.getPosition(), null);
             }
 
             return Level.BLOCK_UPDATE_SCHEDULED;
@@ -176,22 +167,22 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
-    public void dropBook(Player player) {
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition());
+    public void dropBook(Block block, Player player) {
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         if (blockEntity instanceof Lectern) {
             Lectern lectern = (Lectern) blockEntity;
             Item book = lectern.getBook();
-            if (book.getId() != BlockTypes.AIR) {
+            if (book != null && book.getId() != BlockTypes.AIR) {
                 LecternDropBookEvent dropBookEvent = new LecternDropBookEvent(player, lectern, book);
-                this.getLevel().getServer().getPluginManager().callEvent(dropBookEvent);
+                block.getLevel().getServer().getPluginManager().callEvent(dropBookEvent);
                 if (!dropBookEvent.isCancelled()) {
                     lectern.setBook(Item.get(BlockTypes.AIR));
                     lectern.spawnToAll();
-                    this.level.dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
+                    block.getLevel().dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
                 }
             }
         }

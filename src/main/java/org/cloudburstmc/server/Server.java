@@ -12,8 +12,6 @@ import com.spotify.futures.CompletableFutures;
 import io.netty.buffer.ByteBuf;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
-import org.cloudburstmc.server.block.serializer.DirectionHelper;
-import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.console.NukkitConsole;
@@ -385,8 +383,8 @@ public class Server {
 
         log.info("Loading {} ...", TextFormat.GREEN + "server.properties" + TextFormat.WHITE);
         this.properties = new Properties();
-        this.properties.setProperty("motd", "A Nukkit Powered Server");
-        this.properties.setProperty("sub-motd", "https://nukkitx.com");
+        this.properties.setProperty("motd", "A Cloudburst Powered Server");
+        this.properties.setProperty("sub-motd", "https://cloudburstmc.org");
         this.properties.setProperty("server-port", "19132");
         this.properties.setProperty("server-ip", "0.0.0.0");
         this.properties.setProperty("view-distance", "10");
@@ -545,8 +543,6 @@ public class Server {
         }
 
         EnumLevel.initLevels();
-        DirectionHelper.init();
-        BlockTraitSerializers.init();
 
         if (this.getConfig("ticks-per.autosave", 6000) > 0) {
             this.autoSaveTicks = this.getConfig("ticks-per.autosave", 6000);
@@ -1155,11 +1151,11 @@ public class Server {
     }
 
     public String getMotd() {
-        return this.getProperty("motd", "A Nukkit Powered Server");
+        return this.getProperty("motd", "A Cloudburst Powered Server");
     }
 
     public String getSubMotd() {
-        return this.getProperty("sub-motd", "https://nukkitx.com");
+        return this.getProperty("sub-motd", "https://cloudburstmc.org");
     }
 
     public boolean getForceResources() {

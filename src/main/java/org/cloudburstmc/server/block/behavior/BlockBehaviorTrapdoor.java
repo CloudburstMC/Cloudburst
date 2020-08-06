@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockFactory;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.Item;
@@ -106,7 +108,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -120,52 +122,54 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
         return 15;
     }
 
-    private AxisAlignedBB getRelativeBoundingBox() {
-        return boundingBoxDamage[this.getMeta()];
-    }
+//    private AxisAlignedBB getRelativeBoundingBox() { //TODO: bounding box
+//        return boundingBoxDamage[this.getMeta()];
+//    }
+//
+//    @Override
+//    public float getMinX() {
+//        return this.getX() + getRelativeBoundingBox().getMinX();
+//    }
+//
+//    @Override
+//    public float getMaxX() {
+//        return this.getX() + getRelativeBoundingBox().getMaxX();
+//    }
+//
+//    @Override
+//    public float getMinY() {
+//        return this.getY() + getRelativeBoundingBox().getMinY();
+//    }
+//
+//    @Override
+//    public float getMaxY() {
+//        return this.getY() + getRelativeBoundingBox().getMaxY();
+//    }
+//
+//    @Override
+//    public float getMinZ() {
+//        return this.getZ() + getRelativeBoundingBox().getMinZ();
+//    }
+//
+//    @Override
+//    public float getMaxZ() {
+//        return this.getZ() + getRelativeBoundingBox().getMaxZ();
+//    }
 
-    @Override
-    public float getMinX() {
-        return this.getX() + getRelativeBoundingBox().getMinX();
-    }
-
-    @Override
-    public float getMaxX() {
-        return this.getX() + getRelativeBoundingBox().getMaxX();
-    }
-
-    @Override
-    public float getMinY() {
-        return this.getY() + getRelativeBoundingBox().getMinY();
-    }
-
-    @Override
-    public float getMaxY() {
-        return this.getY() + getRelativeBoundingBox().getMaxY();
-    }
-
-    @Override
-    public float getMinZ() {
-        return this.getZ() + getRelativeBoundingBox().getMinZ();
-    }
-
-    @Override
-    public float getMaxZ() {
-        return this.getZ() + getRelativeBoundingBox().getMaxZ();
-    }
-
-    public static BlockFactory factory(BlockColor blockColor) {
-        return identifier -> new BlockBehaviorTrapdoor(identifier, blockColor);
-    }
+//    public static BlockFactory factory(BlockColor blockColor) {
+//        return identifier -> new BlockBehaviorTrapdoor(identifier, blockColor);
+//    }
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_REDSTONE) {
-            if ((!this.isOpen() && this.level.isBlockPowered(this.getPosition())) || (this.isOpen() && !this.level.isBlockPowered(this.getPosition()))) {
-                this.level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(this, isOpen() ? 15 : 0, isOpen() ? 0 : 15));
-                this.setMeta(this.getMeta() ^ TRAPDOOR_OPEN_BIT);
-                this.level.setBlock(this.getPosition(), this, true);
-                this.level.addSound(this.getPosition(), isOpen() ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
+            val level = block.getLevel();
+            val open = isOpen(block.getState());
+            if ((!open && level.isBlockPowered(block.getPosition())) || (open && !level.isBlockPowered(block.getPosition()))) {
+                level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
+
+                block.set(block.getState().toggleTrait(BlockTraits.IS_OPEN));
+                level.addSound(block.getPosition(), open ? Sound.RANDOM_DOOR_CLOSE : Sound.RANDOM_DOOR_OPEN);
                 return type;
             }
         }
@@ -175,13 +179,13 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(id, 0);
+        return Item.get(block.getState().defaultState());
     }
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        if (toggle(player)) {
-            this.level.addSound(this.getPosition(), isOpen() ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
+        if (toggle(block, player)) {
+            block.getLevel().addSound(block.getPosition(), isOpen(block.getState()) ? Sound.RANDOM_DOOR_CLOSE : Sound.RANDOM_DOOR_OPEN);
             return true;
         }
         return false;
@@ -191,7 +195,6 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Direction facing;
         boolean top;
-        int meta = 0;
 
         if (face.getAxis().isHorizontal() || player == null) {
             facing = face;
@@ -201,40 +204,29 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
             top = face != Direction.UP;
         }
 
-        int[] faces = {2, 1, 3, 0};
-        int faceBit = faces[facing.getHorizontalIndex()];
-        meta |= faceBit;
-
-        if (top) {
-            meta |= TRAPDOOR_TOP_BIT;
-        }
-        this.setMeta(meta);
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
-        return true;
+        return placeBlock(block, item.getBlock()
+                .withTrait(BlockTraits.DIRECTION, facing)
+                .withTrait(BlockTraits.IS_UPSIDE_DOWN, top)
+        );
     }
 
-    public boolean toggle(Player player) {
-        DoorToggleEvent ev = new DoorToggleEvent(this, player);
-        getLevel().getServer().getPluginManager().callEvent(ev);
+    public boolean toggle(Block block, Player player) {
+        DoorToggleEvent ev = new DoorToggleEvent(block, player);
+        block.getLevel().getServer().getPluginManager().callEvent(ev);
         if (ev.isCancelled()) {
             return false;
         }
-        this.setMeta(this.getMeta() ^ TRAPDOOR_OPEN_BIT);
-        getLevel().setBlock(this.getPosition(), this, true);
+
+        block.set(block.getState().toggleTrait(BlockTraits.IS_OPEN), true);
         return true;
     }
 
-    public boolean isOpen() {
-        return (this.getMeta() & TRAPDOOR_OPEN_BIT) != 0;
+    public boolean isOpen(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_OPEN);
     }
 
-    public boolean isTop() {
-        return (this.getMeta() & TRAPDOOR_TOP_BIT) != 0;
-    }
-
-    @Override
-    public Direction getBlockFace() {
-        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
+    public boolean isTop(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_UPSIDE_DOWN);
     }
 
     @Override

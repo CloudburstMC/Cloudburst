@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -30,10 +31,10 @@ public class BlockBehaviorConcrete extends BlockBehaviorSolid {
 
     @Override
     public BlockColor getColor(Block block) {
-        return DyeColor.getByWoolData(getMeta()).getColor();
+        return getDyeColor(block).getColor();
     }
 
-    public DyeColor getDyeColor() {
-        return DyeColor.getByWoolData(getMeta());
+    public DyeColor getDyeColor(Block block) {
+        return block.getState().ensureTrait(BlockTraits.COLOR);
     }
 }

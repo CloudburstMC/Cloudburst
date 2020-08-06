@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.serializer;
 
+import com.google.common.base.Preconditions;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.server.block.BlockState;
@@ -33,6 +34,8 @@ public class DirectionHelper {
         register(TYPE_7, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
         register(TYPE_8, Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST);
         register(TYPE_9, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.UP);
+        register(TYPE_10, Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST);
+        register(TYPE_11, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.DOWN, Direction.UP);
 
         registerDefaultMappings();
     }
@@ -40,8 +43,7 @@ public class DirectionHelper {
     private void registerDefaultMappings() {
         register(TYPE_1,
                 END_PORTAL_FRAME,
-                WALL_BANNER,
-                WALL_SIGN
+                BELL
         );
 
         register(TYPE_2,
@@ -53,6 +55,8 @@ public class DirectionHelper {
                 BIRCH_FENCE_GATE,
                 DARK_OAK_FENCE_GATE,
                 JUNGLE_FENCE_GATE,
+                CRIMSON_FENCE_GATE,
+                WARPED_FENCE_GATE,
                 POWERED_REPEATER,
                 UNPOWERED_REPEATER,
                 PUMPKIN,
@@ -72,38 +76,43 @@ public class DirectionHelper {
         );
 
         register(TYPE_4,
-                FRAME,
-                JUNGLE_STAIRS,
-                DARK_OAK_STAIRS,
-                BIRCH_STAIRS,
-                SPRUCE_STAIRS,
-                ACACIA_STAIRS,
                 OAK_STAIRS,
-                SANDSTONE_STAIRS,
-                SMOOTH_SANDSTONE_STAIRS,
-                STONE_BRICK_STAIRS,
+                ACACIA_STAIRS,
+                ANDESITE_STAIRS,
+                BIRCH_STAIRS,
+                BLACKSTONE_STAIRS,
                 BRICK_STAIRS,
-                MOSSY_COBBLESTONE_STAIRS,
-                PRISMARINE_STAIRS,
-                PRISMARINE_BRICKS_STAIRS,
-                PURPUR_STAIRS,
-                QUARTZ_STAIRS,
-                SMOOTH_QUARTZ_STAIRS,
-                RED_SANDSTONE_STAIRS,
-                SMOOTH_RED_SANDSTONE_STAIRS,
+                CRIMSON_STAIRS,
+                DARK_OAK_STAIRS,
+                DARK_PRISMARINE_STAIRS,
                 DIORITE_STAIRS,
                 END_BRICK_STAIRS,
                 GRANITE_STAIRS,
+                JUNGLE_STAIRS,
+                MOSSY_COBBLESTONE_STAIRS,
                 MOSSY_STONE_BRICK_STAIRS,
                 NETHER_BRICK_STAIRS,
                 NORMAL_STONE_STAIRS,
+                OAK_STAIRS,
                 POLISHED_ANDESITE_STAIRS,
+                POLISHED_BLACKSTONE_BRICK_STAIRS,
+                POLISHED_BLACKSTONE_STAIRS,
                 POLISHED_DIORITE_STAIRS,
                 POLISHED_GRANITE_STAIRS,
+                PRISMARINE_BRICKS_STAIRS,
+                PRISMARINE_STAIRS,
+                PURPUR_STAIRS,
+                QUARTZ_STAIRS,
                 RED_NETHER_BRICK_STAIRS,
+                RED_SANDSTONE_STAIRS,
+                SANDSTONE_STAIRS,
+                SMOOTH_QUARTZ_STAIRS,
+                SMOOTH_RED_SANDSTONE_STAIRS,
+                SMOOTH_SANDSTONE_STAIRS,
+                SPRUCE_STAIRS,
+                STONE_BRICK_STAIRS,
                 STONE_STAIRS,
-                SMOOTH_STONE,
-                DARK_PRISMARINE_STAIRS
+                WARPED_STAIRS
         );
 
         register(TYPE_5,
@@ -113,7 +122,9 @@ public class DirectionHelper {
                 DARK_OAK_TRAPDOOR,
                 IRON_TRAPDOOR,
                 JUNGLE_TRAPDOOR,
-                SPRUCE_TRAPDOOR
+                SPRUCE_TRAPDOOR,
+                CRIMSON_TRAPDOOR,
+                WARPED_TRAPDOOR
         );
 
         register(TYPE_6,
@@ -126,7 +137,13 @@ public class DirectionHelper {
                 HOPPER,
                 DROPPER,
                 DISPENSER,
-                END_ROD
+                END_ROD,
+                PISTON,
+                STICKY_PISTON,
+                PISTON_ARM_COLLISION,
+                LADDER,
+                WALL_SIGN,
+                WALL_BANNER
         );
 
         register(TYPE_8,
@@ -140,7 +157,24 @@ public class DirectionHelper {
                 ACACIA_BUTTON,
                 BIRCH_BUTTON,
                 WOODEN_BUTTON,
-                STONE_BUTTON
+                STONE_BUTTON,
+                TORCH,
+                REDSTONE_TORCH,
+                UNLIT_REDSTONE_TORCH
+        );
+
+        register(TYPE_10,
+                CHEST,
+                ENDER_CHEST,
+                TRAPPED_CHEST,
+                FURNACE,
+                LIT_FURNACE,
+                BLAST_FURNACE,
+                LIT_BLAST_FURNACE
+        );
+
+        register(TYPE_11,
+                FRAME
         );
     }
 
@@ -170,13 +204,25 @@ public class DirectionHelper {
     }
 
     public short toMeta(@Nonnull Direction direction, SeqType type) {
+        Preconditions.checkNotNull(direction);
         return faceMetaTranslators.get(type).get(direction);
     }
 
     @SuppressWarnings("ConstantConditions")
     public short serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockState state) {
-        SeqType type = mapping.getOrDefault(state.getType(), TYPE_2); //2 is the most common
-        return toMeta(state.getTrait(BlockTraits.DIRECTION), type);
+        SeqType type = mapping.getOrDefault(state.getType(), TYPE_7); //2 is the most common
+
+        Direction direction = state.getTrait(BlockTraits.DIRECTION);
+
+        if (direction == null) {
+            direction = state.getTrait(BlockTraits.FACING_DIRECTION);
+        }
+
+        if (direction == null) {
+            direction = state.getTrait(BlockTraits.TORCH_DIRECTION);
+        }
+
+        return toMeta(direction, type);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -196,6 +242,8 @@ public class DirectionHelper {
         //omnidirectional
         TYPE_7,
         TYPE_8,
-        TYPE_9
+        TYPE_9,
+        TYPE_10,
+        TYPE_11,
     }
 }

@@ -49,9 +49,9 @@ public class ScatteredCoverDecorator implements Decorator {
 
         for (int y = min(chunk.getHighestBlock(x, z), 254); y >= 0; y--) {
             if (random.nextDouble() < chance
-                    && on.test(chunk.getBlockRuntimeIdUnsafe(x, y, z, 0))
-                    && replace.test(chunk.getBlockRuntimeIdUnsafe(x, y + 1, z, 0))) {
-                chunk.setBlockRuntimeIdUnsafe(x, y + 1, z, 0, block.selectRuntimeId(random));
+                    && on.test(chunk.getBlock(x, y, z, 0))
+                    && replace.test(chunk.getBlock(x, y + 1, z, 0))) {
+                chunk.setBlock(x, y + 1, z, 0, block.selectWeighted(random));
             }
         }
     }

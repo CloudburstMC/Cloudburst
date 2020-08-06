@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.HashSet;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -22,13 +21,22 @@ public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
     }
 
     public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass) {
+        return of(name, null, enumClass);
+    }
+
+    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, @Nullable String vanillaName, Class<E> enumClass) {
         E[] values = enumClass.getEnumConstants();
-        return of(name, enumClass, values);
+        return of(name, vanillaName, enumClass, ImmutableSet.copyOf(values), values[0]);
     }
 
     @SafeVarargs
     public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, E... possibleValues) {
-        return of(name, enumClass, ImmutableSet.copyOf(possibleValues), possibleValues[0]);
+        return of(name, null, enumClass, possibleValues);
+    }
+
+    @SafeVarargs
+    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, @Nullable String vanillaName, Class<E> enumClass, E... possibleValues) {
+        return of(name, vanillaName, enumClass, ImmutableSet.copyOf(possibleValues), possibleValues[0]);
     }
 
     public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, E defaultValue) {
@@ -44,7 +52,7 @@ public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
         checkNotNull(enumClass, "enumClass");
         checkNotNull(possibleValues, "possibleValues");
         checkNotNull(defaultValue, "defaultValues");
-        return new EnumBlockTrait<>(name, vanillaName, enumClass, ImmutableList.copyOf(new HashSet<>(possibleValues)), defaultValue);
+        return new EnumBlockTrait<>(name, vanillaName, enumClass, ImmutableList.copyOf(possibleValues), defaultValue);
     }
 
     @Override
@@ -52,10 +60,16 @@ public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
         return this.defaultValue;
     }
 
+    @Override
     public int getIndex(Object value) {
         checkNotNull(value, "value");
         int index = this.possibleValues.indexOf(value);
         checkArgument(index != -1, "Invalid block trait");
         return index;
+    }
+
+    @Override
+    public E parseValue(String text) {
+        return this.getPossibleValues().stream().filter(e -> e.name().equalsIgnoreCase(text)).findAny().orElse(this.defaultValue);
     }
 }

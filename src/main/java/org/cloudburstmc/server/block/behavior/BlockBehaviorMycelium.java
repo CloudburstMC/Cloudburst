@@ -1,14 +1,18 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
+import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockSpreadEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.DirtType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -43,17 +47,19 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_RANDOM) {
             //TODO: light levels
-            Vector3i pos = this.getPosition();
+            Vector3i pos = block.getPosition();
             int x = ThreadLocalRandom.current().nextInt(pos.getX() - 1, pos.getX() + 1);
             int y = ThreadLocalRandom.current().nextInt(pos.getY() - 1, pos.getY() + 1);
             int z = ThreadLocalRandom.current().nextInt(pos.getZ() - 1, pos.getZ() + 1);
-            BlockState blockState = this.getLevel().getBlock(x, y, z);
-            if (blockState.getId() == DIRT && blockState.getMeta() == 0) {
-                if (blockState.up().isTransparent()) {
-                    BlockSpreadEvent ev = new BlockSpreadEvent(blockState, this, BlockState.get(MYCELIUM));
+            Block b = block.getLevel().getBlock(x, y, z);
+            val state = b.getState();
+
+            if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
+                if (b.up().getState().inCategory(BlockCategory.TRANSPARENT)) {
+                    BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(MYCELIUM));
                     Server.getInstance().getPluginManager().callEvent(ev);
                     if (!ev.isCancelled()) {
-                        this.getLevel().setBlock(blockState.getPosition(), ev.getNewState());
+                        b.set(ev.getNewState());
                     }
                 }
             }

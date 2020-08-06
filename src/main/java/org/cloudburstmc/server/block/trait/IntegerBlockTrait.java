@@ -51,14 +51,19 @@ public final class IntegerBlockTrait extends BlockTrait<Integer> {
         return getIndex((int) value);
     }
 
-    public IntRange getRange() {
-        return range;
-    }
-
     public int getIndex(int value) {
         int start = this.range.getStart();
         int end = this.range.getEnd();
         checkArgument(value >= start && value <= end, "value is not in range");
         return value - start;
+    }
+
+    public IntRange getRange() {
+        return range;
+    }
+
+    @Override
+    public Integer parseValue(String text) {
+        return Integer.parseInt(text);
     }
 }

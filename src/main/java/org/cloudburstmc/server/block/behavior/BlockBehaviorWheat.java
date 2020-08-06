@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 
@@ -13,7 +14,7 @@ public class BlockBehaviorWheat extends BlockBehaviorCrops {
 
     @Override
     public Item[] getDrops(Block block, Item hand) {
-        if (this.getMeta() >= 0x07) {
+        if (block.getState().ensureTrait(BlockTraits.GROWTH) >= 0x07) {
             return new Item[]{
                     Item.get(ItemIds.WHEAT),
                     Item.get(ItemIds.WHEAT, 0, (int) (4f * Math.random()))

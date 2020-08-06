@@ -2,7 +2,9 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.level.Level;
@@ -20,10 +22,9 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        BlockState down = this.down();
-        if (down.getId() == GRASS || down.getId() == DIRT || down.getId() == FARMLAND || down.getId() == PODZOL) {
-            this.getLevel().setBlock(blockState.getPosition(), this, true);
-
+        val down = block.down().getState().getType();
+        if (down == GRASS || down == DIRT || down == FARMLAND || down == PODZOL) {
+            placeBlock(block, getUncommonFlower());
             return true;
         }
         return false;
@@ -32,8 +33,8 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.down().isTransparent()) {
-                this.getLevel().useBreakOn(this.getPosition());
+            if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
+                block.getLevel().useBreakOn(block.getPosition());
 
                 return Level.BLOCK_UPDATE_NORMAL;
             }
@@ -48,30 +49,31 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == DYE && item.getMeta() == 0x0f) { //Bone meal
+            val level = block.getLevel();
             if (player != null && player.getGamemode().isSurvival()) {
                 item.decrementCount();
             }
 
-            this.level.addParticle(new BoneMealParticle(this.getPosition()));
+            level.addParticle(new BoneMealParticle(block.getPosition()));
 
             for (int i = 0; i < 8; i++) {
-                Vector3i vec = this.getPosition().add(
+                Vector3i vec = block.getPosition().add(
                         ThreadLocalRandom.current().nextInt(-3, 4),
                         ThreadLocalRandom.current().nextInt(-1, 2),
                         ThreadLocalRandom.current().nextInt(-3, 4));
 
-                if (level.getBlock(vec).getId() == AIR && level.getBlock(vec.down()).getId() == GRASS && vec.getY() >= 0 && vec.getY() < 256) {
+                if (level.getBlock(vec).getState().getType() == AIR && level.getBlock(vec.down()).getState().getType() == GRASS && vec.getY() >= 0 && vec.getY() < 256) {
                     if (ThreadLocalRandom.current().nextInt(10) == 0) {
-                        this.level.setBlock(vec, this.getUncommonFlower(), true);
+                        level.setBlock(vec, this.getUncommonFlower(), true);
                     } else {
-                        this.level.setBlock(vec, BlockState.get(this.getId()), true);
+                        level.setBlock(vec, BlockState.get(block.getState().getType()), true);
                     }
                 }
             }

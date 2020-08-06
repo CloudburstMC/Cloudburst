@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.entity;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.HandlerList;
@@ -16,14 +16,14 @@ public class EntityInteractEvent extends EntityEvent implements Cancellable {
         return handlers;
     }
 
-    private BlockState blockState;
+    private final Block block;
 
-    public EntityInteractEvent(Entity entity, BlockState blockState) {
+    public EntityInteractEvent(Entity entity, Block block) {
         this.entity = entity;
-        this.blockState = blockState;
+        this.block = block;
     }
 
-    public BlockState getBlockState() {
-        return blockState;
+    public Block getBlock() {
+        return block;
     }
 }

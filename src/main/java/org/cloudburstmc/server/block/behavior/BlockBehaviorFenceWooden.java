@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -23,8 +24,8 @@ public class BlockBehaviorFenceWooden extends BlockBehaviorFence {
     }
 
     @Override
-    public boolean canConnect(BlockState blockState) {
-        return (blockState instanceof BlockBehaviorFence || blockState instanceof BlockBehaviorFenceGate) || blockState.isSolid() && !blockState.isTransparent();
+    public boolean canConnect(BlockState state) {
+        return (state.inCategory(BlockCategory.FENCE) || state.inCategory(BlockCategory.FENCE_GATE)) || state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT);
     }
 
     @Override

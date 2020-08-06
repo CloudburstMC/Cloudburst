@@ -1,19 +1,23 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
+import lombok.RequiredArgsConstructor;
+import lombok.val;
+import org.cloudburstmc.server.block.*;
+import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.StoneSlabType;
 
 import java.util.EnumMap;
 
+@RequiredArgsConstructor
 public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 
     static final EnumMap<StoneSlabType, BlockColor> COLORS = new EnumMap<>(StoneSlabType.class);
@@ -50,21 +54,24 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
         COLORS.put(StoneSlabType.CUT_RED_SANDSTONE, BlockColor.ORANGE_BLOCK_COLOR);
     }
 
+    protected final Identifier type;
+    protected final Identifier doubleSlabType;
+
     @Override
     public BlockColor getColor(Block block) {
-        StoneSlabType type = block.ensureTrait(BlockTraits.STONE_SLAB_TYPE);
+        StoneSlabType type = block.getState().ensureTrait(BlockTraits.STONE_SLAB_TYPE);
         return COLORS.get(type);
     }
 
-    @Override
-    public float getMinY() {
-        return this.isTopSlab() ? (this.getY() + 0.5f) : this.getY();
-    }
-
-    @Override
-    public float getMaxY() {
-        return this.isTopSlab() ? (this.getY() + 1f) : (this.getY() + 0.5f);
-    }
+//    @Override //TODO: bounding box
+//    public float getMinY() {
+//        return this.isTopSlab() ? (this.getY() + 0.5f) : this.getY();
+//    }
+//
+//    @Override
+//    public float getMaxY() {
+//        return this.isTopSlab() ? (this.getY() + 1f) : (this.getY() + 0.5f);
+//    }
 
     @Override
     public float getResistance() {
@@ -88,41 +95,45 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(this.id, this.getMeta() & 0x07);
+        return Item.get(block.getState().resetTrait(BlockTraits.IS_TOP_SLOT));
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        int meta = this.getMeta() & 0x07;
         boolean isTop;
-        BlockBehaviorDoubleSlab dSlab = (BlockBehaviorDoubleSlab) BlockRegistry.get().getBlock(this.doubleSlabId, meta);
+
+        val state = item.getBlock();
+        val blockState = block.getState();
+        val targetState = target.getState();
 
         if (face == Direction.DOWN) {
-            if (checkSlab(target) && ((BlockBehaviorSlab) target).isTopSlab()) {
-                if (this.getLevel().setBlock(target.getPosition(), dSlab, true, false)) {
-                    dSlab.playPlaceSound();
+            if (checkSlab(state, targetState) && targetState.ensureTrait(BlockTraits.IS_TOP_SLOT)) {
+                if (placeBlock(target, getDoubleSlab(state))) {
+                    playDoublePlaceSound(target);
                     return true;
                 }
+
                 return false;
-            } else if (checkSlab(blockState) && !((BlockBehaviorSlab) blockState).isTopSlab()) {
-                if (this.getLevel().setBlock(blockState.getPosition(), dSlab, true, false)) {
-                    dSlab.playPlaceSound();
+            } else if (checkSlab(state, blockState) && !blockState.ensureTrait(BlockTraits.IS_TOP_SLOT)) {
+                if (placeBlock(block, getDoubleSlab(state))) {
+                    playDoublePlaceSound(block);
                     return true;
                 }
+
                 return false;
             } else {
                 isTop = true;
             }
         } else if (face == Direction.UP) {
-            if (checkSlab(target) && !((BlockBehaviorSlab) target).isTopSlab()) {
-                if (this.getLevel().setBlock(target.getPosition(), dSlab, true, false)) {
-                    dSlab.playPlaceSound();
+            if (checkSlab(state, targetState) && !targetState.ensureTrait(BlockTraits.IS_TOP_SLOT)) {
+                if (placeBlock(target, getDoubleSlab(state))) {
+                    playDoublePlaceSound(target);
                     return true;
                 }
                 return false;
-            } else if (checkSlab(blockState) && ((BlockBehaviorSlab) blockState).isTopSlab()) {
-                if (this.getLevel().setBlock(blockState.getPosition(), dSlab, true, false)) {
-                    dSlab.playPlaceSound();
+            } else if (checkSlab(state, blockState) && blockState.ensureTrait(BlockTraits.IS_TOP_SLOT)) {
+                if (placeBlock(block, getDoubleSlab(state))) {
+                    playDoublePlaceSound(block);
                     return true;
                 }
                 return false;
@@ -131,34 +142,72 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
             }
         } else { // Horizontal face
             isTop = clickPos.getY() >= 0.5f;
-            if (checkSlab(blockState)
-                    && ((isTop && !((BlockBehaviorSlab) blockState).isTopSlab())
-                    || (!isTop && ((BlockBehaviorSlab) blockState).isTopSlab()))) {
-                if (this.getLevel().setBlock(blockState.getPosition(), dSlab, true, false)) {
-                    dSlab.playPlaceSound();
+            val isBlockTop = blockState.ensureTrait(BlockTraits.IS_TOP_SLOT);
+            if (checkSlab(state, blockState)
+                    && ((isTop && !isBlockTop)
+                    || (!isTop && isBlockTop))) {
+
+                if (placeBlock(block, getDoubleSlab(state))) {
+                    playDoublePlaceSound(block);
                     return true;
                 }
+
                 return false;
             }
         }
 
-        if (blockState instanceof BlockBehaviorSlab && (target.getMeta() & 0x07) != (this.getMeta() & 0x07)) {
+        if (blockState.inCategory(BlockCategory.SLAB) && !checkSlab(state, targetState)) {
             return false;
         }
-        this.setMeta(meta + (isTop ? 0x08 : 0));
-        return this.getLevel().setBlock(blockState.getPosition(), this, true, true);
+
+        return placeBlock(block, getState(state, this.type).withTrait(BlockTraits.IS_TOP_SLOT, isTop));
     }
 
-    private boolean isTopSlab() {
-        return (this.getMeta() & 0x08) == 0x08;
+    private BlockState getDoubleSlab(BlockState state) {
+        return getState(state, this.doubleSlabType);
     }
 
-    private boolean checkSlab(BlockState other) {
-        return other instanceof BlockBehaviorSlab && ((other.getMeta() & 0x07) == (this.getMeta() & 0x07));
+    private BlockState getState(BlockState state, Identifier type) {
+        BlockTrait trait = getSlabType(state);
+        return BlockState.get(type).withTrait(trait, state.ensureTrait(trait));
+    }
+
+    private boolean checkSlab(BlockState state, BlockState other) {
+        if (state.getType() != other.getType()) {
+            return false;
+        }
+
+        BlockTrait<?> type = getSlabType(state);
+
+        return state.ensureTrait(type) == other.ensureTrait(type);
+    }
+
+    private BlockTrait<?> getSlabType(BlockState state) {
+        BlockTrait<?> type;
+        if (state.getType() == BlockTypes.WOODEN_SLAB) {
+            type = BlockTraits.TREE_SPECIES;
+        } else {
+            type = BlockTraits.STONE_SLAB_TYPE;
+        }
+
+        return type;
     }
 
     @Override
     public boolean canWaterlogSource() {
         return true;
+    }
+
+    protected void playDoublePlaceSound(Block block) {
+        LevelSoundEvent2Packet pk = new LevelSoundEvent2Packet();
+        pk.setSound(SoundEvent.ITEM_USE_ON);
+        pk.setExtraData(725); // Who knows what this means? It's what is sent per ProxyPass
+        pk.setPosition(block.getPosition().toFloat().add(0.5f, 0.5f, 0.5f));
+        pk.setIdentifier("");
+        pk.setBabySound(false);
+        pk.setRelativeVolumeDisabled(false);
+
+
+        block.getLevel().addChunkPacket(block.getPosition(), pk);
     }
 }

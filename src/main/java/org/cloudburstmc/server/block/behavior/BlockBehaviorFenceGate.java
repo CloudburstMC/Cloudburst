@@ -1,7 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
+import lombok.var;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
@@ -17,7 +20,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
     private static final float[] offMinZ = new float[2];
 
     @Override
-    public boolean canBeActivated() {
+    public boolean canBeActivated(Block block) {
         return true;
     }
 
@@ -51,42 +54,39 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
         return 15;
     }
 
-    private int getOffsetIndex() {
-        switch (this.getMeta() & 0x03) {
-            case 0:
-            case 2:
-                return 0;
-            default:
-                return 1;
-        }
-    }
-
-    @Override
-    public float getMinX() {
-        return this.getX() + offMinX[getOffsetIndex()];
-    }
-
-    @Override
-    public float getMinZ() {
-        return this.getZ() + offMinZ[getOffsetIndex()];
-    }
-
-    @Override
-    public float getMaxX() {
-        return this.getX() + offMaxX[getOffsetIndex()];
-    }
-
-    @Override
-    public float getMaxZ() {
-        return this.getZ() + offMaxZ[getOffsetIndex()];
-    }
+//    private int getOffsetIndex() {
+//        switch (this.getMeta() & 0x03) {
+//            case 0:
+//            case 2:
+//                return 0;
+//            default:
+//                return 1;
+//        }
+//    }
+//
+//    @Override
+//    public float getMinX() {
+//        return this.getX() + offMinX[getOffsetIndex()];
+//    }
+//
+//    @Override
+//    public float getMinZ() {
+//        return this.getZ() + offMinZ[getOffsetIndex()];
+//    }
+//
+//    @Override
+//    public float getMaxX() {
+//        return this.getX() + offMaxX[getOffsetIndex()];
+//    }
+//
+//    @Override
+//    public float getMaxZ() {
+//        return this.getZ() + offMaxZ[getOffsetIndex()];
+//    }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        this.setMeta(player != null ? player.getDirection().getHorizontalIndex() : 0);
-        this.getLevel().setBlock(blockState.getPosition(), this, true, true);
-
-        return true;
+        return placeBlock(block, item.getBlock().withTrait(BlockTraits.DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
     }
 
     @Override
@@ -95,22 +95,22 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
             return false;
         }
 
-        if (!this.toggle(player)) {
+        if (!this.toggle(block, player)) {
             return false;
         }
 
-        this.level.addSound(this.getPosition(), isOpen() ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
+        block.getLevel().addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
         return true;
     }
 
     @Override
-    public BlockColor getColor(BlockState state) {
+    public BlockColor getColor(Block state) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
-    public boolean toggle(Player player) {
-        DoorToggleEvent event = new DoorToggleEvent(this, player);
-        this.getLevel().getServer().getPluginManager().callEvent(event);
+    public boolean toggle(Block block, Player player) {
+        DoorToggleEvent event = new DoorToggleEvent(block, player);
+        block.getLevel().getServer().getPluginManager().callEvent(event);
 
         if (event.isCancelled()) {
             return false;
@@ -118,65 +118,36 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 
         player = event.getPlayer();
 
-        int direction;
+        val state = block.getState();
+        var direction = state.ensureTrait(BlockTraits.DIRECTION);
 
         if (player != null) {
-            float yaw = player.getYaw();
-            float rotation = (yaw - 90) % 360;
+            val playerDirection = player.getHorizontalDirection();
 
-            if (rotation < 0) {
-                rotation += 360.0f;
-            }
-
-            int originDirection = this.getMeta() & 0x01;
-
-            if (originDirection == 0) {
-                if (rotation >= 0 && rotation < 180) {
-                    direction = 2;
-                } else {
-                    direction = 0;
-                }
-            } else {
-                if (rotation >= 90 && rotation < 270) {
-                    direction = 3;
-                } else {
-                    direction = 1;
-                }
-            }
-        } else {
-            int originDirection = this.getMeta() & 0x01;
-
-            if (originDirection == 0) {
-                direction = 0;
-            } else {
-                direction = 1;
+            if (playerDirection == direction.getOpposite()) {
+                direction = playerDirection;
             }
         }
 
-        this.setMeta(direction | ((~this.getMeta()) & 0x04));
-        this.level.setBlock(this.getPosition(), this, false, false);
+        block.set(state.withTrait(BlockTraits.DIRECTION, direction).toggleTrait(BlockTraits.IS_OPEN));
         return true;
     }
 
-    public boolean isOpen() {
-        return (this.getMeta() & 0x04) > 0;
+    public boolean isOpen(Block block) {
+        return block.getState().ensureTrait(BlockTraits.IS_OPEN);
     }
 
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_REDSTONE) {
-            if ((!isOpen() && this.level.isBlockPowered(this.getPosition())) || (isOpen() && !this.level.isBlockPowered(this.getPosition()))) {
-                this.toggle(null);
+            val level = block.getLevel();
+            if ((!isOpen(block) && level.isBlockPowered(block.getPosition())) || (isOpen(block) && !level.isBlockPowered(block.getPosition()))) {
+                this.toggle(block, null);
                 return type;
             }
         }
 
         return 0;
-    }
-
-    @Override
-    public Direction getBlockFace() {
-        return Direction.fromHorizontalIndex(this.getMeta() & 0x07);
     }
 
     @Override

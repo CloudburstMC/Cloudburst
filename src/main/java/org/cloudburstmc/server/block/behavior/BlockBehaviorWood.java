@@ -2,11 +2,14 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 //Block state information: https://hastebin.com/emuvawasoj.js
 public class BlockBehaviorWood extends BlockBehaviorSolid {
@@ -48,83 +51,45 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(id, getMeta() & 0xF);
+        return Item.get(block.getState().resetTrait(BlockTraits.AXIS));
     }
 
 
     @Override
-    public boolean canBeActivated() {
-        return !isStripped();
+    public boolean canBeActivated(Block block) {
+        return !isStripped(block.getState());
     }
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        if (!item.isAxe() || !player.isCreative() && !item.useOn(this)) {
+        if (!item.isAxe() || !player.isCreative() && !item.useOn(block)) {
             return false;
         }
 
-        setMeta(getMeta() | STRIPPED_BIT);  // adds the offset for stripped woods
-        getLevel().setBlock(this.getPosition(), this, true);
+        block.set(block.getState().withTrait(BlockTraits.IS_STRIPPED, true), true);
         return true;
     }
 
-    public boolean isStripped() {
-        return (getMeta() & STRIPPED_BIT) != 0;
+    public boolean isStripped(BlockState state) {
+        return state.ensureTrait(BlockTraits.IS_STRIPPED);
     }
 
-    public void setStripped(boolean stripped) {
-        setMeta((getMeta() & ~STRIPPED_BIT) | (stripped ? STRIPPED_BIT : 0));
-    }
-
-    public Direction.Axis getAxis() {
-        switch (getMeta() & 0x30) {
-            default:
-            case AXIS_Y:
-                return Direction.Axis.Y;
-            case AXIS_X:
-                return Direction.Axis.X;
-            case AXIS_Z:
-                return Direction.Axis.Z;
-        }
-    }
-
-    public void setAxis(Direction.Axis axis) {
-        int axisProp;
-        switch (axis) {
-            default:
-            case Y:
-                axisProp = AXIS_Y;
-                break;
-            case X:
-                axisProp = AXIS_X;
-                break;
-            case Z:
-                axisProp = AXIS_Z;
-                break;
-        }
-        setMeta((getMeta() & ~0x30) | axisProp);
+    public Direction.Axis getAxis(BlockState state) {
+        return state.ensureTrait(BlockTraits.AXIS);
     }
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        setAxis(face.getAxis());
-        return super.place(item, blockState, target, face, clickPos, player);
+        return placeBlock(block, item.getBlock().withTrait(BlockTraits.AXIS, face.getAxis()));
     }
 
-    public int getWoodType() {
-        return getMeta() & 0b111;
-    }
-
-    public void setWoodType(int woodType) {
-        if (woodType < OAK || woodType > DARK_OAK) {
-            woodType = OAK;
-        }
-        setMeta((getMeta() & -0b1000) | woodType);
+    public TreeSpecies getWoodType(BlockState state) {
+        return state.ensureTrait(BlockTraits.TREE_SPECIES);
     }
 
     @Override
     public BlockColor getColor(Block block) {
-        switch (getWoodType()) {
+        switch (getWoodType(block.getState())) {
             default:
             case OAK:
                 return BlockColor.WOOD_BLOCK_COLOR;

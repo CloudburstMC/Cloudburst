@@ -1,42 +1,38 @@
 package org.cloudburstmc.server.block;
 
 import com.google.common.collect.ImmutableMap;
-import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.serializer.BlockSerializers;
 import org.cloudburstmc.server.block.serializer.NoopBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
+@Log4j2
 public class BlockPalette {
     public static final BlockPalette INSTANCE = new BlockPalette();
 
     private final Reference2IntMap<BlockState> stateRuntimeMap = new Reference2IntOpenHashMap<>();
     private final Int2ReferenceMap<BlockState> runtimeStateMap = new Int2ReferenceOpenHashMap<>();
-    private final Object2ReferenceMap<NbtMap, BlockState> serializedStateMap = new Object2ReferenceOpenHashMap<>();
-    private final Reference2ObjectMap<BlockState, NbtMap> stateSerializedMap = new Reference2ObjectOpenHashMap<>();
+    private final Object2ReferenceMap<NbtMap, BlockState> serializedStateMap = new Object2ReferenceLinkedOpenHashMap<>();
+    private final Reference2ObjectMap<BlockState, NbtMap> stateSerializedMap = new Reference2ObjectLinkedOpenHashMap<>();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
     private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
-    public final BlockState air;
-
-    private BlockPalette() {
-        this.addBlock(BlockTypes.AIR, NoopBlockSerializer.INSTANCE, new BlockTrait[0]);
-        this.air = this.getBlockState(0);
-    }
 
     public void addBlock(Identifier identifier, BlockSerializer serializer, BlockTrait<?>[] traits) {
+        if (this.defaultStateMap.containsKey(identifier))   {
+            log.warn("Duplicate block identifier: {}", identifier);
+        }
+
         List<CloudBlockState> states = getBlockPermutations(identifier, traits);
 
         Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map = new HashMap<>();
@@ -44,7 +40,7 @@ public class BlockPalette {
             map.put(state.getTraits(), state);
         }
 
-        BlockState defaultState = states.get(0);
+        BlockState defaultState = map.get(Arrays.stream(traits).collect(Collectors.toMap(t -> t, BlockTrait::getDefaultValue)));
         this.defaultStateMap.put(identifier, defaultState);
 
         for (CloudBlockState state : states) {
@@ -103,8 +99,8 @@ public class BlockPalette {
         return serializedTag;
     }
 
-    public NbtList<NbtMap> getPalette() {
-        return new NbtList<>(NbtType.COMPOUND, stateSerializedMap.values());
+    public Map<BlockState, NbtMap> getSerializedPalette() {
+        return this.stateSerializedMap;
     }
 
     private static List<CloudBlockState> getBlockPermutations(Identifier identifier, BlockTrait<?>[] traits) {

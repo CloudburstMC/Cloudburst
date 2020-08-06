@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.level.feature;
 
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.math.Direction;
@@ -16,19 +16,14 @@ import org.cloudburstmc.server.utils.Identifier;
  */
 public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter {
     @Override
-    public boolean test(BlockState blockState) {
-        Identifier id = blockState.getId();
-        return id == BlockTypes.AIR || id == BlockTypes.LEAVES || id == BlockTypes.LEAVES2 || (!(blockState instanceof BlockBehaviorLiquid) && blockState.canBeReplaced());
+    public boolean test(BlockState state) {
+        Identifier id = state.getType();
+        return id == BlockTypes.AIR || id == BlockTypes.LEAVES || id == BlockTypes.LEAVES2 || (!state.getBehavior().isLiquid() && state.getBehavior().canBeReplaced(null));
     }
 
-    @Override
-    public boolean test(int runtimeId) {
-        return runtimeId == 0 || this.test(BlockRegistry.get().getBlock(runtimeId));
-    }
-
-    public boolean testOrLiquid(BlockState blockState) {
-        Identifier id = blockState.getId();
-        return id == BlockTypes.AIR || id == BlockTypes.LEAVES || id == BlockTypes.LEAVES2 || blockState.canBeReplaced();
+    public boolean testOrLiquid(BlockState state) {
+        Identifier id = state.getType();
+        return id == BlockTypes.AIR || id == BlockTypes.LEAVES || id == BlockTypes.LEAVES2 || state.getBehavior().canBeReplaced(null);
     }
 
     public boolean testOrLiquid(int runtimeId) {
@@ -45,9 +40,9 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      */
     public void replaceGrassWithDirt(ChunkManager level, int x, int y, int z) {
         if (y >= 0 && y < 256) {
-            Identifier id = level.getBlockId(x, y, z);
+            Identifier id = level.getBlockAt(x, y, z).getType();
             if (id == BlockTypes.GRASS || id == BlockTypes.MYCELIUM || id == BlockTypes.PODZOL) {
-                level.setBlockId(x, y, z, BlockTypes.DIRT);
+                level.setBlockAt(x, y, z, BlockStates.DIRT);
             }
         }
     }
@@ -56,10 +51,10 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      * Checks whether all the blocks that horizontally neighbor the given coordinates match the given {@link BlockFilter}.
      */
     public boolean allNeighborsMatch(ChunkManager level, int x, int y, int z, BlockFilter filter) {
-        return filter.test(level.getBlockRuntimeIdUnsafe(x - 1, y, z, 0))
-                && filter.test(level.getBlockRuntimeIdUnsafe(x + 1, y, z, 0))
-                && filter.test(level.getBlockRuntimeIdUnsafe(x, y, z - 1, 0))
-                && filter.test(level.getBlockRuntimeIdUnsafe(x, y, z + 1, 0));
+        return filter.test(level.getBlockAt(x - 1, y, z, 0))
+               && filter.test(level.getBlockAt(x + 1, y, z, 0))
+               && filter.test(level.getBlockAt(x, y, z - 1, 0))
+               && filter.test(level.getBlockAt(x, y, z + 1, 0));
     }
 
     /**
@@ -67,7 +62,7 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      */
     public boolean allNeighborsMatch(ChunkManager level, int x, int y, int z, BlockFilter filter, Direction except) {
         for (Direction face : Direction.Plane.HORIZONTAL) {
-            if (face != except && !filter.test(level.getBlockRuntimeIdUnsafe(x + face.getXOffset(), y, z + face.getZOffset(), 0))) {
+            if (face != except && !filter.test(level.getBlockAt(x + face.getXOffset(), y, z + face.getZOffset(), 0))) {
                 return false;
             }
         }

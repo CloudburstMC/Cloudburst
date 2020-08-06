@@ -3,6 +3,7 @@ package org.cloudburstmc.server.level.generator.standard.generation.decorator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
@@ -30,23 +31,23 @@ public class BedrockDecorator extends AbstractGenerationPass implements Decorato
 
     @Override
     public void decorate(PRandom random, IChunk chunk, int x, int z) {
-        final int runtimeId = this.block.runtimeId();
+        final BlockState state = this.block.state();
 
         for (int y = this.base.min, max = this.base.max; y < max; y++) {
-            chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, runtimeId);
+            chunk.setBlock(x, y, z, 0, state);
         }
 
         if (!this.fade.empty()) {
             if (this.reverseFade) {
                 for (int y = this.fade.min, i = 1, size = this.fade.size() + 1; i < size; y++, i++) {
                     if (random.nextInt(size) < i) {
-                        chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, runtimeId);
+                        chunk.setBlock(x, y, z, 0, state);
                     }
                 }
             } else {
                 for (int y = this.fade.min, i = this.fade.size(), size = i + 1; i > 0; y++, i--) {
                     if (random.nextInt(size) < i) {
-                        chunk.setBlockRuntimeIdUnsafe(x, y, z, 0, runtimeId);
+                        chunk.setBlock(x, y, z, 0, state);
                     }
                 }
             }
