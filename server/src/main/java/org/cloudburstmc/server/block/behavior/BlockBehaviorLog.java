@@ -9,7 +9,6 @@ import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.Direction.Axis;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -81,11 +80,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         // Convert the old log bark to the new wood block
-        placeBlock(block, item.getBlock().withTrait(
-                BlockTraits.AXIS,
-                player != null ? player.getDirection().getAxis() : Axis.Y
-        ));
-
+        placeBlock(block, item.getBlock().withTrait(BlockTraits.AXIS, face.getAxis()));
         return true;
     }
 
