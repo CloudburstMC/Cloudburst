@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block;
 
 import com.google.common.collect.ImmutableMap;
+import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
@@ -8,8 +9,6 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
-import org.cloudburstmc.server.block.serializer.BlockSerializers;
-import org.cloudburstmc.server.block.serializer.NoopBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -51,7 +50,7 @@ public class BlockPalette {
             this.runtimeStateMap.put(runtimeId, state);
 
             NbtMapBuilder tagBuilder = NbtMap.builder();
-            BlockSerializers.serializeCommon(tagBuilder, identifier);
+            BlockStateUpdaters.serializeCommon(tagBuilder, identifier.toString());
 
             NbtMapBuilder statesBuilder = NbtMap.builder();
             serializer.serialize(statesBuilder, state);
