@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.registry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NbtList;
@@ -9,9 +8,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.server.Nukkit;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
@@ -28,14 +25,12 @@ import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.server.block.BlockTypes.*;
@@ -59,7 +54,6 @@ public class BlockRegistry implements Registry {
     }
 
     private final Reference2ReferenceMap<Identifier, BlockBehavior> behaviorMap = new Reference2ReferenceOpenHashMap<>();
-    private final Reference2ReferenceMap<Identifier, BlockSerializer> serializerMap = new Reference2ReferenceOpenHashMap<>();
     private final HashBiMap<Identifier, Integer> idLegacyMap = HashBiMap.create();
     private final AtomicInteger customIdAllocator = new AtomicInteger(1000);
     private final BlockPalette palette = BlockPalette.INSTANCE;
@@ -67,7 +61,6 @@ public class BlockRegistry implements Registry {
     private volatile boolean closed;
     private transient NbtList<NbtMap> serializedPalette;
 
-    @SneakyThrows
     private BlockRegistry() {
         BlockTraitSerializers.init();
         this.registerVanillaBlocks();
@@ -79,86 +72,6 @@ public class BlockRegistry implements Registry {
             }
         });
         this.idLegacyMap.putAll(VANILLA_LEGACY_IDS);
-
-
-        val notInVanilla = new ArrayList<Map<String, Object>>();
-        val notInLocal = new ArrayList<Map<String, Object>>();
-
-        val mapper = new ObjectMapper();
-        val vanilla = mapper.readValue(new File("block_states.json"), new TypeReference<List<Map<String, Object>>>() {
-        }).stream().map((entry) -> new HashMap((Map<String, Object>) entry.get("block"))).collect(Collectors.toList());
-
-        val states = BlockPalette.INSTANCE.getSerializedPalette().values().stream().map((Function<NbtMap, HashMap>) HashMap::new).collect(Collectors.toList());
-
-        for (Map entry : states) {
-            entry.remove("version");
-            entry.put("states", new HashMap((Map) entry.get("states")));
-            ((Map) entry.get("states")).remove("deprecated");
-        }
-
-        for (Map entry : vanilla) {
-            entry.remove("version");
-            entry.put("states", new HashMap((Map) entry.get("states")));
-            ((Map) entry.get("states")).remove("deprecated");
-        }
-
-        val vanillaSet = new HashSet<>(vanilla);
-        val localSet = new HashSet<>(states);
-
-        mapper.writerWithDefaultPrettyPrinter().writeValue(new File("server_states.json"), localSet);
-        mapper.writerWithDefaultPrettyPrinter().writeValue(new File("vanilla_states.json"), vanillaSet);
-
-        main:
-        for (val state : vanillaSet) {
-            String name = state.get("name").toString();
-            Map<String, Object> _states = (Map) state.get("states");
-
-            stateloop:
-            for (val local : localSet) {
-                if (!local.get("name").toString().equals(name)) {
-                    continue;
-                }
-
-                Map<String, Object> localStates = (Map) local.get("states");
-                for (Entry<String, Object> entry : _states.entrySet()) {
-                    if (!entry.getValue().toString().equals(Objects.toString(localStates.get(entry.getKey())))) {
-                        continue stateloop;
-                    }
-                }
-
-                continue main;
-            }
-
-            notInLocal.add(state);
-        }
-
-//        main:
-//        for (val state : localSet) {
-//            String name = state.get("name").toString();
-//            Map<String, Object> _states = (Map) state.get("states");
-//
-//            stateloop:
-//            for (val vanillaState : vanillaSet) {
-//                if (!vanillaState.get("name").toString().equals(name)) {
-//                    continue;
-//                }
-//
-//                Map<String, Object> localStates = (Map) vanillaState.get("states");
-//                for (Entry<String, Object> entry : _states.entrySet()) {
-//                    if (!entry.getValue().toString().equals(Objects.toString(localStates.get(entry.getKey())))) {
-//                        continue stateloop;
-//                    }
-//                }
-//
-//                continue main;
-//            }
-//
-//            notInVanilla.add(state);
-//        }
-
-        mapper.writerWithDefaultPrettyPrinter().writeValue(new File("missing_in_vanilla.json"), notInVanilla);
-        mapper.writerWithDefaultPrettyPrinter().writeValue(new File("missing_in_server.json"), notInLocal);
-//        Runtime.getRuntime().halt(0);
     }
 
     public static BlockRegistry get() {
@@ -189,9 +102,7 @@ public class BlockRegistry implements Registry {
 
         if (this.behaviorMap.putIfAbsent(id, behavior) != null)
             throw new RegistryException(id + " is already registered");
-        this.serializerMap.put(id, serializer);
 
-        //this.registerVanilla(id, behavior);
         this.palette.addBlock(id, serializer, traits);
     }
 
