@@ -5,13 +5,13 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
-import net.daporkchop.lib.random.impl.FastPRandom;
 
 import java.io.IOException;
 import java.util.Map;
@@ -21,7 +21,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 
-//@JsonDeserialize(using = Identifier.Deserializer.class)
 @JsonSerialize(using = ToStringSerializer.class)
 public final class Identifier implements Comparable<Identifier> {
     private static final char NAMESPACE_SEPARATOR = ':';
@@ -52,7 +51,7 @@ public final class Identifier implements Comparable<Identifier> {
         this.name = name;
         this.fullName = fullName;
 
-        this.hashCode = FastPRandom.mix32(fullName.chars().asLongStream().reduce(0L, (a, b) -> FastPRandom.mix64(a + b)));
+        this.hashCode = System.identityHashCode(this); //precompute identity hash code and store it in a local field, this is ever so slightly faster
     }
 
     @JsonCreator
@@ -128,14 +127,6 @@ public final class Identifier implements Comparable<Identifier> {
 
     @Override
     public int hashCode() {
-        //provides significantly better hash distribution, good for hash tables
         return this.hashCode;
-    }
-
-    static final class Deserializer extends JsonDeserializer<Identifier> {
-        @Override
-        public Identifier deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-            return Identifier.fromString(p.getText());
-        }
     }
 }

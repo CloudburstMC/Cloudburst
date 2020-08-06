@@ -43,8 +43,8 @@ public class BleedIslandBiomeFilter extends AbstractBiomeFilter.Next {
         this.oceanId = Objects.requireNonNull(this.ocean, "ocean must be set!").getInternalId();
         this.preserveId = Objects.requireNonNull(this.preserve, "preserve must be set!").getInternalId();
         this.islandId = Objects.requireNonNull(this.island, "island must be set!").getInternalId();
-        PValidation.ensurePositive(this.chance);
-        PValidation.ensurePositive(this.bleedChance);
+        PValidation.positive(this.chance);
+        PValidation.positive(this.bleedChance);
 
         super.init(seed, random);
     }

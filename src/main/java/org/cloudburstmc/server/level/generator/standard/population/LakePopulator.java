@@ -2,7 +2,6 @@ package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import net.daporkchop.lib.common.pool.handle.DefaultThreadHandledPool;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.random.PRandom;
@@ -18,7 +17,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.BitSet;
 import java.util.Objects;
 
-import static net.daporkchop.lib.math.primitive.PMath.min;
+import static java.lang.Math.*;
 
 /**
  * @author DaPorkchop_
@@ -27,7 +26,7 @@ import static net.daporkchop.lib.math.primitive.PMath.min;
 public class LakePopulator extends ChancePopulator.Column {
     public static final Identifier ID = Identifier.fromString("nukkitx:lake");
 
-    protected static final HandledPool<BitSet> BITSET_CACHE = new DefaultThreadHandledPool<>(() -> new BitSet(2048), 1);
+    protected static final HandledPool<BitSet> BITSET_CACHE = HandledPool.threadLocal(() -> new BitSet(2048), 1);
 
     @JsonProperty
     protected IntRange height = IntRange.WHOLE_WORLD;
@@ -111,11 +110,11 @@ public class LakePopulator extends ChancePopulator.Column {
 
                         //only check the outer layer of blocks around the lake
                         if ((y > 0 && points.get(((y - 1) << 8) | (x << 4) | z))
-                                || (y < 7 && points.get(((y + 1) << 8) | (x << 4) | z))
-                                || (x > 0 && points.get((y << 8) | ((x - 1) << 4) | z))
-                                || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
-                                || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
-                                || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1)))) {
+                            || (y < 7 && points.get(((y + 1) << 8) | (x << 4) | z))
+                            || (x > 0 && points.get((y << 8) | ((x - 1) << 4) | z))
+                            || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
+                            || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
+                            || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1)))) {
                             BlockState state = level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0);
 
                             if (y < 4) {
@@ -189,12 +188,12 @@ public class LakePopulator extends ChancePopulator.Column {
                             }
 
                             if (((y > 0 && points.get(((y - 1) << 8) | (x << 4) | z))
-                                    || (y < 7 && points.get(((y + 1) << 8) | (x << 4) | z))
-                                    || (x > 0 && points.get((y << 8) | ((x - 1) << 4) | z))
-                                    || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
-                                    || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
-                                    || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1))))
-                                    && level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0).getBehavior().isSolid()) {
+                                 || (y < 7 && points.get(((y + 1) << 8) | (x << 4) | z))
+                                 || (x > 0 && points.get((y << 8) | ((x - 1) << 4) | z))
+                                 || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
+                                 || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
+                                 || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1))))
+                                && level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0).getBehavior().isSolid()) {
                                 level.setBlockAt(blockX + x, blockY + y, blockZ + z, 0, border);
                             }
                         }

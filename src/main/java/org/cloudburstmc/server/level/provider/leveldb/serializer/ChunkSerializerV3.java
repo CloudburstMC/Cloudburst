@@ -32,14 +32,17 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
             }
 
             ByteBuf buffer = ByteBufAllocator.DEFAULT.ioBuffer();
+            ByteBuf keyBuffer = ByteBufAllocator.DEFAULT.ioBuffer();
             try {
                 buffer.writeByte(ChunkSection.CHUNK_SECTION_VERSION);
                 ChunkSectionSerializers.serialize(buffer, section.getBlockStorageArray(), ChunkSection.CHUNK_SECTION_VERSION);
 
-                db.put(Unpooled.wrappedBuffer(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunk.getX(), chunk.getZ(), ySection)), buffer);
+                keyBuffer.clear().writeBytes(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunk.getX(), chunk.getZ(), ySection));
+                db.put(keyBuffer, buffer);
 
                 buffer.clear(); //reset indices to prevent the buffer from constantly growing
             } finally {
+                keyBuffer.release();
                 buffer.release();
             }
         }

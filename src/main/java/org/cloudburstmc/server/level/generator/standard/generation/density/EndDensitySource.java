@@ -17,7 +17,7 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import static java.lang.Math.*;
 import static java.util.Objects.*;
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * A {@link NoiseSource} that provides noise similar to that of vanilla's end terrain.
@@ -73,7 +73,7 @@ public class EndDensitySource extends AbstractGenerationPass implements DensityS
 
     @Override
     public double[] get(double[] arr, int startIndex, @NonNull BiomeMap biomes, int x, int y, int z, int sizeX, int sizeY, int sizeZ, int stepX, int stepY, int stepZ) {
-        int totalSize = PValidation.ensurePositive(sizeX) * PValidation.ensurePositive(sizeY) * PValidation.ensurePositive(sizeZ) + PValidation.ensureNonNegative(startIndex);
+        int totalSize = PValidation.positive(sizeX) * PValidation.positive(sizeY) * PValidation.positive(sizeZ) + PValidation.positive(startIndex);
         if (arr == null || arr.length < totalSize) {
             double[] newArr = new double[totalSize];
             if (arr != null && startIndex != 0) {

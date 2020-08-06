@@ -58,7 +58,7 @@ public final class ComplexBiomeMap extends AbstractGenerationPass implements Bio
 
     @Override
     public GenerationBiome[] getRegion(GenerationBiome[] arr, int x, int z, int sizeX, int sizeZ) {
-        int totalSize = PValidation.ensurePositive(sizeX) * PValidation.ensurePositive(sizeZ);
+        int totalSize = PValidation.positive(sizeX) * PValidation.positive(sizeZ);
         if (arr == null || arr.length < totalSize) {
             arr = new GenerationBiome[totalSize];
         }
@@ -74,7 +74,7 @@ public final class ComplexBiomeMap extends AbstractGenerationPass implements Bio
 
     @Override
     public Identifier[] getRegionIds(Identifier[] arr, int x, int z, int sizeX, int sizeZ) {
-        int totalSize = PValidation.ensurePositive(sizeX) * PValidation.ensurePositive(sizeZ);
+        int totalSize = PValidation.positive(sizeX) * PValidation.positive(sizeZ);
         if (arr == null || arr.length < totalSize) {
             arr = new Identifier[totalSize];
         }

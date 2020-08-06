@@ -12,10 +12,9 @@ import org.cloudburstmc.server.level.generator.standard.generation.noise.NoiseGe
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 import org.cloudburstmc.server.utils.Identifier;
 
-import static java.lang.Math.cos;
-import static java.util.Objects.requireNonNull;
-import static net.daporkchop.lib.math.primitive.PMath.clamp;
-import static net.daporkchop.lib.math.primitive.PMath.lerp;
+import static java.lang.Math.*;
+import static java.util.Objects.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * A {@link NoiseSource} that provides noise similar to that of vanilla's nether terrain.

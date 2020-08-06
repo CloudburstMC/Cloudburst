@@ -93,7 +93,7 @@ public final class MultiBlockSelector implements BlockSelector {
 
         public SelectionEntry(@NonNull BlockState state, int weight)    {
             this.state = state;
-            this.weight = PValidation.ensurePositive(weight);
+            this.weight = PValidation.positive(weight);
         }
 
         public SelectionEntry(@NonNull Entry entry) {

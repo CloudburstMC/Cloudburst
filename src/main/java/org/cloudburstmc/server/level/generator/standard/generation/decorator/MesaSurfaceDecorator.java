@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.generation.decorator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
@@ -18,7 +17,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static net.daporkchop.lib.math.primitive.PMath.roundI;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * @author DaPorkchop_

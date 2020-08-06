@@ -20,9 +20,8 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static java.lang.Math.min;
-import static net.daporkchop.lib.random.impl.FastPRandom.mix32;
-import static net.daporkchop.lib.random.impl.FastPRandom.mix64;
+import static java.lang.Math.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * A populator that places simple trees, with a similar shape to vanilla oak/birch trees.
