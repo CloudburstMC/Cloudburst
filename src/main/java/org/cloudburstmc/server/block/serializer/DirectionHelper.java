@@ -34,7 +34,7 @@ public class DirectionHelper {
         register(TYPE_7, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
         register(TYPE_8, Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST);
         register(TYPE_9, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.UP);
-        register(TYPE_10, Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST);
+        register(TYPE_10, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
         register(TYPE_11, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.DOWN, Direction.UP);
 
         registerDefaultMappings();
@@ -73,7 +73,9 @@ public class DirectionHelper {
                 PUMPKIN,
                 CARVED_PUMPKIN,
                 LIT_PUMPKIN,
-                TRIPWIRE_HOOK
+                TRIPWIRE_HOOK,
+                POWERED_COMPARATOR,
+                UNPOWERED_COMPARATOR
         );
 
         register(TYPE_3,
@@ -141,9 +143,7 @@ public class DirectionHelper {
         );
 
         register(TYPE_6,
-                COCOA,
-                POWERED_COMPARATOR,
-                UNPOWERED_COMPARATOR
+                COCOA
         );
 
         register(TYPE_7,
@@ -156,7 +156,14 @@ public class DirectionHelper {
                 PISTON_ARM_COLLISION,
                 LADDER,
                 WALL_SIGN,
-                WALL_BANNER
+                WALL_BANNER,
+                CHEST,
+                ENDER_CHEST,
+                TRAPPED_CHEST,
+                FURNACE,
+                LIT_FURNACE,
+                BLAST_FURNACE,
+                LIT_BLAST_FURNACE
         );
 
         register(TYPE_8,
@@ -174,16 +181,6 @@ public class DirectionHelper {
                 TORCH,
                 REDSTONE_TORCH,
                 UNLIT_REDSTONE_TORCH
-        );
-
-        register(TYPE_10,
-                CHEST,
-                ENDER_CHEST,
-                TRAPPED_CHEST,
-                FURNACE,
-                LIT_FURNACE,
-                BLAST_FURNACE,
-                LIT_BLAST_FURNACE
         );
 
         register(TYPE_11,
@@ -222,7 +219,7 @@ public class DirectionHelper {
     }
 
     @SuppressWarnings("ConstantConditions")
-    public short serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockState state) {
+    public int serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockState state) {
         SeqType type = mapping.getOrDefault(state.getType(), TYPE_7); //2 is the most common
 
         Direction direction = state.getTrait(BlockTraits.DIRECTION);

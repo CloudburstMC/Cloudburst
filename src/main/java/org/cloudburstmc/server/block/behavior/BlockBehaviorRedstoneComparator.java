@@ -163,7 +163,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
         if (super.place(item, block, target, face, clickPos, player)) {
             BlockEntityRegistry.get().newEntity(COMPARATOR, block);
 
-            this.onUpdate(block, Level.BLOCK_UPDATE_REDSTONE);
+            this.onUpdate(block.refresh(), Level.BLOCK_UPDATE_REDSTONE);
             return true;
         }
 
