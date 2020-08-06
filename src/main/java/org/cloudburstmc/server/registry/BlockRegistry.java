@@ -2,6 +2,7 @@ package org.cloudburstmc.server.registry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
@@ -213,6 +214,10 @@ public class BlockRegistry implements Registry {
 
     public BlockBehavior getBehavior(Identifier blockType) {
         return this.behaviorMap.get(blockType);
+    }
+
+    public ImmutableList<BlockState> getBlockStates() {
+        return ImmutableList.copyOf(palette.getSerializedPalette().keySet());
     }
 
     private void registerVanillaBlocks() {
