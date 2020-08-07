@@ -12,6 +12,7 @@ import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.utils.Identifier;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -72,12 +73,9 @@ public class BlockPalette {
         return blockState;
     }
 
+    @Nullable
     public BlockState getBlockState(NbtMap tag) {
-        BlockState blockState = this.serializedStateMap.get(tag);
-        if (blockState == null) {
-            throw new IllegalArgumentException("Invalid block state\n" + tag);
-        }
-        return blockState;
+        return this.serializedStateMap.get(tag);
     }
 
     public int getRuntimeId(BlockState blockState) {
