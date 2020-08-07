@@ -23,7 +23,7 @@ public class StoneSlabSerializer implements TraitSerializer<StoneSlabType> {
     @Override
     public String getName(BlockState state, BlockTrait<?> blockTrait) {
         StoneSlabType type = state.ensureTrait(BlockTraits.STONE_SLAB_TYPE);
-        int index = type.ordinal();
+        int index = blockTrait.getIndex(type);
 
         return BEDROCK_TRAITS[index >> 3];
     }
