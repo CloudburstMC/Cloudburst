@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
@@ -17,13 +18,25 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static net.daporkchop.lib.random.impl.FastPRandom.*;
+
 @Log4j2
 public class BlockPalette {
     public static final BlockPalette INSTANCE = new BlockPalette();
 
     private final Reference2IntMap<BlockState> stateRuntimeMap = new Reference2IntOpenHashMap<>();
     private final Int2ReferenceMap<BlockState> runtimeStateMap = new Int2ReferenceOpenHashMap<>();
-    private final Object2ReferenceMap<NbtMap, BlockState> serializedStateMap = new Object2ReferenceLinkedOpenHashMap<>();
+    private final Object2ReferenceMap<NbtMap, BlockState> serializedStateMap = new Object2ReferenceLinkedOpenCustomHashMap<>(new Hash.Strategy<NbtMap>() {
+        @Override
+        public int hashCode(NbtMap o) {
+            return mix32(o.hashCode());
+        }
+
+        @Override
+        public boolean equals(NbtMap a, NbtMap b) {
+            return Objects.equals(a, b);
+        }
+    });
     private final Reference2ObjectMap<BlockState, NbtMap> stateSerializedMap = new Reference2ObjectLinkedOpenHashMap<>();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
     private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
