@@ -2,9 +2,10 @@ package org.cloudburstmc.server.registry;
 
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.nbt.NbtUtils;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,10 +15,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class BlockRegistryTest {
 
@@ -25,10 +23,10 @@ public class BlockRegistryTest {
     @Test
     public void blockPaletteTest() throws IOException {
         Set<NbtMap> vanillaPalette;
-        InputStream stream = BlockRegistryTest.class.getClassLoader().getResourceAsStream("runtime_block_states.dat");
-        try (NBTInputStream nbtStream = NbtUtils.createNetworkReader(stream)) {
-            NbtList<NbtMap> tag = (NbtList<NbtMap>) nbtStream.readTag();
-            vanillaPalette = new HashSet<>(tag);
+        InputStream stream = BlockRegistryTest.class.getClassLoader().getResourceAsStream("block_palette.nbt");
+        try (NBTInputStream nbtStream = NbtUtils.createGZIPReader(stream)) {
+            NbtMap tag = (NbtMap) nbtStream.readTag();
+            vanillaPalette = new HashSet<>(tag.getList("blocks", NbtType.COMPOUND));
         } catch (IOException e) {
             throw new AssertionError("Unable to load block palette");
         }
@@ -40,7 +38,8 @@ public class BlockRegistryTest {
         int build = version & 0xFF;
         System.out.printf("Latest block state version: %d.%d.%d.%d%n", major, minor, patch, build);
 
-        NbtList<NbtMap> serverPalette = BlockRegistry.get().getPaletteTag(); // init
+        BlockRegistry.get(); // init
+        Collection<NbtMap> serverPalette = BlockPalette.INSTANCE.getSerializedPalette().values();
 
         List<String> invalidStates = new ArrayList<>();
         int invalid = 0;

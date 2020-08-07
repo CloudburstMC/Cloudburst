@@ -53,9 +53,7 @@ public class DirectionHelper {
                 CORAL_FAN_HANG2,
                 CORAL_FAN_HANG3,
                 LECTERN,
-                LOOM,
-                BEEHIVE,
-                BEE_NEST
+                LOOM
         );
 
         register(TYPE_2,
