@@ -493,7 +493,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(CORAL_BLOCK, NoopBlockBehavior.INSTANCE, BlockTraits.CORAL_COLOR, BlockTraits.IS_DEAD);
         this.registerVanilla(CORAL_FAN, NoopBlockBehavior.INSTANCE, BlockTraits.CORAL_COLOR, BlockTraits.CORAL_FAN_DIRECTION);
         this.registerVanilla(CORAL_FAN_DEAD, NoopBlockBehavior.INSTANCE, BlockTraits.CORAL_COLOR, BlockTraits.CORAL_FAN_DIRECTION);
-        this.registerVanilla(CORAL_FAN_HANG, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_DEAD, BlockTraits.CORAL_HANG_COLOR);
+        this.registerVanilla(CORAL_FAN_HANG, NoopBlockBehavior.INSTANCE, new CoralHangBlockSerializer(), BlockTraits.DIRECTION, BlockTraits.IS_DEAD, BlockTraits.CORAL_HANG_COLOR);
 //        this.registerVanilla(CORAL_FAN_HANG2, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_DEAD, BlockTraits.CORAL_HANG_TYPE);
 //        this.registerVanilla(CORAL_FAN_HANG3, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_DEAD, BlockTraits.CORAL_HANG_TYPE);
         this.registerVanilla(KELP, new BlockBehaviorKelp(), BlockTraits.KELP_AGE);//393

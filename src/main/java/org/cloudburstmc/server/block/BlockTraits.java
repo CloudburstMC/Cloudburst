@@ -15,6 +15,8 @@ import org.cloudburstmc.server.utils.data.*;
 
 import javax.annotation.Nonnull;
 
+import static org.cloudburstmc.server.block.serializer.util.BedrockStateTags.TAG_CORAL_HANG_TYPE_BIT;
+
 @SuppressWarnings("RedundantModifiersUtilityClassLombok")
 @UtilityClass
 public class BlockTraits {
@@ -37,9 +39,8 @@ public class BlockTraits {
     public static final IntegerBlockTrait COMPOSTER_FILL_LEVEL = IntegerBlockTrait.from("composter_fill_level", 16); //TODO: this should only be 9
     public static final EnumBlockTrait<DyeColor> CORAL_COLOR = EnumBlockTrait.of("coral_color", DyeColor.class,
             DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW);
-    public static final EnumBlockTrait<DyeColor> CORAL_HANG_COLOR = EnumBlockTrait.of("coral_color", DyeColor.class,
-            DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW,
-            DyeColor.ORANGE); //TODO: this was null
+    public static final EnumBlockTrait<DyeColor> CORAL_HANG_COLOR = EnumBlockTrait.of("coral_color", TAG_CORAL_HANG_TYPE_BIT, DyeColor.class,
+            DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW, DyeColor.ORANGE); // Last value is fake.
     public static final BooleanBlockTrait CORAL_HANG_TYPE = BooleanBlockTrait.of("coral_hang_type", "coral_hang_type_bit");
     public static final EnumBlockTrait<CrackedState> CRACKED_STATE = EnumBlockTrait.of("cracked_state", CrackedState.class);
     public static final EnumBlockTrait<AnvilDamage> DAMAGE = EnumBlockTrait.of("damage", AnvilDamage.class, AnvilDamage.UNDAMAGED);
