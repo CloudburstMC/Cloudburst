@@ -28,15 +28,15 @@ public class BlockTraits {
     public static final EnumBlockTrait<AttachmentType> ATTACHMENT = EnumBlockTrait.of("attachment", AttachmentType.class);
     public static final EnumBlockTrait<BambooLeafSize> BAMBOO_LEAF_SIZE = EnumBlockTrait.of("bamboo_leaf_size", BambooLeafSize.class);
     public static final EnumBlockTrait<BambooStalkThickness> BAMBOO_STALK_THICKNESS = EnumBlockTrait.of("bamboo_stalk_thickness", BambooStalkThickness.class);
-    public static final IntegerBlockTrait BITE_COUNTER = IntegerBlockTrait.from("bite_counter", 8); //TODO: this should only be 7
-    public static final IntegerBlockTrait CHORUS_AGE = IntegerBlockTrait.from("chorus_age", "age", 0, 7, 0);
-    public static final IntegerBlockTrait COCOA_AGE = IntegerBlockTrait.from("cocoa_age", "age", 0, 4, 0);
+    public static final IntegerBlockTrait BITE_COUNTER = IntegerBlockTrait.from("bite_counter", 7);
+    public static final IntegerBlockTrait CHORUS_AGE = IntegerBlockTrait.from("chorus_age", "age", 0, 5, 0);
+    public static final IntegerBlockTrait COCOA_AGE = IntegerBlockTrait.from("cocoa_age", "age", 0, 2, 0);
     public static final IntegerBlockTrait CORAL_FAN_DIRECTION = IntegerBlockTrait.from("coral_fan_direction", 2);
     public static final EnumBlockTrait<ChemistryTableType> CHEMISTRY_TABLE_TYPE = EnumBlockTrait.of("chemistry_table_type", ChemistryTableType.class);
     public static final EnumBlockTrait<ChiselType> CHISEL_TYPE = EnumBlockTrait.of("chisel_type", ChiselType.class);
     public static final IntegerBlockTrait CLUSTER_COUNT = IntegerBlockTrait.from("cluster_count", 4);
     public static final EnumBlockTrait<DyeColor> COLOR = EnumBlockTrait.of("color", DyeColor.class);
-    public static final IntegerBlockTrait COMPOSTER_FILL_LEVEL = IntegerBlockTrait.from("composter_fill_level", 16); //TODO: this should only be 9
+    public static final IntegerBlockTrait COMPOSTER_FILL_LEVEL = IntegerBlockTrait.from("composter_fill_level", 9);
     public static final EnumBlockTrait<DyeColor> CORAL_COLOR = EnumBlockTrait.of("coral_color", DyeColor.class,
             DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW);
     public static final EnumBlockTrait<DyeColor> CORAL_HANG_COLOR = EnumBlockTrait.of("coral_color", TAG_CORAL_HANG_TYPE_BIT, DyeColor.class,
@@ -56,12 +56,12 @@ public class BlockTraits {
     public static final IntegerBlockTrait HEIGHT = IntegerBlockTrait.from("height", 8);
     public static final IntegerBlockTrait HONEY_LEVEL = IntegerBlockTrait.from("honey_level", 6);
     public static final IntegerBlockTrait HUGE_MUSHROOM_BITS = IntegerBlockTrait.from("huge_mushroom_bits", 16);
-    public static final IntegerBlockTrait ICE_AGE = IntegerBlockTrait.from("ice_age", "age", 0, 4, 0);
+    public static final IntegerBlockTrait ICE_AGE = IntegerBlockTrait.from("ice_age", "age", 0, 3, 0);
     public static final IntegerBlockTrait KELP_AGE = IntegerBlockTrait.from("kelp_age", 26);
-    public static final IntegerBlockTrait LIGHT_LEVEL = IntegerBlockTrait.from("light_level", "block_light_level", 0, 16, 0);
+    public static final IntegerBlockTrait LIGHT_LEVEL = IntegerBlockTrait.from("light_level", "block_light_level", 0, 15, 0);
     public static final IntegerBlockTrait MOISTURIZED_AMOUNT = IntegerBlockTrait.from("moisturized_amount", 8);
     public static final EnumBlockTrait<MonsterEggStoneType> MONSTER_EGG_STONE_TYPE = EnumBlockTrait.of("monster_egg_stone_type", MonsterEggStoneType.class);
-    public static final IntegerBlockTrait WART_GROWTH = IntegerBlockTrait.from("wart_growth", "age", 0, 4, 0);
+    public static final IntegerBlockTrait WART_GROWTH = IntegerBlockTrait.from("wart_growth", "age", 0, 3, 0);
     public static final EnumBlockTrait<PrismarineBlockType> PRISMARINE_BLOCK_TYPE = EnumBlockTrait.of("prismarine_block_type", PrismarineBlockType.class);
     public static final IntegerBlockTrait REDSTONE_SIGNAL = IntegerBlockTrait.from("redstone_signal", 16);
     public static final IntegerBlockTrait REPEATER_DELAY = IntegerBlockTrait.from("repeater_delay", 4);
