@@ -1,9 +1,7 @@
 package org.cloudburstmc.server.level.chunk;
 
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NBTOutputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.blockstateupdater.BlockStateUpdaters;
+import com.nukkitx.nbt.*;
 import com.nukkitx.network.VarInts;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -12,9 +10,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -125,19 +120,16 @@ public class BlockStorage {
             for (int i = 0; i < paletteSize; i++) {
                 NbtMap tag = (NbtMap) nbtInputStream.readTag();
                 Identifier id = Identifier.fromString(tag.getString("name"));
-                BlockState state;
+                BlockState state = null;
 
-                NbtMap states = tag.getCompound("states", null);
-                if (states != null) {
-                    state = BlockState.get(id);
-                    for (Map.Entry<String, Object> entry : states.entrySet())   {
-                        BlockTrait trait = BlockTraits.fromVanilla(entry.getKey());
-                        state = state.withTrait(trait, trait.parseStorageValue(entry.getValue()));
-                    }
-                } else {
-                    state = BlockStateMetaMappings.getStateFromMeta(id, tag.getShort("val"));
+                if (tag.containsKey("states", NbtType.COMPOUND)) {
+                    state = BlockPalette.INSTANCE.getBlockState(tag);
                 }
-                tags.put(tag, state);
+                if (state == null) {
+                    tag = BlockStateUpdaters.updateBlockState(tag, tag.getInt("version"));
+                    state = BlockPalette.INSTANCE.getBlockState(tag);
+                }
+                if (state == null) throw new IllegalStateException("Invalid block state\n" + tag);
 
                 int runtimeId = BlockRegistry.get().getRuntimeId(state);
                 checkArgument(!this.palette.contains(runtimeId),
