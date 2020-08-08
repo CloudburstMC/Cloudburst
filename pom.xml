@@ -252,7 +252,7 @@
         <dependency>
             <groupId>com.nukkitx</groupId>
             <artifactId>block-state-updater</artifactId>
-            <version>1.16.0.6</version>
+            <version>1.16.0.8</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.nukkitx</groupId>
