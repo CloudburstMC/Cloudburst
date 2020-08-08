@@ -277,9 +277,9 @@ public class ShapedRecipe implements CraftingRecipe {
     }
 
     @Override
-    public CraftingData toNetwork() {
+    public CraftingData toNetwork(int netId) {
         return CraftingData.fromShaped(this.recipeId, this.getWidth(), this.getHeight(),
                 Item.toNetwork(this.getIngredientList()), Item.toNetwork(this.getAllResults()), this.getId(),
-                this.block.getName(), this.priority);
+                this.block.getName(), this.priority, netId);
     }
 }

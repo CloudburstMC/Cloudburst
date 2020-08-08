@@ -155,8 +155,8 @@ public class ShapelessRecipe implements CraftingRecipe {
     }
 
     @Override
-    public CraftingData toNetwork() {
+    public CraftingData toNetwork(int netId) {
         return CraftingData.fromShapeless(this.recipeId, Item.toNetwork(this.getIngredientList()),
-                Item.toNetwork(this.getAllResults()), this.id, this.block.getName(), this.priority);
+                Item.toNetwork(this.getAllResults()), this.id, this.block.getName(), this.priority, netId);
     }
 }

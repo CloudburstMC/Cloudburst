@@ -48,11 +48,11 @@ public class FurnaceRecipe implements Recipe {
     }
 
     @Override
-    public CraftingData toNetwork() {
+    public CraftingData toNetwork(int netId) {
         if (this.ingredient.hasMeta()) {
-            return CraftingData.fromFurnaceData(ingredient.getNetworkId(), ingredient.getMeta(), output.toNetwork(), block.getName());
+            return CraftingData.fromFurnaceData(ingredient.getNetworkId(), ingredient.getMeta(), output.toNetwork(), block.getName(), netId);
         } else {
-            return CraftingData.fromFurnace(ingredient.getNetworkId(), output.toNetwork(), block.getName());
+            return CraftingData.fromFurnace(ingredient.getNetworkId(), output.toNetwork(), block.getName(), netId);
         }
     }
 }
