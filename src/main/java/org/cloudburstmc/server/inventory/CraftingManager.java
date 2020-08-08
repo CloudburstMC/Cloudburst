@@ -113,11 +113,13 @@ public class CraftingManager {
         CraftingDataPacket packet = new CraftingDataPacket();
         packet.setCleanRecipes(cleanRecipes);
 
+        int recipeId = 1;
+
         for (Recipe recipe : this.getRecipes()) {
-            packet.getCraftingData().add(recipe.toNetwork());
+            packet.getCraftingData().add(recipe.toNetwork(recipeId++));
         }
         for (Recipe recipe : this.getFurnaceRecipes().values()) {
-            packet.getCraftingData().add(recipe.toNetwork());
+            packet.getCraftingData().add(recipe.toNetwork(recipeId++));
         }
 
         for (BrewingRecipe recipe : brewingRecipes.values()) {

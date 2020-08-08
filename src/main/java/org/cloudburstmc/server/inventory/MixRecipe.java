@@ -36,7 +36,7 @@ public abstract class MixRecipe implements Recipe {
     }
 
     @Override
-    public CraftingData toNetwork() {
+    public CraftingData toNetwork(int netId) {
         throw new UnsupportedOperationException();
     }
 

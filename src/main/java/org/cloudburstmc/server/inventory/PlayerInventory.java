@@ -5,7 +5,6 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.event.entity.EntityArmorChangeEvent;
@@ -567,13 +566,11 @@ public class PlayerInventory extends BaseInventory {
 
         CreativeContentPacket pk = new CreativeContentPacket();
 
-        if (!p.isSpectator()) { //fill it for all gamemodes except spectator
-            int i = 0; //TODO: figure out why this was originally 1...
-            val items = Item.getCreativeItems();
-            ItemData[] contents = new ItemData[items.size()];
+        if (!p.isSpectator()) {
+            ItemData[] contents = Item.toNetwork(Item.getCreativeItems());
 
-            for (Item item : items) {
-                contents[i++] = item.toNetwork();
+            for (int i = 0; i < contents.length; i++) {
+                contents[i].setNetId(i + 1);
             }
 
             pk.setContents(contents);

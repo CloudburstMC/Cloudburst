@@ -19,7 +19,7 @@ public interface Recipe {
 
     RecipeType getType();
 
-    CraftingData toNetwork();
+    CraftingData toNetwork(int networkId);
 
     Identifier getBlock();
 }
