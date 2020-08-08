@@ -58,7 +58,7 @@ public abstract class Item implements Cloneable {
         this.id = id;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static void initCreativeItems() {
         clearCreativeItems();
 

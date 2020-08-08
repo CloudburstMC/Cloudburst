@@ -140,7 +140,7 @@ public class BlockEntityRegistry implements Registry {
         registerVanilla(BlockEntityTypes.ENDER_CHEST, EnderChestBlockEntity::new, "EnderChest");
         registerVanilla(BlockEntityTypes.FURNACE, FurnaceBlockEntity::new, "Furnace");
         registerVanilla(BlockEntityTypes.SIGN, SignBlockEntity::new, "Sign");
-        //registerVanilla(MOB_SPAWNER, MobSpawnerBlockEntity::new, "MobSpawner");
+//        registerVanilla(BlockEntityTypes.MOB_SPAWNER, MobSpawnerBlockEntity::new, "MobSpawner");
         registerVanilla(BlockEntityTypes.ENCHANTING_TABLE, EnchantingTableBlockEntity::new, "EnchantTable");
         registerVanilla(BlockEntityTypes.SKULL, SkullBlockEntity::new, "Skull");
         registerVanilla(BlockEntityTypes.FLOWER_POT, FlowerPotBlockEntity::new, "FlowerPot");

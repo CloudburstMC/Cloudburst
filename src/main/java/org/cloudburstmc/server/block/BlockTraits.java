@@ -109,7 +109,7 @@ public class BlockTraits {
     public static final BooleanBlockTrait IS_COVERED = BooleanBlockTrait.of("is_covered", "covered_bit");
     public static final BooleanBlockTrait IS_DEAD = BooleanBlockTrait.of("is_dead", "dead_bit");
     public static final BooleanBlockTrait IS_DISARMED = BooleanBlockTrait.of("is_disarmed", "disarmed_bit");
-    public static final BooleanBlockTrait IS_DOOR_HINGE = BooleanBlockTrait.of("is_door_hinge", "door_hinge_bit");
+    public static final BooleanBlockTrait IS_DOOR_HINGE = BooleanBlockTrait.of("is_door_hinge", "door_hinge_bit", true);
     public static final BooleanBlockTrait IS_EXTINGUISHED = BooleanBlockTrait.of("is_extinguished", "extinguished");
     public static final BooleanBlockTrait IS_FLOWING = BooleanBlockTrait.of("is_flowing");
     public static final BooleanBlockTrait IS_HANGING = BooleanBlockTrait.of("is_hanging", "hanging");

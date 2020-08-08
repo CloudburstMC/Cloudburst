@@ -6,6 +6,7 @@ import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.level.chunk.Chunk;
@@ -13,6 +14,7 @@ import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.RegistryException;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.WriteBatch;
 
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@Log4j2
 public class BlockEntitySerializer {
 
     public static void loadBlockEntities(DB db, ChunkBuilder builder) {
@@ -87,14 +90,18 @@ public class BlockEntitySerializer {
                         dirty = true;
                         continue;
                     }
-                    BlockEntityType<?> type = REGISTRY.getBlockEntityType(tag.getString("id"));
+                    try {
+                        BlockEntityType<?> type = REGISTRY.getBlockEntityType(tag.getString("id"));
 
-                    BlockEntity blockEntity = REGISTRY.newEntity(type, chunk, position);
-                    if (blockEntity == null) {
+                        BlockEntity blockEntity = REGISTRY.newEntity(type, chunk, position);
+                        if (blockEntity == null) {
+                            dirty = true;
+                            continue;
+                        }
+                        blockEntity.loadAdditionalData(tag);
+                    } catch (RegistryException e) {
                         dirty = true;
-                        continue;
                     }
-                    blockEntity.loadAdditionalData(tag);
                 }
             }
             return dirty;
