@@ -101,10 +101,10 @@ class LevelDBProvider implements LevelProvider {
                 LockableChunk lockableChunk = chunk.readLockable();
                 lockableChunk.lock();
                 try {
-                    ChunkSerializers.serializeChunk(batch, chunk, 7);
+                    ChunkSerializers.serializeChunk(batch, chunk, 19);
                     Data2dSerializer.serialize(batch, chunk);
 
-                    batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{7});
+                    batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{19});
                     batch.put(LevelDBKey.STATE_FINALIZATION.getKey(x, z), Unpooled.buffer(4).writeIntLE(lockableChunk.getState() - 1).array());
 
                     BlockEntitySerializer.saveBlockEntities(batch, chunk);
