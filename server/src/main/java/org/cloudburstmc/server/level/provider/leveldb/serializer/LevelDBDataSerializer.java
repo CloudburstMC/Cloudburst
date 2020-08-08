@@ -61,7 +61,9 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
     }
 
     private void saveData(LevelData data, Path levelDatPath) throws IOException {
-        NbtMapBuilder tag = NbtMap.builder()
+        NbtMapBuilder tag = NbtMap.builder();
+        tag.putAll(data.getData());
+        tag
                 .putString("LevelName", data.getName())
                 .putString("FlatWorldLayers", data.getGeneratorOptions())
                 .putString("generatorName", data.getGenerator().toString())
@@ -123,6 +125,8 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
             stream.readInt(); // Size
             tag = (NbtMap) nbtInputStream.readTag();
         }
+
+        data.setData(tag);
 
         /*tag.listenForString("LevelName", data::setName);
         if (tag.contains("FlatWorldLayers")) {

@@ -8,6 +8,7 @@ import org.cloudburstmc.server.level.gamerule.GameRuleMap;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.utils.Identifier;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
@@ -52,6 +53,8 @@ public class LevelData {
     private boolean hasLockedResourcePack;
     private boolean immutableWorld;
     private boolean texturePacksRequired;
+
+    private Map<String, Object> data;
 
 
     public LevelData() {
@@ -366,5 +369,21 @@ public class LevelData {
 
     public void setHardcore(boolean hardcore) {
         this.hardcore = hardcore;
+    }
+
+    public void setData(Map<String, Object> fullData) {
+        this.data = fullData;
+    }
+
+    public Map<String, Object> getData() {
+        return data;
+    }
+
+    public Object get(String key) {
+        return data.get(key);
+    }
+
+    public void set(String key, Object value) {
+        data.put(key, value);
     }
 }

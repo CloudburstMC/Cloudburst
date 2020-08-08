@@ -26,6 +26,10 @@ public class ChunkSerializers {
         SERIALIZERS.put(13, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(14, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(15, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(16, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(17, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(18, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(19, ChunkSerializerV3.INSTANCE);
     }
 
     private static ChunkSerializer getChunkSerializer(int version) {

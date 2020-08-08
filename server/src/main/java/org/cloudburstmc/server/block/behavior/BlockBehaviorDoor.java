@@ -225,7 +225,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
             door = door.withTrait(BlockTraits.IS_UPPER_BLOCK, true);
             if (left.getType() == block.getState().getType() || (!right.getBehavior().isTransparent() && left.getBehavior().isTransparent())) { //Door hinge
-                door = door.withTrait(BlockTraits.IS_DOOR_HINGE, true);
+                door = door.withTrait(BlockTraits.IS_DOOR_HINGE, false);
             }
 
             placeBlock(blockUp, door);
