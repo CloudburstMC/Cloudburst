@@ -23,17 +23,18 @@
  */
 package co.aikar.timings;
 
-import cn.nukkit.Nukkit;
-import cn.nukkit.Server;
-import cn.nukkit.blockentity.BlockEntity;
-import cn.nukkit.entity.Entity;
-import cn.nukkit.level.Level;
-import cn.nukkit.level.chunk.Chunk;
-import cn.nukkit.player.Player;
-import cn.nukkit.timings.JsonUtil;
-import cn.nukkit.utils.Identifier;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.val;
+import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.blockentity.BlockEntity;
+import org.cloudburstmc.server.entity.Entity;
+import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.timings.JsonUtil;
+import org.cloudburstmc.server.utils.Identifier;
 
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
@@ -111,10 +112,12 @@ public class TimingsHistory {
 
                 //count block entities
                 for (BlockEntity blockEntity : chunk.getBlockEntities()) {
-                    if (!blockEntityCounts.containsKey(blockEntity.getBlock().getId()))
-                        blockEntityCounts.put(blockEntity.getBlock().getId(), new AtomicInteger(0));
-                    blockEntityCounts.get(blockEntity.getBlock().getId()).incrementAndGet();
-                    blockEntityMap.put(blockEntity.getBlock().getId(), blockEntity.getClass().getSimpleName());
+                    val type = blockEntity.getBlock().getState().getType();
+
+                    if (!blockEntityCounts.containsKey(type))
+                        blockEntityCounts.put(type, new AtomicInteger(0));
+                    blockEntityCounts.get(type).incrementAndGet();
+                    blockEntityMap.put(type, blockEntity.getClass().getSimpleName());
                 }
 
                 if (blockEntityCounts.isEmpty() && entityCounts.isEmpty()) {

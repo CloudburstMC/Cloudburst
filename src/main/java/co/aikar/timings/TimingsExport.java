@@ -23,17 +23,17 @@
  */
 package co.aikar.timings;
 
-import cn.nukkit.Nukkit;
-import cn.nukkit.Server;
-import cn.nukkit.command.CommandSender;
-import cn.nukkit.command.ConsoleCommandSender;
-import cn.nukkit.locale.TranslationContainer;
-import cn.nukkit.timings.JsonUtil;
-import cn.nukkit.utils.TextFormat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
+import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.command.CommandSender;
+import org.cloudburstmc.server.command.ConsoleCommandSender;
+import org.cloudburstmc.server.locale.TranslationContainer;
+import org.cloudburstmc.server.timings.JsonUtil;
+import org.cloudburstmc.server.utils.TextFormat;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
