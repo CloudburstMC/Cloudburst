@@ -58,7 +58,7 @@ timings:
 
 level-settings:
   # %level-settings.default-format
-  default-format: anvil
+  default-format: leveldb
   # %level-settings.auto-tick-rate
   auto-tick-rate: true
   auto-tick-rate-limit: 20
