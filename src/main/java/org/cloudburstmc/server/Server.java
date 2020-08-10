@@ -696,8 +696,7 @@ public class Server {
             }
             //todo other things
         } catch (Exception e) {
-            log.fatal("Exception happened while shutting down, exiting the process", e);
-            System.exit(1);
+            log.fatal("Exception happened while shutting down", e);
         }
     }
 
