@@ -1,6 +1,5 @@
 package org.cloudburstmc.server;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -170,7 +169,10 @@ public class Nukkit {
         if (TITLE) {
             System.out.print((char) 0x1b + "]0;Server Stopped" + (char) 0x07);
         }
-        System.exit(0);
+
+        // Make sure all log messages have made it to their destination before ending the process,
+        // especially since we use async logging.
+        LogManager.shutdown();
     }
 
     private static boolean requiresShortTitle() {
