@@ -69,6 +69,7 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
                 .putInt("lightningTime", data.getLightningTime())
                 .putInt("Difficulty", data.getDifficulty())
                 .putInt("GameType", data.getGameType())
+                .putInt("StorageVersion", VERSION)
                 .putInt("serverChunkTickRange", data.getServerChunkTickRange())
                 .putInt("NetherScale", data.getNetherScale())
                 .putLong("currentTick", data.getCurrentTick())
