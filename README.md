@@ -37,7 +37,7 @@ The compiled JAR can be found in the `target/` directory.
 
 Running
 -------------
-Simply run `java -jar Nukkit.jar`.
+Simply run `java -jar Cloudburst.jar`.
 
 Plugin API
 -------------
