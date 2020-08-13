@@ -46,19 +46,13 @@ public class LoginPacketHandler implements BedrockPacketHandler {
         BedrockPacketCodec packetCodec = ProtocolInfo.getPacketCodec(protocolVersion);
 
         if (packetCodec == null) {
-            String message;
             PlayStatusPacket statusPacket = new PlayStatusPacket();
             if (protocolVersion < ProtocolInfo.getDefaultProtocolVersion()) {
-                message = "disconnectionScreen.outdatedClient";
-
                 statusPacket.setStatus(PlayStatusPacket.Status.LOGIN_FAILED_CLIENT_OLD);
             } else {
-                message = "disconnectionScreen.outdatedServer";
-
                 statusPacket.setStatus(PlayStatusPacket.Status.LOGIN_FAILED_SERVER_OLD);
             }
-            session.sendPacket(statusPacket);
-            session.disconnect(message);
+            session.sendPacketImmediately(statusPacket);
             return true;
         }
         session.setPacketCodec(packetCodec);
