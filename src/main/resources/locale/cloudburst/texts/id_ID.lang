@@ -1,0 +1,112 @@
+#X-Generator: crowdin.com
+# Localizations for Cloudburst
+#
+# These are custom localizations that need to be converted before being sent or used in the console.
+#
+
+cloudburst.language.selected=Dipilih %1$2s sebagai lokal standar.
+
+cloudburst.data.playerNotFound=Data pemain tidak ditemukan untuk "%1$2s", membuat profil baru
+cloudburst.data.playerCorrupted=Data yang rusak ditemukan untuk "%1$2s", membuat profil baru
+cloudburst.data.playerOld=Data lama ditemukan untuk "%1$2s", memperbarui profil
+cloudburst.data.saveError=Tidak dapat menyimpan pemain "%1$2s": %2$2s
+
+cloudburst.level.notFound=Level "%1$2s" tidak ditemukan
+cloudburst.level.loadError=Tidak dapat memuat level "%1$2s": %2$2s
+cloudburst.level.generationError=Tidak dapat menghasilkan level "%1$2s": %2$2s
+cloudburst.level.tickError=Tidak dapat menandai level "%1$2s": %2$2s
+cloudburst.level.chunkUnloadError=Gagal saat membongkar bongkahan %1$2s
+cloudburst.level.backgroundGeneration=Menelurkan medan untuk level "%1$2s" sedang dibuat di latar belakang
+cloudburst.level.defaultError=Tidak ada level standar yang dimuat
+cloudburst.level.preparing=Mempersiapkan level "%1$2s"
+cloudburst.level.unloading=Level pembongkaran "%1$2s"
+cloudburst.level.updating=Data level lama ditemukan untuk %1$2s", format konversi
+
+cloudburst.server.start=Memulai Minecraft: versi server PE %1$2s
+cloudburst.server.networkError=[Jaringan] Menghentikan antarmuka %1$2s disebabkan oleh %2$2s
+cloudburst.server.networkStart=Membuka server aktif %1$2s:%2$2s
+cloudburst.server.info=Server ini sedang berjalan %1$2s versi %2$2s "%3$2s" (API %4$2s)
+cloudburst.server.info.extended=Server ini sedang berjalan %1$2s %2$2s mengimplementasikan versi API %3$2s untuk Minecraft: PE %4$2s (versi protokol %5$2s)
+cloudburst.server.license=%1$2s didistribusikan di bawah Lisensi LGPL
+cloudburst.server.tickOverload=Tidak bisa mengikuti! Apakah server kelebihan beban?
+cloudburst.server.startFinished=Selesai (%1$2ss)! Untuk bantuan, ketik "help" atau "?"
+cloudburst.server.defaultGameMode=Jenis permainan standar: %1$2s
+cloudburst.server.query.start=Memulai pendengar status GS4
+cloudburst.server.query.info=Mengatur port kueri ke %1$2s
+cloudburst.server.query.running=Kueri sedang berjalan %1$2s %2$2s
+cloudburst.server.rcon.emptyPasswordError=Gagal memulai RCON: kata sandi kosong
+cloudburst.server.rcon.startupError=Gagal memulai RCON: %1$2s
+cloudburst.server.rcon.running=RCON sedang berjalan %1$2s:%2$2s
+
+cloudburst.command.alias.illegal=Tidak dapat mendaftar alias %1$2s karena mengandung karakter ilegal
+cloudburst.command.alias.notFound=Tidak dapat mendaftar alias %1$2s karena mengandung perintah yang tidak ada: %2$2s
+cloudburst.command.exception=Perintah eksekusi eksepsi yang tidak ditangani '%1$2s' di %2$2s: %3$2s
+
+cloudburst.command.version.description=Dapatkan versi server ini termasuk semua plugin yang digunakan
+cloudburst.command.version.usage=/version [nama plugin]
+cloudburst.command.version.server=Server ini sedang berjalan %1$2s versi %2$2s (MC: %3$2s) (Menerapkan versi API %4$2s)
+cloudburst.command.version.plugin=%1$2s versi yang sedang berjalan %1$2s
+cloudburst.command.version.noSuchPlugin=Server ini tidak menjalankan plugin apa pun dengan nama itu. Menggunakan /plugins untuk mendapatkan daftar plugin.
+
+cloudburst.command.plugins.description=Mendapat daftar plugin yang berjalan di server
+cloudburst.command.plugins.success=Plugin (%1$2s): %2$2s
+cloudburst.command.plugins.usage=/plugins
+
+cloudburst.command.status.description=Membaca kembali kinerja server.
+cloudburst.command.status.usage=/status
+
+cloudburst.command.timings.description=Merekam waktu untuk melihat kinerja server.
+cloudburst.command.timings.usage=/timings <reset|report/paste|on|off|verbon|verboff>
+cloudburst.command.timings.enable=Pengaturan waktu diaktifkan dan reset
+cloudburst.command.timings.disable=Pengaturan waktu dinonaktifkan
+cloudburst.command.timings.timingsDisabled=Harap aktifkan pewaktuan dengan mengetik /timings on
+cloudburst.command.timings.verboseEnable=Diaktifkan timing verbose
+cloudburst.command.timings.verboseDisable=Penentuan waktu verbose dinonaktifkan
+cloudburst.command.timings.reset=Pengaturan waktu diatur ulang
+cloudburst.command.timings.rcon=Peringatan: Laporan waktu yang dilakukan melalui RCON akan menyebabkan lonjakan lag, yang harus Anda gunakan /timings report dalam permainan atau konsol
+cloudburst.command.timings.uploadStart=Mempersiapkan laporan ketepatan waktu...
+cloudburst.command.timings.uploadError=Kesalahan Pengunggahan: %1$2s: %2$2s, periksa log untuk informasi lebih lanjut
+cloudburst.command.timings.reportError=Terjadi kesalahan saat menempelkan laporan, periksa log untuk informasi lebih lanjut
+cloudburst.command.timings.timingsLocation=Lihat laporan timing: %1$2s
+cloudburst.command.timings.timingsResponse=Tanggapan timing: %1$2s
+cloudburst.command.timings.timingsWrite=Pengaturan waktu ditulis untuk %1$2s
+
+cloudburst.crash.create=Dapatkan versi server ini termasuk semua plugin yang digunakan
+cloudburst.crash.error=Tidak dapat membuat pembuangan kecelakaan: %1$2s
+cloudburst.crash.submit=Silakan unggah "%1$2s" file ke Arsip Kecelakaan dan kirimkan tautan ke halaman Pelaporan Bug. Berikan info sebanyak mungkin.
+cloudburst.crash.archive=Pembuangan kecelakaan telah secara otomatis dikirimkan ke Arsip Kecelakaan. Anda dapat melihatnya di %1$2s atau gunakan ID #%2$2s.
+
+cloudburst.debug.enable=Dukungan LevelDB diaktifkan
+
+cloudburst.bugreport.create=Kesalahan telah terdeteksi, membuat laporan bug.
+cloudburst.bugreport.error=Tidak dapat membuat laporan bug: %1$2s
+cloudburst.bugreport.archive=Laporan bug telah dibuat: %1$2s
+
+cloudburst.player.invalidMove=%1$2s bergerak dengan salah!
+cloudburst.player.logIn=%1$2s[/%2$2s:%3$2s] masuk with entity id %4$2s di (%5$2s, %6$2s, %7$2s, %8$2s)
+cloudburst.player.logOut=%1$2s[/%2$2s:%3$2s] keluar karena %4$2s
+cloudburst.player.invalidEntity=%1$2s mencoba menyerang entitas yang tidak valid
+
+cloudburst.plugin.load=Memuat %1$2s
+cloudburst.plugin.restrictedName=Nama terbatas
+cloudburst.plugin.incompatibleAPI=Versi API Tidak kompatibel
+cloudburst.plugin.unknownDependency=Ketergantungan tidak diketahui
+cloudburst.plugin.circularDependency=Ketergantungan melingkar terdeteksi
+cloudburst.plugin.genericLoadError=Tidak dapat memuat plugin '%1$2s'
+cloudburst.plugin.spacesDiscouraged=Plugin '%1$2s' menggunakan spasi dalam namanya, ini tidak disarankan
+cloudburst.plugin.loadError=Tidak dapat memuat plugin '%1$2s': %2$2s
+cloudburst.plugin.duplicateError=Tidak dapat memuat plugin '%1$2s': plugin ada
+cloudburst.plugin.fileError=Tidak bisa memuat '%1$2s' dalam map '%2$2s': %3$2s
+cloudburst.plugin.commandError=Tidak dapat memuat perintah %1$2s untuk plugin %2$2s
+cloudburst.plugin.aliasError=Tidak dapat memuat alias %1$2s untuk plugin %2$2s
+cloudburst.plugin.deprecatedEvent=Plugin '%1$2s' telah mendaftarkan pendengar untuk %2$2s pada metode %3$2s, tetapi acara ini sudah usang.
+cloudburst.plugin.eventError=Tidak dapat melewati acara '%1$2s' ke '%2$2s': %3$2s on %4$2s
+
+cloudburst.resources.invalid-path=Jalur paket sumber daya '%1$2s' ada dan bukan direktori
+cloudburst.resources.unknown-format=Tidak bisa memuat '%1$2s' karena format tidak dikenali
+cloudburst.resources.fail=Tidak bisa memuat '%1$2s': %2$2s
+cloudburst.resources.success=Berhasil dimuat %1$2s paket sumber daya
+cloudburst.resources.zip.not-found=File '%1$2s' tidak ditemukan
+cloudburst.resources.zip.no-manifest='manifest.json' tidak ditemukan
+cloudburst.resources.zip.invalid-manifest='manifest.json' tidak valid atau tidak lengkap
+

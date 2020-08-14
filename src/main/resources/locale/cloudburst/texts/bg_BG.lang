@@ -1,0 +1,112 @@
+#X-Generator: crowdin.com
+# Localizations for Cloudburst
+#
+# These are custom localizations that need to be converted before being sent or used in the console.
+#
+
+cloudburst.language.selected=Избрано %1$2s като стандартно локализиране.
+
+cloudburst.data.playerNotFound=Данните за играча не са намерени за "%1$2s", създаване на нов профил
+cloudburst.data.playerCorrupted=Намерени са развалени данни за "%1$2s", създаване на нов профил
+cloudburst.data.playerOld=Данни за стария играч, намерени за "%1$2s", надстройване профила
+cloudburst.data.saveError=Не можа да запази играч "%1$2s": %2$2s
+
+cloudburst.level.notFound=Ниво "%1$2s" не е намерено
+cloudburst.level.loadError=Не можа да зареди ниво "%1$2s": %2$2s
+cloudburst.level.generationError=Не можа да генерира ниво "%1$2s": %2$2s
+cloudburst.level.tickError=Не можа да отбележи ниво "%1$2s": %2$2s
+cloudburst.level.chunkUnloadError=Грешка при разтоварване на къс: %1$2s
+cloudburst.level.backgroundGeneration=Spawn terrain for level "%1$2s" is being generated in the background
+cloudburst.level.defaultError=No default level has been loaded
+cloudburst.level.preparing=Preparing level "%1$2s"
+cloudburst.level.unloading=Unloading level "%1$2s"
+cloudburst.level.updating=Old level data found for "%1$2s", converting format
+
+cloudburst.server.start=Starting Minecraft: Bedrock Edition server version %1$2s
+cloudburst.server.networkError=[Network] Stopped interface %1$2s due to %2$2s
+cloudburst.server.networkStart=Opening server on %1$2s:%2$2s
+cloudburst.server.info=This server is running %1$2s version %2$2s "%3$2s" (API %4$2s)
+cloudburst.server.info.extended=This server is running %1$2s %2$2s implementing API version %3$2s for Minecraft: Bedrock Edition %4$2s (protocol version %5$2s)
+cloudburst.server.license=%1$2s is distributed under the GPL License
+cloudburst.server.tickOverload=Can't keep up! Is the server overloaded?
+cloudburst.server.startFinished=Done (%1$2ss)! For help, type "help" or "?"
+cloudburst.server.defaultGameMode=Default game type: %1$2s
+cloudburst.server.query.start=Starting GS4 status listener
+cloudburst.server.query.info=Setting query port to %1$2s
+cloudburst.server.query.running=Query is running on %1$2s:%2$2s
+cloudburst.server.rcon.emptyPasswordError=Failed to start RCON: password is empty
+cloudburst.server.rcon.startupError=Failed to start RCON: %1$2s
+cloudburst.server.rcon.running=RCON is running on %1$2s:%2$2s
+
+cloudburst.command.alias.illegal=Could not register alias %1$2s because it contains illegal characters
+cloudburst.command.alias.notFound=Could not register alias %1$2s because it contains commands that do not exist: %2$2s
+cloudburst.command.exception=Unhandled exception executing command '%1$2s' in %2$2s: %3$2s
+
+cloudburst.command.version.description=Gets the version of this server including any plugins in use
+cloudburst.command.version.usage=/version [plugin name]
+cloudburst.command.version.server=This server is running %1$2s version %2$2s (MC: %3$2s) (Implementing API version %4$2s)
+cloudburst.command.version.plugin=%1$2s running version %1$2s
+cloudburst.command.version.noSuchPlugin=This server is not running any plugin by that name. Use /plugins to get a list of plugins.
+
+cloudburst.command.plugins.description=Gets a list of plugins running on the server
+cloudburst.command.plugins.success=Plugins (%1$2s): %2$2s
+cloudburst.command.plugins.usage=/plugins
+
+cloudburst.command.status.description=Reads back the server's performance.
+cloudburst.command.status.usage=/status
+
+cloudburst.command.timings.description=Records timings to see performance of the server.
+cloudburst.command.timings.usage=/timings <reset|report/paste|on|off|verbon|verboff>
+cloudburst.command.timings.enable=Enabled timings and reset
+cloudburst.command.timings.disable=Disabled timings
+cloudburst.command.timings.timingsDisabled=Please enable timings by typing /timings on
+cloudburst.command.timings.verboseEnable=Enabled verbose timings
+cloudburst.command.timings.verboseDisable=Disabled verbose timings
+cloudburst.command.timings.reset=Timings reset
+cloudburst.command.timings.rcon=Warning: Timings report done over RCON will cause lag spikes, you should use /timings report in game or console
+cloudburst.command.timings.uploadStart=Preparing timings report...
+cloudburst.command.timings.uploadError=Upload Error: %1$2s: %2$2s, check logs for more information
+cloudburst.command.timings.reportError=An error happened while pasting the report, check logs for more information
+cloudburst.command.timings.timingsLocation=View timings report: %1$2s
+cloudburst.command.timings.timingsResponse=Timings response: %1$2s
+cloudburst.command.timings.timingsWrite=Timings written to %1$2s
+
+cloudburst.crash.create=An unrecoverable error has occurred and the server has crashed. Creating a crash dump
+cloudburst.crash.error=Could not create crash dump: %1$2s
+cloudburst.crash.submit=Please upload the "%1$2s" file to the Crash Archive and submit the link to the Bug Reporting page. Give as much info as you can.
+cloudburst.crash.archive=The crash dump has been automatically submitted to the Crash Archive. You can view it on %1$2s or use the ID #%2$2s.
+
+cloudburst.debug.enable=LevelDB support enabled
+
+cloudburst.bugreport.create=An error has been detected, creating a bug report.
+cloudburst.bugreport.error=Could not create bug report: %1$2s
+cloudburst.bugreport.archive=A bug report has been created: %1$2s
+
+cloudburst.player.invalidMove=%1$2s moved wrongly!
+cloudburst.player.logIn=%1$2s[/%2$2s:%3$2s] logged in with entity id %4$2s at (%5$2s, %6$2s, %7$2s, %8$2s)
+cloudburst.player.logOut=%1$2s[/%2$2s:%3$2s] logged out due to %4$2s
+cloudburst.player.invalidEntity=%1$2s tried to attack an invalid entity
+
+cloudburst.plugin.load=Loading %1$2s
+cloudburst.plugin.restrictedName=Restricted name
+cloudburst.plugin.incompatibleAPI=Incompatible API version
+cloudburst.plugin.unknownDependency=Unknown dependency
+cloudburst.plugin.circularDependency=Circular dependency detected
+cloudburst.plugin.genericLoadError=Could not load plugin '%1$2s'
+cloudburst.plugin.spacesDiscouraged=Plugin '%1$2s' uses spaces in its name, this is discouraged
+cloudburst.plugin.loadError=Could not load plugin '%1$2s': %2$2s
+cloudburst.plugin.duplicateError=Could not load plugin '%1$2s': plugin exists
+cloudburst.plugin.fileError=Could not load '%1$2s' in folder '%2$2s': %3$2s
+cloudburst.plugin.commandError=Could not load command %1$2s for plugin %2$2s
+cloudburst.plugin.aliasError=Could not load alias %1$2s for plugin %2$2s
+cloudburst.plugin.deprecatedEvent=Plugin '%1$2s' has registered a listener for '%2$2s' on method '%3$2s', but the event is Deprecated.
+cloudburst.plugin.eventError=Could not pass event '%1$2s' to '%2$2s': %3$2s on %4$2s
+
+cloudburst.resources.invalid-path=Resource packs path '%1$2s' exists and is not a directory
+cloudburst.resources.unknown-format=Не можа да зареди '%1$2s' поради неразпознат формат
+cloudburst.resources.fail=Не можа да зареди '%1$2s': %2$2s
+cloudburst.resources.success=Успешно заредени ресурсни пакети %1$2s
+cloudburst.resources.zip.not-found=Файл '%1$2s' не е намерен
+cloudburst.resources.zip.no-manifest='manifest.json' не е намерен
+cloudburst.resources.zip.invalid-manifest='manifest.json' е невалиден или непълен
+

@@ -18,7 +18,7 @@ public class GarbageCollectorCommand extends Command {
         super("gc", CommandData.builder("gc")
                 .setDescription("commands.gc.description")
                 .setUsageMessage("/gc")
-                .setPermissions("nukkit.command.gc")
+                .setPermissions("cloudburst.command.gc")
                 .build());
     }
 

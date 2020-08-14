@@ -20,7 +20,7 @@ public class SayCommand extends Command {
         super("say", CommandData.builder("say")
                 .setDescription("commands.say.description")
                 .setUsageMessage("/say <usage>")
-                .setPermissions("nukkit.command.say")
+                .setPermissions("cloudburst.command.say")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("message")
                 })

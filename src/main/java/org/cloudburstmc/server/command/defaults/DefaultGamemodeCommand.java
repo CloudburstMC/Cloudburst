@@ -18,7 +18,7 @@ public class DefaultGamemodeCommand extends Command {
         super("defaultgamemode", CommandData.builder("defaultgamemode")
                 .setDescription("commands.defaultgamemode.description")
                 .setUsageMessage("/defaultgamemode <mode>")
-                .setPermissions("nukkit.command.defaultgamemode")
+                .setPermissions("cloudburst.command.defaultgamemode")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("mode", CommandParamType.INT, false)
                 }, new CommandParameter[]{

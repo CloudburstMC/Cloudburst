@@ -1,0 +1,112 @@
+#X-Generator: crowdin.com
+# Localizations for Cloudburst
+#
+# These are custom localizations that need to be converted before being sent or used in the console.
+#
+
+cloudburst.language.selected=Вибрано %1$2s як мову за замовчуванням.
+
+cloudburst.data.playerNotFound=Не знайдено дані для "%1$2s", створення нового профілю
+cloudburst.data.playerCorrupted=Дані гравця "%1$2s" пошкоджено, створення нового профілю
+cloudburst.data.playerOld=Дані гравця "%1$2s" застарілі, оновлення профілю
+cloudburst.data.saveError=Не вдалося зберегти гравця "%1$2s": %2$2s
+
+cloudburst.level.notFound=Світ "%1$2s" не знайдено
+cloudburst.level.loadError=Не вдалося завантажити рівень "%1$2s": %2$2s
+cloudburst.level.generationError=Не вдалося створити світ "%1$2s": %2$2s
+cloudburst.level.tickError=Не вдалося позначити світ "%1$2s": %2$2s
+cloudburst.level.chunkUnloadError=Помилка під час розвантаження чанку: %1$2s
+cloudburst.level.backgroundGeneration=Точка відродження в світі "%1$2s" формується в фоновому режимі
+cloudburst.level.defaultError=Рівень за замовчуванням не завантажено
+cloudburst.level.preparing=Підготовка світу "%1$2s"
+cloudburst.level.unloading=Вивантаження світу "%1$2s"
+cloudburst.level.updating=Знайдено застарілі дані для світу "%1$2s", перетворення формату
+
+cloudburst.server.start=Запуск сервера Minecraft: Bedrock Edition версії %1$2s
+cloudburst.server.networkError=[Network] Інтерфейс %1$2s зупинено через %2$2s
+cloudburst.server.networkStart=Запуск сервера на %1$2s:%2$2s
+cloudburst.server.info=Сервер працює на %1$2s версії %2$2s "%3$2s" (API %4$2s)
+cloudburst.server.info.extended=Сервер працює на %1$2s %2$2s, версія API %3$2s для Minecraft: Bedrock Edition %4$2s (версія протоколу %5$2s)
+cloudburst.server.license=%1$2s розповсюджується під ліцензією GPL
+cloudburst.server.tickOverload=Не вдається зберегти! Сервер перенавантажено?
+cloudburst.server.startFinished=Готово (%1$2ss)! Для довідки, введіть "help" або "?"
+cloudburst.server.defaultGameMode=Режим гри за замовчуванням: %1$2s
+cloudburst.server.query.start=Запуск слухача статусу GS4
+cloudburst.server.query.info=Встановлення %1$2s як порт query
+cloudburst.server.query.running=Query працює на %1$2s:%2$2s
+cloudburst.server.rcon.emptyPasswordError=Не вдалося запустити RCON: не вказано пароль
+cloudburst.server.rcon.startupError=Не вдалося запустити RCON: %1$2s
+cloudburst.server.rcon.running=RCON запущено на %1$2s:%2$2s
+
+cloudburst.command.alias.illegal=Не вдалося зареєструвати alias %1$2s, бо він містить неприпустимі символи
+cloudburst.command.alias.notFound=Не вдалося зареєструвати alias %1$2s, бо він містить неіснуючі команди: %2$2s
+cloudburst.command.exception=Необроблений вийняток під час виконання команди '%1$2s' в %2$2s: %3$2s
+
+cloudburst.command.version.description=Отримує версію сервера, включно з плагінами, що використовуються
+cloudburst.command.version.usage=/version [назва плагіну]
+cloudburst.command.version.server=Сервер працює на %1$2s версії %2$2s (MC: %3$2s) (версія API %4$2s)
+cloudburst.command.version.plugin=%1$2s під керуванням версії %1$2s
+cloudburst.command.version.noSuchPlugin=На сервері немає плагіна з такою назвою. Використовуйте /plugins, щоб отримати список плагінів.
+
+cloudburst.command.plugins.description=Отримує список плагінів на сервері
+cloudburst.command.plugins.success=Плагіни (%1$2s): %2$2s
+cloudburst.command.plugins.usage=/plugins
+
+cloudburst.command.status.description=Виводить інформацію про продуктивність сервера.
+cloudburst.command.status.usage=/status
+
+cloudburst.command.timings.description=Записує таймінги, щоб побачити продуктивність сервера.
+cloudburst.command.timings.usage=/timings <reset|report/paste|on|off|verbon|verboff>
+cloudburst.command.timings.enable=Таймінги увімкнено та скинуто
+cloudburst.command.timings.disable=Таймінги вимкнено
+cloudburst.command.timings.timingsDisabled=Увімкніть таймінги командою /timings
+cloudburst.command.timings.verboseEnable=Увімкнено детальні таймінги
+cloudburst.command.timings.verboseDisable=Детальні таймінги вимкнено
+cloudburst.command.timings.reset=Скидання таймінгів
+cloudburst.command.timings.rcon=Увага: Створення звіту таймінгів через RCON спричинить зависання, використовуйте /timings report в грі або в консолі
+cloudburst.command.timings.uploadStart=Підготовка звіту таймінгів...
+cloudburst.command.timings.uploadError=Помилка завантаження: %1$2s: %2$2s, перегляньте журнали, щоб отримати додаткову інформацію
+cloudburst.command.timings.reportError=Сталася помилка під час вставлення звіту, перегляньте журнали, щоб отримати додаткову інформацію
+cloudburst.command.timings.timingsLocation=Переглянути звіт таймінгів: %1$2s
+cloudburst.command.timings.timingsResponse=Відповідь таймінгів: %1$2s
+cloudburst.command.timings.timingsWrite=Таймінги записано до %1$2s
+
+cloudburst.crash.create=Сталася критична помилка, і сервер вийшов з ладу. Створення аварійного дампу
+cloudburst.crash.error=Не вдалося створити аварійний дамп: %1$2s
+cloudburst.crash.submit=Будь ласка, завантажте файл "%1$2s" до Crash Archive та надішліть посилання на сторінку Bug Reporting. Надайде якомога більше інформації.
+cloudburst.crash.archive=Аварійний дамп автоматично надіслано до Crash Archive. Ви можете переглянути його на %1$2s або використовувати ID #%2$2s.
+
+cloudburst.debug.enable=Увімкнено підтримку LevelDB
+
+cloudburst.bugreport.create=Виявлено помилку, створення звіту.
+cloudburst.bugreport.error=Не вдалося створити звіт про помилку: %1$2s
+cloudburst.bugreport.archive=Звіт про помилку створено: %1$2s
+
+cloudburst.player.invalidMove=%1$2s дивно перемістився!
+cloudburst.player.logIn=%1$2s[/%2$2s:%3$2s] увійшов з entity id %4$2s на (%5$2s, %6$2s, %7$2s, %8$2s)
+cloudburst.player.logOut=%1$2s[/%2$2s:%3$2s] вийшов. Причина: %4$2s
+cloudburst.player.invalidEntity=%1$2s намагався напасти на неправильну сутність
+
+cloudburst.plugin.load=Завантаження %1$2s
+cloudburst.plugin.restrictedName=Обмежена назва
+cloudburst.plugin.incompatibleAPI=Несумісна версія API
+cloudburst.plugin.unknownDependency=Невідома залежність
+cloudburst.plugin.circularDependency=Виявлено циклічну залежність
+cloudburst.plugin.genericLoadError=Не вдалося завантажити плагін "%1$2s'
+cloudburst.plugin.spacesDiscouraged=Плагін "%1$2s" використовує пробіли в назві, що не варто робити
+cloudburst.plugin.loadError=Не вдалося завантажити плагін '%1$2s': %2$2s
+cloudburst.plugin.duplicateError=Не вдалося завантажити плагін '%1$2s': плагін існує
+cloudburst.plugin.fileError=Не вдалося завантажити '%1$2s' у папці '%2$2s': %3$2s
+cloudburst.plugin.commandError=Не вдалося завантажити команду %1$2s для плагіна %2$2s
+cloudburst.plugin.aliasError=Не вдалося завантажити alias %1$2s для плагіна %2$2s
+cloudburst.plugin.deprecatedEvent=Плагін '%1$2s' зареєстрував слухача для '%2$2s' в методі '%3$2s', але подія застаріла.
+cloudburst.plugin.eventError=Не вдалося передати подію «%1$2s» в «%2$2s»: %3$2s на %4$2s
+
+cloudburst.resources.invalid-path=Шлях до пакету ресурсів '%1$2s' існує і не є папкою
+cloudburst.resources.unknown-format=Не вдалося завантажити '%1$2s' через невідомий формат
+cloudburst.resources.fail=Не вдалося завантажити '%1$2s': %2$2s
+cloudburst.resources.success=Пакет ресурсів %1$2s успішно завантажено
+cloudburst.resources.zip.not-found=Файл '%1$2s' не знайдено
+cloudburst.resources.zip.no-manifest='manifest.json' не знайдено
+cloudburst.resources.zip.invalid-manifest='manifest.json' невірний або незавершений
+

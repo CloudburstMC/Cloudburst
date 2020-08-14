@@ -35,13 +35,13 @@ public class BugReportGenerator extends Thread {
     public void run() {
         LocaleManager localeManager = Server.getInstance().getLanguage();
         try {
-            log.info("[BugReport] " + localeManager.translate("nukkit.bugreport.create"));
+            log.info("[BugReport] " + localeManager.translate("cloudburst.bugreport.create"));
             String path = generate();
-            log.info("[BugReport] " + localeManager.translate("nukkit.bugreport.archive", path));
+            log.info("[BugReport] " + localeManager.translate("cloudburst.bugreport.archive", path));
         } catch (Exception e) {
             StringWriter stringWriter = new StringWriter();
             e.printStackTrace(new PrintWriter(stringWriter));
-            log.info("[BugReport] " + localeManager.translate("nukkit.bugreport.error", stringWriter.toString()));
+            log.info("[BugReport] " + localeManager.translate("cloudburst.bugreport.error", stringWriter.toString()));
         }
     }
 
@@ -75,7 +75,7 @@ public class BugReportGenerator extends Thread {
         StackTraceElement[] stackTrace = throwable.getStackTrace();
         boolean pluginError = false;
         if (stackTrace.length > 0) {
-            pluginError = !throwable.getStackTrace()[0].getClassName().startsWith("cn.nukkit");
+            pluginError = !throwable.getStackTrace()[0].getClassName().startsWith("cn.cloudburst");
         }
 
 

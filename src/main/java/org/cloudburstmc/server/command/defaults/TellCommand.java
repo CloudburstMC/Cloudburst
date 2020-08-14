@@ -23,7 +23,7 @@ public class TellCommand extends Command {
                 .setDescription("commands.tell.description")
                 .setUsageMessage("/tell <player> <message>")
                 .setAliases("w", "msg")
-                .setPermissions("nukkit.command.tell")
+                .setPermissions("cloudburst.command.tell")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false),
                         new CommandParameter("message")

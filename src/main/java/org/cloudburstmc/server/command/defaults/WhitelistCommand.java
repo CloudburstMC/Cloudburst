@@ -21,12 +21,12 @@ public class WhitelistCommand extends Command {
         super("whitelist", CommandData.builder("whitelist")
                 .setDescription("commands.whitelist.description")
                 .setUsageMessage("/whitelist <on|off|reload|list>\n/whitelist <add|remove> <player>")
-                .setPermissions("nukkit.command.whitelist.reload",
-                        "nukkit.command.whitelist.enable",
-                        "nukkit.command.whitelist.disable",
-                        "nukkit.command.whitelist.list",
-                        "nukkit.command.whitelist.add",
-                        "nukkit.command.whitelist.remove")
+                .setPermissions("cloudburst.command.whitelist.reload",
+                        "cloudburst.command.whitelist.enable",
+                        "cloudburst.command.whitelist.disable",
+                        "cloudburst.command.whitelist.list",
+                        "cloudburst.command.whitelist.add",
+                        "cloudburst.command.whitelist.remove")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("on|off|list|reload", CommandParamType.STRING, false)
                 }, new CommandParameter[]{
@@ -104,7 +104,7 @@ public class WhitelistCommand extends Command {
     }
 
     private boolean badPerm(CommandSender sender, String perm) {
-        if (!sender.hasPermission("nukkit.command.whitelist" + perm)) {
+        if (!sender.hasPermission("cloudburst.command.whitelist" + perm)) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
 
             return true;

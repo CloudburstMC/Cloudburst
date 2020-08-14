@@ -246,7 +246,7 @@ public class Level implements ChunkManager, Metadatable {
 //        this.timings = new LevelTimings(this);
 //
 //        if (fullConvert) {
-//            this.server.getLogger().info(this.server.getLanguage().translate("nukkit.level.updating",
+//            this.server.getLogger().info(this.server.getLanguage().translate("cloudburst.level.updating",
 //                    TextFormat.GREEN + this.chunkProvider.getName() + TextFormat.WHITE));
 //            LevelChunkProvider old = this.chunkProvider;
 //            try {
@@ -260,7 +260,7 @@ public class Level implements ChunkManager, Metadatable {
 //            }
 //        }
 
-        log.info(this.server.getLanguage().translate("nukkit.level.preparing",
+        log.info(this.server.getLanguage().translate("cloudburst.level.preparing",
                 TextFormat.GREEN + getId() + TextFormat.WHITE));
 
         this.generator = GeneratorRegistry.get().getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
@@ -489,7 +489,7 @@ public class Level implements ChunkManager, Metadatable {
             return false;
         }
 
-        log.info(this.server.getLanguage().translate("nukkit.level.unloading",
+        log.info(this.server.getLanguage().translate("cloudburst.level.unloading",
                 TextFormat.GREEN + this.getName() + TextFormat.WHITE));
         Level defaultLevel = this.server.getDefaultLevel();
 

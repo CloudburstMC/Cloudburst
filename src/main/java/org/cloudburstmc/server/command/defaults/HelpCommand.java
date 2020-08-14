@@ -23,7 +23,7 @@ public class HelpCommand extends Command {
                 .setDescription("commands.help.description")
                 .setUsageMessage("/help [command|page]")
                 .addAlias("?")
-                .setPermissions("nukkit.command.help")
+                .setPermissions("cloudburst.command.help")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("page", CommandParamType.INT, true)
                 }, new CommandParameter[]{

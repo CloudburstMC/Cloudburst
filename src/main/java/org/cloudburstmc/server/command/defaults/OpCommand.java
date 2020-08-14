@@ -24,7 +24,7 @@ public class OpCommand extends Command {
         super("op", CommandData.builder("op")
                 .setDescription("commands.op.description")
                 .setUsageMessage("/op <player>")
-                .setPermissions("nukkit.command.op.give")
+                .setPermissions("cloudburst.command.op.give")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false)
                 })

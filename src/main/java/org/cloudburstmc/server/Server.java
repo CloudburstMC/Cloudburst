@@ -89,8 +89,8 @@ import java.util.stream.Collectors;
 @Log4j2
 public class Server {
 
-    public static final String BROADCAST_CHANNEL_ADMINISTRATIVE = "nukkit.broadcast.admin";
-    public static final String BROADCAST_CHANNEL_USERS = "nukkit.broadcast.user";
+    public static final String BROADCAST_CHANNEL_ADMINISTRATIVE = "cloudburst.broadcast.admin";
+    public static final String BROADCAST_CHANNEL_USERS = "cloudburst.broadcast.user";
 
     private static Server instance = null;
 
@@ -180,8 +180,8 @@ public class Server {
     private QueryRegenerateEvent queryRegenerateEvent;
     private Config config;
 
-    private final LocaleManager localeManager = LocaleManager.from("locale/nukkit/languages.json",
-            "locale/nukkit/texts", "locale/vanilla");
+    private final LocaleManager localeManager = LocaleManager.from("locale/cloudburst/languages.json",
+            "locale/cloudburst/texts", "locale/vanilla");
     private final GameRuleRegistry gameRuleRegistry = GameRuleRegistry.get();
     private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
     private final StorageRegistry storageRegistry = StorageRegistry.get();
@@ -343,8 +343,8 @@ public class Server {
             } while (!localeManager.setLocale(locale));
 
             // Generate config with specified locale
-            LocaleManager configLocaleManager = LocaleManager.from("locale/nukkit/languages.json",
-                    "locale/nukkit/configs");
+            LocaleManager configLocaleManager = LocaleManager.from("locale/cloudburst/languages.json",
+                    "locale/cloudburst/configs");
             configLocaleManager.setLocale(locale);
 
             File configFile = new File(this.dataPath + "nukkit.yml");
@@ -417,7 +417,7 @@ public class Server {
         this.localeManager.setLocaleOrFallback(this.getConfig("settings.language"));
         Locale locale = this.getLanguage().getLocale();
         log.info(this.getLanguage().translate("language.selected", locale.getDisplayCountry(locale), locale));
-        log.info(this.getLanguage().translate("nukkit.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.RESET));
+        log.info(this.getLanguage().translate("cloudburst.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.RESET));
 
         Object poolSize = this.getConfig("settings.async-workers", (Object) (-1));
         if (!(poolSize instanceof Integer)) {
@@ -429,7 +429,7 @@ public class Server {
         }
         int parallelism = (int) poolSize;
         System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", String.valueOf(parallelism));
-        System.setProperty("java.util.concurrent.ForkJoinPool.common.exceptionHandler", "cn.nukkit.scheduler.ServerScheduler.ExceptionHandler");
+        System.setProperty("java.util.concurrent.ForkJoinPool.common.exceptionHandler", "cn.cloudburst.scheduler.ServerScheduler.ExceptionHandler");
         log.debug("Async pool parallelism: {}", parallelism == -1 ? "auto" : parallelism);
 
         this.scheduler = new ServerScheduler();
@@ -467,8 +467,8 @@ public class Server {
             ExceptionHandler.registerExceptionHandler();
         }
 
-        log.info(this.getLanguage().translate("nukkit.server.info", this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + TextFormat.WHITE, TextFormat.AQUA + "" + TextFormat.WHITE, this.getApiVersion()));
-        log.info(this.getLanguage().translate("nukkit.server.license", this.getName()));
+        log.info(this.getLanguage().translate("cloudburst.server.info", this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + TextFormat.WHITE, TextFormat.AQUA + "" + TextFormat.WHITE, this.getApiVersion()));
+        log.info(this.getLanguage().translate("cloudburst.server.license", this.getName()));
 
         this.consoleSender = new ConsoleCommandSender();
         // this.commandMap = new SimpleCommandMap(this);
@@ -536,7 +536,7 @@ public class Server {
         this.saveProperties();
 
         if (this.getDefaultLevel() == null) {
-            log.fatal(this.getLanguage().translate("nukkit.level.defaultError"));
+            log.fatal(this.getLanguage().translate("cloudburst.level.defaultError"));
             this.forceShutdown();
 
             return;
@@ -550,7 +550,7 @@ public class Server {
 
         this.enablePlugins(PluginLoadOrder.POSTWORLD);
 
-        log.info(this.getLanguage().translate("nukkit.server.networkStart", this.getIp().equals("") ? "*" : this.getIp(), this.getPort()));
+        log.info(this.getLanguage().translate("cloudburst.server.networkStart", this.getIp().equals("") ? "*" : this.getIp(), this.getPort()));
         this.serverID = UUID.randomUUID();
 
         this.network = new Network(this);
@@ -716,9 +716,9 @@ public class Server {
         //todo send usage setting
         this.tickCounter = 0;
 
-        log.info(this.getLanguage().translate("nukkit.server.defaultGameMode", this.getGamemode().getTranslation()));
+        log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", this.getGamemode().getTranslation()));
 
-        log.info(this.getLanguage().translate("nukkit.server.startFinished", (System.currentTimeMillis() - Nukkit.START_TIME) / 1000d));
+        log.info(this.getLanguage().translate("cloudburst.server.startFinished", (System.currentTimeMillis() - Nukkit.START_TIME) / 1000d));
 
         this.tickProcessor();
         this.forceShutdown();
@@ -1321,7 +1321,7 @@ public class Server {
                 }
             }
         } catch (IOException e) {
-            log.warn(this.getLanguage().translate("nukkit.data.playerCorrupted", name));
+            log.warn(this.getLanguage().translate("cloudburst.data.playerCorrupted", name));
             log.throwing(e);
         } finally {
             if (dataStream.isPresent()) {
@@ -1334,7 +1334,7 @@ public class Server {
         }
         NbtMap nbt = null;
         if (create) {
-            log.info(this.getLanguage().translate("nukkit.data.playerNotFound", name));
+            log.info(this.getLanguage().translate("cloudburst.data.playerNotFound", name));
             Location spawn = this.getDefaultLevel().getSafeSpawn();
             nbt = NbtMap.builder()
                     .putLong("firstPlayed", System.currentTimeMillis() / 1000)
@@ -1407,7 +1407,7 @@ public class Server {
              NBTOutputStream stream = NbtUtils.createGZIPWriter(dataStream)) {
             stream.writeTag(tag);
         } catch (Exception e) {
-            log.error(this.getLanguage().translate("nukkit.data.saveError", name, e));
+            log.error(this.getLanguage().translate("cloudburst.data.saveError", name, e));
         }
     }
 
@@ -1805,7 +1805,7 @@ public class Server {
     private void loadLevels() {
         Map<String, Object> worldNames = this.getConfig("worlds", Collections.emptyMap());
         if (worldNames.isEmpty()) {
-            throw new IllegalStateException("No worlds configured! Add a world to nukkit.yml and try again!");
+            throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }
         List<CompletableFuture<Level>> levelFutures = new ArrayList<>(worldNames.size());
 

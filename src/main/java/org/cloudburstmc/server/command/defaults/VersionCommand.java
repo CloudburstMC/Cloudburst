@@ -20,9 +20,9 @@ public class VersionCommand extends Command {
 
     public VersionCommand() {
         super("version", CommandData.builder("version")
-                .setDescription("%nukkit.command.version.description")
+                .setDescription("%cloudburst.command.version.description")
                 .setAliases("ver", "about")
-                .setPermissions("nukkit.command.version")
+                .setPermissions("cloudburst.command.version")
                 .build());
     }
 
@@ -32,7 +32,7 @@ public class VersionCommand extends Command {
             return true;
         }
         if (args.length == 0) {
-            sender.sendMessage(new TranslationContainer("nukkit.server.info.extended", sender.getServer().getName(),
+            sender.sendMessage(new TranslationContainer("cloudburst.server.info.extended", sender.getServer().getName(),
                     sender.getServer().getNukkitVersion(),
                     sender.getServer().getApiVersion(),
                     sender.getServer().getVersion(),
@@ -74,7 +74,7 @@ public class VersionCommand extends Command {
                     sender.sendMessage("Authors: " + authorsString[0]);
                 }
             } else {
-                sender.sendMessage(new TranslationContainer("nukkit.command.version.noSuchPlugin"));
+                sender.sendMessage(new TranslationContainer("cloudburst.command.version.noSuchPlugin"));
             }
         }
         return true;

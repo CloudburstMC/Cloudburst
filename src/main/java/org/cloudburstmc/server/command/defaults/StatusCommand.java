@@ -24,8 +24,8 @@ public class StatusCommand extends Command {
 
     public StatusCommand() {
         super("status", CommandData.builder("status")
-                .setDescription("nukkit.command.status.description")
-                .setPermissions("nukkit.command.status")
+                .setDescription("cloudburst.command.status.description")
+                .setPermissions("cloudburst.command.status")
                 .build());
     }
 

@@ -1,0 +1,112 @@
+#X-Generator: crowdin.com
+# Localizations for Cloudburst
+#
+# These are custom localizations that need to be converted before being sent or used in the console.
+#
+
+cloudburst.language.selected=選擇 %1$2s 作為預設區域設置。
+
+cloudburst.data.playerNotFound=找不到 "%1$2s" 的玩家資料，正在建立新的設定檔
+cloudburst.data.playerCorrupted=玩家 "%1$2s" 的資料已損壞, 創建新的設定檔
+cloudburst.data.playerOld=找到舊的玩家資料 "%1$2s"，正在升級設定檔
+cloudburst.data.saveError=無法保存玩家 "%1$2s"：%2$2s
+
+cloudburst.level.notFound=找不到世界 "%1$2s"
+cloudburst.level.loadError=無法載入世界 "%1$2s"：%2$2s
+cloudburst.level.generationError=無法生成世界 "%1$2s"：%2$2s
+cloudburst.level.tickError=計算地圖 "%1$2s" 時出現錯誤︰%2$2s
+cloudburst.level.chunkUnloadError=卸載區塊出錯：%1$2s
+cloudburst.level.backgroundGeneration=正在於背景生成世界 "%1$2s" 的地形
+cloudburst.level.defaultError=尚未載入預設級別
+cloudburst.level.preparing=準備地圖 "%1$2s" 中
+cloudburst.level.unloading=正在移除地圖 "%1$2s"
+cloudburst.level.updating=發現舊的地圖 "%1$2s"，正在轉換格式
+
+cloudburst.server.start=正在啟動支援 Minecraft: BE %1$2s 版本的伺服器
+cloudburst.server.networkError=[網路] 停止介面 %1$2s 由於 %2$2s
+cloudburst.server.networkStart=正在啟動伺服器在 %1$2s:%2$2s
+cloudburst.server.info=This server is running %1$2s version %2$2s "%3$2s" (API %4$2s)
+cloudburst.server.info.extended=This server is running %1$2s %2$2s implementing API version %3$2s for Minecraft: Bedrock Edition %4$2s (protocol version %5$2s)
+cloudburst.server.license=%1$2s 根據 GPL 許可發行
+cloudburst.server.tickOverload=跟不上！伺服器是否超載？
+cloudburst.server.startFinished=讀取完成 (%1$2ss)！如需幫助，請輸入 "help" 或 "?"
+cloudburst.server.defaultGameMode=預設的遊戲類型：%1$2s
+cloudburst.server.query.start=啟動 GS4 狀態監聽器
+cloudburst.server.query.info=設定 query 介面到 %1$2s
+cloudburst.server.query.running=Query 運作在 %1$2s:%2$2s
+cloudburst.server.rcon.emptyPasswordError=無法啟動 RCON：密碼為空
+cloudburst.server.rcon.startupError=無法啟動 RCON：%1$2s
+cloudburst.server.rcon.running=RCON 正在運行於 %1$2s:%2$2s
+
+cloudburst.command.alias.illegal=Could not register alias %1$2s because it contains illegal characters
+cloudburst.command.alias.notFound=Could not register alias %1$2s because it contains commands that do not exist: %2$2s
+cloudburst.command.exception=Unhandled exception executing command '%1$2s' in %2$2s: %3$2s
+
+cloudburst.command.version.description=Gets the version of this server including any plugins in use
+cloudburst.command.version.usage=/version [插件名稱]
+cloudburst.command.version.server=This server is running %1$2s version %2$2s (MC: %3$2s) (Implementing API version %4$2s)
+cloudburst.command.version.plugin=%1$2s running version %1$2s
+cloudburst.command.version.noSuchPlugin=This server is not running any plugin by that name. Use /plugins to get a list of plugins.
+
+cloudburst.command.plugins.description=Gets a list of plugins running on the server
+cloudburst.command.plugins.success=插件 (%1$2s)：%2$2s
+cloudburst.command.plugins.usage=/plugins
+
+cloudburst.command.status.description=Reads back the server's performance.
+cloudburst.command.status.usage=/status
+
+cloudburst.command.timings.description=Records timings to see performance of the server.
+cloudburst.command.timings.usage=/timings <reset|report/paste|on|off|verbon|verboff>
+cloudburst.command.timings.enable=啟用計時並重置
+cloudburst.command.timings.disable=禁用的計時
+cloudburst.command.timings.timingsDisabled=請通過在上鍵入計時來啟用計時
+cloudburst.command.timings.verboseEnable=啟用詳細計時
+cloudburst.command.timings.verboseDisable=禁用的詳細計時
+cloudburst.command.timings.reset=Timings reset
+cloudburst.command.timings.rcon=Warning: Timings report done over RCON will cause lag spikes, you should use /timings report in game or console
+cloudburst.command.timings.uploadStart=Preparing timings report...
+cloudburst.command.timings.uploadError=Upload Error: %1$2s: %2$2s, check logs for more information
+cloudburst.command.timings.reportError=An error happened while pasting the report, check logs for more information
+cloudburst.command.timings.timingsLocation=View timings report: %1$2s
+cloudburst.command.timings.timingsResponse=Timings response: %1$2s
+cloudburst.command.timings.timingsWrite=Timings written to %1$2s
+
+cloudburst.crash.create=發生了不可恢復的錯誤，伺服器崩潰。創建崩潰轉儲
+cloudburst.crash.error=無法創建崩潰轉儲：%1$2s
+cloudburst.crash.submit=Please upload the "%1$2s" file to the Crash Archive and submit the link to the Bug Reporting page. Give as much info as you can.
+cloudburst.crash.archive=The crash dump has been automatically submitted to the Crash Archive. You can view it on %1$2s or use the ID #%2$2s.
+
+cloudburst.debug.enable=啟用 LevelDB 支援
+
+cloudburst.bugreport.create=An error has been detected, creating a bug report.
+cloudburst.bugreport.error=Could not create bug report: %1$2s
+cloudburst.bugreport.archive=A bug report has been created: %1$2s
+
+cloudburst.player.invalidMove=%1$2s 行動可疑！
+cloudburst.player.logIn=%1$2s[/%2$2s:%3$2s] logged in with entity id %4$2s at (%5$2s, %6$2s, %7$2s, %8$2s)
+cloudburst.player.logOut=%1$2s[/%2$2s:%3$2s] logged out due to %4$2s
+cloudburst.player.invalidEntity=%1$2s tried to attack an invalid entity
+
+cloudburst.plugin.load=讀取 %1$2s 中
+cloudburst.plugin.restrictedName=限制的名稱
+cloudburst.plugin.incompatibleAPI=不相容的 API 版本
+cloudburst.plugin.unknownDependency=本插件無法單獨使用
+cloudburst.plugin.circularDependency=檢測到迴圈依賴關係
+cloudburst.plugin.genericLoadError=Could not load plugin '%1$2s'
+cloudburst.plugin.spacesDiscouraged=Plugin '%1$2s' uses spaces in its name, this is discouraged
+cloudburst.plugin.loadError=Could not load plugin '%1$2s': %2$2s
+cloudburst.plugin.duplicateError=Could not load plugin '%1$2s': plugin exists
+cloudburst.plugin.fileError=Could not load '%1$2s' in folder '%2$2s': %3$2s
+cloudburst.plugin.commandError=Could not load command %1$2s for plugin %2$2s
+cloudburst.plugin.aliasError=Could not load alias %1$2s for plugin %2$2s
+cloudburst.plugin.deprecatedEvent=Plugin '%1$2s' has registered a listener for '%2$2s' on method '%3$2s', but the event is Deprecated.
+cloudburst.plugin.eventError=Could not pass event '%1$2s' to '%2$2s': %3$2s on %4$2s
+
+cloudburst.resources.invalid-path=Resource packs path '%1$2s' exists and is not a directory
+cloudburst.resources.unknown-format=Could not load '%1$2s' due to format not recognized
+cloudburst.resources.fail=Could not load '%1$2s': %2$2s
+cloudburst.resources.success=成功加載%1$2s資源包！
+cloudburst.resources.zip.not-found=文件'%1$2s'無法被找到
+cloudburst.resources.zip.no-manifest='manifest.json' 找不到
+cloudburst.resources.zip.invalid-manifest='manifest.json'無效或不完整
+

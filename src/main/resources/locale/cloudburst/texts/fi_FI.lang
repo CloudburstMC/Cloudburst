@@ -1,0 +1,112 @@
+#X-Generator: crowdin.com
+# Localizations for Cloudburst
+#
+# These are custom localizations that need to be converted before being sent or used in the console.
+#
+
+cloudburst.language.selected=Valittiin %1$2s oletuskieleksi.
+
+cloudburst.data.playerNotFound=Pelaajan ”%1$2s” tietoja ei löytynyt, luodaan uusi profiili
+cloudburst.data.playerCorrupted=Pelaajan ”%1$2s” tiedot ovat korruptoituneet, luodaan uusi profiili
+cloudburst.data.playerOld=Vanhat pelaajatiedot löytyi pelaajalle "%1$2s", päivitetään profiilia
+cloudburst.data.saveError=Ei voida tallentaa pelaajaa "%1$2s": %2$2s
+
+cloudburst.level.notFound=Tasoa "%1$2s" ei löydy
+cloudburst.level.loadError=Ei voida ladata tasoa '%1$2s': %2$2s
+cloudburst.level.generationError=Ei voida luoda tasoa '%1$2s': %2$2s
+cloudburst.level.tickError=Ei voida prosessoida tasoa '%1$2s': %2$2s
+cloudburst.level.chunkUnloadError=Virhe vapauttaessa lohkoa: %1$2s
+cloudburst.level.backgroundGeneration=Syntypaikan maastoa tasolle ”%1$2s” luodaan taustalla
+cloudburst.level.defaultError=Oletustasoa ei ole ladattu
+cloudburst.level.preparing=Valmistellaan tasoa "%1$2s"
+cloudburst.level.unloading=Suljetaan tasoa "%1$2s"
+cloudburst.level.updating=Tasolle "%1$2s" löytyi vanhentuneet tiedot, muunnetaan formaattia
+
+cloudburst.server.start=Käynnistetään Minecraft Bedrock Edition Palvelinta. Versio: %1$2s
+cloudburst.server.networkError=[Network] Pysäytettiin liittymä %1$2s: %2$2s
+cloudburst.server.networkStart=Avataan palvelin osoitteessa %1$2s:%2$2s
+cloudburst.server.info=Tämä pälvelin käyttää %1$2s versiota %2$2s "%3$2s" (API %4$2s)
+cloudburst.server.info.extended=Tämä palvelin käyttää %1$2s%2$2s API versiolla %3$2s Minecraft: Bedrock Edition versiolle %4$2s (protokolla versio %5$2s)
+cloudburst.server.license=%1$2s jaetaan GPL-lisenssin alaisena
+cloudburst.server.tickOverload=Ei pysy pystyssä! Onko palvelin ylikuormitettu?
+cloudburst.server.startFinished=Valmis (%1$2ss)! Kirjoita "help" tai "?" saadaksesi apua
+cloudburst.server.defaultGameMode=Oletuspelitila: %1$2s
+cloudburst.server.query.start=Käynnistetään GS4 tilan tarkkailija
+cloudburst.server.query.info=Asetetaan tiedustelun portiksi %1$2s
+cloudburst.server.query.running=Tiedustelu on käynnissä osoitteessa %1$2s:%2$2s
+cloudburst.server.rcon.emptyPasswordError=RCON käynnistäminen epäonnistui: salasana on tyhjä
+cloudburst.server.rcon.startupError=RCON käynnistäminen epäonnistui: %1$2s
+cloudburst.server.rcon.running=RCON on käynnissä osoitteessa %1$2s:%2$2s
+
+cloudburst.command.alias.illegal=Aliasta %1$2s ei voida rekisteröidä koska se sisältää laittomia merkkejä
+cloudburst.command.alias.notFound=Aliasta %1$2s ei voida rekisteröidä koska se sisältää komentoja joita ei ole olemassa: %2$2s
+cloudburst.command.exception=Käsittelemätön virhe suorittaessa komentoa '%1$2s' paikassa %2$2s: %3$2s
+
+cloudburst.command.version.description=Hanki palvelimen versio sisältäen kaikki käytössä olevat lisäosat
+cloudburst.command.version.usage=/version [lisäosan nimi]
+cloudburst.command.version.server=Tämä palvelin käyttää %1$2s versiota %2$2s (MC: %3$2s) (API-versio %4$2s)
+cloudburst.command.version.plugin=%1$2s versio %1$2s
+cloudburst.command.version.noSuchPlugin=Tämän nimistä lisäosaa ei löytynyt. Käytä /plugins komentoa saadaksesi listan lisäosista.
+
+cloudburst.command.plugins.description=Hanki lista käytössä olevista lisäosista
+cloudburst.command.plugins.success=Lisäosat (%1$2s): %2$2s
+cloudburst.command.plugins.usage=/lisäosat
+
+cloudburst.command.status.description=Tietoa palvelimen suorituskyvystä
+cloudburst.command.status.usage=/status
+
+cloudburst.command.timings.description=Tallentaa ajoitukset saadaksesi tietoa palvelimen suorituskyvystä
+cloudburst.command.timings.usage=/timings <reset|report/paste|on|off|verbon|verboff>
+cloudburst.command.timings.enable=Otettiin ajoitukset käyttöön ja nollattiin
+cloudburst.command.timings.disable=Ajoitukset poistettiin käytöstä
+cloudburst.command.timings.timingsDisabled=Ota ajoitukset käyttöön /timings on komennolla
+cloudburst.command.timings.verboseEnable=Otettiin ajoitusten monisanaisuus käyttöön
+cloudburst.command.timings.verboseDisable=Poistettiin ajoitusten monisanaisuus käytöstä
+cloudburst.command.timings.reset=Ajoitukset nollattu
+cloudburst.command.timings.rcon=Varoitus: Ajoitusten raportin tekeminen RCON:in yli aiheuttaa viivepiikkejä, käytä mielummin /timings report komentoa pelissä tai konsolissa
+cloudburst.command.timings.uploadStart=Valmistellaan ajoitusraporttia...
+cloudburst.command.timings.uploadError=Lähetysvirhe: %1$2s: %2$2s, katso lisätietoja lokista
+cloudburst.command.timings.reportError=Virhe liittäessä raporttia, katso lisätietoja lokista
+cloudburst.command.timings.timingsLocation=Katso ajoitusten raportti: %1$2s
+cloudburst.command.timings.timingsResponse=Ajoitusten vastaus: %1$2s
+cloudburst.command.timings.timingsWrite=Ajoitukset tallennettiin paikkaan %1$2s
+
+cloudburst.crash.create=Peruuttamaton virhe on tapahtunut ja palvelin on kaatunut. Luodaan kaatumisvedosta
+cloudburst.crash.error=Kaatumisvedoksen luonti epäonnistui: %1$2s
+cloudburst.crash.submit=Lähetä tiedosto "%1$2s" Crash Archiveen ja lähetä linkki Bug Reporting-sivulle. Anna niin paljon tietoa kuin mahdollista.
+cloudburst.crash.archive=Kaatumisvedos on automaattisesti lähetetty Crash Archiveen. Voit tarkastella sitä osoitteessa %1$2s tai käyttää tunnusta #%2$2s.
+
+cloudburst.debug.enable=LevelDB tuki aktivoitu
+
+cloudburst.bugreport.create=Virhe on havaittu, luodaan virheraporttia.
+cloudburst.bugreport.error=Virheraportin luonti epäonnistui: %1$2s
+cloudburst.bugreport.archive=Virheraportti on luotu: %1$2s
+
+cloudburst.player.invalidMove=%1$2s liikkui virheellisesti!
+cloudburst.player.logIn=%1$2s[/%2$2s:%3$2s] kirjautui sisään olennon tunnuksella %4$2s paikassa (%5$2s, %6$2s, %7$2s, %8$2s)
+cloudburst.player.logOut=%1$2s[/%2$2s:%3$2s] kirjautui ulos: %4$2s
+cloudburst.player.invalidEntity=%1$2s yritti vahingoittaa virheellistä olentoa
+
+cloudburst.plugin.load=Ladataan %1$2s
+cloudburst.plugin.restrictedName=Rajoitettu nimi
+cloudburst.plugin.incompatibleAPI=Yhteensopimaton API versio
+cloudburst.plugin.unknownDependency=Tuntematon riippuvuus
+cloudburst.plugin.circularDependency=Tuntematon riippuvuus havaittu
+cloudburst.plugin.genericLoadError=Ei voida ladata lisäosaa '%1$2s'
+cloudburst.plugin.spacesDiscouraged=Lisäosan '%1$2s' nimi sisältää välilyönnin, tätä ei suositella
+cloudburst.plugin.loadError=Ei voida ladata lisäosaa '%1$2s': %2$2s
+cloudburst.plugin.duplicateError=Ei voida ladata lisäosaa '%1$2s': samanniminen lisäosa on jo ladattu
+cloudburst.plugin.fileError=%1$2s lataaminen kansiosta %2$2s epäonnistui: %3$2s
+cloudburst.plugin.commandError=Ei voitu ladata komentoa %1$2s lisäosalle %2$2s
+cloudburst.plugin.aliasError=Ei voitu ladata aliasta %1$2s lisäosalle %2$2s
+cloudburst.plugin.deprecatedEvent=Lisäosa '%1$2s' on rekisteröinyt kuuntelijan '%2$2s' paikassa '%3$2s' mutta tapahtuma on vanhentunut.
+cloudburst.plugin.eventError=Tapahtumaa '%1$2s' ei voida suorittaa lisäosalle '%2$2s': %3$2s paikassa %4$2s
+
+cloudburst.resources.invalid-path=Resurssipakettien polku '%1$2s' on olemassa ja se ei ole hakemisto
+cloudburst.resources.unknown-format=Ei voida ladata '%1$2s' koska formaattia ei tunnistettu
+cloudburst.resources.fail=Ei voida ladata '%1$2s': %2$2s
+cloudburst.resources.success=Ladattiin onnistuneesti %1$2s resurssipakettia
+cloudburst.resources.zip.not-found=Tiedostoa '%1$2s' ei löydy
+cloudburst.resources.zip.no-manifest='manifest.json' ei löytynyt
+cloudburst.resources.zip.invalid-manifest='manifest.json' on virheellinen tai puutteellinen
+

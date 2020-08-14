@@ -23,7 +23,7 @@ public class KickCommand extends Command {
         super("kick", CommandData.builder("kick")
                 .setDescription("commands.kick.description")
                 .setUsageMessage("/kick <player> [reason]")
-                .setPermissions("nukkit.command.kick")
+                .setPermissions("cloudburst.command.kick")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false),
                         new CommandParameter("reason", true)

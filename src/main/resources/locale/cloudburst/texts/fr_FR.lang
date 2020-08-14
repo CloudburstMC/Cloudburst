@@ -1,0 +1,112 @@
+#X-Generator: crowdin.com
+# Localizations for Cloudburst
+#
+# These are custom localizations that need to be converted before being sent or used in the console.
+#
+
+cloudburst.language.selected=%1$2s sélectionné en la locale par défaut.
+
+cloudburst.data.playerNotFound=Les données de Joueur pas trouvé pour "%1$2s", créant un nouveau profil
+cloudburst.data.playerCorrupted=Données corrompues trouvé pour "%1$2s", créant nouveau profil
+cloudburst.data.playerOld=Joueur vieil trouvé pour "%1$2s", profil est mise à niveau
+cloudburst.data.saveError=Impossible d'enregistrer le joueur "%1$2s": %2$2s
+
+cloudburst.level.notFound=Niveau "%1$2s" introuvable
+cloudburst.level.loadError=Impossible de charger le niveau "%1$2s": %2$2s
+cloudburst.level.generationError=Impossible de générer le niveau "%1$2s" : %2$2s
+cloudburst.level.tickError=Impossible de charger le niveau "%1$2s": %2$2s
+cloudburst.level.chunkUnloadError=Erreur lors du déchargement d'un chunk : %1$2s
+cloudburst.level.backgroundGeneration=Le point apparition pour le niveau "%1$2s" est générée en arrière-plan
+cloudburst.level.defaultError=Aucun niveau par défaut n'a été chargé
+cloudburst.level.preparing=Préparation du niveau "%1$2s"
+cloudburst.level.unloading=Déchargement du niveau «%1$2s »
+cloudburst.level.updating=Données de niveau de l'ancien trouvée pour "%1$2s", format de conversion
+
+cloudburst.server.start=Démarrage du serveur Minecraft: Bedrock Edition version %1$2s
+cloudburst.server.networkError=[Network] Interface arrêtée %1$2s due à %2$2s
+cloudburst.server.networkStart=Ouverture du serveur sur %1$2s:%2$2s
+cloudburst.server.info=Ce serveur utilise %1$2s version %2$2s%3$2s (API %4$2s)
+cloudburst.server.info.extended=Ce serveur tourne sur %1$2s%2$2s avec l'implémentation de l'API version %3$2s pour Minecraft: Bedrock Edition %4$2s (version du protocole: %5$2s)
+cloudburst.server.license=%1$2s est distribué sous la licence GPL
+cloudburst.server.tickOverload=Impossible de rester debout ! Le serveur est-il surchargé ?
+cloudburst.server.startFinished=Terminé (%1$2ss)! Pour obtenir de l'aide, tapez "/aide" ou "?"
+cloudburst.server.defaultGameMode=Mode de jeu par défaut : %1$2s
+cloudburst.server.query.start=Démarrage de l'écoute de statut GS4
+cloudburst.server.query.info=Paramétrage du port de requête à %1$2s
+cloudburst.server.query.running=La requête tourne sur %1$2s:%2$2s
+cloudburst.server.rcon.emptyPasswordError=Échec du démarrage de la RCON : le mot de passe est vide
+cloudburst.server.rcon.startupError=Impossible de démarrer RCON : %1$2s
+cloudburst.server.rcon.running=RCON tourne sur %1$2s:%2$2s
+
+cloudburst.command.alias.illegal=Impossible d'enregistrer l'alias %1$2s car il contient des caractères illégaux
+cloudburst.command.alias.notFound=Impossible d'enregistrer l'alias %1$2s car il contient des commandes qui n'existent pas : %2$2s
+cloudburst.command.exception=Commande d'exécution d'exception non gérée '%1$2s' dans %2$2s: %3$2s
+
+cloudburst.command.version.description=Récupère la version de ce serveur incluant tous les plugins en cours d'utilisation
+cloudburst.command.version.usage=/version [nom du plugin]
+cloudburst.command.version.server=Ce serveur utilise %1$2s version %2$2s (MC: %3$2s) (Implémentation de l'API version %4$2s)
+cloudburst.command.version.plugin=%1$2s tourne sur la version %1$2s
+cloudburst.command.version.noSuchPlugin=Ce serveur n'utilise aucun plugin par ce nom. Utilisez /plugins pour obtenir une liste de plugins.
+
+cloudburst.command.plugins.description=Récupère une liste de plugins en cours d'exécution sur le serveur
+cloudburst.command.plugins.success=Plugins (%1$2s): %2$2s
+cloudburst.command.plugins.usage=/plugins
+
+cloudburst.command.status.description=Retourne les performances du serveur.
+cloudburst.command.status.usage=/status
+
+cloudburst.command.timings.description=Enregistre les timings pour voir les performances du serveur.
+cloudburst.command.timings.usage=/timings <reset|report/paste|on|off|verbon|verboff>
+cloudburst.command.timings.enable=Activer les timings et la réinitialisation
+cloudburst.command.timings.disable=Timings désactivés
+cloudburst.command.timings.timingsDisabled=Veuillez activer les timings en tapant /timings on
+cloudburst.command.timings.verboseEnable=Timings verbaux activés
+cloudburst.command.timings.verboseDisable=Timings verbaux désactivés
+cloudburst.command.timings.reset=Timings réinitialisés
+cloudburst.command.timings.rcon=Attention : Le rapport de date effectué sur RCON provoquera des espions à retardement, vous devriez utiliser le rapport /timings dans le jeu ou la console
+cloudburst.command.timings.uploadStart=Préparation du rapport des timings...
+cloudburst.command.timings.uploadError=Erreur d'envoi : %1$2s: %2$2s, vérifiez les logs pour plus d'informations
+cloudburst.command.timings.reportError=Une erreur s’est produite tout en collant le rapport, vérifier les logs pour plus d’informations
+cloudburst.command.timings.timingsLocation=Voir rapport du minutage : %1$2s
+cloudburst.command.timings.timingsResponse=Réponse de minutage : %1$2s
+cloudburst.command.timings.timingsWrite=Minutage d écrits à %1$2s
+
+cloudburst.crash.create=Une erreur irrécupérable s'est produite et le serveur s'est planté. Création d'un crash dump
+cloudburst.crash.error=Impossible de créer un crash dump : %1$2s
+cloudburst.crash.submit=Veuillez télécharger le fichier "%1$2s" dans l'archive de crash et soumettre le lien vers la page de rapport de bogue. Donnez autant d'informations que possible.
+cloudburst.crash.archive=Le crash dump a été automatiquement soumis à l'archive de crash. Vous pouvez le voir sur %1$2s ou utiliser l'ID #%2$2s.
+
+cloudburst.debug.enable=Prise en charge de LevelDB activée
+
+cloudburst.bugreport.create=Une erreur a été détectée, créant un rapport de bogue.\n
+cloudburst.bugreport.error=Impossible de créer un rapport de bogue : %1$2s\n
+cloudburst.bugreport.archive=Un rapport de bug a été créé: %1$2s
+
+cloudburst.player.invalidMove=%1$2s a été déplacé à tort !
+cloudburst.player.logIn=%1$2s[/%2$2s:%3$2s] est connecté avec comme identifiant de l'éntité %4$2s à (%5$2s, %6$2s, %7$2s, %8$2s)
+cloudburst.player.logOut=%1$2s[/%2$2s:%3$2s] a déconnecté à cause de %4$2s
+cloudburst.player.invalidEntity=%1$2s a essayé d'attaquer une entité invalide
+
+cloudburst.plugin.load=Chargement de %1$2s
+cloudburst.plugin.restrictedName=Nom restreint
+cloudburst.plugin.incompatibleAPI=Version de l'API incompatible
+cloudburst.plugin.unknownDependency=Dépendance inconnue
+cloudburst.plugin.circularDependency=Dépendance circulaire détectée
+cloudburst.plugin.genericLoadError=Impossible de charger le plugin '%1$2s'
+cloudburst.plugin.spacesDiscouraged=Le plugin '%1$2s' utilise des espaces dans son nom, cela est découragé
+cloudburst.plugin.loadError=Impossible de charger le plugin '%1$2s': %2$2s
+cloudburst.plugin.duplicateError=Impossible de charger le plugin '%1$2s': le plugin existe
+cloudburst.plugin.fileError=Impossible de charger '%1$2s' dans le dossier '%2$2s': %3$2s
+cloudburst.plugin.commandError=Impossible de charger la commande %1$2s pour le plugin %2$2s
+cloudburst.plugin.aliasError=Impossible de charger l'alias %1$2s pour le plugin %2$2s
+cloudburst.plugin.deprecatedEvent=Le plugin '%1$2s' a enregistré un événement pour '%2$2s' sur la méthode '%3$2s', mais l'événement est décompressé.
+cloudburst.plugin.eventError=Impossible de passer l'événement '%1$2s' à '%2$2s': %3$2s le %4$2s
+
+cloudburst.resources.invalid-path=Le chemin des paquets de ressources '%1$2s' existe et n'est pas un répertoire
+cloudburst.resources.unknown-format=Impossible de charger '%1$2s' en raison du format non reconnu
+cloudburst.resources.fail=Impossible de charger '%1$2s': %2$2s
+cloudburst.resources.success=Paquets de ressources %1$2s chargés avec succès
+cloudburst.resources.zip.not-found=Le fichier '%1$2s' n'est pas trouvé
+cloudburst.resources.zip.no-manifest='manifeste.json' n'est pas trouvé\n
+cloudburst.resources.zip.invalid-manifest='manifeste.json' est invalide ou incomplet\n
+

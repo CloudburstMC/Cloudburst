@@ -515,7 +515,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         if (targetEntity instanceof DroppedItem || targetEntity instanceof EntityArrow || targetEntity instanceof ExperienceOrb) {
             player.kick(PlayerKickEvent.Reason.INVALID_PVE, "Attempting to interact with an invalid entity");
-            log.warn(player.getServer().getLanguage().translate("nukkit.player.invalidEntity", player.getName()));
+            log.warn(player.getServer().getLanguage().translate("cloudburst.player.invalidEntity", player.getName()));
             return true;
         }
 
@@ -766,7 +766,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(SetPlayerGameTypePacket packet) {
         if (packet.getGamemode() != player.getGamemode().getVanillaId()) {
-            if (!player.hasPermission("nukkit.command.gamemode")) {
+            if (!player.hasPermission("cloudburst.command.gamemode")) {
                 SetPlayerGameTypePacket packet1 = new SetPlayerGameTypePacket();
                 packet1.setGamemode(player.getGamemode().getVanillaId());
                 player.sendPacket(packet1);

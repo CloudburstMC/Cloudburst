@@ -23,7 +23,7 @@ public class DebugPasteCommand extends Command {
     public DebugPasteCommand() {
         super("debugpaste", CommandData.builder("debugpaste")
                 .setDescription("commands.debug.description")
-                .setPermissions("nukkit.command.debug.perform")
+                .setPermissions("cloudburst.command.debug.perform")
                 .build());
     }
 
@@ -53,7 +53,7 @@ public class DebugPasteCommand extends Command {
                     b.append("\n# Server Information\n");
 
                     b.append("version.api: ").append(server.getApiVersion()).append('\n');
-                    b.append("version.nukkit: ").append(server.getNukkitVersion()).append('\n');
+                    b.append("version.cloudburst: ").append(server.getNukkitVersion()).append('\n');
                     b.append("version.minecraft: ").append(server.getVersion()).append('\n');
                     b.append("version.protocol: ").append(ProtocolInfo.getDefaultProtocolVersion()).append('\n');
                     b.append("plugins:");
