@@ -155,6 +155,9 @@ class LevelDBProvider implements LevelProvider {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }).exceptionally((e) -> {
+            log.catching(e);
+            return null;
         });
     }
 
