@@ -24,6 +24,8 @@ public class GameMode {
             .register().build();
     public static final GameMode ADVENTURE = GameMode.builder(2, "adventure", "a")
             .set(AdventureSettings.Type.WORLD_IMMUTABLE, true)
+            .set(AdventureSettings.Type.BUILD, false)
+            .set(AdventureSettings.Type.MINE, false)
             .register().survival().visitor().build();
     public static final GameMode SPECTATOR = GameMode.builder(4, "spectator")
             .set(AdventureSettings.Type.WORLD_IMMUTABLE, true)
