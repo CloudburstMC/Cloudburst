@@ -18,7 +18,7 @@ public class TitleCommand extends Command {
         super("title", CommandData.builder("title")
                 .setDescription("commands.title.description")
                 .setUsageMessage("/title <player> <clear|reset>\n/title <player> <|title|subtitle|actionbar> <text>\n/title <player> <times> <fadein> <stay> <fadeOut>")
-                .setPermissions("nukkit.command.title")
+                .setPermissions("cloudburst.command.title")
                 .addParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false),
                         new CommandParameter("clear", new String[]{"clear"})})
@@ -65,11 +65,11 @@ public class TitleCommand extends Command {
             switch (args[1].toLowerCase()) {
                 case "clear":
                     player.clearTitle();
-                    sender.sendMessage(new TranslationContainer("nukkit.command.title.clear", player.getName()));
+                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.clear", player.getName()));
                     break;
                 case "reset":
                     player.resetTitleSettings();
-                    sender.sendMessage(new TranslationContainer("nukkit.command.title.reset", player.getName()));
+                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.reset", player.getName()));
                     break;
                 default:
                     return false;
@@ -78,16 +78,16 @@ public class TitleCommand extends Command {
             switch (args[1].toLowerCase()) {
                 case "title":
                     player.sendTitle(args[2]);
-                    sender.sendMessage(new TranslationContainer("nukkit.command.title.title",
+                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.title",
                             TextFormat.clean(args[2]), player.getName()));
                     break;
                 case "subtitle":
                     player.setSubtitle(args[2]);
-                    sender.sendMessage(new TranslationContainer("nukkit.command.title.subtitle", TextFormat.clean(args[2]), player.getName()));
+                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.subtitle", TextFormat.clean(args[2]), player.getName()));
                     break;
                 /*case "actionbar":
                     player.sendActionBarTitle(args[2]);
-                    sender.sendMessage(new TranslationContainer("nukkit.command.title.actionbar", new String[]{TextFormat.clean(args[2]), player.getName()}));
+                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.actionbar", new String[]{TextFormat.clean(args[2]), player.getName()}));
                     break;*/
                 default:
                     return false;
@@ -98,7 +98,7 @@ public class TitleCommand extends Command {
                     /*player.setTitleAnimationTimes(Integer.valueOf(args[2]), //fadeIn
                             Integer.valueOf(args[3]), //stay
                             Integer.valueOf(args[4])); //fadeOut*/
-                    sender.sendMessage(new TranslationContainer("nukkit.command.title.times.success",
+                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.times.success",
                             args[2], args[3], args[4], player.getName()));
                 } catch (NumberFormatException exception) {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.exception"));

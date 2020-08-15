@@ -32,7 +32,7 @@ public class BanIpCommand extends Command {
         super("ban-ip", CommandData.builder("ban-ip")
                 .setDescription("commands.banip.description")
                 .setUsageMessage("/ban-ip <player> [reason]")
-                .setPermissions("nukkit.command.ban.ip")
+                .setPermissions("cloudburst.command.ban.ip")
                 .setAliases("banip")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false),

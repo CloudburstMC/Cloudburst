@@ -17,7 +17,7 @@ public class SaveCommand extends Command {
     public SaveCommand() {
         super("save-all", CommandData.builder("save-all")
                 .setDescription("commands.save.description")
-                .setPermissions("nukkit.command.save.perform")
+                .setPermissions("cloudburst.command.save.perform")
                 .build());
     }
 

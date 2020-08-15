@@ -31,7 +31,7 @@ public class ParticleCommand extends Command {
         super("particle", CommandData.builder("particle")
                 .setDescription("commands.particle.description")
                 .setUsageMessage("/particle <particle> <position> [count] [data[")
-                .setPermissions("nukkit.command.particle")
+                .setPermissions("cloudburst.command.particle")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("name", false, ENUM_VALUES),
                         new CommandParameter("position", CommandParamType.POSITION, false),

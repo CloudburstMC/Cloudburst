@@ -17,7 +17,7 @@ import java.util.Iterator;
 public class BanListCommand extends Command {
     public BanListCommand() {
         super("banlist", CommandData.builder("banlist")
-                .setPermissions("nukkit.command.ban.list")
+                .setPermissions("cloudburst.command.ban.list")
                 .setUsageMessage("/banlist <ips|players>")
                 .setParameters(new CommandParameter[]{new CommandParameter("ips|players", true)})
                 .build());

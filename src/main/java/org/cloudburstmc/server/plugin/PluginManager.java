@@ -162,7 +162,7 @@ public class PluginManager {
                             String name = description.getName();
 
                             if (plugins.containsKey(name) || this.getPlugin(name) != null) {
-                                log.error(this.server.getLanguage().translate("nukkit.plugin.duplicateError", name));
+                                log.error(this.server.getLanguage().translate("cloudburst.plugin.duplicateError", name));
                                 continue;
                             }
 
@@ -176,7 +176,7 @@ public class PluginManager {
                                         throw new IllegalArgumentException();
                                     }
                                 } catch (NullPointerException | IllegalArgumentException e) {
-                                    log.error(this.server.getLanguage().translate("nukkit.plugin.loadError", name, "Wrong API format"));
+                                    log.error(this.server.getLanguage().translate("cloudburst.plugin.loadError", name, "Wrong API format"));
                                     continue;
                                 }
 
@@ -198,7 +198,7 @@ public class PluginManager {
                             }
 
                             if (!compatible) {
-                                log.error(this.server.getLanguage().translate("nukkit.plugin.loadError", name, "%nukkit.plugin.incompatibleAPI"));
+                                log.error(this.server.getLanguage().translate("cloudburst.plugin.loadError", name, "%cloudburst.plugin.incompatibleAPI"));
                             }
 
                             plugins.put(name, file);
@@ -218,7 +218,7 @@ public class PluginManager {
                             }
                         }
                     } catch (Exception e) {
-                        log.error(this.server.getLanguage().translate("nukkit.plugin.fileError",
+                        log.error(this.server.getLanguage().translate("cloudburst.plugin.fileError",
                                 file.getName(), dictionary.toString(), Utils.getExceptionMessage(e)));
                     }
                 }
@@ -233,8 +233,8 @@ public class PluginManager {
                             if (loadedPlugins.containsKey(dependency) || this.getPlugin(dependency) != null) {
                                 dependencies.get(name).remove(dependency);
                             } else if (!plugins.containsKey(dependency)) {
-                                log.error(this.server.getLanguage().translate("nukkit.plugin.loadError",
-                                        name, "%nukkit.plugin.unknownDependency"));
+                                log.error(this.server.getLanguage().translate("cloudburst.plugin.loadError",
+                                        name, "%cloudburst.plugin.unknownDependency"));
                                 break;
                             }
                         }
@@ -260,7 +260,7 @@ public class PluginManager {
                         if (plugin != null) {
                             loadedPlugins.put(name, plugin);
                         } else {
-                            log.error(this.server.getLanguage().translate("nukkit.plugin.genericLoadError",
+                            log.error(this.server.getLanguage().translate("cloudburst.plugin.genericLoadError",
                                     name));
                         }
                     }
@@ -277,7 +277,7 @@ public class PluginManager {
                             if (plugin != null) {
                                 loadedPlugins.put(name, plugin);
                             } else {
-                                log.error(this.server.getLanguage().translate("nukkit.plugin.genericLoadError",
+                                log.error(this.server.getLanguage().translate("cloudburst.plugin.genericLoadError",
                                         name));
                             }
                         }
@@ -285,8 +285,8 @@ public class PluginManager {
 
                     if (missingDependency) {
                         for (String name : plugins.keySet()) {
-                            log.error(this.server.getLanguage().translate("nukkit.plugin.loadError",
-                                    name, "%nukkit.plugin.circularDependency"));
+                            log.error(this.server.getLanguage().translate("cloudburst.plugin.loadError",
+                                    name, "%cloudburst.plugin.circularDependency"));
                         }
                         plugins.clear();
                     }
@@ -441,7 +441,7 @@ public class PluginManager {
             String key = entry.getKey();
             Object data = entry.getValue();
             if (key.contains(":")) {
-                log.error(this.server.getLanguage().translate("nukkit.plugin.commandError",
+                log.error(this.server.getLanguage().translate("cloudburst.plugin.commandError",
                         key, plugin.getDescription().getFullName()));
                 continue;
             }
@@ -467,7 +467,7 @@ public class PluginManager {
                         List<String> aliasList = new ArrayList<>();
                         for (String alias : (List<String>) configAliases) {
                             if (alias.contains(":")) {
-                                log.error(this.server.getLanguage().translate("nukkit.plugin.aliasError",
+                                log.error(this.server.getLanguage().translate("cloudburst.plugin.aliasError",
                                         alias, plugin.getDescription().getFullName()));
                                 continue;
                             }
@@ -540,7 +540,7 @@ public class PluginManager {
                 try {
                     registration.callEvent(event);
                 } catch (Exception e) {
-                    log.error(this.server.getLanguage().translate("nukkit.plugin.eventError",
+                    log.error(this.server.getLanguage().translate("cloudburst.plugin.eventError",
                             event.getEventName(), registration.getPlugin().getDescription().getFullName(),
                             e.getMessage(), registration.getListener().getClass().getName()));
                     log.throwing(Level.ERROR, e);
@@ -590,7 +590,7 @@ public class PluginManager {
                 if (clazz.getAnnotation(Deprecated.class) != null) {
                     if (Boolean.parseBoolean(String.valueOf(this.server.getConfig(
                             "settings.deprecated-verbose", true)))) {
-                        log.warn(this.server.getLanguage().translate("nukkit.plugin.deprecatedEvent",
+                        log.warn(this.server.getLanguage().translate("cloudburst.plugin.deprecatedEvent",
                                 plugin.getName(), clazz.getName(), listener.getClass().getName() + "." + method.getName() + "()"));
                     }
                     break;

@@ -23,7 +23,7 @@ public class DifficultyCommand extends Command {
         super("difficulty", CommandData.builder("difficulty")
                 .setDescription("commands.difficulty.description")
                 .setUsageMessage("commands.difficulty.usage")
-                .setPermissions("nukkit.command.difficulty")
+                .setPermissions("cloudburst.command.difficulty")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("difficulty", CommandParamType.INT, false)
                 }, new CommandParameter[]{

@@ -15,7 +15,7 @@ public class SaveOffCommand extends Command {
     public SaveOffCommand() {
         super("save-off", CommandData.builder("save-off")
                 .setDescription("commands.save.description")
-                .setPermissions("nukkit.command.save.disable")
+                .setPermissions("cloudburst.command.save.disable")
                 .build());
     }
 

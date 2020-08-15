@@ -141,9 +141,9 @@ public class TimingsExport extends Thread {
             Map<String, Object> section = new LinkedHashMap<>(Server.getInstance().getConfig().getRootSection());
             Timings.getIgnoredConfigSections().forEach(section::remove);
             JsonNode nukkit = JsonUtil.toObject(section);
-            config.set("nukkit", nukkit);
+            config.set("cloudburst", nukkit);
         } else {
-            config.set("nukkit", null);
+            config.set("cloudburst", null);
         }
         out.set("config", config);
 
@@ -189,7 +189,7 @@ public class TimingsExport extends Thread {
 
     @Override
     public void run() {
-        this.sender.sendMessage(new TranslationContainer("nukkit.command.timings.uploadStart"));
+        this.sender.sendMessage(new TranslationContainer("cloudburst.command.timings.uploadStart"));
         this.out.set("data", JsonUtil.mapToArray(this.history, TimingsHistory::export));
 
         String response = null;
@@ -207,7 +207,7 @@ public class TimingsExport extends Thread {
             response = getResponse(con);
 
             if (con.getResponseCode() != 302) {
-                this.sender.sendMessage(new TranslationContainer("nukkit.command.timings.uploadError", String.valueOf(con.getResponseCode()), con.getResponseMessage()));
+                this.sender.sendMessage(new TranslationContainer("cloudburst.command.timings.uploadError", String.valueOf(con.getResponseCode()), con.getResponseMessage()));
                 if (response != null) {
                     log.warn(response);
                 }
@@ -215,13 +215,13 @@ public class TimingsExport extends Thread {
             }
 
             String location = con.getHeaderField("Location");
-            this.sender.sendMessage(new TranslationContainer("nukkit.command.timings.timingsLocation", location));
+            this.sender.sendMessage(new TranslationContainer("cloudburst.command.timings.timingsLocation", location));
             if (!(this.sender instanceof ConsoleCommandSender)) {
-                log.info(Server.getInstance().getLanguage().translate("nukkit.command.timings.timingsLocation", location));
+                log.info(Server.getInstance().getLanguage().translate("cloudburst.command.timings.timingsLocation", location));
             }
 
             if (response != null && !response.isEmpty()) {
-                log.info(Server.getInstance().getLanguage().translate("nukkit.command.timings.timingsResponse", response));
+                log.info(Server.getInstance().getLanguage().translate("cloudburst.command.timings.timingsResponse", response));
             }
 
             File timingFolder = new File(Server.getInstance().getDataPath() + File.separator + "timings");
@@ -229,13 +229,13 @@ public class TimingsExport extends Thread {
             String fileName = timingFolder + File.separator + new SimpleDateFormat("'timings-'yyyy-MM-dd-hh-mm'.txt'").format(new Date());
 
             FileWriter writer = new FileWriter(fileName);
-            writer.write(Server.getInstance().getLanguage().translate("nukkit.command.timings.timingsLocation", location) + "\n\n");
+            writer.write(Server.getInstance().getLanguage().translate("cloudburst.command.timings.timingsLocation", location) + "\n\n");
             writer.write(Nukkit.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this.out));
             writer.close();
 
-            log.info(Server.getInstance().getLanguage().translate("nukkit.command.timings.timingsWrite", fileName));
+            log.info(Server.getInstance().getLanguage().translate("cloudburst.command.timings.timingsWrite", fileName));
         } catch (IOException exception) {
-            this.sender.sendMessage(TextFormat.RED + "" + new TranslationContainer("nukkit.command.timings.reportError"));
+            this.sender.sendMessage(TextFormat.RED + "" + new TranslationContainer("cloudburst.command.timings.reportError"));
             if (response != null) {
                 log.warn(response);
             }
@@ -255,7 +255,7 @@ public class TimingsExport extends Thread {
             return bos.toString();
 
         } catch (IOException exception) {
-            this.sender.sendMessage(TextFormat.RED + "" + new TranslationContainer("nukkit.command.timings.reportError"));
+            this.sender.sendMessage(TextFormat.RED + "" + new TranslationContainer("cloudburst.command.timings.reportError"));
             log.warn(con.getResponseMessage(), exception);
             return null;
         }

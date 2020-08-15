@@ -17,10 +17,10 @@ public class PluginsCommand extends Command {
 
     public PluginsCommand() {
         super("plugins", CommandData.builder("plugins")
-                .setDescription("%nukkit.command.plugins.description")
-                .setUsageMessage("%nukkit.command.plugins.usage")
+                .setDescription("%cloudburst.command.plugins.description")
+                .setUsageMessage("%cloudburst.command.plugins.usage")
                 .setAliases("pl")
-                .setPermissions("nukkit.command.plugins")
+                .setPermissions("cloudburst.command.plugins")
                 .build());
     }
 
@@ -45,6 +45,6 @@ public class PluginsCommand extends Command {
             list.append(plugin.getDescription().getFullName());
         }
 
-        sender.sendMessage(new TranslationContainer("nukkit.command.plugins.success", String.valueOf(plugins.size()), list.toString()));
+        sender.sendMessage(new TranslationContainer("cloudburst.command.plugins.success", String.valueOf(plugins.size()), list.toString()));
     }
 }

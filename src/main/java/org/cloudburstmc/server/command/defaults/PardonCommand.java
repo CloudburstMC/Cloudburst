@@ -17,7 +17,7 @@ public class PardonCommand extends Command {
     public PardonCommand() {
         super("pardon", CommandData.builder("pardon")
                 .setUsageMessage("/unban <player>")
-                .setPermissions("nukkit.command.unban.player")
+                .setPermissions("cloudburst.command.unban.player")
                 .setAliases("unban")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false)

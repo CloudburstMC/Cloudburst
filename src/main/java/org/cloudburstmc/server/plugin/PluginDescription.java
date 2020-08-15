@@ -152,8 +152,8 @@ public class PluginDescription {
             list.add((String) api);
             this.api = list;
         }
-        if (this.main.startsWith("cn.nukkit.")) {
-            throw new PluginException("Invalid PluginDescription main, cannot start within the cn.nukkit. package");
+        if (this.main.startsWith("org.cloudburst.")) {
+            throw new PluginException("Invalid PluginDescription main, cannot start within the org.cloudburst. package");
         }
 
         if (plugin.containsKey("commands") && plugin.get("commands") instanceof Map) {

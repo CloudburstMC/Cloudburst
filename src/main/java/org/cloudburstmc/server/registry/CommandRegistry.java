@@ -378,7 +378,7 @@ public class CommandRegistry implements Registry {
             }
         } catch (Exception e) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.exception"));
-            log.error(Server.getInstance().getLanguage().translate("nukkit.command.exception", commandLine,
+            log.error(Server.getInstance().getLanguage().translate("cloudburst.command.exception", commandLine,
                     target.toString(), Utils.getExceptionMessage(e)));
         }
         target.timing.stopTiming();
@@ -490,7 +490,7 @@ public class CommandRegistry implements Registry {
             List<String> commands = entry.getValue();
 
             if (alias.contains(" ") || alias.contains(":")) {
-                log.warn(server.getLanguage().translate("nukkit.command.alias.illegal", alias));
+                log.warn(server.getLanguage().translate("cloudburst.command.alias.illegal", alias));
                 continue;
             }
 
@@ -512,7 +512,7 @@ public class CommandRegistry implements Registry {
             }
 
             if (bad.length() > 0) {
-                log.warn(server.getLanguage().translate("nukkit.command.alias.notFound", alias, bad.toString()));
+                log.warn(server.getLanguage().translate("cloudburst.command.alias.notFound", alias, bad.toString()));
                 continue;
             }
             alias = alias.toLowerCase();
