@@ -27,7 +27,7 @@ public class GameMode {
             .set(AdventureSettings.Type.BUILD, false)
             .set(AdventureSettings.Type.MINE, false)
             .register().survival().visitor().build();
-    public static final GameMode SPECTATOR = GameMode.builder(4, "spectator")
+    public static final GameMode SPECTATOR = GameMode.builder(3, "spectator", "spc", "view", "v")
             .set(AdventureSettings.Type.WORLD_IMMUTABLE, true)
             .set(AdventureSettings.Type.ALLOW_FLIGHT, true)
             .set(AdventureSettings.Type.FLYING, true)
