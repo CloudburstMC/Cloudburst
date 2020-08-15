@@ -26,7 +26,7 @@ public class TeleportCommand extends Command {
         super("tp", CommandData.builder("tp")
                 .setDescription("commands.tp.description")
                 .setUsageMessage("/tp [player] <position|target>")
-                .setPermissions("nukkit.command.teleport")
+                .setPermissions("cloudburst.command.teleport")
                 .addParameters(new CommandParameter[]{new CommandParameter("player", CommandParamType.TARGET, false)})
                 .addParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false),

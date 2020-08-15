@@ -30,7 +30,7 @@ public class PluginClassLoader extends URLClassLoader {
     }
 
     protected Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
-        if (name.startsWith("cn.nukkit.") || name.startsWith("net.minecraft.")) {
+        if (name.startsWith("org.cloudburst.") || name.startsWith("net.minecraft.")) {
             throw new ClassNotFoundException(name);
         }
         Class<?> result = classes.get(name);

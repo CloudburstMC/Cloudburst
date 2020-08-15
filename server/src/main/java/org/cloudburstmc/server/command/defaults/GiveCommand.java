@@ -24,7 +24,7 @@ public class GiveCommand extends Command {
         super("give", CommandData.builder("give")
                 .setDescription("commands.give.description")
                 .setUsageMessage("commands.give.usage")
-                .setPermissions("nukkit.command.give")
+                .setPermissions("cloudburst.command.give")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false),
                         new CommandParameter("itemName", false, CommandParameter.ENUM_TYPE_ITEM_LIST),

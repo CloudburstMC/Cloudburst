@@ -21,10 +21,10 @@ public class TimeCommand extends Command {
         super("time", CommandData.builder("time")
                 .setDescription("commands.time.description")
                 .setUsageMessage("/time <add|set|start|stop> [value]")
-                .setPermissions("nukkit.command.time.add",
-                        "nukkit.command.time.set",
-                        "nukkit.command.time.start",
-                        "nukkit.command.time.stop")
+                .setPermissions("cloudburst.command.time.add",
+                        "cloudburst.command.time.set",
+                        "cloudburst.command.time.start",
+                        "cloudburst.command.time.stop")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("start|stop", CommandParamType.STRING, false)
                 }, new CommandParameter[]{
@@ -44,7 +44,7 @@ public class TimeCommand extends Command {
         }
 
         if ("start".equals(args[0])) {
-            if (!sender.hasPermission("nukkit.command.time.start")) {
+            if (!sender.hasPermission("cloudburst.command.time.start")) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
 
                 return true;
@@ -57,7 +57,7 @@ public class TimeCommand extends Command {
             CommandUtils.broadcastCommandMessage(sender, "Restarted the time");
             return true;
         } else if ("stop".equals(args[0])) {
-            if (!sender.hasPermission("nukkit.command.time.stop")) {
+            if (!sender.hasPermission("cloudburst.command.time.stop")) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
 
                 return true;
@@ -70,7 +70,7 @@ public class TimeCommand extends Command {
             }
             return true;
         } else if ("query".equals(args[0])) {
-            if (!sender.hasPermission("nukkit.command.time.query")) {
+            if (!sender.hasPermission("cloudburst.command.time.query")) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
 
                 return true;
@@ -91,7 +91,7 @@ public class TimeCommand extends Command {
         }
 
         if ("set".equals(args[0])) {
-            if (!sender.hasPermission("nukkit.command.time.set")) {
+            if (!sender.hasPermission("cloudburst.command.time.set")) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
 
                 return true;
@@ -125,7 +125,7 @@ public class TimeCommand extends Command {
             }
             CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.time.set", value));
         } else if ("add".equals(args[0])) {
-            if (!sender.hasPermission("nukkit.command.time.add")) {
+            if (!sender.hasPermission("cloudburst.command.time.add")) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
 
                 return true;

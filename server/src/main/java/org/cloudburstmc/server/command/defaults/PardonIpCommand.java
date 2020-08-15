@@ -19,7 +19,7 @@ public class PardonIpCommand extends Command {
 
     public PardonIpCommand() {
         super("pardon-ip", CommandData.builder("pardon-ip")
-                .setPermissions("nukkit.command.unban.ip")
+                .setPermissions("cloudburst.command.unban.ip")
                 .setAliases("unbanip", "unban-ip", "pardonip")
                 .setUsageMessage("/unbanip <ip>")
                 .setParameters(new CommandParameter[]{

@@ -22,7 +22,7 @@ public class EffectCommand extends Command {
         super("effect", CommandData.builder("effect")
                 .setDescription("commands.effect.description")
                 .setUsageMessage("/effect <player> <clear|effect> [seconds] [amplifier] [hideParticles]")
-                .setPermissions("nukkit.command.effect")
+                .setPermissions("cloudburst.command.effect")
                 .setParameters(
                         new CommandParameter[]{
                                 new CommandParameter("player", CommandParamType.TARGET, false),

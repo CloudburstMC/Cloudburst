@@ -20,7 +20,7 @@ public class MeCommand extends Command {
         super("me", CommandData.builder("me")
                 .setDescription("commands.me.description")
                 .setUsageMessage("/me <action>")
-                .setPermissions("nukkit.command.me")
+                .setPermissions("cloudburst.command.me")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("action ...", CommandParamType.TEXT, false)
                 })

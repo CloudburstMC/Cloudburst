@@ -23,7 +23,7 @@ public class EnchantCommand extends Command {
         super("enchant", CommandData.builder("enchant")
                 .setDescription("commands.enchant.description")
                 .setUsageMessage("/enchant <player> <enchant ID> [level]")
-                .setPermissions("nukkit.command.enchant")
+                .setPermissions("cloudburst.command.enchant")
                 .setParameters(
                         new CommandParameter[]{
                                 new CommandParameter("player", CommandParamType.TARGET, false),

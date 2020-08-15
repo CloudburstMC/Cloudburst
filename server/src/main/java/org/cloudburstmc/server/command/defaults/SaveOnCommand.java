@@ -15,7 +15,7 @@ public class SaveOnCommand extends Command {
     public SaveOnCommand() {
         super("save-on", CommandData.builder("save-on")
                 .setDescription("commands.save-on.description")
-                .setPermissions("nukkit.command.save.enable")
+                .setPermissions("cloudburst.command.save.enable")
                 .build());
     }
 

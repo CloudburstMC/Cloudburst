@@ -1552,7 +1552,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.setNameTagAlwaysVisible(true);
         this.setCanClimb(true);
 
-        log.info(this.getServer().getLanguage().translate("nukkit.player.logIn",
+        log.info(this.getServer().getLanguage().translate("cloudburst.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,
                 this.getAddress(),
                 this.getPort(),
@@ -1563,7 +1563,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 NukkitMath.round(pos.getZ(), 4)
         ));
 
-        if (this.isOp() || this.hasPermission("nukkit.textcolor")) {
+        if (this.isOp() || this.hasPermission("cloudburst.textcolor")) {
             this.setRemoveFormat(false);
         }
 
@@ -1785,7 +1785,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.RAW);
         packet.setXuid(this.getXuid());
-        packet.setMessage(this.server.getLanguage().translateOnly("nukkit.", message));
+        packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message));
         this.sendPacket(packet);
     }
 
@@ -1803,10 +1803,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         TextPacket packet = new TextPacket();
         if (!this.server.isLanguageForced()) {
             packet.setType(TextPacket.Type.TRANSLATION);
-            packet.setMessage(this.server.getLanguage().translateOnly("nukkit.", message, parameters));
+            packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message, parameters));
             String[] params = new String[parameters.length];
             for (int i = 0; i < parameters.length; i++) {
-                params[i] = this.server.getLanguage().translateOnly("nukkit.", parameters[i].toString());
+                params[i] = this.server.getLanguage().translateOnly("cloudburst.", parameters[i].toString());
             }
             packet.setParameters(Arrays.asList(params));
         } else {
@@ -1826,7 +1826,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.CHAT);
         packet.setSourceName(source);
-        packet.setMessage(this.server.getLanguage().translateOnly("nukkit.", message));
+        packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message));
         packet.setXuid(this.getXuid());
         this.sendPacket(packet);
     }
@@ -2047,7 +2047,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
             this.server.getPluginManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
             this.spawned = false;
-            log.info(this.getServer().getLanguage().translate("nukkit.player.logOut",
+            log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     TextFormat.AQUA + (this.getName() == null ? "" : this.getName()) + TextFormat.WHITE,
                     this.getAddress(),
                     this.getPort(),
