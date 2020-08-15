@@ -3,7 +3,7 @@ package org.cloudburstmc.server.entity.impl.misc;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import lombok.val;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -142,14 +142,14 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
 
             if (onGround) {
                 close();
-                val b = level.getBlock(pos);
+                Block b = level.getBlock(pos);
                 BlockState blockState = b.getState();
                 if (blockState.getType() != AIR && blockState.inCategory(BlockCategory.TRANSPARENT) && !blockState.getBehavior().canBeReplaced(b)) {
                     if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
                         getLevel().dropItem(this.getPosition(), Item.get(this.getBlock()));
                     }
                 } else {
-                    EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, blockState, this.getBlock());
+                    EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, b, this.getBlock());
                     server.getPluginManager().callEvent(event);
                     if (!event.isCancelled()) {
                         getLevel().setBlock(pos, event.getTo(), true);
