@@ -542,13 +542,18 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
         this.justCreated = true;
 
-        this.chunk = location.getChunk();
+        this.chunk = location.getLevel().getLoadedChunk(location.getPosition());
         this.level = location.getLevel();
-        this.server = chunk.getLevel().getServer();
+        this.server = location.getLevel().getServer();
 
         this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
 
-        chunk.addEntity(this);
+        this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk1, throwable) -> {
+            if (throwable != null) {
+                this.chunk = chunk1;
+                chunk1.addEntity(this);
+            }
+        });
         this.level.addEntity(this);
 
         this.initEntity();

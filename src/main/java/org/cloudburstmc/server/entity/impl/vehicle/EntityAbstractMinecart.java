@@ -25,6 +25,7 @@ import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Rail;
 import org.cloudburstmc.server.utils.data.MinecartType;
 import org.cloudburstmc.server.utils.data.RailDirection;
@@ -440,12 +441,18 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     private void processMovement(int dx, int dy, int dz, Block block) {
         fallDistance = 0.0F;
+        Identifier identifier = block.getState().getType();
+        if (identifier != BlockTypes.RAIL && identifier != BlockTypes.ACTIVATOR_RAIL &&
+                identifier != BlockTypes.DETECTOR_RAIL && identifier != BlockTypes.GOLDEN_RAIL) {
+            return;
+        }
         Vector3f vector = getNextRail(this.getPosition());
 
         int y = dy;
 
         val state = block.getState();
-        boolean isPowered = state.ensureTrait(BlockTraits.IS_POWERED);
+        Boolean powered = state.getTrait(BlockTraits.IS_POWERED);
+        boolean isPowered = powered != null ? powered : false;
         boolean isSlowed = !isPowered;
 
         val behavior = block.getState().getBehavior();
@@ -454,7 +461,9 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         float motionY = this.motion.getY();
         float motionZ = this.motion.getZ();
 
-        val railDirection = state.ensureTrait(BlockTraits.RAIL_DIRECTION);
+        RailDirection railDirection = state.getTrait(BlockTraits.RAIL_DIRECTION);
+        if (railDirection == null) railDirection = state.getTrait(BlockTraits.SIMPLE_RAIL_DIRECTION);
+        if (railDirection == null) return;
 
         switch (railDirection) { //TODO: errors
             case ASCENDING_NORTH:
