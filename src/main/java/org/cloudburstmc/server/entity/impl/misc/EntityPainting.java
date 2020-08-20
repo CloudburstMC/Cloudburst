@@ -23,7 +23,7 @@ import org.cloudburstmc.server.player.Player;
 public class EntityPainting extends HangingEntity implements Painting {
 
     public final static Motive[] motives = Motive.values();
-    private Motive motive;
+    private Motive motive = Motive.KEBAB;
 
     public EntityPainting(EntityType<Painting> type, Location location) {
         super(type, location);
