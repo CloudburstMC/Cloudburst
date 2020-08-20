@@ -104,6 +104,11 @@ public class EntitySerializer {
                 Identifier identifier = Identifier.fromString(entityTag.getString("identifier"));
                 EntityRegistry registry = EntityRegistry.get();
                 EntityType<?> type = registry.getEntityType(identifier);
+                if (type == null) {
+                    log.warn("Unknown entity type {}", identifier);
+                    dirty = true;
+                    continue;
+                }
                 try {
                     Entity entity = registry.newEntity(type, location);
                     if (entity != null) {
