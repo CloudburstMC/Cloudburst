@@ -549,7 +549,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
 
         this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk1, throwable) -> {
-            if (throwable != null) {
+            if (throwable == null) {
                 this.chunk = chunk1;
                 chunk1.addEntity(this);
             }
