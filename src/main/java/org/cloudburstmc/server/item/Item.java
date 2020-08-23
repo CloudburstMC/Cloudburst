@@ -145,7 +145,7 @@ public abstract class Item implements Cloneable {
     }
 
     public static Item get(Identifier id, int meta, int count, NbtMap tag) {
-        Item item = Server.getInstance().getItemRegistry().getItem(id);
+        Item item = Server.getInstance().getItemRegistry().getItem(id, meta);
         item.setMeta(meta);
         item.setCount(count);
         item.loadAdditionalData(tag);
@@ -619,8 +619,11 @@ public abstract class Item implements Cloneable {
     }
 
     public void setMeta(int meta) {
-        this.meta = meta & 0xffff;
-        this.onMetaChange(this.meta);
+        meta &= 0xffff;
+        if (meta != this.meta) {
+            this.meta = meta;
+            this.onMetaChange(this.meta);
+        }
     }
 
     /**
