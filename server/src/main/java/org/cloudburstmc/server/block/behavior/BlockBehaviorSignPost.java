@@ -36,6 +36,8 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
         STANDING_MAP.put(ItemIds.JUNGLE_SIGN, BlockTypes.JUNGLE_STANDING_SIGN);
         STANDING_MAP.put(ItemIds.ACACIA_SIGN, BlockTypes.ACACIA_STANDING_SIGN);
         STANDING_MAP.put(ItemIds.DARK_OAK_SIGN, BlockTypes.DARK_OAK_STANDING_SIGN);
+        STANDING_MAP.put(ItemIds.CRIMSON_SIGN, BlockTypes.CRIMSON_STANDING_SIGN);
+        STANDING_MAP.put(ItemIds.WARPED_SIGN, BlockTypes.WARPED_STANDING_SIGN);
 
         WALL_MAP.put(ItemIds.SIGN, BlockTypes.WALL_SIGN);
         WALL_MAP.put(ItemIds.BIRCH_SIGN, BlockTypes.BIRCH_WALL_SIGN);
@@ -43,6 +45,8 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
         WALL_MAP.put(ItemIds.JUNGLE_SIGN, BlockTypes.JUNGLE_WALL_SIGN);
         WALL_MAP.put(ItemIds.ACACIA_SIGN, BlockTypes.ACACIA_WALL_SIGN);
         WALL_MAP.put(ItemIds.DARK_OAK_SIGN, BlockTypes.DARK_OAK_WALL_SIGN);
+        WALL_MAP.put(ItemIds.CRIMSON_SIGN, BlockTypes.CRIMSON_WALL_SIGN);
+        WALL_MAP.put(ItemIds.WARPED_SIGN, BlockTypes.WARPED_WALL_SIGN);
     }
 
     @Override
@@ -86,7 +90,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
 
                 placeBlock(block, BlockState.get(STANDING_MAP.get(item.getId())).withTrait(BlockTraits.CARDINAL_DIRECTION, direction));
             } else {
-                placeBlock(block, BlockState.get(WALL_MAP.get(item.getId())).withTrait(BlockTraits.CARDINAL_DIRECTION, face.getCardinalDirection()));
+                placeBlock(block, BlockState.get(WALL_MAP.get(item.getId())).withTrait(BlockTraits.FACING_DIRECTION, face));
             }
 
             Sign sign = BlockEntityRegistry.get().newEntity(BlockEntityTypes.SIGN, block);

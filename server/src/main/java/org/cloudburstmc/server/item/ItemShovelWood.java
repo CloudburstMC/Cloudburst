@@ -29,6 +29,6 @@ public class ItemShovelWood extends ItemTool {
 
     @Override
     public int getAttackDamage() {
-        return 1;
+        return 2;
     }
 }
