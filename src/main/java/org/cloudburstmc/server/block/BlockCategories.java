@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import lombok.experimental.UtilityClass;
+import lombok.val;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Arrays;
@@ -508,6 +509,114 @@ public class BlockCategories {
                 YELLOW_GLAZED_TERRACOTTA
         );
 
+        categorize(BlockCategory.TRANSPARENT,
+                ANVIL,
+                BAMBOO,
+                BEACON,
+                BARRIER,
+                FROSTED_ICE,
+                GLOWSTONE,
+                SEA_LANTERN,
+                SHULKER_BOX,
+                ICE,
+                LIT_PUMPKIN,
+                LEAVES,
+                LEAVES2,
+                REDSTONE_LAMP,
+                TNT,
+                OBSERVER,
+                BED,
+                BELL,
+                BREWING_STAND,
+                BUBBLE_COLUMN,
+                CACTUS,
+                CAKE,
+                CAMPFIRE,
+                CARPET,
+                CAULDRON,
+                CHAIN,
+                CHEST,
+                CHORUS_FLOWER,
+                WEB,
+                COCOA,
+                CONDUIT,
+                DRAGON_EGG,
+                ENCHANTING_TABLE,
+                END_ROD,
+                ENDER_CHEST,
+                TRAPPED_CHEST,
+                FARMLAND,
+                FLOWER_POT,
+                GLASS_PANE,
+                GRINDSTONE,
+                SKULL,
+                HONEY_BLOCK,
+                IRON_BARS,
+                LADDER,
+                LANTERN,
+                LECTERN,
+                WATERLILY,
+                SCAFFOLDING,
+                SEA_PICKLE,
+                SNOW,
+                SNOW_LAYER,
+                STONECUTTER,
+                SWEET_BERRY_BUSH,
+                TURTLE_EGG,
+                DAYLIGHT_DETECTOR,
+                HOPPER,
+                PISTON_ARM_COLLISION,
+                MOVING_BLOCK,
+                POWERED_REPEATER,
+                UNPOWERED_REPEATER,
+                POWERED_COMPARATOR,
+                UNPOWERED_COMPARATOR,
+                AIR,
+                WALL_BANNER,
+                STANDING_BANNER,
+                CORAL,
+                CORAL_FAN_HANG,
+                CORAL_FAN,
+                CORAL_FAN_HANG2,
+                CORAL_FAN_HANG3,
+                CORAL_FAN_DEAD,
+                DEADBUSH,
+                END_GATEWAY,
+                END_PORTAL,
+                FIRE,
+                DOUBLE_PLANT,
+                FIRE,
+                CRIMSON_FUNGUS,
+                WARPED_FUNGUS,
+                RED_FLOWER,
+                YELLOW_FLOWER,
+                TALL_GRASS,
+                LIGHT_BLOCK,
+                BROWN_MUSHROOM,
+                RED_MUSHROOM,
+                PORTAL,
+                NETHER_SPROUTS,
+                NETHER_WART,
+                CRIMSON_ROOTS,
+                WARPED_ROOTS,
+                SAPLING,
+                BAMBOO_SAPLING,
+                SEAGRASS,
+                STRUCTURE_VOID,
+                REEDS,
+                TORCH,
+                TWISTING_VINES,
+                VINE,
+                WEEPING_VINES,
+                LEVER,
+                REDSTONE_WIRE,
+                REDSTONE_TORCH,
+                TRIPWIRE,
+                TRIPWIRE_HOOK,
+                END_PORTAL_FRAME,
+                INVISIBLE_BEDROCK
+        );
+
         categorize(BlockCategory.STAIRS,
                 OAK_STAIRS,
                 ACACIA_STAIRS,
@@ -623,6 +732,102 @@ public class BlockCategories {
                 NETHER_WART,
                 CHORUS_PLANT
         );
+
+        categorize(BlockCategory.WALLS,
+                COBBLESTONE_WALL,
+                BLACKSTONE_WALL,
+                POLISHED_BLACKSTONE_BRICK_WALL,
+                POLISHED_BLACKSTONE_WALL
+        );
+
+        categorize(BlockCategory.SIGN,
+                WARPED_WALL_SIGN,
+                WARPED_STANDING_SIGN,
+                CRIMSON_STANDING_SIGN,
+                CRIMSON_WALL_SIGN,
+                SPRUCE_WALL_SIGN,
+                JUNGLE_WALL_SIGN,
+                DARK_OAK_WALL_SIGN,
+                BIRCH_WALL_SIGN,
+                ACACIA_WALL_SIGN,
+                SPRUCE_STANDING_SIGN,
+                JUNGLE_STANDING_SIGN,
+                DARK_OAK_STANDING_SIGN,
+                BIRCH_STANDING_SIGN,
+                ACACIA_STANDING_SIGN,
+                WALL_SIGN,
+                STANDING_SIGN
+        );
+
+        categorize(BlockCategory.STEM,
+                WARPED_STEM,
+                STRIPPED_WARPED_STEM,
+                STRIPPED_CRIMSON_STEM,
+                CRIMSON_STEM,
+                PUMPKIN_STEM,
+                MELON_STEM
+        );
+
+        categorize(BlockCategory.BUTTON,
+                WARPED_BUTTON,
+                POLISHED_BLACKSTONE_BUTTON,
+                CRIMSON_BUTTON,
+                SPRUCE_BUTTON,
+                JUNGLE_BUTTON,
+                DARK_OAK_BUTTON,
+                BIRCH_BUTTON,
+                ACACIA_BUTTON,
+                STONE_BUTTON,
+                WOODEN_BUTTON
+        );
+
+        categorize(BlockCategory.PRESSURE_PLATE,
+                WARPED_PRESSURE_PLATE,
+                SPRUCE_PRESSURE_PLATE,
+                POLISHED_BLACKSTONE_PRESSURE_PLATE,
+                LIGHT_WEIGHTED_PRESSURE_PLATE,
+                JUNGLE_PRESSURE_PLATE,
+                HEAVY_WEIGHTED_PRESSURE_PLATE,
+                DARK_OAK_PRESSURE_PLATE,
+                CRIMSON_PRESSURE_PLATE,
+                BIRCH_PRESSURE_PLATE,
+                ACACIA_PRESSURE_PLATE,
+                STONE_PRESSURE_PLATE,
+                WOODEN_PRESSURE_PLATE
+        );
+
+        categorize(BlockCategory.RAIL,
+                RAIL,
+                GOLDEN_RAIL,
+                ACTIVATOR_RAIL,
+                DETECTOR_RAIL
+        );
+
+
+        inherit(BlockCategory.TRANSPARENT,
+                BlockCategory.STAIRS,
+                BlockCategory.SLAB,
+                BlockCategory.FENCE,
+                BlockCategory.FENCE_GATE,
+                BlockCategory.WALLS,
+                BlockCategory.CROPS,
+                BlockCategory.DOOR,
+                BlockCategory.TRAPDOOR,
+                BlockCategory.SIGN,
+                BlockCategory.STEM,
+                BlockCategory.BUTTON,
+                BlockCategory.PRESSURE_PLATE,
+                BlockCategory.RAIL,
+                BlockCategory.LIQUID
+        );
+    }
+
+    public void inherit(BlockCategory parent, BlockCategory... children) {
+        val parentSet = categoryMap.get(parent);
+
+        for (BlockCategory child : children) {
+            parentSet.addAll(categoryMap.get(child));
+        }
     }
 
     public void categorize(BlockCategory category, Set<Identifier> types) {

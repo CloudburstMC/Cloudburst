@@ -13,5 +13,11 @@ public enum BlockCategory {
     LIQUID,
     CROPS,
     FENCE,
-    FENCE_GATE
+    FENCE_GATE,
+    WALLS,
+    SIGN,
+    STEM,
+    BUTTON,
+    PRESSURE_PLATE,
+    RAIL
 }
