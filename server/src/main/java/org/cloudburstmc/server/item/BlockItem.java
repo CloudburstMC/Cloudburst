@@ -11,7 +11,7 @@ import org.cloudburstmc.server.utils.Identifier;
  */
 public class BlockItem extends Item {
 
-    private final BlockState blockState;
+    private BlockState blockState;
 
     public BlockItem(BlockState blockState) {
         super(blockState.getType());
@@ -40,5 +40,10 @@ public class BlockItem extends Item {
         }
 
         return super.getMaxStackSize();
+    }
+
+    @Override
+    protected void onMetaChange(int newMeta) {
+        this.blockState = BlockStateMetaMappings.getStateFromMeta(this.getId(), newMeta);
     }
 }
