@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.server.block.BlockTypes.*;
@@ -98,10 +99,50 @@ public class BlockRegistry implements Registry {
         }
         checkClosed();
 
-        if (this.behaviorMap.putIfAbsent(id, behavior) != null)
-            throw new RegistryException(id + " is already registered");
+        synchronized (this.behaviorMap) {
+            if (this.behaviorMap.putIfAbsent(id, behavior) != null)
+                throw new RegistryException(id + " is already registered");
+        }
 
         this.palette.addBlock(id, serializer, traits);
+    }
+
+    /**
+     * Extends current behavior with delegated one provided by the factory.
+     * All methods are delegated to the previous {@link BlockBehavior} instance by default.
+     * <p>
+     * Extending behavior must extend {@link BlockBehaviorDelegate} class accepting
+     * parent behavior as a constructor parameter.
+     * Parent behavior instance is supplied as an argument to the factory function.
+     *
+     * @param type    identifier to register the behavior for
+     * @param factory factory providing BlockBehaviorDelegate instance
+     * @throws RegistryException if there's no behavior registered for the specified type
+     */
+    public void extendBehavior(Identifier type, Function<BlockBehavior, BlockBehaviorDelegate> factory) {
+        checkNotNull(type, "type");
+        checkNotNull(factory, "factory");
+
+        synchronized (this.behaviorMap) {
+            if (this.behaviorMap.computeIfPresent(type, (key, existing) -> factory.apply(existing)) == null) {
+                throw new RegistryException(type + " has not been registered");
+            }
+        }
+    }
+
+    /**
+     * Overwrites existing or registers new {@link BlockBehavior} instance if absent
+     *
+     * @param type     identifier to register the behavior for
+     * @param behavior overwriting behavior instance
+     */
+    public void overwriteBehavior(Identifier type, BlockBehavior behavior) {
+        checkNotNull(type, "type");
+        checkNotNull(behavior, behavior);
+
+        synchronized (this.behaviorMap) {
+            this.behaviorMap.put(type, behavior);
+        }
     }
 
     boolean isBlock(Identifier id) {
