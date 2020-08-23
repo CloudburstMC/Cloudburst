@@ -14,7 +14,7 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
-public abstract class BlockBehaviorButton extends FloodableBlockBehavior {
+public class BlockBehaviorButton extends FloodableBlockBehavior {
 
     protected final Identifier type;
 

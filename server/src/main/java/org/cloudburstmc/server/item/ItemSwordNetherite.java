@@ -2,19 +2,15 @@ package org.cloudburstmc.server.item;
 
 import org.cloudburstmc.server.utils.Identifier;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class ItemSwordIron extends ItemTool {
+public class ItemSwordNetherite extends ItemTool {
 
-    public ItemSwordIron(Identifier id) {
+    public ItemSwordNetherite(Identifier id) {
         super(id);
     }
 
     @Override
     public int getMaxDurability() {
-        return DURABILITY_IRON;
+        return ItemTool.DURABILITY_NETHERITE;
     }
 
     @Override
@@ -24,11 +20,11 @@ public class ItemSwordIron extends ItemTool {
 
     @Override
     public int getTier() {
-        return TIER_IRON;
+        return ItemTool.TIER_NETHERITE;
     }
 
     @Override
     public int getAttackDamage() {
-        return 7;
+        return 9;
     }
 }
