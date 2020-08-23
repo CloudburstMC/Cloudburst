@@ -119,7 +119,7 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (!block.getSide(block.getState().ensureTrait(BlockTraits.FACING_DIRECTION)).getState().inCategory(BlockCategory.SOLID)) {
+            if (!block.getSide(block.getState().ensureTrait(BlockTraits.FACING_DIRECTION).getOpposite()).getState().inCategory(BlockCategory.SOLID)) {
                 block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
