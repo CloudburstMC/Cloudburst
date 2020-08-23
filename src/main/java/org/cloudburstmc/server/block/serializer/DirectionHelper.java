@@ -129,10 +129,7 @@ public class DirectionHelper {
                 SPRUCE_STAIRS,
                 STONE_BRICK_STAIRS,
                 STONE_STAIRS,
-                WARPED_STAIRS
-        );
-
-        register(TYPE_5,
+                WARPED_STAIRS,
                 TRAPDOOR,
                 ACACIA_TRAPDOOR,
                 BIRCH_TRAPDOOR,
