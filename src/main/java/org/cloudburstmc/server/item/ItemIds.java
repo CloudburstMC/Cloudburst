@@ -238,4 +238,27 @@ public final class ItemIds {
     public static final Identifier SUSPICIOUS_STEW = Identifier.fromString("suspicious_stew");
     public static final Identifier HONEYCOMB = Identifier.fromString("honeycomb");
     public static final Identifier HONEY_BOTTLE = Identifier.fromString("honey_bottle");
+    public static final Identifier LODE_STONE_COMPASS = Identifier.fromString("lodestonecompass");
+    public static final Identifier NETHERITE_INGOT = Identifier.fromString("netherite_ingot");
+    public static final Identifier NETHERITE_SWORD = Identifier.fromString("netherite_sword");
+    public static final Identifier NETHERITE_SHOVEL = Identifier.fromString("netherite_shovel");
+    public static final Identifier NETHERITE_PICKAXE = Identifier.fromString("netherite_pickaxe");
+    public static final Identifier NETHERITE_AXE = Identifier.fromString("netherite_axe");
+    public static final Identifier NETHERITE_HOE = Identifier.fromString("netherite_hoe");
+    public static final Identifier NETHERITE_HELMET = Identifier.fromString("netherite_helmet");
+    public static final Identifier NETHERITE_CHESTPLATE = Identifier.fromString("netherite_chestplate");
+    public static final Identifier NETHERITE_LEGGINGS = Identifier.fromString("netherite_leggings");
+    public static final Identifier NETHERITE_BOOTS = Identifier.fromString("netherite_boots");
+    public static final Identifier NETHERITE_SCRAP = Identifier.fromString("netherite_scrap");
+    public static final Identifier CRIMSON_SIGN = Identifier.fromString("crimson_sign");
+    public static final Identifier WARPED_SIGN = Identifier.fromString("warped_sign");
+    public static final Identifier CRIMSON_DOOR = Identifier.fromString("crimson_door");
+    public static final Identifier WARPED_DOOR = Identifier.fromString("warped_door");
+    public static final Identifier WARPED_FUNGUS_ON_STICK = Identifier.fromString("warped_fungus_on_a_stick");
+    public static final Identifier CHAIN = Identifier.fromString("chain");
+    public static final Identifier RECORD_PIGSTEP = Identifier.fromString("record_pigstep");
+    public static final Identifier NETHER_SPROUDS = Identifier.fromString("nether_sprouds");
+    public static final Identifier SOUL_CAMPFIRE = Identifier.fromString("soul_campfire");
+    public static final Identifier BOARD = Identifier.fromString("board");
+    public static final Identifier PORTFOLIO = Identifier.fromString("portfolio");
 }

@@ -426,6 +426,21 @@ public class ItemRegistry implements Registry {
 
         registerVanilla(ItemIds.HONEYCOMB, SimpleItem::new, 736);
         registerVanilla(ItemIds.HONEY_BOTTLE, ItemHoneyBottle::new, 737);
+
+        registerVanilla(ItemIds.NETHERITE_SWORD, ItemSwordNetherite::new, 743);
+        registerVanilla(ItemIds.NETHERITE_SHOVEL, ItemShovelNetherite::new, 744);
+        registerVanilla(ItemIds.NETHERITE_PICKAXE, ItemPickaxeNetherite::new, 745);
+        registerVanilla(ItemIds.NETHERITE_AXE, ItemAxeNetherite::new, 746);
+        registerVanilla(ItemIds.NETHERITE_HOE, ItemHoeNetherite::new, 747);
+        registerVanilla(ItemIds.NETHERITE_HELMET, ItemHelmetNetherite::new, 748);
+        registerVanilla(ItemIds.NETHERITE_CHESTPLATE, ItemChestplateNetherite::new, 749);
+        registerVanilla(ItemIds.NETHERITE_LEGGINGS, ItemLeggingsNetherite::new, 750);
+        registerVanilla(ItemIds.NETHERITE_BOOTS, ItemBootsNetherite::new, 751);
+
+        registerVanilla(ItemIds.CRIMSON_SIGN, PlaceableItem.factory(BlockTypes.CRIMSON_STANDING_SIGN), 753);
+        registerVanilla(ItemIds.WARPED_SIGN, PlaceableItem.factory(BlockTypes.WARPED_STANDING_SIGN), 754);
+        registerVanilla(ItemIds.CRIMSON_DOOR, PlaceableItem.factory(BlockTypes.CRIMSON_DOOR), 755);
+        registerVanilla(ItemIds.WARPED_DOOR, PlaceableItem.factory(BlockTypes.WARPED_DOOR), 756);
     }
 
     @Getter

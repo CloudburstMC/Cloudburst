@@ -18,6 +18,10 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     protected Identifier slabType;
     protected BlockTrait typeTrait;
 
+    public BlockBehaviorDoubleSlab(Identifier slabType) {
+        this(slabType, null);
+    }
+
     public BlockBehaviorDoubleSlab(Identifier slabType, BlockTrait<?> typeTrait) {
         this.slabType = slabType;
         this.typeTrait = typeTrait;
@@ -46,7 +50,12 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     @Override
     public Item[] getDrops(Block block, Item hand) {
         if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{ItemRegistry.get().getItem(BlockState.get(slabType).withTrait(typeTrait, block.getState().ensureTrait(typeTrait)))};
+            BlockState state = BlockState.get(slabType);
+            if (typeTrait != null) {
+                state = state.withTrait(typeTrait, block.getState().ensureTrait(typeTrait));
+            }
+
+            return new Item[]{ItemRegistry.get().getItem(state)};
         } else {
             return new Item[0];
         }
