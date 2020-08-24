@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.registry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
@@ -18,6 +19,7 @@ import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityFactory;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.Human;
+import org.cloudburstmc.server.entity.impl.UnknownEntity;
 import org.cloudburstmc.server.entity.impl.hostile.*;
 import org.cloudburstmc.server.entity.impl.misc.*;
 import org.cloudburstmc.server.entity.impl.passive.*;
@@ -44,6 +46,9 @@ public class EntityRegistry implements Registry {
 
     private static final BiMap<String, Identifier> LEGACY_NAMES;
     private static final List<NbtMap> VANILLA_ENTITIES;
+
+    private static final EntityData<UnknownEntity> UNKNOWN_ENTITY_DATA =
+            new EntityData<>(false, new RegistryProvider<>(UnknownEntity::new, null, 0));
 
     static {
         try (InputStream stream = RegistryUtils.getOrAssertResource("legacy/entity_names.json")) {
@@ -134,7 +139,8 @@ public class EntityRegistry implements Registry {
     }
 
     public EntityType<?> getEntityType(Identifier identifier) {
-        return identifierTypeMap.get(identifier);
+        Preconditions.checkArgument(this.closed, "Cannot get entity type during registration");
+        return this.identifierTypeMap.computeIfAbsent(identifier, id -> EntityType.from(id, UnknownEntity.class));
     }
 
     /**
@@ -202,7 +208,10 @@ public class EntityRegistry implements Registry {
     private <T extends Entity> RegistryServiceProvider<EntityFactory<T>> getServiceProvider(EntityType<T> type) {
         EntityData<T> entityData = (EntityData<T>) this.dataMap.get(type);
         if (entityData == null) {
-            throw new RegistryException(type.getIdentifier() + " is not a registered entity");
+            if (type.getEntityClass() != UnknownEntity.class) {
+                throw new RegistryException(type.getIdentifier() + " is not a registered entity");
+            }
+            entityData = (EntityData<T>) UNKNOWN_ENTITY_DATA;
         }
         return entityData.serviceProvider;
     }
