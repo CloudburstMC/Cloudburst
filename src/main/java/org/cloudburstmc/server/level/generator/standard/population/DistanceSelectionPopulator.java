@@ -18,7 +18,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class DistanceSelectionPopulator extends AbstractGenerationPass implements Populator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:distance");
+    public static final Identifier ID = Identifier.fromString("cloudburst:distance");
 
     protected double minSq;
     protected double maxSq;

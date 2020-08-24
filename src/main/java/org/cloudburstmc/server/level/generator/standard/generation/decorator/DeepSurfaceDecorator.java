@@ -21,7 +21,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class DeepSurfaceDecorator extends SurfaceDecorator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:surface_deep");
+    public static final Identifier ID = Identifier.fromString("cloudburst:surface_deep");
 
     @JsonProperty
     protected BlockState deep = null;

@@ -57,7 +57,7 @@ public class NukkitConsole extends SimpleTerminalConsole {
     @Override
     protected LineReader buildReader(LineReaderBuilder builder) {
         builder.completer(new NukkitConsoleCompleter(server));
-        builder.appName("Nukkit");
+        builder.appName("Cloudburst");
         builder.option(LineReader.Option.HISTORY_BEEP, false);
         builder.option(LineReader.Option.HISTORY_IGNORE_DUPS, true);
         builder.option(LineReader.Option.HISTORY_IGNORE_SPACE, true);

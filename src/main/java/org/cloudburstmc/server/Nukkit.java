@@ -141,11 +141,11 @@ public class Nukkit {
 
         try {
             if (TITLE) {
-                System.out.print((char) 0x1b + "]0;Nukkit is starting up..." + (char) 0x07);
+                System.out.print((char) 0x1b + "]0;Cloudburst is starting up..." + (char) 0x07);
             }
             server.boot();
         } catch (Throwable t) {
-            log.fatal("Nukkit crashed", t);
+            log.fatal("Cloudburst crashed", t);
         }
 
         if (TITLE) {

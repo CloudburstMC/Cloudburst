@@ -15,7 +15,7 @@ import java.util.Collection;
  */
 @JsonDeserialize
 public class SmoothBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("nukkitx:smooth");
+    public static final Identifier ID = Identifier.fromString("cloudburst:smooth");
 
     @Override
     public Collection<GenerationBiome> getAllBiomes() {

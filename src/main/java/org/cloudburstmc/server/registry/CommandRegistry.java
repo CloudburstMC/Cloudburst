@@ -269,7 +269,7 @@ public class CommandRegistry implements Registry {
         checkClosed();
 
         // Want to do this after all plugins have registered thier commands,
-        // so the aliases defined in nukkit.yml can use the plugin commands
+        // so the aliases defined in cloudburst.yml can use the plugin commands
         this.registerServerAliases(Server.getInstance());
         this.closed = true;
         this.registeredCommands = ImmutableMap.copyOf(this.registeredCommands);

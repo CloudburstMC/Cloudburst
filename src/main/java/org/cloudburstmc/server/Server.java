@@ -325,7 +325,7 @@ public class Server {
 
         this.consoleThread.start();
 
-        if (!new File(this.dataPath + "nukkit.yml").exists()) {
+        if (!new File(this.dataPath + "cloudburst.yml").exists()) {
             log.info(TextFormat.GREEN + "Welcome! Please choose a language first!");
 
             for (Locale locale : localeManager.getAvailableLocales()) {
@@ -347,8 +347,8 @@ public class Server {
                     "locale/cloudburst/configs");
             configLocaleManager.setLocale(locale);
 
-            File configFile = new File(this.dataPath + "nukkit.yml");
-            InputStream stream = Nukkit.class.getClassLoader().getResourceAsStream("nukkit.yml");
+            File configFile = new File(this.dataPath + "cloudburst.yml");
+            InputStream stream = Nukkit.class.getClassLoader().getResourceAsStream("cloudburst.yml");
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
                  BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile)))) {
                 String line;
@@ -363,8 +363,8 @@ public class Server {
 
         this.console.setExecutingCommands(true);
 
-        log.info("Loading {} ...", TextFormat.GREEN + "nukkit.yml" + TextFormat.WHITE);
-        this.config = new Config(this.dataPath + "nukkit.yml", Config.YAML);
+        log.info("Loading {} ...", TextFormat.GREEN + "cloudburst.yml" + TextFormat.WHITE);
+        this.config = new Config(this.dataPath + "cloudburst.yml", Config.YAML);
 
         ignoredPackets.addAll(getConfig().getStringList("debug.ignored-packets"));
 
@@ -1033,7 +1033,7 @@ public class Server {
     }
 
     public String getName() {
-        return "Nukkit";
+        return "Cloudburst";
     }
 
     public boolean isRunning() {

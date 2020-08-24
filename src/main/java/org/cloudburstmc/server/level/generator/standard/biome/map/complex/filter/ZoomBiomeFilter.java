@@ -16,7 +16,7 @@ import java.util.Collection;
  */
 @JsonDeserialize
 public class ZoomBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("nukkitx:zoom");
+    public static final Identifier ID = Identifier.fromString("cloudburst:zoom");
 
     @JsonProperty
     protected int times = 1;

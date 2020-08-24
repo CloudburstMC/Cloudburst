@@ -140,8 +140,8 @@ public class TimingsExport extends Thread {
         if (!Timings.getIgnoredConfigSections().contains("all")) {
             Map<String, Object> section = new LinkedHashMap<>(Server.getInstance().getConfig().getRootSection());
             Timings.getIgnoredConfigSections().forEach(section::remove);
-            JsonNode nukkit = JsonUtil.toObject(section);
-            config.set("cloudburst", nukkit);
+            JsonNode cloudburst = JsonUtil.toObject(section);
+            config.set("cloudburst", cloudburst);
         } else {
             config.set("cloudburst", null);
         }
@@ -196,7 +196,7 @@ public class TimingsExport extends Thread {
         try {
             HttpURLConnection con = (HttpURLConnection) new URL("http://timings.aikar.co/post").openConnection();
             con.setDoOutput(true);
-            con.setRequestProperty("User-Agent", "Nukkit/" + Server.getInstance().getName() + "/" + InetAddress.getLocalHost().getHostName());
+            con.setRequestProperty("User-Agent", "Cloudburst/" + Server.getInstance().getName() + "/" + InetAddress.getLocalHost().getHostName());
             con.setRequestMethod("POST");
             con.setInstanceFollowRedirects(false);
 

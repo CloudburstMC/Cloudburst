@@ -19,7 +19,7 @@ import org.cloudburstmc.server.utils.Identifier;
  */
 @JsonDeserialize
 public class SurfaceDecorator extends DepthNoiseDecorator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:surface");
+    public static final Identifier ID = Identifier.fromString("cloudburst:surface");
 
     @JsonProperty
     protected IntRange height = null;
