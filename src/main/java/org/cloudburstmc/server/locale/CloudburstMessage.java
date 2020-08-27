@@ -4,7 +4,7 @@ import org.apache.logging.log4j.message.FormattedMessage;
 
 import java.util.Locale;
 
-public class NukkitMessage extends FormattedMessage {
+public class CloudburstMessage extends FormattedMessage {
 
     /**
      * Constructs with a locale, a pattern and a single parameter.
@@ -14,7 +14,7 @@ public class NukkitMessage extends FormattedMessage {
      * @param arg            The parameter.
      * @since 2.6
      */
-    public NukkitMessage(final Locale locale, final String messagePattern, final Object arg) {
+    public CloudburstMessage(final Locale locale, final String messagePattern, final Object arg) {
         super(locale, messagePattern, arg);
     }
 
@@ -27,7 +27,7 @@ public class NukkitMessage extends FormattedMessage {
      * @param arg2           The second parameter.
      * @since 2.6
      */
-    public NukkitMessage(final Locale locale, final String messagePattern, final Object arg1, final Object arg2) {
+    public CloudburstMessage(final Locale locale, final String messagePattern, final Object arg1, final Object arg2) {
         super(locale, messagePattern, arg1, arg2);
     }
 
@@ -39,7 +39,7 @@ public class NukkitMessage extends FormattedMessage {
      * @param arguments      The parameter.
      * @since 2.6
      */
-    public NukkitMessage(final Locale locale, final String messagePattern, final Object... arguments) {
+    public CloudburstMessage(final Locale locale, final String messagePattern, final Object... arguments) {
         super(locale, messagePattern, arguments);
     }
 
@@ -52,7 +52,7 @@ public class NukkitMessage extends FormattedMessage {
      * @param throwable      The throwable
      * @since 2.6
      */
-    public NukkitMessage(final Locale locale, final String messagePattern, final Object[] arguments, final Throwable throwable) {
+    public CloudburstMessage(final Locale locale, final String messagePattern, final Object[] arguments, final Throwable throwable) {
         super(locale, messagePattern, arguments, throwable);
     }
 
@@ -62,7 +62,7 @@ public class NukkitMessage extends FormattedMessage {
      * @param messagePattern The message pattern.
      * @param arg            The parameter.
      */
-    public NukkitMessage(final String messagePattern, final Object arg) {
+    public CloudburstMessage(final String messagePattern, final Object arg) {
         super(messagePattern, arg);
     }
 
@@ -73,7 +73,7 @@ public class NukkitMessage extends FormattedMessage {
      * @param arg1           The first parameter.
      * @param arg2           The second parameter.
      */
-    public NukkitMessage(final String messagePattern, final Object arg1, final Object arg2) {
+    public CloudburstMessage(final String messagePattern, final Object arg1, final Object arg2) {
         super(messagePattern, arg1, arg2);
     }
 
@@ -83,7 +83,7 @@ public class NukkitMessage extends FormattedMessage {
      * @param messagePattern The message pattern.
      * @param arguments      The parameter.
      */
-    public NukkitMessage(final String messagePattern, final Object... arguments) {
+    public CloudburstMessage(final String messagePattern, final Object... arguments) {
         super(messagePattern, arguments);
     }
 
@@ -94,7 +94,7 @@ public class NukkitMessage extends FormattedMessage {
      * @param arguments      The parameter.
      * @param throwable      The throwable
      */
-    public NukkitMessage(final String messagePattern, final Object[] arguments, final Throwable throwable) {
+    public CloudburstMessage(final String messagePattern, final Object[] arguments, final Throwable throwable) {
         super(messagePattern, arguments, throwable);
     }
 

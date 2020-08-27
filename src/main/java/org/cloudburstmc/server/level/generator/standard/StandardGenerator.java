@@ -43,14 +43,14 @@ import java.util.stream.Stream;
 import static net.daporkchop.lib.common.util.PorkUtil.fallbackIfNull;
 
 /**
- * Main class of the NukkitX Standard Generator.
+ * Main class of the Cloudburst Standard Generator.
  *
  * @author DaPorkchop_
  */
 @NoArgsConstructor
 @Accessors(fluent = true)
 public final class StandardGenerator implements Generator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:standard");
+    public static final Identifier ID = Identifier.fromString("cloudburst:standard");
 
     private static final String DEFAULT_PRESET = "minecraft:overworld";
 

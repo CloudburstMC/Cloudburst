@@ -12,7 +12,7 @@ public interface GenerationPass {
     /**
      * Prepares this instance for actual generation.
      *
-     * @param levelSeed the level seed, as defined in nukkit.yml
+     * @param levelSeed the level seed, as defined in cloudburst.yml
      * @param localSeed a seed defined specifically for this generation pass
      * @param generator the instance of {@link StandardGenerator} that this generation pass will be used by
      */

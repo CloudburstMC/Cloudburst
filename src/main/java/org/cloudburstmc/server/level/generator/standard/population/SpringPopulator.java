@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class SpringPopulator extends AbstractReplacingPopulator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:spring");
+    public static final Identifier ID = Identifier.fromString("cloudburst:spring");
 
     @JsonProperty
     protected IntRange height = IntRange.WHOLE_WORLD;

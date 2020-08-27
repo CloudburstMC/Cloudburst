@@ -21,7 +21,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class GroundCoverDecorator implements Decorator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:cover");
+    public static final Identifier ID = Identifier.fromString("cloudburst:cover");
 
     @JsonProperty
     protected BlockFilter on;

@@ -5,17 +5,17 @@ elevationVanilla:
   variation: 0.025
 
 decorators:
-  - id: "nukkitx:surface_deep"
+  - id: "cloudburst:surface_deep"
     top: "sand"
     filler: "sand"
     deep: "sandstone"
     deepSize: "1-4"
 
 populators:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"
 
     # Sugar cane
-  - id: "nukkitx:plant"
+  - id: "cloudburst:plant"
     chance: 0.0390625 # about 10 per chunk
     patchSize: 20
     height: "1-3"

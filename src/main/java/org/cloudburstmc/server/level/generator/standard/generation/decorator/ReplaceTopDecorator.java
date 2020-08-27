@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class ReplaceTopDecorator implements Decorator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:replace_top");
+    public static final Identifier ID = Identifier.fromString("cloudburst:replace_top");
 
     @JsonProperty
     protected BlockFilter replace;

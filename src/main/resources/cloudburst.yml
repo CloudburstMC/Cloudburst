@@ -120,8 +120,8 @@ aliases:
 # %worlds
 worlds:
   world:
-    generator: nukkitx:standard
+    generator: cloudburst:standard
     options: overworld
   nether:
-    generator: nukkitx:standard
+    generator: cloudburst:standard
     options: nether

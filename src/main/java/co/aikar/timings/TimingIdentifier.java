@@ -29,7 +29,7 @@ import java.util.Map;
 
 class TimingIdentifier {
     static final Map<String, TimingGroup> GROUP_MAP = new IdentityHashMap<>(64);
-    static final TimingGroup DEFAULT_GROUP = getGroup("Nukkit");
+    static final TimingGroup DEFAULT_GROUP = getGroup("Cloudburst");
 
     final String group;
     final String name;

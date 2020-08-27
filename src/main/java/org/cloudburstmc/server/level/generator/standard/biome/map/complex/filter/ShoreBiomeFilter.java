@@ -23,7 +23,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class ShoreBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("nukkitx:shore");
+    public static final Identifier ID = Identifier.fromString("cloudburst:shore");
 
     protected final IntSet oceanBiomes = new IntOpenHashSet();
     protected final Int2IntMap replacements = new Int2IntOpenHashMap();

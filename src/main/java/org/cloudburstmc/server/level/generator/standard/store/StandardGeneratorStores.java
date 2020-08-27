@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.ref.Ref;
 
 /**
- * Stores for the various different cacheable resources required for parsing the config for the NukkitX standard generator.
+ * Stores for the various different cacheable resources required for parsing the config for the Cloudburst standard generator.
  *
  * @author DaPorkchop_
  */

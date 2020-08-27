@@ -26,7 +26,7 @@ import java.util.Set;
  */
 @JsonDeserialize
 public final class ComplexBiomeMap extends AbstractGenerationPass implements BiomeMap {
-    public static final Identifier ID = Identifier.fromString("nukkitx:complex");
+    public static final Identifier ID = Identifier.fromString("cloudburst:complex");
 
     @JsonProperty
     protected BiomeFilter root;
