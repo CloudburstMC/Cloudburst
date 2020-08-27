@@ -2,10 +2,13 @@ package org.cloudburstmc.server.metadata;
 
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 
+import javax.inject.Singleton;
+
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
+@Singleton
 public class EntityMetadataStore extends MetadataStore {
 
     @Override

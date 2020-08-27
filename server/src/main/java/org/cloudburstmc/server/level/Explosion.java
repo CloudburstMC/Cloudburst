@@ -135,7 +135,7 @@ public class Explosion {
 
         if (this.what instanceof Entity) {
             EntityExplodeEvent ev = new EntityExplodeEvent((Entity) this.what, this.source, this.affectedBlockStates, yield);
-            this.level.getServer().getPluginManager().callEvent(ev);
+            this.level.getServer().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return false;
             } else {
@@ -201,7 +201,7 @@ public class Explosion {
                 long index = Hash.hashBlock(sidePos.getX(), sidePos.getY(), sidePos.getZ());
                 if (!this.affectedBlockStates.contains(sideBlock) && !updateBlocks.contains(index)) {
                     BlockUpdateEvent ev = new BlockUpdateEvent(sideBlock);
-                    this.level.getServer().getPluginManager().callEvent(ev);
+                    this.level.getServer().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         val b = ev.getBlock();
                         b.getState().getBehavior().onUpdate(b, Level.BLOCK_UPDATE_NORMAL);

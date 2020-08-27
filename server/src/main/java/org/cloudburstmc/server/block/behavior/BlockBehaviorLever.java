@@ -49,7 +49,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
         val state = block.getState();
 
         boolean powerOn = isPowerOn(state);
-        level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, powerOn ? 15 : 0, powerOn ? 0 : 15));
+        level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, powerOn ? 15 : 0, powerOn ? 0 : 15));
 
 
         block.set(state.toggleTrait(BlockTraits.IS_OPEN));

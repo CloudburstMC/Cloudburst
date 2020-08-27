@@ -7,11 +7,7 @@ import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
 import lombok.val;
 import lombok.var;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.block.BlockFromToEvent;
 import org.cloudburstmc.server.event.block.LiquidFlowEvent;
@@ -247,7 +243,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                         to = BlockState.get(flowingId).withTrait(BlockTraits.FLUID_LEVEL, decay); //TODO: check
                     }
                     BlockFromToEvent event = new BlockFromToEvent(block, to);
-                    level.getServer().getPluginManager().callEvent(event);
+                    level.getServer().getEventManager().fire(event);
                     if (!event.isCancelled()) {
                         block.set(event.getTo(), 1, true, true);
 
@@ -307,7 +303,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 }
             }
             LiquidFlowEvent event = new LiquidFlowEvent(state, block, newFlowDecay);
-            level.getServer().getPluginManager().callEvent(event);
+            level.getServer().getEventManager().fire(event);
             if (!event.isCancelled()) {
                 if (state.getType() != AIR) {
                     level.useBreakOn(block.getPosition());
@@ -474,7 +470,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     protected boolean liquidCollide(Block cause, BlockState result) {
         BlockFromToEvent event = new BlockFromToEvent(cause, result);
-        cause.getLevel().getServer().getPluginManager().callEvent(event);
+        cause.getLevel().getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
         }

@@ -1,11 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -53,7 +49,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
         if (type == Level.BLOCK_UPDATE_RANDOM) {
             if (block.getLevel().getBlockLightAt(block.getX(), block.getY(), block.getZ()) >= 10) {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockStates.AIR);
-                block.getLevel().getServer().getPluginManager().callEvent(event);
+                block.getLevel().getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
                     block.set(event.getNewState());
                 }

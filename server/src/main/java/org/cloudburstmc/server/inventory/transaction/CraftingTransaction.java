@@ -142,7 +142,7 @@ public class CraftingTransaction extends InventoryTransaction {
     protected boolean callExecuteEvent() {
         CraftItemEvent ev;
 
-        this.source.getServer().getPluginManager().callEvent(ev = new CraftItemEvent(this));
+        this.source.getServer().getEventManager().fire(ev = new CraftItemEvent(this));
         return !ev.isCancelled();
     }
 

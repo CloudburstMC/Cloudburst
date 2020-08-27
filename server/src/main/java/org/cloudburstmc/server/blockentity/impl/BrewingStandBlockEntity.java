@@ -174,7 +174,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             if (this.cookTime == MAX_COOK_TIME) {
                 this.sendBrewTime();
                 StartBrewEvent e = new StartBrewEvent(this);
-                this.server.getPluginManager().callEvent(e);
+                this.server.getEventManager().fire(e);
 
                 if (e.isCancelled()) {
                     return false;
@@ -185,7 +185,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
             if (this.cookTime <= 0) { //20 seconds
                 BrewEvent e = new BrewEvent(this);
-                this.server.getPluginManager().callEvent(e);
+                this.server.getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
                     for (int i = 1; i <= 3; i++) {

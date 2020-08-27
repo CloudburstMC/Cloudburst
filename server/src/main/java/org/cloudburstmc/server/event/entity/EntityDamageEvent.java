@@ -3,7 +3,6 @@ package org.cloudburstmc.server.event.entity;
 import com.google.common.collect.ImmutableMap;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.EventException;
 
@@ -15,11 +14,6 @@ import java.util.Map;
  * Nukkit Project
  */
 public class EntityDamageEvent extends EntityEvent implements Cancellable {
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private int attackCooldown = 10;
     private final DamageCause cause;

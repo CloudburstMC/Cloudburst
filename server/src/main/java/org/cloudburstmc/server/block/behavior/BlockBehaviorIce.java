@@ -56,7 +56,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
         if (type == Level.BLOCK_UPDATE_RANDOM) {
             if (block.getLevel().getBlockLightAt(block.getX(), block.getY(), block.getZ()) >= 12) {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.WATER));
-                block.getLevel().getServer().getPluginManager().callEvent(event);
+                block.getLevel().getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
                     block.getLevel().setBlock(block.getPosition(), event.getNewState(), true);
                 }

@@ -77,7 +77,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 bucket.setMeta(8);//water bucket
 
                 PlayerBucketFillEvent ev = new PlayerBucketFillEvent(player, block, null, item, bucket);
-                block.getLevel().getServer().getPluginManager().callEvent(ev);
+                block.getLevel().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     replaceBucket(item, player, ev.getItem());
 
@@ -96,7 +96,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 bucket.setMeta(0);//empty bucket
 
                 PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, block, null, item, bucket);
-                block.getLevel().getServer().getPluginManager().callEvent(ev);
+                block.getLevel().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     replaceBucket(item, player, ev.getItem());
 

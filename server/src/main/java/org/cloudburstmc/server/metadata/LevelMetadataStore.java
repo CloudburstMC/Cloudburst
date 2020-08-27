@@ -2,10 +2,13 @@ package org.cloudburstmc.server.metadata;
 
 import org.cloudburstmc.server.level.Level;
 
+import javax.inject.Singleton;
+
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
+@Singleton
 public class LevelMetadataStore extends MetadataStore {
 
     @Override

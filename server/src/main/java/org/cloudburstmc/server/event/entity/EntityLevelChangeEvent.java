@@ -2,7 +2,6 @@ package org.cloudburstmc.server.event.entity;
 
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.level.Level;
 
 /**
@@ -10,11 +9,6 @@ import org.cloudburstmc.server.level.Level;
  * Nukkit Project
  */
 public class EntityLevelChangeEvent extends EntityEvent implements Cancellable {
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final Level originLevel;
     private final Level targetLevel;

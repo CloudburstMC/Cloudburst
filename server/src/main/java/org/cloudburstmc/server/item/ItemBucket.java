@@ -98,7 +98,7 @@ public class ItemBucket extends Item {
             if (liquid.inCategory(BlockCategory.LIQUID) && liquid.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
                 Item result = Item.get(ItemIds.BUCKET, this.getDamageFromIdentifier(liquid.getType()), 1);
                 PlayerBucketFillEvent ev;
-                player.getServer().getPluginManager().callEvent(ev = new PlayerBucketFillEvent(player, block, face, this, result));
+                player.getServer().getEventManager().fire(ev = new PlayerBucketFillEvent(player, block, face, this, result));
                 if (!ev.isCancelled()) {
                     target.set(BlockStates.AIR, true);
 
@@ -149,7 +149,7 @@ public class ItemBucket extends Item {
                 ev.setCancelled(true);
             }
 
-            player.getServer().getPluginManager().callEvent(ev);
+            player.getServer().getEventManager().fire(ev);
 
             if (!ev.isCancelled()) {
                 int layer = behavior.canWaterlogSource() ? 1 : 0;
@@ -190,7 +190,7 @@ public class ItemBucket extends Item {
     public boolean onUse(Player player, int ticksUsed) {
         PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, this);
 
-        player.getServer().getPluginManager().callEvent(consumeEvent);
+        player.getServer().getEventManager().fire(consumeEvent);
         if (consumeEvent.isCancelled()) {
             player.getInventory().sendContents(player);
             return false;

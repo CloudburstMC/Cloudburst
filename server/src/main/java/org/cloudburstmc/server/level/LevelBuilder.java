@@ -12,7 +12,6 @@ import org.cloudburstmc.server.utils.Identifier;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -66,7 +65,7 @@ public class LevelBuilder {
         if (loadedLevel != null) {
             return CompletableFuture.completedFuture(loadedLevel);
         }
-        final Path worldsPath = Paths.get(server.getDataPath()).resolve("worlds");
+        final Path worldsPath = server.getDataPath().resolve("worlds");
 
         // If storageId isn't set detect or set default.
         if (storageId == null) {

@@ -57,7 +57,7 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
                 if (b.up().getState().inCategory(BlockCategory.TRANSPARENT)) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(MYCELIUM));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         b.set(ev.getNewState());
                     }

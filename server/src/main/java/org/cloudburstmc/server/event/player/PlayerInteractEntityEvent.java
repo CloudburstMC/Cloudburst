@@ -3,7 +3,6 @@ package org.cloudburstmc.server.event.player;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.player.Player;
 
@@ -11,9 +10,6 @@ import org.cloudburstmc.server.player.Player;
  * Created by CreeperFace on 1. 1. 2017.
  */
 public class PlayerInteractEntityEvent extends PlayerEvent implements Cancellable {
-
-
-    private static final HandlerList handlers = new HandlerList();
 
     protected final Entity entity;
     protected final Item item;
@@ -36,9 +32,5 @@ public class PlayerInteractEntityEvent extends PlayerEvent implements Cancellabl
 
     public Vector3f getClickedPos() {
         return clickedPos;
-    }
-
-    public static HandlerList getHandlers() {
-        return handlers;
     }
 }

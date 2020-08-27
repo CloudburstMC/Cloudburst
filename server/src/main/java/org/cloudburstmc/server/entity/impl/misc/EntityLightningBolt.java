@@ -54,7 +54,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                 if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
 
                     BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
-                    getServer().getPluginManager().callEvent(e);
+                    getServer().getEventManager().fire(e);
 
                     if (!e.isCancelled()) {
                         val fire = BlockState.get(BlockTypes.FIRE);
@@ -121,7 +121,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
 
                     if (state.getType() == AIR || state.getType() == TALL_GRASS) {
                         BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
-                        getServer().getPluginManager().callEvent(e);
+                        getServer().getEventManager().fire(e);
 
                         if (!e.isCancelled()) {
                             BlockState fire = BlockState.get(BlockTypes.FIRE);

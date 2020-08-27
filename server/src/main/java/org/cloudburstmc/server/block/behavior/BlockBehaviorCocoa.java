@@ -165,7 +165,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
             BlockState cocoa = block.getState().incrementTrait(BlockTraits.AGE);
 
             BlockGrowEvent ev = new BlockGrowEvent(block, cocoa);
-            Server.getInstance().getPluginManager().callEvent(ev);
+            Server.getInstance().getEventManager().fire(ev);
 
             if (!ev.isCancelled()) {
                 block.set(ev.getNewState(), true, true);

@@ -41,7 +41,7 @@ public class ItemSpawnEgg extends Item {
                 ThreadLocalRandom.current().nextFloat() * 360, 0, level);
         CreatureSpawnEvent ev = new CreatureSpawnEvent(EntityRegistry.get().getEntityType(this.getMeta()), // FIXME: 04/01/2020 Use string identifier in NBT
                 location, CreatureSpawnEvent.SpawnReason.SPAWN_EGG);
-        level.getServer().getPluginManager().callEvent(ev);
+        level.getServer().getEventManager().fire(ev);
 
         if (ev.isCancelled()) {
             return false;

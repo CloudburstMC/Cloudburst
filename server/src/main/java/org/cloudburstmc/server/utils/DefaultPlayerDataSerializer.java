@@ -4,7 +4,11 @@ import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.Server;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,20 +18,18 @@ public class DefaultPlayerDataSerializer implements PlayerDataSerializer {
 
     @Override
     public Optional<InputStream> read(String name, UUID uuid) throws IOException {
-        String path = server.getDataPath() + "players/" + name + ".dat";
-        File file = new File(path);
-        if (!file.exists()) {
+        Path path = server.getDataPath().resolve("players/" + name + ".dat");
+        if (Files.notExists(path)) {
             return Optional.empty();
         }
-        return Optional.of(new FileInputStream(file));
+        return Optional.of(Files.newInputStream(path));
 
     }
 
     @Override
     public OutputStream write(String name, UUID uuid) throws IOException {
         Preconditions.checkNotNull(name, "name");
-        String path = server.getDataPath() + "players/" + name + ".dat";
-        File file = new File(path);
-        return new FileOutputStream(file);
+        Path path = server.getDataPath().resolve("players/" + name + ".dat");
+        return Files.newOutputStream(path);
     }
 }

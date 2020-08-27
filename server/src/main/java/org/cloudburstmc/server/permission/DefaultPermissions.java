@@ -7,6 +7,7 @@ import org.cloudburstmc.server.Server;
  * Nukkit Project
  */
 public abstract class DefaultPermissions {
+
     public static final String ROOT = "cloudburst";
 
     public static Permission registerPermission(Permission perm) {
@@ -17,9 +18,11 @@ public abstract class DefaultPermissions {
         if (parent != null) {
             parent.getChildren().put(perm.getName(), true);
         }
-        Server.getInstance().getPluginManager().addPermission(perm);
 
-        return Server.getInstance().getPluginManager().getPermission(perm.getName());
+        Server.getInstance().getPermissionManager().addPermission(perm);
+
+        //noinspection OptionalGetWithoutIsPresent
+        return Server.getInstance().getPermissionManager().getPermission(perm.getName()).get();
     }
 
     public static void registerCorePermissions() {

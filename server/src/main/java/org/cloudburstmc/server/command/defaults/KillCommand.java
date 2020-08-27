@@ -50,7 +50,7 @@ public class KillCommand extends Command {
             Player player = sender.getServer().getPlayer(args[0]);
             if (player != null) {
                 EntityDamageEvent ev = new EntityDamageEvent(player, EntityDamageEvent.DamageCause.SUICIDE, 1000);
-                sender.getServer().getPluginManager().callEvent(ev);
+                sender.getServer().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return true;
                 }
@@ -75,7 +75,7 @@ public class KillCommand extends Command {
                     return true;
                 }
                 EntityDamageEvent ev = new EntityDamageEvent((Player) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
-                sender.getServer().getPluginManager().callEvent(ev);
+                sender.getServer().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return true;
                 }
@@ -106,7 +106,7 @@ public class KillCommand extends Command {
                 return true;
             }
             EntityDamageEvent ev = new EntityDamageEvent((Player) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
-            sender.getServer().getPluginManager().callEvent(ev);
+            sender.getServer().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return true;
             }

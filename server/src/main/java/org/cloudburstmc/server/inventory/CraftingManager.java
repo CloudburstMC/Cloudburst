@@ -16,6 +16,7 @@ import org.cloudburstmc.server.utils.Config;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Utils;
 
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -28,6 +29,7 @@ import static org.cloudburstmc.server.block.BlockTypes.LIT_BLAST_FURNACE;
  * Nukkit Project
  */
 @Log4j2
+@Singleton
 public class CraftingManager {
 
     public final Collection<Recipe> recipes = new ArrayDeque<>();

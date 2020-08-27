@@ -40,7 +40,7 @@ public class BlockBehaviorNetherWart extends FloodableBlockBehavior {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.AGE) < 3) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.AGE));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
 
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), true);

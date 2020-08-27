@@ -61,7 +61,7 @@ public class PlayerFood {
         }
 
         PlayerFoodLevelChangeEvent ev = new PlayerFoodLevelChangeEvent(this.getPlayer(), foodLevel, saturationLevel);
-        this.getPlayer().getServer().getPluginManager().callEvent(ev);
+        this.getPlayer().getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
             this.sendFoodLevel(this.getLevel());
             return;
@@ -85,7 +85,7 @@ public class PlayerFood {
         if (fsl > this.getLevel()) fsl = this.getLevel();
         if (fsl < 0) fsl = 0;
         PlayerFoodLevelChangeEvent ev = new PlayerFoodLevelChangeEvent(this.getPlayer(), this.getLevel(), fsl);
-        this.getPlayer().getServer().getPluginManager().callEvent(ev);
+        this.getPlayer().getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return;
         }

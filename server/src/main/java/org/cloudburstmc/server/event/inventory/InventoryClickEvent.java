@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.event.inventory;
 
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.player.Player;
@@ -11,12 +10,6 @@ import org.cloudburstmc.server.player.Player;
  * Nukkit Project
  */
 public class InventoryClickEvent extends InventoryEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final int slot;
     private final Item sourceItem;

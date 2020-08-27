@@ -46,7 +46,7 @@ public abstract class ProjectileItem extends Item {
 
         ProjectileLaunchEvent ev = new ProjectileLaunchEvent(projectile);
 
-        player.getServer().getPluginManager().callEvent(ev);
+        player.getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
             projectile.kill();
         } else {

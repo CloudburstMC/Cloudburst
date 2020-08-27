@@ -131,7 +131,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         }
 
         if (meta != maxStrength) {
-            level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, meta, maxStrength));
+            level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, meta, maxStrength));
 
             block.set(block.getState().withTrait(BlockTraits.REDSTONE_SIGNAL, maxStrength), false, false);
 
@@ -243,7 +243,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         val level = block.getLevel();
         // Redstone event
         RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
-        level.getServer().getPluginManager().callEvent(ev);
+        level.getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return 0;
         }

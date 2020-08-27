@@ -83,7 +83,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
         this.setMaxHealth(5);
 
-        this.server.getPluginManager().callEvent(new ItemSpawnEvent(this));
+        this.server.getEventManager().fire(new ItemSpawnEvent(this));
     }
 
     @Override
@@ -220,7 +220,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
             if (this.age > 6000) {
                 ItemDespawnEvent ev = new ItemDespawnEvent(this);
-                this.server.getPluginManager().callEvent(ev);
+                this.server.getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     this.age = 0;
                 } else {

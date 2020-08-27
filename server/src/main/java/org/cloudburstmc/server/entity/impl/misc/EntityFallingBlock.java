@@ -150,7 +150,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
                     }
                 } else {
                     EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, b, this.getBlock());
-                    server.getPluginManager().callEvent(event);
+                    server.getEventManager().fire(event);
                     if (!event.isCancelled()) {
                         getLevel().setBlock(pos, event.getTo(), true);
 

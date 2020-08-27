@@ -110,7 +110,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 
     public boolean toggle(Block block, Player player) {
         DoorToggleEvent event = new DoorToggleEvent(block, player);
-        block.getLevel().getServer().getPluginManager().callEvent(event);
+        block.getLevel().getServer().getEventManager().fire(event);
 
         if (event.isCancelled()) {
             return false;

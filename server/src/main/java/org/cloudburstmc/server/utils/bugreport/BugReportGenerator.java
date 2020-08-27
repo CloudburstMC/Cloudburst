@@ -46,12 +46,12 @@ public class BugReportGenerator extends Thread {
     }
 
     private String generate() throws IOException {
-        File reports = new File(Nukkit.DATA_PATH, "logs/bug_reports");
+        File reports = Server.getInstance().getDataPath().resolve("logs/bug_reports").toFile();
         if (!reports.isDirectory()) {
             reports.mkdirs();
         }
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmSS");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         String date = simpleDateFormat.format(new Date());
 
         StringBuilder model = new StringBuilder();

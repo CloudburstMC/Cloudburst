@@ -256,7 +256,7 @@ public class ItemFlintSteel extends ItemTool {
 
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
-                block.getLevel().getServer().getPluginManager().callEvent(e);
+                block.getLevel().getServer().getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
                     level.setBlock(block.getPosition(), fire, true);

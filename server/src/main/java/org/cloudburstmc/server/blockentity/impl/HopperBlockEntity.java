@@ -151,7 +151,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 }
 
                 InventoryMoveItemEvent ev = new InventoryMoveItemEvent(inv, this.inventory, this, item, InventoryMoveItemEvent.Action.SLOT_CHANGE);
-                this.server.getPluginManager().callEvent(ev);
+                this.server.getEventManager().fire(ev);
 
                 if (ev.isCancelled()) {
                     return false;
@@ -194,7 +194,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             }
 
             InventoryMoveItemEvent ev = new InventoryMoveItemEvent(null, this.inventory, this, item, InventoryMoveItemEvent.Action.PICKUP);
-            this.server.getPluginManager().callEvent(ev);
+            this.server.getEventManager().fire(ev);
 
             if (ev.isCancelled()) {
                 continue;
@@ -273,7 +273,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                     item.setCount(1);
 
                     InventoryMoveItemEvent event = new InventoryMoveItemEvent(this.inventory, inv, this, item, InventoryMoveItemEvent.Action.SLOT_CHANGE);
-                    this.server.getPluginManager().callEvent(event);
+                    this.server.getEventManager().fire(event);
 
                     if (event.isCancelled()) {
                         return false;

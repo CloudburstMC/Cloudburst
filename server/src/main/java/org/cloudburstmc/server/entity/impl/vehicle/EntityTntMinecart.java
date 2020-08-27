@@ -99,7 +99,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
         }
 
         EntityExplosionPrimeEvent event = new EntityExplosionPrimeEvent(this, (4.0D + ThreadLocalRandom.current().nextDouble() * 1.5D * root));
-        server.getPluginManager().callEvent(event);
+        server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return;
         }

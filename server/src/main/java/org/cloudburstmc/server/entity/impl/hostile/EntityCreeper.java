@@ -61,7 +61,7 @@ public class EntityCreeper extends EntityHostile implements Creeper {
 
     public void setPowered(LightningBolt lightningBolt) {
         CreeperPowerEvent ev = new CreeperPowerEvent(this, lightningBolt, CreeperPowerEvent.PowerCause.LIGHTNING);
-        this.getServer().getPluginManager().callEvent(ev);
+        this.getServer().getEventManager().fire(ev);
 
         if (!ev.isCancelled()) {
             this.data.setFlag(POWERED, true);
@@ -70,7 +70,7 @@ public class EntityCreeper extends EntityHostile implements Creeper {
 
     public void setPowered(boolean powered) {
         CreeperPowerEvent ev = new CreeperPowerEvent(this, powered ? CreeperPowerEvent.PowerCause.SET_ON : CreeperPowerEvent.PowerCause.SET_OFF);
-        this.getServer().getPluginManager().callEvent(ev);
+        this.getServer().getEventManager().fire(ev);
 
         if (!ev.isCancelled()) {
             this.data.setFlag(POWERED, powered);

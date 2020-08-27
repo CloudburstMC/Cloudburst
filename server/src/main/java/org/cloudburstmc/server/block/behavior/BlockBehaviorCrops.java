@@ -40,7 +40,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) {
             if (block.getState().ensureTrait(BlockTraits.GROWTH) < 7) {
                 BlockGrowEvent ev = new BlockGrowEvent(block, block.getState().incrementTrait(BlockTraits.GROWTH));
-                Server.getInstance().getPluginManager().callEvent(ev);
+                Server.getInstance().getEventManager().fire(ev);
 
                 if (ev.isCancelled()) {
                     return false;
@@ -72,7 +72,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 0x07) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
 
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), false, true);

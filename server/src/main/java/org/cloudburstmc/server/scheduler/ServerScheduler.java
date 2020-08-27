@@ -1,9 +1,11 @@
 package org.cloudburstmc.server.scheduler;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.utils.PluginException;
 
+import javax.inject.Singleton;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Queue;
@@ -16,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Nukkit Project Team
  */
 @Log4j2
+@Singleton
 public class ServerScheduler {
 
     private final ForkJoinPool asyncPool;
@@ -40,38 +43,38 @@ public class ServerScheduler {
     }
 
     /**
-     * @deprecated Use {@link #scheduleTask(Plugin, Runnable)}
+     * @deprecated Use {@link #scheduleTask(PluginContainer, Runnable)}
      */
     @Deprecated
     public TaskHandler scheduleTask(Runnable task) {
         return addTask(null, task, 0, 0, false);
     }
 
-    public TaskHandler scheduleTask(Plugin plugin, Runnable task) {
+    public TaskHandler scheduleTask(PluginContainer plugin, Runnable task) {
         return addTask(plugin, task, 0, 0, false);
     }
 
     /**
-     * @deprecated Use {@link #scheduleTask(Plugin, Runnable, boolean)}
+     * @deprecated Use {@link #scheduleTask(PluginContainer, Runnable, boolean)}
      */
     @Deprecated
     public TaskHandler scheduleTask(Runnable task, boolean asynchronous) {
         return addTask(null, task, 0, 0, asynchronous);
     }
 
-    public TaskHandler scheduleTask(Plugin plugin, Runnable task, boolean asynchronous) {
+    public TaskHandler scheduleTask(PluginContainer plugin, Runnable task, boolean asynchronous) {
         return addTask(plugin, task, 0, 0, asynchronous);
     }
 
     /**
-     * @deprecated Use {@link #scheduleAsyncTask(Plugin, AsyncTask)}
+     * @deprecated Use {@link #scheduleAsyncTask(PluginContainer, AsyncTask)}
      */
     @Deprecated
     public TaskHandler scheduleAsyncTask(AsyncTask task) {
         return addTask(null, task, 0, 0, true);
     }
 
-    public TaskHandler scheduleAsyncTask(Plugin plugin, AsyncTask task) {
+    public TaskHandler scheduleAsyncTask(PluginContainer plugin, AsyncTask task) {
         return addTask(plugin, task, 0, 0, true);
     }
 
@@ -97,50 +100,50 @@ public class ServerScheduler {
     }
 
     /**
-     * @deprecated Use {@link #scheduleDelayedTask(Plugin, Runnable, int)}
+     * @deprecated Use {@link #scheduleDelayedTask(PluginContainer, Runnable, int)}
      */
     @Deprecated
     public TaskHandler scheduleDelayedTask(Runnable task, int delay) {
         return addTask(null, task, delay, 0, false);
     }
 
-    public TaskHandler scheduleDelayedTask(Plugin plugin, Runnable task, int delay) {
+    public TaskHandler scheduleDelayedTask(PluginContainer plugin, Runnable task, int delay) {
         return addTask(plugin, task, delay, 0, false);
     }
 
     /**
-     * @deprecated Use {@link #scheduleDelayedTask(Plugin, Runnable, int, boolean)}
+     * @deprecated Use {@link #scheduleDelayedTask(PluginContainer, Runnable, int, boolean)}
      */
     @Deprecated
     public TaskHandler scheduleDelayedTask(Runnable task, int delay, boolean asynchronous) {
         return addTask(null, task, delay, 0, asynchronous);
     }
 
-    public TaskHandler scheduleDelayedTask(Plugin plugin, Runnable task, int delay, boolean asynchronous) {
+    public TaskHandler scheduleDelayedTask(PluginContainer plugin, Runnable task, int delay, boolean asynchronous) {
         return addTask(plugin, task, delay, 0, asynchronous);
     }
 
     /**
-     * @deprecated Use {@link #scheduleRepeatingTask(Plugin, Runnable, int)}
+     * @deprecated Use {@link #scheduleRepeatingTask(PluginContainer, Runnable, int)}
      */
     @Deprecated
     public TaskHandler scheduleRepeatingTask(Runnable task, int period) {
         return addTask(null, task, 0, period, false);
     }
 
-    public TaskHandler scheduleRepeatingTask(Plugin plugin, Runnable task, int period) {
+    public TaskHandler scheduleRepeatingTask(PluginContainer plugin, Runnable task, int period) {
         return addTask(plugin, task, 0, period, false);
     }
 
     /**
-     * @deprecated Use {@link #scheduleRepeatingTask(Plugin, Runnable, int, boolean)}
+     * @deprecated Use {@link #scheduleRepeatingTask(PluginContainer, Runnable, int, boolean)}
      */
     @Deprecated
     public TaskHandler scheduleRepeatingTask(Runnable task, int period, boolean asynchronous) {
         return addTask(null, task, 0, period, asynchronous);
     }
 
-    public TaskHandler scheduleRepeatingTask(Plugin plugin, Runnable task, int period, boolean asynchronous) {
+    public TaskHandler scheduleRepeatingTask(PluginContainer plugin, Runnable task, int period, boolean asynchronous) {
         return addTask(plugin, task, 0, period, asynchronous);
     }
 
@@ -161,26 +164,26 @@ public class ServerScheduler {
     }
 
     /**
-     * @deprecated Use {@link #scheduleDelayedRepeatingTask(Plugin, Runnable, int, int)}
+     * @deprecated Use {@link #scheduleDelayedRepeatingTask(PluginContainer, Runnable, int, int)}
      */
     @Deprecated
     public TaskHandler scheduleDelayedRepeatingTask(Runnable task, int delay, int period) {
         return addTask(null, task, delay, period, false);
     }
 
-    public TaskHandler scheduleDelayedRepeatingTask(Plugin plugin, Runnable task, int delay, int period) {
+    public TaskHandler scheduleDelayedRepeatingTask(PluginContainer plugin, Runnable task, int delay, int period) {
         return addTask(plugin, task, delay, period, false);
     }
 
     /**
-     * @deprecated Use {@link #scheduleDelayedRepeatingTask(Plugin, Runnable, int, int, boolean)}
+     * @deprecated Use {@link #scheduleDelayedRepeatingTask(PluginContainer, Runnable, int, int, boolean)}
      */
     @Deprecated
     public TaskHandler scheduleDelayedRepeatingTask(Runnable task, int delay, int period, boolean asynchronous) {
         return addTask(null, task, delay, period, asynchronous);
     }
 
-    public TaskHandler scheduleDelayedRepeatingTask(Plugin plugin, Runnable task, int delay, int period, boolean asynchronous) {
+    public TaskHandler scheduleDelayedRepeatingTask(PluginContainer plugin, Runnable task, int delay, int period, boolean asynchronous) {
         return addTask(plugin, task, delay, period, asynchronous);
     }
 
@@ -194,7 +197,7 @@ public class ServerScheduler {
         }
     }
 
-    public void cancelTask(Plugin plugin) {
+    public void cancelTask(PluginContainer plugin) {
         if (plugin == null) {
             throw new NullPointerException("Plugin cannot be null!");
         }
@@ -230,18 +233,23 @@ public class ServerScheduler {
     }
 
     private TaskHandler addTask(Task task, int delay, int period, boolean asynchronous) {
-        return addTask(task instanceof PluginTask ? ((PluginTask) task).getOwner() : null, task, delay, period, asynchronous);
+        return addTask(task instanceof PluginTask ? ((PluginTask<?>) task).getOwner() : null, task, delay, period, asynchronous);
     }
 
-    private TaskHandler addTask(Plugin plugin, Runnable task, int delay, int period, boolean asynchronous) {
-        if (plugin != null && plugin.isDisabled()) {
-            throw new PluginException("Plugin '" + plugin.getName() + "' attempted to register a task while disabled.");
-        }
+    private TaskHandler addTask(Object plugin, Runnable task, int delay, int period, boolean asynchronous) {
         if (delay < 0 || period < 0) {
             throw new PluginException("Attempted to register a task with negative delay or period.");
         }
 
-        TaskHandler taskHandler = new TaskHandler(plugin, task, nextTaskId(), asynchronous);
+        PluginContainer container = null;
+
+        if (plugin != null) {
+            container = Server.getInstance().getPluginManager().fromInstance(plugin).orElseThrow(() ->
+                    new PluginException("Attempted to register a task with non-plugin object: " + plugin)
+            );
+        }
+
+        TaskHandler taskHandler = new TaskHandler(container, task, nextTaskId(), asynchronous);
         taskHandler.setDelay(delay);
         taskHandler.setPeriod(period);
         taskHandler.setNextRunTick(taskHandler.isDelayed() ? currentTick + taskHandler.getDelay() : currentTick);

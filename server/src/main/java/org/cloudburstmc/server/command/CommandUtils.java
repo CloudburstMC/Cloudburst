@@ -54,7 +54,7 @@ public class CommandUtils {
     }
 
     public static void broadcastCommandMessage(CommandSender source, String message, boolean sendToSource) {
-        Set<Permissible> users = source.getServer().getPluginManager().getPermissionSubscriptions(Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+        Set<Permissible> users = source.getServer().getPermissionManager().getPermissionSubscriptions(Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 
         TranslationContainer result = new TranslationContainer("chat.type.admin", source.getName(), message);
 
@@ -83,7 +83,7 @@ public class CommandUtils {
         TextContainer m = message.clone();
         String resultStr = "[" + source.getName() + ": " + m.getText() + "]";
 
-        Set<Permissible> users = source.getServer().getPluginManager().getPermissionSubscriptions(Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+        Set<Permissible> users = source.getServer().getPermissionManager().getPermissionSubscriptions(Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
 
         String coloredStr = TextFormat.GRAY + "" + TextFormat.ITALIC + resultStr;
 

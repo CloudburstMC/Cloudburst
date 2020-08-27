@@ -30,7 +30,7 @@ public class NukkitConsole extends SimpleTerminalConsole {
             try (Timing ignored = Timings.serverCommandTimer.startTiming()) {
                 ServerCommandEvent event = new ServerCommandEvent(server.getConsoleSender(), command);
                 if (server.getPluginManager() != null) {
-                    server.getPluginManager().callEvent(event);
+                    server.getEventManager().fire(event);
                 }
                 if (!event.isCancelled()) {
                     Server.getInstance().getScheduler().scheduleTask(null, () -> server.dispatchCommand(event.getSender(), event.getCommand()));

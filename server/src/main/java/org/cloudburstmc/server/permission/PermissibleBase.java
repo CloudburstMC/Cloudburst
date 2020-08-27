@@ -2,9 +2,9 @@ package org.cloudburstmc.server.permission;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import lombok.val;
 import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.plugin.Plugin;
-import org.cloudburstmc.server.utils.PluginException;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.utils.ServerException;
 
 import java.util.HashMap;
@@ -57,21 +57,22 @@ public class PermissibleBase implements Permissible {
         return this.isPermissionSet(permission.getName());
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public boolean hasPermission(String name) {
         if (this.isPermissionSet(name)) {
             return this.permissions.get(name).getValue();
         }
 
-        Permission perm = Server.getInstance().getPluginManager().getPermission(name);
+        val perm = Server.getInstance().getPermissionManager().getPermission(name);
 
-        if (perm != null) {
-            String permission = perm.getDefault();
+        if (perm.isPresent()) {
+            String permission = perm.get().getDefault();
 
             return Permission.DEFAULT_TRUE.equals(permission) || (this.isOp() && Permission.DEFAULT_OP.equals(permission)) || (!this.isOp() && Permission.DEFAULT_NOT_OP.equals(permission));
-        } else {
-            return Permission.DEFAULT_TRUE.equals(Permission.DEFAULT_PERMISSION) || (this.isOp() && Permission.DEFAULT_OP.equals(Permission.DEFAULT_PERMISSION)) || (!this.isOp() && Permission.DEFAULT_NOT_OP.equals(Permission.DEFAULT_PERMISSION));
         }
+
+        return Permission.DEFAULT_TRUE.equals(Permission.DEFAULT_PERMISSION) || (this.isOp() && Permission.DEFAULT_OP.equals(Permission.DEFAULT_PERMISSION)) || (!this.isOp() && Permission.DEFAULT_NOT_OP.equals(Permission.DEFAULT_PERMISSION));
     }
 
     @Override
@@ -80,21 +81,17 @@ public class PermissibleBase implements Permissible {
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin) {
+    public PermissionAttachment addAttachment(PluginContainer plugin) {
         return this.addAttachment(plugin, null, null);
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin, String name) {
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name) {
         return this.addAttachment(plugin, name, null);
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin, String name, Boolean value) {
-        if (!plugin.isEnabled()) {
-            throw new PluginException("Plugin " + plugin.getDescription().getName() + " is disabled");
-        }
-
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name, Boolean value) {
         PermissionAttachment result = new PermissionAttachment(plugin, this.parent != null ? this.parent : this);
         this.attachments.add(result);
         if (name != null && value != null) {
@@ -121,13 +118,13 @@ public class PermissibleBase implements Permissible {
     public void recalculatePermissions() {
         try (Timing ignored = Timings.permissibleCalculationTimer.startTiming()) {
             this.clearPermissions();
-            Map<String, Permission> defaults = Server.getInstance().getPluginManager().getDefaultPermissions(this.isOp());
-            Server.getInstance().getPluginManager().subscribeToDefaultPerms(this.isOp(), this.parent != null ? this.parent : this);
+            Map<String, Permission> defaults = Server.getInstance().getPermissionManager().getDefaultPermissions(this.isOp());
+            Server.getInstance().getPermissionManager().subscribeToDefaultPerms(this.isOp(), this.parent != null ? this.parent : this);
 
             for (Permission perm : defaults.values()) {
                 String name = perm.getName();
                 this.permissions.put(name, new PermissionAttachmentInfo(this.parent != null ? this.parent : this, name, null, true));
-                Server.getInstance().getPluginManager().subscribeToPermission(name, this.parent != null ? this.parent : this);
+                Server.getInstance().getPermissionManager().subscribeToPermission(name, this.parent != null ? this.parent : this);
                 this.calculateChildPermissions(perm.getChildren(), false, null);
             }
 
@@ -139,12 +136,12 @@ public class PermissibleBase implements Permissible {
 
     public void clearPermissions() {
         for (String name : this.permissions.keySet()) {
-            Server.getInstance().getPluginManager().unsubscribeFromPermission(name, this.parent != null ? this.parent : this);
+            Server.getInstance().getPermissionManager().unsubscribeFromPermission(name, this.parent != null ? this.parent : this);
         }
 
 
-        Server.getInstance().getPluginManager().unsubscribeFromDefaultPerms(false, this.parent != null ? this.parent : this);
-        Server.getInstance().getPluginManager().unsubscribeFromDefaultPerms(true, this.parent != null ? this.parent : this);
+        Server.getInstance().getPermissionManager().unsubscribeFromDefaultPerms(false, this.parent != null ? this.parent : this);
+        Server.getInstance().getPermissionManager().unsubscribeFromDefaultPerms(true, this.parent != null ? this.parent : this);
 
         this.permissions.clear();
     }
@@ -152,15 +149,15 @@ public class PermissibleBase implements Permissible {
     private void calculateChildPermissions(Map<String, Boolean> children, boolean invert, PermissionAttachment attachment) {
         for (Map.Entry<String, Boolean> entry : children.entrySet()) {
             String name = entry.getKey();
-            Permission perm = Server.getInstance().getPluginManager().getPermission(name);
+
             boolean v = entry.getValue();
             boolean value = (v ^ invert);
             this.permissions.put(name, new PermissionAttachmentInfo(this.parent != null ? this.parent : this, name, attachment, value));
-            Server.getInstance().getPluginManager().subscribeToPermission(name, this.parent != null ? this.parent : this);
+            Server.getInstance().getPermissionManager().subscribeToPermission(name, this.parent != null ? this.parent : this);
 
-            if (perm != null) {
+            Server.getInstance().getPermissionManager().getPermission(name).ifPresent((perm) -> {
                 this.calculateChildPermissions(perm.getChildren(), !value, attachment);
-            }
+            });
         }
     }
 

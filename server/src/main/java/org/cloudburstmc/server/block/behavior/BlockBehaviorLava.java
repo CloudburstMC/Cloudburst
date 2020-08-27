@@ -43,7 +43,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
         // Always setting the duration to 15 seconds? TODO
         EntityCombustByBlockEvent ev = new EntityCombustByBlockEvent(block, entity, 15);
-        Server.getInstance().getPluginManager().callEvent(ev);
+        Server.getInstance().getEventManager().fire(ev);
         if (!ev.isCancelled()
                 // Making sure the entity is actually alive and not invulnerable.
                 && entity.isAlive()
@@ -87,7 +87,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                     if (state.getType() == BlockTypes.AIR) {
                         if (this.isSurroundingBlockFlammable(b)) {
                             BlockIgniteEvent e = new BlockIgniteEvent(b, block, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
-                            level.getServer().getPluginManager().callEvent(e);
+                            level.getServer().getEventManager().fire(e);
 
                             if (!e.isCancelled()) {
                                 BlockState fire = BlockState.get(BlockTypes.FIRE);
@@ -110,7 +110,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
                     if (b.up().getState().getType() == BlockTypes.AIR && state.getBehavior().getBurnChance() > 0) {
                         BlockIgniteEvent e = new BlockIgniteEvent(b, block, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
-                        level.getServer().getPluginManager().callEvent(e);
+                        level.getServer().getEventManager().fire(e);
 
                         if (!e.isCancelled()) {
                             BlockState fire = BlockState.get(BlockTypes.FIRE);

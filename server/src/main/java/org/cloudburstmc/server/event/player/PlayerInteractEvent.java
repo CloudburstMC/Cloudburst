@@ -5,7 +5,6 @@ import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -15,12 +14,6 @@ import org.cloudburstmc.server.player.Player;
  * Nukkit Project
  */
 public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     protected final Block blockTouched;
 

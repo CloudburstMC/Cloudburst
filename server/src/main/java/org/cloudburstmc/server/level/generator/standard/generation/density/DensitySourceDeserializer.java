@@ -24,7 +24,7 @@ final class DensitySourceDeserializer extends JsonDeserializer<DensitySource> {
 
         try {
             return Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.densitySource().get(id));
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException("While decoding density source type " + id, e);
         }
     }

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.metadata;
 
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.lang.ref.WeakReference;
 
@@ -10,13 +10,13 @@ import java.lang.ref.WeakReference;
  */
 public abstract class MetadataValue {
 
-    protected final WeakReference<Plugin> owningPlugin;
+    protected final WeakReference<PluginContainer> owningPlugin;
 
-    protected MetadataValue(Plugin owningPlugin) {
+    protected MetadataValue(PluginContainer owningPlugin) {
         this.owningPlugin = new WeakReference<>(owningPlugin);
     }
 
-    public Plugin getOwningPlugin() {
+    public PluginContainer getOwningPlugin() {
         return this.owningPlugin.get();
     }
 

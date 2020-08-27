@@ -49,7 +49,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
                     Block b = block.up(i);
                     if (b.getState() == BlockStates.AIR) {
                         BlockGrowEvent ev = new BlockGrowEvent(b, BlockState.get(BlockTypes.REEDS));
-                        Server.getInstance().getPluginManager().callEvent(ev);
+                        Server.getInstance().getEventManager().fire(ev);
 
                         if (!ev.isCancelled()) {
                             b.set(ev.getNewState(), true);

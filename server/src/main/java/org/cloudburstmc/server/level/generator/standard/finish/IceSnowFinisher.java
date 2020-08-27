@@ -11,7 +11,6 @@ import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.registry.BiomeRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Objects;
