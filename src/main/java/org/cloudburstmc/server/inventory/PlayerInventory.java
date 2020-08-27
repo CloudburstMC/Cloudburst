@@ -61,7 +61,7 @@ public class PlayerInventory extends BaseInventory {
         if (this.getHolder() instanceof Player) {
             Player player = (Player) this.getHolder();
             PlayerItemHeldEvent ev = new PlayerItemHeldEvent(player, this.getItem(slot), slot);
-            this.getHolder().getLevel().getServer().getPluginManager().callEvent(ev);
+            this.getHolder().getLevel().getServer().getEventManager().fire(ev);
 
             if (ev.isCancelled()) {
                 this.sendContents(this.getViewers());
@@ -249,7 +249,7 @@ public class PlayerInventory extends BaseInventory {
         //Armor change
         if (!ignoreArmorEvents && index >= this.getSize()) {
             EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), this.getItem(index), item, index);
-            Server.getInstance().getPluginManager().callEvent(ev);
+            Server.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled() && this.getHolder() != null) {
                 if (index == this.offHandIndex) {
                     this.sendOffHandSlot(this.getViewers());
@@ -261,7 +261,7 @@ public class PlayerInventory extends BaseInventory {
             item = ev.getNewItem();
         } else {
             EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent(this.getHolder(), this.getItem(index), item, index);
-            Server.getInstance().getPluginManager().callEvent(ev);
+            Server.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 this.sendSlot(index, this.getViewers());
                 return false;
@@ -281,7 +281,7 @@ public class PlayerInventory extends BaseInventory {
             Item old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
-                Server.getInstance().getPluginManager().callEvent(ev);
+                Server.getInstance().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     if (index >= this.size) {
                         this.sendArmorSlot(index, this.getViewers());
@@ -293,7 +293,7 @@ public class PlayerInventory extends BaseInventory {
                 item = ev.getNewItem();
             } else {
                 EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent(this.getHolder(), old, item, index);
-                Server.getInstance().getPluginManager().callEvent(ev);
+                Server.getInstance().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     if (index >= this.size) {
                         this.sendArmorSlot(index, this.getViewers());

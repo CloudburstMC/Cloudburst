@@ -88,7 +88,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
                 if (b.up() instanceof BlockBehaviorAir) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(GRASS));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.getLevel().setBlock(b.getPosition(), ev.getNewState());
                     }
@@ -96,7 +96,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
             } else if (state.getType() == GRASS) {
                 if (b.up() instanceof BlockBehaviorSolid) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(DIRT));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.getLevel().setBlock(b.getPosition(), ev.getNewState());
                     }

@@ -1,18 +1,11 @@
 package org.cloudburstmc.server.event.block;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.event.HandlerList;
 
 /**
  * Created by CreeperFace on 2.8.2017.
  */
 public class BlockPistonChangeEvent extends BlockEvent {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private int oldPower;
     private int newPower;

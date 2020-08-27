@@ -87,7 +87,7 @@ import org.cloudburstmc.server.permission.PermissionAttachment;
 import org.cloudburstmc.server.permission.PermissionAttachmentInfo;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -539,17 +539,17 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin) {
+    public PermissionAttachment addAttachment(PluginContainer plugin) {
         return this.addAttachment(plugin, null);
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin, String name) {
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name) {
         return this.addAttachment(plugin, name, null);
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin, String name, Boolean value) {
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name, Boolean value) {
         return this.perm.addAttachment(plugin, name, value);
     }
 
@@ -560,8 +560,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     @Override
     public void recalculatePermissions() {
-        this.server.getPluginManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
-        this.server.getPluginManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
+        this.server.getPermissionManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
+        this.server.getPermissionManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
 
         if (this.perm == null) {
             return;
@@ -570,11 +570,11 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.perm.recalculatePermissions();
 
         if (this.hasPermission(Server.BROADCAST_CHANNEL_USERS)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
+            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
         }
 
         if (this.hasPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
+            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
         }
 
         if (this.isEnableClientCommand() && spawned) this.sendCommandData();
@@ -754,7 +754,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this, loc, true);
 
-        this.server.getPluginManager().callEvent(respawnEvent);
+        this.server.getEventManager().fire(respawnEvent);
 
         loc = respawnEvent.getRespawnLocation();
 
@@ -832,7 +832,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         PlayerBedEnterEvent ev;
-        this.server.getPluginManager().callEvent(ev = new PlayerBedEnterEvent(this, this.getLevel().getBlock(pos)));
+        this.server.getEventManager().fire(ev = new PlayerBedEnterEvent(this, this.getLevel().getBlock(pos)));
         if (ev.isCancelled()) {
             return false;
         }
@@ -852,7 +852,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     public void stopSleep() {
         if (this.sleeping != null) {
-            this.server.getPluginManager().callEvent(new PlayerBedLeaveEvent(this, this.getLevel().getBlock(this.sleeping)));
+            this.server.getEventManager().fire(new PlayerBedLeaveEvent(this, this.getLevel().getBlock(this.sleeping)));
 
             this.sleeping = null;
             this.data.setVector3i(BED_POSITION, Vector3i.ZERO);
@@ -885,7 +885,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             }
         }
         PlayerAchievementAwardedEvent event = new PlayerAchievementAwardedEvent(this, achievementId);
-        this.server.getPluginManager().callEvent(event);
+        this.server.getEventManager().fire(event);
 
         if (event.isCancelled()) {
             return false;
@@ -918,7 +918,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         PlayerPacketSendEvent event = new PlayerPacketSendEvent(this, packet);
-        this.server.getPluginManager().callEvent(event);
+        this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
         }
@@ -1029,7 +1029,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         PlayerGameModeChangeEvent ev;
-        this.server.getPluginManager().callEvent(ev = new PlayerGameModeChangeEvent(this, gamemode));
+        this.server.getEventManager().fire(ev = new PlayerGameModeChangeEvent(this, gamemode));
 
         if (ev.isCancelled()) {
             return false;
@@ -1254,7 +1254,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 this.blocksAround = null;
                 this.collisionBlockStates = null;
 
-                this.server.getPluginManager().callEvent(ev);
+                this.server.getEventManager().fire(ev);
 
                 if (!(revert = ev.isCancelled())) { //Yes, this is intended
                     if (!to.equals(ev.getTo())) { //If plugins modify the destination
@@ -1486,7 +1486,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     public void completeLoginSequence() {
         PlayerLoginEvent ev;
-        this.server.getPluginManager().callEvent(ev = new PlayerLoginEvent(this, "Plugin reason"));
+        this.server.getEventManager().fire(ev = new PlayerLoginEvent(this, "Plugin reason"));
         if (ev.isCancelled()) {
             this.close(this.getLeaveMessage(), ev.getKickMessage());
             return;
@@ -1609,10 +1609,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         if (this.hasPermission(Server.BROADCAST_CHANNEL_USERS)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
+            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
         }
         if (this.hasPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
+            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
         }
 
         Player oldPlayer = null;
@@ -1707,7 +1707,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         for (String msg : message.split("\n")) {
             if (!msg.trim().isEmpty() && msg.length() <= 255 && this.messageCounter-- > 0) {
                 PlayerChatEvent chatEvent = new PlayerChatEvent(this, msg);
-                this.server.getPluginManager().callEvent(chatEvent);
+                this.server.getEventManager().fire(chatEvent);
                 if (!chatEvent.isCancelled()) {
                     this.server.broadcastMessage(this.getServer().getLanguage().translate(chatEvent.getFormat(), chatEvent.getPlayer().getDisplayName(), chatEvent.getMessage()), chatEvent.getRecipients());
                 }
@@ -1743,7 +1743,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     public boolean kick(PlayerKickEvent.Reason reason, String reasonString, boolean isAdmin) {
         PlayerKickEvent ev;
-        this.server.getPluginManager().callEvent(ev = new PlayerKickEvent(this, reason, this.getLeaveMessage()));
+        this.server.getEventManager().fire(ev = new PlayerKickEvent(this, reason, this.getLeaveMessage()));
         if (!ev.isCancelled()) {
             String message;
             if (isAdmin) {
@@ -1999,7 +1999,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             this.connected = false;
             PlayerQuitEvent ev = null;
             if (this.getName() != null && this.getName().length() > 0) {
-                this.server.getPluginManager().callEvent(ev = new PlayerQuitEvent(this, message, true, reason));
+                this.server.getEventManager().fire(ev = new PlayerQuitEvent(this, message, true, reason));
                 if (this.loggedIn && ev.getAutoSave()) {
                     this.save();
                 }
@@ -2045,7 +2045,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 this.server.broadcastMessage(ev.getQuitMessage());
             }
 
-            this.server.getPluginManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
+            this.server.getPermissionManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
             this.spawned = false;
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     TextFormat.AQUA + (this.getName() == null ? "" : this.getName()) + TextFormat.WHITE,
@@ -2501,7 +2501,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         ev.setKeepExperience(this.getLevel().getGameRules().get(GameRules.KEEP_INVENTORY));
         ev.setKeepInventory(ev.getKeepExperience());
-        this.server.getPluginManager().callEvent(ev);
+        this.server.getEventManager().fire(ev);
 
         if (!ev.getKeepInventory() && this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
             for (Item item : ev.getDrops()) {
@@ -2946,7 +2946,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public void removeMetadata(String metadataKey, Plugin owningPlugin) {
+    public void removeMetadata(String metadataKey, PluginContainer owningPlugin) {
         this.server.getPlayerMetadata().removeMetadata(this, metadataKey, owningPlugin);
     }
 
@@ -2984,7 +2984,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         if (cause != null) {
             PlayerTeleportEvent event = new PlayerTeleportEvent(this, from, to, cause);
-            this.server.getPluginManager().callEvent(event);
+            this.server.getEventManager().fire(event);
             if (event.isCancelled()) return false;
             to = event.getTo();
         }
@@ -3166,7 +3166,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         fishingHook.setMotion(Vector3f.from(-Math.sin(Math.toRadians(this.getYaw())) * Math.cos(Math.toRadians(this.getPitch())) * f * f,
                 -Math.sin(Math.toRadians(this.getPitch())) * f * f, Math.cos(Math.toRadians(this.getYaw())) * Math.cos(Math.toRadians(this.getPitch())) * f * f));
         ProjectileLaunchEvent ev = new ProjectileLaunchEvent(fishingHook);
-        this.getServer().getPluginManager().callEvent(ev);
+        this.getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
             fishingHook.kill();
         } else {
@@ -3231,7 +3231,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                     ev.setCancelled();
                 }
 
-                this.server.getPluginManager().callEvent(ev);
+                this.server.getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return false;
                 }
@@ -3274,7 +3274,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                         }
 
                         InventoryPickupItemEvent ev;
-                        this.server.getPluginManager().callEvent(ev = new InventoryPickupItemEvent(this.getInventory(), (DroppedItem) entity));
+                        this.server.getEventManager().fire(ev = new InventoryPickupItemEvent(this.getInventory(), (DroppedItem) entity));
                         if (ev.isCancelled()) {
                             return false;
                         }

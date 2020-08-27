@@ -38,7 +38,7 @@ public class ItemFireCharge extends Item {
         if (block.getState() == BlockStates.AIR && (target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves)) {
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
-                block.getLevel().getServer().getPluginManager().callEvent(e);
+                block.getLevel().getServer().getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
                     val fire = BlockState.get(FIRE);

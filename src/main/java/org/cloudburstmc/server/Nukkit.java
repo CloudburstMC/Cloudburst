@@ -12,6 +12,7 @@ import io.netty.util.internal.logging.Log4J2LoggerFactory;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
+import joptsimple.util.PathConverter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -20,9 +21,10 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.cloudburstmc.server.utils.ServerKiller;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Properties;
@@ -51,9 +53,7 @@ public class Nukkit {
     public final static String VERSION = getVersion();
     public final static String API_VERSION = "2.0.0";
 
-    public final static String PATH = System.getProperty("user.dir") + "/";
-    public final static String DATA_PATH = System.getProperty("user.dir") + "/";
-    public final static String PLUGIN_PATH = DATA_PATH + "plugins";
+    public final static Path PATH = Paths.get(System.getProperty("user.dir"));
     public static final JsonMapper JSON_MAPPER = new JsonMapper();
     public static final YAMLMapper YAML_MAPPER = new YAMLMapper();
     public static final JavaPropsMapper JAVA_PROPS_MAPPER = new JavaPropsMapper();
@@ -79,9 +79,6 @@ public class Nukkit {
         InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
 
-        // Get current directory path
-        File path = new File(PATH);
-
         // Define args
         OptionParser parser = new OptionParser();
         parser.allowsUnrecognizedOptions();
@@ -91,13 +88,16 @@ public class Nukkit {
         OptionSpec<Void> titleSpec = parser.accepts("enable-title", "Enables title at the top of the window");
         OptionSpec<String> verbositySpec = parser.acceptsAll(Arrays.asList("v", "verbosity"), "Set verbosity of logging").withRequiredArg().ofType(String.class);
         OptionSpec<String> languageSpec = parser.accepts("language", "Set a predefined language").withOptionalArg().ofType(String.class);
-        OptionSpec<File> dataPathSpec = parser.accepts("data-path", "path of main server data e.g. plexus.yml")
+        OptionSpec<Path> dataPathSpec = parser.accepts("data-path", "path of main server data e.g. plexus.yml")
                 .withRequiredArg()
-                .ofType(File.class)
-                .defaultsTo(path);
-        OptionSpec<File> pluginPathSpec = parser.accepts("plugin-path", "path to your plugins directory")
+                .withValuesConvertedBy(new PathConverter())
+                .defaultsTo(PATH);
+        OptionSpec<Path> pluginPathSpec = parser.accepts("plugin-path", "path to your plugins directory")
                 .withRequiredArg()
-                .ofType(File.class);
+                .withValuesConvertedBy(new PathConverter());
+        OptionSpec<Path> levelPathSpec = parser.accepts("level-path", "path to your plugins directory")
+                .withRequiredArg()
+                .withValuesConvertedBy(new PathConverter());
 
 
         // Parse arguments
@@ -112,13 +112,20 @@ public class Nukkit {
             return;
         }
 
-        File dataPath = options.valueOf(dataPathSpec);
+        Path dataPath = options.valueOf(dataPathSpec);
 
-        File pluginPath;
+        Path pluginPath;
         if (options.has(pluginPathSpec)) {
             pluginPath = options.valueOf(pluginPathSpec);
         } else {
-            pluginPath = new File(dataPath, "plugins/");
+            pluginPath = dataPath.resolve("plugins");
+        }
+
+        Path levelPath;
+        if (options.has(levelPathSpec)) {
+            levelPath = options.valueOf(levelPathSpec);
+        } else {
+            levelPath = dataPath.resolve("worlds");
         }
 
         ANSI = !options.has(ansiSpec);
@@ -136,8 +143,7 @@ public class Nukkit {
 
         String language = options.valueOf(languageSpec);
 
-        Server server = new Server(path.getAbsolutePath() + "/", dataPath.getAbsolutePath() + "/",
-                pluginPath.getAbsolutePath() + "/", language);
+        Server server = new Server(dataPath, pluginPath, levelPath, language);
 
         try {
             if (TITLE) {

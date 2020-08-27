@@ -177,7 +177,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
         }
         super.kill();
         EntityDeathEvent ev = new EntityDeathEvent(this, this.getDrops());
-        this.server.getPluginManager().callEvent(ev);
+        this.server.getEventManager().fire(ev);
 
         if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
             for (Item item : ev.getDrops()) {

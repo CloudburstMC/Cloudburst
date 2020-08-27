@@ -103,7 +103,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
                 BlockState grown = block.getState().incrementTrait(KELP_AGE);
                 BlockGrowEvent ev = new BlockGrowEvent(block, grown);
-                Server.getInstance().getPluginManager().callEvent(ev);
+                Server.getInstance().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     block.set(block.getState().withTrait(KELP_AGE, 25), true);
 

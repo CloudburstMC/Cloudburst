@@ -98,7 +98,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
 
             DataPacketReceiveEvent receiveEvent = new DataPacketReceiveEvent(player, packet);
-            player.getServer().getPluginManager().callEvent(receiveEvent);
+            player.getServer().getEventManager().fire(receiveEvent);
             if (receiveEvent.isCancelled()) {
                 return true;
             }
@@ -117,7 +117,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         PlayerChangeSkinEvent playerChangeSkinEvent = new PlayerChangeSkinEvent(player, skin);
         playerChangeSkinEvent.setCancelled(TimeUnit.SECONDS.toMillis(player.getServer().getPlayerSkinChangeCooldown()) > System.currentTimeMillis() - player.lastSkinChange);
-        player.getServer().getPluginManager().callEvent(playerChangeSkinEvent);
+        player.getServer().getEventManager().fire(playerChangeSkinEvent);
         if (!playerChangeSkinEvent.isCancelled()) {
             player.lastSkinChange = System.currentTimeMillis();
             player.setSkin(skin);
@@ -195,7 +195,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
         PlayerToggleFlightEvent playerToggleFlightEvent = new PlayerToggleFlightEvent(player, flags.contains(AdventureSetting.FLYING));
-        player.getServer().getPluginManager().callEvent(playerToggleFlightEvent);
+        player.getServer().getEventManager().fire(playerToggleFlightEvent);
         if (playerToggleFlightEvent.isCancelled()) {
             player.getAdventureSettings().update();
         } else {
@@ -273,7 +273,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 val targetState = target.getState();
 
                 PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, player.getInventory().getItemInHand(), target, face, targetState == BlockStates.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
-                player.getServer().getPluginManager().callEvent(playerInteractEvent);
+                player.getServer().getEventManager().fire(playerInteractEvent);
                 if (playerInteractEvent.isCancelled()) {
                     player.getInventory().sendHeldItem(player);
                     break;
@@ -332,7 +332,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.resetCraftingGridType();
 
                 PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(player, player.getSpawn());
-                player.getServer().getPluginManager().callEvent(playerRespawnEvent);
+                player.getServer().getEventManager().fire(playerRespawnEvent);
 
                 Location respawnLoc = playerRespawnEvent.getRespawnLocation();
 
@@ -361,11 +361,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.scheduleUpdate();
                 break;
             case JUMP:
-                player.getServer().getPluginManager().callEvent(new PlayerJumpEvent(player));
+                player.getServer().getEventManager().fire(new PlayerJumpEvent(player));
                 break;
             case START_SPRINT:
                 PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(player, true);
-                player.getServer().getPluginManager().callEvent(playerToggleSprintEvent);
+                player.getServer().getEventManager().fire(playerToggleSprintEvent);
                 if (playerToggleSprintEvent.isCancelled()) {
                     player.sendFlags(player);
                 } else {
@@ -374,7 +374,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 break;
             case STOP_SPRINT:
                 playerToggleSprintEvent = new PlayerToggleSprintEvent(player, false);
-                player.getServer().getPluginManager().callEvent(playerToggleSprintEvent);
+                player.getServer().getEventManager().fire(playerToggleSprintEvent);
                 if (playerToggleSprintEvent.isCancelled()) {
                     player.sendFlags(player);
                 } else {
@@ -382,7 +382,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 }
                 if (player.isSwimming()) {
                     PlayerToggleSwimEvent ptse = new PlayerToggleSwimEvent(player, false);
-                    player.getServer().getPluginManager().callEvent(ptse);
+                    player.getServer().getEventManager().fire(ptse);
 
                     if (ptse.isCancelled()) {
                         player.sendFlags(player);
@@ -393,7 +393,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 break;
             case START_SNEAK:
                 PlayerToggleSneakEvent playerToggleSneakEvent = new PlayerToggleSneakEvent(player, true);
-                player.getServer().getPluginManager().callEvent(playerToggleSneakEvent);
+                player.getServer().getEventManager().fire(playerToggleSneakEvent);
                 if (playerToggleSneakEvent.isCancelled()) {
                     player.sendFlags(player);
                 } else {
@@ -402,7 +402,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 break;
             case STOP_SNEAK:
                 playerToggleSneakEvent = new PlayerToggleSneakEvent(player, false);
-                player.getServer().getPluginManager().callEvent(playerToggleSneakEvent);
+                player.getServer().getEventManager().fire(playerToggleSneakEvent);
                 if (playerToggleSneakEvent.isCancelled()) {
                     player.sendFlags(player);
                 } else {
@@ -414,7 +414,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 break; //TODO
             case START_GLIDE:
                 PlayerToggleGlideEvent playerToggleGlideEvent = new PlayerToggleGlideEvent(player, true);
-                player.getServer().getPluginManager().callEvent(playerToggleGlideEvent);
+                player.getServer().getEventManager().fire(playerToggleGlideEvent);
                 if (playerToggleGlideEvent.isCancelled()) {
                     player.sendFlags(player);
                 } else {
@@ -423,7 +423,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 break;
             case STOP_GLIDE:
                 playerToggleGlideEvent = new PlayerToggleGlideEvent(player, false);
-                player.getServer().getPluginManager().callEvent(playerToggleGlideEvent);
+                player.getServer().getEventManager().fire(playerToggleGlideEvent);
                 if (playerToggleGlideEvent.isCancelled()) {
                     player.sendFlags(player);
                 } else {
@@ -438,7 +438,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 break;
             case START_SWIMMING:
                 PlayerToggleSwimEvent ptse = new PlayerToggleSwimEvent(player, true);
-                player.getServer().getPluginManager().callEvent(ptse);
+                player.getServer().getEventManager().fire(ptse);
 
                 if (ptse.isCancelled()) {
                     player.sendFlags(player);
@@ -448,7 +448,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 break;
             case STOP_SWIMMING:
                 ptse = new PlayerToggleSwimEvent(player, false);
-                player.getServer().getPluginManager().callEvent(ptse);
+                player.getServer().getEventManager().fire(ptse);
 
                 if (ptse.isCancelled()) {
                     player.sendFlags(player);
@@ -524,7 +524,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 if (packet.getRuntimeEntityId() == 0) {
                     break;
                 }
-                player.getServer().getPluginManager().callEvent(new PlayerMouseOverEntityEvent(player, targetEntity));
+                player.getServer().getEventManager().fire(new PlayerMouseOverEntityEvent(player, targetEntity));
                 break;
             case LEAVE_VEHICLE:
                 if (player.getVehicle() == null) {
@@ -567,7 +567,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             pickEvent.setCancelled();
         }
 
-        player.getServer().getPluginManager().callEvent(pickEvent);
+        player.getServer().getEventManager().fire(pickEvent);
 
         if (!pickEvent.isCancelled()) {
             boolean itemExists = false;
@@ -626,7 +626,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         PlayerAnimationEvent animationEvent = new PlayerAnimationEvent(player, packet.getAction());
-        player.getServer().getPluginManager().callEvent(animationEvent);
+        player.getServer().getEventManager().fire(animationEvent);
         if (animationEvent.isCancelled()) {
             return true;
         }
@@ -683,7 +683,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
         player.craftingType = CraftingType.SMALL;
         PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(player, packet.getCommand());
-        player.getServer().getPluginManager().callEvent(playerCommandPreprocessEvent);
+        player.getServer().getEventManager().fire(playerCommandPreprocessEvent);
         if (playerCommandPreprocessEvent.isCancelled()) {
             return true;
         }
@@ -713,7 +713,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (player.getWindowById(packet.getId()) != null) {
-            player.getServer().getPluginManager().callEvent(new InventoryCloseEvent(player.getWindowById(packet.getId()), player));
+            player.getServer().getEventManager().fire(new InventoryCloseEvent(player.getWindowById(packet.getId()), player));
             if (packet.getId() == ContainerId.INVENTORY) player.closeInventory(player);
             player.removeWindow(player.getWindowById(packet.getId()));
         }
@@ -790,7 +790,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         Block block = itemFrame.getBlock();
         Item itemDrop = itemFrame.getItem();
         ItemFrameDropItemEvent itemFrameDropItemEvent = new ItemFrameDropItemEvent(player, block, itemFrame, itemDrop);
-        player.getServer().getPluginManager().callEvent(itemFrameDropItemEvent);
+        player.getServer().getEventManager().fire(itemFrameDropItemEvent);
         if (!itemFrameDropItemEvent.isCancelled()) {
             if (itemDrop.getId() != AIR) {
                 player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
@@ -829,7 +829,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         if (mapItem != null) {
             PlayerMapInfoRequestEvent event;
-            player.getServer().getPluginManager().callEvent(event = new PlayerMapInfoRequestEvent(player, mapItem));
+            player.getServer().getEventManager().fire(event = new PlayerMapInfoRequestEvent(player, mapItem));
 
             if (!event.isCancelled()) {
                 ((ItemMap) mapItem).sendImage(player);
@@ -1011,7 +1011,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                         PlayerInteractEvent interactEvent = new PlayerInteractEvent(player, serverItem, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
 
-                        player.getServer().getPluginManager().callEvent(interactEvent);
+                        player.getServer().getEventManager().fire(interactEvent);
 
                         if (interactEvent.isCancelled()) {
                             player.getInventory().sendHeldItem(player);
@@ -1062,7 +1062,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
                         PlayerInteractEntityEvent playerInteractEntityEvent = new PlayerInteractEntityEvent(player, target, serverItem, packet.getClickPosition());
                         if (player.isSpectator()) playerInteractEntityEvent.setCancelled();
-                        player.getServer().getPluginManager().callEvent(playerInteractEntityEvent);
+                        player.getServer().getEventManager().fire(playerInteractEntityEvent);
 
                         if (playerInteractEntityEvent.isCancelled()) {
                             break;
@@ -1248,7 +1248,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             if (blockEntity instanceof Lectern) {
                 Lectern lectern = (Lectern) blockEntity;
                 LecternPageChangeEvent lecternPageChangeEvent = new LecternPageChangeEvent(player, lectern, packet.getPage());
-                player.getServer().getPluginManager().callEvent(lecternPageChangeEvent);
+                player.getServer().getEventManager().fire(lecternPageChangeEvent);
                 if (!lecternPageChangeEvent.isCancelled()) {
                     lectern.setPage(lecternPageChangeEvent.getNewRawPage());
                     lectern.spawnToAll();
@@ -1273,7 +1273,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 new TranslationContainer(TextFormat.YELLOW + "%multiplayer.player.joined", player.getDisplayName())
         );
 
-        player.getServer().getPluginManager().callEvent(playerJoinEvent);
+        player.getServer().getEventManager().fire(playerJoinEvent);
 
         if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
             player.getServer().broadcastMessage(playerJoinEvent.getJoinMessage());

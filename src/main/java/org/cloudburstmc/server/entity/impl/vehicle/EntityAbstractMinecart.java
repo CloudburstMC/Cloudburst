@@ -241,10 +241,10 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             Location from = Location.from(this.lastPosition, lastYaw, lastPitch, this.getLevel());
             Location to = Location.from(this.position, this.yaw, this.pitch, this.getLevel());
 
-            this.getServer().getPluginManager().callEvent(new VehicleUpdateEvent(this));
+            this.getServer().getEventManager().fire(new VehicleUpdateEvent(this));
 
             if (!from.equals(to)) {
-                this.getServer().getPluginManager().callEvent(new VehicleMoveEvent(this, from, to));
+                this.getServer().getEventManager().fire(new VehicleMoveEvent(this, from, to));
             }
 
             // Collisions

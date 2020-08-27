@@ -30,7 +30,7 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 7) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), true);
                     }
@@ -46,7 +46,7 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
                     BlockState d = side.down().getState();
                     if (side.getState().getType() == AIR && (d.getType() == FARMLAND || d.getType() == GRASS || d.getType() == DIRT)) {
                         BlockGrowEvent ev = new BlockGrowEvent(side, BlockState.get(PUMPKIN));
-                        Server.getInstance().getPluginManager().callEvent(ev);
+                        Server.getInstance().getEventManager().fire(ev);
                         if (!ev.isCancelled()) {
                             side.set(ev.getNewState(), true);
                         }

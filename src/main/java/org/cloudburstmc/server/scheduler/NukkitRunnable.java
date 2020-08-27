@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.scheduler;
 
 import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 /**
  * This class is provided as an easy way to handle scheduling tasks.
@@ -18,37 +18,37 @@ public abstract class NukkitRunnable implements Runnable {
         taskHandler.cancel();
     }
 
-    public synchronized Runnable runTask(Plugin plugin) throws IllegalArgumentException, IllegalStateException {
+    public synchronized Runnable runTask(PluginContainer plugin) throws IllegalArgumentException, IllegalStateException {
         checkState();
         this.taskHandler = Server.getInstance().getScheduler().scheduleTask(plugin, this);
         return taskHandler.getTask();
     }
 
-    public synchronized Runnable runTaskAsynchronously(Plugin plugin) throws IllegalArgumentException, IllegalStateException {
+    public synchronized Runnable runTaskAsynchronously(PluginContainer plugin) throws IllegalArgumentException, IllegalStateException {
         checkState();
         this.taskHandler = Server.getInstance().getScheduler().scheduleTask(plugin, this, true);
         return taskHandler.getTask();
     }
 
-    public synchronized Runnable runTaskLater(Plugin plugin, int delay) throws IllegalArgumentException, IllegalStateException {
+    public synchronized Runnable runTaskLater(PluginContainer plugin, int delay) throws IllegalArgumentException, IllegalStateException {
         checkState();
         this.taskHandler = Server.getInstance().getScheduler().scheduleDelayedTask(plugin, this, delay);
         return taskHandler.getTask();
     }
 
-    public synchronized Runnable runTaskLaterAsynchronously(Plugin plugin, int delay) throws IllegalArgumentException, IllegalStateException {
+    public synchronized Runnable runTaskLaterAsynchronously(PluginContainer plugin, int delay) throws IllegalArgumentException, IllegalStateException {
         checkState();
         this.taskHandler = Server.getInstance().getScheduler().scheduleDelayedTask(plugin, this, delay, true);
         return taskHandler.getTask();
     }
 
-    public synchronized Runnable runTaskTimer(Plugin plugin, int delay, int period) throws IllegalArgumentException, IllegalStateException {
+    public synchronized Runnable runTaskTimer(PluginContainer plugin, int delay, int period) throws IllegalArgumentException, IllegalStateException {
         checkState();
         this.taskHandler = Server.getInstance().getScheduler().scheduleDelayedRepeatingTask(plugin, this, delay, period);
         return taskHandler.getTask();
     }
 
-    public synchronized Runnable runTaskTimerAsynchronously(Plugin plugin, int delay, int period) throws IllegalArgumentException, IllegalStateException {
+    public synchronized Runnable runTaskTimerAsynchronously(PluginContainer plugin, int delay, int period) throws IllegalArgumentException, IllegalStateException {
         checkState();
         this.taskHandler = Server.getInstance().getScheduler().scheduleDelayedRepeatingTask(plugin, this, delay, period, true);
         return taskHandler.getTask();

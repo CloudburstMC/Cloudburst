@@ -90,7 +90,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
         } else if (type == Level.BLOCK_UPDATE_RANDOM && isCheckDecay(state) && !isPersistent(state)) {
             LeavesDecayEvent ev = new LeavesDecayEvent(block);
 
-            Server.getInstance().getPluginManager().callEvent(ev);
+            Server.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled() || findLog(block, 7)) {
                 block.set(state.withTrait(BlockTraits.HAS_UPDATE, false), false, false);
             } else {

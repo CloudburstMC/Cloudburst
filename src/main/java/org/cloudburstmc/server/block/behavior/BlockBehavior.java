@@ -127,7 +127,7 @@ public abstract class BlockBehavior {
         return true;
     }
 
-    public boolean isLiquid()   {
+    public boolean isLiquid() {
         return false;
     }
 

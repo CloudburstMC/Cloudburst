@@ -24,7 +24,7 @@ final class NoiseGeneratorDeserializer extends JsonDeserializer<NoiseGenerator> 
 
         try {
             return Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.noiseGenerator().get(id));
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException("While decoding noise generator " + id, e);
         }
     }

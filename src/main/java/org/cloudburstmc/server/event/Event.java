@@ -23,12 +23,7 @@ import org.cloudburstmc.server.utils.EventException;
  */
 public abstract class Event {
 
-    protected String eventName = null;
     private boolean isCancelled = false;
-
-    final public String getEventName() {
-        return eventName == null ? getClass().getName() : eventName;
-    }
 
     public boolean isCancelled() {
         if (!(this instanceof Cancellable)) {

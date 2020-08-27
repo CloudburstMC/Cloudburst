@@ -160,10 +160,10 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         val level = block.getLevel();
         if (nextPowered && !powered) {
             level.addLevelSoundEvent(pos, SoundEvent.POWER_ON);
-            level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 0, 15));
+            level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
         } else if (!nextPowered && powered) {
             level.addLevelSoundEvent(pos, SoundEvent.POWER_OFF);
-            level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
+            level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
         } else if (canConnect && !attached) {
             level.addLevelSoundEvent(pos, SoundEvent.ATTACH);
         } else if (!canConnect && attached) {

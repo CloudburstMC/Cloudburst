@@ -126,12 +126,13 @@ public class TimingsExport extends Thread {
         out.set("idmap", idmap);
 
         //Information about loaded plugins
-        out.set("plugins", JsonUtil.mapToObject(Server.getInstance().getPluginManager().getPlugins().values(), (plugin) -> {
+        out.set("plugins", JsonUtil.mapToObject(Server.getInstance().getPluginManager().getAllPlugins(), (plugin) -> {
             ObjectNode jsonPlugin = Nukkit.JSON_MAPPER.createObjectNode();
-            jsonPlugin.put("version", plugin.getDescription().getVersion());
-            jsonPlugin.put("description", plugin.getDescription().getDescription());// Sounds legit
-            jsonPlugin.put("website", plugin.getDescription().getWebsite());
-            jsonPlugin.putPOJO("authors", String.join(", ", plugin.getDescription().getAuthors()));
+            jsonPlugin.put("version", plugin.getVersion());
+
+            plugin.getDescription().ifPresent((desc) -> jsonPlugin.put("description", desc));
+            plugin.getUrl().ifPresent((url) -> jsonPlugin.put("website", url));
+            jsonPlugin.putPOJO("authors", String.join(", ", plugin.getAuthors()));
             return new JsonUtil.JSONPair(plugin.getName(), jsonPlugin);
         }));
 

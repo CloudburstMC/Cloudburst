@@ -24,7 +24,7 @@ final class BiomeMapDeserializer extends JsonDeserializer<BiomeMap> {
 
         try {
             return Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.biomeMap().get(id));
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException("While decoding biome map type " + id, e);
         }
     }

@@ -52,9 +52,9 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      */
     public boolean allNeighborsMatch(ChunkManager level, int x, int y, int z, BlockFilter filter) {
         return filter.test(level.getBlockAt(x - 1, y, z, 0))
-               && filter.test(level.getBlockAt(x + 1, y, z, 0))
-               && filter.test(level.getBlockAt(x, y, z - 1, 0))
-               && filter.test(level.getBlockAt(x, y, z + 1, 0));
+                && filter.test(level.getBlockAt(x + 1, y, z, 0))
+                && filter.test(level.getBlockAt(x, y, z - 1, 0))
+                && filter.test(level.getBlockAt(x, y, z + 1, 0));
     }
 
     /**

@@ -237,7 +237,7 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
 
     @Override
     public void onCollideWithEntity(Entity entity) {
-        this.server.getPluginManager().callEvent(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
+        this.server.getEventManager().fire(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
         float damage = this.getResultDamage();
 
         Entity owner = this.getOwner();

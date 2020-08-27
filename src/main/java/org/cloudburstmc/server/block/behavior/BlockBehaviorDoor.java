@@ -193,7 +193,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
         if (type == Level.BLOCK_UPDATE_REDSTONE) {
             boolean open = isOpen(block);
             if ((!open && block.getLevel().isBlockPowered(block.getPosition())) || (open && !block.getLevel().isBlockPowered(block.getPosition()))) {
-                block.getLevel().getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
+                block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
 
                 this.toggle(block, null);
             }
@@ -272,7 +272,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
     public boolean toggle(Block block, Player player) {
         DoorToggleEvent event = new DoorToggleEvent(block, player);
-        block.getLevel().getServer().getPluginManager().callEvent(event);
+        block.getLevel().getServer().getEventManager().fire(event);
 
         if (event.isCancelled()) {
             return false;

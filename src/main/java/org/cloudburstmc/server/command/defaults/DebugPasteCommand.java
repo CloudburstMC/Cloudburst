@@ -6,16 +6,15 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.network.ProtocolInfo;
-import org.cloudburstmc.server.plugin.Plugin;
-import org.cloudburstmc.server.plugin.PluginDescription;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.scheduler.AsyncTask;
 import org.cloudburstmc.server.utils.HastebinUtility;
 import org.cloudburstmc.server.utils.Utils;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Path;
 
 @Log4j2
 public class DebugPasteCommand extends Command {
@@ -38,10 +37,10 @@ public class DebugPasteCommand extends Command {
             public void onRun() {
                 try {
                     CommandRegistry.get().dispatch(sender, "status");
-                    String dataPath = server.getDataPath();
-                    String nukkitYML = HastebinUtility.upload(new File(dataPath, "nukkit.yml"));
-                    String serverProperties = HastebinUtility.upload(new File(dataPath, "server.properties"));
-                    String latestLog = HastebinUtility.upload(new File(dataPath, "/logs/server.log"));
+                    Path dataPath = server.getDataPath();
+                    String nukkitYML = HastebinUtility.upload(dataPath.resolve("nukkit.yml").toFile());
+                    String serverProperties = HastebinUtility.upload(dataPath.resolve("server.properties").toFile());
+                    String latestLog = HastebinUtility.upload(dataPath.resolve("logs/server.log").toFile());
                     String threadDump = HastebinUtility.upload(Utils.getAllThreadDumps());
 
                     StringBuilder b = new StringBuilder();
@@ -57,19 +56,14 @@ public class DebugPasteCommand extends Command {
                     b.append("version.minecraft: ").append(server.getVersion()).append('\n');
                     b.append("version.protocol: ").append(ProtocolInfo.getDefaultProtocolVersion()).append('\n');
                     b.append("plugins:");
-                    for (Plugin plugin : server.getPluginManager().getPlugins().values()) {
-                        boolean enabled = plugin.isEnabled();
+                    for (PluginContainer plugin : server.getPluginManager().getAllPlugins()) {
                         String name = plugin.getName();
-                        PluginDescription desc = plugin.getDescription();
-                        String version = desc.getVersion();
                         b.append("\n  ")
                                 .append(name)
                                 .append(":\n    ")
                                 .append("version: '")
-                                .append(version)
-                                .append('\'')
-                                .append("\n    enabled: ")
-                                .append(enabled);
+                                .append(plugin.getVersion())
+                                .append('\'');
                     }
                     b.append("\n\n# Java Details\n");
                     Runtime runtime = Runtime.getRuntime();

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.event.weather;
 
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.level.Level;
 
 /**
@@ -10,13 +9,7 @@ import org.cloudburstmc.server.level.Level;
  */
 public class WeatherChangeEvent extends WeatherEvent implements Cancellable {
 
-    private static final HandlerList handlers = new HandlerList();
-
     private final boolean to;
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     public WeatherChangeEvent(Level level, boolean to) {
         super(level);

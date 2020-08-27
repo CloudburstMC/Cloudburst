@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.event.inventory;
 
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.InventoryHolder;
 import org.cloudburstmc.server.item.Item;
@@ -12,12 +11,6 @@ import org.cloudburstmc.server.item.Item;
  * Called when inventory transaction is not caused by a player
  */
 public class InventoryMoveItemEvent extends InventoryEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final Inventory targetInventory;
     private final InventoryHolder source;

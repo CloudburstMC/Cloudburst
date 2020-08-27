@@ -46,7 +46,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
             // Redstone event
             RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
-            block.getLevel().getServer().getPluginManager().callEvent(ev);
+            block.getLevel().getServer().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return 0;
             }

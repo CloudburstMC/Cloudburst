@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.generation.decorator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;

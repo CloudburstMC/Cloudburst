@@ -15,9 +15,10 @@ import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationP
 import org.cloudburstmc.server.level.generator.standard.misc.TerrainDoubleCache;
 import org.cloudburstmc.server.utils.Identifier;
 
-import static java.lang.Math.*;
-import static java.util.Objects.*;
-import static net.daporkchop.lib.math.primitive.PMath.*;
+import static java.lang.Math.sqrt;
+import static java.util.Objects.requireNonNull;
+import static net.daporkchop.lib.math.primitive.PMath.clamp;
+import static net.daporkchop.lib.math.primitive.PMath.lerp;
 
 /**
  * A {@link NoiseSource} that provides noise similar to that of vanilla's end terrain.

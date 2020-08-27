@@ -9,7 +9,6 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomBrown;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomRed;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.feature.FeatureChorusTree;
 import org.cloudburstmc.server.level.feature.FeatureFallenTree;
 import org.cloudburstmc.server.level.feature.WorldFeature;

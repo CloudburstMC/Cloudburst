@@ -29,7 +29,7 @@ public abstract class ItemEdible extends Item {
     public boolean onUse(Player player, int ticksUsed) {
         PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, this);
 
-        player.getServer().getPluginManager().callEvent(consumeEvent);
+        player.getServer().getEventManager().fire(consumeEvent);
         if (consumeEvent.isCancelled()) {
             player.getInventory().sendContents(player);
             return false;

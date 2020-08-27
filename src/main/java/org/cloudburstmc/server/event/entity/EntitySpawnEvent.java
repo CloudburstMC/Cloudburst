@@ -7,7 +7,6 @@ import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.entity.impl.projectile.EntityProjectile;
 import org.cloudburstmc.server.entity.impl.vehicle.EntityVehicle;
 import org.cloudburstmc.server.entity.misc.DroppedItem;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -15,11 +14,6 @@ import org.cloudburstmc.server.level.Location;
  * Nukkit Project
  */
 public class EntitySpawnEvent extends EntityEvent {
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     public EntitySpawnEvent(Entity entity) {
         this.entity = entity;

@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.level.generator.standard.registry;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.level.generator.standard.biome.map.complex.BiomeFilter;
 import org.cloudburstmc.server.level.generator.standard.biome.map.complex.filter.*;
 
@@ -36,8 +38,6 @@ public final class BiomeFilterRegistry extends AbstractGeneratorRegistry<BiomeFi
 
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class ConstructionEvent extends Event {
-        @Getter
-        private static HandlerList handlers = new HandlerList();
 
         @NonNull
         private final BiomeFilterRegistry registry;

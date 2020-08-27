@@ -116,7 +116,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
                 ev = new EntityInteractEvent(entity, block);
             }
 
-            block.getLevel().getServer().getPluginManager().callEvent(ev);
+            block.getLevel().getServer().getEventManager().fire(ev);
 
             if (!ev.isCancelled()) {
                 updateState(block, power);
@@ -139,10 +139,10 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
 
             if (!isPowered && wasPowered) {
                 this.playOffSound(block);
-                level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
+                level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
             } else if (isPowered && !wasPowered) {
                 this.playOnSound(block);
-                level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 0, 15));
+                level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
             }
         }
 

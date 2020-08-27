@@ -100,7 +100,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
                         Block b = block.getLevel().getBlock(block.getX(), block.getY() + y, block.getZ());
                         if (b.getState().getType() == AIR) {
                             BlockGrowEvent event = new BlockGrowEvent(b, BlockState.get(CACTUS));
-                            Server.getInstance().getPluginManager().callEvent(event);
+                            Server.getInstance().getEventManager().fire(event);
                             if (!event.isCancelled()) {
                                 block.set(event.getNewState(), true);
                             }

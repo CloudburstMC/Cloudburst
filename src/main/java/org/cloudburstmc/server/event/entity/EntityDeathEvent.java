@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.event.entity;
 
 import org.cloudburstmc.server.entity.impl.EntityLiving;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.item.Item;
 
 /**
@@ -9,11 +8,6 @@ import org.cloudburstmc.server.item.Item;
  * Nukkit Project
  */
 public class EntityDeathEvent extends EntityEvent {
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private Item[] drops;
 

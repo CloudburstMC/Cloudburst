@@ -198,7 +198,7 @@ public final class LevelChunkManager {
 
         try (Timing ignored = this.level.timings.doChunkUnload.startTiming()) {
             ChunkUnloadEvent chunkUnloadEvent = new ChunkUnloadEvent(chunk);
-            this.level.getServer().getPluginManager().callEvent(chunkUnloadEvent);
+            this.level.getServer().getEventManager().fire(chunkUnloadEvent);
             if (chunkUnloadEvent.isCancelled()) {
                 return false;
             }

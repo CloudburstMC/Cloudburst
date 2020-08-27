@@ -55,7 +55,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
         }
 
         Level level = block.getLevel();
-        level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 0, 15));
+        level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
 
         block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, true), true, false);
 
@@ -77,7 +77,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
         } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             if (this.isActivated(block)) {
                 Level level = block.getLevel();
-                level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
+                level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
 
                 block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, false),
                         true, false);
@@ -117,7 +117,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
     @Override
     public boolean onBreak(Block block, Item item) {
         if (isActivated(block)) {
-            block.getLevel().getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
+            block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
         }
 
         return super.onBreak(block, item);

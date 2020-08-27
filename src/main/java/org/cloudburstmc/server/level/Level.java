@@ -66,7 +66,7 @@ import org.cloudburstmc.server.metadata.MetadataValue;
 import org.cloudburstmc.server.metadata.Metadatable;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -483,7 +483,7 @@ public class Level implements ChunkManager, Metadatable {
             ev.setCancelled();
         }
 
-        this.server.getPluginManager().callEvent(ev);
+        this.server.getEventManager().fire(ev);
 
         if (!force && ev.isCancelled()) {
             return false;
@@ -742,7 +742,7 @@ public class Level implements ChunkManager, Metadatable {
             LightningBolt bolt = EntityRegistry.get().newEntity(EntityTypes.LIGHTNING_BOLT, location);
             bolt.setPosition(vector);
             LightningStrikeEvent ev = new LightningStrikeEvent(this, bolt);
-            getServer().getPluginManager().callEvent(ev);
+            getServer().getEventManager().fire(ev);
             if (!ev.isCancelled()) {
                 bolt.spawnToAll();
             } else {
@@ -867,7 +867,7 @@ public class Level implements ChunkManager, Metadatable {
             return false;
         }
 
-        this.server.getPluginManager().callEvent(new LevelSaveEvent(this));
+        this.server.getEventManager().fire(new LevelSaveEvent(this));
 
         CompletableFuture<Void> chunksFuture = this.saveChunks();
         CompletableFuture<Void> dataFuture = this.provider.saveLevelData(this.levelData);
@@ -1018,7 +1018,7 @@ public class Level implements ChunkManager, Metadatable {
                     if (x == posX && y == posY && z == posZ) continue;
                     block = this.getBlock(x, y, z);
                     if (block.getState().getType() != BlockTypes.AIR) {
-                        this.getServer().getPluginManager().callEvent(
+                        this.getServer().getEventManager().fire(
                                 ev = new BlockUpdateEvent(block));
                         if (!ev.isCancelled()) {
                             normalUpdateQueue.add(block);
@@ -1512,7 +1512,7 @@ public class Level implements ChunkManager, Metadatable {
                 addLightUpdate(x, y, z);
             }
             BlockUpdateEvent ev = new BlockUpdateEvent(block);
-            this.server.getPluginManager().callEvent(ev);
+            this.server.getEventManager().fire(ev);
             if (!ev.isCancelled()) {
                 for (Entity entity : this.getNearbyEntities(new SimpleAxisAlignedBB(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
                     this.scheduleEntityUpdate(entity);
@@ -1592,7 +1592,7 @@ public class Level implements ChunkManager, Metadatable {
 
         droppedItem.spawnToAll();
 
-        this.server.getPluginManager().callEvent(new ItemSpawnEvent(droppedItem));
+        this.server.getEventManager().fire(new ItemSpawnEvent(droppedItem));
 
         return droppedItem;
     }
@@ -1676,7 +1676,7 @@ public class Level implements ChunkManager, Metadatable {
                 ev.setCancelled();
             }
 
-            this.server.getPluginManager().callEvent(ev);
+            this.server.getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return null;
             }
@@ -1806,7 +1806,7 @@ public class Level implements ChunkManager, Metadatable {
                 ev.setCancelled();
             }
 
-            this.server.getPluginManager().callEvent(ev);
+            this.server.getEventManager().fire(ev);
             if (!ev.isCancelled()) {
                 targetBehavior.onUpdate(target, BLOCK_UPDATE_TOUCH);
                 if ((!player.isSneaking() || player.getInventory().getItemInHand().isNull()) && targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item, player)) {
@@ -1886,7 +1886,7 @@ public class Level implements ChunkManager, Metadatable {
             if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
                 event.setCancelled();
             }
-            this.server.getPluginManager().callEvent(event);
+            this.server.getEventManager().fire(event);
             if (event.isCancelled()) {
                 return null;
             }
@@ -2219,7 +2219,7 @@ public class Level implements ChunkManager, Metadatable {
         Location previousSpawn = this.getSpawnLocation();
         Vector3i blockPos = pos.toInt();
         this.levelData.setSpawn(blockPos);
-        this.server.getPluginManager().callEvent(new SpawnChangeEvent(this, previousSpawn.getPosition()));
+        this.server.getEventManager().fire(new SpawnChangeEvent(this, previousSpawn.getPosition()));
 
         SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
         packet.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
@@ -2397,7 +2397,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     @Override
-    public void removeMetadata(String metadataKey, Plugin owningPlugin) throws Exception {
+    public void removeMetadata(String metadataKey, PluginContainer owningPlugin) throws Exception {
         this.server.getLevelMetadata().removeMetadata(this, metadataKey, owningPlugin);
     }
 
@@ -2416,7 +2416,7 @@ public class Level implements ChunkManager, Metadatable {
 
     public boolean setRaining(boolean raining) {
         WeatherChangeEvent ev = new WeatherChangeEvent(this, raining);
-        this.getServer().getPluginManager().callEvent(ev);
+        this.getServer().getEventManager().fire(ev);
 
         if (ev.isCancelled()) {
             return false;
@@ -2456,7 +2456,7 @@ public class Level implements ChunkManager, Metadatable {
 
     public boolean setThundering(boolean thundering) {
         ThunderChangeEvent ev = new ThunderChangeEvent(this, thundering);
-        this.getServer().getPluginManager().callEvent(ev);
+        this.getServer().getEventManager().fire(ev);
 
         if (ev.isCancelled()) {
             return false;

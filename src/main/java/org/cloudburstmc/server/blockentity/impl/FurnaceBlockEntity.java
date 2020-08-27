@@ -112,7 +112,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
     protected void checkFuel(Item fuel) {
         FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel, fuel.getFuelTime() == null ? 0 : fuel.getFuelTime());
-        this.server.getPluginManager().callEvent(ev);
+        this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return;
         }
@@ -179,7 +179,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                     product = Item.get(smelt.getResult().getId(), smelt.getResult().getMeta(), product.getCount() + 1);
 
                     FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
-                    this.server.getPluginManager().callEvent(ev);
+                    this.server.getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         this.inventory.setResult(ev.getResult());
                         raw.setCount(raw.getCount() - 1);

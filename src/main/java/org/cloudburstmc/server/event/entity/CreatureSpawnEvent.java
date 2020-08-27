@@ -3,16 +3,9 @@ package org.cloudburstmc.server.event.entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.level.Location;
 
 public class CreatureSpawnEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final SpawnReason reason;
     private final EntityType<?> type;

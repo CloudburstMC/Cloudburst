@@ -81,7 +81,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
                 block.getLevel().scheduleUpdate(block, tickRate());
             } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
                 RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
-                block.getLevel().getServer().getPluginManager().callEvent(ev);
+                block.getLevel().getServer().getEventManager().fire(ev);
 
                 if (ev.isCancelled()) {
                     return 0;

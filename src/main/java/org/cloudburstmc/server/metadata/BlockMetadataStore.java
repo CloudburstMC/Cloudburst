@@ -2,7 +2,7 @@ package org.cloudburstmc.server.metadata;
 
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.util.List;
 
@@ -54,7 +54,7 @@ public class BlockMetadataStore extends MetadataStore { //TODO: fix/remove
     }
 
     @Override
-    public void removeMetadata(Object block, String metadataKey, Plugin owningPlugin) {
+    public void removeMetadata(Object block, String metadataKey, PluginContainer owningPlugin) {
         if (!(block instanceof BlockState)) {
             throw new IllegalArgumentException("Object must be a Block");
         }

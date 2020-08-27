@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.permission;
 
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.util.Map;
 
@@ -18,11 +18,11 @@ public interface Permissible extends ServerOperator {
 
     boolean hasPermission(Permission permission);
 
-    PermissionAttachment addAttachment(Plugin plugin);
+    PermissionAttachment addAttachment(PluginContainer plugin);
 
-    PermissionAttachment addAttachment(Plugin plugin, String name);
+    PermissionAttachment addAttachment(PluginContainer plugin, String name);
 
-    PermissionAttachment addAttachment(Plugin plugin, String name, Boolean value);
+    PermissionAttachment addAttachment(PluginContainer plugin, String name, Boolean value);
 
     void removeAttachment(PermissionAttachment attachment);
 

@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.event.level;
 
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.level.Level;
 
 /**
@@ -9,12 +8,6 @@ import org.cloudburstmc.server.level.Level;
  */
 @Deprecated()
 public class LevelInitEvent extends LevelEvent {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     public LevelInitEvent(Level level) {
         super(level);

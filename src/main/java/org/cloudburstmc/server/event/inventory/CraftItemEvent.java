@@ -2,7 +2,6 @@ package org.cloudburstmc.server.event.inventory;
 
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.inventory.Recipe;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
 import org.cloudburstmc.server.item.Item;
@@ -17,12 +16,6 @@ import java.util.List;
  * Nukkit Project
  */
 public class CraftItemEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private Item[] input = new Item[0];
 

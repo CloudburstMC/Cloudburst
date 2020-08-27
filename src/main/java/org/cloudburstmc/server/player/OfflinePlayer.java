@@ -3,7 +3,7 @@ package org.cloudburstmc.server.player;
 import com.nukkitx.nbt.NbtMap;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.metadata.MetadataValue;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.util.List;
 import java.util.UUID;
@@ -173,7 +173,7 @@ public class OfflinePlayer implements IPlayer {
         return this.server.getPlayerMetadata().hasMetadata(this, metadataKey);
     }
 
-    public void removeMetadata(String metadataKey, Plugin owningPlugin) {
+    public void removeMetadata(String metadataKey, PluginContainer owningPlugin) {
         this.server.getPlayerMetadata().removeMetadata(this, metadataKey, owningPlugin);
     }
 

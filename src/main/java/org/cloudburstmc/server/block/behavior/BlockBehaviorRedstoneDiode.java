@@ -81,7 +81,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         } else if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
             // Redstone event
             RedstoneUpdateEvent event = new RedstoneUpdateEvent(block);
-            level.getServer().getPluginManager().callEvent(event);
+            level.getServer().getEventManager().fire(event);
             if (event.isCancelled()) return 0;
             if (type == Level.BLOCK_UPDATE_NORMAL && block.down().getState().getBehavior().isTransparent()) {
                 level.useBreakOn(block.getPosition());

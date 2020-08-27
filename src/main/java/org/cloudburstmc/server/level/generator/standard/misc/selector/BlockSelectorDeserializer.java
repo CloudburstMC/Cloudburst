@@ -1,18 +1,12 @@
 package org.cloudburstmc.server.level.generator.standard.misc.selector;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PValidation;
@@ -25,7 +19,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -39,7 +32,7 @@ final class BlockSelectorDeserializer extends JsonDeserializer<BlockSelector> {
                 .map(TempEntry::new)
                 .flatMap(TempEntry::flatten)
                 .toArray(BlockSelector.Entry[]::new);
-        if (entries.length == 1)   {
+        if (entries.length == 1) {
             return new ConstantBlock(entries[0].state());
         }
         return new MultiBlockSelector(entries);
@@ -62,7 +55,7 @@ final class BlockSelectorDeserializer extends JsonDeserializer<BlockSelector> {
             this.weight = matcher.group(1) == null ? 1 : PValidation.ensurePositive(Integer.parseUnsignedInt(matcher.group(1)));
         }
 
-        public Stream<BlockSelector.Entry> flatten()    {
+        public Stream<BlockSelector.Entry> flatten() {
             return Arrays.stream(this.states).map(state -> new MultiBlockSelector.SelectionEntry(state, this.weight));
         }
     }

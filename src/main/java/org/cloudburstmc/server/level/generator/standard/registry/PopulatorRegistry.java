@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.level.generator.standard.registry;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.level.generator.standard.generation.decorator.Decorator;
 import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.population.*;
@@ -59,8 +61,6 @@ public final class PopulatorRegistry extends AbstractGeneratorRegistry<Populator
 
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class ConstructionEvent extends Event {
-        @Getter
-        private static HandlerList handlers = new HandlerList();
 
         @NonNull
         private final PopulatorRegistry registry;

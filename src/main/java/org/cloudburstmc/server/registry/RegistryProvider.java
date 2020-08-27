@@ -1,15 +1,15 @@
 package org.cloudburstmc.server.registry;
 
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 import javax.annotation.Nonnull;
 
 public class RegistryProvider<T> implements Comparable<RegistryProvider<T>> {
     private final T value;
-    private final Plugin plugin;
+    private final PluginContainer plugin;
     private final int priority;
 
-    RegistryProvider(T value, Plugin plugin, int priority) {
+    RegistryProvider(T value, PluginContainer plugin, int priority) {
         this.value = value;
         this.plugin = plugin;
         this.priority = priority;
@@ -20,7 +20,7 @@ public class RegistryProvider<T> implements Comparable<RegistryProvider<T>> {
         return value;
     }
 
-    public Plugin getPlugin() {
+    public PluginContainer getPlugin() {
         return plugin;
     }
 

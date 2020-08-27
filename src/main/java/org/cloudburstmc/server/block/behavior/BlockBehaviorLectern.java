@@ -128,7 +128,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         if (isActivated(block.getState())) {
             level.cancelSheduledUpdate(block.getPosition(), block);
         } else {
-            level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 0, 15));
+            level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
         }
 
         level.scheduleUpdate(block.getPosition(), 4);
@@ -154,7 +154,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             val state = block.getState();
             if (isActivated(state)) {
-                block.getLevel().getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
+                block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
 
                 block.set(state.withTrait(BlockTraits.IS_POWERED, false));
                 block.getLevel().updateAroundRedstone(block.getPosition(), null);
@@ -178,7 +178,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
             Item book = lectern.getBook();
             if (book != null && book.getId() != BlockTypes.AIR) {
                 LecternDropBookEvent dropBookEvent = new LecternDropBookEvent(player, lectern, book);
-                block.getLevel().getServer().getPluginManager().callEvent(dropBookEvent);
+                block.getLevel().getServer().getEventManager().fire(dropBookEvent);
                 if (!dropBookEvent.isCancelled()) {
                     lectern.setBook(Item.get(BlockTypes.AIR));
                     lectern.spawnToAll();

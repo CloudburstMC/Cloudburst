@@ -127,7 +127,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
             }
         }
 
-        this.server.getPluginManager().callEvent(event);
+        this.server.getEventManager().fire(event);
 
         if (!event.isCancelled()) {
             this.setText(event.getLines());
