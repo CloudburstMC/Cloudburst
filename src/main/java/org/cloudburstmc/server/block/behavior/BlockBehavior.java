@@ -219,12 +219,17 @@ public abstract class BlockBehavior {
     }
 
     final protected boolean removeBlock(Block block, boolean update) {
+        BlockState state;
+
         if (block.isWaterlogged()) {
-            BlockState water = block.getExtra();
-            block.getLevel().setBlock(block.getPosition(), water, true, false);
+            state = block.getExtra();
+
+            block.setExtra(BlockStates.AIR, true, false);
+        } else {
+            state = BlockStates.AIR;
         }
 
-        return block.getLevel().setBlock(block.getPosition(), BlockStates.AIR, true, update);
+        return block.getLevel().setBlock(block.getPosition(), state, true, update);
     }
 
     public boolean onBreak(Block block, Item item, Player player) {
