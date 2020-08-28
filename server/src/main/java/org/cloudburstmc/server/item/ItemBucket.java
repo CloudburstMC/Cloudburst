@@ -64,9 +64,9 @@ public class ItemBucket extends Item {
     }
 
     public int getDamageFromIdentifier(Identifier id) {
-        if (id == FLOWING_WATER) {
+        if (id == FLOWING_WATER || id == WATER) {
             return 8;
-        } else if (id == FLOWING_LAVA) {
+        } else if (id == FLOWING_LAVA || id == LAVA) {
             return 10;
         }
         throw new IllegalArgumentException(id + " cannot be in bucket");
@@ -135,13 +135,18 @@ public class ItemBucket extends Item {
         } else if (bucketContents.inCategory(BlockCategory.LIQUID)) {
             Item result = Item.get(ItemIds.BUCKET, 0, 1);
             Block emptyTarget = block;
-            val behavior = target.getState().getBehavior();
+            val targetState = target.getState();
+            val behavior = targetState.getBehavior();
 
             if (behavior.canWaterlogSource() && bucketContents.getType() == FLOWING_WATER) {
                 emptyTarget = target;
             }
+
+            val blockBehavior = emptyTarget.getState().getBehavior();
+
             PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, emptyTarget, face, this, result);
-            if (!behavior.canBeFlooded() && !behavior.canWaterlogSource()) {
+            if (!blockBehavior.canBeFlooded() && !blockBehavior.canWaterlogSource()) {
+                System.out.println("cancel");
                 ev.setCancelled(true);
             }
 
