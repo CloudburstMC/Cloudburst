@@ -3,6 +3,7 @@ package org.cloudburstmc.server.item;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.item.data.Coal;
 import org.cloudburstmc.server.item.data.Damageable;

@@ -4,7 +4,7 @@ import com.nukkitx.nbt.NbtMap;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.Projectile;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 
 /**
  * @author CreeperFace

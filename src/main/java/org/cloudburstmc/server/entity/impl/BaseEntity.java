@@ -39,7 +39,7 @@ import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.event.entity.*;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.EnumLevel;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;

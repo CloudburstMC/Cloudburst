@@ -2,7 +2,7 @@ package org.cloudburstmc.server.event.player;
 
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 public class PlayerGlassBottleFillEvent extends PlayerEvent implements Cancellable {

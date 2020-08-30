@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.item.enchantment;
 
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 
 /**
  * author: MagicDroidX

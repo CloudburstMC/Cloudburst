@@ -7,9 +7,9 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Campfire;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemEdible;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemEdible;
 import org.cloudburstmc.server.level.chunk.Chunk;
 
 /**

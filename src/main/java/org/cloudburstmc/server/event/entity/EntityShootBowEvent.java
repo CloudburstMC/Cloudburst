@@ -3,7 +3,7 @@ package org.cloudburstmc.server.event.entity;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 
 /**
  * author: Box

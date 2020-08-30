@@ -3,7 +3,7 @@ package org.cloudburstmc.server.event.inventory;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.InventoryHolder;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 
 /**
  * @author CreeperFace

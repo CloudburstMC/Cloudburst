@@ -4,7 +4,7 @@ import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.inventory.Recipe;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.ArrayList;

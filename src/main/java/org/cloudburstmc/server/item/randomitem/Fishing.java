@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.item.randomitem;
 
 import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.potion.Potion;
 import org.cloudburstmc.server.utils.data.DyeColor;

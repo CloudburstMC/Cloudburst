@@ -6,7 +6,7 @@ import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
@@ -18,7 +18,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockIds.*;
-import static org.cloudburstmc.server.item.ItemIds.DYE;
+import static org.cloudburstmc.server.item.behavior.ItemIds.DYE;
 
 public class BlockBehaviorSapling extends FloodableBlockBehavior {
 
