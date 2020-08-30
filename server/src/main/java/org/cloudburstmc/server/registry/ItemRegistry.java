@@ -12,7 +12,8 @@ import org.cloudburstmc.server.Nukkit;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.item.*;
+import org.cloudburstmc.server.item.ItemFactory;
+import org.cloudburstmc.server.item.behavior.*;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;

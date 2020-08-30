@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 
 
 public class BrewingRecipe extends MixRecipe {

@@ -4,8 +4,8 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 

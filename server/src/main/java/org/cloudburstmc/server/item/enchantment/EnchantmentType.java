@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item.enchantment;
 
 import org.cloudburstmc.server.block.behavior.BlockBehaviorPumpkin;
-import org.cloudburstmc.server.item.*;
+import org.cloudburstmc.server.item.behavior.*;
 
 /**
  * author: MagicDroidX

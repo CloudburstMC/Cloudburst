@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ItemFrame;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;

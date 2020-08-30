@@ -13,7 +13,7 @@ import org.cloudburstmc.server.event.entity.EntityDamageByChildEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ProjectileHitEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.randomitem.Fishing;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.MovingObjectPosition;

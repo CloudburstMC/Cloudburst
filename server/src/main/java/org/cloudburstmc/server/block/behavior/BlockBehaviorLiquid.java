@@ -11,7 +11,7 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.block.BlockFromToEvent;
 import org.cloudburstmc.server.event.block.LiquidFlowEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;

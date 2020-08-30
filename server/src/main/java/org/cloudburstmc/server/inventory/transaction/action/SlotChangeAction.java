@@ -3,7 +3,7 @@ package org.cloudburstmc.server.inventory.transaction.action;
 import lombok.ToString;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.HashSet;

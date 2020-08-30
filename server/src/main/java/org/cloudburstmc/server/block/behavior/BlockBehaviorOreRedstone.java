@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.level.Level;
 

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
 import org.cloudburstmc.server.event.player.PlayerDropItemEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 /**

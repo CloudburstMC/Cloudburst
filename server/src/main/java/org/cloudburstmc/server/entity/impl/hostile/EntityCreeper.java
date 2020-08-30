@@ -7,8 +7,8 @@ import org.cloudburstmc.server.entity.hostile.Creeper;
 import org.cloudburstmc.server.entity.misc.LightningBolt;
 import org.cloudburstmc.server.event.entity.CreeperPowerEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Location;
 
 import java.util.concurrent.ThreadLocalRandom;

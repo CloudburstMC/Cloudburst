@@ -2,7 +2,7 @@ package org.cloudburstmc.server.event.block;
 
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 

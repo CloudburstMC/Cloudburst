@@ -3,12 +3,12 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.item.ItemIds.ENDER_EYE;
+import static org.cloudburstmc.server.item.behavior.ItemIds.ENDER_EYE;
 
 public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
 

@@ -16,9 +16,9 @@ import org.cloudburstmc.server.entity.misc.DroppedItem;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.server.event.entity.ItemSpawnEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 

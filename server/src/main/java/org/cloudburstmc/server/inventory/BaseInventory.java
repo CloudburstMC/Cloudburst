@@ -8,7 +8,7 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.server.event.inventory.InventoryOpenEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.*;

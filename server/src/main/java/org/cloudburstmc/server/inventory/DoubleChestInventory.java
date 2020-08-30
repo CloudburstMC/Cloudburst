@@ -4,7 +4,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.blockentity.impl.ChestBlockEntity;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
 

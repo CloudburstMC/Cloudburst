@@ -11,7 +11,7 @@ import org.cloudburstmc.server.event.block.BlockIgniteEvent;
 import org.cloudburstmc.server.event.entity.EntityCombustByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.math.Direction;

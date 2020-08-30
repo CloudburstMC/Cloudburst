@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.Rail;
 import org.cloudburstmc.server.utils.data.RailDirection;

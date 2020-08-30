@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Utils;
 

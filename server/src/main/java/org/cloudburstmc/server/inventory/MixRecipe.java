@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import lombok.ToString;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.utils.Identifier;
 
 @ToString

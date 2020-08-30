@@ -7,7 +7,7 @@ import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.inventory.transaction.action.SlotChangeAction;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.*;

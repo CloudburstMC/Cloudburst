@@ -3,7 +3,7 @@ package org.cloudburstmc.server.event.player;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 /**

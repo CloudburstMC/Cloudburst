@@ -8,9 +8,9 @@ import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Lectern;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.chunk.Chunk;
 
 import javax.annotation.Nonnegative;

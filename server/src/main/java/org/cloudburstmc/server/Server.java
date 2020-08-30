@@ -24,7 +24,7 @@ import org.cloudburstmc.server.inject.CloudburstModule;
 import org.cloudburstmc.server.inject.CloudburstPrivateModule;
 import org.cloudburstmc.server.inventory.CraftingManager;
 import org.cloudburstmc.server.inventory.Recipe;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.storage.StorageIds;

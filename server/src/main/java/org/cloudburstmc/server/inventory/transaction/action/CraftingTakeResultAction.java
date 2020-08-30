@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory.transaction.action;
 
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 /**
