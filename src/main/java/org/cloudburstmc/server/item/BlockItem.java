@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item;
 
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -35,7 +35,7 @@ public class BlockItem extends Item {
     public int getMaxStackSize() {
         //Shulker boxes don't stack!
         Identifier id = this.getId();
-        if (id == BlockTypes.SHULKER_BOX || id == BlockTypes.UNDYED_SHULKER_BOX) {
+        if (id == BlockIds.SHULKER_BOX || id == BlockIds.UNDYED_SHULKER_BOX) {
             return 1;
         }
 

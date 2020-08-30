@@ -7,9 +7,9 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorBrewingStand;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.BrewingStand;
@@ -28,7 +28,7 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_WIRE;
+import static org.cloudburstmc.server.block.BlockIds.REDSTONE_WIRE;
 
 public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingStand {
 
@@ -102,7 +102,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.BREWING_STAND;
+        return getBlockState().getType() == BlockIds.BREWING_STAND;
     }
 
     @Override
@@ -269,7 +269,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             return;
         }
 
-        BlockState state = BlockState.get(BlockTypes.BREWING_STAND);
+        BlockState state = BlockState.get(BlockIds.BREWING_STAND);
 
         for (int i = 1; i <= 3; ++i) {
             Item potion = this.inventory.getItem(i);

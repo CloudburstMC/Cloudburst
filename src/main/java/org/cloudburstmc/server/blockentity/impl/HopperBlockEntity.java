@@ -4,8 +4,8 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
@@ -74,7 +74,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.HOPPER;
+        return getBlockState().getType() == BlockIds.HOPPER;
     }
 
     public boolean isOnTransferCooldown() {

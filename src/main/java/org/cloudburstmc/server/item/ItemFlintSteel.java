@@ -4,9 +4,9 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLeaves;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorSolid;
@@ -19,7 +19,7 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.OBSIDIAN;
+import static org.cloudburstmc.server.block.BlockIds.OBSIDIAN;
 
 /**
  * author: MagicDroidX
@@ -164,7 +164,7 @@ public class ItemFlintSteel extends ItemTool {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlock(Vector3i.from(scanX - width, scanY + height, scanZ), BlockState.get(BlockTypes.PORTAL));
+                            level.setBlock(Vector3i.from(scanX - width, scanY + height, scanZ), BlockState.get(BlockIds.PORTAL));
                         }
                     }
 
@@ -243,7 +243,7 @@ public class ItemFlintSteel extends ItemTool {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlock(Vector3i.from(scanX, scanY + height, scanZ - width), BlockState.get(BlockTypes.PORTAL));
+                            level.setBlock(Vector3i.from(scanX, scanY + height, scanZ - width), BlockState.get(BlockIds.PORTAL));
                         }
                     }
 
@@ -251,8 +251,8 @@ public class ItemFlintSteel extends ItemTool {
                     return true;
                 }
             }
-            BlockState fire = BlockState.get(BlockTypes.FIRE);
-            BlockBehaviorFire fireBehavior = (BlockBehaviorFire) BlockRegistry.get().getBehavior(BlockTypes.FIRE);
+            BlockState fire = BlockState.get(BlockIds.FIRE);
+            BlockBehaviorFire fireBehavior = (BlockBehaviorFire) BlockRegistry.get().getBehavior(BlockIds.FIRE);
 
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);

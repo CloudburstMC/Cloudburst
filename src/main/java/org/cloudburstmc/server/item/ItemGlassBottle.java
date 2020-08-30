@@ -9,8 +9,8 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
-import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
-import static org.cloudburstmc.server.block.BlockTypes.WATER;
+import static org.cloudburstmc.server.block.BlockIds.FLOWING_WATER;
+import static org.cloudburstmc.server.block.BlockIds.WATER;
 import static org.cloudburstmc.server.item.ItemIds.POTION;
 
 public class ItemGlassBottle extends Item {

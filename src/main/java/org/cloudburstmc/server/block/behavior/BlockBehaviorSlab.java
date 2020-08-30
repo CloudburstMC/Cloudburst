@@ -184,7 +184,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 
     private BlockTrait<?> getSlabType(BlockState state) {
         BlockTrait<?> type;
-        if (state.getType() == BlockTypes.WOODEN_SLAB) {
+        if (state.getType() == BlockIds.WOODEN_SLAB) {
             type = BlockTraits.TREE_SPECIES;
         } else {
             type = BlockTraits.STONE_SLAB_TYPE;

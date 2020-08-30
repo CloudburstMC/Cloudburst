@@ -15,7 +15,7 @@ import org.cloudburstmc.server.player.Player;
 
 import java.util.Collection;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * author: MagicDroidX

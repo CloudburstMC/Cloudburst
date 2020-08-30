@@ -7,7 +7,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.BROWN_MUSHROOM;
+import static org.cloudburstmc.server.block.BlockIds.BROWN_MUSHROOM;
 
 public class BlockBehaviorHugeMushroomBrown extends BlockBehaviorSolid {
     public static final int NONE = 0;

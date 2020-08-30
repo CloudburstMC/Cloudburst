@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.entity.impl.vehicle;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.vehicle.ChestMinecart;
@@ -26,7 +26,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
     public void initEntity() {
         super.initEntity();
 
-        this.setDisplayBlock(BlockState.get(BlockTypes.CHEST));
+        this.setDisplayBlock(BlockState.get(BlockIds.CHEST));
         this.setDisplay(true);
     }
 

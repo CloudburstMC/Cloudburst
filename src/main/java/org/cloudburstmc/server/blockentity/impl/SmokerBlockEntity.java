@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.blockentity.impl;
 
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Smoker;
 import org.cloudburstmc.server.inventory.InventoryType;
@@ -19,7 +19,7 @@ public class SmokerBlockEntity extends FurnaceBlockEntity implements Smoker {
     @Override
     public boolean isValid() {
         Identifier id = getBlockState().getType();
-        return id == BlockTypes.SMOKER || id == BlockTypes.LIT_SMOKER;
+        return id == BlockIds.SMOKER || id == BlockIds.LIT_SMOKER;
     }
 
     @Override
@@ -29,11 +29,11 @@ public class SmokerBlockEntity extends FurnaceBlockEntity implements Smoker {
 
     @Override
     protected void extinguishFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockTypes.SMOKER).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
+        this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockIds.SMOKER).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
     }
 
     @Override
     protected void lightFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockTypes.LIT_SMOKER).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
+        this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockIds.LIT_SMOKER).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
     }
 }

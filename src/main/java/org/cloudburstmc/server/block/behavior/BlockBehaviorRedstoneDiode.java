@@ -14,8 +14,8 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
-import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_BLOCK;
-import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_WIRE;
+import static org.cloudburstmc.server.block.BlockIds.REDSTONE_BLOCK;
+import static org.cloudburstmc.server.block.BlockIds.REDSTONE_WIRE;
 
 public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior {
 

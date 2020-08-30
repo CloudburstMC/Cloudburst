@@ -14,7 +14,7 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.CONCRETE;
+import static org.cloudburstmc.server.block.BlockIds.CONCRETE;
 
 public class BlockBehaviorConcretePowder extends BlockBehaviorFallable {
 

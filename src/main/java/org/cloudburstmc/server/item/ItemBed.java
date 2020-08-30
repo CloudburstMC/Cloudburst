@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item;
 
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.utils.Identifier;
 
 /**
@@ -16,7 +16,7 @@ public class ItemBed extends Item {
 
     @Override
     public BlockState getBlock() {
-        return BlockState.get(BlockTypes.BED);
+        return BlockState.get(BlockIds.BED);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.item.randomitem;
 
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
@@ -37,7 +37,7 @@ public final class Fishing {
     public static final Selector JUNK_WATTER_BOTTLE = RandomItem.putSelector(new ConstantItemSelector(ItemIds.POTION, Potion.NO_EFFECTS, JUNKS), 0.12F);
     public static final Selector JUNK_BONE = RandomItem.putSelector(new ConstantItemSelector(ItemIds.BONE, JUNKS), 0.12F);
     public static final Selector JUNK_INK_SAC = RandomItem.putSelector(new ConstantItemSelector(ItemIds.DYE, DyeColor.BLACK.getDyeData(), 10, JUNKS), 0.012F);
-    public static final Selector JUNK_TRIPWIRE_HOOK = RandomItem.putSelector(new ConstantItemSelector(BlockTypes.TRIPWIRE_HOOK, JUNKS), 0.12F);
+    public static final Selector JUNK_TRIPWIRE_HOOK = RandomItem.putSelector(new ConstantItemSelector(BlockIds.TRIPWIRE_HOOK, JUNKS), 0.12F);
 
     public static Item getFishingResult(Item rod) {
         int fortuneLevel = 0;

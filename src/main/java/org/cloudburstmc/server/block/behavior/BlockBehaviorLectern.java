@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Lectern;
@@ -72,7 +72,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (placeBlock(block, BlockState.get(BlockTypes.LECTERN).withTrait(
+        if (placeBlock(block, BlockState.get(BlockIds.LECTERN).withTrait(
                 BlockTraits.DIRECTION,
                 player != null ? player.getHorizontalDirection() : Direction.NORTH)
         )) {
@@ -96,7 +96,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
             }
 
             Item currentBook = lectern.getBook();
-            if (currentBook != null && currentBook.getId() == BlockTypes.AIR) {
+            if (currentBook != null && currentBook.getId() == BlockIds.AIR) {
                 if (item.getId() == ItemIds.WRITTEN_BOOK || item.getId() == ItemIds.WRITABLE_BOOK) {
                     Item newBook = item.clone();
                     if (player.isSurvival()) {
@@ -176,11 +176,11 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         if (blockEntity instanceof Lectern) {
             Lectern lectern = (Lectern) blockEntity;
             Item book = lectern.getBook();
-            if (book != null && book.getId() != BlockTypes.AIR) {
+            if (book != null && book.getId() != BlockIds.AIR) {
                 LecternDropBookEvent dropBookEvent = new LecternDropBookEvent(player, lectern, book);
                 block.getLevel().getServer().getEventManager().fire(dropBookEvent);
                 if (!dropBookEvent.isCancelled()) {
-                    lectern.setBook(Item.get(BlockTypes.AIR));
+                    lectern.setBook(Item.get(BlockIds.AIR));
                     lectern.spawnToAll();
                     block.getLevel().dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
                 }

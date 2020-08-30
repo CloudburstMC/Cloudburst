@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.cloudburstmc.server.block.BlockTypes.RAIL;
+import static org.cloudburstmc.server.block.BlockIds.RAIL;
 
 public class BlockBehaviorRail extends FloodableBlockBehavior {
 

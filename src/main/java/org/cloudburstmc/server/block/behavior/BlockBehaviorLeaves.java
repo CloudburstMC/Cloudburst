@@ -18,7 +18,7 @@ import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.item.ItemIds.APPLE;
 import static org.cloudburstmc.server.item.ItemIds.STICK;
 

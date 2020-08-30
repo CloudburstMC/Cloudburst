@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Set;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 @UtilityClass
 public class BlockCategories {

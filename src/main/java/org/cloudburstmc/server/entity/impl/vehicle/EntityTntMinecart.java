@@ -3,8 +3,8 @@ package org.cloudburstmc.server.entity.impl.vehicle;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityExplosive;
 import org.cloudburstmc.server.entity.EntityType;
@@ -43,7 +43,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     public void initEntity() {
         super.initEntity();
 
-        this.setDisplayBlock(BlockState.get(BlockTypes.TNT));
+        this.setDisplayBlock(BlockState.get(BlockIds.TNT));
         this.setDisplay(true);
         this.data.setInt(FUSE_LENGTH, 80);
         this.data.setFlag(CHARGED, false);

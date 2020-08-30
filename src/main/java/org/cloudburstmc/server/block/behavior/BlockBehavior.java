@@ -20,8 +20,8 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.cloudburstmc.server.block.BlockTypes.WEB;
-import static org.cloudburstmc.server.block.BlockTypes.WOOL;
+import static org.cloudburstmc.server.block.BlockIds.WEB;
+import static org.cloudburstmc.server.block.BlockIds.WOOL;
 
 public abstract class BlockBehavior {
 

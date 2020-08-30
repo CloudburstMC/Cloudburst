@@ -18,9 +18,9 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.block.BlockTraits.FLUID_LEVEL;
 import static org.cloudburstmc.server.block.BlockTraits.KELP_AGE;
-import static org.cloudburstmc.server.block.BlockTypes.*;
 import static org.cloudburstmc.server.math.Direction.DOWN;
 
 public class BlockBehaviorKelp extends FloodableBlockBehavior {

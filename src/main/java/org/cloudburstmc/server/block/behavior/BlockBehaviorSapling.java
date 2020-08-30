@@ -17,7 +17,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.item.ItemIds.DYE;
 
 public class BlockBehaviorSapling extends FloodableBlockBehavior {

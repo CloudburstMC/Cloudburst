@@ -7,7 +7,7 @@ import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.PORTAL;
+import static org.cloudburstmc.server.block.BlockIds.PORTAL;
 
 public class BlockBehaviorObsidian extends BlockBehaviorSolid {
 

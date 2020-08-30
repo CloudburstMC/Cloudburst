@@ -10,8 +10,8 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Random;
 
-import static org.cloudburstmc.server.block.BlockTypes.DIRT;
-import static org.cloudburstmc.server.block.BlockTypes.GRASS;
+import static org.cloudburstmc.server.block.BlockIds.DIRT;
+import static org.cloudburstmc.server.block.BlockIds.GRASS;
 import static org.cloudburstmc.server.item.ItemIds.*;
 
 /**

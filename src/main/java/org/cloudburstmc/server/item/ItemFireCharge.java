@@ -17,7 +17,7 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.FIRE;
+import static org.cloudburstmc.server.block.BlockIds.FIRE;
 
 /**
  * Created by PetteriM1

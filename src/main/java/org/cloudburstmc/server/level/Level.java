@@ -123,30 +123,30 @@ public class Level implements ChunkManager, Metadatable {
     private static final Set<Identifier> randomTickBlocks = Collections.newSetFromMap(new IdentityHashMap<>());
 
     static {
-        randomTickBlocks.add(BlockTypes.GRASS);
-        randomTickBlocks.add(BlockTypes.FARMLAND);
-        randomTickBlocks.add(BlockTypes.MYCELIUM);
-        randomTickBlocks.add(BlockTypes.SAPLING);
-        randomTickBlocks.add(BlockTypes.LEAVES);
-        randomTickBlocks.add(BlockTypes.LEAVES2);
-        randomTickBlocks.add(BlockTypes.SNOW_LAYER);
-        randomTickBlocks.add(BlockTypes.ICE);
-        randomTickBlocks.add(BlockTypes.FLOWING_LAVA);
-        randomTickBlocks.add(BlockTypes.LAVA);
-        randomTickBlocks.add(BlockTypes.CACTUS);
-        randomTickBlocks.add(BlockTypes.BEETROOT);
-        randomTickBlocks.add(BlockTypes.CARROTS);
-        randomTickBlocks.add(BlockTypes.POTATOES);
-        randomTickBlocks.add(BlockTypes.MELON_STEM);
-        randomTickBlocks.add(BlockTypes.PUMPKIN_STEM);
-        randomTickBlocks.add(BlockTypes.WHEAT);
-        randomTickBlocks.add(BlockTypes.REEDS);
-        randomTickBlocks.add(BlockTypes.RED_MUSHROOM);
-        randomTickBlocks.add(BlockTypes.BROWN_MUSHROOM);
-        randomTickBlocks.add(BlockTypes.NETHER_WART_BLOCK);
-        randomTickBlocks.add(BlockTypes.FIRE);
-        randomTickBlocks.add(BlockTypes.LIT_REDSTONE_ORE);
-        randomTickBlocks.add(BlockTypes.COCOA);
+        randomTickBlocks.add(BlockIds.GRASS);
+        randomTickBlocks.add(BlockIds.FARMLAND);
+        randomTickBlocks.add(BlockIds.MYCELIUM);
+        randomTickBlocks.add(BlockIds.SAPLING);
+        randomTickBlocks.add(BlockIds.LEAVES);
+        randomTickBlocks.add(BlockIds.LEAVES2);
+        randomTickBlocks.add(BlockIds.SNOW_LAYER);
+        randomTickBlocks.add(BlockIds.ICE);
+        randomTickBlocks.add(BlockIds.FLOWING_LAVA);
+        randomTickBlocks.add(BlockIds.LAVA);
+        randomTickBlocks.add(BlockIds.CACTUS);
+        randomTickBlocks.add(BlockIds.BEETROOT);
+        randomTickBlocks.add(BlockIds.CARROTS);
+        randomTickBlocks.add(BlockIds.POTATOES);
+        randomTickBlocks.add(BlockIds.MELON_STEM);
+        randomTickBlocks.add(BlockIds.PUMPKIN_STEM);
+        randomTickBlocks.add(BlockIds.WHEAT);
+        randomTickBlocks.add(BlockIds.REEDS);
+        randomTickBlocks.add(BlockIds.RED_MUSHROOM);
+        randomTickBlocks.add(BlockIds.BROWN_MUSHROOM);
+        randomTickBlocks.add(BlockIds.NETHER_WART_BLOCK);
+        randomTickBlocks.add(BlockIds.FIRE);
+        randomTickBlocks.add(BlockIds.LIT_REDSTONE_ORE);
+        randomTickBlocks.add(BlockIds.COCOA);
     }
 
     private final Set<BlockEntity> blockEntities = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -735,7 +735,7 @@ public class Level implements ChunkManager, Metadatable {
             Vector3f vector = this.adjustPosToNearbyEntity(Vector3f.from(chunkX + (LCG & 0xf), 0, chunkZ + (LCG >> 8 & 0xf)));
 
             Identifier blockType = chunk.getBlock(vector.getFloorX() & 0xf, vector.getFloorY(), vector.getFloorZ() & 0xf).getType();
-            if (blockType != BlockTypes.TALL_GRASS && blockType != BlockTypes.FLOWING_WATER)
+            if (blockType != BlockIds.TALL_GRASS && blockType != BlockIds.FLOWING_WATER)
                 vector = vector.add(0, 1, 0);
 
             Location location = Location.from(vector, this);
@@ -1017,7 +1017,7 @@ public class Level implements ChunkManager, Metadatable {
                 for (int z = posZ - 1; z <= posZ + 1; z++) {
                     if (x == posX && y == posY && z == posZ) continue;
                     block = this.getBlock(x, y, z);
-                    if (block.getState().getType() != BlockTypes.AIR) {
+                    if (block.getState().getType() != BlockIds.AIR) {
                         this.getServer().getEventManager().fire(
                                 ev = new BlockUpdateEvent(block));
                         if (!ev.isCancelled()) {
@@ -1055,7 +1055,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public void scheduleUpdate(Block block, Vector3i pos, int delay, int priority, boolean checkArea) {
-        if (block.getState().getType() == BlockTypes.AIR || (checkArea && !this.isChunkLoaded(pos))) {
+        if (block.getState().getType() == BlockIds.AIR || (checkArea && !this.isChunkLoaded(pos))) {
             return;
         }
 
@@ -1623,7 +1623,7 @@ public class Level implements ChunkManager, Metadatable {
         int dropExp = targetBehavior.getDropExp();
 
         if (item == null) {
-            item = Item.get(BlockTypes.AIR, 0, 0);
+            item = Item.get(BlockIds.AIR, 0, 0);
         }
 
         boolean isSilkTouch = item.getEnchantment(Enchantment.ID_SILK_TOUCH) != null;
@@ -1699,7 +1699,7 @@ public class Level implements ChunkManager, Metadatable {
 
         Block above = this.getLoadedBlock(target.getPosition().add(0, 1, 0));
         if (above != null) {
-            if (above.getState().getType() == BlockTypes.FIRE) {
+            if (above.getState().getType() == BlockIds.FIRE) {
                 this.setBlock(above.getPosition(), BlockStates.AIR, true);
             }
         }
@@ -1724,7 +1724,7 @@ public class Level implements ChunkManager, Metadatable {
 
         item.useOn(target);
         if (item.isTool() && item.getMeta() >= item.getMaxDurability()) {
-            item = Item.get(BlockTypes.AIR, 0, 0);
+            item = Item.get(BlockIds.AIR, 0, 0);
         }
 
         if (this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
@@ -1791,7 +1791,7 @@ public class Level implements ChunkManager, Metadatable {
             return null;
         }
 
-        if (target.getState().getType() == BlockTypes.AIR) {
+        if (target.getState().getType() == BlockIds.AIR) {
             return null;
         }
 
@@ -1811,26 +1811,26 @@ public class Level implements ChunkManager, Metadatable {
                 targetBehavior.onUpdate(target, BLOCK_UPDATE_TOUCH);
                 if ((!player.isSneaking() || player.getInventory().getItemInHand().isNull()) && targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item, player)) {
                     if (item.isTool() && item.getMeta() >= item.getMaxDurability()) {
-                        item = Item.get(BlockTypes.AIR, 0, 0);
+                        item = Item.get(BlockIds.AIR, 0, 0);
                     }
                     return item;
                 }
 
                 if (item.canBeActivated() && item.onActivate(this, player, block, target, face, clickPos)) {
                     if (item.getCount() <= 0) {
-                        item = Item.get(BlockTypes.AIR, 0, 0);
+                        item = Item.get(BlockIds.AIR, 0, 0);
                         return item;
                     }
                 }
             } else {
-                if (item.getId() == ItemIds.BUCKET && ItemBucket.getBlockIdFromDamage(item.getMeta()) == BlockTypes.FLOWING_WATER) {
+                if (item.getId() == ItemIds.BUCKET && ItemBucket.getBlockIdFromDamage(item.getMeta()) == BlockIds.FLOWING_WATER) {
                     player.getLevel().sendBlocks(new Player[]{player}, new Block[]{new CloudBlock(this, block.getPosition(), new BlockState[]{BlockStates.AIR, BlockStates.AIR})}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
                 }
                 return null;
             }
         } else if (targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item)) {
             if (item.isTool() && item.getMeta() >= item.getMaxDurability()) {
-                item = Item.get(BlockTypes.AIR, 0, 0);
+                item = Item.get(BlockIds.AIR, 0, 0);
             }
             return item;
         }
@@ -1934,7 +1934,7 @@ public class Level implements ChunkManager, Metadatable {
         }
 
         if (item.getCount() <= 0) {
-            item = Item.get(BlockTypes.AIR, 0, 0);
+            item = Item.get(BlockIds.AIR, 0, 0);
         }
         return item;
     }

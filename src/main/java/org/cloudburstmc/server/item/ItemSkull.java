@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item;
 
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.utils.Identifier;
 
 /**
@@ -22,7 +22,7 @@ public class ItemSkull extends Item {
 
     @Override
     public BlockState getBlock() {
-        return BlockState.get(BlockTypes.SKULL);
+        return BlockState.get(BlockIds.SKULL);
     }
 
     public static String getItemSkullName(int meta) {

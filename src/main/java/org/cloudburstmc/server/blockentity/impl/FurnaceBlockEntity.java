@@ -6,9 +6,9 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import lombok.val;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Furnace;
 import org.cloudburstmc.server.event.inventory.FurnaceBurnEvent;
@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 /**
  * @author MagicDroidX
@@ -121,9 +121,9 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         burnTime = (short) (ev.getBurnTime() / getBurnRate());
 
         val type = getBlockState().getType();
-        if (type == BlockTypes.FURNACE
-                || type == BlockTypes.SMOKER
-                || type == BlockTypes.BLAST_FURNACE) {
+        if (type == BlockIds.FURNACE
+                || type == BlockIds.SMOKER
+                || type == BlockIds.BLAST_FURNACE) {
             lightFurnace();
         }
 
@@ -199,7 +199,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             }
             ret = true;
         } else {
-            if (blockId == BlockTypes.LIT_FURNACE || blockId == LIT_BLAST_FURNACE || blockId == LIT_SMOKER) {
+            if (blockId == BlockIds.LIT_FURNACE || blockId == LIT_BLAST_FURNACE || blockId == LIT_SMOKER) {
                 extinguishFurnace();
             }
             burnTime = 0;
