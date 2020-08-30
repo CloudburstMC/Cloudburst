@@ -27,8 +27,8 @@ import javax.annotation.Nonnull;
 import static com.nukkitx.network.util.Preconditions.checkArgument;
 import static com.nukkitx.network.util.Preconditions.checkNotNull;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.OWNER_EID;
-import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
-import static org.cloudburstmc.server.block.BlockTypes.WATER;
+import static org.cloudburstmc.server.block.BlockIds.FLOWING_WATER;
+import static org.cloudburstmc.server.block.BlockIds.WATER;
 
 /**
  * @author MagicDroidX

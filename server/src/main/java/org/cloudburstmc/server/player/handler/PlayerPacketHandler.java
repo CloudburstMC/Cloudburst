@@ -24,8 +24,8 @@ import lombok.val;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLectern;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ItemFrame;
@@ -67,7 +67,7 @@ import org.cloudburstmc.server.utils.TextFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 import static org.cloudburstmc.server.player.Player.CraftingType;
 import static org.cloudburstmc.server.player.Player.DEFAULT_SPEED;
 
@@ -280,7 +280,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 }
 
                 Block block = target.getSide(face);
-                if (block.getState().getType() == BlockTypes.FIRE) {
+                if (block.getState().getType() == BlockIds.FIRE) {
                     block.set(BlockStates.AIR, true);
                     player.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.EXTINGUISH_FIRE);
                     break;
@@ -1240,7 +1240,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (packet.isDroppingBook()) {
             Block block = player.getLevel().getBlock(blockPosition);
             val state = block.getState();
-            if (state.getType() == BlockTypes.LECTERN) {
+            if (state.getType() == BlockIds.LECTERN) {
                 ((BlockBehaviorLectern) state.getBehavior()).dropBook(block, player);
             }
         } else {
@@ -1254,7 +1254,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     lectern.spawnToAll();
                     val block = lectern.getBlock();
                     val state = block.getState();
-                    if (state.getType() == BlockTypes.LECTERN) {
+                    if (state.getType() == BlockIds.LECTERN) {
                         ((BlockBehaviorLectern) state.getBehavior()).executeRedstonePulse(block);
                     }
                 }

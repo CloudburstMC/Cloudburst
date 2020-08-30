@@ -3,10 +3,10 @@ package org.cloudburstmc.server.level.feature.tree;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomBrown;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomRed;
 import org.cloudburstmc.server.level.feature.FeatureChorusTree;
@@ -129,7 +129,7 @@ public enum GenerationTreeSpecies {
     },
     MUSHROOM_RED(BlockStates.RED_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.STEM),
             BlockStates.RED_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.ALL),
-            BlockTypes.RED_MUSHROOM, 0) {
+            BlockIds.RED_MUSHROOM, 0) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {
             return new FeatureMushroomRed(height);
@@ -137,13 +137,13 @@ public enum GenerationTreeSpecies {
     },
     MUSHROOM_BROWN(BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.STEM),
             BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.ALL),
-            BlockTypes.BROWN_MUSHROOM, 0) {
+            BlockIds.BROWN_MUSHROOM, 0) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {
             return new FeatureMushroomBrown(height);
         }
     },
-    CHORUS(BlockStates.CHORUS_PLANT, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.CHORUS_AGE, 5), BlockTypes.CHORUS_FLOWER, 0) {
+    CHORUS(BlockStates.CHORUS_PLANT, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.CHORUS_AGE, 5), BlockIds.CHORUS_FLOWER, 0) {
         @Override
         public WorldFeature getDefaultGenerator() {
             return this.getDefaultGenerator(FeatureChorusTree.DEFAULT_BRANCH_HEIGHT);
@@ -179,7 +179,7 @@ public enum GenerationTreeSpecies {
     GenerationTreeSpecies(@NonNull TreeSpecies species, boolean hasSapling) {
         this(BlockStates.LOG.withTrait(BlockTraits.TREE_SPECIES, species),
                 BlockStates.LEAVES.withTrait(BlockTraits.TREE_SPECIES, species),
-                hasSapling ? BlockTypes.SAPLING : null, hasSapling ? species.ordinal() : -1);
+                hasSapling ? BlockIds.SAPLING : null, hasSapling ? species.ordinal() : -1);
     }
 
     public Identifier getItemId() {

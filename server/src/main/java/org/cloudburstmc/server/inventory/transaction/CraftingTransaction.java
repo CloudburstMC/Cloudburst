@@ -15,7 +15,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 /**
  * @author CreeperFace

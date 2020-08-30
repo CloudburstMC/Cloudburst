@@ -91,7 +91,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
             Block b = block.getSide(direction);
             BlockState state = b.getState();
 
-            if (state.getType() != BlockTypes.CHEST || state.ensureTrait(BlockTraits.FACING_DIRECTION) != chestFace) {
+            if (state.getType() != BlockIds.CHEST || state.ensureTrait(BlockTraits.FACING_DIRECTION) != chestFace) {
                 continue;
             }
 
@@ -101,7 +101,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
             }
         }
 
-        placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace));
+        placeBlock(block, BlockRegistry.get().getBlock(BlockIds.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace));
 
         Chest chest1 = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, block.getChunk(), block.getPosition());
         chest1.loadAdditionalData(item.getTag());
@@ -168,6 +168,6 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        return ItemRegistry.get().getItem(BlockTypes.CHEST);
+        return ItemRegistry.get().getItem(BlockIds.CHEST);
     }
 }

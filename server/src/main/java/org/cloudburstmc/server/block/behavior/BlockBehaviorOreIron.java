@@ -4,7 +4,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 
-import static org.cloudburstmc.server.block.BlockTypes.IRON_ORE;
+import static org.cloudburstmc.server.block.BlockIds.IRON_ORE;
 
 public class BlockBehaviorOreIron extends BlockBehaviorSolid {
 

@@ -14,7 +14,7 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 

@@ -10,7 +10,7 @@ import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * author: MagicDroidX

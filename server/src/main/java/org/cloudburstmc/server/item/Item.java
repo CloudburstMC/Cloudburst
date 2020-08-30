@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 import static org.cloudburstmc.server.item.ItemIds.BUCKET;
 
 /**

@@ -20,8 +20,8 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.cloudburstmc.server.block.BlockTypes.GLOWSTONE;
-import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_WIRE;
+import static org.cloudburstmc.server.block.BlockIds.GLOWSTONE;
+import static org.cloudburstmc.server.block.BlockIds.REDSTONE_WIRE;
 
 public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 

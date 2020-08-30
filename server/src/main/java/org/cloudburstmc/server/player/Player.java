@@ -35,8 +35,8 @@ import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.EnderChest;
 import org.cloudburstmc.server.blockentity.Sign;
@@ -992,7 +992,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         for (Block block : this.getCollisionBlocks()) {
             val state = block.getState();
-            if (state.getType() == BlockTypes.PORTAL) {
+            if (state.getType() == BlockIds.PORTAL) {
                 portal = true;
                 continue;
             }
@@ -2212,7 +2212,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return false;
         } else if (source.getCause() == EntityDamageEvent.DamageCause.FALL) {
         }
-        if (this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockTypes.SLIME) {
+        if (this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockIds.SLIME) {
             if (!this.isSneaking()) {
                 //source.setCancelled();
                 this.resetFallDistance();
@@ -2425,7 +2425,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
                 case LAVA:
                     BlockState state = this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt());
-                    if (state.getType() == BlockTypes.MAGMA) {
+                    if (state.getType() == BlockIds.MAGMA) {
                         message = "death.attack.lava.magma";
                         break;
                     }
@@ -2446,7 +2446,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
                 case CONTACT:
                     if (cause instanceof EntityDamageByBlockEvent) {
-                        if (((EntityDamageByBlockEvent) cause).getDamager().getState().getType() == BlockTypes.CACTUS) {
+                        if (((EntityDamageByBlockEvent) cause).getDamager().getState().getType() == BlockIds.CACTUS) {
                             message = "death.attack.cactus";
                         }
                     }
@@ -3279,7 +3279,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                             return false;
                         }
 
-                        if (item.getId() == BlockTypes.LOG) {
+                        if (item.getId() == BlockIds.LOG) {
                             this.awardAchievement("mineWood");
                         } else if (item.getId() == ItemIds.DIAMOND) {
                             this.awardAchievement("diamond");

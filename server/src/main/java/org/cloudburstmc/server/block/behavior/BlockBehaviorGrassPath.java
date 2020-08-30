@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.player.Player;
@@ -39,7 +39,7 @@ public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.isHoe()) {
             item.useOn(block);
-            block.set(BlockState.get(BlockTypes.FARMLAND), true);
+            block.set(BlockState.get(BlockIds.FARMLAND), true);
             return true;
         }
 

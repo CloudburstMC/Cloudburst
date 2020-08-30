@@ -4,7 +4,7 @@ import org.cloudburstmc.server.block.BlockState;
 
 import java.util.Objects;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 /**
  * INTERNAL helper class of railway

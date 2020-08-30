@@ -5,7 +5,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Lectern;
 import org.cloudburstmc.server.item.Item;
@@ -33,7 +33,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.LECTERN;
+        return getBlockState().getType() == BlockIds.LECTERN;
     }
 
     @Override

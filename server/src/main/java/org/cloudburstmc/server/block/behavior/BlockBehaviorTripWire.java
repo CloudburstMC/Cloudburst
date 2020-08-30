@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -14,7 +14,7 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
-import static org.cloudburstmc.server.block.BlockTypes.TRIPWIRE;
+import static org.cloudburstmc.server.block.BlockIds.TRIPWIRE;
 
 public class BlockBehaviorTripWire extends FloodableBlockBehavior {
 
@@ -79,7 +79,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
                 val b = block.getSide(side, i);
                 BlockState state = b.getState();
 
-                if (state.getType() == BlockTypes.TRIPWIRE_HOOK) {
+                if (state.getType() == BlockIds.TRIPWIRE_HOOK) {
                     if (state.ensureTrait(BlockTraits.DIRECTION) == side.getOpposite()) {
                         ((BlockBehaviorTripWireHook) state.getBehavior()).calculateState(b, false, true, i, blockState);
                     }

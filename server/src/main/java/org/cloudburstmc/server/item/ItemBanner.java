@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.utils.BannerPattern;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.DyeColor;
@@ -28,7 +28,7 @@ public class ItemBanner extends Item {
 
     @Override
     public BlockState getBlock() {
-        return BlockState.get(BlockTypes.STANDING_BANNER);
+        return BlockState.get(BlockIds.STANDING_BANNER);
     }
 
     @Override

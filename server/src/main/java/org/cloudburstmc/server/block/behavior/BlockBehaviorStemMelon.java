@@ -13,7 +13,7 @@ import org.cloudburstmc.server.math.Direction;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
 

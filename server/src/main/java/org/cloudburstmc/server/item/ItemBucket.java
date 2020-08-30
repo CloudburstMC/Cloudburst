@@ -13,7 +13,7 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 /**
  * author: MagicDroidX

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item.food;
 
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.player.PlayerEatFoodEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.player.Player;
@@ -38,9 +38,9 @@ public abstract class Food {
     public static final Food beetroot_soup = registerDefaultFood(new FoodInBowl(6, 7.2F).addRelative(BEETROOT_SOUP));
     public static final Food bread = registerDefaultFood(new FoodNormal(5, 6F).addRelative(BREAD));
     public static final Food cake_slice = registerDefaultFood(new FoodNormal(2, 0.4F)
-            .addRelative(BlockTypes.CAKE, 0).addRelative(BlockTypes.CAKE, 1).addRelative(BlockTypes.CAKE, 2)
-            .addRelative(BlockTypes.CAKE, 3).addRelative(BlockTypes.CAKE, 4).addRelative(BlockTypes.CAKE, 5)
-            .addRelative(BlockTypes.CAKE, 6));
+            .addRelative(BlockIds.CAKE, 0).addRelative(BlockIds.CAKE, 1).addRelative(BlockIds.CAKE, 2)
+            .addRelative(BlockIds.CAKE, 3).addRelative(BlockIds.CAKE, 4).addRelative(BlockIds.CAKE, 5)
+            .addRelative(BlockIds.CAKE, 6));
     public static final Food carrot = registerDefaultFood(new FoodNormal(3, 4.8F).addRelative(CARROT));
     public static final Food carrot_golden = registerDefaultFood(new FoodNormal(6, 14.4F).addRelative(GOLDEN_CARROT));
     public static final Food chicken_raw = registerDefaultFood(new FoodEffective(2, 1.2F)

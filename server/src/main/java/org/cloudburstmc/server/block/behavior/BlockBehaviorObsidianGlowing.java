@@ -4,7 +4,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 
-import static org.cloudburstmc.server.block.BlockTypes.OBSIDIAN;
+import static org.cloudburstmc.server.block.BlockIds.OBSIDIAN;
 
 public class BlockBehaviorObsidianGlowing extends BlockBehaviorSolid {
 

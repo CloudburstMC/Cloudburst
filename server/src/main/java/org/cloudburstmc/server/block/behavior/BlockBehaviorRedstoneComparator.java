@@ -17,8 +17,8 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
-import static org.cloudburstmc.server.block.BlockTypes.POWERED_COMPARATOR;
-import static org.cloudburstmc.server.block.BlockTypes.UNPOWERED_COMPARATOR;
+import static org.cloudburstmc.server.block.BlockIds.POWERED_COMPARATOR;
+import static org.cloudburstmc.server.block.BlockIds.UNPOWERED_COMPARATOR;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.COMPARATOR;
 
 public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode {

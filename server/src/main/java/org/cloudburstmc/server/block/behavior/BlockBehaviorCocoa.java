@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
@@ -105,9 +105,9 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (target.getState().getType() == BlockTypes.LOG && target.getState().ensureTrait(BlockTraits.TREE_SPECIES) == TreeSpecies.JUNGLE) {
+        if (target.getState().getType() == BlockIds.LOG && target.getState().ensureTrait(BlockTraits.TREE_SPECIES) == TreeSpecies.JUNGLE) {
             if (face != Direction.DOWN && face != Direction.UP) {
-                placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.COCOA)
+                placeBlock(block, BlockRegistry.get().getBlock(BlockIds.COCOA)
                         .withTrait(BlockTraits.DIRECTION, face));
                 return true;
             }
@@ -120,7 +120,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             BlockState side = block.getSide(block.getState().ensureTrait(BlockTraits.DIRECTION)).getState();
 
-            if (side.getType() != BlockTypes.LOG || side.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE) {
+            if (side.getType() != BlockIds.LOG || side.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE) {
                 block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }

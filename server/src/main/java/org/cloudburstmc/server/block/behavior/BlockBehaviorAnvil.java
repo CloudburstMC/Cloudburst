@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.inventory.AnvilInventory;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
@@ -18,7 +18,7 @@ import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.AnvilDamage;
 
-import static org.cloudburstmc.server.block.BlockTypes.SNOW_LAYER;
+import static org.cloudburstmc.server.block.BlockIds.SNOW_LAYER;
 
 public class BlockBehaviorAnvil extends BlockBehaviorFallable {
 
@@ -51,7 +51,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val state = block.getState();
         if (!target.getState().getBehavior().isTransparent() || state.getType() == SNOW_LAYER) {
-            BlockState anvil = BlockRegistry.get().getBlock(BlockTypes.ANVIL)
+            BlockState anvil = BlockRegistry.get().getBlock(BlockIds.ANVIL)
                     .withTrait(BlockTraits.DIRECTION, player.getDirection().getOpposite());
 
             int meta = item.getMeta();

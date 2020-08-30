@@ -16,7 +16,7 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.OBSIDIAN;
+import static org.cloudburstmc.server.block.BlockIds.OBSIDIAN;
 
 public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 

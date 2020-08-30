@@ -16,7 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.COLOR;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.SHEARED;
-import static org.cloudburstmc.server.block.BlockTypes.WOOL;
+import static org.cloudburstmc.server.block.BlockIds.WOOL;
 
 /**
  * Author: BeYkeRYkt Nukkit Project

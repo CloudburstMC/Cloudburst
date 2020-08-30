@@ -7,9 +7,9 @@ import it.unimi.dsi.fastutil.longs.LongArraySet;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorTNT;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.misc.DroppedItem;
@@ -178,14 +178,14 @@ public class Explosion {
             }
         }
 
-        Item air = Item.get(BlockTypes.AIR, 0, 0);
+        Item air = Item.get(BlockIds.AIR, 0, 0);
 
         //Iterator iter = this.affectedBlocks.entrySet().iterator();
         for (Block block : this.affectedBlockStates) {
             val state = block.getState();
             val behavior = state.getBehavior();
             //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
-            if (state.getType() == BlockTypes.TNT) {
+            if (state.getType() == BlockIds.TNT) {
                 ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
             } else if (Math.random() * 100 < yield) {
                 for (Item drop : behavior.getDrops(block, air)) {

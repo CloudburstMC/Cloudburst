@@ -18,7 +18,7 @@ import org.cloudburstmc.server.utils.data.TallGrassType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.item.ItemIds.DYE;
 
 public class BlockBehaviorTallGrass extends FloodableBlockBehavior {

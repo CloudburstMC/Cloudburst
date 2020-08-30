@@ -4,8 +4,8 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BrewingStand;
 import org.cloudburstmc.server.inventory.ContainerInventory;
@@ -51,7 +51,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
         if (!state.inCategory(BlockCategory.TRANSPARENT)) {
-            placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.BREWING_STAND));
+            placeBlock(block, BlockRegistry.get().getBlock(BlockIds.BREWING_STAND));
 
             BrewingStand brewingStand = BlockEntityRegistry.get().newEntity(BREWING_STAND, block.getChunk(), block.getPosition());
             brewingStand.loadAdditionalData(item.getTag());

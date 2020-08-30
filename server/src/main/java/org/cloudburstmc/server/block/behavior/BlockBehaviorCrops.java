@@ -16,7 +16,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
+import static org.cloudburstmc.server.block.BlockIds.FARMLAND;
 
 public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
 

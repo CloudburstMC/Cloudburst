@@ -6,9 +6,9 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
@@ -213,7 +213,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             if (Rail.isRailBlock(state)) {
                 processMovement(dx, dy, dz, block);
                 // Activate the minecart/TNT
-                if (state.getType() == BlockTypes.ACTIVATOR_RAIL && state.ensureTrait(BlockTraits.IS_POWERED)) {
+                if (state.getType() == BlockIds.ACTIVATOR_RAIL && state.ensureTrait(BlockTraits.IS_POWERED)) {
                     activate(dx, dy, dz, true);
                 }
             } else {
@@ -442,8 +442,8 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     private void processMovement(int dx, int dy, int dz, Block block) {
         fallDistance = 0.0F;
         Identifier identifier = block.getState().getType();
-        if (identifier != BlockTypes.RAIL && identifier != BlockTypes.ACTIVATOR_RAIL &&
-                identifier != BlockTypes.DETECTOR_RAIL && identifier != BlockTypes.GOLDEN_RAIL) {
+        if (identifier != BlockIds.RAIL && identifier != BlockIds.ACTIVATOR_RAIL &&
+                identifier != BlockIds.DETECTOR_RAIL && identifier != BlockIds.GOLDEN_RAIL) {
             return;
         }
         Vector3f vector = getNextRail(this.getPosition());

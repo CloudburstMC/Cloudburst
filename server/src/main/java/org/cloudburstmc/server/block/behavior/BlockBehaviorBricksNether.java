@@ -5,7 +5,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.NETHER_BRICK;
+import static org.cloudburstmc.server.block.BlockIds.NETHER_BRICK;
 
 public class BlockBehaviorBricksNether extends BlockBehaviorSolid {
 

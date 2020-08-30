@@ -12,7 +12,7 @@ import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * Created by CreeperFace on 11.4.2017.

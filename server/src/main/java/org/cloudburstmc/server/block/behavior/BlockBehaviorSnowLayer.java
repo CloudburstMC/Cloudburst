@@ -37,7 +37,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
         if (down.inCategory(BlockCategory.SOLID)) {
-            placeBlock(block, BlockState.get(BlockTypes.SNOW_LAYER));
+            placeBlock(block, BlockState.get(BlockIds.SNOW_LAYER));
             return true;
         }
         return false;

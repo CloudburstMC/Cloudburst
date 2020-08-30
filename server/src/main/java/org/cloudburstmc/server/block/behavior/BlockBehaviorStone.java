@@ -8,7 +8,7 @@ import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemTool;
 import org.cloudburstmc.server.utils.data.StoneType;
 
-import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE;
+import static org.cloudburstmc.server.block.BlockIds.COBBLESTONE;
 
 public class BlockBehaviorStone extends BlockBehaviorSolid {
 

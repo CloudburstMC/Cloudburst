@@ -19,7 +19,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.utils.data.SpongeType.DRY;
 import static org.cloudburstmc.server.utils.data.SpongeType.WET;
 

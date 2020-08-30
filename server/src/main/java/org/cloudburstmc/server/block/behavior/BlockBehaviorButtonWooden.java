@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.item.ItemTool;
 
 public class BlockBehaviorButtonWooden extends BlockBehaviorButton {
 
     public BlockBehaviorButtonWooden() {
-        super(BlockTypes.WOODEN_BUTTON);
+        super(BlockIds.WOODEN_BUTTON);
     }
 
     @Override

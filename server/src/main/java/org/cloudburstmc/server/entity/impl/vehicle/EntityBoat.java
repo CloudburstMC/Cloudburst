@@ -5,8 +5,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import lombok.val;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
@@ -289,7 +289,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
                 val block = getLevel().getBlock(x, y, z);
                 BlockState state = block.getState();
 
-                if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {
+                if (state.getType() == BlockIds.WATER || state.getType() == BlockIds.FLOWING_WATER) {
                     double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
 
                     diffY = Math.min(maxY - level, diffY);

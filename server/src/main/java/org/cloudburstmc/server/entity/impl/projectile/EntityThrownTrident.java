@@ -18,7 +18,7 @@ import org.cloudburstmc.server.level.MovingObjectPosition;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * Created by PetteriM1

@@ -16,8 +16,8 @@ import org.cloudburstmc.server.utils.data.DirtType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.DIRT;
-import static org.cloudburstmc.server.block.BlockTypes.MYCELIUM;
+import static org.cloudburstmc.server.block.BlockIds.DIRT;
+import static org.cloudburstmc.server.block.BlockIds.MYCELIUM;
 
 public class BlockBehaviorMycelium extends BlockBehaviorSolid {
 

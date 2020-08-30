@@ -22,7 +22,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 

@@ -12,7 +12,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.block.serializer.DirectionHelper.SeqType.*;
 
 @UtilityClass

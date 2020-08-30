@@ -12,7 +12,7 @@ import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.TextFormat;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * Created by Pub4Game on 23.01.2016.

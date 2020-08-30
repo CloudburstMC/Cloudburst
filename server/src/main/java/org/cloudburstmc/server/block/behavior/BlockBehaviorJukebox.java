@@ -11,7 +11,7 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.JUKEBOX;
 
 public class BlockBehaviorJukebox extends BlockBehaviorSolid {

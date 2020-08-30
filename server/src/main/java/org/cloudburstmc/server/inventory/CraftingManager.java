@@ -6,7 +6,7 @@ import io.netty.util.collection.CharObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.player.Player;
@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.LIT_BLAST_FURNACE;
+import static org.cloudburstmc.server.block.BlockIds.LIT_BLAST_FURNACE;
 
 /**
  * author: MagicDroidX
@@ -98,12 +98,12 @@ public class CraftingManager {
     }
 
     public FurnaceRecipe matchFurnaceRecipe(Item input, Identifier craftingBlock) {
-        if (craftingBlock == BlockTypes.LIT_SMOKER) {
-            craftingBlock = BlockTypes.SMOKER;
+        if (craftingBlock == BlockIds.LIT_SMOKER) {
+            craftingBlock = BlockIds.SMOKER;
         } else if (craftingBlock == LIT_BLAST_FURNACE) {
-            craftingBlock = BlockTypes.BLAST_FURNACE;
-        } else if (craftingBlock == BlockTypes.LIT_FURNACE) {
-            craftingBlock = BlockTypes.FURNACE;
+            craftingBlock = BlockIds.BLAST_FURNACE;
+        } else if (craftingBlock == BlockIds.LIT_FURNACE) {
+            craftingBlock = BlockIds.FURNACE;
         }
         FurnaceRecipe recipe = this.furnaceRecipes.get(Objects.hash(getItemHash(input), craftingBlock.toString()));
         if (recipe == null)

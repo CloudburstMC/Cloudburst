@@ -3,6 +3,7 @@ package org.cloudburstmc.server.item;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.server.utils.Identifier;
 
+@SuppressWarnings("RedundantModifiersUtilityClassLombok")
 @UtilityClass
 public final class ItemIds {
 

@@ -39,7 +39,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
             }
 
             if (up.getState().inCategory(BlockCategory.SOLID)) {
-                block.set(BlockState.get(BlockTypes.DIRT));
+                block.set(BlockState.get(BlockIds.DIRT));
                 return Level.BLOCK_UPDATE_RANDOM;
             }
 
@@ -57,7 +57,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
 
                             Identifier b = block.getLevel().getBlockAt(x, y, z).getType();
 
-                            if (b == BlockTypes.FLOWING_WATER || b == BlockTypes.WATER) {
+                            if (b == BlockIds.FLOWING_WATER || b == BlockIds.WATER) {
                                 found = true;
                                 break;
                             }
@@ -68,7 +68,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
 
             val state = block.getState();
             val down = block.getLevel().getBlockAt(block.getPosition().down()).getType();
-            if (found || down == BlockTypes.WATER || down == BlockTypes.FLOWING_WATER) {
+            if (found || down == BlockIds.WATER || down == BlockIds.FLOWING_WATER) {
                 if (state.ensureTrait(BlockTraits.MOISTURIZED_AMOUNT) < 7) {
                     block.set(state.withTrait(BlockTraits.MOISTURIZED_AMOUNT, 7));
                 }
@@ -78,7 +78,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
             if (state.ensureTrait(BlockTraits.MOISTURIZED_AMOUNT) > 0) {
                 block.set(state.decrementTrait(BlockTraits.MOISTURIZED_AMOUNT));
             } else {
-                block.set(BlockState.get(BlockTypes.DIRT));
+                block.set(BlockState.get(BlockIds.DIRT));
             }
 
             return Level.BLOCK_UPDATE_RANDOM;
@@ -89,7 +89,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(BlockTypes.DIRT);
+        return Item.get(BlockIds.DIRT);
     }
 
     @Override
