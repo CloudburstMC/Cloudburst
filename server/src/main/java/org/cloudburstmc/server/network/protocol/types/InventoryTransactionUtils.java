@@ -11,8 +11,8 @@ import org.cloudburstmc.server.inventory.BeaconInventory;
 import org.cloudburstmc.server.inventory.EnchantInventory;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.transaction.action.*;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.Optional;

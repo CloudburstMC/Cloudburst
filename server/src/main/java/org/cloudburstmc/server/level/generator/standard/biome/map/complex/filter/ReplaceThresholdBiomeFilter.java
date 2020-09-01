@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class ReplaceThresholdBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("nukkitx:replace_threshold");
+    public static final Identifier ID = Identifier.fromString("cloudburst:replace_threshold");
 
     protected int targetId;
     protected int replacementId;

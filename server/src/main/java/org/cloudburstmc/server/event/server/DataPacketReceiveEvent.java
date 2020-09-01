@@ -2,7 +2,6 @@ package org.cloudburstmc.server.event.server;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -11,18 +10,12 @@ import org.cloudburstmc.server.player.Player;
  */
 public class DataPacketReceiveEvent extends ServerEvent implements Cancellable {
 
-    private static final HandlerList handlers = new HandlerList();
-
     private final BedrockPacket packet;
     private final Player player;
 
     public DataPacketReceiveEvent(Player player, BedrockPacket packet) {
         this.packet = packet;
         this.player = player;
-    }
-
-    public static HandlerList getHandlers() {
-        return handlers;
     }
 
     public BedrockPacket getPacket() {

@@ -26,7 +26,7 @@ final class FinisherDeserializer extends JsonDeserializer<Finisher> {
         try {
             return id == NextGenerationPass.ID
                     ? NextGenerationPass.INSTANCE : Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.finisher().get(id));
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException("While decoding finisher " + id, e);
         }
     }

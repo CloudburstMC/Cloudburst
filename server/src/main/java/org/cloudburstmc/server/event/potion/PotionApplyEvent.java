@@ -2,7 +2,6 @@ package org.cloudburstmc.server.event.potion;
 
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.potion.Potion;
 
@@ -11,12 +10,6 @@ import org.cloudburstmc.server.potion.Potion;
  * Package cn.nukkit.event.potion in project nukkit
  */
 public class PotionApplyEvent extends PotionEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private Effect applyEffect;
 

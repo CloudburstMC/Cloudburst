@@ -9,10 +9,11 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.item.*;
+import org.cloudburstmc.server.item.ItemFactory;
+import org.cloudburstmc.server.item.behavior.*;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
@@ -227,7 +228,7 @@ public class ItemRegistry implements Registry {
         registerVanilla(ItemIds.GOLDEN_SHOVEL, ItemShovelGold::new, 284);
         registerVanilla(ItemIds.GOLDEN_PICKAXE, ItemPickaxeGold::new, 285);
         registerVanilla(ItemIds.GOLDEN_AXE, ItemAxeGold::new, 286);
-        registerVanilla(ItemIds.STRING, PlaceableItem.factory(BlockTypes.TRIPWIRE), 287);
+        registerVanilla(ItemIds.STRING, PlaceableItem.factory(BlockIds.TRIPWIRE), 287);
         registerVanilla(ItemIds.FEATHER, SimpleItem::new, 288);
         registerVanilla(ItemIds.GUNPOWDER, SimpleItem::new, 289);
         registerVanilla(ItemIds.WOODEN_HOE, ItemHoeWood::new, 290);
@@ -235,7 +236,7 @@ public class ItemRegistry implements Registry {
         registerVanilla(ItemIds.IRON_HOE, ItemHoeIron::new, 292);
         registerVanilla(ItemIds.DIAMOND_HOE, ItemHoeDiamond::new, 293);
         registerVanilla(ItemIds.GOLDEN_HOE, ItemHoeGold::new, 294);
-        registerVanilla(ItemIds.WHEAT_SEEDS, PlaceableItem.factory(BlockTypes.WHEAT), 295);
+        registerVanilla(ItemIds.WHEAT_SEEDS, PlaceableItem.factory(BlockIds.WHEAT), 295);
         registerVanilla(ItemIds.WHEAT, SimpleItem::new, 296);
         registerVanilla(ItemIds.BREAD, ItemBread::new, 297);
         registerVanilla(ItemIds.LEATHER_HELMET, ItemHelmetLeather::new, 298);
@@ -263,21 +264,21 @@ public class ItemRegistry implements Registry {
         registerVanilla(ItemIds.COOKED_PORKCHOP, ItemPorkchopCooked::new, 320);
         registerVanilla(ItemIds.PAINTING, ItemPainting::new, 321);
         registerVanilla(ItemIds.GOLDEN_APPLE, ItemAppleGold::new, 322);
-        registerVanilla(ItemIds.SIGN, SignItem.factory(BlockTypes.STANDING_SIGN), 323);
-        registerVanilla(ItemIds.WOODEN_DOOR, PlaceableItem.factory(BlockTypes.WOODEN_DOOR), 324);
+        registerVanilla(ItemIds.SIGN, SignItem.factory(BlockIds.STANDING_SIGN), 323);
+        registerVanilla(ItemIds.WOODEN_DOOR, PlaceableItem.factory(BlockIds.WOODEN_DOOR), 324);
         registerVanilla(ItemIds.BUCKET, ItemBucket::new, 325);
 
         registerVanilla(ItemIds.MINECART, ItemMinecart::new, 328);
         registerVanilla(ItemIds.SADDLE, ItemSaddle::new, 329);
-        registerVanilla(ItemIds.IRON_DOOR, PlaceableItem.factory(BlockTypes.IRON_DOOR), 330);
-        registerVanilla(ItemIds.REDSTONE, PlaceableItem.factory(BlockTypes.REDSTONE_WIRE), 331);
+        registerVanilla(ItemIds.IRON_DOOR, PlaceableItem.factory(BlockIds.IRON_DOOR), 330);
+        registerVanilla(ItemIds.REDSTONE, PlaceableItem.factory(BlockIds.REDSTONE_WIRE), 331);
         registerVanilla(ItemIds.SNOWBALL, ItemSnowball::new, 332);
         registerVanilla(ItemIds.BOAT, ItemBoat::new, 333);
         registerVanilla(ItemIds.LEATHER, SimpleItem::new, 334);
-        registerVanilla(ItemIds.KELP, PlaceableItem.factory(BlockTypes.KELP), 335);
+        registerVanilla(ItemIds.KELP, PlaceableItem.factory(BlockIds.KELP), 335);
         registerVanilla(ItemIds.BRICK, SimpleItem::new, 336);
         registerVanilla(ItemIds.CLAY_BALL, SimpleItem::new, 337);
-        registerVanilla(ItemIds.REEDS, PlaceableItem.factory(BlockTypes.REEDS), 338);
+        registerVanilla(ItemIds.REEDS, PlaceableItem.factory(BlockIds.REEDS), 338);
         registerVanilla(ItemIds.PAPER, SimpleItem::new, 339);
         registerVanilla(ItemIds.BOOK, ItemBook::new, 340);
         registerVanilla(ItemIds.SLIME_BALL, SimpleItem::new, 341);
@@ -295,13 +296,13 @@ public class ItemRegistry implements Registry {
         registerVanilla(ItemIds.SUGAR, SimpleItem::new, 353);
         registerVanilla(ItemIds.CAKE, ItemCake::new, 354);
         registerVanilla(ItemIds.BED, ItemBed::new, 355);
-        registerVanilla(ItemIds.REPEATER, PlaceableItem.factory(BlockTypes.UNPOWERED_REPEATER), 356);
+        registerVanilla(ItemIds.REPEATER, PlaceableItem.factory(BlockIds.UNPOWERED_REPEATER), 356);
         registerVanilla(ItemIds.COOKIE, ItemCookie::new, 357);
         registerVanilla(ItemIds.MAP, ItemMap::new, 358);
         registerVanilla(ItemIds.SHEARS, ItemShears::new, 359);
         registerVanilla(ItemIds.MELON, ItemMelon::new, 360);
-        registerVanilla(ItemIds.PUMPKIN_SEEDS, PlaceableItem.factory(BlockTypes.PUMPKIN_STEM), 361);
-        registerVanilla(ItemIds.MELON_SEEDS, PlaceableItem.factory(BlockTypes.MELON_STEM), 362);
+        registerVanilla(ItemIds.PUMPKIN_SEEDS, PlaceableItem.factory(BlockIds.PUMPKIN_STEM), 361);
+        registerVanilla(ItemIds.MELON_SEEDS, PlaceableItem.factory(BlockIds.MELON_STEM), 362);
         registerVanilla(ItemIds.BEEF, ItemBeefRaw::new, 363);
         registerVanilla(ItemIds.COOKED_BEEF, ItemSteak::new, 364);
         registerVanilla(ItemIds.CHICKEN, ItemChickenRaw::new, 365);
@@ -311,15 +312,15 @@ public class ItemRegistry implements Registry {
         registerVanilla(ItemIds.BLAZE_ROD, ItemBlazeRod::new, 369);
         registerVanilla(ItemIds.GHAST_TEAR, SimpleItem::new, 370);
         registerVanilla(ItemIds.GOLD_NUGGET, SimpleItem::new, 371);
-        registerVanilla(ItemIds.NETHER_WART, PlaceableItem.factory(BlockTypes.NETHER_WART), 372);
+        registerVanilla(ItemIds.NETHER_WART, PlaceableItem.factory(BlockIds.NETHER_WART), 372);
         registerVanilla(ItemIds.POTION, ItemPotion::new, 373);
         registerVanilla(ItemIds.GLASS_BOTTLE, ItemGlassBottle::new, 374);
         registerVanilla(ItemIds.SPIDER_EYE, SimpleItem::new, 375);
         registerVanilla(ItemIds.FERMENTED_SPIDER_EYE, SimpleItem::new, 376);
         registerVanilla(ItemIds.BLAZE_POWDER, SimpleItem::new, 377);
         registerVanilla(ItemIds.MAGMA_CREAM, SimpleItem::new, 378);
-        registerVanilla(ItemIds.BREWING_STAND, PlaceableItem.factory(BlockTypes.BREWING_STAND), 379);
-        registerVanilla(ItemIds.CAULDRON, PlaceableItem.factory(BlockTypes.CAULDRON), 380);
+        registerVanilla(ItemIds.BREWING_STAND, PlaceableItem.factory(BlockIds.BREWING_STAND), 379);
+        registerVanilla(ItemIds.CAULDRON, PlaceableItem.factory(BlockIds.CAULDRON), 380);
         registerVanilla(ItemIds.ENDER_EYE, SimpleItem::new, 381);
         registerVanilla(ItemIds.SPECKLED_MELON, SimpleItem::new, 382);
         registerVanilla(ItemIds.SPAWN_EGG, ItemSpawnEgg::new, 383);
@@ -328,8 +329,8 @@ public class ItemRegistry implements Registry {
         //TODO: registerVanilla(WRITABLE_BOOK, ItemBookAndQuill::new, 386);
         registerVanilla(ItemIds.WRITTEN_BOOK, ItemBookWritten::new, 387);
         registerVanilla(ItemIds.EMERALD, SimpleItem::new, 388);
-        registerVanilla(ItemIds.FRAME, PlaceableItem.factory(BlockTypes.FRAME), 389);
-        registerVanilla(ItemIds.FLOWER_POT, PlaceableItem.factory(BlockTypes.FLOWER_POT), 390);
+        registerVanilla(ItemIds.FRAME, PlaceableItem.factory(BlockIds.FRAME), 389);
+        registerVanilla(ItemIds.FLOWER_POT, PlaceableItem.factory(BlockIds.FLOWER_POT), 390);
         registerVanilla(ItemIds.CARROT, ItemCarrot::new, 391);
         registerVanilla(ItemIds.POTATO, ItemPotato::new, 392);
         registerVanilla(ItemIds.BAKED_POTATO, ItemPotatoBaked::new, 393);
@@ -349,7 +350,7 @@ public class ItemRegistry implements Registry {
         registerVanilla(ItemIds.TNT_MINECART, ItemMinecartTNT::new, 407);
         registerVanilla(ItemIds.HOPPER_MINECART, ItemMinecartHopper::new, 408);
         registerVanilla(ItemIds.PRISMARINE_SHARD, SimpleItem::new, 409);
-        registerVanilla(ItemIds.HOPPER, PlaceableItem.factory(BlockTypes.HOPPER), 410);
+        registerVanilla(ItemIds.HOPPER, PlaceableItem.factory(BlockIds.HOPPER), 410);
         registerVanilla(ItemIds.RABBIT, ItemRabbitRaw::new, 411);
         registerVanilla(ItemIds.COOKED_RABBIT, ItemRabbitCooked::new, 412);
         registerVanilla(ItemIds.RABBIT_STEW, ItemRabbitStew::new, 413);
@@ -365,13 +366,13 @@ public class ItemRegistry implements Registry {
         registerVanilla(ItemIds.MUTTON_RAW, ItemMuttonRaw::new, 423);
         registerVanilla(ItemIds.MUTTON_COOKED, ItemMuttonCooked::new, 424);
 
-        registerVanilla(ItemIds.END_CRYSTAL, ItemEndCrystal::new, 426);
         registerVanilla(ItemIds.ARMOR_STAND, SimpleItem::new, 425);
-        registerVanilla(ItemIds.SPRUCE_DOOR, PlaceableItem.factory(BlockTypes.SPRUCE_DOOR), 427);
-        registerVanilla(ItemIds.BIRCH_DOOR, PlaceableItem.factory(BlockTypes.BIRCH_DOOR), 428);
-        registerVanilla(ItemIds.JUNGLE_DOOR, PlaceableItem.factory(BlockTypes.JUNGLE_DOOR), 429);
-        registerVanilla(ItemIds.ACACIA_DOOR, PlaceableItem.factory(BlockTypes.ACACIA_DOOR), 430);
-        registerVanilla(ItemIds.DARK_OAK_DOOR, PlaceableItem.factory(BlockTypes.DARK_OAK_DOOR), 431);
+        registerVanilla(ItemIds.END_CRYSTAL, ItemEndCrystal::new, 426);
+        registerVanilla(ItemIds.SPRUCE_DOOR, PlaceableItem.factory(BlockIds.SPRUCE_DOOR), 427);
+        registerVanilla(ItemIds.BIRCH_DOOR, PlaceableItem.factory(BlockIds.BIRCH_DOOR), 428);
+        registerVanilla(ItemIds.JUNGLE_DOOR, PlaceableItem.factory(BlockIds.JUNGLE_DOOR), 429);
+        registerVanilla(ItemIds.ACACIA_DOOR, PlaceableItem.factory(BlockIds.ACACIA_DOOR), 430);
+        registerVanilla(ItemIds.DARK_OAK_DOOR, PlaceableItem.factory(BlockIds.DARK_OAK_DOOR), 431);
         registerVanilla(ItemIds.CHORUS_FRUIT, ItemChorusFruit::new, 432);
         //TODO: registerVanilla(POPPED_CHORUS_FRUIT, ItemChorusFruitPopped::new, 433);
 
@@ -380,6 +381,7 @@ public class ItemRegistry implements Registry {
 
         registerVanilla(ItemIds.LINGERING_POTION, ItemPotionLingering::new, 441);
 
+        //TODO: registerVanilla(ItemIds.COMMAND_BLOCK_MINECART, ItemElytra::new, 444);
         registerVanilla(ItemIds.ELYTRA, ItemElytra::new, 444);
 
         //TODO: registerVanilla(SHULKER_SHELL, ItemShulkerShell::new, 445);
@@ -389,7 +391,7 @@ public class ItemRegistry implements Registry {
         registerVanilla(ItemIds.TRIDENT, ItemTrident::new, 455);
 
         registerVanilla(ItemIds.BEETROOT, ItemBeetroot::new, 457);
-        registerVanilla(ItemIds.BEETROOT_SEEDS, PlaceableItem.factory(BlockTypes.BEETROOT), 458);
+        registerVanilla(ItemIds.BEETROOT_SEEDS, PlaceableItem.factory(BlockIds.BEETROOT), 458);
         registerVanilla(ItemIds.BEETROOT_SOUP, ItemBeetrootSoup::new, 459);
         registerVanilla(ItemIds.SALMON, ItemSalmon::new, 460);
         registerVanilla(ItemIds.CLOWNFISH, ItemClownfish::new, 461);
@@ -400,11 +402,11 @@ public class ItemRegistry implements Registry {
         registerVanilla(ItemIds.APPLE_ENCHANTED, ItemAppleGoldEnchanted::new, 466);
 
         registerVanilla(ItemIds.TURTLE_HELMET, ItemTurtleShell::new, 469);
-        registerVanilla(ItemIds.SPRUCE_SIGN, SignItem.factory(BlockTypes.SPRUCE_STANDING_SIGN), 472);
-        registerVanilla(ItemIds.BIRCH_SIGN, SignItem.factory(BlockTypes.BIRCH_STANDING_SIGN), 473);
-        registerVanilla(ItemIds.JUNGLE_SIGN, SignItem.factory(BlockTypes.JUNGLE_STANDING_SIGN), 474);
-        registerVanilla(ItemIds.ACACIA_SIGN, SignItem.factory(BlockTypes.ACACIA_STANDING_SIGN), 475);
-        registerVanilla(ItemIds.DARK_OAK_SIGN, SignItem.factory(BlockTypes.DARK_OAK_STANDING_SIGN), 476);
+        registerVanilla(ItemIds.SPRUCE_SIGN, SignItem.factory(BlockIds.SPRUCE_STANDING_SIGN), 472);
+        registerVanilla(ItemIds.BIRCH_SIGN, SignItem.factory(BlockIds.BIRCH_STANDING_SIGN), 473);
+        registerVanilla(ItemIds.JUNGLE_SIGN, SignItem.factory(BlockIds.JUNGLE_STANDING_SIGN), 474);
+        registerVanilla(ItemIds.ACACIA_SIGN, SignItem.factory(BlockIds.ACACIA_STANDING_SIGN), 475);
+        registerVanilla(ItemIds.DARK_OAK_SIGN, SignItem.factory(BlockIds.DARK_OAK_STANDING_SIGN), 476);
         registerVanilla(ItemIds.SWEET_BERRIES, ItemSweetBerries::new, 477);
 
         registerVanilla(ItemIds.RECORD_CAT, RecordItem.factory("record.cat"), 500);
@@ -422,10 +424,25 @@ public class ItemRegistry implements Registry {
 
         registerVanilla(ItemIds.SHIELD, ItemShield::new, 513);
 
-        registerVanilla(ItemIds.CAMPFIRE, PlaceableItem.factory(BlockTypes.CAMPFIRE), 720);
+        registerVanilla(ItemIds.CAMPFIRE, PlaceableItem.factory(BlockIds.CAMPFIRE), 720);
 
         registerVanilla(ItemIds.HONEYCOMB, SimpleItem::new, 736);
         registerVanilla(ItemIds.HONEY_BOTTLE, ItemHoneyBottle::new, 737);
+
+        registerVanilla(ItemIds.NETHERITE_SWORD, ItemSwordNetherite::new, 743);
+        registerVanilla(ItemIds.NETHERITE_SHOVEL, ItemShovelNetherite::new, 744);
+        registerVanilla(ItemIds.NETHERITE_PICKAXE, ItemPickaxeNetherite::new, 745);
+        registerVanilla(ItemIds.NETHERITE_AXE, ItemAxeNetherite::new, 746);
+        registerVanilla(ItemIds.NETHERITE_HOE, ItemHoeNetherite::new, 747);
+        registerVanilla(ItemIds.NETHERITE_HELMET, ItemHelmetNetherite::new, 748);
+        registerVanilla(ItemIds.NETHERITE_CHESTPLATE, ItemChestplateNetherite::new, 749);
+        registerVanilla(ItemIds.NETHERITE_LEGGINGS, ItemLeggingsNetherite::new, 750);
+        registerVanilla(ItemIds.NETHERITE_BOOTS, ItemBootsNetherite::new, 751);
+
+        registerVanilla(ItemIds.CRIMSON_SIGN, PlaceableItem.factory(BlockIds.CRIMSON_STANDING_SIGN), 753);
+        registerVanilla(ItemIds.WARPED_SIGN, PlaceableItem.factory(BlockIds.WARPED_STANDING_SIGN), 754);
+        registerVanilla(ItemIds.CRIMSON_DOOR, PlaceableItem.factory(BlockIds.CRIMSON_DOOR), 755);
+        registerVanilla(ItemIds.WARPED_DOOR, PlaceableItem.factory(BlockIds.WARPED_DOOR), 756);
     }
 
     @Getter

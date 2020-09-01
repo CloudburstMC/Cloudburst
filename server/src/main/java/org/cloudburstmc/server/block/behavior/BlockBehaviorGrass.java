@@ -6,12 +6,12 @@ import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockSpreadEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -21,7 +21,7 @@ import org.cloudburstmc.server.utils.data.DirtType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 public class BlockBehaviorGrass extends BlockBehaviorDirt {
 
@@ -55,9 +55,9 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
                 int blockX = block.getX() + random.nextInt(8) - random.nextInt(8);
                 int blockZ = block.getZ() + random.nextInt(8) - random.nextInt(8);
 
-                BlockState tallGrass = BlockState.get(BlockTypes.TALL_GRASS);
+                BlockState tallGrass = BlockState.get(BlockIds.TALL_GRASS);
                 val toReplace = level.getBlock(blockX, blockY + 1, blockZ);
-                if (toReplace.getState().getType() == BlockTypes.AIR) {
+                if (toReplace.getState().getType() == BlockIds.AIR) {
                     tallGrass.getBehavior().place(null, toReplace, block, Direction.UP, block.getPosition().toFloat(), null);
                 }
             }
@@ -88,7 +88,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
                 if (b.up() instanceof BlockBehaviorAir) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(GRASS));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.getLevel().setBlock(b.getPosition(), ev.getNewState());
                     }
@@ -96,7 +96,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
             } else if (state.getType() == GRASS) {
                 if (b.up() instanceof BlockBehaviorSolid) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(DIRT));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.getLevel().setBlock(b.getPosition(), ev.getNewState());
                     }

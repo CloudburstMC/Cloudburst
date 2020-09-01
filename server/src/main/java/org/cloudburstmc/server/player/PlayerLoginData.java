@@ -37,7 +37,7 @@ public class PlayerLoginData {
         Player player;
 
         PlayerCreationEvent ev = new PlayerCreationEvent(interfaz, Player.class, Player.class, this.chainData.getClientId(), session.getAddress());
-        this.server.getPluginManager().callEvent(ev);
+        this.server.getEventManager().fire(ev);
         Class<? extends Player> clazz = ev.getPlayerClass();
 
         try {

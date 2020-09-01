@@ -7,15 +7,11 @@ import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
 import lombok.val;
 import lombok.var;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.block.BlockFromToEvent;
 import org.cloudburstmc.server.event.block.LiquidFlowEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
@@ -26,7 +22,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
@@ -244,10 +240,10 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                     if (decayed) {
                         to = BlockState.get(AIR);
                     } else {
-                        to = BlockState.get(flowingId).withTrait(BlockTraits.FLUID_LEVEL, decay); //TODO: check
+                        to = getState(decay);
                     }
                     BlockFromToEvent event = new BlockFromToEvent(block, to);
-                    level.getServer().getPluginManager().callEvent(event);
+                    level.getServer().getEventManager().fire(event);
                     if (!event.isCancelled()) {
                         block.set(event.getTo(), 1, true, true);
 
@@ -295,6 +291,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
         if (this.canFlowInto(block) && !state.inCategory(BlockCategory.LIQUID)) {
             val level = block.getLevel();
+            boolean waterlog = false;
 
             if (usesWaterLogging()) {
                 BlockState liquid = block.getExtra();
@@ -304,16 +301,25 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
                 if (!state.getBehavior().canWaterlogFlowing()) {
                     state = liquid;
+                } else {
+                    waterlog = true;
                 }
             }
+
             LiquidFlowEvent event = new LiquidFlowEvent(state, block, newFlowDecay);
-            level.getServer().getPluginManager().callEvent(event);
+            level.getServer().getEventManager().fire(event);
             if (!event.isCancelled()) {
-                if (state.getType() != AIR) {
-                    level.useBreakOn(block.getPosition());
+
+                if (waterlog) {
+                    block.setExtra(getState(newFlowDecay), true);
+                } else {
+                    if (state.getType() != AIR) {
+                        level.useBreakOn(block.getPosition());
+                    }
+
+                    block.set(getState(newFlowDecay), true);
                 }
 
-                block.set(BlockState.get(flowingId).withTrait(BlockTraits.FLUID_LEVEL, newFlowDecay), true); //TODO: check
                 level.scheduleUpdate(block.getPosition(), this.tickRate());
             }
         }
@@ -334,7 +340,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 ++x;
             } else if (j == 2) {
                 --z;
-            } else if (j == 3) {
+            } else {
                 ++z;
             }
 
@@ -474,7 +480,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     protected boolean liquidCollide(Block cause, BlockState result) {
         BlockFromToEvent event = new BlockFromToEvent(cause, result);
-        cause.getLevel().getServer().getPluginManager().callEvent(event);
+        cause.getLevel().getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
         }
@@ -499,6 +505,12 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     private boolean canBlockBeFlooded(BlockState state) {
         val behavior = state.getBehavior();
         return behavior.canBeFlooded() || (usesWaterLogging() && behavior.canWaterlogFlowing());
+    }
+
+    protected BlockState getState(int decay) {
+        return BlockState.get(flowingId)
+                .withTrait(BlockTraits.FLUID_LEVEL, decay & 0x7)
+                .withTrait(BlockTraits.IS_FLOWING, (decay & 0x8) == 0x8);
     }
 
     @Override

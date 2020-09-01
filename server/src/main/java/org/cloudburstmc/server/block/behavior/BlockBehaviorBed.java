@@ -5,8 +5,8 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.blockentity.Bed;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.locale.TranslationContainer;
@@ -47,7 +47,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             for (Direction face : Plane.HORIZONTAL) {
                 BlockState side = block.getSide(face).getState();
 
-                if (side.getType() == BlockTypes.BED && side.ensureTrait(BlockTraits.IS_HEAD_PIECE)) {
+                if (side.getType() == BlockIds.BED && side.ensureTrait(BlockTraits.IS_HEAD_PIECE)) {
                     head = side;
                     break;
                 }
@@ -100,7 +100,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             BlockState downNext = next.down().getState();
 
             if (nextBehavior.canBeReplaced(next) && !downNext.inCategory(BlockCategory.TRANSPARENT)) {
-                BlockState bed = registry.getBlock(BlockTypes.BED)
+                BlockState bed = registry.getBlock(BlockIds.BED)
                         .withTrait(BlockTraits.DIRECTION, player.getDirection());
 
                 placeBlock(block, bed);
@@ -126,7 +126,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             Block side = block.getSide(direction);
             BlockState face = side.getState();
 
-            if (face.getType() == BlockTypes.BED && face.ensureTrait(BlockTraits.IS_HEAD_PIECE) != head && face.ensureTrait(BlockTraits.DIRECTION) == facing) {
+            if (face.getType() == BlockIds.BED && face.ensureTrait(BlockTraits.IS_HEAD_PIECE) != head && face.ensureTrait(BlockTraits.DIRECTION) == facing) {
                 otherPart = side;
                 break;
             }

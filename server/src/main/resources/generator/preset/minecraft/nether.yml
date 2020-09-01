@@ -1,4 +1,4 @@
-# NukkitX Standard Generator - End preset
+# Cloudburst Standard Generator - End preset
 #
 # Author: DaPorkchop_
 
@@ -11,20 +11,20 @@ biomes: "minecraft:nether"
 density: "minecraft:nether"
 
 decorators:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"
 
     # Floor bedrock
-  - id: "nukkitx:bedrock"
+  - id: "cloudburst:bedrock"
     block: "bedrock"
     base: 0
     fade: 1-5
 
     # Nether roof (also bedrock)
-  - id: "nukkitx:bedrock"
+  - id: "cloudburst:bedrock"
     block: "bedrock"
     base: 127
     fade: 122-126
     reverseFade: true
 
 populators:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"

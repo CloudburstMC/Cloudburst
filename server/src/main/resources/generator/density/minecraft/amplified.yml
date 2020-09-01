@@ -1,14 +1,14 @@
-# NukkitX Standard Generator - AMPLIFIED density generator preset
+# Cloudburst Standard Generator - AMPLIFIED density generator preset
 #
 # Author: DaPorkchop_
 
 # This is almost identical to the normal overworld density preset, but with some slight modifications to the height and
 # height variation factors and offsets. The result is nearly identical to the vanilla AMPLIFIED world type.
 
-id: "nukkitx:vanilla"
+id: "cloudburst:vanilla"
 seed: "overworld"
 selectorNoise:
-  id: "nukkitx:perlin"
+  id: "cloudburst:perlin"
   scale:
     x: 0.01670927734375
     y: 0.008354638671875
@@ -17,7 +17,7 @@ selectorNoise:
   factor: 12.75
   offset: 0.5
 lowNoise:
-  id: "nukkitx:perlin"
+  id: "cloudburst:perlin"
   scale:
     x: 0.005221649169921875
     y: 0.0026108245849609375
@@ -26,7 +26,7 @@ lowNoise:
   factor: 1.0
   offset: 0.0
 highNoise:
-  id: "nukkitx:perlin"
+  id: "cloudburst:perlin"
   scale:
     x: 0.005221649169921875
     y: 0.0026108245849609375
@@ -35,7 +35,7 @@ highNoise:
   factor: 1.0
   offset: 0.0
 depthNoise:
-  id: "nukkitx:perlin"
+  id: "cloudburst:perlin"
   scale: 0.00152587890625
   octaves: 16
   factor: 1.0240000486373901

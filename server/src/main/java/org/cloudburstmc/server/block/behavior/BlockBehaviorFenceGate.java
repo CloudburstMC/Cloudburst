@@ -6,8 +6,8 @@ import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -110,7 +110,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 
     public boolean toggle(Block block, Player player) {
         DoorToggleEvent event = new DoorToggleEvent(block, player);
-        block.getLevel().getServer().getPluginManager().callEvent(event);
+        block.getLevel().getServer().getEventManager().fire(event);
 
         if (event.isCancelled()) {
             return false;

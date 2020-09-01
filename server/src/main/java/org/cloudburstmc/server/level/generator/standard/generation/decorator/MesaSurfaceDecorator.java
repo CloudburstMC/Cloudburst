@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.generation.decorator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
@@ -25,7 +24,7 @@ import static net.daporkchop.lib.math.primitive.PMath.roundI;
  */
 @JsonDeserialize
 public class MesaSurfaceDecorator extends DepthNoiseDecorator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:mesa_surface");
+    public static final Identifier ID = Identifier.fromString("cloudburst:mesa_surface");
 
     protected static final int BAND_COUNT = 64;
     protected static final int BAND_MASK = BAND_COUNT - 1;

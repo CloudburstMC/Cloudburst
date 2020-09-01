@@ -8,10 +8,10 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Cauldron;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemBucket;
-import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemBucket;
+import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -77,7 +77,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 bucket.setMeta(8);//water bucket
 
                 PlayerBucketFillEvent ev = new PlayerBucketFillEvent(player, block, null, item, bucket);
-                block.getLevel().getServer().getPluginManager().callEvent(ev);
+                block.getLevel().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     replaceBucket(item, player, ev.getItem());
 
@@ -96,7 +96,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 bucket.setMeta(0);//empty bucket
 
                 PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, block, null, item, bucket);
-                block.getLevel().getServer().getPluginManager().callEvent(ev);
+                block.getLevel().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     replaceBucket(item, player, ev.getItem());
 

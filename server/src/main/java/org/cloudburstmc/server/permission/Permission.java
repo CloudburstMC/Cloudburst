@@ -100,13 +100,13 @@ public class Permission {
     }
 
     public Set<Permissible> getPermissibles() {
-        return Server.getInstance().getPluginManager().getPermissionSubscriptions(this.name);
+        return Server.getInstance().getPermissionManager().getPermissionSubscriptions(this.name);
     }
 
     public void recalculatePermissibles() {
         Set<Permissible> perms = this.getPermissibles();
 
-        Server.getInstance().getPluginManager().recalculatePermissionDefaults(this);
+        Server.getInstance().getPermissionManager().recalculatePermissionDefaults(this);
 
         for (Permissible p : perms) {
             p.recalculatePermissions();
@@ -119,11 +119,12 @@ public class Permission {
     }
 
     public Permission addParent(String name, boolean value) {
-        Permission perm = Server.getInstance().getPluginManager().getPermission(name);
-        if (perm == null) {
-            perm = new Permission(name);
-            Server.getInstance().getPluginManager().addPermission(perm);
-        }
+        Permission perm = Server.getInstance().getPermissionManager().getPermission(name).orElseGet(() -> {
+            Permission p = new Permission(name);
+            Server.getInstance().getPermissionManager().addPermission(p);
+
+            return p;
+        });
 
         this.addParent(perm, value);
 

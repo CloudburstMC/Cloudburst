@@ -126,12 +126,13 @@ public class TimingsExport extends Thread {
         out.set("idmap", idmap);
 
         //Information about loaded plugins
-        out.set("plugins", JsonUtil.mapToObject(Server.getInstance().getPluginManager().getPlugins().values(), (plugin) -> {
+        out.set("plugins", JsonUtil.mapToObject(Server.getInstance().getPluginManager().getAllPlugins(), (plugin) -> {
             ObjectNode jsonPlugin = Nukkit.JSON_MAPPER.createObjectNode();
-            jsonPlugin.put("version", plugin.getDescription().getVersion());
-            jsonPlugin.put("description", plugin.getDescription().getDescription());// Sounds legit
-            jsonPlugin.put("website", plugin.getDescription().getWebsite());
-            jsonPlugin.putPOJO("authors", String.join(", ", plugin.getDescription().getAuthors()));
+            jsonPlugin.put("version", plugin.getVersion());
+
+            plugin.getDescription().ifPresent((desc) -> jsonPlugin.put("description", desc));
+            plugin.getUrl().ifPresent((url) -> jsonPlugin.put("website", url));
+            jsonPlugin.putPOJO("authors", String.join(", ", plugin.getAuthors()));
             return new JsonUtil.JSONPair(plugin.getName(), jsonPlugin);
         }));
 
@@ -140,8 +141,8 @@ public class TimingsExport extends Thread {
         if (!Timings.getIgnoredConfigSections().contains("all")) {
             Map<String, Object> section = new LinkedHashMap<>(Server.getInstance().getConfig().getRootSection());
             Timings.getIgnoredConfigSections().forEach(section::remove);
-            JsonNode nukkit = JsonUtil.toObject(section);
-            config.set("cloudburst", nukkit);
+            JsonNode cloudburst = JsonUtil.toObject(section);
+            config.set("cloudburst", cloudburst);
         } else {
             config.set("cloudburst", null);
         }
@@ -196,7 +197,7 @@ public class TimingsExport extends Thread {
         try {
             HttpURLConnection con = (HttpURLConnection) new URL("http://timings.aikar.co/post").openConnection();
             con.setDoOutput(true);
-            con.setRequestProperty("User-Agent", "Nukkit/" + Server.getInstance().getName() + "/" + InetAddress.getLocalHost().getHostName());
+            con.setRequestProperty("User-Agent", "Cloudburst/" + Server.getInstance().getName() + "/" + InetAddress.getLocalHost().getHostName());
             con.setRequestMethod("POST");
             con.setInstanceFollowRedirects(false);
 

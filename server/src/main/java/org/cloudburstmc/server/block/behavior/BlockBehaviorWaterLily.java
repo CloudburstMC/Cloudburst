@@ -3,10 +3,10 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -47,10 +47,10 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val targetType = target.getState().getType();
-        if (targetType == BlockTypes.WATER || targetType == BlockTypes.FLOWING_WATER) {
+        if (targetType == BlockIds.WATER || targetType == BlockIds.FLOWING_WATER) {
             Block up = target.up();
             if (up.getState() == BlockStates.AIR) {
-                placeBlock(block, BlockState.get(BlockTypes.WATERLILY));
+                placeBlock(block, BlockState.get(BlockIds.WATERLILY));
                 return true;
             }
         }
@@ -62,7 +62,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             val down = block.down().getState().getType();
 
-            if (down != BlockTypes.WATER && down != BlockTypes.FLOWING_WATER) {
+            if (down != BlockIds.WATER && down != BlockIds.FLOWING_WATER) {
                 block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }

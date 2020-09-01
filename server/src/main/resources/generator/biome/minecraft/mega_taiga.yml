@@ -4,30 +4,30 @@ elevationVanilla:
   variation: 0.2
 
 decorators:
-  - id: "nukkitx:noise"
+  - id: "cloudburst:noise"
     seed: "extreme_hills"
     selector:
-      id: "nukkitx:simplex"
+      id: "cloudburst:simplex"
       scale: 0.0045
       octaves: 4
     min: -0.06333333333
     max: 0.11666666666
     above:
-      - id: "nukkitx:surface"
+      - id: "cloudburst:surface"
         top: "dirt{dirt_type=coarse}" # coarse dirt
         filler: "dirt"
     in:
-      - id: "nukkitx:surface"
+      - id: "cloudburst:surface"
         top: "grass"
         filler: "dirt"
     below:
-      - id: "nukkitx:surface"
+      - id: "cloudburst:surface"
         top: "podzol"
         filler: "dirt"
 
 populators:
     # Mossy cobblestone blobs
-  - id: "nukkitx:blob"
+  - id: "cloudburst:blob"
     chance: 0.00390625 # about 1 per chunk
     radius: "0-1"
     on: "grass,podzol,dirt{dirt_type=coarse}"
@@ -35,7 +35,7 @@ populators:
     block: "mossy_cobblestone"
 
     # Huge trees
-  - id: "nukkitx:huge_tree"
+  - id: "cloudburst:huge_tree"
     chance: 0.0078125 # about 2 per chunk
     on: "grass,podzol,dirt{dirt_type=coarse}"
     replace: "air"
@@ -43,27 +43,27 @@ populators:
     type: "pine"
 
     # Trees
-  - id: "nukkitx:tree"
+  - id: "cloudburst:tree"
     chance: 0.0078125 # about 2 per chunk
     on: "grass,podzol,dirt{dirt_type=coarse}"
     replace: "air"
     type: "spruce"
 
     # Berry bushes & mushrooms
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.015625 # about 4 per chunk
     on: "grass,podzol,dirt{dirt_type=coarse}"
     block: "sweet_berry_bush,2*brown_mushroom,red_mushroom"
 
     # Dead bushes
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.00390625 # about 1 per chunk
     patchSize: 4
     on: "grass,podzol,dirt{dirt_type=coarse}"
     block: "deadbush"
 
     # Tall grass & ferns
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.02734375 # about 7 per chunk
     on: "grass,podzol,dirt{dirt_type=coarse}"
     block: "4*tallgrass,tallgrass{tall_grass_type=fern}"

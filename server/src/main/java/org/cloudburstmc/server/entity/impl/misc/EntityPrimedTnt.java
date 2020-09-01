@@ -152,7 +152,7 @@ public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, EntityExpl
 
     public void explode() {
         EntityExplosionPrimeEvent event = new EntityExplosionPrimeEvent(this, 4);
-        server.getPluginManager().callEvent(event);
+        server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return;
         }

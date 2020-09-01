@@ -6,8 +6,8 @@ import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -16,7 +16,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
+import static org.cloudburstmc.server.block.BlockIds.FARMLAND;
 
 public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
 
@@ -40,7 +40,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) {
             if (block.getState().ensureTrait(BlockTraits.GROWTH) < 7) {
                 BlockGrowEvent ev = new BlockGrowEvent(block, block.getState().incrementTrait(BlockTraits.GROWTH));
-                Server.getInstance().getPluginManager().callEvent(ev);
+                Server.getInstance().getEventManager().fire(ev);
 
                 if (ev.isCancelled()) {
                     return false;
@@ -72,7 +72,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 0x07) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
 
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), false, true);

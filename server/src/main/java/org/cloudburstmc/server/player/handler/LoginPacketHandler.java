@@ -80,7 +80,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
         }
 
         PlayerPreLoginEvent playerPreLoginEvent;
-        this.server.getPluginManager().callEvent(playerPreLoginEvent = new PlayerPreLoginEvent(loginData, "Plugin reason"));
+        this.server.getEventManager().fire(playerPreLoginEvent = new PlayerPreLoginEvent(loginData, "Plugin reason"));
         if (playerPreLoginEvent.isCancelled()) {
             session.disconnect(playerPreLoginEvent.getKickMessage());
             return true;
@@ -95,7 +95,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
             @Override
             public void onRun() {
                 e = new PlayerAsyncPreLoginEvent(loginDataInstance);
-                server.getPluginManager().callEvent(e);
+                server.getEventManager().fire(e);
             }
 
             @Override

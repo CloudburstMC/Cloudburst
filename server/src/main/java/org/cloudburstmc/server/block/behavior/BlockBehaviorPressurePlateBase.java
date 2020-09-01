@@ -13,7 +13,7 @@ import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.entity.EntityInteractEvent;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent.Action;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -116,7 +116,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
                 ev = new EntityInteractEvent(entity, block);
             }
 
-            block.getLevel().getServer().getPluginManager().callEvent(ev);
+            block.getLevel().getServer().getEventManager().fire(ev);
 
             if (!ev.isCancelled()) {
                 updateState(block, power);
@@ -139,10 +139,10 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
 
             if (!isPowered && wasPowered) {
                 this.playOffSound(block);
-                level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
+                level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
             } else if (isPowered && !wasPowered) {
                 this.playOnSound(block);
-                level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 0, 15));
+                level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
             }
         }
 

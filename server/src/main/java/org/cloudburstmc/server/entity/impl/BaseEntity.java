@@ -24,8 +24,8 @@ import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorNetherPortal;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
@@ -39,7 +39,7 @@ import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.event.entity.*;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.EnumLevel;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
@@ -49,7 +49,7 @@ import org.cloudburstmc.server.metadata.MetadataValue;
 import org.cloudburstmc.server.metadata.Metadatable;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -65,7 +65,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.*;
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 /**
  * @author MagicDroidX
@@ -560,7 +560,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         this.initEntity();
 
         this.lastUpdate = this.server.getTick();
-        this.server.getPluginManager().callEvent(new EntitySpawnEvent(this));
+        this.server.getEventManager().fire(new EntitySpawnEvent(this));
 
         this.scheduleUpdate();
     }
@@ -695,7 +695,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             return false;
         }
 
-        getServer().getPluginManager().callEvent(source);
+        getServer().getEventManager().fire(source);
         if (source.isCancelled()) {
             return false;
         }
@@ -712,7 +712,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public void heal(EntityRegainHealthEvent source) {
-        this.server.getPluginManager().callEvent(source);
+        this.server.getEventManager().fire(source);
         if (source.isCancelled()) {
             return;
         }
@@ -942,7 +942,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
             if (this.inPortalTicks == 80) {
                 EntityPortalEnterEvent ev = new EntityPortalEnterEvent(this, EntityPortalEnterEvent.PortalType.NETHER);
-                getServer().getPluginManager().callEvent(ev);
+                getServer().getEventManager().fire(ev);
 
                 if (!ev.isCancelled()) {
                     Location newLoc = EnumLevel.moveToNether(this.getLocation());
@@ -1078,7 +1078,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
         // Entity entering a vehicle
         EntityVehicleEnterEvent ev = new EntityVehicleEnterEvent(vehicle, this);
-        server.getPluginManager().callEvent(ev);
+        server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return false;
         }
@@ -1102,7 +1102,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
         // Run the events
         EntityVehicleExitEvent event = new EntityVehicleExitEvent(this, vehicle);
-        server.getPluginManager().callEvent(event);
+        server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
         }
@@ -1294,11 +1294,11 @@ public abstract class BaseEntity implements Entity, Metadatable {
                     ev = new EntityInteractEvent(this, down);
                 }
 
-                this.server.getPluginManager().callEvent(ev);
+                this.server.getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return;
                 }
-                this.level.setBlock(down.getPosition(), BlockState.get(BlockTypes.DIRT), false, true);
+                this.level.setBlock(down.getPosition(), BlockState.get(BlockIds.DIRT), false, true);
             }
         }
     }
@@ -1364,7 +1364,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         }
 
         EntityLevelChangeEvent ev = new EntityLevelChangeEvent(this, this.level, targetLevel);
-        this.server.getPluginManager().callEvent(ev);
+        this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return false;
         }
@@ -1754,7 +1754,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     public boolean setMotion(Vector3f motion) {
         if (!this.justCreated) {
             EntityMotionEvent ev = new EntityMotionEvent(this, motion);
-            this.server.getPluginManager().callEvent(ev);
+            this.server.getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return false;
             }
@@ -1807,7 +1807,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         Location to = location;
         if (cause != null) {
             EntityTeleportEvent ev = new EntityTeleportEvent(this, from, to);
-            this.server.getPluginManager().callEvent(ev);
+            this.server.getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return false;
             }
@@ -1870,7 +1870,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     public void close() {
         if (!this.closed) {
             this.closed = true;
-            this.server.getPluginManager().callEvent(new EntityDespawnEvent(this));
+            this.server.getEventManager().fire(new EntityDespawnEvent(this));
             this.despawnFromAll();
             if (this.chunk != null) {
                 this.chunk.removeEntity(this);
@@ -1912,7 +1912,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     @Override
-    public void removeMetadata(String metadataKey, Plugin owningPlugin) {
+    public void removeMetadata(String metadataKey, PluginContainer owningPlugin) {
         this.server.getEntityMetadata().removeMetadata(this, metadataKey, owningPlugin);
     }
 

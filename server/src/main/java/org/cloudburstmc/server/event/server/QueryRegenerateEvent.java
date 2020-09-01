@@ -3,10 +3,8 @@ package org.cloudburstmc.server.event.server;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.Plugin;
-import org.cloudburstmc.server.plugin.PluginDescription;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,18 +20,12 @@ import java.util.Map;
 public class QueryRegenerateEvent extends ServerEvent {
     //alot todo
 
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
-
     private static final String GAME_ID = "MINECRAFTPE";
 
     private int timeout;
     private String serverName;
     private boolean listPlugins;
-    private Plugin[] plugins;
+    private PluginContainer[] plugins;
     private Player[] players;
 
     private final String gameType;
@@ -56,7 +48,7 @@ public class QueryRegenerateEvent extends ServerEvent {
         this.timeout = timeout;
         this.serverName = server.getMotd();
         this.listPlugins = server.getConfig("settings.query-plugins", true);
-        this.plugins = server.getPluginManager().getPlugins().values().toArray(new Plugin[0]);
+        this.plugins = server.getPluginManager().getAllPlugins().toArray(new PluginContainer[0]);
         this.players = server.getOnlinePlayers().values().toArray(new Player[0]);
         this.gameType = server.getGamemode().isSurvival() ? "SMP" : "CMP";
         this.version = server.getVersion();
@@ -93,11 +85,11 @@ public class QueryRegenerateEvent extends ServerEvent {
         this.listPlugins = listPlugins;
     }
 
-    public Plugin[] getPlugins() {
+    public PluginContainer[] getPlugins() {
         return plugins;
     }
 
-    public void setPlugins(Plugin[] plugins) {
+    public void setPlugins(PluginContainer[] plugins) {
         this.plugins = plugins;
     }
 
@@ -144,14 +136,13 @@ public class QueryRegenerateEvent extends ServerEvent {
     public byte[] getLongQuery() {
         ByteArrayOutputStream query = new ByteArrayOutputStream();
         try {
-            String plist = this.server_engine;
+            StringBuilder plist = new StringBuilder(this.server_engine);
             if (this.plugins.length > 0 && this.listPlugins) {
-                plist += ":";
-                for (Plugin p : this.plugins) {
-                    PluginDescription d = p.getDescription();
-                    plist += " " + d.getName().replace(";", "").replace(":", "").replace(" ", "_") + " " + d.getVersion().replace(";", "").replace(":", "").replace(" ", "_") + ";";
+                plist.append(":");
+                for (PluginContainer p : this.plugins) {
+                    plist.append(" ").append(p.getName().replace(";", "").replace(":", "").replace(" ", "_")).append(" ").append(p.getVersion().replace(";", "").replace(":", "").replace(" ", "_")).append(";");
                 }
-                plist = plist.substring(0, plist.length() - 2);
+                plist = new StringBuilder(plist.substring(0, plist.length() - 2));
             }
 
             query.write("splitnum".getBytes());
@@ -165,7 +156,7 @@ public class QueryRegenerateEvent extends ServerEvent {
             KVdata.put("game_id", GAME_ID);
             KVdata.put("version", this.version);
             KVdata.put("server_engine", this.server_engine);
-            KVdata.put("plugins", plist);
+            KVdata.put("plugins", plist.toString());
             KVdata.put("map", this.map);
             KVdata.put("numplayers", String.valueOf(this.numPlayers));
             KVdata.put("maxplayers", String.valueOf(this.maxPlayers));

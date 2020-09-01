@@ -12,7 +12,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.block.serializer.DirectionHelper.SeqType.*;
 
 @UtilityClass
@@ -129,10 +129,7 @@ public class DirectionHelper {
                 SPRUCE_STAIRS,
                 STONE_BRICK_STAIRS,
                 STONE_STAIRS,
-                WARPED_STAIRS
-        );
-
-        register(TYPE_5,
+                WARPED_STAIRS,
                 TRAPDOOR,
                 ACACIA_TRAPDOOR,
                 BIRCH_TRAPDOOR,

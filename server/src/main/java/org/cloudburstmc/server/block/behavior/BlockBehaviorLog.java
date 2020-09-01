@@ -3,11 +3,11 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -23,15 +23,15 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     protected static final Map<TreeSpecies, Identifier> STRIPPED_MAP = new EnumMap<>(TreeSpecies.class);
 
     static {
-        STRIPPED_MAP.put(TreeSpecies.OAK, BlockTypes.STRIPPED_OAK_LOG);
-        STRIPPED_MAP.put(TreeSpecies.SPRUCE, BlockTypes.STRIPPED_SPRUCE_LOG);
-        STRIPPED_MAP.put(TreeSpecies.BIRCH, BlockTypes.STRIPPED_BIRCH_LOG);
-        STRIPPED_MAP.put(TreeSpecies.JUNGLE, BlockTypes.STRIPPED_JUNGLE_LOG);
-        STRIPPED_MAP.put(TreeSpecies.ACACIA, BlockTypes.STRIPPED_ACACIA_LOG);
-        STRIPPED_MAP.put(TreeSpecies.DARK_OAK, BlockTypes.STRIPPED_DARK_OAK_LOG);
+        STRIPPED_MAP.put(TreeSpecies.OAK, BlockIds.STRIPPED_OAK_LOG);
+        STRIPPED_MAP.put(TreeSpecies.SPRUCE, BlockIds.STRIPPED_SPRUCE_LOG);
+        STRIPPED_MAP.put(TreeSpecies.BIRCH, BlockIds.STRIPPED_BIRCH_LOG);
+        STRIPPED_MAP.put(TreeSpecies.JUNGLE, BlockIds.STRIPPED_JUNGLE_LOG);
+        STRIPPED_MAP.put(TreeSpecies.ACACIA, BlockIds.STRIPPED_ACACIA_LOG);
+        STRIPPED_MAP.put(TreeSpecies.DARK_OAK, BlockIds.STRIPPED_DARK_OAK_LOG);
     }
 
-    protected Identifier identifier = BlockTypes.LOG;
+    protected Identifier identifier = BlockIds.LOG;
 
     @Override
     public float getHardness() {
@@ -55,7 +55,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     public static void upgradeLegacyBlock(int[] blockState) {
         if ((blockState[1] & 0b1100) == 0b1100) { // old full bark texture
-            blockState[0] = BlockRegistry.get().getLegacyId(BlockTypes.WOOD);
+            blockState[0] = BlockRegistry.get().getLegacyId(BlockIds.WOOD);
             blockState[1] = blockState[1] & 0x03; // gets only the log type and set pillar to y
         }
     }

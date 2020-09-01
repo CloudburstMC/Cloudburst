@@ -1,7 +1,11 @@
 package org.cloudburstmc.server.scheduler;
 
 
-import org.cloudburstmc.server.plugin.Plugin;
+import com.google.common.base.Preconditions;
+import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.plugin.PluginContainer;
+
+import javax.annotation.Nonnull;
 
 /**
  * 插件创建的任务。<br>Task that created by a plugin.
@@ -29,14 +33,14 @@ import org.cloudburstmc.server.plugin.Plugin;
  * <p>如果要让Nukkit能够延时或循环执行这个任务，请使用{@link ServerScheduler}。<br>
  * If you want Nukkit to execute this task with delay or repeat, use {@link ServerScheduler}.</p>
  *
- * @param <T> 这个任务所属的插件。<br>The plugin that owns this task.
  * @author MagicDroidX(code) @ Nukkit Project
  * @author 粉鞋大妈(javadoc) @ Nukkit Project
  * @since Nukkit 1.0 | Nukkit API 1.0.0
  */
-public abstract class PluginTask<T extends Plugin> extends Task {
+public abstract class PluginTask<T> extends Task {
 
     protected final T owner;
+    protected final PluginContainer container;
 
     /**
      * 构造一个插件拥有的任务的方法。<br>Constructs a plugin-owned task.
@@ -44,8 +48,12 @@ public abstract class PluginTask<T extends Plugin> extends Task {
      * @param owner 这个任务的所有者插件。<br>The plugin object that owns this task.
      * @since Nukkit 1.0 | Nukkit API 1.0.0
      */
-    public PluginTask(T owner) {
+    public PluginTask(@Nonnull T owner) {
+        Preconditions.checkNotNull(owner, "owner");
         this.owner = owner;
+        this.container = Server.getInstance().getPluginManager().fromInstance(owner).orElseThrow(() ->
+                new IllegalArgumentException("Object " + owner + " is not a plugin")
+        );
     }
 
     /**
@@ -55,8 +63,13 @@ public abstract class PluginTask<T extends Plugin> extends Task {
      * @return 这个任务的所有者插件。<br>The plugin that owns this task.
      * @since Nukkit 1.0 | Nukkit API 1.0.0
      */
+    @Nonnull
     public final T getOwner() {
         return this.owner;
     }
 
+    @Nonnull
+    public PluginContainer getContainer() {
+        return container;
+    }
 }

@@ -86,7 +86,7 @@ public abstract class EntityVehicle extends BaseEntity implements Rideable, Enti
     @Override
     public boolean attack(EntityDamageEvent source) {
         VehicleDamageEvent event = new VehicleDamageEvent(this, source.getEntity(), source.getFinalDamage());
-        getServer().getPluginManager().callEvent(event);
+        getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
         }
@@ -100,7 +100,7 @@ public abstract class EntityVehicle extends BaseEntity implements Rideable, Enti
 
         if (instantKill || getHealth() - source.getFinalDamage() < 1) {
             VehicleDestroyEvent event2 = new VehicleDestroyEvent(this, source.getEntity());
-            getServer().getPluginManager().callEvent(event2);
+            getServer().getEventManager().fire(event2);
 
             if (event2.isCancelled()) {
                 return false;

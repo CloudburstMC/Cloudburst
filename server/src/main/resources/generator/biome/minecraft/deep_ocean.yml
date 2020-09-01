@@ -5,6 +5,6 @@ elevationVanilla:
   variation: 0.1
 
 decorators:
-  - id: "nukkitx:surface"
+  - id: "cloudburst:surface"
     top: "gravel"
     filler: "stone"

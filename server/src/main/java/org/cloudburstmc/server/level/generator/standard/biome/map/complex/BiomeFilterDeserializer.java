@@ -24,7 +24,7 @@ final class BiomeFilterDeserializer extends JsonDeserializer<BiomeFilter> {
 
         try {
             return Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.biomeFilter().get(id));
-        } catch (Exception e)   {
+        } catch (Exception e) {
             throw new RuntimeException("While decoding biome filter " + id, e);
         }
     }

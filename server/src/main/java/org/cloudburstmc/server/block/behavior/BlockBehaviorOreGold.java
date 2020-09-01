@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 
-import static org.cloudburstmc.server.block.BlockTypes.GOLD_ORE;
+import static org.cloudburstmc.server.block.BlockIds.GOLD_ORE;
 
 public class BlockBehaviorOreGold extends BlockBehaviorSolid {
 

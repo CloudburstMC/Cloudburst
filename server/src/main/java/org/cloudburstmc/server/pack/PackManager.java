@@ -11,6 +11,7 @@ import org.cloudburstmc.server.pack.loader.PackLoader;
 import org.cloudburstmc.server.pack.loader.ZipPackLoader;
 
 import javax.annotation.Nullable;
+import javax.inject.Singleton;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -20,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 @Log4j2
+@Singleton
 public class PackManager implements Closeable {
     private static final Path MANIFEST_PATH = Paths.get("manifest.json");
 

@@ -7,15 +7,15 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
-import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_BLOCK;
-import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_WIRE;
+import static org.cloudburstmc.server.block.BlockIds.REDSTONE_BLOCK;
+import static org.cloudburstmc.server.block.BlockIds.REDSTONE_WIRE;
 
 public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior {
 
@@ -81,7 +81,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         } else if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
             // Redstone event
             RedstoneUpdateEvent event = new RedstoneUpdateEvent(block);
-            level.getServer().getPluginManager().callEvent(event);
+            level.getServer().getEventManager().fire(event);
             if (event.isCancelled()) return 0;
             if (type == Level.BLOCK_UPDATE_NORMAL && block.down().getState().getBehavior().isTransparent()) {
                 level.useBreakOn(block.getPosition());

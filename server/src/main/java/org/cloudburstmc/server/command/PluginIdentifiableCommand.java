@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.command;
 
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 /**
  * author: MagicDroidX
@@ -8,5 +8,5 @@ import org.cloudburstmc.server.plugin.Plugin;
  */
 public interface PluginIdentifiableCommand {
 
-    Plugin getPlugin();
+    PluginContainer getPlugin();
 }

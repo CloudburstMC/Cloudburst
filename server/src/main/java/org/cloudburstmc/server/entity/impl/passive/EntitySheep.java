@@ -5,9 +5,9 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Sheep;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemDye;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemDye;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.DyeColor;
@@ -16,7 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.COLOR;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.SHEARED;
-import static org.cloudburstmc.server.block.BlockTypes.WOOL;
+import static org.cloudburstmc.server.block.BlockIds.WOOL;
 
 /**
  * Author: BeYkeRYkt Nukkit Project

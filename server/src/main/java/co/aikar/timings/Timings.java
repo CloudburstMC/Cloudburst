@@ -30,13 +30,11 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.event.Listener;
-import org.cloudburstmc.server.plugin.EventExecutor;
-import org.cloudburstmc.server.plugin.MethodEventExecutor;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.scheduler.PluginTask;
 import org.cloudburstmc.server.scheduler.TaskHandler;
 
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
@@ -221,7 +219,7 @@ public final class Timings {
         }
 
         if (handler.getTask() instanceof PluginTask) {
-            String owner = ((PluginTask) handler.getTask()).getOwner().getName();
+            String owner = ((PluginTask<?>) handler.getTask()).getContainer().getName();
             return TimingsManager.getTiming(owner, "PluginTask: " + handler.getTaskId() + repeating, schedulerSyncTimer);
         } else if (!handler.isAsynchronous()) {
             return TimingsManager.getTiming(DEFAULT_GROUP.name, "Task: " + handler.getTaskId() + repeating, schedulerSyncTimer);
@@ -230,11 +228,11 @@ public final class Timings {
         }
     }
 
-    public static Timing getPluginEventTiming(Class<? extends Event> event, Listener listener, EventExecutor executor, Plugin plugin) {
+    public static Timing getPluginEventTiming(Class<? extends Event> event, Object listener, Method method, PluginContainer plugin) {
         Timing group = TimingsManager.getTiming(plugin.getName(), "Combined Total", pluginEventTimer);
 
         return TimingsManager.getTiming(plugin.getName(), "Event: " + listener.getClass().getName() + "."
-                + (executor instanceof MethodEventExecutor ? ((MethodEventExecutor) executor).getMethod().getName() : "???")
+                + (method.getName())
                 + " (" + event.getSimpleName() + ")", group);
     }
 

@@ -20,7 +20,7 @@ import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
@@ -29,9 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 @Log4j2
 public class BlockRegistry implements Registry {
@@ -98,10 +99,50 @@ public class BlockRegistry implements Registry {
         }
         checkClosed();
 
-        if (this.behaviorMap.putIfAbsent(id, behavior) != null)
-            throw new RegistryException(id + " is already registered");
+        synchronized (this.behaviorMap) {
+            if (this.behaviorMap.putIfAbsent(id, behavior) != null)
+                throw new RegistryException(id + " is already registered");
+        }
 
         this.palette.addBlock(id, serializer, traits);
+    }
+
+    /**
+     * Extends current behavior with delegated one provided by the factory.
+     * All methods are delegated to the previous {@link BlockBehavior} instance by default.
+     * <p>
+     * Extending behavior must extend {@link BlockBehaviorDelegate} class accepting
+     * parent behavior as a constructor parameter.
+     * Parent behavior instance is supplied as an argument to the factory function.
+     *
+     * @param type    identifier to register the behavior for
+     * @param factory factory providing BlockBehaviorDelegate instance
+     * @throws RegistryException if there's no behavior registered for the specified type
+     */
+    public void extendBehavior(Identifier type, Function<BlockBehavior, BlockBehaviorDelegate> factory) {
+        checkNotNull(type, "type");
+        checkNotNull(factory, "factory");
+
+        synchronized (this.behaviorMap) {
+            if (this.behaviorMap.computeIfPresent(type, (key, existing) -> factory.apply(existing)) == null) {
+                throw new RegistryException(type + " has not been registered");
+            }
+        }
+    }
+
+    /**
+     * Overwrites existing or registers new {@link BlockBehavior} instance if absent
+     *
+     * @param type     identifier to register the behavior for
+     * @param behavior overwriting behavior instance
+     */
+    public void overwriteBehavior(Identifier type, BlockBehavior behavior) {
+        checkNotNull(type, "type");
+        checkNotNull(behavior, behavior);
+
+        synchronized (this.behaviorMap) {
+            this.behaviorMap.put(type, behavior);
+        }
     }
 
     boolean isBlock(Identifier id) {
@@ -600,28 +641,28 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(STRIPPED_WARPED_STEM, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS, BlockTraits.DEPRECATED);//497
         this.registerVanilla(CRIMSON_PLANKS, NoopBlockBehavior.INSTANCE);//498
         this.registerVanilla(WARPED_PLANKS, NoopBlockBehavior.INSTANCE);//499
-        this.registerVanilla(CRIMSON_DOOR, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK);//499
-        this.registerVanilla(WARPED_DOOR, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK);//500
-        this.registerVanilla(CRIMSON_TRAPDOOR, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN);//502
-        this.registerVanilla(WARPED_TRAPDOOR, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN);//503
-        this.registerVanilla(CRIMSON_STANDING_SIGN, NoopBlockBehavior.INSTANCE, BlockTraits.CARDINAL_DIRECTION);//505
-        this.registerVanilla(WARPED_STANDING_SIGN, NoopBlockBehavior.INSTANCE, BlockTraits.CARDINAL_DIRECTION);//506
-        this.registerVanilla(CRIMSON_WALL_SIGN, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION);//507
-        this.registerVanilla(WARPED_WALL_SIGN, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION);//508
-        this.registerVanilla(CRIMSON_STAIRS, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//509
-        this.registerVanilla(WARPED_STAIRS, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//510
-        this.registerVanilla(CRIMSON_FENCE, NoopBlockBehavior.INSTANCE);//511
-        this.registerVanilla(WARPED_FENCE, NoopBlockBehavior.INSTANCE);//512
-        this.registerVanilla(CRIMSON_FENCE_GATE, NoopBlockBehavior.INSTANCE, BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL);//513
-        this.registerVanilla(WARPED_FENCE_GATE, NoopBlockBehavior.INSTANCE, BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL);//514
-        this.registerVanilla(CRIMSON_BUTTON, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED);//515
-        this.registerVanilla(WARPED_BUTTON, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED);//516
+        this.registerVanilla(CRIMSON_DOOR, new BlockBehaviorDoorWood(), BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK);//499
+        this.registerVanilla(WARPED_DOOR, new BlockBehaviorDoorWood(), BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK);//500
+        this.registerVanilla(CRIMSON_TRAPDOOR, new BlockBehaviorTrapdoor(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN);//502
+        this.registerVanilla(WARPED_TRAPDOOR, new BlockBehaviorTrapdoor(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_OPEN);//503
+        this.registerVanilla(CRIMSON_STANDING_SIGN, new BlockBehaviorSignPost(), BlockTraits.CARDINAL_DIRECTION);//505
+        this.registerVanilla(WARPED_STANDING_SIGN, new BlockBehaviorSignPost(), BlockTraits.CARDINAL_DIRECTION);//506
+        this.registerVanilla(CRIMSON_WALL_SIGN, new BlockBehaviorWallSign(), BlockTraits.FACING_DIRECTION);//507
+        this.registerVanilla(WARPED_WALL_SIGN, new BlockBehaviorWallSign(), BlockTraits.FACING_DIRECTION);//508
+        this.registerVanilla(CRIMSON_STAIRS, new BlockBehaviorStairsWood(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//509
+        this.registerVanilla(WARPED_STAIRS, new BlockBehaviorStairsWood(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//510
+        this.registerVanilla(CRIMSON_FENCE, new BlockBehaviorFenceWooden());//511
+        this.registerVanilla(WARPED_FENCE, new BlockBehaviorFenceWooden());//512
+        this.registerVanilla(CRIMSON_FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL);//513
+        this.registerVanilla(WARPED_FENCE_GATE, new BlockBehaviorFenceGate(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_IN_WALL);//514
+        this.registerVanilla(CRIMSON_BUTTON, new BlockBehaviorButton(CRIMSON_BUTTON), BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED);//515
+        this.registerVanilla(WARPED_BUTTON, new BlockBehaviorButton(WARPED_BUTTON), BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED);//516
         this.registerVanilla(CRIMSON_PRESSURE_PLATE, new BlockBehaviorPressurePlateWood(), BlockTraits.REDSTONE_SIGNAL);//517
         this.registerVanilla(WARPED_PRESSURE_PLATE, new BlockBehaviorPressurePlateWood(), BlockTraits.REDSTONE_SIGNAL);//518
-        this.registerVanilla(CRIMSON_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//519
-        this.registerVanilla(WARPED_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//520
-        this.registerVanilla(CRIMSON_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//521
-        this.registerVanilla(WARPED_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//522
+        this.registerVanilla(CRIMSON_SLAB, new BlockBehaviorSlab(CRIMSON_SLAB, CRIMSON_DOUBLE_SLAB), BlockTraits.IS_TOP_SLOT);//519
+        this.registerVanilla(WARPED_SLAB, new BlockBehaviorSlab(WARPED_SLAB, WARPED_DOUBLE_SLAB), BlockTraits.IS_TOP_SLOT);//520
+        this.registerVanilla(CRIMSON_DOUBLE_SLAB, new BlockBehaviorDoubleSlab(CRIMSON_SLAB), BlockTraits.IS_TOP_SLOT);//521
+        this.registerVanilla(WARPED_DOUBLE_SLAB, new BlockBehaviorDoubleSlab(WARPED_SLAB), BlockTraits.IS_TOP_SLOT);//522
         this.registerVanilla(SOUL_TORCH, NoopBlockBehavior.INSTANCE, BlockTraits.TORCH_DIRECTION);//523
         this.registerVanilla(SOUL_LANTERN, NoopBlockBehavior.INSTANCE, BlockTraits.IS_HANGING);//524
         this.registerVanilla(NETHERITE_BLOCK, NoopBlockBehavior.INSTANCE);//525
@@ -629,17 +670,17 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(RESPAWN_ANCHOR, NoopBlockBehavior.INSTANCE, BlockTraits.RESPAWN_ANCHOR_CHARGE);//527
         this.registerVanilla(BLACKSTONE, NoopBlockBehavior.INSTANCE);//528
         this.registerVanilla(POLISHED_BLACKSTONE_BRICKS, NoopBlockBehavior.INSTANCE);//529
-        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_STAIRS, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//530
-        this.registerVanilla(BLACKSTONE_STAIRS, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//531
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_STAIRS, new BlockBehaviorStairsStone(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//530
+        this.registerVanilla(BLACKSTONE_STAIRS, new BlockBehaviorStairsStone(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//531
         this.registerVanilla(BLACKSTONE_WALL, new BlockBehaviorWall(), BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //532
         this.registerVanilla(POLISHED_BLACKSTONE_BRICK_WALL, new BlockBehaviorWall(), BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //533
         this.registerVanilla(CHISELED_POLISHED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//534
         this.registerVanilla(CRACKED_POLISHED_BLACKSTONE_BRICKS, NoopBlockBehavior.INSTANCE);//535
         this.registerVanilla(GILDED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//536
-        this.registerVanilla(BLACKSTONE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//537
-        this.registerVanilla(BLACKSTONE_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//538
-        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//539
-        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//540
+        this.registerVanilla(BLACKSTONE_SLAB, new BlockBehaviorSlab(BLACKSTONE_SLAB, BLACKSTONE_DOUBLE_SLAB), BlockTraits.IS_TOP_SLOT);//537
+        this.registerVanilla(BLACKSTONE_DOUBLE_SLAB, new BlockBehaviorDoubleSlab(BLACKSTONE_SLAB), BlockTraits.IS_TOP_SLOT);//538
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_SLAB, new BlockBehaviorSlab(POLISHED_BLACKSTONE_BRICK_SLAB, POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB), BlockTraits.IS_TOP_SLOT);//539
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB, new BlockBehaviorDoubleSlab(POLISHED_BLACKSTONE_BRICK_SLAB), BlockTraits.IS_TOP_SLOT);//540
         this.registerVanilla(CHAIN, NoopBlockBehavior.INSTANCE);//541
         this.registerVanilla(TWISTING_VINES, NoopBlockBehavior.INSTANCE, BlockTraits.TWISTING_VINES_AGE);//542
         this.registerVanilla(NETHER_GOLD_ORE, NoopBlockBehavior.INSTANCE);//543
@@ -647,10 +688,10 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(SOUL_CAMPFIRE, NoopBlockBehavior.INSTANCE, BlockTraits.DIRECTION, BlockTraits.IS_EXTINGUISHED);//545
         this.registerVanilla(POLISHED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//546
         this.registerVanilla(POLISHED_BLACKSTONE_STAIRS, new BlockBehaviorStairsStone(), BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);//547
-        this.registerVanilla(POLISHED_BLACKSTONE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//548
-        this.registerVanilla(POLISHED_BLACKSTONE_DOUBLE_SLAB, NoopBlockBehavior.INSTANCE, BlockTraits.IS_TOP_SLOT);//549
+        this.registerVanilla(POLISHED_BLACKSTONE_SLAB, new BlockBehaviorSlab(POLISHED_BLACKSTONE_SLAB, POLISHED_BLACKSTONE_DOUBLE_SLAB), BlockTraits.IS_TOP_SLOT);//548
+        this.registerVanilla(POLISHED_BLACKSTONE_DOUBLE_SLAB, new BlockBehaviorDoubleSlab(POLISHED_BLACKSTONE_SLAB), BlockTraits.IS_TOP_SLOT);//549
         this.registerVanilla(POLISHED_BLACKSTONE_PRESSURE_PLATE, new BlockBehaviorPressurePlateWood(), BlockTraits.REDSTONE_SIGNAL);//550
-        this.registerVanilla(POLISHED_BLACKSTONE_BUTTON, NoopBlockBehavior.INSTANCE, BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED); //551
+        this.registerVanilla(POLISHED_BLACKSTONE_BUTTON, new BlockBehaviorButton(POLISHED_BLACKSTONE_BUTTON), BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED); //551
         this.registerVanilla(POLISHED_BLACKSTONE_WALL, new BlockBehaviorWall(), BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST); //552
         this.registerVanilla(WARPED_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS); //553
         this.registerVanilla(CRIMSON_HYPHAE, NoopBlockBehavior.INSTANCE, BlockTraits.AXIS);//554

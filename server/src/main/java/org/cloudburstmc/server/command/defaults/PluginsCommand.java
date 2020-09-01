@@ -1,13 +1,12 @@
 package org.cloudburstmc.server.command.defaults;
 
+import lombok.val;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.utils.TextFormat;
-
-import java.util.Map;
 
 /**
  * Created on 2015/11/12 by xtypr.
@@ -36,13 +35,13 @@ public class PluginsCommand extends Command {
 
     private void sendPluginList(CommandSender sender) {
         StringBuilder list = new StringBuilder();
-        Map<String, Plugin> plugins = sender.getServer().getPluginManager().getPlugins();
-        for (Plugin plugin : plugins.values()) {
+        val plugins = sender.getServer().getPluginManager().getAllPlugins();
+        for (PluginContainer plugin : plugins) {
             if (list.length() > 0) {
-                list.append(TextFormat.WHITE + ", ");
+                list.append(TextFormat.WHITE);
+                list.append(", ");
             }
-            list.append(plugin.isEnabled() ? TextFormat.GREEN : TextFormat.RED);
-            list.append(plugin.getDescription().getFullName());
+            list.append(plugin.getName());
         }
 
         sender.sendMessage(new TranslationContainer("cloudburst.command.plugins.success", String.valueOf(plugins.size()), list.toString()));

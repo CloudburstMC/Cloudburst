@@ -21,7 +21,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class SubmergedOrePopulator extends ChancePopulator.Column {
-    public static final Identifier ID = Identifier.fromString("nukkitx:ore_submerged");
+    public static final Identifier ID = Identifier.fromString("cloudburst:ore_submerged");
 
     @JsonProperty
     protected BlockFilter replace;

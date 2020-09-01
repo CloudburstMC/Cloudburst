@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class BlobPopulator extends ChancePopulator.Column {
-    public static final Identifier ID = Identifier.fromString("nukkitx:blob");
+    public static final Identifier ID = Identifier.fromString("cloudburst:blob");
 
     @JsonProperty
     protected BlockFilter on;

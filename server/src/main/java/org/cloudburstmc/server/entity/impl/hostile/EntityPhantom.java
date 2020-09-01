@@ -3,8 +3,8 @@ package org.cloudburstmc.server.entity.impl.hostile;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.Smiteable;
 import org.cloudburstmc.server.entity.hostile.Phantom;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Location;
 
 /**
