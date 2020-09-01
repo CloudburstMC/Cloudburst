@@ -12,7 +12,7 @@ import org.cloudburstmc.server.utils.Identifier;
  */
 @JsonDeserialize
 public final class PerlinDefaultNoiseGenerator extends DefaultNoiseGenerator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:perlin");
+    public static final Identifier ID = Identifier.fromString("cloudburst:perlin");
 
     @Override
     protected NoiseSource create0(@NonNull PRandom random) {

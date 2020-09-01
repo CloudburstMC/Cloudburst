@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
- * Base class for registries used by the NukkitX standard generator.
+ * Base class for registries used by the Cloudburst standard generator.
  *
  * @author DaPorkchop_
  */

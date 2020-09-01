@@ -1,15 +1,15 @@
 parent: "minecraft:extreme_hills"
 
 decorators:
-  - id: "nukkitx:surface"
+  - id: "cloudburst:surface"
     top: "grass"
     filler: "dirt"
 
 populators:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"
 
     # More trees
-  - id: "nukkitx:tree"
+  - id: "cloudburst:tree"
     chance: 0.01171875 # about 3 per chunk
     on: "grass"
     types:

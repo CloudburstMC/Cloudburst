@@ -5,16 +5,16 @@ import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.MessageFactory;
 import org.apache.logging.log4j.message.StringFormattedMessage;
 
-public class NukkitMessageFactory extends AbstractMessageFactory {
+public class CloudburstMessageFactory extends AbstractMessageFactory {
     /**
-     * Instance of NukkitMessageFactory.
+     * Instance of CloudburstMessageFactory.
      */
-    public static final NukkitMessageFactory INSTANCE = new NukkitMessageFactory();
+    public static final CloudburstMessageFactory INSTANCE = new CloudburstMessageFactory();
 
     /**
      * Constructs a message factory with default flow strings.
      */
-    public NukkitMessageFactory() {
+    public CloudburstMessageFactory() {
         super();
     }
 
@@ -28,7 +28,7 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
      */
     @Override
     public Message newMessage(final String message, final Object... params) {
-        return new NukkitMessage(message, params);
+        return new CloudburstMessage(message, params);
     }
 
     /**
@@ -36,7 +36,7 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
      */
     @Override
     public Message newMessage(final String message, final Object p0) {
-        return new NukkitMessage(message, p0);
+        return new CloudburstMessage(message, p0);
     }
 
     /**
@@ -44,7 +44,7 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
      */
     @Override
     public Message newMessage(final String message, final Object p0, final Object p1) {
-        return new NukkitMessage(message, p0, p1);
+        return new CloudburstMessage(message, p0, p1);
     }
 
     /**
@@ -52,7 +52,7 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
      */
     @Override
     public Message newMessage(final String message, final Object p0, final Object p1, final Object p2) {
-        return new NukkitMessage(message, p0, p1, p2);
+        return new CloudburstMessage(message, p0, p1, p2);
     }
 
     /**
@@ -60,7 +60,7 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
      */
     @Override
     public Message newMessage(final String message, final Object p0, final Object p1, final Object p2, final Object p3) {
-        return new NukkitMessage(message, p0, p1, p2, p3);
+        return new CloudburstMessage(message, p0, p1, p2, p3);
     }
 
     /**
@@ -68,7 +68,7 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
      */
     @Override
     public Message newMessage(final String message, final Object p0, final Object p1, final Object p2, final Object p3, final Object p4) {
-        return new NukkitMessage(message, p0, p1, p2, p3, p4);
+        return new CloudburstMessage(message, p0, p1, p2, p3, p4);
     }
 
     /**
@@ -76,7 +76,7 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
      */
     @Override
     public Message newMessage(final String message, final Object p0, final Object p1, final Object p2, final Object p3, final Object p4, final Object p5) {
-        return new NukkitMessage(message, p0, p1, p2, p3, p4, p5);
+        return new CloudburstMessage(message, p0, p1, p2, p3, p4, p5);
     }
 
     /**
@@ -85,7 +85,7 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
     @Override
     public Message newMessage(final String message, final Object p0, final Object p1, final Object p2, final Object p3, final Object p4, final Object p5,
                               final Object p6) {
-        return new NukkitMessage(message, p0, p1, p2, p3, p4, p5, p6);
+        return new CloudburstMessage(message, p0, p1, p2, p3, p4, p5, p6);
     }
 
     /**
@@ -94,7 +94,7 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
     @Override
     public Message newMessage(final String message, final Object p0, final Object p1, final Object p2, final Object p3, final Object p4, final Object p5,
                               final Object p6, final Object p7) {
-        return new NukkitMessage(message, p0, p1, p2, p3, p4, p5, p6, p7);
+        return new CloudburstMessage(message, p0, p1, p2, p3, p4, p5, p6, p7);
     }
 
     /**
@@ -103,7 +103,7 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
     @Override
     public Message newMessage(final String message, final Object p0, final Object p1, final Object p2, final Object p3, final Object p4, final Object p5,
                               final Object p6, final Object p7, final Object p8) {
-        return new NukkitMessage(message, p0, p1, p2, p3, p4, p5, p6, p7, p8);
+        return new CloudburstMessage(message, p0, p1, p2, p3, p4, p5, p6, p7, p8);
     }
 
     /**
@@ -112,6 +112,6 @@ public class NukkitMessageFactory extends AbstractMessageFactory {
     @Override
     public Message newMessage(final String message, final Object p0, final Object p1, final Object p2, final Object p3, final Object p4, final Object p5,
                               final Object p6, final Object p7, final Object p8, final Object p9) {
-        return new NukkitMessage(message, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
+        return new CloudburstMessage(message, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
     }
 }

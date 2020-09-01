@@ -5,7 +5,7 @@ elevationVanilla:
   variation: 0.025
 
 decorators:
-  - id: "nukkitx:surface_deep"
+  - id: "cloudburst:surface_deep"
     top: "sand"
     filler: "sand"
     deep: "sandstone"

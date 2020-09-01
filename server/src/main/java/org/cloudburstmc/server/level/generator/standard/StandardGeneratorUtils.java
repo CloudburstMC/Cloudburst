@@ -26,7 +26,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static net.daporkchop.lib.common.util.PorkUtil.uncheckedCast;
 
 /**
- * Various helper methods used by the NukkitX standard generator.
+ * Various helper methods used by the Cloudburst standard generator.
  *
  * @author DaPorkchop_
  */
@@ -153,7 +153,7 @@ public class StandardGeneratorUtils {
         InputStream in = null;
         switch (id.getNamespace()) {
             case "minecraft":
-            case "nukkitx":
+            case "cloudburst":
                 in = Nukkit.class.getClassLoader().getResourceAsStream(name);
                 break;
             default:

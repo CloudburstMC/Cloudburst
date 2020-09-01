@@ -23,7 +23,7 @@ import java.util.Objects;
 @Decorator.SkipRegistrationAsPopulator
 @JsonDeserialize
 public class NoiseSelectionDecorator extends AbstractGenerationPass implements Decorator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:noise");
+    public static final Identifier ID = Identifier.fromString("cloudburst:noise");
 
     protected NoiseSource selector;
 

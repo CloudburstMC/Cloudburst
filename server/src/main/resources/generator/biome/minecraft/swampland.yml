@@ -4,31 +4,31 @@ elevationVanilla:
   variation: 0.1
 
 decorators:
-  - id: "nukkitx:noise"
+  - id: "cloudburst:noise"
     selector:
-      id: "nukkitx:simplex"
+      id: "cloudburst:simplex"
       scale: 0.25
       octaves: 1
     threshold: 0.0
     above:
-      - id: "nukkitx:replace_top"
+      - id: "cloudburst:replace_top"
         height: 62
         replace: "stone" # world is only stone at this phase
         block: "water"
 
         # Lily pads
-      - id: "nukkitx:cover" # cover instead of scattered_cover to ensure that they only generate on water that can see the sky
+      - id: "cloudburst:cover" # cover instead of scattered_cover to ensure that they only generate on water that can see the sky
         chance: 0.12
         on: "water"
         block: "waterlily"
 
-  - id: "nukkitx:surface"
+  - id: "cloudburst:surface"
     top: "grass"
     filler: "dirt"
 
 populators:
     # Fallen trees
-  - id: "nukkitx:tree"
+  - id: "cloudburst:tree"
     chance: 0.0005580357 # about 1 per 7 chunks
     on: "grass"
     replace: "air"
@@ -37,7 +37,7 @@ populators:
       fallen: true
 
     # Clay
-  - id: "nukkitx:ore_submerged"
+  - id: "cloudburst:ore_submerged"
     chance: 0.00390625 # about 1 per chunk
     radius: "2-3"
     block: "clay"
@@ -45,7 +45,7 @@ populators:
     start: "water"
 
     # Trees
-  - id: "nukkitx:tree"
+  - id: "cloudburst:tree"
     chance: 0.0078125 # about 2 per chunk
     on: "grass,dirt"
     replace: "air,water"
@@ -53,7 +53,7 @@ populators:
     type: "swamp"
 
     # Sugar cane
-  - id: "nukkitx:plant"
+  - id: "cloudburst:plant"
     chance: 0.0390625 # about 10 per chunk
     patchSize: 20
     height: "1-3"
@@ -62,21 +62,21 @@ populators:
     water: "water"
 
     # Mushrooms & blue orchids
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.015625 # about 4 per chunk
     on: "grass"
     roundDown: false
     block: "2*brown_mushroom,red_mushroom,red_flower{flower_type=orchid}"
 
     # Dead bushes
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.00390625 # about 1 per chunk
     patchSize: 4
     on: "sand"
     block: "deadbush"
 
     # Tall grass
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.01953125 # about 5 per chunk
     on: "grass"
     block: "tallgrass"

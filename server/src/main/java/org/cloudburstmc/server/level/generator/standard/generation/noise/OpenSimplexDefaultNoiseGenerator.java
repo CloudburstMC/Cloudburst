@@ -12,7 +12,7 @@ import org.cloudburstmc.server.utils.Identifier;
  */
 @JsonDeserialize
 public final class OpenSimplexDefaultNoiseGenerator extends DefaultNoiseGenerator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:opensimplex");
+    public static final Identifier ID = Identifier.fromString("cloudburst:opensimplex");
 
     @Override
     protected NoiseSource create0(@NonNull PRandom random) {

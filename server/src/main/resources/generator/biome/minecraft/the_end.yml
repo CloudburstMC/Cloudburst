@@ -4,21 +4,21 @@ elevationVanilla:
   variation: 0.2
 
 populators:
-  - id: "nukkitx:distance"
+  - id: "cloudburst:distance"
     min: 100.0
     max: 1024.0
     above:
         # Outer end islands
 
         # Small islands
-      - id: "nukkitx:end_island"
+      - id: "cloudburst:end_island"
         chance: 0.0003487723214 # about 1.25 per 14 chunks
         height: "32-56"
         radius: "4-6"
         block: "end_stone"
 
         # Chorus plants
-      - id: "nukkitx:tree"
+      - id: "cloudburst:tree"
         chance: 0.0078125 # about 2 per chunk
         on: "end_stone"
         type: "chorus"

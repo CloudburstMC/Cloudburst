@@ -26,7 +26,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class RiverCombineBiomeFilter extends AbstractBiomeFilter {
-    public static final Identifier ID = Identifier.fromString("nukkitx:river_combine");
+    public static final Identifier ID = Identifier.fromString("cloudburst:river_combine");
 
     @JsonProperty
     protected BiomeFilter biomeLayer;

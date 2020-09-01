@@ -1,4 +1,4 @@
-# NukkitX Standard Generator - Overworld preset
+# Cloudburst Standard Generator - Overworld preset
 #
 # Author: DaPorkchop_
 
@@ -11,24 +11,24 @@ biomes: "minecraft:overworld"
 density: "minecraft:overworld"
 
 decorators:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"
 
     # Bedrock
-  - id: "nukkitx:bedrock"
+  - id: "cloudburst:bedrock"
     block: "bedrock"
     base: 0
     fade: 1-5
 
 populators:
     # Water lakes
-  - id: "nukkitx:lake"
+  - id: "cloudburst:lake"
     chance: 0.0009765625 # about 1 per 4 chunks
     block: "water"
     surfaceBlocks: "grass,podzol,mycelium"
     replaceWithSurface: "dirt"
 
     # Lava lakes (underground)
-  - id: "nukkitx:lake"
+  - id: "cloudburst:lake"
     chance: 0.00048828125 # about 1 per 8 chunks
     height:
       min: 8
@@ -38,7 +38,7 @@ populators:
     border: "stone"
 
     # Lava lakes (surface)
-  - id: "nukkitx:lake"
+  - id: "cloudburst:lake"
     chance: 0.00006103515625 # about 1 per 64 chunks
     height:
       min: 64
@@ -49,7 +49,7 @@ populators:
     surfaceBlocks: "grass,podzol,mycelium"
     replaceWithSurface: "dirt"
 
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"
 
     #
     # Minerals
@@ -57,7 +57,7 @@ populators:
     #
 
     # Dirt and gravel
-  - id: "nukkitx:ore"
+  - id: "cloudburst:ore"
     chance: 0.0703125 # about 18 per chunk
     size: 33
     height: "0-255"
@@ -66,7 +66,7 @@ populators:
 
     # Granite, Diorite and Andesite
     # in vanilla these are generated as three separate ores, but this way adds a bit of variety
-  - id: "nukkitx:ore"
+  - id: "cloudburst:ore"
     chance: 0.1171875 # about 30 per chunk
     size: 33
     height: "0-80"
@@ -78,7 +78,7 @@ populators:
     #
 
     # Coal
-  - id: "nukkitx:ore"
+  - id: "cloudburst:ore"
     chance: 0.078125 # about 20 per chunk
     size: 17
     height: "0-128"
@@ -86,7 +86,7 @@ populators:
     replace: "stone"
 
     # Iron
-  - id: "nukkitx:ore"
+  - id: "cloudburst:ore"
     chance: 0.078125 # about 20 per chunk
     size: 9
     height: "0-64"
@@ -94,7 +94,7 @@ populators:
     replace: "stone"
 
     # Gold
-  - id: "nukkitx:ore"
+  - id: "cloudburst:ore"
     chance: 0.0078125 # about 2 per chunk
     size: 9
     height: "0-32"
@@ -102,7 +102,7 @@ populators:
     replace: "stone"
 
     # Redstone
-  - id: "nukkitx:ore"
+  - id: "cloudburst:ore"
     chance: 0.03125 # about 8 per chunk
     size: 8
     height: "0-16"
@@ -110,7 +110,7 @@ populators:
     replace: "stone"
 
     # Diamond
-  - id: "nukkitx:ore"
+  - id: "cloudburst:ore"
     chance: 0.00390625 # about 1 per chunk
     size: 8
     height: "0-16"
@@ -118,7 +118,7 @@ populators:
     replace: "stone"
 
     # Lapis Lazuli
-  - id: "nukkitx:ore"
+  - id: "cloudburst:ore"
     chance: 0.00390625 # about 1 per chunk
     size: 7
     height:
@@ -129,8 +129,8 @@ populators:
     replace: "stone"
 
 finishers:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"
 
     # Ice and snow in cold biomes
-  - id: "nukkitx:ice_snow"
+  - id: "cloudburst:ice_snow"
     height: "60-255"

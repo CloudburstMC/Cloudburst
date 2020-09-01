@@ -38,14 +38,14 @@ public class DebugPasteCommand extends Command {
                 try {
                     CommandRegistry.get().dispatch(sender, "status");
                     Path dataPath = server.getDataPath();
-                    String nukkitYML = HastebinUtility.upload(dataPath.resolve("nukkit.yml").toFile());
+                    String cloudburstYML = HastebinUtility.upload(dataPath.resolve("cloudburst.yml").toFile());
                     String serverProperties = HastebinUtility.upload(dataPath.resolve("server.properties").toFile());
                     String latestLog = HastebinUtility.upload(dataPath.resolve("logs/server.log").toFile());
                     String threadDump = HastebinUtility.upload(Utils.getAllThreadDumps());
 
                     StringBuilder b = new StringBuilder();
                     b.append("# Files\n");
-                    b.append("links.nukkit_yml: ").append(nukkitYML).append('\n');
+                    b.append("links.cloudburst_yml: ").append(cloudburstYML).append('\n');
                     b.append("links.server_properties: ").append(serverProperties).append('\n');
                     b.append("links.server_log: ").append(latestLog).append('\n');
                     b.append("links.thread_dump: ").append(threadDump).append('\n');
