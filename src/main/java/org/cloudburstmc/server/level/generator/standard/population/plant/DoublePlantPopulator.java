@@ -1,21 +1,16 @@
 package org.cloudburstmc.server.level.generator.standard.population.plant;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.DoublePlantType;
 
@@ -28,7 +23,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class DoublePlantPopulator extends AbstractPlantPopulator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:double_plant");
+    public static final Identifier ID = Identifier.fromString("cloudburst:double_plant");
 
     @JsonProperty
     @JsonAlias("type")

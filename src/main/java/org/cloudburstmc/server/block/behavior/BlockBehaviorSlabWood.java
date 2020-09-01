@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
@@ -19,7 +19,7 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
     };
 
     public BlockBehaviorSlabWood() {
-        super(BlockTypes.WOODEN_SLAB, BlockTypes.DOUBLE_WOODEN_SLAB);
+        super(BlockIds.WOODEN_SLAB, BlockIds.DOUBLE_WOODEN_SLAB);
     }
 
     @Override

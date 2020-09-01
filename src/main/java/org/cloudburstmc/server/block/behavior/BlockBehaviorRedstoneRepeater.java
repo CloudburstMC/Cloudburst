@@ -2,11 +2,11 @@ package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -34,12 +34,12 @@ public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
 
     @Override
     protected BlockState getPowered(BlockState state) {
-        return BlockState.get(BlockTypes.POWERED_REPEATER).copyTraits(state);
+        return BlockState.get(BlockIds.POWERED_REPEATER).copyTraits(state);
     }
 
     @Override
     protected BlockState getUnpowered(BlockState state) {
-        return BlockState.get(BlockTypes.UNPOWERED_REPEATER).copyTraits(state);
+        return BlockState.get(BlockIds.UNPOWERED_REPEATER).copyTraits(state);
     }
 
     @Override

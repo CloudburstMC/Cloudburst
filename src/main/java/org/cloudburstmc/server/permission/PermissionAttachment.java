@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.permission;
 
-import org.cloudburstmc.server.plugin.Plugin;
-import org.cloudburstmc.server.utils.PluginException;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,17 +18,14 @@ public class PermissionAttachment {
 
     private Permissible permissible;
 
-    private Plugin plugin;
+    private PluginContainer plugin;
 
-    public PermissionAttachment(Plugin plugin, Permissible permissible) {
-        if (!plugin.isEnabled()) {
-            throw new PluginException("Plugin " + plugin.getDescription().getName() + " is disabled");
-        }
+    public PermissionAttachment(PluginContainer plugin, Permissible permissible) {
         this.permissible = permissible;
         this.plugin = plugin;
     }
 
-    public Plugin getPlugin() {
+    public PluginContainer getPlugin() {
         return plugin;
     }
 

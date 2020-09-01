@@ -12,7 +12,7 @@ import org.cloudburstmc.server.utils.Identifier;
  */
 @JsonDeserialize
 public final class PorkianDefaultNoiseGenerator extends DefaultNoiseGenerator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:porkian");
+    public static final Identifier ID = Identifier.fromString("cloudburst:porkian");
 
     @Override
     protected NoiseSource create0(@NonNull PRandom random) {

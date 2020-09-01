@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.END_BRICKS;
+import static org.cloudburstmc.server.block.BlockIds.END_BRICKS;
 
 public class BlockBehaviorBricksEndStone extends BlockBehaviorSolid {
 

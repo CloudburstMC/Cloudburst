@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -184,7 +184,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 
     private BlockTrait<?> getSlabType(BlockState state) {
         BlockTrait<?> type;
-        if (state.getType() == BlockTypes.WOODEN_SLAB) {
+        if (state.getType() == BlockIds.WOODEN_SLAB) {
             type = BlockTraits.TREE_SPECIES;
         } else {
             type = BlockTraits.STONE_SLAB_TYPE;

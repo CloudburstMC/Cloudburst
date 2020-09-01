@@ -1,17 +1,17 @@
 package org.cloudburstmc.server.item.food;
 
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.player.PlayerEatFoodEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.*;
 
-import static org.cloudburstmc.server.item.ItemIds.*;
+import static org.cloudburstmc.server.item.behavior.ItemIds.*;
 
 /**
  * Created by Snake1999 on 2016/1/13.
@@ -38,9 +38,9 @@ public abstract class Food {
     public static final Food beetroot_soup = registerDefaultFood(new FoodInBowl(6, 7.2F).addRelative(BEETROOT_SOUP));
     public static final Food bread = registerDefaultFood(new FoodNormal(5, 6F).addRelative(BREAD));
     public static final Food cake_slice = registerDefaultFood(new FoodNormal(2, 0.4F)
-            .addRelative(BlockTypes.CAKE, 0).addRelative(BlockTypes.CAKE, 1).addRelative(BlockTypes.CAKE, 2)
-            .addRelative(BlockTypes.CAKE, 3).addRelative(BlockTypes.CAKE, 4).addRelative(BlockTypes.CAKE, 5)
-            .addRelative(BlockTypes.CAKE, 6));
+            .addRelative(BlockIds.CAKE, 0).addRelative(BlockIds.CAKE, 1).addRelative(BlockIds.CAKE, 2)
+            .addRelative(BlockIds.CAKE, 3).addRelative(BlockIds.CAKE, 4).addRelative(BlockIds.CAKE, 5)
+            .addRelative(BlockIds.CAKE, 6));
     public static final Food carrot = registerDefaultFood(new FoodNormal(3, 4.8F).addRelative(CARROT));
     public static final Food carrot_golden = registerDefaultFood(new FoodNormal(6, 14.4F).addRelative(GOLDEN_CARROT));
     public static final Food chicken_raw = registerDefaultFood(new FoodEffective(2, 1.2F)
@@ -88,7 +88,7 @@ public abstract class Food {
     public static final Food honey = registerDefaultFood(new FoodHoney(6, 2.4F).addRelative(HONEY_BOTTLE));
 
     //Opened API for plugins
-    public static Food registerFood(Food food, Plugin plugin) {
+    public static Food registerFood(Food food, PluginContainer plugin) {
         Objects.requireNonNull(food);
         Objects.requireNonNull(plugin);
         food.relativeIDs.forEach(n -> registryCustom.put(new NodeIDMetaPlugin(n.id, n.meta, plugin), food));
@@ -113,7 +113,7 @@ public abstract class Food {
     public static Food getByRelative(Identifier relativeID, int meta) {
         final Food[] result = {null};
         registryCustom.forEach((n, f) -> {
-            if (n.id == relativeID && n.meta == meta && n.plugin.isEnabled()) result[0] = f;
+            if (n.id == relativeID && n.meta == meta) result[0] = f;
         });
         if (result[0] == null) {
             registryDefault.forEach((n, f) -> {
@@ -129,7 +129,7 @@ public abstract class Food {
 
     public final boolean eatenBy(Player player) {
         PlayerEatFoodEvent event = new PlayerEatFoodEvent(player, this);
-        player.getServer().getPluginManager().callEvent(event);
+        player.getServer().getEventManager().fire(event);
         if (event.isCancelled()) return false;
         return event.getFood().onEatenBy(player);
     }
@@ -182,9 +182,9 @@ public abstract class Food {
     }
 
     static class NodeIDMetaPlugin extends NodeIDMeta {
-        final Plugin plugin;
+        final PluginContainer plugin;
 
-        NodeIDMetaPlugin(Identifier id, int meta, Plugin plugin) {
+        NodeIDMetaPlugin(Identifier id, int meta, PluginContainer plugin) {
             super(id, meta);
             this.plugin = plugin;
         }

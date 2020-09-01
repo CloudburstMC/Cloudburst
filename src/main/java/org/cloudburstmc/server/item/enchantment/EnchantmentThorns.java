@@ -4,7 +4,7 @@ import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 
 import java.util.concurrent.ThreadLocalRandom;
 

@@ -4,13 +4,13 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Jukebox;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.RecordItem;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.behavior.RecordItem;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -67,7 +67,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
 
     @Override
     public boolean isValid() {
-        return this.getBlockState().getType() == BlockTypes.JUKEBOX;
+        return this.getBlockState().getType() == BlockIds.JUKEBOX;
     }
 
     public Item getRecordItem() {

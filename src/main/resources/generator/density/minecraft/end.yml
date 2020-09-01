@@ -1,13 +1,13 @@
-# NukkitX Standard Generator - End density generator preset
+# Cloudburst Standard Generator - End density generator preset
 #
 # Author: DaPorkchop_
 
 # see overworld.yml for information on where the scale values come from
 
-id: "nukkitx:end"
+id: "cloudburst:end"
 seed: "end"
 selectorNoise:
-  id: "nukkitx:perlin"
+  id: "cloudburst:perlin"
   scale:
     x: 0.008354638671875
     y: 0.008354638671875
@@ -16,7 +16,7 @@ selectorNoise:
   factor: 12.75
   offset: 0.5
 lowNoise:
-  id: "nukkitx:perlin"
+  id: "cloudburst:perlin"
   scale:
     x: 0.005221649169921875
     y: 0.005221649169921875
@@ -25,7 +25,7 @@ lowNoise:
   factor: 1.0
   offset: 0.0
 highNoise:
-  id: "nukkitx:perlin"
+  id: "cloudburst:perlin"
   scale:
     x: 0.005221649169921875
     y: 0.005221649169921875
@@ -39,10 +39,10 @@ islands:
   outerIslandStartRadius: 1024.0
   outerIslandSeedThreshold: -0.8
   islandNoise:
-    id: "nukkitx:simplex"
+    id: "cloudburst:simplex"
     octaves: 1
   islandWeight:
-    id: "nukkitx:simplex"
+    id: "cloudburst:simplex"
     octaves: 1
     factor: 6.5
     offset: 15.5

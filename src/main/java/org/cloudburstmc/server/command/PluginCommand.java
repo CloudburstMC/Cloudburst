@@ -1,14 +1,16 @@
 package org.cloudburstmc.server.command;
 
+import com.google.common.base.Preconditions;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.plugin.Plugin;
-import org.cloudburstmc.server.plugin.PluginBase;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.registry.CommandRegistry;
+
+import javax.annotation.Nonnull;
 
 /**
  * <p>This class is used as a base for all Commands for Plugins. You will want to extend this class to implement
  * your custom commands, and then register them with the {@link CommandRegistry CommandRegistry}
- * in your {@link PluginBase Plugin}'s <code>onLoad()</code> method to ensure you are registering
+ * in your {@link PluginContainer Plugin}'s <code>onLoad()</code> method to ensure you are registering
  * them before the registration period closes.</p>
  * <p>The {@link CommandData} created during the constructor cannot be modified at runtime. For simplicity, a
  * {@link CommandData.Builder Builder} class has been provided to make construction of custom Commands easier.
@@ -50,16 +52,16 @@ import org.cloudburstmc.server.registry.CommandRegistry;
  * @author MagicDroidX
  * @see CommandExecutor#onCommand
  */
-public class PluginCommand<T extends Plugin> extends Command implements PluginIdentifiableCommand {
+public class PluginCommand<T extends PluginContainer> extends Command implements PluginIdentifiableCommand {
 
     private final T owningPlugin;
 
     private CommandExecutor executor;
 
-    public PluginCommand(T owner, CommandData data) {
+    public PluginCommand(T owner, CommandExecutor executor, CommandData data) {
         super(data);
         this.owningPlugin = owner;
-        this.executor = owner;
+        this.executor = executor;
     }
 
     /**
@@ -80,10 +82,6 @@ public class PluginCommand<T extends Plugin> extends Command implements PluginId
      */
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.owningPlugin.isEnabled()) {
-            return false;
-        }
-
         if (!this.testPermission(sender)) {
             return false;
         }
@@ -95,8 +93,9 @@ public class PluginCommand<T extends Plugin> extends Command implements PluginId
         return executor;
     }
 
-    public void setExecutor(CommandExecutor executor) {
-        this.executor = (executor != null) ? executor : this.owningPlugin;
+    public void setExecutor(@Nonnull CommandExecutor executor) {
+        Preconditions.checkNotNull(executor);
+        this.executor = executor;
     }
 
     @Override

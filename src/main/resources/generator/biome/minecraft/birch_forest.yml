@@ -2,7 +2,7 @@ parent: "minecraft:forest"
 
 populators:
     # Fallen trees
-  - id: "nukkitx:tree"
+  - id: "cloudburst:tree"
     chance: 0.0005580357 # about 1 per 7 chunks
     on: "grass"
     replace: "air"
@@ -11,13 +11,13 @@ populators:
       fallen: true
 
     # Trees
-  - id: "nukkitx:tree"
+  - id: "cloudburst:tree"
     chance: 0.0390625 # about 10 per chunk
     on: "grass"
     type: "birch"
 
     # Flowers
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.015625 # about 4 per chunk
     on: "grass"
     replace: "air"
@@ -25,7 +25,7 @@ populators:
     block: "2*yellow_flower,red_flower"
 
     # Double plants
-  - id: "nukkitx:double_plant"
+  - id: "cloudburst:double_plant"
     chance: 0.01171875 # about 3 per chunk
     on: "grass"
     replace: "air"
@@ -35,7 +35,7 @@ populators:
       - 5 # peony
 
     # Tall grass
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.0078125 # about 2 per chunk
     on: "grass"
     block: "tallgrass"

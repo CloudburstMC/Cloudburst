@@ -16,9 +16,9 @@ import org.cloudburstmc.server.entity.misc.DroppedItem;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.server.event.entity.ItemSpawnEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 
@@ -27,8 +27,8 @@ import javax.annotation.Nonnull;
 import static com.nukkitx.network.util.Preconditions.checkArgument;
 import static com.nukkitx.network.util.Preconditions.checkNotNull;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.OWNER_EID;
-import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
-import static org.cloudburstmc.server.block.BlockTypes.WATER;
+import static org.cloudburstmc.server.block.BlockIds.FLOWING_WATER;
+import static org.cloudburstmc.server.block.BlockIds.WATER;
 
 /**
  * @author MagicDroidX
@@ -83,7 +83,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
         this.setMaxHealth(5);
 
-        this.server.getPluginManager().callEvent(new ItemSpawnEvent(this));
+        this.server.getEventManager().fire(new ItemSpawnEvent(this));
     }
 
     @Override
@@ -220,7 +220,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
             if (this.age > 6000) {
                 ItemDespawnEvent ev = new ItemDespawnEvent(this);
-                this.server.getPluginManager().callEvent(ev);
+                this.server.getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     this.age = 0;
                 } else {

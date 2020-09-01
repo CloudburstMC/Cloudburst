@@ -46,12 +46,12 @@ public class BugReportGenerator extends Thread {
     }
 
     private String generate() throws IOException {
-        File reports = new File(Nukkit.DATA_PATH, "logs/bug_reports");
+        File reports = Server.getInstance().getDataPath().resolve("logs/bug_reports").toFile();
         if (!reports.isDirectory()) {
             reports.mkdirs();
         }
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmSS");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         String date = simpleDateFormat.format(new Date());
 
         StringBuilder model = new StringBuilder();
@@ -85,7 +85,7 @@ public class BugReportGenerator extends Thread {
 
         String cpuType = System.getenv("PROCESSOR_IDENTIFIER");
         OperatingSystemMXBean osMXBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        content = content.replace("${NUKKIT_VERSION}", Nukkit.VERSION);
+        content = content.replace("${CLOUDBURST_VERSION}", Nukkit.VERSION);
         content = content.replace("${JAVA_VERSION}", System.getProperty("java.vm.name") + " (" + System.getProperty("java.runtime.version") + ")");
         content = content.replace("${HOSTOS}", osMXBean.getName() + "-" + osMXBean.getArch() + " [" + osMXBean.getVersion() + "]");
         content = content.replace("${MEMORY}", getCount(osMXBean.getTotalPhysicalMemorySize(), true));

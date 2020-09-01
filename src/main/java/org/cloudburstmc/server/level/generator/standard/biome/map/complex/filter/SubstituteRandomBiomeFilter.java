@@ -20,7 +20,7 @@ import java.util.*;
  */
 @JsonDeserialize
 public class SubstituteRandomBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("nukkitx:substitute_random");
+    public static final Identifier ID = Identifier.fromString("cloudburst:substitute_random");
 
     protected final Int2ObjectMap<int[]> replacements = new Int2ObjectOpenHashMap<>();
 

@@ -2,9 +2,9 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Campfire;
@@ -12,10 +12,10 @@ import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemEdible;
-import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemEdible;
+import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
@@ -62,11 +62,11 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
         if (!state.getBehavior().canBeReplaced(block)) return false;
-        if (block.down().getState().getType() == BlockTypes.CAMPFIRE) {
+        if (block.down().getState().getType() == BlockIds.CAMPFIRE) {
             return false;
         }
 
-        BlockState campfire = BlockRegistry.get().getBlock(BlockTypes.CAMPFIRE)
+        BlockState campfire = BlockRegistry.get().getBlock(BlockIds.CAMPFIRE)
                 .withTrait(BlockTraits.DIRECTION, player.getHorizontalDirection().getOpposite());
 
         if (placeBlock(block, campfire)) {
@@ -139,7 +139,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
                     if (player != null && player.isSurvival()) {
                         item.decrementCount();
                         if (item.getCount() <= 0) {
-                            item = Item.get(BlockTypes.AIR);
+                            item = Item.get(BlockIds.AIR);
                         }
                         player.getInventory().setItemInHand(item);
                     }
@@ -169,7 +169,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
                 }
 
                 Block up = block.up();
-                if (up.getState().getType() == BlockTypes.WATER || up.getState().getType() == BlockTypes.FLOWING_WATER) {
+                if (up.getState().getType() == BlockIds.WATER || up.getState().getType() == BlockIds.FLOWING_WATER) {
                     this.toggleFire(block);
                     return type;
                 }

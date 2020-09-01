@@ -7,9 +7,9 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorBrewingStand;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.BrewingStand;
@@ -18,9 +18,9 @@ import org.cloudburstmc.server.event.inventory.StartBrewEvent;
 import org.cloudburstmc.server.inventory.BrewingInventory;
 import org.cloudburstmc.server.inventory.BrewingRecipe;
 import org.cloudburstmc.server.inventory.ContainerRecipe;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -28,7 +28,7 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_WIRE;
+import static org.cloudburstmc.server.block.BlockIds.REDSTONE_WIRE;
 
 public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingStand {
 
@@ -102,7 +102,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.BREWING_STAND;
+        return getBlockState().getType() == BlockIds.BREWING_STAND;
     }
 
     @Override
@@ -174,7 +174,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             if (this.cookTime == MAX_COOK_TIME) {
                 this.sendBrewTime();
                 StartBrewEvent e = new StartBrewEvent(this);
-                this.server.getPluginManager().callEvent(e);
+                this.server.getEventManager().fire(e);
 
                 if (e.isCancelled()) {
                     return false;
@@ -185,7 +185,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
             if (this.cookTime <= 0) { //20 seconds
                 BrewEvent e = new BrewEvent(this);
-                this.server.getPluginManager().callEvent(e);
+                this.server.getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
                     for (int i = 1; i <= 3; i++) {
@@ -269,7 +269,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             return;
         }
 
-        BlockState state = BlockState.get(BlockTypes.BREWING_STAND);
+        BlockState state = BlockState.get(BlockIds.BREWING_STAND);
 
         for (int i = 1; i <= 3; ++i) {
             Item potion = this.inventory.getItem(i);

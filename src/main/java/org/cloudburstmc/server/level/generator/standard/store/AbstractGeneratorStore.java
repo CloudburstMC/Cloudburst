@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Base class for stores used by the NukkitX standard generator.
+ * Base class for stores used by the Cloudburst standard generator.
  *
  * @author DaPorkchop_
  */

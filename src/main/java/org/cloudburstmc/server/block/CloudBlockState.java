@@ -119,7 +119,7 @@ public final class CloudBlockState implements BlockState {
             this.table[traitIndex] = new CloudBlockState[trait.getPossibleValues().size()];
 
             for (Comparable<?> comparable : trait.getPossibleValues()) {
-                    this.table[traitIndex][trait.getIndex(comparable)] = map.get(this.getTraitsWithValue(trait, comparable));
+                this.table[traitIndex][trait.getIndex(comparable)] = map.get(this.getTraitsWithValue(trait, comparable));
             }
         }
     }

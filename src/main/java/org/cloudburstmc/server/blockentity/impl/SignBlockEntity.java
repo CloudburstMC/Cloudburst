@@ -3,7 +3,7 @@ package org.cloudburstmc.server.blockentity.impl;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Sign;
 import org.cloudburstmc.server.event.block.SignChangeEvent;
@@ -69,12 +69,12 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     @Override
     public boolean isValid() {
         Identifier blockId = getBlockState().getType();
-        return blockId == BlockTypes.STANDING_SIGN || blockId == BlockTypes.WALL_SIGN ||
-                blockId == BlockTypes.SPRUCE_STANDING_SIGN || blockId == BlockTypes.SPRUCE_WALL_SIGN ||
-                blockId == BlockTypes.BIRCH_STANDING_SIGN || blockId == BlockTypes.BIRCH_WALL_SIGN ||
-                blockId == BlockTypes.JUNGLE_STANDING_SIGN || blockId == BlockTypes.JUNGLE_WALL_SIGN ||
-                blockId == BlockTypes.ACACIA_STANDING_SIGN || blockId == BlockTypes.ACACIA_WALL_SIGN ||
-                blockId == BlockTypes.DARK_OAK_STANDING_SIGN || blockId == BlockTypes.DARK_OAK_WALL_SIGN;
+        return blockId == BlockIds.STANDING_SIGN || blockId == BlockIds.WALL_SIGN ||
+                blockId == BlockIds.SPRUCE_STANDING_SIGN || blockId == BlockIds.SPRUCE_WALL_SIGN ||
+                blockId == BlockIds.BIRCH_STANDING_SIGN || blockId == BlockIds.BIRCH_WALL_SIGN ||
+                blockId == BlockIds.JUNGLE_STANDING_SIGN || blockId == BlockIds.JUNGLE_WALL_SIGN ||
+                blockId == BlockIds.ACACIA_STANDING_SIGN || blockId == BlockIds.ACACIA_WALL_SIGN ||
+                blockId == BlockIds.DARK_OAK_STANDING_SIGN || blockId == BlockIds.DARK_OAK_WALL_SIGN;
     }
 
     public void setText(String... lines) {
@@ -127,7 +127,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
             }
         }
 
-        this.server.getPluginManager().callEvent(event);
+        this.server.getEventManager().fire(event);
 
         if (!event.isCancelled()) {
             this.setText(event.getLines());

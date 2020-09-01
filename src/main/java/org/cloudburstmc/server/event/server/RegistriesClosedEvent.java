@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.event.server;
 
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.pack.PackManager;
 
 /**
@@ -9,11 +8,6 @@ import org.cloudburstmc.server.pack.PackManager;
  * @author DaPorkchop_
  */
 public class RegistriesClosedEvent extends ServerEvent {
-    private static HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final PackManager packManager;
 

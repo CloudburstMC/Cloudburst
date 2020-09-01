@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.event.inventory;
 
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.player.Player;
 
@@ -9,12 +8,6 @@ import org.cloudburstmc.server.player.Player;
  * Nukkit Project
  */
 public class InventoryCloseEvent extends InventoryEvent {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final Player who;
 

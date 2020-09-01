@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.server.inventory.InventoryHolder;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.math.Direction;
 
 import java.util.stream.IntStream;

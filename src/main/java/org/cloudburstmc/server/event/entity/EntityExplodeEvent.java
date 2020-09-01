@@ -4,7 +4,6 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 
 import java.util.List;
 
@@ -13,12 +12,6 @@ import java.util.List;
  * Nukkit Project
  */
 public class EntityExplodeEvent extends EntityEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     protected final Vector3f position;
     protected List<Block> blockStates;

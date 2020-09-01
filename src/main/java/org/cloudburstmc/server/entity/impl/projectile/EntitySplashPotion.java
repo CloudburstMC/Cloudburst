@@ -76,7 +76,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
     protected void splash(Entity collidedWith) {
         Potion potion = Potion.getPotion(this.getPotionId());
         PotionCollideEvent event = new PotionCollideEvent(potion, this);
-        this.server.getPluginManager().callEvent(event);
+        this.server.getEventManager().fire(event);
 
         if (event.isCancelled()) {
             return;

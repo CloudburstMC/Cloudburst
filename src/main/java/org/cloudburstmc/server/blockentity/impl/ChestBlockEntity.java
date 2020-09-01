@@ -4,15 +4,15 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.inventory.ChestInventory;
 import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.inventory.DoubleChestInventory;
-import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
@@ -117,7 +117,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
     @Override
     public boolean isValid() {
         Identifier blockId = this.getBlockState().getType();
-        return blockId == BlockTypes.CHEST || blockId == BlockTypes.TRAPPED_CHEST;
+        return blockId == BlockIds.CHEST || blockId == BlockIds.TRAPPED_CHEST;
     }
 
 

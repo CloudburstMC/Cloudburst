@@ -5,23 +5,23 @@ elevationVanilla:
   variation: 0.025
 
 decorators:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"
 
-  - id: "nukkitx:noise"
+  - id: "cloudburst:noise"
     selector:
-      id: "nukkitx:simplex"
+      id: "cloudburst:simplex"
       scale: 0.015625
       octaves: 4
     threshold: 0.0
     above:
-      - id: "nukkitx:noise"
+      - id: "cloudburst:noise"
         selector:
-          id: "nukkitx:simplex"
+          id: "cloudburst:simplex"
           scale: 0.0045
           octaves: 4
         threshold: 0.0
         above:
-          - id: "nukkitx:replace_top"
+          - id: "cloudburst:replace_top"
             height: "86-255"
             replace:
               - "hardened_clay"
@@ -33,7 +33,7 @@ decorators:
               - "stained_hardened_clay{color=red}"
             block: "grass"
         below:
-          - id: "nukkitx:replace_top"
+          - id: "cloudburst:replace_top"
             height: "86-255"
             replace:
               - "hardened_clay"
@@ -46,16 +46,16 @@ decorators:
             block: "dirt{dirt_type=coarse}"
 
 populators:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"
 
     # Trees
-  - id: "nukkitx:tree"
+  - id: "cloudburst:tree"
     chance: 0.01953125 # about 5 per chunk
     on: "grass,dirt{dirt_type=coarse}"
     type: "oak"
 
     # Tall grass
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.00390625 # about 1 per chunk
     on: "grass,dirt{dirt_type=coarse}"
     block: "tallgrass"

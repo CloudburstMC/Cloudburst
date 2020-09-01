@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.biome.map.complex.filter;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
 import org.cloudburstmc.server.level.generator.standard.biome.map.complex.AbstractBiomeFilter;
@@ -16,7 +14,7 @@ import java.util.Collection;
  */
 @JsonDeserialize
 public class ZoomBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("nukkitx:zoom");
+    public static final Identifier ID = Identifier.fromString("cloudburst:zoom");
 
     @JsonProperty
     protected int times = 1;

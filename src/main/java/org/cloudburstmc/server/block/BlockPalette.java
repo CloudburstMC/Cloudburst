@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static net.daporkchop.lib.random.impl.FastPRandom.*;
+import static net.daporkchop.lib.random.impl.FastPRandom.mix32;
 
 @Log4j2
 public class BlockPalette {
@@ -42,7 +42,7 @@ public class BlockPalette {
     private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
 
     public void addBlock(Identifier identifier, BlockSerializer serializer, BlockTrait<?>[] traits) {
-        if (this.defaultStateMap.containsKey(identifier))   {
+        if (this.defaultStateMap.containsKey(identifier)) {
             log.warn("Duplicate block identifier: {}", identifier);
         }
 

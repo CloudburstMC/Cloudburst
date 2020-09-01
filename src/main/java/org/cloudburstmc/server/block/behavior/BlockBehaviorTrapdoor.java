@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.AxisAlignedBB;
@@ -166,7 +166,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
             val level = block.getLevel();
             val open = isOpen(block.getState());
             if ((!open && level.isBlockPowered(block.getPosition())) || (open && !level.isBlockPowered(block.getPosition()))) {
-                level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
+                level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
 
                 block.set(block.getState().toggleTrait(BlockTraits.IS_OPEN));
                 level.addSound(block.getPosition(), open ? Sound.RANDOM_DOOR_CLOSE : Sound.RANDOM_DOOR_OPEN);
@@ -212,7 +212,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
 
     public boolean toggle(Block block, Player player) {
         DoorToggleEvent ev = new DoorToggleEvent(block, player);
-        block.getLevel().getServer().getPluginManager().callEvent(ev);
+        block.getLevel().getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return false;
         }

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.metadata;
 
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.util.List;
 
@@ -16,5 +16,5 @@ public interface Metadatable {
 
     boolean hasMetadata(String metadataKey) throws Exception;
 
-    void removeMetadata(String metadataKey, Plugin owningPlugin) throws Exception;
+    void removeMetadata(String metadataKey, PluginContainer owningPlugin) throws Exception;
 }

@@ -3,7 +3,8 @@ package org.cloudburstmc.server.item;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -32,7 +33,7 @@ public class ItemUtils {
 
     public static Item deserializeItem(NbtMap tag) {
         if (!(tag.containsKey("Name") || tag.containsKey("id")) && !tag.containsKey("Count")) {
-            return Item.get(BlockTypes.AIR);
+            return Item.get(BlockIds.AIR);
         }
 
         Item item;

@@ -3,15 +3,15 @@ package org.cloudburstmc.server.entity.impl.vehicle;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityExplosive;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.vehicle.TntMinecart;
 import org.cloudburstmc.server.event.entity.EntityExplosionPrimeEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.gamerule.GameRules;
@@ -43,7 +43,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     public void initEntity() {
         super.initEntity();
 
-        this.setDisplayBlock(BlockState.get(BlockTypes.TNT));
+        this.setDisplayBlock(BlockState.get(BlockIds.TNT));
         this.setDisplay(true);
         this.data.setInt(FUSE_LENGTH, 80);
         this.data.setFlag(CHARGED, false);
@@ -99,7 +99,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
         }
 
         EntityExplosionPrimeEvent event = new EntityExplosionPrimeEvent(this, (4.0D + ThreadLocalRandom.current().nextDouble() * 1.5D * root));
-        server.getPluginManager().callEvent(event);
+        server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return;
         }

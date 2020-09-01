@@ -5,16 +5,16 @@ elevationVanilla:
   variation: 0.025
 
 decorators:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"
 
-  - id: "nukkitx:noise"
+  - id: "cloudburst:noise"
     selector:
-      id: "nukkitx:simplex"
+      id: "cloudburst:simplex"
       scale: 0.0045
       octaves: 4
     threshold: 0.0
     above:
-      - id: "nukkitx:replace_top"
+      - id: "cloudburst:replace_top"
         height: "86-255"
         replace:
           - "stained_hardened_clay{color=white}"

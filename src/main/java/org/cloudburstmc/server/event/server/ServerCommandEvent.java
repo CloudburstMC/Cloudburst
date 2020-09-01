@@ -2,15 +2,12 @@ package org.cloudburstmc.server.event.server;
 
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
 public class ServerCommandEvent extends ServerEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
 
     protected String command;
 
@@ -31,9 +28,5 @@ public class ServerCommandEvent extends ServerEvent implements Cancellable {
 
     public void setCommand(String command) {
         this.command = command;
-    }
-
-    public static HandlerList getHandlers() {
-        return handlers;
     }
 }

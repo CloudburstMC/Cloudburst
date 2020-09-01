@@ -1,4 +1,4 @@
-# NukkitX Standard Generator - End preset
+# Cloudburst Standard Generator - End preset
 #
 # Author: DaPorkchop_
 
@@ -9,7 +9,7 @@ biomes: "minecraft:end"
 density: "minecraft:end"
 
 decorators:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"
 
 populators:
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"

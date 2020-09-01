@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class ReplaceSwathBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("nukkitx:replace_swath");
+    public static final Identifier ID = Identifier.fromString("cloudburst:replace_swath");
 
     protected int targetId;
     protected int replacementId;

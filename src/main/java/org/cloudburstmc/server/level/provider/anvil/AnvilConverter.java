@@ -70,11 +70,11 @@ public class AnvilConverter {
                 for (int blockZ = 0; blockZ < 16; blockZ++) {
                     for (int blockY = 0; blockY < 16; blockY++) {
                         int anvilIndex = getAnvilIndex(blockX, blockY, blockZ);
-                        int nukkitIndex = ChunkSection.blockIndex(blockX, blockY, blockZ);
+                        int cloudburstIndex = ChunkSection.blockIndex(blockX, blockY, blockZ);
                         blockState[0] = blocks[anvilIndex] & 0xff;
                         blockState[1] = data.get(anvilIndex);
                         legacyBlockConverter.convertBlockState(blockState);
-                        blockStorage.setBlock(nukkitIndex, blockRegistry.getBlock(blockState[0], blockState[1]));
+                        blockStorage.setBlock(cloudburstIndex, blockRegistry.getBlock(blockState[0], blockState[1]));
                     }
                 }
             }

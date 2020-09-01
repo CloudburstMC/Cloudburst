@@ -8,8 +8,9 @@ import org.cloudburstmc.server.permission.PermissibleBase;
 import org.cloudburstmc.server.permission.Permission;
 import org.cloudburstmc.server.permission.PermissionAttachment;
 import org.cloudburstmc.server.permission.PermissionAttachmentInfo;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
+import javax.inject.Singleton;
 import java.util.Map;
 
 /**
@@ -17,6 +18,7 @@ import java.util.Map;
  * Nukkit Project
  */
 @Log4j2
+@Singleton
 public class ConsoleCommandSender implements CommandSender {
 
     private final PermissibleBase perm;
@@ -46,17 +48,17 @@ public class ConsoleCommandSender implements CommandSender {
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin) {
+    public PermissionAttachment addAttachment(PluginContainer plugin) {
         return this.perm.addAttachment(plugin);
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin, String name) {
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name) {
         return this.perm.addAttachment(plugin, name);
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin, String name, Boolean value) {
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name, Boolean value) {
         return this.perm.addAttachment(plugin, name, value);
     }
 

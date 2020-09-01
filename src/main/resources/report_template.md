@@ -19,7 +19,7 @@ PLUGIN ERROR: ${PLUGIN_ERROR}
 
 ### OS and Versions
 
-* Nukkit Version: ${NUKKIT_VERSION} 
+* Cloudburst Version: ${CLOUDBURST_VERSION} 
 * Java Version: ${JAVA_VERSION}
 
 * Host Configuration: 

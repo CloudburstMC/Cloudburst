@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block.trait.serializer;
 
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
 import org.cloudburstmc.server.utils.Identifier;
@@ -29,25 +29,25 @@ public class TreeSpeciesSerializer implements TraitSerializer<TreeSpecies> {
     public String getName(BlockState state, BlockTrait<?> blockTrait) {
         Identifier type = state.getType();
 
-        if (type == BlockTypes.PLANKS) {
+        if (type == BlockIds.PLANKS) {
             return "wood_type";
         }
 
-        if (type == BlockTypes.SAPLING) {
+        if (type == BlockIds.SAPLING) {
             return "sapling_type";
         }
 
-        if (type == BlockTypes.BAMBOO_SAPLING) {
+        if (type == BlockIds.BAMBOO_SAPLING) {
             return "sapling_type";
         }
 
         int index = state.ensureTrait(BlockTraits.TREE_SPECIES).ordinal() >> 2;
 
-        if (type == BlockTypes.LOG) {
+        if (type == BlockIds.LOG) {
             return BEDROCK_LOG_TRAITS[index];
         }
 
-        if (type == BlockTypes.LEAVES) {
+        if (type == BlockIds.LEAVES) {
             return BEDROCK_LEAF_TRAITS[index];
         }
 

@@ -188,7 +188,7 @@ public class Potion implements Cloneable {
 
         PotionApplyEvent event = new PotionApplyEvent(this, applyEffect, entity);
 
-        entity.getServer().getPluginManager().callEvent(event);
+        entity.getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return;
         }

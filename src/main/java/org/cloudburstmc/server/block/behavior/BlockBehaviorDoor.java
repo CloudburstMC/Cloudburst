@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -178,7 +178,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (block.down().getState().getType() == BlockTypes.AIR) {
+            if (block.down().getState().getType() == BlockIds.AIR) {
                 Block up = block.up();
 
                 if (up.getState().inCategory(BlockCategory.DOOR)) {
@@ -193,7 +193,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
         if (type == Level.BLOCK_UPDATE_REDSTONE) {
             boolean open = isOpen(block);
             if ((!open && block.getLevel().isBlockPowered(block.getPosition())) || (open && !block.getLevel().isBlockPowered(block.getPosition()))) {
-                block.getLevel().getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
+                block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
 
                 this.toggle(block, null);
             }
@@ -272,7 +272,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
     public boolean toggle(Block block, Player player) {
         DoorToggleEvent event = new DoorToggleEvent(block, player);
-        block.getLevel().getServer().getPluginManager().callEvent(event);
+        block.getLevel().getServer().getEventManager().fire(event);
 
         if (event.isCancelled()) {
             return false;

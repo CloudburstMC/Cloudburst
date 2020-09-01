@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level.generator.standard;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import lombok.val;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.ref.Ref;
@@ -12,26 +13,20 @@ import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.plugin.Plugin;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static com.google.common.base.Preconditions.*;
-import static net.daporkchop.lib.common.util.PorkUtil.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static net.daporkchop.lib.common.util.PorkUtil.uncheckedCast;
 
 /**
- * Various helper methods used by the NukkitX standard generator.
+ * Various helper methods used by the Cloudburst standard generator.
  *
  * @author DaPorkchop_
  */
@@ -158,13 +153,13 @@ public class StandardGeneratorUtils {
         InputStream in = null;
         switch (id.getNamespace()) {
             case "minecraft":
-            case "nukkitx":
+            case "cloudburst":
                 in = Nukkit.class.getClassLoader().getResourceAsStream(name);
                 break;
             default:
-                Plugin plugin = Server.getInstance().getPluginManager().getPlugin(id.getNamespace());
-                if (plugin != null) {
-                    in = plugin.getResource(name);
+                val plugin = Server.getInstance().getPluginManager().getPlugin(id.getNamespace());
+                if (plugin.isPresent()) {
+                    in = plugin.get().getResource(name);
                 }
         }
         if (in == null) {

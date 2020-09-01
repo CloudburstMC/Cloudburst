@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
- * Base class for registries used by the NukkitX standard generator.
+ * Base class for registries used by the Cloudburst standard generator.
  *
  * @author DaPorkchop_
  */
@@ -31,7 +31,7 @@ public abstract class AbstractGeneratorRegistry<V> implements Registry {
         Event event = this.constructionEvent();
         if (Server.getInstance() != null) {
             //i was debugging stuff
-            Server.getInstance().getPluginManager().callEvent(event);
+            Server.getInstance().getEventManager().fire(event);
         }
         this.close();
     }

@@ -2,7 +2,6 @@ package org.cloudburstmc.server.event.inventory;
 
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 
 /**
@@ -10,12 +9,6 @@ import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
  * Nukkit Project
  */
 public class InventoryTransactionEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final InventoryTransaction transaction;
 

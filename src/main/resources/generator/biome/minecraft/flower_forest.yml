@@ -6,7 +6,7 @@ elevationVanilla:
 
 populators:
     # Trees
-  - id: "nukkitx:tree"
+  - id: "cloudburst:tree"
     chance: 0.0234375 # about 6 per chunk
     on: "grass"
     replace: "air"
@@ -19,7 +19,7 @@ populators:
 
     # Flowers
     # This doesn't use the "flower gradient" thing like vanilla, but instead simply distributes them randomly
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.390625 # about 100 per chunk
     on: "grass"
     replace: "air"
@@ -27,7 +27,7 @@ populators:
     block: "yellow_flower,red_flower{flower_type=*}"
 
     # Double plants
-  - id: "nukkitx:double_plant"
+  - id: "cloudburst:double_plant"
     chance: 0.01171875 # about 3 per chunk
     on: "grass"
     replace: "air"
@@ -37,7 +37,7 @@ populators:
       - paeonia
 
     # Tall grass
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.00390625 # about 1 per chunk
     on: "grass"
     block: "tallgrass"
