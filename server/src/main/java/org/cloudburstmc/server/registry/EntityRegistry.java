@@ -14,6 +14,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Nukkit;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityFactory;
@@ -41,6 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.cloudburstmc.server.entity.EntityTypes.*;
 
+@Log4j2
 public class EntityRegistry implements Registry {
     private static final EntityRegistry INSTANCE;
 
@@ -140,7 +142,10 @@ public class EntityRegistry implements Registry {
 
     public EntityType<?> getEntityType(Identifier identifier) {
         Preconditions.checkArgument(this.closed, "Cannot get entity type during registration");
-        return this.identifierTypeMap.computeIfAbsent(identifier, id -> EntityType.from(id, UnknownEntity.class));
+        return this.identifierTypeMap.computeIfAbsent(identifier, id -> {
+            log.warn("Creating unknown entity type for {}", id);
+            return EntityType.from(id, UnknownEntity.class);
+        });
     }
 
     /**
