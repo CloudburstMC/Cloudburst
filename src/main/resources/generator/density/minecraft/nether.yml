@@ -1,13 +1,13 @@
-# NukkitX Standard Generator - Nether density generator preset
+# Cloudburst Standard Generator - Nether density generator preset
 #
 # Author: DaPorkchop_
 
 # see overworld.yml for information on where the scale values come from
 
-id: "nukkitx:nether"
+id: "cloudburst:nether"
 seed: "nether"
 selectorNoise:
-  id: "nukkitx:perlin"
+  id: "cloudburst:perlin"
   scale:
     x: 0.01670927734375
     y: 0.0334185546875
@@ -16,7 +16,7 @@ selectorNoise:
   factor: 12.75
   offset: 0.5
 lowNoise:
-  id: "nukkitx:perlin"
+  id: "cloudburst:perlin"
   scale:
     x: 0.005221649169921875
     y: 0.0078324737548828125
@@ -25,7 +25,7 @@ lowNoise:
   factor: 1.0
   offset: 0.0
 highNoise:
-  id: "nukkitx:perlin"
+  id: "cloudburst:perlin"
   scale:
     x: 0.005221649169921875
     y: 0.0078324737548828125

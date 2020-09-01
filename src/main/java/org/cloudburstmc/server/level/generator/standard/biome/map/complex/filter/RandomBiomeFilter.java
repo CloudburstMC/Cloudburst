@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class RandomBiomeFilter extends AbstractBiomeFilter {
-    public static final Identifier ID = Identifier.fromString("nukkitx:random");
+    public static final Identifier ID = Identifier.fromString("cloudburst:random");
 
     protected int[] biomeIds;
 

@@ -19,7 +19,7 @@ import java.util.Objects;
 @Decorator.SkipRegistrationAsPopulator
 @JsonDeserialize
 public class DistanceSelectionDecorator extends AbstractGenerationPass implements Decorator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:distance");
+    public static final Identifier ID = Identifier.fromString("cloudburst:distance");
 
     protected double minSq;
     protected double maxSq;

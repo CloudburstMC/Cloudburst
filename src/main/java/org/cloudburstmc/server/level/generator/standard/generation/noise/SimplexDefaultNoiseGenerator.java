@@ -12,7 +12,7 @@ import org.cloudburstmc.server.utils.Identifier;
  */
 @JsonDeserialize
 public final class SimplexDefaultNoiseGenerator extends DefaultNoiseGenerator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:simplex");
+    public static final Identifier ID = Identifier.fromString("cloudburst:simplex");
 
     @Override
     protected NoiseSource create0(@NonNull PRandom random) {

@@ -5,9 +5,9 @@ elevationVanilla:
 
 decorators:
     # Determine whether anything other than netherrack may generate at the given coordinates
-  - id: "nukkitx:noise"
+  - id: "cloudburst:noise"
     selector:
-      id: "nukkitx:simplex"
+      id: "cloudburst:simplex"
       octaves: 4
       scale: 0.0078125
       factor: 2.3333333333
@@ -16,9 +16,9 @@ decorators:
     threshold: 0.0
     above:
         # Determine whether soul sand may generate at the given coordinates
-      - id: "nukkitx:noise"
+      - id: "cloudburst:noise"
         selector:
-          id: "nukkitx:simplex"
+          id: "cloudburst:simplex"
           octaves: 4
           scale: 0.00390625
           factor: 7.0
@@ -26,15 +26,15 @@ decorators:
         threshold: 0.0
         above:
             # Soul sand
-          - id: "nukkitx:surface"
+          - id: "cloudburst:surface"
             height: "60-65"
             top: "soul_sand"
             filler: "soul_sand"
         below:
             # Determine whether gravel may generate at the given coordinates
-          - id: "nukkitx:noise"
+          - id: "cloudburst:noise"
             selector:
-              id: "nukkitx:simplex"
+              id: "cloudburst:simplex"
               octaves: 4
               scale: 0.00390625
               factor: 7.0
@@ -42,14 +42,14 @@ decorators:
             threshold: 0.0
             above:
                 # Gravel
-              - id: "nukkitx:surface"
+              - id: "cloudburst:surface"
                 height: "60-65"
                 top: "gravel"
                 filler: "gravel"
 
 populators:
     # Lava springs
-  - id: "nukkitx:spring"
+  - id: "cloudburst:spring"
     chance: 0.03125 # about 8 per chunk
     replace: "netherrack"
     height: "4-123"
@@ -59,14 +59,14 @@ populators:
     block: "lava"
 
     # Fire
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.01953125 # about 5 per chunk
     replace: "air"
     on: "netherrack"
     block: "fire"
 
     # Glowstone
-  - id: "nukkitx:glowstone"
+  - id: "cloudburst:glowstone"
     chance: 0.048828125 # about 10+2.5=12.5 per chunk
     replace: "air"
     height: "4-123"
@@ -74,7 +74,7 @@ populators:
     block: "glowstone"
 
     # Mushrooms
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.00390625 # about 1 per chunk
     replace: "air"
     #on: "netherrack,bedrock"
@@ -84,7 +84,7 @@ populators:
     block: "brown_mushroom,red_mushroom"
 
     # Quartz ore
-  - id: "nukkitx:ore"
+  - id: "cloudburst:ore"
     chance: 0.0625 # about 16 per chunk
     size: 14
     height: "10-117"
@@ -92,7 +92,7 @@ populators:
     replace: "netherrack"
 
     # Magma blocks
-  - id: "nukkitx:ore"
+  - id: "cloudburst:ore"
     chance: 0.015625 # about 4 per chunk
     size: 33
     height: "27-36"
@@ -100,7 +100,7 @@ populators:
     replace: "netherrack"
 
     # Lava traps
-  - id: "nukkitx:spring"
+  - id: "cloudburst:spring"
     chance: 0.0625 # about 16 per chunk
     replace: "netherrack"
     height: "4-123"

@@ -25,7 +25,7 @@ import static net.daporkchop.lib.math.primitive.PMath.min;
  */
 @JsonDeserialize
 public class LakePopulator extends ChancePopulator.Column {
-    public static final Identifier ID = Identifier.fromString("nukkitx:lake");
+    public static final Identifier ID = Identifier.fromString("cloudburst:lake");
 
     protected static final HandledPool<BitSet> BITSET_CACHE = new DefaultThreadHandledPool<>(() -> new BitSet(2048), 1);
 

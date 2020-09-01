@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class GlowstonePopulator extends AbstractReplacingPopulator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:glowstone");
+    public static final Identifier ID = Identifier.fromString("cloudburst:glowstone");
 
     @JsonProperty
     protected IntRange height = IntRange.WHOLE_WORLD;

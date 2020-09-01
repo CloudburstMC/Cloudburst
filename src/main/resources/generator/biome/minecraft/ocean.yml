@@ -4,13 +4,13 @@ elevationVanilla:
   variation: 0.1
 
 decorators:
-  - id: "nukkitx:surface"
+  - id: "cloudburst:surface"
     top: "dirt"
     filler: "dirt"
 
 populators:
     # Sand
-  - id: "nukkitx:ore_submerged"
+  - id: "cloudburst:ore_submerged"
     chance: 0.01171875 # about 3 per chunk
     radius: "2-6"
     block: "sand"
@@ -18,7 +18,7 @@ populators:
     start: "water"
 
     # Clay
-  - id: "nukkitx:ore_submerged"
+  - id: "cloudburst:ore_submerged"
     chance: 0.00390625 # about 1 per chunk
     radius: "2-3"
     block: "clay"
@@ -26,7 +26,7 @@ populators:
     start: "water"
 
     # Gravel
-  - id: "nukkitx:ore_submerged"
+  - id: "cloudburst:ore_submerged"
     chance: 0.00390625 # about 1 per chunk
     radius: "2-5"
     block: "gravel"
