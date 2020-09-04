@@ -53,6 +53,7 @@ import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.CardinalDirection;
 
 import javax.annotation.Nullable;
@@ -1391,21 +1392,19 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     public boolean isInsideOfWater() {
         float y = this.getY() + this.getEyeHeight();
-        Block block = this.level.getLoadedBlock(this.position.getFloorX(), NukkitMath.floorDouble(y), this.position.getFloorZ());
+        Block block = this.level.getLoadedBlock(this.position.getFloorX(), NukkitMath.floorFloat(y), this.position.getFloorZ());
 
         if (block == null) {
             return false;
         }
 
-        val state = block.getState().getType();
-        val extra = block.getState().getType();
+        BlockState state = block.getLiquid();
+        Identifier blockType = state.getType();
 
         float percent;
 
-        if (state == WATER || state == FLOWING_WATER) {
+        if (blockType == WATER || blockType == FLOWING_WATER) {
             percent = BlockBehaviorLiquid.getFluidHeightPercent(block.getState());
-        } else if (extra == WATER || extra == FLOWING_WATER) {
-            percent = BlockBehaviorLiquid.getFluidHeightPercent(block.getExtra());
         } else {
             return false;
         }

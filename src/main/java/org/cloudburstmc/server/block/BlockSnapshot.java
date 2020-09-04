@@ -11,4 +11,12 @@ public interface BlockSnapshot {
     }
 
     BlockState getState(int layer);
+
+    default BlockState getLiquid() {
+        BlockState state = getExtra();
+        if (state == BlockStates.AIR) {
+            return getState();
+        }
+        return state;
+    }
 }
