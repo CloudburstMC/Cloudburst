@@ -37,7 +37,9 @@ public interface ItemStack {
 
     Collection<Identifier> getCanPlaceOn();
 
-    Optional<Object> getMetadata();
+    <T> Optional<T> getMetadata(Class<T> metadataClass);
+
+    <T> T ensureMetadata(Class<T> metadataClass);
 
     ItemStackBuilder toBuilder();
 
@@ -53,5 +55,5 @@ public interface ItemStack {
         return getAmount() >= getType().getMaximumStackSize();
     }
 
-    boolean equals(@Nullable ItemStack other, boolean checkAmount, boolean checkMeta, boolean checkUserData);
+    boolean equals(@Nullable ItemStack other, boolean checkAmount, boolean checkData);
 }

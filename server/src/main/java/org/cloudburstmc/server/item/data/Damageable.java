@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.data;
 
 import lombok.Value;
 
-@Value
+@Value(staticConstructor = "of")
 public class Damageable {
 
     /**
