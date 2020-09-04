@@ -2,6 +2,8 @@ package org.cloudburstmc.server.item;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.ToString;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.utils.Identifier;
@@ -23,6 +25,8 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     private final Set<Enchantment> enchantments = new HashSet<>();
     private final Set<Identifier> canDestroy = new HashSet<>();
     private final Set<Identifier> canPlaceOn = new HashSet<>();
+    private NbtMap nbt;
+    private ItemData networkData;
 
     public CloudItemStackBuilder() {
     }
@@ -30,7 +34,6 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     public CloudItemStackBuilder(@Nonnull ItemStack item) {
         itemType = item.getType();
         amount = item.getAmount();
-        data = item.getMetadata().orElse(null);
         itemLore = item.getLore();
         enchantments.addAll(item.getEnchantments());
     }
@@ -121,10 +124,20 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
         return this;
     }
 
+    public ItemStackBuilder nbt(NbtMap nbt) {
+        this.nbt = nbt;
+        return this;
+    }
+
+    public ItemStackBuilder networkData(ItemData data) {
+        this.networkData = data;
+        return this;
+    }
+
     @Override
     public ItemStack build() {
         Preconditions.checkArgument(itemType != null, "ItemType has not been set");
-        return new CloudItemStack(itemType, amount, data, itemName, itemLore, enchantments, canDestroy, canPlaceOn);
+        return new CloudItemStack(itemType, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, nbt, networkData);
     }
 
     private void addEnchantment0(Enchantment enchantment) {
