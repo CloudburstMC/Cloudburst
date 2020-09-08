@@ -1421,13 +1421,14 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     public boolean isInsideOfSolid() {
         double y = this.getY() + this.getEyeHeight();
-        BlockState state = this.level.getBlockAt(Vector3i.from(this.getX(), y, this.getZ()));
+        Vector3i pos = Vector3i.from(this.getX(), y, this.getZ());
+        BlockState state = this.level.getBlockAt(pos);
 
         if (state == null) {
             return true;
         }
 
-        AxisAlignedBB bb = state.getBehavior().getBoundingBox();
+        AxisAlignedBB bb = state.getBehavior().getBoundingBox(pos);
 
         return bb != null && state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT) && bb.intersectsWith(this.getBoundingBox());
 

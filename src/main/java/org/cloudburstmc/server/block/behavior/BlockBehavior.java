@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
@@ -351,12 +352,22 @@ public abstract class BlockBehavior {
     }
 
     public boolean collidesWithBB(Block block, AxisAlignedBB bb, boolean collisionBB) {
-        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block) : this.getBoundingBox();
+        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block) : this.getBoundingBox(block.getPosition());
         return bb1 != null && bb.intersectsWith(bb1);
     }
 
     public void onEntityCollide(Block block, Entity entity) {
 
+    }
+
+    public AxisAlignedBB getBoundingBox(Vector3i pos) {
+        AxisAlignedBB bb = getBoundingBox();
+
+        if (bb != null) {
+            bb = bb.offset(pos);
+        }
+
+        return bb;
     }
 
     public AxisAlignedBB getBoundingBox() {
@@ -366,7 +377,7 @@ public abstract class BlockBehavior {
     }
 
     public AxisAlignedBB getCollisionBoxes(Block block) {
-        return getBoundingBox();
+        return getBoundingBox(block.getPosition());
     }
 
     public String getSaveId() {
