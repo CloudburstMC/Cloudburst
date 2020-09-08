@@ -227,6 +227,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     @Override
     public void loadAdditionalData(NbtMap tag) {
+        this.tag = tag;
+
         tag.listenForList("Pos", NbtType.FLOAT, list -> {
             this.setPosition(Vector3f.from(list.get(0), list.get(1), list.get(2)));
         });
@@ -263,6 +265,10 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
+        if (this.tag != null && !this.tag.isEmpty()) {
+            tag.putAll(this.tag);
+        }
+
         if (this.hasNameTag()) {
             tag.putString("CustomName", this.getNameTag());
             tag.putBoolean("CustomNameVisible", this.isNameTagVisible());
