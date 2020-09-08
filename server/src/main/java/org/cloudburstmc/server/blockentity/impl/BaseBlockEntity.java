@@ -5,10 +5,8 @@ import co.aikar.timings.Timings;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
@@ -107,20 +105,20 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
         this.saveClientData(tag);
 
-        log.info("saving: " + this.type);
-        tag.forEach((key, value) -> {
-            if (!this.tag.containsKey(key)) {
-                log.info("Redundant entry: (" + key + ", " + value + ")");
-                return;
-            }
-
-            val type = NbtType.byClass(value.getClass());
-            val vanillaType = NbtType.byClass(this.tag.get(key).getClass());
-
-            if (type != vanillaType) {
-                log.info("Incompatible types for '" + key + "' vanilla: " + vanillaType + "  local: " + type);
-            }
-        });
+//        log.info("saving: " + this.type);
+//        tag.forEach((key, value) -> {
+//            if (!this.tag.containsKey(key)) {
+//                log.info("Redundant entry: (" + key + ", " + value + ")");
+//                return;
+//            }
+//
+//            val type = NbtType.byClass(value.getClass());
+//            val vanillaType = NbtType.byClass(this.tag.get(key).getClass());
+//
+//            if (type != vanillaType) {
+//                log.info("Incompatible types for '" + key + "' vanilla: " + vanillaType.getTypeName() + "  local: " + type.getTypeName());
+//            }
+//        });
     }
 
     /**
