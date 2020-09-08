@@ -412,7 +412,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
                 entity.close();
             }
 
-            this.tiles.values().forEach(BlockEntity::close);
+            ImmutableList.copyOf(this.tiles.values()).forEach(BlockEntity::close);
             clear();
         }
     }
