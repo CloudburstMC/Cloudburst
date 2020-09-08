@@ -25,6 +25,8 @@ public class BlockEntityRegistry implements Registry {
     private final BiMap<BlockEntityType<?>, String> persistentMap = HashBiMap.create();
     private volatile boolean closed;
 
+    private static RegistryServiceProvider<BlockEntityFactory<?>> UNKNOWN_PROVIDER = new RegistryServiceProvider<>(new RegistryProvider<>(UnknownBlockEntity::new, null, 1000));
+
     private BlockEntityRegistry() {
         this.registerVanillaEntities();
     }
@@ -61,11 +63,7 @@ public class BlockEntityRegistry implements Registry {
 
     @Nonnull
     public BlockEntityType<?> getBlockEntityType(String persistentId) {
-        BlockEntityType<?> type = persistentMap.inverse().get(persistentId);
-        if (type == null) {
-            throw new RegistryException("No BlockEntityType exists for id: " + persistentId);
-        }
-        return type;
+        return persistentMap.inverse().computeIfAbsent(persistentId, id -> BlockEntityType.from(id, UnknownBlockEntity.class));
     }
 
     public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, Block block) {
@@ -116,7 +114,11 @@ public class BlockEntityRegistry implements Registry {
     private <T extends BlockEntity> RegistryServiceProvider<BlockEntityFactory<T>> getServiceProvider(BlockEntityType<T> type) {
         RegistryServiceProvider<BlockEntityFactory<T>> service = (RegistryServiceProvider) this.providers.get(type);
         if (service == null) {
-            throw new RegistryException(type.getIdentifier() + " is not a registered entity");
+            if (type.getBlockEntityClass() != UnknownBlockEntity.class) {
+                throw new RegistryException(type.getIdentifier() + " is not a registered entity");
+            }
+
+            service = (RegistryServiceProvider) UNKNOWN_PROVIDER;
         }
         return service;
     }

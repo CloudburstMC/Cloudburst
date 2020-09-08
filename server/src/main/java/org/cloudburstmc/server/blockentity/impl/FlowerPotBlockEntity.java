@@ -3,6 +3,7 @@ package org.cloudburstmc.server.blockentity.impl;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -36,7 +37,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
             int meta = tag.getInt("mData");
 
             this.plant = registry.getBlock(id, meta);
-        } else {
+        } else if (tag.containsKey("PlantBlock", NbtType.COMPOUND)) {
             NbtMap plantTag = tag.getCompound("PlantBlock");
             int legacyId = registry.getLegacyId(plantTag.getString("name"));
             short meta = plantTag.getShort("val");

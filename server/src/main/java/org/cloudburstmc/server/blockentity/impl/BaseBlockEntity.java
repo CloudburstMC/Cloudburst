@@ -5,8 +5,10 @@ import co.aikar.timings.Timings;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
@@ -18,6 +20,8 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -28,12 +32,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Log4j2
 public abstract class BaseBlockEntity implements BlockEntity {
 
+    private static final Map<BlockEntityType<?>, NbtMap> tags = new HashMap<>();
+
     public static AtomicLong ID_ALLOCATOR = new AtomicLong(1);
     public final long id;
     private final BlockEntityType<?> type;
     private final Vector3i position;
     private final Chunk chunk;
     private final Level level;
+    private NbtMap tag;
     public boolean movable = true;
     public boolean closed = false;
     protected long lastUpdate;
@@ -64,6 +71,10 @@ public abstract class BaseBlockEntity implements BlockEntity {
         this.scheduleUpdate();
     }
 
+    public NbtMap getTag() {
+        return tag;
+    }
+
     @Override
     public BlockEntityType<?> getType() {
         return this.type;
@@ -77,17 +88,39 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     public void loadAdditionalData(NbtMap tag) {
+        this.tag = tag;
+        tags.putIfAbsent(this.getType(), tag);
+
         tag.listenForBoolean("isMovable", this::setMovable);
         tag.listenForString("CustomName", this::setCustomName);
     }
 
     public void saveAdditionalData(NbtMapBuilder tag) {
+        if (this.tag != null && !this.tag.isEmpty()) {
+            tag.putAll(this.tag);
+        }
+
         tag.putBoolean("isMovable", this.movable);
         if (this.customName != null) {
             tag.putString("CustomName", this.customName);
         }
 
         this.saveClientData(tag);
+
+        log.info("saving: " + this.type);
+        tag.forEach((key, value) -> {
+            if (!this.tag.containsKey(key)) {
+                log.info("Redundant entry: (" + key + ", " + value + ")");
+                return;
+            }
+
+            val type = NbtType.byClass(value.getClass());
+            val vanillaType = NbtType.byClass(this.tag.get(key).getClass());
+
+            if (type != vanillaType) {
+                log.info("Incompatible types for '" + key + "' vanilla: " + vanillaType + "  local: " + type);
+            }
+        });
     }
 
     /**
