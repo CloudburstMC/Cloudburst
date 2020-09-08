@@ -8,6 +8,7 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
@@ -19,6 +20,7 @@ import java.util.function.IntConsumer;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+@Log4j2
 public class BlockStorage {
 
     private static final int SIZE = 4096;
@@ -114,22 +116,27 @@ public class BlockStorage {
         try (ByteBufInputStream stream = new ByteBufInputStream(buffer);
              NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
             for (int i = 0; i < paletteSize; i++) {
-                NbtMap tag = (NbtMap) nbtInputStream.readTag();
-                BlockState state = null;
+                try {
+                    NbtMap tag = (NbtMap) nbtInputStream.readTag();
+                    BlockState state = null;
 
-                if (tag.containsKey("states", NbtType.COMPOUND)) {
-                    state = BlockPalette.INSTANCE.getBlockState(tag);
-                }
-                if (state == null) {
-                    tag = BlockStateUpdaters.updateBlockState(tag, tag.getInt("version"));
-                    state = BlockPalette.INSTANCE.getBlockState(tag);
-                }
-                if (state == null) throw new IllegalStateException("Invalid block state\n" + tag);
+                    if (tag.containsKey("states", NbtType.COMPOUND)) {
+                        state = BlockPalette.INSTANCE.getBlockState(tag);
+                    }
+                    if (state == null) {
+                        tag = BlockStateUpdaters.updateBlockState(tag, tag.getInt("version"));
+                        state = BlockPalette.INSTANCE.getBlockState(tag);
+                    }
 
-                int runtimeId = BlockRegistry.get().getRuntimeId(state);
-                checkArgument(!this.palette.contains(runtimeId),
-                        "Palette contains block state (%s) twice! (%s) (palette: %s)", state, tag, this.palette);
-                this.palette.add(runtimeId);
+                    if (state == null) throw new IllegalStateException("Invalid block state\n" + tag);
+
+                    int runtimeId = BlockRegistry.get().getRuntimeId(state);
+                    checkArgument(!this.palette.contains(runtimeId),
+                            "Palette contains block state (%s) twice! (%s) (palette: %s)", state, tag, this.palette);
+                    this.palette.add(runtimeId);
+                } catch (Exception e) {
+                    log.throwing(e);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

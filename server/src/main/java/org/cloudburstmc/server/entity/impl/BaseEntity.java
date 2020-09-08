@@ -1404,7 +1404,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         float percent;
 
         if (blockType == WATER || blockType == FLOWING_WATER) {
-            percent = BlockBehaviorLiquid.getFluidHeightPercent(block.getState());
+            percent = BlockBehaviorLiquid.getFluidHeightPercent(state);
         } else {
             return false;
         }
