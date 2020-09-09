@@ -6,7 +6,6 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -174,18 +173,18 @@ public abstract class BaseBlockEntity implements BlockEntity {
         if (server) {
             this.saveAdditionalData(tag);
 
-            log.info("saving: " + this.type);
-            if (!nbtEquals(this.tag, tag.build())) {
-                log.info("not equal NBT: " + this.type);
-            }
-
-            checkNbt(this.tag, tag.build());
-
-            log.info("vanilla:");
-            log.info(NbtUtils.toString(this.tag));
-            log.info("\n\n\nlocal:");
-            log.info(NbtUtils.toString(tag.build()));
-            log.info("\n\n\n");
+//            log.info("saving: " + this.type);
+//            if (!nbtEquals(this.tag, tag.build())) {
+//                log.info("not equal NBT: " + this.type);
+//            }
+//
+//            checkNbt(this.tag, tag.build());
+//
+//            log.info("vanilla:");
+//            log.info(NbtUtils.toString(this.tag));
+//            log.info("\n\n\nlocal:");
+//            log.info(NbtUtils.toString(tag.build()));
+//            log.info("\n\n\n");
         } else {
             this.saveClientData(tag);
         }
