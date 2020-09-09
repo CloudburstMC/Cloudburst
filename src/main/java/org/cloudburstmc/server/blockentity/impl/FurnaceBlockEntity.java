@@ -39,7 +39,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     protected final FurnaceInventory inventory;
     protected short burnTime = 0;
     protected short cookTime = 0;
-    protected short maxTime = 0;
+    protected short burnDuration = 0;
 
     protected FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, InventoryType inventoryType) {
         super(type, chunk, position);
@@ -61,7 +61,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         });
         tag.listenForShort("CookTime", this::setCookTime);
         tag.listenForShort("BurnTime", this::setBurnTime);
-        tag.listenForShort("MaxTime", this::setMaxTime);
+        tag.listenForShort("BurnDuration", this::setBurnDuration);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
         tag.putShort("CookTime", cookTime);
         tag.putShort("BurnTime", burnTime);
-        tag.putShort("MaxTime", maxTime);
+        tag.putShort("BurnDuration", burnDuration);
         List<NbtMap> items = new ArrayList<>();
         for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
@@ -117,7 +117,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             return;
         }
 
-        maxTime = (short) (ev.getBurnTime() / getBurnRate());
+        burnDuration = (short) (ev.getBurnTime() / getBurnRate());
         burnTime = (short) (ev.getBurnTime() / getBurnRate());
 
         val type = getBlockState().getType();
@@ -132,7 +132,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                 ContainerSetDataPacket packet = new ContainerSetDataPacket();
                 packet.setWindowId(p.getWindowId(this.getInventory()));
                 packet.setProperty(ContainerSetDataPacket.FURNACE_LIT_DURATION);
-                packet.setValue(maxTime);
+                packet.setValue(burnDuration);
 
                 p.sendPacket(packet);
             }
@@ -257,12 +257,12 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         this.cookTime = (short) cookTime;
     }
 
-    public int getMaxTime() {
-        return maxTime;
+    public int getBurnDuration() {
+        return burnDuration;
     }
 
-    public void setMaxTime(int maxTime) {
-        this.maxTime = (short) maxTime;
+    public void setBurnDuration(int burnDuration) {
+        this.burnDuration = (short) burnDuration;
     }
 
     @Override
