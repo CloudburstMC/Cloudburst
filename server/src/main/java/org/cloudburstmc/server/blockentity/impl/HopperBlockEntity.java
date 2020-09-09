@@ -96,7 +96,9 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             return false;
         }
 
-        this.transferCooldown--;
+        if (this.transferCooldown > 0) {
+            this.transferCooldown--;
+        }
 
         if (!this.isOnTransferCooldown()) {
             BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition().add(UP));

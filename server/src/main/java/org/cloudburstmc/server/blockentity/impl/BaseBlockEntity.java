@@ -5,8 +5,11 @@ import co.aikar.timings.Timings;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
+import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
@@ -19,7 +22,10 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -105,6 +111,9 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
         this.saveClientData(tag);
 
+//        val nbt = tag.build();
+//        checkNbt(this.tag, nbt);
+
 //        log.info("saving: " + this.type);
 //        tag.forEach((key, value) -> {
 //            if (!this.tag.containsKey(key)) {
@@ -164,11 +173,142 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
         if (server) {
             this.saveAdditionalData(tag);
+
+            log.info("saving: " + this.type);
+            if (!nbtEquals(this.tag, tag.build())) {
+                log.info("not equal NBT: " + this.type);
+            }
+
+            checkNbt(this.tag, tag.build());
+
+            log.info("vanilla:");
+            log.info(NbtUtils.toString(this.tag));
+            log.info("\n\n\nlocal:");
+            log.info(NbtUtils.toString(tag.build()));
+            log.info("\n\n\n");
         } else {
             this.saveClientData(tag);
         }
 
         return tag.build();
+    }
+
+    private boolean nbtEquals(Object tag, Object local) {
+        if (tag instanceof Map) {
+            if (!(local instanceof Map)) {
+                return false;
+            }
+
+            val localMap = (Map<String, ?>) local;
+            val vanillaMap = (Map<String, ?>) tag;
+
+            for (Entry<String, ?> entry : localMap.entrySet()) {
+                if (!vanillaMap.containsKey(entry.getKey())) {
+                    return false;
+                }
+
+                if (!nbtEquals(vanillaMap.get(entry.getKey()), entry.getValue())) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if (tag instanceof List) {
+            if (!(local instanceof List)) {
+                return false;
+            }
+
+            val localList = (List) local;
+            val vanillaList = (List) tag;
+
+            if (localList.size() != vanillaList.size()) {
+                return false;
+            }
+
+            for (int i = 0; i < localList.size(); i++) {
+                val localItem = localList.get(i);
+                val vanillaItem = vanillaList.get(i);
+
+                if (!nbtEquals(vanillaItem, localItem)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return tag.getClass() == local.getClass() && Objects.equals(tag, local);
+    }
+
+    private boolean checkNbt(NbtMap tag, NbtMap local) {
+        for (Entry<String, Object> entry : local.entrySet()) {
+            val key = entry.getKey();
+            val value = entry.getValue();
+
+            if (!tag.containsKey(key)) {
+                log.info("redundant key: " + key);
+                continue;
+            }
+
+            val vanilla = tag.get(key);
+
+            val localType = NbtType.byClass(value.getClass());
+            val vanillaType = NbtType.byClass(vanilla.getClass());
+
+            if (vanillaType != localType) {
+                log.info("wrong tag types, local: " + localType.getTypeName() + ", vanilla: " + vanillaType.getTypeName());
+                log.info("values: local: " + value + ", vanilla: " + vanilla);
+                return false;
+            }
+
+            if (value instanceof NbtMap) {
+                if (!checkNbt((NbtMap) vanilla, (NbtMap) value)) {
+                    log.info("key - " + key);
+                    return false;
+                }
+
+                return true;
+            }
+
+            if (value instanceof List<?>) {
+                if (!checkList((List<?>) vanilla, (List<?>) value)) {
+                    log.info("key - " + key);
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean checkList(List<?> tag, List<?> local) {
+        for (int i = 0; i < local.size() && i < tag.size(); i++) {
+            Object value = local.get(i);
+            Object vanilla = tag.get(i);
+
+            val localType = NbtType.byClass(value.getClass());
+            val vanillaType = NbtType.byClass(vanilla.getClass());
+
+            if (vanillaType != localType) {
+                log.info("wrong tag types at index '" + i + "', local: " + localType.getTypeName() + ", vanilla: " + vanillaType.getTypeName());
+                log.info("values: local: " + value + ", vanilla: " + vanilla);
+                return false;
+            }
+
+            if (value instanceof NbtMap) {
+                return checkNbt((NbtMap) vanilla, (NbtMap) value);
+            }
+
+            if (value instanceof List<?>) {
+                return checkList((List<?>) vanilla, (List<?>) value);
+            }
+        }
+
+        return true;
     }
 
     @Override
