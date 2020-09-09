@@ -9,11 +9,13 @@ import io.netty.buffer.ByteBufOutputStream;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
 import java.util.function.IntConsumer;
@@ -128,11 +130,27 @@ public class BlockStorage {
                         state = BlockPalette.INSTANCE.getBlockState(tag);
                     }
 
+                    if (state == null && tag.containsKey("states", NbtType.COMPOUND)) { //TODO: fix unknown states
+                        val defaultState = BlockRegistry.get().getBlock(Identifier.fromString(tag.getString("name")));
+                        val serialized = BlockPalette.INSTANCE.getSerialized(defaultState);
+
+                        if (serialized.containsKey("states", NbtType.COMPOUND)) {
+                            val builder = tag.toBuilder();
+
+                            val statesBuilder = ((NbtMap) builder.get("states")).toBuilder();
+                            serialized.getCompound("states").forEach(statesBuilder::putIfAbsent);
+                            builder.putCompound("states", statesBuilder.build());
+                            state = BlockPalette.INSTANCE.getBlockState(builder.build());
+                        }
+                    }
+
                     if (state == null) throw new IllegalStateException("Invalid block state\n" + tag);
 
                     int runtimeId = BlockRegistry.get().getRuntimeId(state);
-                    checkArgument(!this.palette.contains(runtimeId),
-                            "Palette contains block state (%s) twice! (%s) (palette: %s)", state, tag, this.palette);
+                    if (this.palette.contains(runtimeId)) {
+                        log.warn("Palette contains block state ({}) twice! ({}) (palette: {})", state, tag, this.palette);
+                    }
+
                     this.palette.add(runtimeId);
                 } catch (Exception e) {
                     log.throwing(e);
