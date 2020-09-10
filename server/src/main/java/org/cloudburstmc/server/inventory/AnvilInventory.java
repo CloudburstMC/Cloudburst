@@ -2,8 +2,9 @@ package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.player.Player.CraftingType;
 
@@ -26,9 +27,9 @@ public class AnvilInventory extends FakeBlockUIComponent {
         super(playerUI, InventoryType.ANVIL, 1, block);
     }
 
-    public boolean onRename(Player player, Item resultItem) {
-        Item local = getItem(TARGET);
-        Item second = getItem(SACRIFICE);
+    public boolean onRename(Player player, ItemStack resultItem) {
+        ItemStack local = getItem(TARGET);
+        ItemStack second = getItem(SACRIFICE);
 
         if (!resultItem.equals(local, true, false) || resultItem.getCount() != local.getCount()) {
             //Item does not match target item. Everything must match except the tags.
@@ -56,20 +57,20 @@ public class AnvilInventory extends FakeBlockUIComponent {
             }
 
             if (local.getId() != AIR && second.getId() != AIR) {
-                Item result = local.clone();
+                ItemStack result = local.clone();
                 int enchants = 0;
 
-                ArrayList<Enchantment> enchantments = new ArrayList<>(Arrays.asList(second.getEnchantments()));
+                ArrayList<EnchantmentInstance> enchantments = new ArrayList<>(Arrays.asList(second.getEnchantments()));
 
-                ArrayList<Enchantment> baseEnchants = new ArrayList<>();
+                ArrayList<EnchantmentInstance> baseEnchants = new ArrayList<>();
 
-                for (Enchantment ench : local.getEnchantments()) {
+                for (CloudEnchantmentInstance ench : local.getEnchantments()) {
                     if (ench.isMajor()) {
                         baseEnchants.add(ench);
                     }
                 }
 
-                for (Enchantment enchantment : enchantments) {
+                for (CloudEnchantmentInstance enchantment : enchantments) {
                     if (enchantment.getLevel() < 0 || enchantment.getId() < 0) {
                         continue;
                     }
@@ -78,7 +79,7 @@ public class AnvilInventory extends FakeBlockUIComponent {
                         boolean same = false;
                         boolean another = false;
 
-                        for (Enchantment baseEnchant : baseEnchants) {
+                        for (EnchantmentInstance baseEnchant : baseEnchants) {
                             if (baseEnchant.getId() == enchantment.getId())
                                 same = true;
                             else {
@@ -91,7 +92,7 @@ public class AnvilInventory extends FakeBlockUIComponent {
                         }
                     }
 
-                    Enchantment localEnchantment = local.getEnchantment(enchantment.getId());
+                    EnchantmentInstance localEnchantment = local.getEnchantment(enchantment.getId());
 
                     if (localEnchantment != null) {
                         int level = Math.max(localEnchantment.getLevel(), enchantment.getLevel());

@@ -6,8 +6,8 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.TextFormat;
@@ -58,13 +58,13 @@ public class EnchantCommand extends Command {
         } catch (NumberFormatException e) {
             return false;
         }
-        Enchantment enchantment = Enchantment.getEnchantment(enchantId);
+        CloudEnchantmentInstance enchantment = CloudEnchantmentInstance.getEnchantment(enchantId);
         if (enchantment == null) {
             sender.sendMessage(new TranslationContainer("%commands.enchant.notFound", enchantId));
             return true;
         }
         enchantment.setLevel(enchantLevel);
-        Item item = player.getInventory().getItemInHand();
+        ItemStack item = player.getInventory().getItemInHand();
         if (item.getId() == AIR) {
             sender.sendMessage(new TranslationContainer("%commands.enchant.noItem", item.getName()));
             return true;

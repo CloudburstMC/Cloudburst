@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorBarrier extends BlockBehaviorSolid {
@@ -22,7 +22,7 @@ public class BlockBehaviorBarrier extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean isBreakable(Item item) {
+    public boolean isBreakable(ItemStack item) {
         return false;
     }
 

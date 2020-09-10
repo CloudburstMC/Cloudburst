@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -25,7 +25,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_SHOVEL;
+        return ItemToolBehavior.TYPE_SHOVEL;
     }
 
     @Override
@@ -34,7 +34,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
         if (down.inCategory(BlockCategory.SOLID)) {
             placeBlock(block, BlockState.get(BlockIds.SNOW_LAYER));
@@ -60,18 +60,18 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.SNOWBALL);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.SNOWBALL);
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isShovel() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.isShovel() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+            return new ItemStack[]{
                     this.toItem(block)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 

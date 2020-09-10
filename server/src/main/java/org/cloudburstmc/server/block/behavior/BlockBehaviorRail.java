@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -55,7 +55,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
@@ -87,7 +87,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
 
     //Information from http://minecraft.gamepedia.com/Rail
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val down = block.down().getState();
         if (down.inCategory(BlockCategory.TRANSPARENT)) {
             return false;
@@ -243,14 +243,14 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().defaultState());
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(RAIL)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                ItemStack.get(RAIL)
         };
     }
 }

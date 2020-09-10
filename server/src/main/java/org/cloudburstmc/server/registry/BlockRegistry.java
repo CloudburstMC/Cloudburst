@@ -14,13 +14,14 @@ import org.cloudburstmc.server.Nukkit;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.behavior.*;
 import org.cloudburstmc.server.block.serializer.*;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class BlockRegistry implements Registry {
         INSTANCE = new BlockRegistry(); // Needs to be initialized afterwards
     }
 
-    private final Reference2ReferenceMap<Identifier, BlockBehavior> behaviorMap = new Reference2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<BlockType, BlockBehavior> behaviorMap = new Reference2ReferenceOpenHashMap<>();
     private final HashBiMap<Identifier, Integer> idLegacyMap = HashBiMap.create();
     private final AtomicInteger customIdAllocator = new AtomicInteger(1000);
     private final BlockPalette palette = BlockPalette.INSTANCE;
@@ -77,21 +78,21 @@ public class BlockRegistry implements Registry {
         return INSTANCE;
     }
 
-    public synchronized void register(Identifier id, BlockBehavior behavior) throws RegistryException {
-        registerVanilla(id, behavior);
+    public synchronized void register(BlockType type, BlockBehavior behavior) throws RegistryException {
+        registerVanilla(type, behavior);
 
         // generate legacy ID (Not sure why we need to but it's a requirement)
         int legacyId = this.customIdAllocator.getAndIncrement();
-        this.idLegacyMap.put(id, legacyId);
+        this.idLegacyMap.put(type, legacyId);
     }
 
-    private void registerVanilla(Identifier id, BlockBehavior behavior, BlockTrait<?>... traits) throws RegistryException {
-        this.registerVanilla(id, behavior, DefaultBlockSerializer.INSTANCE, traits);
+    private void registerVanilla(BlockType type, BlockBehavior behavior, BlockTrait<?>... traits) throws RegistryException {
+        this.registerVanilla(type, behavior, DefaultBlockSerializer.INSTANCE, traits);
     }
 
-    private synchronized void registerVanilla(Identifier id, BlockBehavior behavior, BlockSerializer serializer,
+    private synchronized void registerVanilla(BlockType type, BlockBehavior behavior, BlockSerializer serializer,
                                               BlockTrait<?>... traits) throws RegistryException {
-        checkNotNull(id, "id");
+        checkNotNull(type, "id");
         checkNotNull(behavior, "behavior");
         checkNotNull(serializer, "serializer");
         if (traits == null) {
@@ -100,11 +101,11 @@ public class BlockRegistry implements Registry {
         checkClosed();
 
         synchronized (this.behaviorMap) {
-            if (this.behaviorMap.putIfAbsent(id, behavior) != null)
-                throw new RegistryException(id + " is already registered");
+            if (this.behaviorMap.putIfAbsent(type, behavior) != null)
+                throw new RegistryException(type + " is already registered");
         }
 
-        this.palette.addBlock(id, serializer, traits);
+        this.palette.addBlock(type, serializer, traits);
     }
 
     /**
@@ -173,7 +174,7 @@ public class BlockRegistry implements Registry {
         return palette.getDefaultState(identifier);
     }
 
-    public BlockState getBlock(Item item) {
+    public BlockState getBlock(ItemStack item) {
         return BlockStateMetaMappings.getStateFromMeta(item);
     }
 
@@ -238,7 +239,7 @@ public class BlockRegistry implements Registry {
         palette.forEach((state, serializedState) -> {
             serialized.add(NbtMap.builder()
                     .putCompound("block", serializedState)
-                    .putShort("id", (short) this.getLegacyId(state.getType()))
+                    .putShort("id", (short) this.getLegacyId(state.getId()))
                     .build());
         });
 
@@ -250,7 +251,7 @@ public class BlockRegistry implements Registry {
         return propertiesTag;
     }
 
-    public BlockBehavior getBehavior(Identifier blockType) {
+    public BlockBehavior getBehavior(BlockType blockType) {
         return this.behaviorMap.get(blockType);
     }
 

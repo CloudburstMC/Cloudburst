@@ -5,7 +5,7 @@ import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
@@ -21,19 +21,19 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
 
     protected final Direction direction;
 
-    protected final Item item;
+    protected final ItemStack item;
 
     protected final Action action;
 
-    public PlayerInteractEvent(Player player, Item item, Block block, Direction face, Action action) {
+    public PlayerInteractEvent(Player player, ItemStack item, Block block, Direction face, Action action) {
         this(player, item, face, action, block, Vector3f.ZERO);
     }
 
-    public PlayerInteractEvent(Player player, Item item, Vector3f touchVector, Direction face, Action action) {
+    public PlayerInteractEvent(Player player, ItemStack item, Vector3f touchVector, Direction face, Action action) {
         this(player, item, face, action, new CloudBlock(player.getLevel(), Vector3i.ZERO, CloudBlock.EMPTY), touchVector);
     }
 
-    private PlayerInteractEvent(Player player, Item item, Direction face, Action action, Block block, Vector3f touchVector) {
+    private PlayerInteractEvent(Player player, ItemStack item, Direction face, Action action, Block block, Vector3f touchVector) {
         super(player);
         this.item = item;
         this.direction = face;
@@ -46,7 +46,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
         return action;
     }
 
-    public Item getItem() {
+    public ItemStack getItem() {
         return item;
     }
 

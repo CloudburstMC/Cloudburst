@@ -10,9 +10,9 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Sign;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
@@ -83,7 +83,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.DOWN) {
             if (face == Direction.UP) {
                 val direction = player != null ? player.getCardinalDirection() : CardinalDirection.NORTH;
@@ -108,7 +108,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 
     @Override
@@ -117,9 +117,9 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
+    public ItemStack toItem(Block block) {
         val type = block.getState().getType();
-        return Item.get(STANDING_MAP.inverse().getOrDefault(type, WALL_MAP.inverse().get(type)));
+        return ItemStack.get(STANDING_MAP.inverse().getOrDefault(type, WALL_MAP.inverse().get(type)));
     }
 
     @Override

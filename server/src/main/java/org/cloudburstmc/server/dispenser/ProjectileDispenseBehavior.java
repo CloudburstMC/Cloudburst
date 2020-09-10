@@ -4,7 +4,7 @@ import com.nukkitx.nbt.NbtMap;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.Projectile;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 /**
  * @author CreeperFace
@@ -22,7 +22,7 @@ public class ProjectileDispenseBehavior implements DispenseBehavior {
     }
 
     @Override
-    public void dispense(Block source, Item item) {
+    public void dispense(Block source, ItemStack item) {
 //        Location dispensePos = Location.from(source.getDispensePosition(), source.getLevel());
 //
 //        Direction face = source.getFacing();

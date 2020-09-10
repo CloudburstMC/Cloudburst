@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -203,7 +203,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (block.getY() > 254) return false;
         if (face == Direction.UP) {
             Block blockUp = block.up();
@@ -242,7 +242,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         Block otherPart;
         if (isTop(block.getState())) {
             otherPart = block.down();
@@ -261,7 +261,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (!this.toggle(block, player)) {
             return false;
         }

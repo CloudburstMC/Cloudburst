@@ -8,8 +8,8 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -26,7 +26,7 @@ import static org.cloudburstmc.server.math.Direction.DOWN;
 public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val state = block.getState();
 
         if (state.getType() != WATER && state.getType() != FLOWING_WATER) {
@@ -116,7 +116,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         Block down = block.down();
 
         if (down.getState().getType() == KELP) {
@@ -127,7 +127,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) { //Bone Meal
             val level = block.getLevel();
             int x = block.getX();
@@ -164,8 +164,8 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.KELP);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.KELP);
     }
 
     @Override

@@ -19,7 +19,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public interface BlockState {
 
     @Nonnull
-    Identifier getType();
+    Identifier getId();
+
+    @Nonnull
+    BlockType getType();
 
     @Nullable
     <T extends Comparable<T>> T getTrait(BlockTrait<T> trait);

@@ -3,7 +3,7 @@ package org.cloudburstmc.server.event.inventory;
 import org.cloudburstmc.server.blockentity.impl.FurnaceBlockEntity;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.block.BlockEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 /**
  * author: MagicDroidX
@@ -12,10 +12,10 @@ import org.cloudburstmc.server.item.behavior.Item;
 public class FurnaceSmeltEvent extends BlockEvent implements Cancellable {
 
     private final FurnaceBlockEntity furnace;
-    private final Item source;
-    private Item result;
+    private final ItemStack source;
+    private ItemStack result;
 
-    public FurnaceSmeltEvent(FurnaceBlockEntity furnace, Item source, Item result) {
+    public FurnaceSmeltEvent(FurnaceBlockEntity furnace, ItemStack source, ItemStack result) {
         super(furnace.getBlock());
         this.source = source.clone();
         this.source.setCount(1);
@@ -27,15 +27,15 @@ public class FurnaceSmeltEvent extends BlockEvent implements Cancellable {
         return furnace;
     }
 
-    public Item getSource() {
+    public ItemStack getSource() {
         return source;
     }
 
-    public Item getResult() {
+    public ItemStack getResult() {
         return result;
     }
 
-    public void setResult(Item result) {
+    public void setResult(ItemStack result) {
         this.result = result;
     }
 }

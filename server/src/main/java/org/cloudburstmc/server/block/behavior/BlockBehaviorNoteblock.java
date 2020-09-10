@@ -9,8 +9,8 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Noteblock;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -147,7 +147,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 
     @Override
@@ -166,7 +166,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         return placeBlock(block, item) && this.createBlockEntity(block) != null;
     }
 
@@ -202,7 +202,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         this.increaseStrength(block);
         this.emitSound(block);
         return true;

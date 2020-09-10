@@ -1,12 +1,17 @@
 package org.cloudburstmc.server.item;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentType;
+import org.cloudburstmc.server.item.behavior.ItemBehavior;
+import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +19,9 @@ import java.util.Optional;
 @Nonnull
 @Immutable
 public interface ItemStack {
+
+    @Inject
+    ItemRegistry registry = null; //does that work?
 
     ItemType getType();
 
@@ -31,21 +39,37 @@ public interface ItemStack {
 
     List<String> getLore();
 
-    Collection<Enchantment> getEnchantments();
+    Collection<EnchantmentInstance> getEnchantments();
+
+    default EnchantmentInstance getEnchantment(EnchantmentType enchantment) {
+        for (EnchantmentInstance ench : getEnchantments()) {
+            if (ench.getType() == enchantment) {
+                return ench;
+            }
+        }
+
+        return null;
+    }
 
     Collection<Identifier> getCanDestroy();
 
+    default boolean canDestroy(BlockState state) {
+        return getCanDestroy().contains(state.getId());
+    }
+
     Collection<Identifier> getCanPlaceOn();
 
-    <T> Optional<T> getMetadata(Class<T> metadataClass);
+    default boolean canPlaceOn(BlockState state) {
+        return getCanPlaceOn().contains(state.getId());
+    }
 
-    <T> T ensureMetadata(Class<T> metadataClass);
+    <T> Optional<T> getMetadata(Class<T> metadataClass);
 
     ItemStackBuilder toBuilder();
 
 //    RecipeItemStackBuilder toRecipeBuilder();
 
-    boolean isSimilar(@Nonnull ItemStack itemStack);
+    ItemBehavior getBehavior();
 
     boolean isMergeable(@Nonnull ItemStack itemStack);
 
@@ -56,4 +80,8 @@ public interface ItemStack {
     }
 
     boolean equals(@Nullable ItemStack other, boolean checkAmount, boolean checkData);
+
+    static ItemStack get(ItemType type) {
+        return registry.getItem(type);
+    }
 }

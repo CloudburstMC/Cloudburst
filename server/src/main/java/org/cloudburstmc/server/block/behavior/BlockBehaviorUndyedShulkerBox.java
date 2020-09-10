@@ -13,8 +13,8 @@ import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ShulkerBox;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -41,11 +41,11 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
-    public Item toItem(Block block) {
+    public ItemStack toItem(Block block) {
         val be = block.getLevel().getBlockEntity(block.getPosition());
 
         var tag = NbtMap.EMPTY;
@@ -57,11 +57,11 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
             tag = tagBuilder.build();
         }
 
-        return Item.get(block.getState().getType(), 0, 1, tag);
+        return ItemStack.get(block.getState().getType(), 0, 1, tag);
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         placeBlock(block, item);
 
         ShulkerBox shulkerBox = BlockEntityRegistry.get().newEntity(SHULKER_BOX, block);
@@ -78,7 +78,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             ShulkerBox box;

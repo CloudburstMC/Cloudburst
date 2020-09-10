@@ -17,8 +17,8 @@ import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleUpdateEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
@@ -293,7 +293,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), Item.get(ItemIds.MINECART));
+        this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemIds.MINECART));
     }
 
     @Override
@@ -318,7 +318,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    public boolean onInteract(Player p, Item item, Vector3f clickedPos) {
+    public boolean onInteract(Player p, ItemStack item, Vector3f clickedPos) {
         if (!passengers.isEmpty() && isRideable()) {
             return false;
         }

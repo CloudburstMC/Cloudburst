@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Chicken;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -38,8 +38,8 @@ public class EntityChicken extends Animal implements Chicken {
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.CHICKEN), Item.get(ItemIds.FEATHER)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemIds.CHICKEN), ItemStack.get(ItemIds.FEATHER)};
     }
 
     @Override
@@ -49,7 +49,7 @@ public class EntityChicken extends Animal implements Chicken {
     }
 
     @Override
-    public boolean isBreedingItem(Item item) {
+    public boolean isBreedingItem(ItemStack item) {
         Identifier id = item.getId();
 
         return id == ItemIds.WHEAT_SEEDS || id == ItemIds.MELON_SEEDS || id == ItemIds.PUMPKIN_SEEDS ||

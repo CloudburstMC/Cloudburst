@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Dolphin;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -36,7 +36,7 @@ public class EntityDolphin extends Animal implements Dolphin {
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.FISH)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemIds.FISH)};
     }
 }

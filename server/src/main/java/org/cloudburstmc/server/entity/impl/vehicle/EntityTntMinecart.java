@@ -10,8 +10,8 @@ import org.cloudburstmc.server.entity.EntityExplosive;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.vehicle.TntMinecart;
 import org.cloudburstmc.server.event.entity.EntityExplosionPrimeEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.gamerule.GameRules;
@@ -113,7 +113,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), Item.get(ItemIds.TNT_MINECART));
+        this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemIds.TNT_MINECART));
     }
 
     @Override
@@ -122,7 +122,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
-    public boolean onInteract(Player player, Item item, Vector3f clickedPos) {
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         boolean interact = super.onInteract(player, item, clickedPos);
         if (item.getId() == ItemIds.FLINT_AND_STEEL || item.getId() == ItemIds.FIREBALL) {
             this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.IGNITE);

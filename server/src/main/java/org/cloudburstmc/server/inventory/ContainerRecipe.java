@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerMixData;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 public class ContainerRecipe extends MixRecipe {
-    public ContainerRecipe(Item input, Item ingredient, Item output) {
+    public ContainerRecipe(ItemStack input, ItemStack ingredient, ItemStack output) {
         super(input, ingredient, output);
     }
 

@@ -3,8 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -22,15 +22,15 @@ public class BlockBehaviorTerracottaStained extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
-    public Item[] getDrops(Block blockState, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{toItem(blockState)};
+    public ItemStack[] getDrops(Block blockState, ItemStack hand) {
+        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+            return new ItemStack[]{toItem(blockState)};
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 

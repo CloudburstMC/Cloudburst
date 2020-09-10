@@ -6,8 +6,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 
@@ -59,14 +59,14 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.PUMPKIN_SEEDS);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.PUMPKIN_SEEDS);
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(ItemIds.PUMPKIN_SEEDS, 0, ThreadLocalRandom.current().nextInt(0, 4))
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                ItemStack.get(ItemIds.PUMPKIN_SEEDS, 0, ThreadLocalRandom.current().nextInt(0, 4))
         };
     }
 }

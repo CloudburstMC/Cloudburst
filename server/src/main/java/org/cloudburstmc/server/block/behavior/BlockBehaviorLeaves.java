@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.LeavesDecayEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
@@ -19,8 +19,8 @@ import org.cloudburstmc.server.utils.data.TreeSpecies;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockIds.*;
-import static org.cloudburstmc.server.item.behavior.ItemIds.APPLE;
-import static org.cloudburstmc.server.item.behavior.ItemIds.STICK;
+import static org.cloudburstmc.server.item.ItemIds.APPLE;
+import static org.cloudburstmc.server.item.ItemIds.STICK;
 
 public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
@@ -31,7 +31,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_SHEARS;
+        return ItemToolBehavior.TYPE_SHEARS;
     }
 
     @Override
@@ -45,41 +45,41 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         return placeBlock(block, BlockState.get(LEAVES).withTrait(BlockTraits.IS_PERSISTENT, true));
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(BlockState.get(LEAVES).copyTrait(BlockTraits.TREE_SPECIES, block.getState()));
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(BlockState.get(LEAVES).copyTrait(BlockTraits.TREE_SPECIES, block.getState()));
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         val state = block.getState();
         if (hand.isShears()) {
-            return new Item[]{
+            return new ItemStack[]{
                     toItem(block)
             };
         } else {
             if (this.canDropApple(state) && ThreadLocalRandom.current().nextInt(200) == 0) {
-                return new Item[]{
-                        Item.get(APPLE)
+                return new ItemStack[]{
+                        ItemStack.get(APPLE)
                 };
             }
             if (ThreadLocalRandom.current().nextInt(20) == 0) {
                 if (ThreadLocalRandom.current().nextBoolean()) {
-                    return new Item[]{
-                            Item.get(STICK, 0, ThreadLocalRandom.current().nextInt(1, 2))
+                    return new ItemStack[]{
+                            ItemStack.get(STICK, 0, ThreadLocalRandom.current().nextInt(1, 2))
                     };
                 } else if (state.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
-                    return new Item[]{
+                    return new ItemStack[]{
                             this.getSapling(state)
                     };
                 }
             }
         }
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     @Override
@@ -138,8 +138,8 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
         return type == TreeSpecies.OAK || type == TreeSpecies.DARK_OAK;
     }
 
-    protected Item getSapling(BlockState state) {
-        return Item.get(BlockState.get(SAPLING).copyTrait(BlockTraits.TREE_SPECIES, state));
+    protected ItemStack getSapling(BlockState state) {
+        return ItemStack.get(BlockState.get(SAPLING).copyTrait(BlockTraits.TREE_SPECIES, state));
     }
 
     @Override

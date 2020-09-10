@@ -6,8 +6,8 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.FlowerPot;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -32,7 +32,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.UP) return false;
 
         FlowerPot flowerPot = BlockEntityRegistry.get().newEntity(BlockEntityTypes.FLOWER_POT, block);
@@ -48,7 +48,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
         BlockEntity blockEntity = level.getBlockEntity(block.getPosition());
         if (!(blockEntity instanceof FlowerPot)) return false;
@@ -76,7 +76,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         boolean dropInside = false;
         BlockState blockState = BlockStates.AIR;
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
@@ -86,13 +86,13 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
         }
 
         if (dropInside) {
-            return new Item[]{
-                    Item.get(ItemIds.FLOWER_POT),
-                    Item.get(blockState)
+            return new ItemStack[]{
+                    ItemStack.get(ItemIds.FLOWER_POT),
+                    ItemStack.get(blockState)
             };
         } else {
-            return new Item[]{
-                    Item.get(ItemIds.FLOWER_POT)
+            return new ItemStack[]{
+                    ItemStack.get(ItemIds.FLOWER_POT)
             };
         }
     }
@@ -133,8 +133,8 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.FLOWER_POT);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.FLOWER_POT);
     }
 
     @Override

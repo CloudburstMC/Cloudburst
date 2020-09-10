@@ -4,8 +4,8 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.EntityAgeable;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.EntityCreature;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 
@@ -25,12 +25,12 @@ public abstract class Animal extends EntityCreature implements EntityAgeable {
         return this.data.getFlag(BABY);
     }
 
-    public boolean isBreedingItem(Item item) {
+    public boolean isBreedingItem(ItemStack item) {
         return item.getId() == ItemIds.WHEAT; //default
     }
 
     @Override
-    public boolean onInteract(Player player, Item item, Vector3f clickedPos) {
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         if (item.getId() == ItemIds.NAME_TAG) {
             if (item.hasCustomName()) {
                 this.setNameTag(item.getCustomName());

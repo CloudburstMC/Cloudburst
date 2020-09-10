@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.block;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.nukkitx.nbt.NbtMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.trait.BlockTrait;
@@ -21,22 +23,34 @@ import static com.google.common.base.Preconditions.checkState;
 @ParametersAreNonnullByDefault
 public final class CloudBlockState implements BlockState {
 
-    private final Identifier type;
+    private final Identifier id;
+    private final BlockType type;
     private final ImmutableMap<BlockTrait<?>, Comparable<?>> traits;
     private final Reference2IntMap<BlockTrait<?>> traitPalette;
+    private final NbtMap tag;
     private CloudBlockState[][] table = null;
     private BlockState defaultState;
 
-    CloudBlockState(Identifier type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
-                    Reference2IntMap<BlockTrait<?>> traitPalette) {
+    CloudBlockState(Identifier id, BlockType type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
+                    Reference2IntMap<BlockTrait<?>> traitPalette, NbtMap tag) {
+        Preconditions.checkNotNull(id, "id");
+        Preconditions.checkNotNull(type, "type");
+        this.id = id;
         this.type = type;
         this.traits = traits;
         this.traitPalette = traitPalette;
+        this.tag = tag;
     }
 
     @Nonnull
     @Override
-    public Identifier getType() {
+    public Identifier getId() {
+        return id;
+    }
+
+    @Nonnull
+    @Override
+    public BlockType getType() {
         return type;
     }
 
@@ -106,6 +120,10 @@ public final class CloudBlockState implements BlockState {
     @Override
     public BlockState defaultState() {
         return defaultState;
+    }
+
+    public NbtMap getTag() {
+        return tag;
     }
 
     public void buildStateTable(BlockState defaultState, Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map) {

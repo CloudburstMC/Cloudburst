@@ -3,8 +3,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.Smiteable;
 import org.cloudburstmc.server.entity.passive.SkeletonHorse;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -33,8 +33,8 @@ public class EntitySkeletonHorse extends Animal implements SkeletonHorse, Smitea
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.BONE)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemIds.BONE)};
     }
 
     @Override

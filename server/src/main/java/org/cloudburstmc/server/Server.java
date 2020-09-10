@@ -18,14 +18,14 @@ import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.console.NukkitConsole;
+import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.entity.Attribute;
 import org.cloudburstmc.server.event.server.*;
 import org.cloudburstmc.server.inject.CloudburstModule;
 import org.cloudburstmc.server.inject.CloudburstPrivateModule;
 import org.cloudburstmc.server.inventory.CraftingManager;
 import org.cloudburstmc.server.inventory.Recipe;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.storage.StorageIds;
 import org.cloudburstmc.server.locale.LocaleManager;
@@ -189,7 +189,7 @@ public class Server {
     private final StorageRegistry storageRegistry = StorageRegistry.get();
     private final BlockRegistry blockRegistry = BlockRegistry.get();
     private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
-    private final ItemRegistry itemRegistry = ItemRegistry.get();
+    private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
     private final EntityRegistry entityRegistry = EntityRegistry.get();
     private final BiomeRegistry biomeRegistry = BiomeRegistry.get();
     private final CommandRegistry commandRegistry = CommandRegistry.get();
@@ -1800,8 +1800,8 @@ public class Server {
     }
 
     private void registerVanillaComponents() {
-        Enchantment.init();
-        Item.initCreativeItems();
+        CloudEnchantmentInstance.init();
+        ItemStack.initCreativeItems();
         Effect.init();
         Potion.init();
         Attribute.init();

@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Comparator;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -111,7 +111,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val state = block.getState();
         boolean subtract = state.ensureTrait(BlockTraits.IS_OUTPUT_SUBTRACT);
         block.set(state.withTrait(BlockTraits.IS_OUTPUT_SUBTRACT, !subtract), true);
@@ -159,7 +159,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (super.place(item, block, target, face, clickPos, player)) {
             BlockEntityRegistry.get().newEntity(COMPARATOR, block);
 
@@ -176,8 +176,8 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.COMPARATOR);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.COMPARATOR);
     }
 
     public enum Mode {

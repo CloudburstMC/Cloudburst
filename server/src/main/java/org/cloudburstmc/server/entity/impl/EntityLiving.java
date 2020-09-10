@@ -24,7 +24,7 @@ import org.cloudburstmc.server.event.entity.EntityDamageByChildEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityDeathEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.behavior.ItemTurtleShell;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.gamerule.GameRules;
@@ -180,7 +180,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
         this.server.getEventManager().fire(ev);
 
         if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-            for (Item item : ev.getDrops()) {
+            for (ItemStack item : ev.getDrops()) {
                 this.getLevel().dropItem(this.getPosition(), item);
             }
         }
@@ -283,8 +283,8 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
         }
     }
 
-    public Item[] getDrops() {
-        return new Item[0];
+    public ItemStack[] getDrops() {
+        return new ItemStack[0];
     }
 
     public Block[] getLineOfSight(int maxDistance) {

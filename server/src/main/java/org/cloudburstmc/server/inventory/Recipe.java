@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.concurrent.Immutable;
@@ -13,7 +13,7 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public interface Recipe {
 
-    Item getResult();
+    ItemStack getResult();
 
     void registerToCraftingManager(CraftingManager manager);
 

@@ -5,9 +5,9 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Sheep;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.behavior.ItemDye;
-import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.DyeColor;
@@ -72,7 +72,7 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    public boolean onInteract(Player player, Item item) {
+    public boolean onInteract(Player player, ItemStack item) {
         if (item.getId() == ItemIds.DYE) {
             this.setColor(((ItemDye) item).getDyeColor().getWoolData());
             return true;
@@ -89,16 +89,16 @@ public class EntitySheep extends Animal implements Sheep {
         this.setSheared(true);
         this.data.setFlag(SHEARED, true);
 
-        this.level.dropItem(this.getPosition(), Item.get(WOOL, getColor(), ThreadLocalRandom.current().nextInt(2) + 1));
+        this.level.dropItem(this.getPosition(), ItemStack.get(WOOL, getColor(), ThreadLocalRandom.current().nextInt(2) + 1));
         return true;
     }
 
     @Override
-    public Item[] getDrops() {
+    public ItemStack[] getDrops() {
         if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
-            return new Item[]{Item.get(WOOL, getColor(), 1)};
+            return new ItemStack[]{ItemStack.get(WOOL, getColor(), 1)};
         }
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     public boolean isSheared() {

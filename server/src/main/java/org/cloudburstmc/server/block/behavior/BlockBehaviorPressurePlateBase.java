@@ -13,7 +13,7 @@ import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.entity.EntityInteractEvent;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent.Action;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -90,7 +90,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
             return false;
         }
@@ -152,7 +152,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         super.onBreak(block, item);
 
         if (this.getRedstonePower(block.getState()) > 0) {
@@ -188,8 +188,8 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     protected abstract int computeRedstoneStrength(Block block);
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().defaultState());
     }
 
     @Override

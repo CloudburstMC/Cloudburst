@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
@@ -39,8 +39,8 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.STRING);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.STRING);
     }
 
     public boolean isPowered(BlockState state) {
@@ -127,7 +127,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val state = BlockState.get(TRIPWIRE);
         placeBlock(block, state);
         this.updateHook(block, state, false);
@@ -136,7 +136,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         if (item.getId() == ItemIds.SHEARS) {
             val state = block.getState().withTrait(BlockTraits.IS_DISARMED, true);
             block.set(state, true, false);

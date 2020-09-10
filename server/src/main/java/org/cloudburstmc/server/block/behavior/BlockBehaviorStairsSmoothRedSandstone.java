@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorStairsSmoothRedSandstone extends BlockBehaviorStairs {
@@ -18,7 +18,7 @@ public class BlockBehaviorStairsSmoothRedSandstone extends BlockBehaviorStairs {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
 

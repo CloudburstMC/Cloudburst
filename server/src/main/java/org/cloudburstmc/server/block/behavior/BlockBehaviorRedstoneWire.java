@@ -9,8 +9,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -49,7 +49,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.UP || !canBePlacedOn(target.getState())) {
             return false;
         }
@@ -157,7 +157,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         removeBlock(block);
 
         val level = block.getLevel();
@@ -197,8 +197,8 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.REDSTONE);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.REDSTONE);
     }
 
     public int getStrongPower(Block block, Direction side) {

@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Pig;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -46,12 +46,12 @@ public class EntityPig extends Animal implements Pig {
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.PORKCHOP)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemIds.PORKCHOP)};
     }
 
     @Override
-    public boolean isBreedingItem(Item item) {
+    public boolean isBreedingItem(ItemStack item) {
         Identifier id = item.getId();
 
         return id == ItemIds.CARROT || id == ItemIds.POTATO || id == ItemIds.BEETROOT;

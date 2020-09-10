@@ -6,8 +6,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -27,11 +27,11 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val level = block.getLevel();
         if (level.isBlockPowered(block.getPosition())) {
             block.set(BlockState.get(BlockIds.LIT_REDSTONE_LAMP));
@@ -69,9 +69,9 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(BlockIds.REDSTONE_LAMP)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                ItemStack.get(BlockIds.REDSTONE_LAMP)
         };
     }
 

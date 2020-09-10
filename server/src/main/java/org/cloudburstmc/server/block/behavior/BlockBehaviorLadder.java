@@ -4,8 +4,8 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -106,7 +106,7 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!target.getState().inCategory(BlockCategory.TRANSPARENT)) {
             if (face.getHorizontalIndex() != -1) {
                 placeBlock(block, item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, face));
@@ -129,7 +129,7 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 
     @Override
@@ -138,9 +138,9 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(block.getState().defaultState())
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                ItemStack.get(block.getState().defaultState())
         };
     }
 

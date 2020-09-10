@@ -1,12 +1,16 @@
 package org.cloudburstmc.server.item;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.ToString;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.item.behavior.ItemBehavior;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,36 +21,41 @@ import java.util.*;
 @Immutable
 public class CloudItemStack implements ItemStack {
 
+    private volatile Identifier id;
     private final ItemType type;
     private final int amount;
     private final String itemName;
     private final List<String> itemLore;
-    private final Set<Enchantment> enchantments;
+    private final Set<EnchantmentInstance> enchantments;
     private final Set<Identifier> canDestroy;
     private final Set<Identifier> canPlaceOn;
+    private final Map<Class<?>, Object> data;
 
-    private final NbtMap nbt;
+    private volatile NbtMap nbt;
     private volatile ItemData networkData;
 
-    public CloudItemStack(ItemType type) {
-        this(type, 1, null, null, null, null, null, null, null);
+    public CloudItemStack(Identifier id, ItemType type) {
+        this(id, type, 1, null, null, null, null, null, null, null, null);
     }
 
-    public CloudItemStack(ItemType type, int amount) {
-        this(type, amount, null, null, null, null, null, null, null);
+    public CloudItemStack(Identifier id, ItemType type, int amount) {
+        this(id, type, amount, null, null, null, null, null, null, null, null);
     }
 
     public CloudItemStack(
+            Identifier id,
             ItemType type,
             int amount,
             String itemName,
             List<String> itemLore,
-            Collection<Enchantment> enchantments,
+            Collection<EnchantmentInstance> enchantments,
             Collection<Identifier> canDestroy,
             Collection<Identifier> canPlaceOn,
+            Map<Class<?>, Object> data,
             NbtMap nbt,
             ItemData networkData
     ) {
+        this.id = id;
         this.type = type;
         this.amount = amount;
         this.itemName = itemName;
@@ -54,8 +63,21 @@ public class CloudItemStack implements ItemStack {
         this.enchantments = enchantments == null ? ImmutableSet.of() : ImmutableSet.copyOf(enchantments);
         this.canDestroy = canDestroy == null ? ImmutableSet.of() : ImmutableSet.copyOf(canDestroy);
         this.canPlaceOn = canPlaceOn == null ? ImmutableSet.of() : ImmutableSet.copyOf(canPlaceOn);
+        this.data = data == null ? ImmutableMap.of() : ImmutableMap.copyOf(data);
         this.nbt = nbt;
         this.networkData = networkData;
+    }
+
+    public Identifier getId() {
+        if (id == null) {
+            synchronized (type) {
+                if (id == null) {
+                    id = CloudItemRegistry.get().getId(this);
+                }
+            }
+        }
+
+        return id;
     }
 
     @Override
@@ -68,14 +90,10 @@ public class CloudItemStack implements ItemStack {
         return amount;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Optional<T> getMetadata(Class<T> metadataClass) {
-        return Optional.empty();
-    }
-
-    @Override
-    public <T> T ensureMetadata(Class<T> metadataClass) {
-        return null;
+        return Optional.ofNullable((T) this.data.get(metadataClass));
     }
 
     @Override
@@ -89,7 +107,7 @@ public class CloudItemStack implements ItemStack {
     }
 
     @Override
-    public Collection<Enchantment> getEnchantments() {
+    public Collection<EnchantmentInstance> getEnchantments() {
         return ImmutableList.copyOf(enchantments);
     }
 
@@ -113,15 +131,33 @@ public class CloudItemStack implements ItemStack {
 //        return new NukkitRecipeItemStackBuilder(this);
 //    }
 
+    public NbtMap getNbt() {
+        if (nbt == null) {
+            synchronized (itemName) {
+                if (nbt == null) {
+                    this.nbt = Utils.TODO(); //TODO serialize
+                }
+            }
+        }
+
+        return this.nbt;
+    }
+
     public ItemData getNetworkData() {
         if (networkData == null) {
             synchronized (this) {
                 if (networkData == null) {
                     //TODO: create network data
+                    this.networkData = Utils.TODO();
                 }
             }
         }
         return networkData;
+    }
+
+    @Override
+    public ItemBehavior getBehavior() {
+        return CloudItemRegistry.get().getBehavior(this.type);
     }
 
     @Override
@@ -132,11 +168,6 @@ public class CloudItemStack implements ItemStack {
     @Override
     public boolean equals(@Nullable ItemStack item) {
         return equals(item, true, true);
-    }
-
-    @Override
-    public boolean isSimilar(@Nonnull ItemStack other) {
-        return equals(other, false, true);
     }
 
     @Override

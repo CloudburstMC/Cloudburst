@@ -8,9 +8,9 @@ import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Lectern;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.chunk.Chunk;
 
 import javax.annotation.Nonnegative;
@@ -23,7 +23,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     private static final String TAG_PAGE = "page";
     private static final String TAG_TOTAL_PAGES = "totalPages";
 
-    private Item book;
+    private ItemStack book;
     private int page;
     private int totalPages;
 
@@ -76,11 +76,11 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     @Nullable
-    public Item getBook() {
+    public ItemStack getBook() {
         return book;
     }
 
-    public void setBook(Item item) {
+    public void setBook(ItemStack item) {
         if (item != null && (item.getId() == ItemIds.WRITTEN_BOOK || item.getId() == ItemIds.WRITABLE_BOOK)) {
             this.book = item;
         } else {

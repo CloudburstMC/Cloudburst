@@ -2,7 +2,7 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Wolf;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -36,7 +36,7 @@ public class EntityWolf extends Animal implements Wolf {
     }
 
     @Override
-    public boolean isBreedingItem(Item item) {
+    public boolean isBreedingItem(ItemStack item) {
         return false; //only certain food
     }
 }

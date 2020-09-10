@@ -38,7 +38,7 @@ public class CloudburstPrivateModule extends PrivateModule {
         this.bind(EntityRegistry.class).toInstance(EntityRegistry.get());
         this.bind(GameRuleRegistry.class).toInstance(GameRuleRegistry.get());
         this.bind(GeneratorRegistry.class).toInstance(GeneratorRegistry.get());
-        this.bind(ItemRegistry.class).toInstance(ItemRegistry.get());
+        this.bind(CloudItemRegistry.class).toInstance(CloudItemRegistry.get());
         this.bind(StorageRegistry.class).toInstance(StorageRegistry.get());
     }
 

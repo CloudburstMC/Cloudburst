@@ -6,8 +6,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.vehicle.HopperMinecart;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.MinecartType;
@@ -42,7 +42,7 @@ public class EntityHopperMinecart extends EntityAbstractMinecart implements Hopp
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), Item.get(ItemIds.HOPPER_MINECART));
+        this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemIds.HOPPER_MINECART));
     }
 
     @Override
@@ -56,7 +56,7 @@ public class EntityHopperMinecart extends EntityAbstractMinecart implements Hopp
     }
 
     @Override
-    public boolean onInteract(Player p, Item item, Vector3f clickedPos) {
+    public boolean onInteract(Player p, ItemStack item, Vector3f clickedPos) {
         return false;
     }
 }

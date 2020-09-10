@@ -18,9 +18,9 @@ import org.cloudburstmc.server.event.inventory.StartBrewEvent;
 import org.cloudburstmc.server.inventory.BrewingInventory;
 import org.cloudburstmc.server.inventory.BrewingRecipe;
 import org.cloudburstmc.server.inventory.ContainerRecipe;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -53,7 +53,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
-                Item item = ItemUtils.deserializeItem(itemTag);
+                ItemStack item = ItemUtils.deserializeItem(itemTag);
                 this.inventory.setItem(itemTag.getByte("Slot"), item);
             }
         });
@@ -68,7 +68,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
         }
         tag.putList("Items", NbtType.COMPOUND, items);
@@ -95,7 +95,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
     @Override
     public void onBreak() {
-        for (Item content : inventory.getContents().values()) {
+        for (ItemStack content : inventory.getContents().values()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
     }
@@ -110,7 +110,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         return inventory;
     }
 
-    protected boolean checkIngredient(Item ingredient) {
+    protected boolean checkIngredient(ItemStack ingredient) {
         return ingredients.contains(ingredient.getId());
     }
 
@@ -141,10 +141,10 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
         boolean ret = false;
 
-        Item ingredient = this.inventory.getIngredient();
+        ItemStack ingredient = this.inventory.getIngredient();
         boolean canBrew = false;
 
-        Item fuel = this.getInventory().getFuel();
+        ItemStack fuel = this.getInventory().getFuel();
         if (this.fuelAmount <= 0 && fuel.getId() == ItemIds.BLAZE_POWDER && fuel.getCount() > 0) {
             fuel.decrementCount();
             this.fuelAmount = 20;
@@ -189,11 +189,11 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
                 if (!e.isCancelled()) {
                     for (int i = 1; i <= 3; i++) {
-                        Item potion = this.inventory.getItem(i);
+                        ItemStack potion = this.inventory.getItem(i);
 
                         ContainerRecipe containerRecipe = Server.getInstance().getCraftingManager().matchContainerRecipe(ingredient, potion);
                         if (containerRecipe != null) {
-                            Item result = containerRecipe.getResult();
+                            ItemStack result = containerRecipe.getResult();
                             result.setMeta(potion.getMeta());
                             this.inventory.setItem(i, result);
                         } else {
@@ -272,7 +272,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         BlockState state = BlockState.get(BlockIds.BREWING_STAND);
 
         for (int i = 1; i <= 3; ++i) {
-            Item potion = this.inventory.getItem(i);
+            ItemStack potion = this.inventory.getItem(i);
 
             Identifier id = potion.getId();
             if ((id == ItemIds.POTION || id == ItemIds.SPLASH_POTION || id == ItemIds.LINGERING_POTION) && potion.getCount() > 0) {
@@ -304,7 +304,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     @Override
-    public int[] getHopperPushSlots(Direction direction, Item item) {
+    public int[] getHopperPushSlots(Direction direction, ItemStack item) {
         Identifier id = item.getId();
 
         if (direction.getAxis().isHorizontal()) {

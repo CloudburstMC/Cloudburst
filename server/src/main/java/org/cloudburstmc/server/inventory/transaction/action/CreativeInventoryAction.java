@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -18,7 +18,7 @@ public class CreativeInventoryAction extends InventoryAction {
 
     protected int actionType;
 
-    public CreativeInventoryAction(Item source, Item target, int action) {
+    public CreativeInventoryAction(ItemStack source, ItemStack target, int action) {
         super(source, target);
     }
 
@@ -30,7 +30,7 @@ public class CreativeInventoryAction extends InventoryAction {
      */
     public boolean isValid(Player source) {
         return source.isCreative() &&
-                (this.actionType == TYPE_DELETE_ITEM || Item.getCreativeItemIndex(this.sourceItem) != -1);
+                (this.actionType == TYPE_DELETE_ITEM || ItemStack.getCreativeItemIndex(this.sourceItem) != -1);
     }
 
     /**

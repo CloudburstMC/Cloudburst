@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -24,7 +24,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!super.place(item, block, target, face, clickPos, player)) {
             return false;
         }
@@ -57,7 +57,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         super.onBreak(block, item);
 
         Vector3i pos = block.getPosition();

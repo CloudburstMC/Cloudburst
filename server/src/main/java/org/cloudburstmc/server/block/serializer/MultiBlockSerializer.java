@@ -4,7 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.server.block.trait.BlockTrait;
+
+import java.util.Map;
 
 @RequiredArgsConstructor
 public class MultiBlockSerializer extends DefaultBlockSerializer {
@@ -12,8 +15,8 @@ public class MultiBlockSerializer extends DefaultBlockSerializer {
     private final ImmutableMap<String, String> nameMap;
 
     @Override
-    public void serialize(NbtMapBuilder builder, BlockState state) {
-        super.serialize(builder, state);
+    public void serialize(NbtMapBuilder builder, BlockType blockType, Map<BlockTrait<?>, Comparable<?>> traits) {
+        super.serialize(builder, blockType, traits);
 
         String name = this.getName((NbtMap) builder.get(TAG_STATES));
         builder.putString(TAG_NAME, name);

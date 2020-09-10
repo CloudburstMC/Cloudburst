@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.Rail;
 import org.cloudburstmc.server.utils.data.RailDirection;
@@ -167,9 +167,9 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(GOLDEN_RAIL)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                ItemStack.get(GOLDEN_RAIL)
         };
     }
 }

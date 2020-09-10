@@ -10,8 +10,8 @@ import org.cloudburstmc.server.event.entity.EntityDamageByChildEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ProjectileHitEvent;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.MovingObjectPosition;
 
@@ -25,7 +25,7 @@ import static org.cloudburstmc.server.block.BlockIds.AIR;
  */
 public class EntityThrownTrident extends EntityProjectile implements ThrownTrident {
 
-    protected Item trident;
+    protected ItemStack trident;
     protected float gravity = 0.04f;
     protected float drag = 0.01f;
 
@@ -63,7 +63,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
         super.initEntity();
 
         this.damage = 8;
-        this.trident = Item.get(AIR);
+        this.trident = ItemStack.get(AIR);
         closeOnCollide = false;
     }
 
@@ -82,12 +82,12 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
     }
 
     @Override
-    public Item getTrident() {
-        return this.trident != null ? this.trident.clone() : Item.get(0);
+    public ItemStack getTrident() {
+        return this.trident != null ? this.trident.clone() : ItemStack.get(0);
     }
 
     @Override
-    public void setTrident(Item item) {
+    public void setTrident(ItemStack item) {
         this.trident = item.clone();
     }
 

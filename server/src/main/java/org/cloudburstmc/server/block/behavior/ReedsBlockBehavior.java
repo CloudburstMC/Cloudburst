@@ -5,8 +5,8 @@ import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -18,8 +18,8 @@ import org.cloudburstmc.server.utils.Identifier;
 public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.REEDS);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.REEDS);
     }
 
     @Override
@@ -28,7 +28,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0F) { //Bonemeal
             int count = 1;
             val level = block.getLevel();
@@ -106,7 +106,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (block.getState() != BlockStates.AIR) {
             return false;
         }

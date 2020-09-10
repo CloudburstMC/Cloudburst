@@ -3,8 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DirtType;
@@ -32,13 +32,13 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_SHOVEL;
+        return ItemToolBehavior.TYPE_SHOVEL;
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.isHoe()) {
-            item.useOn(block);
+            item.useOn(, block);
             block.set(BlockState.get(block.getState().ensureTrait(DIRT_TYPE) == DirtType.NORMAL ? FARMLAND : DIRT), true);
             return true;
         }
@@ -47,8 +47,8 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{Item.get(BlockIds.DIRT)};
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{ItemStack.get(BlockIds.DIRT)};
     }
 
     @Override

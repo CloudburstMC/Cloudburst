@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 
 import static org.cloudburstmc.server.block.BlockIds.IRON_ORE;
 
@@ -20,17 +20,17 @@ public class BlockBehaviorOreIron extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_STONE) {
-            return new Item[]{
-                    Item.get(IRON_ORE)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_STONE) {
+            return new ItemStack[]{
+                    ItemStack.get(IRON_ORE)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 

@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
@@ -34,7 +34,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (canStay(block)) {
             placeBlock(block, item);
             return true;
@@ -48,7 +48,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == DyeColor.WHITE.getDyeData()) {
             if (player != null && player.getGamemode().isSurvival()) {
                 item.decrementCount();
@@ -67,7 +67,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     public boolean grow(Block block) {
         block.set(BlockStates.AIR, true, false);
 
-        val item = Item.get(block.getState());
+        val item = ItemStack.get(block.getState());
         WorldFeature feature = GenerationTreeSpecies.fromItem(item.getId(), item.getMeta()).getDefaultGenerator();
 
         if (feature.place(block.getLevel(), ThreadLocalPRandom.current(), block.getX(), block.getY(), block.getZ())) {

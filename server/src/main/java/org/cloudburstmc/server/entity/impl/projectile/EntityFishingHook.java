@@ -13,7 +13,7 @@ import org.cloudburstmc.server.event.entity.EntityDamageByChildEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ProjectileHitEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.randomitem.Fishing;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.MovingObjectPosition;
@@ -47,7 +47,7 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
 
     public Vector3f fish = null;
 
-    private Item rod;
+    private ItemStack rod;
 
     public EntityFishingHook(EntityType<FishingHook> type, Location location) {
         super(type, location);
@@ -79,11 +79,11 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
     }
 
     @Nullable
-    public Item getRod() {
+    public ItemStack getRod() {
         return rod;
     }
 
-    public void setRod(@Nullable Item rod) {
+    public void setRod(@Nullable ItemStack rod) {
         this.rod = rod;
     }
 
@@ -203,7 +203,7 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
     public void reelLine() {
         Entity owner = this.getOwner();
         if (owner instanceof Player && this.caught) {
-            Item item = Fishing.getFishingResult(this.rod);
+            ItemStack item = Fishing.getFishingResult(this.rod);
             int experience = new Random().nextInt((3 - 1) + 1) + 1;
             Vector3f motion;
 

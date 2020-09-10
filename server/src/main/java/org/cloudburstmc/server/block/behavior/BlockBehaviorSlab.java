@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -85,7 +85,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
@@ -94,12 +94,12 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().resetTrait(BlockTraits.IS_TOP_SLOT));
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().resetTrait(BlockTraits.IS_TOP_SLOT));
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         boolean isTop;
 
         val state = item.getBlock();

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.concurrent.Immutable;
@@ -13,22 +13,22 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public class FurnaceRecipe implements Recipe {
 
-    private final Item output;
-    private final Item ingredient;
+    private final ItemStack output;
+    private final ItemStack ingredient;
     private final Identifier block;
 
-    public FurnaceRecipe(Item result, Item ingredient, Identifier block) {
+    public FurnaceRecipe(ItemStack result, ItemStack ingredient, Identifier block) {
         this.output = result.clone();
         this.ingredient = ingredient.clone();
         this.block = block;
     }
 
-    public Item getInput() {
+    public ItemStack getInput() {
         return this.ingredient.clone();
     }
 
     @Override
-    public Item getResult() {
+    public ItemStack getResult() {
         return this.output.clone();
     }
 

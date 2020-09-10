@@ -16,9 +16,9 @@ import org.cloudburstmc.server.entity.misc.DroppedItem;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.server.event.entity.ItemSpawnEvent;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 
@@ -35,7 +35,7 @@ import static org.cloudburstmc.server.block.BlockIds.WATER;
  */
 public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
-    protected Item item;
+    protected ItemStack item;
     protected int pickupDelay;
 
     public EntityDroppedItem(EntityType<DroppedItem> type, Location location) {
@@ -142,7 +142,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                         if (!entity.isAlive()) {
                             continue;
                         }
-                        Item closeItem = ((EntityDroppedItem) entity).getItem();
+                        ItemStack closeItem = ((EntityDroppedItem) entity).getItem();
                         if (!closeItem.equals(getItem(), true, true)) {
                             continue;
                         }
@@ -240,12 +240,12 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         return this.hasNameTag() ? this.getNameTag() : (this.item.hasCustomName() ? this.item.getCustomName() : this.item.getName());
     }
 
-    public Item getItem() {
+    public ItemStack getItem() {
         return item;
     }
 
     @Override
-    public void setItem(@Nonnull Item item) {
+    public void setItem(@Nonnull ItemStack item) {
         checkNotNull(item, "item");
         checkArgument(this.item == null, "Item has already been set");
         this.item = item;

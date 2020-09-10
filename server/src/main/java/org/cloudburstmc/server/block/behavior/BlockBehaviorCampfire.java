@@ -8,15 +8,15 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Campfire;
+import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemEdible;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemEdibleBehavior;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -43,7 +43,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 
     public boolean isLit(Block block) {
@@ -59,7 +59,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
         if (!state.getBehavior().canBeReplaced(block)) return false;
         if (block.down().getState().getType() == BlockIds.CAMPFIRE) {
@@ -103,23 +103,23 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item) {
+    public boolean onActivate(Block block, ItemStack item) {
         return this.onActivate(block, item, null);
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.getEnchantment(Enchantment.ID_SILK_TOUCH) != null) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.getEnchantment(CloudEnchantmentInstance.ID_SILK_TOUCH) != null) {
             return super.getDrops(block, hand);
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getId() == ItemIds.FLINT_AND_STEEL
-                || item.getEnchantment(Enchantment.ID_FIRE_ASPECT) != null) {
+                || item.getEnchantment(CloudEnchantmentInstance.ID_FIRE_ASPECT) != null) {
             if (!(this.isLit(block))) {
                 this.toggleFire(block);
             }
@@ -129,7 +129,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
                 this.toggleFire(block);
             }
             return true;
-        } else if (item instanceof ItemEdible) {
+        } else if (item instanceof ItemEdibleBehavior) {
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
             if (blockEntity instanceof Campfire) {
@@ -139,7 +139,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
                     if (player != null && player.isSurvival()) {
                         item.decrementCount();
                         if (item.getCount() <= 0) {
-                            item = Item.get(BlockIds.AIR);
+                            item = ItemStack.get(BlockIds.AIR);
                         }
                         player.getInventory().setItemInHand(item);
                     }

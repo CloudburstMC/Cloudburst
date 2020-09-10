@@ -8,9 +8,9 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Skull;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -34,7 +34,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face == Direction.DOWN) {
             return false;
         }
@@ -52,7 +52,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
+    public ItemStack toItem(Block block) {
         val be = block.getLevel().getBlockEntity(block.getPosition());
 
         int meta = 0;
@@ -60,12 +60,12 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
             meta = ((Skull) be).getSkullType();
         }
 
-        return Item.get(ItemIds.SKULL, meta);
+        return ItemStack.get(ItemIds.SKULL, meta);
     }
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override

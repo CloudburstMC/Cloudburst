@@ -6,7 +6,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -45,7 +45,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 //    }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val targetType = target.getState().getType();
         if (targetType == BlockIds.WATER || targetType == BlockIds.FLOWING_WATER) {
             Block up = target.up();
@@ -71,8 +71,8 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState());
     }
 
     @Override

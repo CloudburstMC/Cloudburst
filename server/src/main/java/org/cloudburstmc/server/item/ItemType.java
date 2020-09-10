@@ -10,8 +10,6 @@ public interface ItemType {
 
     boolean isBlock();
 
-    Class<?> getMetadataClass();
-
     int getMaximumStackSize();
 
     default int getAttackDamage() {

@@ -8,8 +8,8 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.ShulkerBox;
 import org.cloudburstmc.server.inventory.ShulkerBoxInventory;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
@@ -37,7 +37,7 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
 
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
-                Item item = ItemUtils.deserializeItem(itemTag);
+                ItemStack item = ItemUtils.deserializeItem(itemTag);
                 this.inventory.setItem(itemTag.getByte("Slot"), item);
             }
         });
@@ -49,7 +49,7 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
         }
         tag.putList("Items", NbtType.COMPOUND, items);

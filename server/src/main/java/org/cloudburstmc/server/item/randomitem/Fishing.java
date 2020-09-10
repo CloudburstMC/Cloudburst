@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.item.randomitem;
 
 import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.potion.Potion;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -39,20 +39,20 @@ public final class Fishing {
     public static final Selector JUNK_INK_SAC = RandomItem.putSelector(new ConstantItemSelector(ItemIds.DYE, DyeColor.BLACK.getDyeData(), 10, JUNKS), 0.012F);
     public static final Selector JUNK_TRIPWIRE_HOOK = RandomItem.putSelector(new ConstantItemSelector(BlockIds.TRIPWIRE_HOOK, JUNKS), 0.12F);
 
-    public static Item getFishingResult(Item rod) {
+    public static ItemStack getFishingResult(ItemStack rod) {
         int fortuneLevel = 0;
         int lureLevel = 0;
         if (rod != null) {
-            if (rod.getEnchantment(Enchantment.ID_FORTUNE_FISHING) != null) {
-                fortuneLevel = rod.getEnchantment(Enchantment.ID_FORTUNE_FISHING).getLevel();
-            } else if (rod.getEnchantment(Enchantment.ID_LURE) != null) {
-                lureLevel = rod.getEnchantment(Enchantment.ID_LURE).getLevel();
+            if (rod.getEnchantment(CloudEnchantmentInstance.ID_FORTUNE_FISHING) != null) {
+                fortuneLevel = rod.getEnchantment(CloudEnchantmentInstance.ID_FORTUNE_FISHING).getLevel();
+            } else if (rod.getEnchantment(CloudEnchantmentInstance.ID_LURE) != null) {
+                lureLevel = rod.getEnchantment(CloudEnchantmentInstance.ID_LURE).getLevel();
             }
         }
         return getFishingResult(fortuneLevel, lureLevel);
     }
 
-    public static Item getFishingResult(int fortuneLevel, int lureLevel) {
+    public static ItemStack getFishingResult(int fortuneLevel, int lureLevel) {
         float treasureChance = limitRange(0, 1, 0.05f + 0.01f * fortuneLevel - 0.01f * lureLevel);
         float junkChance = limitRange(0, 1, 0.05f - 0.025f * fortuneLevel - 0.01f * lureLevel);
         float fishChance = limitRange(0, 1, 1 - treasureChance - junkChance);
@@ -60,7 +60,7 @@ public final class Fishing {
         RandomItem.putSelector(TREASURES, treasureChance);
         RandomItem.putSelector(JUNKS, junkChance);
         Object result = RandomItem.selectFrom(ROOT_FISHING);
-        if (result instanceof Item) return (Item) result;
+        if (result instanceof ItemStack) return (ItemStack) result;
         return null;
     }
 

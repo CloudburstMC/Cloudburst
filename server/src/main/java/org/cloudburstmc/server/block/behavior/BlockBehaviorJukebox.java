@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Jukebox;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.behavior.RecordItem;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -22,12 +22,12 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().getType());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().getType());
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         if (!(blockEntity instanceof Jukebox)) {
             blockEntity = this.createBlockEntity(block);
@@ -39,14 +39,14 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
         } else if (item instanceof RecordItem) {
             jukebox.setRecordItem(item);
             jukebox.play();
-            player.getInventory().decreaseCount(player.getInventory().getHeldItemIndex());
+            player.getInventory().decrementCount(player.getInventory().getHeldItemIndex());
         }
 
         return false;
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (placeBlock(block, item)) {
             createBlockEntity(block);
             return true;
@@ -56,7 +56,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         if (super.onBreak(block, item)) {
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 

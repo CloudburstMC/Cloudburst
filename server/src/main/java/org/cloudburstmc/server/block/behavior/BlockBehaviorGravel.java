@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 
 import java.util.Random;
 
@@ -21,17 +21,17 @@ public class BlockBehaviorGravel extends BlockBehaviorFallable {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_SHOVEL;
+        return ItemToolBehavior.TYPE_SHOVEL;
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (new Random().nextInt(9) == 0) {
-            return new Item[]{
-                    Item.get(ItemIds.FLINT)
+            return new ItemStack[]{
+                    ItemStack.get(ItemIds.FLINT)
             };
         } else {
-            return new Item[]{
+            return new ItemStack[]{
                     toItem(block)
             };
         }

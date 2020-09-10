@@ -6,8 +6,8 @@ import org.cloudburstmc.server.blockentity.Beacon;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.inventory.BeaconInventory;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
@@ -33,7 +33,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             if (!(t instanceof Beacon)) {
@@ -56,7 +56,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         boolean blockSuccess = super.place(item, block, target, face, clickPos, player);
 
         if (blockSuccess) {

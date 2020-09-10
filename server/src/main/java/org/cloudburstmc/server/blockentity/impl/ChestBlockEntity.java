@@ -11,8 +11,8 @@ import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.inventory.ChestInventory;
 import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.inventory.DoubleChestInventory;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
@@ -45,7 +45,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
 
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
-                Item item = ItemUtils.deserializeItem(itemTag);
+                ItemStack item = ItemUtils.deserializeItem(itemTag);
                 this.inventory.setItem(itemTag.getByte("Slot"), item);
             }
         });
@@ -71,7 +71,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
         }
         tag.putList("Items", NbtType.COMPOUND, items);
@@ -108,7 +108,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
 
     @Override
     public void onBreak() {
-        for (Item content : inventory.getContents().values()) {
+        for (ItemStack content : inventory.getContents().values()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
         inventory.clearAll(); // Stop items from being moved around by another player in the inventory

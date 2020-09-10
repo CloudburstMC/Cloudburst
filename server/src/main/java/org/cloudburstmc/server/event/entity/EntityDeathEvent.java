@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.entity;
 
 import org.cloudburstmc.server.entity.impl.EntityLiving;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 /**
  * author: MagicDroidX
@@ -9,24 +9,24 @@ import org.cloudburstmc.server.item.behavior.Item;
  */
 public class EntityDeathEvent extends EntityEvent {
 
-    private Item[] drops;
+    private ItemStack[] drops;
 
     public EntityDeathEvent(EntityLiving entity) {
-        this(entity, new Item[0]);
+        this(entity, new ItemStack[0]);
     }
 
-    public EntityDeathEvent(EntityLiving entity, Item[] drops) {
+    public EntityDeathEvent(EntityLiving entity, ItemStack[] drops) {
         this.entity = entity;
         this.drops = drops;
     }
 
-    public Item[] getDrops() {
+    public ItemStack[] getDrops() {
         return drops;
     }
 
-    public void setDrops(Item[] drops) {
+    public void setDrops(ItemStack[] drops) {
         if (drops == null) {
-            drops = new Item[0];
+            drops = new ItemStack[0];
         }
 
         this.drops = drops;

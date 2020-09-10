@@ -11,7 +11,7 @@ import org.cloudburstmc.server.event.block.BlockIgniteEvent;
 import org.cloudburstmc.server.event.entity.EntityCombustByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.math.Direction;
@@ -35,7 +35,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean isBreakable(Item item) {
+    public boolean isBreakable(ItemStack item) {
         return false;
     }
 
@@ -61,8 +61,8 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[0];
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[0];
     }
 
     @Override
@@ -282,7 +282,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(BlockIds.AIR);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(BlockIds.AIR);
     }
 }

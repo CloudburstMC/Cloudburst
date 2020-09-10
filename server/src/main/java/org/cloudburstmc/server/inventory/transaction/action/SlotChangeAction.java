@@ -3,7 +3,7 @@ package org.cloudburstmc.server.inventory.transaction.action;
 import lombok.ToString;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.HashSet;
@@ -18,7 +18,7 @@ public class SlotChangeAction extends InventoryAction {
     protected Inventory inventory;
     private int inventorySlot;
 
-    public SlotChangeAction(Inventory inventory, int inventorySlot, Item sourceItem, Item targetItem) {
+    public SlotChangeAction(Inventory inventory, int inventorySlot, ItemStack sourceItem, ItemStack targetItem) {
         super(sourceItem, targetItem);
         this.inventory = inventory;
         this.inventorySlot = inventorySlot;
@@ -49,7 +49,7 @@ public class SlotChangeAction extends InventoryAction {
      * @return valid
      */
     public boolean isValid(Player source) {
-        Item check = inventory.getItem(this.inventorySlot);
+        ItemStack check = inventory.getItem(this.inventorySlot);
 
         return check.equalsExact(this.sourceItem);
     }

@@ -9,9 +9,9 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BrewingStand;
 import org.cloudburstmc.server.inventory.ContainerInventory;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -39,7 +39,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
@@ -48,7 +48,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
         if (!state.inCategory(BlockCategory.TRANSPARENT)) {
             placeBlock(block, BlockRegistry.get().getBlock(BlockIds.BREWING_STAND));
@@ -65,7 +65,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             BrewingStand brewing;
@@ -86,18 +86,18 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.BREWING_STAND);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.BREWING_STAND);
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+            return new ItemStack[]{
                     toItem(block)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 

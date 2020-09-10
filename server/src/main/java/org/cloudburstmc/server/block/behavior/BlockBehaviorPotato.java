@@ -2,27 +2,27 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 
 import java.util.Random;
 
 public class BlockBehaviorPotato extends BlockBehaviorCrops {
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.POTATO);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.POTATO);
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.GROWTH) == 7) {
-            return new Item[]{
-                    Item.get(ItemIds.POTATO, 0, new Random().nextInt(3) + 1)
+            return new ItemStack[]{
+                    ItemStack.get(ItemIds.POTATO, 0, new Random().nextInt(3) + 1)
             };
         } else {
-            return new Item[]{
-                    Item.get(ItemIds.POTATO)
+            return new ItemStack[]{
+                    ItemStack.get(ItemIds.POTATO)
             };
         }
     }

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.item.randomitem;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.Identifier;
 
 /**
@@ -9,7 +9,7 @@ import org.cloudburstmc.server.utils.Identifier;
  */
 public class ConstantItemSelector extends Selector {
 
-    protected final Item item;
+    protected final ItemStack item;
 
     public ConstantItemSelector(Identifier id, Selector parent) {
         this(id, 0, parent);
@@ -20,15 +20,15 @@ public class ConstantItemSelector extends Selector {
     }
 
     public ConstantItemSelector(Identifier id, Integer meta, int count, Selector parent) {
-        this(Item.get(id, meta, count), parent);
+        this(ItemStack.get(id, meta, count), parent);
     }
 
-    public ConstantItemSelector(Item item, Selector parent) {
+    public ConstantItemSelector(ItemStack item, Selector parent) {
         super(parent);
         this.item = item;
     }
 
-    public Item getItem() {
+    public ItemStack getItem() {
         return item;
     }
 
