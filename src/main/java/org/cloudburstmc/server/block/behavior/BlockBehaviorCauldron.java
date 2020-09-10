@@ -8,10 +8,10 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Cauldron;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemBucket;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemBucketBehavior;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -34,7 +34,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         BlockEntity be = block.getLevel().getBlockEntity(block.getPosition());
 
         if (!(be instanceof Cauldron)) {
@@ -72,7 +72,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                     return true;
                 }
 
-                ItemBucket bucket = (ItemBucket) item.clone();
+                ItemBucketBehavior bucket = (ItemBucketBehavior) item.clone();
                 bucket.setCount(1);
                 bucket.setMeta(8);//water bucket
 
@@ -91,7 +91,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                     return true;
                 }
 
-                ItemBucket bucket = (ItemBucket) item.clone();
+                ItemBucketBehavior bucket = (ItemBucketBehavior) item.clone();
                 bucket.setCount(1);
                 bucket.setMeta(0);//empty bucket
 
@@ -130,7 +130,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 item.setCount(item.getCount() - 1);
                 player.getInventory().setItemInHand(item);
 
-                Item bottle = Item.get(ItemIds.GLASS_BOTTLE);
+                ItemStack bottle = ItemStack.get(ItemIds.GLASS_BOTTLE);
                 if (player.getInventory().canAddItem(bottle)) {
                     player.getInventory().addItem(bottle);
                 } else {
@@ -146,12 +146,12 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
             }
 
             if (item.getCount() == 1) {
-                player.getInventory().setItemInHand(Item.get(ItemIds.POTION));
+                player.getInventory().setItemInHand(ItemStack.get(ItemIds.POTION));
             } else if (item.getCount() > 1) {
                 item.setCount(item.getCount() - 1);
                 player.getInventory().setItemInHand(item);
 
-                Item potion = Item.get(ItemIds.POTION);
+                ItemStack potion = ItemStack.get(ItemIds.POTION);
                 if (player.getInventory().canAddItem(potion)) {
                     player.getInventory().addItem(potion);
                 } else {
@@ -169,7 +169,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
         return true;
     }
 
-    protected void replaceBucket(Item oldBucket, Player player, Item newBucket) {
+    protected void replaceBucket(ItemStack oldBucket, Player player, ItemStack newBucket) {
         if (player.isSurvival() || player.isAdventure()) {
             if (oldBucket.getCount() == 1) {
                 player.getInventory().setItemInHand(newBucket);
@@ -185,7 +185,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Cauldron cauldron = BlockEntityRegistry.get().newEntity(CAULDRON, block.getChunk(), block.getPosition());
         cauldron.loadAdditionalData(item.getTag());
         cauldron.setPotionId(0xffff);
@@ -194,17 +194,17 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{Item.get(ItemIds.CAULDRON)};
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+            return new ItemStack[]{ItemStack.get(ItemIds.CAULDRON)};
         }
 
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.CAULDRON);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.CAULDRON);
     }
 
     public boolean hasComparatorInputOverride() {

@@ -3,7 +3,7 @@ package org.cloudburstmc.server.event.entity;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 /**
  * author: Box
@@ -11,13 +11,13 @@ import org.cloudburstmc.server.item.behavior.Item;
  */
 public class EntityShootBowEvent extends EntityEvent implements Cancellable {
 
-    private final Item bow;
+    private final ItemStack bow;
 
     private Entity projectile;
 
     private double force;
 
-    public EntityShootBowEvent(EntityLiving shooter, Item bow, Entity projectile, double force) {
+    public EntityShootBowEvent(EntityLiving shooter, ItemStack bow, Entity projectile, double force) {
         this.entity = shooter;
         this.bow = bow;
         this.projectile = projectile;
@@ -30,7 +30,7 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
     }
 
 
-    public Item getBow() {
+    public ItemStack getBow() {
         return this.bow;
     }
 

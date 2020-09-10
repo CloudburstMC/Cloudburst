@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 public class BlockBehaviorMonsterEgg extends BlockBehaviorSolid {
     public static final int STONE = 0;
@@ -22,7 +22,7 @@ public class BlockBehaviorMonsterEgg extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[0];
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[0];
     }
 }

@@ -2,12 +2,12 @@ package org.cloudburstmc.server.inventory;
 
 
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 
 public class BrewingRecipe extends MixRecipe {
 
-    public BrewingRecipe(Item input, Item ingredient, Item output) {
+    public BrewingRecipe(ItemStack input, ItemStack ingredient, ItemStack output) {
         super(input, ingredient, output);
     }
 

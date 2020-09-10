@@ -3,7 +3,7 @@ package org.cloudburstmc.server.event.inventory;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.InventoryHolder;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 /**
  * @author CreeperFace
@@ -15,11 +15,11 @@ public class InventoryMoveItemEvent extends InventoryEvent implements Cancellabl
     private final Inventory targetInventory;
     private final InventoryHolder source;
 
-    private Item item;
+    private ItemStack item;
 
     private final Action action;
 
-    public InventoryMoveItemEvent(Inventory from, Inventory targetInventory, InventoryHolder source, Item item, Action action) {
+    public InventoryMoveItemEvent(Inventory from, Inventory targetInventory, InventoryHolder source, ItemStack item, Action action) {
         super(from);
         this.targetInventory = targetInventory;
         this.source = source;
@@ -35,11 +35,11 @@ public class InventoryMoveItemEvent extends InventoryEvent implements Cancellabl
         return source;
     }
 
-    public Item getItem() {
+    public ItemStack getItem() {
         return item;
     }
 
-    public void setItem(Item item) {
+    public void setItem(ItemStack item) {
         this.item = item;
     }
 

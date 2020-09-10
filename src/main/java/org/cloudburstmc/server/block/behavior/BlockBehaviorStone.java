@@ -4,8 +4,8 @@ import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.data.StoneType;
 
 import static org.cloudburstmc.server.block.BlockIds.COBBLESTONE;
@@ -24,19 +24,19 @@ public class BlockBehaviorStone extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
             var state = block.getState();
             if (state.ensureTrait(BlockTraits.STONE_TYPE) == StoneType.STONE) {
                 state = BlockState.get(COBBLESTONE);
             }
-            return new Item[]{Item.get(state)};
+            return new ItemStack[]{ItemStack.get(state)};
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 

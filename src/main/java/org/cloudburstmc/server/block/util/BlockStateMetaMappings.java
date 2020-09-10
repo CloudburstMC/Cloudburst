@@ -14,7 +14,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.Identifier;
 
 @UtilityClass
@@ -64,7 +64,7 @@ public class BlockStateMetaMappings {
         return state2meta.getOrDefault(state, -1);
     }
 
-    public BlockState getStateFromMeta(Item item) {
+    public BlockState getStateFromMeta(ItemStack item) {
         return getStateFromMeta(item.getId(), item.getMeta());
     }
 

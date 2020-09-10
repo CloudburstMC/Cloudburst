@@ -1,16 +1,17 @@
 package org.cloudburstmc.server.block.trait.serializer;
 
 import com.nukkitx.nbt.NbtMapBuilder;
-import lombok.val;
+import org.cloudburstmc.server.block.BlockCategories;
 import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.serializer.DirectionHelper;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
 import org.cloudburstmc.server.math.Direction;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Map;
 
 @ParametersAreNonnullByDefault
 public class DirectionSerializer implements TraitSerializer<Direction> {
@@ -20,19 +21,17 @@ public class DirectionSerializer implements TraitSerializer<Direction> {
     }
 
     @Override
-    public Comparable<?> serialize(NbtMapBuilder builder, BlockState state, Direction direction) {
-        return DirectionHelper.serialize(builder, state);
+    public Comparable<?> serialize(NbtMapBuilder builder, BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, Direction direction) {
+        return DirectionHelper.serialize(builder, type, traits);
     }
 
     @Override
-    public String getName(BlockState state, BlockTrait<?> blockTrait) {
-        if (state.inCategory(BlockCategory.STAIRS)) {
+    public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
+        if (BlockCategories.inCategory(type, BlockCategory.STAIRS)) {
             return "weirdo_direction";
         }
 
-        val type = state.getType();
-
-        if (type == BlockIds.CORAL_FAN_HANG || type == BlockIds.CORAL_FAN_HANG2 || type == BlockIds.CORAL_FAN_HANG3) {
+        if (type == BlockTypes.CORAL_FAN_HANG) {
             return "coral_direction";
         }
 

@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -16,7 +16,7 @@ public class BlockBehaviorPressurePlateWood extends BlockBehaviorPressurePlateBa
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 
     @Override
@@ -30,8 +30,8 @@ public class BlockBehaviorPressurePlateWood extends BlockBehaviorPressurePlateBa
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
                 toItem(block)
         };
     }

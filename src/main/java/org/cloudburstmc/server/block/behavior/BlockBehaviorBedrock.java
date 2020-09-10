@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 public class BlockBehaviorBedrock extends BlockBehaviorSolid {
 
@@ -15,7 +15,7 @@ public class BlockBehaviorBedrock extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean isBreakable(Item item) {
+    public boolean isBreakable(ItemStack item) {
         return false;
     }
 

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorEndPortal extends FloodableBlockBehavior {
@@ -13,7 +13,7 @@ public class BlockBehaviorEndPortal extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean isBreakable(Item item) {
+    public boolean isBreakable(ItemStack item) {
         return false;
     }
 
@@ -53,7 +53,7 @@ public class BlockBehaviorEndPortal extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(BlockIds.AIR, 0, 0);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(BlockIds.AIR, 0, 0);
     }
 }

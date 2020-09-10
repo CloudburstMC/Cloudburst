@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
 import org.cloudburstmc.server.event.player.PlayerDropItemEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -9,7 +9,7 @@ import org.cloudburstmc.server.player.Player;
  */
 public class DropItemAction extends InventoryAction {
 
-    public DropItemAction(Item source, Item target) {
+    public DropItemAction(ItemStack source, ItemStack target) {
         super(source, target);
     }
 

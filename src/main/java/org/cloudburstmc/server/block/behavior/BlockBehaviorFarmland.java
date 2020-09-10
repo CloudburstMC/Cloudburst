@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
 import org.cloudburstmc.server.block.*;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
@@ -22,7 +22,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_SHOVEL;
+        return ItemToolBehavior.TYPE_SHOVEL;
     }
 
 //    @Override
@@ -88,8 +88,8 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(BlockIds.DIRT);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(BlockIds.DIRT);
     }
 
     @Override

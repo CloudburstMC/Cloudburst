@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ItemFrame;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -39,12 +39,12 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
         BlockEntity blockEntity = level.getBlockEntity(block.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         if (itemFrame.getItem() == null || itemFrame.getItem().getId() == AIR) {
-            Item itemOnFrame = item.clone();
+            ItemStack itemOnFrame = item.clone();
             if (player != null && player.isSurvival()) {
                 itemOnFrame.setCount(itemOnFrame.getCount() - 1);
                 player.getInventory().setItemInHand(itemOnFrame);
@@ -60,7 +60,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!target.getState().inCategory(BlockCategory.TRANSPARENT) && face.getIndex() > 1 && !block.getState().inCategory(BlockCategory.SOLID)) {
             placeBlock(block, item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, face));
 
@@ -74,31 +74,31 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         super.onBreak(block, item);
         block.getLevel().addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
         return true;
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         int chance = new Random().nextInt(100) + 1;
         if (itemFrame != null && chance <= (itemFrame.getItemDropChance() * 100)) {
-            return new Item[]{
+            return new ItemStack[]{
                     toItem(block), itemFrame.getItem().clone()
             };
         } else {
-            return new Item[]{
+            return new ItemStack[]{
                     toItem(block)
             };
         }
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().defaultState());
     }
 
     @Override

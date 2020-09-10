@@ -11,7 +11,7 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.block.BlockFromToEvent;
 import org.cloudburstmc.server.event.block.LiquidFlowEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
@@ -49,8 +49,8 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         return null;
     }
 
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[0];
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[0];
     }
 
     @Override
@@ -59,7 +59,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean isBreakable(Item item) {
+    public boolean isBreakable(ItemStack item) {
         return false;
     }
 
@@ -514,8 +514,8 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(AIR, 0, 0);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(AIR, 0, 0);
     }
 
     public boolean usesWaterLogging() {

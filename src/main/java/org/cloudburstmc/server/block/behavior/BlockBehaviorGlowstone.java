@@ -1,9 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -27,17 +28,17 @@ public class BlockBehaviorGlowstone extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         Random random = new Random();
         int count = 2 + random.nextInt(3);
 
-        Enchantment fortune = hand.getEnchantment(Enchantment.ID_FORTUNE_DIGGING);
+        EnchantmentInstance fortune = hand.getEnchantment(CloudEnchantmentInstance.ID_FORTUNE_DIGGING);
         if (fortune != null && fortune.getLevel() >= 1) {
             count += random.nextInt(fortune.getLevel() + 1);
         }
 
-        return new Item[]{
-                Item.get(ItemIds.GLOWSTONE_DUST, 0, MathHelper.clamp(count, 1, 4))
+        return new ItemStack[]{
+                ItemStack.get(ItemIds.GLOWSTONE_DUST, 0, MathHelper.clamp(count, 1, 4))
         };
     }
 

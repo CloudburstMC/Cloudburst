@@ -5,8 +5,8 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.blockentity.Bed;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.locale.TranslationContainer;
@@ -36,7 +36,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         BlockState state = block.getState();
 
         BlockState head = null;
@@ -89,7 +89,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
         BlockRegistry registry = BlockRegistry.get();
 
@@ -116,7 +116,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         BlockState state = block.getState();
         boolean head = state.ensureTrait(BlockTraits.IS_HEAD_PIECE);
         Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
@@ -146,8 +146,8 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.BED, this.getDyeColor(block).getWoolData());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.BED, this.getDyeColor(block).getWoolData());
     }
 
     @Override

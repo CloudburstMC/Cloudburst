@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.dispenser;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 /**
  * @author CreeperFace
@@ -9,7 +9,7 @@ import org.cloudburstmc.server.item.behavior.Item;
 public class EmptyBucketDispenseBehavior implements DispenseBehavior {
 
     @Override
-    public void dispense(Block block, Item item) {
+    public void dispense(Block block, ItemStack item) {
 
     }
 }

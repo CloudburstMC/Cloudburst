@@ -13,7 +13,7 @@ import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.FallingBlock;
 import org.cloudburstmc.server.event.entity.EntityBlockChangeEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.gamerule.GameRules;
@@ -146,7 +146,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
                 BlockState blockState = b.getState();
                 if (blockState.getType() != AIR && blockState.inCategory(BlockCategory.TRANSPARENT) && !blockState.getBehavior().canBeReplaced(b)) {
                     if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-                        getLevel().dropItem(this.getPosition(), Item.get(this.getBlock()));
+                        getLevel().dropItem(this.getPosition(), ItemStack.get(this.getBlock()));
                     }
                 } else {
                     EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, b, this.getBlock());

@@ -9,9 +9,9 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.Banner;
 import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
@@ -41,7 +41,7 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.DOWN) {
             BlockState banner;
             if (face == Direction.UP) {
@@ -97,9 +97,9 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
+    public ItemStack toItem(Block block) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
-        Item item = Item.get(ItemIds.BANNER);
+        ItemStack item = ItemStack.get(ItemIds.BANNER);
         if (blockEntity instanceof Banner) {
             Banner banner = (Banner) blockEntity;
             item.setMeta(banner.getBase().getDyeData());

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory.transaction.action;
 
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -10,7 +10,7 @@ import org.cloudburstmc.server.player.Player;
  */
 public class CraftingTakeResultAction extends InventoryAction {
 
-    public CraftingTakeResultAction(Item sourceItem, Item targetItem) {
+    public CraftingTakeResultAction(ItemStack sourceItem, ItemStack targetItem) {
         super(sourceItem, targetItem);
     }
 

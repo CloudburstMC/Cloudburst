@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -30,13 +30,13 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().defaultState());
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{toItem(block)};
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{toItem(block)};
     }
 
     public boolean isPowerOn(BlockState state) {
@@ -44,7 +44,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
         val state = block.getState();
 
@@ -73,7 +73,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().getBehavior().isNormalBlock(target)) {
             return placeBlock(block, BlockState.get(BlockIds.LEVER)
                     .withTrait(
@@ -86,7 +86,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         super.onBreak(block, item);
 
         val state = block.getState();

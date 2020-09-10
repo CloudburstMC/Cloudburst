@@ -39,7 +39,7 @@ import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.event.entity.*;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.EnumLevel;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
@@ -1349,11 +1349,11 @@ public abstract class BaseEntity implements Entity, Metadatable {
         }
     }
 
-    public boolean onInteract(Player player, Item item, Vector3f clickedPos) {
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         return onInteract(player, item);
     }
 
-    public boolean onInteract(Player player, Item item) {
+    public boolean onInteract(Player player, ItemStack item) {
         return false;
     }
 

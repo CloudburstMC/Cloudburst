@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 
 public class BlockBehaviorButtonWooden extends BlockBehaviorButton {
 
@@ -11,6 +11,6 @@ public class BlockBehaviorButtonWooden extends BlockBehaviorButton {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 }

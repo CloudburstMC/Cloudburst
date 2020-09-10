@@ -11,9 +11,9 @@ import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Lectern;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.LecternDropBookEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -40,7 +40,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 
 //    @Override //TODO: bounding box
@@ -71,7 +71,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (placeBlock(block, BlockState.get(BlockIds.LECTERN).withTrait(
                 BlockTraits.DIRECTION,
                 player != null ? player.getHorizontalDirection() : Direction.NORTH)
@@ -85,7 +85,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             Lectern lectern;
@@ -95,10 +95,10 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
                 lectern = BlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, block);
             }
 
-            Item currentBook = lectern.getBook();
+            ItemStack currentBook = lectern.getBook();
             if (currentBook != null && currentBook.getId() == BlockIds.AIR) {
                 if (item.getId() == ItemIds.WRITTEN_BOOK || item.getId() == ItemIds.WRITABLE_BOOK) {
-                    Item newBook = item.clone();
+                    ItemStack newBook = item.clone();
                     if (player.isSurvival()) {
                         newBook.setCount(newBook.getCount() - 1);
                         player.getInventory().setItemInHand(newBook);
@@ -175,12 +175,12 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         if (blockEntity instanceof Lectern) {
             Lectern lectern = (Lectern) blockEntity;
-            Item book = lectern.getBook();
+            ItemStack book = lectern.getBook();
             if (book != null && book.getId() != BlockIds.AIR) {
                 LecternDropBookEvent dropBookEvent = new LecternDropBookEvent(player, lectern, book);
                 block.getLevel().getServer().getEventManager().fire(dropBookEvent);
                 if (!dropBookEvent.isCancelled()) {
-                    lectern.setBook(Item.get(BlockIds.AIR));
+                    lectern.setBook(ItemStack.get(BlockIds.AIR));
                     lectern.spawnToAll();
                     block.getLevel().dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
                 }

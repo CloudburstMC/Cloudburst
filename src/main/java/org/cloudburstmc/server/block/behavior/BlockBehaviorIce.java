@@ -6,8 +6,8 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.Player;
@@ -32,11 +32,11 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
-    public boolean onBreak(Block block, Item item, Player player) {
+    public boolean onBreak(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
         if (player.getGamemode() == GameMode.CREATIVE) {
             return removeBlock(block);
@@ -67,8 +67,8 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[0];
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[0];
     }
 
     @Override

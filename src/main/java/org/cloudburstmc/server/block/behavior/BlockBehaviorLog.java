@@ -6,8 +6,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -66,8 +66,8 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
-        if (!item.isAxe() || !item.useOn(block)) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        if (!item.isAxe() || !item.useOn(, block)) {
             return false;
         }
 
@@ -78,7 +78,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         // Convert the old log bark to the new wood block
         placeBlock(block, item.getBlock().withTrait(BlockTraits.AXIS, face.getAxis()));
         return true;
@@ -86,7 +86,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 
     @Override
@@ -105,7 +105,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().resetTrait(BlockTraits.AXIS));
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().resetTrait(BlockTraits.AXIS));
     }
 }

@@ -2,16 +2,16 @@ package org.cloudburstmc.server.event.block;
 
 import org.cloudburstmc.server.blockentity.Lectern;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 public class LecternPlaceBookEvent extends BlockEvent implements Cancellable {
 
     private final Player player;
     private final Lectern lectern;
-    private Item book;
+    private ItemStack book;
 
-    public LecternPlaceBookEvent(Player player, Lectern lectern, Item book) {
+    public LecternPlaceBookEvent(Player player, Lectern lectern, ItemStack book) {
         super(lectern.getBlock());
         this.player = player;
         this.lectern = lectern;
@@ -26,11 +26,11 @@ public class LecternPlaceBookEvent extends BlockEvent implements Cancellable {
         return player;
     }
 
-    public Item getBook() {
+    public ItemStack getBook() {
         return book.clone();
     }
 
-    public void setBook(Item book) {
+    public void setBook(ItemStack book) {
         this.book = book;
     }
 

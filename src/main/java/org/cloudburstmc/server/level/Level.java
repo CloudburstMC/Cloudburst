@@ -32,6 +32,8 @@ import org.cloudburstmc.server.block.behavior.BlockBehaviorRedstoneDiode;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorSlab;
 import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.blockentity.BlockEntity;
+import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.EntityTypes;
@@ -47,10 +49,9 @@ import org.cloudburstmc.server.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.server.event.level.*;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent;
 import org.cloudburstmc.server.event.weather.LightningStrikeEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemBucket;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemBucketBehavior;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkSection;
 import org.cloudburstmc.server.level.gamerule.GameRuleMap;
@@ -1546,27 +1547,27 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     @Nonnull
-    public DroppedItem dropItem(Vector3i source, Item item) {
+    public DroppedItem dropItem(Vector3i source, ItemStack item) {
         return this.dropItem(source.toFloat().add(0.5, 0.5, 0.5), item);
     }
 
     @Nonnull
-    public DroppedItem dropItem(Vector3f source, Item item) {
+    public DroppedItem dropItem(Vector3f source, ItemStack item) {
         return this.dropItem(source, item, null);
     }
 
     @Nonnull
-    public DroppedItem dropItem(Vector3f source, Item item, Vector3f motion) {
+    public DroppedItem dropItem(Vector3f source, ItemStack item, Vector3f motion) {
         return this.dropItem(source, item, motion, 10);
     }
 
     @Nonnull
-    public DroppedItem dropItem(Vector3f source, Item item, Vector3f motion, int delay) {
+    public DroppedItem dropItem(Vector3f source, ItemStack item, Vector3f motion, int delay) {
         return this.dropItem(source, item, motion, false, delay);
     }
 
     @Nonnull
-    public DroppedItem dropItem(Vector3f source, Item item, Vector3f motion, boolean dropAround, int delay) {
+    public DroppedItem dropItem(Vector3f source, ItemStack item, Vector3f motion, boolean dropAround, int delay) {
         checkNotNull(source, "source");
         checkNotNull(item, "item");
         checkArgument(!item.isNull(), "invalid item");
@@ -1597,39 +1598,39 @@ public class Level implements ChunkManager, Metadatable {
         return droppedItem;
     }
 
-    public Item useBreakOn(Vector3i pos) {
+    public ItemStack useBreakOn(Vector3i pos) {
         return this.useBreakOn(pos, null);
     }
 
-    public Item useBreakOn(Vector3i pos, Item item) {
+    public ItemStack useBreakOn(Vector3i pos, ItemStack item) {
         return this.useBreakOn(pos, item, null);
     }
 
-    public Item useBreakOn(Vector3i pos, Item item, Player player) {
+    public ItemStack useBreakOn(Vector3i pos, ItemStack item, Player player) {
         return this.useBreakOn(pos, item, player, false);
     }
 
-    public Item useBreakOn(Vector3i pos, Item item, Player player, boolean createParticles) {
+    public ItemStack useBreakOn(Vector3i pos, ItemStack item, Player player, boolean createParticles) {
         return useBreakOn(pos, null, item, player, createParticles);
     }
 
-    public Item useBreakOn(Vector3i pos, Direction face, Item item, Player player, boolean createParticles) {
+    public ItemStack useBreakOn(Vector3i pos, Direction face, ItemStack item, Player player, boolean createParticles) {
         if (player != null && player.getGamemode() == GameMode.SPECTATOR) {
             return null;
         }
         Block target = this.getBlock(pos);
-        Item[] drops;
+        ItemStack[] drops;
         BlockBehavior targetBehavior = target.getState().getBehavior();
         int dropExp = targetBehavior.getDropExp();
 
         if (item == null) {
-            item = Item.get(BlockIds.AIR, 0, 0);
+            item = ItemStack.get(BlockIds.AIR, 0, 0);
         }
 
-        boolean isSilkTouch = item.getEnchantment(Enchantment.ID_SILK_TOUCH) != null;
+        boolean isSilkTouch = item.getEnchantment(CloudEnchantmentInstance.ID_SILK_TOUCH) != null;
 
         if (player != null) {
-            if (player.getGamemode() == GameMode.ADVENTURE && !item.canDestroy(target.getState().getType())) {
+            if (player.getGamemode() == GameMode.ADVENTURE && !item.canDestroy(, target.getState().getType())) {
                 return null;
             }
 
@@ -1650,7 +1651,7 @@ public class Level implements ChunkManager, Metadatable {
                 breakTime *= 1 - (0.3 * (player.getEffect(Effect.MINING_FATIGUE).getAmplifier() + 1));
             }
 
-            Enchantment eff = item.getEnchantment(Enchantment.ID_EFFICIENCY);
+            EnchantmentInstance eff = item.getEnchantment(CloudEnchantmentInstance.ID_EFFICIENCY);
 
             if (eff != null && eff.getLevel() > 0) {
                 breakTime *= 1 - (0.3 * eff.getLevel());
@@ -1658,11 +1659,11 @@ public class Level implements ChunkManager, Metadatable {
 
             breakTime -= 0.15;
 
-            Item[] eventDrops;
+            ItemStack[] eventDrops;
             if (!player.isSurvival()) {
-                eventDrops = new Item[0];
+                eventDrops = new ItemStack[0];
             } else if (isSilkTouch && targetBehavior.canSilkTouch()) {
-                eventDrops = new Item[]{targetBehavior.toItem(target)};
+                eventDrops = new ItemStack[]{targetBehavior.toItem(target)};
             } else {
                 eventDrops = targetBehavior.getDrops(target, item);
             }
@@ -1691,8 +1692,8 @@ public class Level implements ChunkManager, Metadatable {
             dropExp = ev.getDropExp();
         } else if (!targetBehavior.isBreakable(item)) {
             return null;
-        } else if (item.getEnchantment(Enchantment.ID_SILK_TOUCH) != null) {
-            drops = new Item[]{targetBehavior.toItem(target)};
+        } else if (item.getEnchantment(CloudEnchantmentInstance.ID_SILK_TOUCH) != null) {
+            drops = new ItemStack[]{targetBehavior.toItem(target)};
         } else {
             drops = targetBehavior.getDrops(target, item);
         }
@@ -1722,9 +1723,9 @@ public class Level implements ChunkManager, Metadatable {
 
         targetBehavior.onBreak(target, item, player);
 
-        item.useOn(target);
+        item.useOn(, target);
         if (item.isTool() && item.getMeta() >= item.getMaxDurability()) {
-            item = Item.get(BlockIds.AIR, 0, 0);
+            item = ItemStack.get(BlockIds.AIR, 0, 0);
         }
 
         if (this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
@@ -1733,7 +1734,7 @@ public class Level implements ChunkManager, Metadatable {
             }
 
             if (player == null || player.isSurvival()) {
-                for (Item drop : drops) {
+                for (ItemStack drop : drops) {
                     if (drop.getCount() > 0) {
                         this.dropItem(pos.add(0.5, 0.5, 0.5), drop);
                     }
@@ -1771,16 +1772,16 @@ public class Level implements ChunkManager, Metadatable {
         }
     }
 
-    public Item useItemOn(Vector3i vector, Item item, Direction face, Vector3f clickPos) {
+    public ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos) {
         return this.useItemOn(vector, item, face, clickPos, null);
     }
 
-    public Item useItemOn(Vector3i vector, Item item, Direction face, Vector3f clickPos, Player player) {
+    public ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos, Player player) {
         return this.useItemOn(vector, item, face, clickPos, player, true);
     }
 
 
-    public Item useItemOn(Vector3i vector, Item item, Direction face, Vector3f clickPos, Player player, boolean playSound) {
+    public ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos, Player player, boolean playSound) {
         Block target = this.getBlock(vector);
         BlockBehavior targetBehavior = target.getState().getBehavior();
         Block block = target.getSide(face);
@@ -1811,26 +1812,26 @@ public class Level implements ChunkManager, Metadatable {
                 targetBehavior.onUpdate(target, BLOCK_UPDATE_TOUCH);
                 if ((!player.isSneaking() || player.getInventory().getItemInHand().isNull()) && targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item, player)) {
                     if (item.isTool() && item.getMeta() >= item.getMaxDurability()) {
-                        item = Item.get(BlockIds.AIR, 0, 0);
+                        item = ItemStack.get(BlockIds.AIR, 0, 0);
                     }
                     return item;
                 }
 
-                if (item.canBeActivated() && item.onActivate(this, player, block, target, face, clickPos)) {
+                if (item.canBeActivated() && item.onActivate(, player, block, target, face, clickPos, this)) {
                     if (item.getCount() <= 0) {
-                        item = Item.get(BlockIds.AIR, 0, 0);
+                        item = ItemStack.get(BlockIds.AIR, 0, 0);
                         return item;
                     }
                 }
             } else {
-                if (item.getId() == ItemIds.BUCKET && ItemBucket.getBlockIdFromDamage(item.getMeta()) == BlockIds.FLOWING_WATER) {
+                if (item.getId() == ItemIds.BUCKET && ItemBucketBehavior.getBlockIdFromDamage(item.getMeta()) == BlockIds.FLOWING_WATER) {
                     player.getLevel().sendBlocks(new Player[]{player}, new Block[]{new CloudBlock(this, block.getPosition(), new BlockState[]{BlockStates.AIR, BlockStates.AIR})}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
                 }
                 return null;
             }
         } else if (targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item)) {
             if (item.isTool() && item.getMeta() >= item.getMaxDurability()) {
-                item = Item.get(BlockIds.AIR, 0, 0);
+                item = ItemStack.get(BlockIds.AIR, 0, 0);
             }
             return item;
         }
@@ -1880,7 +1881,7 @@ public class Level implements ChunkManager, Metadatable {
 
         if (player != null) {
             BlockPlaceEvent event = new BlockPlaceEvent(player, hand, block, target, item);
-            if (player.getGamemode() == GameMode.ADVENTURE && item.canPlaceOn(target.getState().getType())) {
+            if (player.getGamemode() == GameMode.ADVENTURE && item.canPlaceOn(, target.getState().getType())) {
                 event.setCancelled();
             }
             if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
@@ -1934,7 +1935,7 @@ public class Level implements ChunkManager, Metadatable {
         }
 
         if (item.getCount() <= 0) {
-            item = Item.get(BlockIds.AIR, 0, 0);
+            item = ItemStack.get(BlockIds.AIR, 0, 0);
         }
         return item;
     }

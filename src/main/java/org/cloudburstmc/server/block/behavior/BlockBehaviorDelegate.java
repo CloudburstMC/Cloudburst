@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -32,7 +32,7 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean isBreakable(Item item) {
+    public boolean isBreakable(ItemStack item) {
         return parent.isBreakable(item);
     }
 
@@ -47,12 +47,12 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item) {
+    public boolean onActivate(Block block, ItemStack item) {
         return parent.onActivate(block, item);
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         return parent.onActivate(block, item, player);
     }
 
@@ -152,17 +152,17 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         return parent.place(item, block, target, face, clickPos, player);
     }
 
     @Override
-    public boolean placeBlock(Block block, Item item) {
+    public boolean placeBlock(Block block, ItemStack item) {
         return parent.placeBlock(block, item);
     }
 
     @Override
-    public boolean placeBlock(Block block, Item item, boolean update) {
+    public boolean placeBlock(Block block, ItemStack item, boolean update) {
         return parent.placeBlock(block, item, update);
     }
 
@@ -177,12 +177,12 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         return parent.onBreak(block, item);
     }
 
     @Override
-    public boolean onBreak(Block block, Item item, Player player) {
+    public boolean onBreak(Block block, ItemStack item, Player player) {
         return parent.onBreak(block, item, player);
     }
 
@@ -212,23 +212,23 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         return parent.getDrops(block, hand);
     }
 
     @Override
-    public float getBreakTime(BlockState state, Item item, Player player) {
+    public float getBreakTime(BlockState state, ItemStack item, Player player) {
         return parent.getBreakTime(state, item, player);
     }
 
     @Override
-    public boolean canBeBrokenWith(Item item) {
+    public boolean canBeBrokenWith(ItemStack item) {
         return parent.canBeBrokenWith(item);
     }
 
     @Override
     @Deprecated
-    public float getBreakTime(Item item) {
+    public float getBreakTime(ItemStack item) {
         return parent.getBreakTime(item);
     }
 
@@ -293,7 +293,7 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
+    public ItemStack toItem(Block block) {
         return parent.toItem(block);
     }
 

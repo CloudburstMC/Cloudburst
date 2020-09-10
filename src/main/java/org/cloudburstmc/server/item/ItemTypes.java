@@ -3,7 +3,6 @@ package org.cloudburstmc.server.item;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.item.data.Coal;
 import org.cloudburstmc.server.item.data.Damageable;
@@ -61,10 +60,10 @@ public class ItemTypes {
     public static final ItemType SEEDS = IntItem.builder().id(ItemIds.WHEAT_SEEDS).maxStackSize(64).build();
     public static final ItemType WHEAT = IntItem.builder().id(ItemIds.WHEAT).maxStackSize(64).build();
     public static final ItemType BREAD = IntItem.builder().id(ItemIds.BREAD).maxStackSize(64).build();
-    public static final ItemType LEATHER_CAP = IntItem.builder().id(ItemIds.LEATHER_HELMET).maxStackSize(1).tierType(TierTypes.LEATHER).build();
-    public static final ItemType LEATHER_TUNIC = IntItem.builder().id(ItemIds.LEATHER_CHESTPLATE).maxStackSize(1).tierType(TierTypes.LEATHER).build();
-    public static final ItemType LEATHER_PANTS = IntItem.builder().id(ItemIds.LEATHER_LEGGINGS).maxStackSize(1).tierType(TierTypes.LEATHER).build();
-    public static final ItemType LEATHER_BOOTS = IntItem.builder().id(ItemIds.LEATHER_BOOTS).maxStackSize(1).tierType(TierTypes.LEATHER).build();
+    public static final ItemType LEATHER_CAP = IntItem.builder().id(ItemIds.LEATHER_HELMET).maxStackSize(1).tierType(TierTypes.LEATHER).build(); //TODO: color meta
+    public static final ItemType LEATHER_TUNIC = IntItem.builder().id(ItemIds.LEATHER_CHESTPLATE).maxStackSize(1).tierType(TierTypes.LEATHER).build(); //TODO: color meta
+    public static final ItemType LEATHER_PANTS = IntItem.builder().id(ItemIds.LEATHER_LEGGINGS).maxStackSize(1).tierType(TierTypes.LEATHER).build(); //TODO: color meta
+    public static final ItemType LEATHER_BOOTS = IntItem.builder().id(ItemIds.LEATHER_BOOTS).maxStackSize(1).tierType(TierTypes.LEATHER).build(); //TODO: color meta
     public static final ItemType CHAIN_HELMET = IntItem.builder().id(ItemIds.CHAINMAIL_HELMET).maxStackSize(1).tierType(CHAINMAIL).build();
     public static final ItemType CHAIN_CHESTPLATE = IntItem.builder().id(ItemIds.CHAINMAIL_CHESTPLATE).maxStackSize(1).tierType(CHAINMAIL).build();
     public static final ItemType CHAIN_LEGGINGS = IntItem.builder().id(ItemIds.CHAINMAIL_LEGGINGS).maxStackSize(1).tierType(CHAINMAIL).build();
@@ -157,7 +156,7 @@ public class ItemTypes {
     public static final ItemType POISONOUS_POTATO = IntItem.builder().id(ItemIds.POISONOUS_POTATO).maxStackSize(64).build();
     public static final ItemType EMPTY_MAP = IntItem.builder().id(ItemIds.EMPTY_MAP).maxStackSize(64).build();
     public static final ItemType GOLDEN_CARROT = IntItem.builder().id(ItemIds.GOLDEN_CARROT).maxStackSize(64).build();
-    public static final ItemType MOB_HEAD = IntItem.builder().id(ItemIds.SKULL).maxStackSize(64).build();
+    public static final ItemType SKULL = IntItem.builder().id(ItemIds.SKULL).maxStackSize(64).build(); //TODO: skull type
     public static final ItemType CARROT_ON_A_STICK = IntItem.builder().id(ItemIds.CARROT_ON_A_STICK).maxStackSize(1).build();
     public static final ItemType NETHER_STAR = IntItem.builder().id(ItemIds.NETHER_STAR).maxStackSize(64).build();
     public static final ItemType PUMPKIN_PIE = IntItem.builder().id(ItemIds.PUMPKIN_PIE).maxStackSize(64).build();
@@ -205,6 +204,7 @@ public class ItemTypes {
     public static final ItemType IRON_NUGGET = IntItem.builder().id(ItemIds.IRON_NUGGET).maxStackSize(64).build();
     public static final ItemType CHALKBOARD = IntItem.builder().id(ItemIds.BOARD).maxStackSize(16).build();
     public static final ItemType PORTFOLIO = IntItem.builder().id(ItemIds.PORTFOLIO).maxStackSize(64).build();
+    public static final ItemType TRIDENT = IntItem.builder().id(ItemIds.TRIDENT).maxStackSize(64).build();
     public static final ItemType BEETROOT = IntItem.builder().id(ItemIds.BEETROOT).maxStackSize(54).build();
     public static final ItemType BEETROOT_SEEDS = IntItem.builder().id(ItemIds.BEETROOT_SEEDS).maxStackSize(64).build();
     public static final ItemType BEETROOT_SOUP = IntItem.builder().id(ItemIds.BEETROOT_SOUP).maxStackSize(1).build();
@@ -254,7 +254,6 @@ public class ItemTypes {
         private final int durability;
         private final int fuelTime;
         private final int enchantAbility;
-        private final Class<?> data;
         private final Optional<ToolType> toolType;
         private final Optional<TierType> tierType;
 
@@ -278,7 +277,6 @@ public class ItemTypes {
             this.toughness = toughness;
             this.fuelTime = fuelTime;
             this.enchantAbility = enchantAbility;
-            this.data = data;
             this.toolType = Optional.ofNullable(toolType);
             this.tierType = Optional.ofNullable(tierType);
 
@@ -303,11 +301,6 @@ public class ItemTypes {
         @Override
         public boolean isBlock() {
             return false;
-        }
-
-        @Override
-        public Class<?> getMetadataClass() {
-            return this.data;
         }
 
         @Override

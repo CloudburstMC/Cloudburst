@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.server.block.BlockIds.AIR;
@@ -19,7 +19,7 @@ public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean isBreakable(Item item) {
+    public boolean isBreakable(ItemStack item) {
         return false;
     }
 
@@ -34,7 +34,7 @@ public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(AIR, 0, 0);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(AIR, 0, 0);
     }
 }

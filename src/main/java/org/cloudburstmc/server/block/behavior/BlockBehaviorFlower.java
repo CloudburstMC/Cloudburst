@@ -6,7 +6,7 @@ import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -16,12 +16,12 @@ import org.cloudburstmc.server.utils.BlockColor;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockIds.*;
-import static org.cloudburstmc.server.item.behavior.ItemIds.DYE;
+import static org.cloudburstmc.server.item.ItemIds.DYE;
 
 public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val down = block.down().getState().getType();
         if (down == GRASS || down == DIRT || down == FARMLAND || down == PODZOL) {
             placeBlock(block, getUncommonFlower());
@@ -54,7 +54,7 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getId() == DYE && item.getMeta() == 0x0f) { //Bone meal
             val level = block.getLevel();
             if (player != null && player.getGamemode().isSurvival()) {

@@ -6,7 +6,7 @@ import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
@@ -18,12 +18,12 @@ import org.cloudburstmc.server.utils.BlockColor;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.server.block.BlockIds.*;
-import static org.cloudburstmc.server.item.behavior.ItemIds.DYE;
+import static org.cloudburstmc.server.item.ItemIds.DYE;
 
 public class BlockBehaviorSapling extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val type = block.down().getState().getType();
         if (type == GRASS || type == DIRT || type == FARMLAND || type == PODZOL) {
             placeBlock(block, item);
@@ -38,7 +38,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
         return true;
     }
 
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getId() == DYE && item.getMeta() == 0x0F) { //BoneMeal
             if (player != null && player.getGamemode().isSurvival()) {
                 item.decrementCount();
@@ -143,8 +143,8 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().resetTrait(BlockTraits.HAS_AGE));
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().resetTrait(BlockTraits.HAS_AGE));
     }
 
     @Override

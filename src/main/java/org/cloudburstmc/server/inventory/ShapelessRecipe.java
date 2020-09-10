@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.*;
@@ -13,14 +13,14 @@ import java.util.*;
 public class ShapelessRecipe implements CraftingRecipe {
 
     private final String recipeId;
-    private final Item output;
-    private final List<Item> ingredients;
+    private final ItemStack output;
+    private final List<ItemStack> ingredients;
     private final int priority;
     private final Identifier block;
 
     private UUID id;
 
-    public ShapelessRecipe(String recipeId, int priority, Item result, Collection<Item> ingredients, Identifier block) {
+    public ShapelessRecipe(String recipeId, int priority, ItemStack result, Collection<ItemStack> ingredients, Identifier block) {
         this.recipeId = recipeId;
         this.priority = priority;
         this.output = result.clone();
@@ -31,7 +31,7 @@ public class ShapelessRecipe implements CraftingRecipe {
 
         this.ingredients = new ArrayList<>();
 
-        for (Item item : ingredients) {
+        for (ItemStack item : ingredients) {
             if (item.getCount() < 1) {
                 throw new IllegalArgumentException("Recipe '" + recipeId + "' Ingredient amount was not 1 (value: " + item.getCount() + ")");
             }
@@ -40,7 +40,7 @@ public class ShapelessRecipe implements CraftingRecipe {
     }
 
     @Override
-    public Item getResult() {
+    public ItemStack getResult() {
         return this.output.clone();
     }
 
@@ -59,9 +59,9 @@ public class ShapelessRecipe implements CraftingRecipe {
         this.id = id;
     }
 
-    public List<Item> getIngredientList() {
-        List<Item> ingredients = new ArrayList<>();
-        for (Item ingredient : this.ingredients) {
+    public List<ItemStack> getIngredientList() {
+        List<ItemStack> ingredients = new ArrayList<>();
+        for (ItemStack ingredient : this.ingredients) {
             ingredients.add(ingredient.clone());
         }
 
@@ -88,12 +88,12 @@ public class ShapelessRecipe implements CraftingRecipe {
     }
 
     @Override
-    public List<Item> getExtraResults() {
+    public List<ItemStack> getExtraResults() {
         return new ArrayList<>();
     }
 
     @Override
-    public List<Item> getAllResults() {
+    public List<ItemStack> getAllResults() {
         return Collections.singletonList(this.getResult());
     }
 
@@ -103,33 +103,33 @@ public class ShapelessRecipe implements CraftingRecipe {
     }
 
     @Override
-    public boolean matchItems(Item[][] input, Item[][] output) {
-        List<Item> haveInputs = new ArrayList<>();
-        for (Item[] items : input) {
+    public boolean matchItems(ItemStack[][] input, ItemStack[][] output) {
+        List<ItemStack> haveInputs = new ArrayList<>();
+        for (ItemStack[] items : input) {
             haveInputs.addAll(Arrays.asList(items));
         }
         haveInputs.sort(CraftingManager.recipeComparator);
 
-        List<Item> needInputs = this.getIngredientList();
+        List<ItemStack> needInputs = this.getIngredientList();
 
         if (!this.matchItemList(haveInputs, needInputs)) {
             return false;
         }
 
-        List<Item> haveOutputs = new ArrayList<>();
-        for (Item[] items : output) {
+        List<ItemStack> haveOutputs = new ArrayList<>();
+        for (ItemStack[] items : output) {
             haveOutputs.addAll(Arrays.asList(items));
         }
         haveOutputs.sort(CraftingManager.recipeComparator);
-        List<Item> needOutputs = this.getExtraResults();
+        List<ItemStack> needOutputs = this.getExtraResults();
 
         return this.matchItemList(haveOutputs, needOutputs);
     }
 
 
-    private boolean matchItemList(List<Item> haveItems, List<Item> needItems) {
+    private boolean matchItemList(List<ItemStack> haveItems, List<ItemStack> needItems) {
         // Remove any air blocks that may have gotten through.
-        haveItems.removeIf(Item::isNull);
+        haveItems.removeIf(ItemStack::isNull);
 
         if (haveItems.size() != needItems.size()) {
             return false;
@@ -138,8 +138,8 @@ public class ShapelessRecipe implements CraftingRecipe {
         int size = needItems.size();
         int completed = 0;
         for (int i = 0; i < size; i++) {
-            Item haveItem = haveItems.get(i);
-            Item needItem = needItems.get(i);
+            ItemStack haveItem = haveItems.get(i);
+            ItemStack needItem = needItems.get(i);
 
             if (needItem.equals(haveItem, needItem.hasMeta(), needItem.hasNbtMap())) {
                 completed++;
@@ -156,7 +156,7 @@ public class ShapelessRecipe implements CraftingRecipe {
 
     @Override
     public CraftingData toNetwork(int netId) {
-        return CraftingData.fromShapeless(this.recipeId, Item.toNetwork(this.getIngredientList()),
-                Item.toNetwork(this.getAllResults()), this.id, this.block.getName(), this.priority, netId);
+        return CraftingData.fromShapeless(this.recipeId, ItemStack.toNetwork(this.getIngredientList()),
+                ItemStack.toNetwork(this.getAllResults()), this.id, this.block.getName(), this.priority, netId);
     }
 }

@@ -6,8 +6,8 @@ import org.cloudburstmc.server.event.inventory.CraftItemEvent;
 import org.cloudburstmc.server.inventory.BigCraftingGrid;
 import org.cloudburstmc.server.inventory.CraftingRecipe;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.scheduler.Task;
 import org.cloudburstmc.server.utils.Identifier;
@@ -24,11 +24,11 @@ public class CraftingTransaction extends InventoryTransaction {
 
     protected int gridSize;
 
-    protected Item[][] inputs;
+    protected ItemStack[][] inputs;
 
-    protected Item[][] secondaryOutputs;
+    protected ItemStack[][] secondaryOutputs;
 
-    protected Item primaryOutput;
+    protected ItemStack primaryOutput;
 
     protected CraftingRecipe recipe;
 
@@ -36,21 +36,21 @@ public class CraftingTransaction extends InventoryTransaction {
         super(source, actions, false);
 
         this.gridSize = (source.getCraftingGrid() instanceof BigCraftingGrid) ? 3 : 2;
-        Item air = Item.get(AIR, 0, 1);
-        this.inputs = new Item[gridSize][gridSize];
-        for (Item[] a : this.inputs) {
+        ItemStack air = ItemStack.get(AIR, 0, 1);
+        this.inputs = new ItemStack[gridSize][gridSize];
+        for (ItemStack[] a : this.inputs) {
             Arrays.fill(a, air);
         }
 
-        this.secondaryOutputs = new Item[gridSize][gridSize];
-        for (Item[] a : this.secondaryOutputs) {
+        this.secondaryOutputs = new ItemStack[gridSize][gridSize];
+        for (ItemStack[] a : this.secondaryOutputs) {
             Arrays.fill(a, air);
         }
 
         init(source, actions);
     }
 
-    public void setInput(int index, Item item) {
+    public void setInput(int index, ItemStack item) {
         int y = index / this.gridSize;
         int x = index % this.gridSize;
 
@@ -61,11 +61,11 @@ public class CraftingTransaction extends InventoryTransaction {
         }
     }
 
-    public Item[][] getInputMap() {
+    public ItemStack[][] getInputMap() {
         return inputs;
     }
 
-    public void setExtraOutput(int index, Item item) {
+    public void setExtraOutput(int index, ItemStack item) {
         int y = (index / this.gridSize);
         int x = index % gridSize;
 
@@ -76,11 +76,11 @@ public class CraftingTransaction extends InventoryTransaction {
         }
     }
 
-    public Item getPrimaryOutput() {
+    public ItemStack getPrimaryOutput() {
         return primaryOutput;
     }
 
-    public void setPrimaryOutput(Item item) {
+    public void setPrimaryOutput(ItemStack item) {
         if (primaryOutput == null) {
             primaryOutput = item.clone();
         } else if (!primaryOutput.equals(item)) {
@@ -92,7 +92,7 @@ public class CraftingTransaction extends InventoryTransaction {
         return recipe;
     }
 
-    private Item[][] reindexInputs() {
+    private ItemStack[][] reindexInputs() {
         int xMin = gridSize - 1;
         int yMin = gridSize - 1;
 
@@ -100,10 +100,10 @@ public class CraftingTransaction extends InventoryTransaction {
         int yMax = 0;
 
         for (int y = 0; y < this.inputs.length; y++) {
-            Item[] row = this.inputs[y];
+            ItemStack[] row = this.inputs[y];
 
             for (int x = 0; x < row.length; x++) {
-                Item item = row[x];
+                ItemStack item = row[x];
 
                 if (!item.isNull()) {
                     xMin = Math.min(x, xMin);
@@ -119,10 +119,10 @@ public class CraftingTransaction extends InventoryTransaction {
         final int width = xMax - xMin + 1;
 
         if (height < 1 || width < 1) {
-            return new Item[0][];
+            return new ItemStack[0][];
         }
 
-        Item[][] reindexed = new Item[height][width];
+        ItemStack[][] reindexed = new ItemStack[height][width];
 
         for (int y = yMin, i = 0; y <= yMax; y++, i++) {
             System.arraycopy(inputs[y], xMin, reindexed[i], 0, width);
@@ -132,7 +132,7 @@ public class CraftingTransaction extends InventoryTransaction {
     }
 
     public boolean canExecute() {
-        Item[][] inputs = reindexInputs();
+        ItemStack[][] inputs = reindexInputs();
 
         recipe = source.getServer().getCraftingManager().matchRecipe(inputs, this.primaryOutput, this.secondaryOutputs);
 

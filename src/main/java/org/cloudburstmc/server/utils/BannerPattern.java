@@ -1,20 +1,17 @@
 package org.cloudburstmc.server.utils;
 
 import com.nukkitx.nbt.NbtMap;
+import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@RequiredArgsConstructor
 public class BannerPattern {
 
     private final Type type;
     private final DyeColor color;
-
-    public BannerPattern(Type type, DyeColor color) {
-        this.type = type;
-        this.color = color;
-    }
 
     public static BannerPattern fromNbtMap(NbtMap nbt) {
         return new BannerPattern(Type.getByName(nbt.containsKey("Pattern") ? nbt.getString("Pattern") : ""),

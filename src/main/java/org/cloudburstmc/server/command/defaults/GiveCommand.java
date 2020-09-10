@@ -7,7 +7,7 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.TextFormat;
@@ -56,10 +56,10 @@ public class GiveCommand extends Command {
         }
 
         Player player = sender.getServer().getPlayer(args[0]);
-        Item item;
+        ItemStack item;
 
         try {
-            item = Item.fromString(args[1]);
+            item = ItemStack.fromString(args[1]);
         } catch (Exception e) {
             log.throwing(e);
             return false;

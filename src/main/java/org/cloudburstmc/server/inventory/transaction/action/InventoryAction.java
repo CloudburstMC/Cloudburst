@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory.transaction.action;
 
 import lombok.ToString;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -14,11 +14,11 @@ public abstract class InventoryAction {
 
     private long creationTime;
 
-    protected Item sourceItem;
+    protected ItemStack sourceItem;
 
-    protected Item targetItem;
+    protected ItemStack targetItem;
 
-    public InventoryAction(Item sourceItem, Item targetItem) {
+    public InventoryAction(ItemStack sourceItem, ItemStack targetItem) {
         this.sourceItem = sourceItem;
         this.targetItem = targetItem;
 
@@ -34,7 +34,7 @@ public abstract class InventoryAction {
      *
      * @return source item
      */
-    public Item getSourceItem() {
+    public ItemStack getSourceItem() {
         return sourceItem.clone();
     }
 
@@ -43,7 +43,7 @@ public abstract class InventoryAction {
      *
      * @return target item
      */
-    public Item getTargetItem() {
+    public ItemStack getTargetItem() {
         return targetItem.clone();
     }
 

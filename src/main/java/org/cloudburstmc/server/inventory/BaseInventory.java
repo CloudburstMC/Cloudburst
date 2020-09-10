@@ -8,7 +8,7 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.server.event.inventory.InventoryOpenEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.*;
@@ -31,7 +31,7 @@ public abstract class BaseInventory implements Inventory {
 
     protected final String title;
 
-    public final Map<Integer, Item> slots = new HashMap<>();
+    public final Map<Integer, ItemStack> slots = new HashMap<>();
 
     protected final Set<Player> viewers = new HashSet<>();
 
@@ -41,15 +41,15 @@ public abstract class BaseInventory implements Inventory {
         this(holder, type, new HashMap<>());
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items) {
+    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items) {
         this(holder, type, items, null);
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items, Integer overrideSize) {
+    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize) {
         this(holder, type, items, overrideSize, null);
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items, Integer overrideSize, String overrideTitle) {
+    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize, String overrideTitle) {
         this.holder = holder;
 
         this.type = type;
@@ -98,26 +98,26 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public Item getItem(int index) {
-        return this.slots.containsKey(index) ? this.slots.get(index).clone() : Item.get(AIR, 0, 0);
+    public ItemStack getItem(int index) {
+        return this.slots.containsKey(index) ? this.slots.get(index).clone() : ItemStack.get(AIR, 0, 0);
     }
 
     @Override
-    public Map<Integer, Item> getContents() {
+    public Map<Integer, ItemStack> getContents() {
         return new HashMap<>(this.slots);
     }
 
     @Override
-    public void setContents(Map<Integer, Item> items) {
+    public void setContents(Map<Integer, ItemStack> items) {
         if (items.size() > this.size) {
-            TreeMap<Integer, Item> newItems = new TreeMap<>();
-            for (Map.Entry<Integer, Item> entry : items.entrySet()) {
+            TreeMap<Integer, ItemStack> newItems = new TreeMap<>();
+            for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
                 newItems.put(entry.getKey(), entry.getValue());
             }
             items = newItems;
             newItems = new TreeMap<>();
             int i = 0;
-            for (Map.Entry<Integer, Item> entry : items.entrySet()) {
+            for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
                 newItems.put(entry.getKey(), entry.getValue());
                 i++;
                 if (i >= this.size) {
@@ -141,7 +141,7 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public boolean setItem(int index, Item item, boolean send) {
+    public boolean setItem(int index, ItemStack item, boolean send) {
         item = item.clone();
         if (index < 0 || index >= this.size) {
             return false;
@@ -165,7 +165,7 @@ public abstract class BaseInventory implements Inventory {
             ((BlockEntity) holder).setDirty();
         }
 
-        Item old = this.getItem(index);
+        ItemStack old = this.getItem(index);
         this.slots.put(index, item.clone());
         this.onSlotChange(index, old, send);
 
@@ -173,11 +173,11 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public boolean contains(Item item) {
+    public boolean contains(ItemStack item) {
         int count = Math.max(1, item.getCount());
         boolean checkDamage = item.hasMeta() && item.getMeta() >= 0;
         boolean checkTag = item.hasNbtMap();
-        for (Item i : this.getContents().values()) {
+        for (ItemStack i : this.getContents().values()) {
             if (item.equals(i, checkDamage, checkTag)) {
                 count -= i.getCount();
                 if (count <= 0) {
@@ -190,11 +190,11 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public Map<Integer, Item> all(Item item) {
-        Map<Integer, Item> slots = new HashMap<>();
+    public Map<Integer, ItemStack> all(ItemStack item) {
+        Map<Integer, ItemStack> slots = new HashMap<>();
         boolean checkDamage = item.hasMeta() && item.getMeta() >= 0;
         boolean checkTag = item.hasNbtMap();
-        for (Map.Entry<Integer, Item> entry : this.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : this.getContents().entrySet()) {
             if (item.equals(entry.getValue(), checkDamage, checkTag)) {
                 slots.put(entry.getKey(), entry.getValue());
             }
@@ -204,10 +204,10 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public void remove(Item item) {
+    public void remove(ItemStack item) {
         boolean checkDamage = item.hasMeta();
         boolean checkTag = item.hasNbtMap();
-        for (Map.Entry<Integer, Item> entry : this.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : this.getContents().entrySet()) {
             if (item.equals(entry.getValue(), checkDamage, checkTag)) {
                 this.clear(entry.getKey());
             }
@@ -215,11 +215,11 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public int first(Item item, boolean exact) {
+    public int first(ItemStack item, boolean exact) {
         int count = Math.max(1, item.getCount());
         boolean checkDamage = item.hasMeta();
         boolean checkTag = item.hasNbtMap();
-        for (Map.Entry<Integer, Item> entry : this.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : this.getContents().entrySet()) {
             if (item.equals(entry.getValue(), checkDamage, checkTag) && (entry.getValue().getCount() == count || (!exact && entry.getValue().getCount() > count))) {
                 return entry.getKey();
             }
@@ -251,11 +251,11 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public int firstFit(Item item, boolean single) {
+    public int firstFit(ItemStack item, boolean single) {
         int count = single ? 1 : item.getCount();
 
         for (int i = 0; i < this.size; ++i) {
-            Item slot = this.getItem(i);
+            ItemStack slot = this.getItem(i);
             if (slot.getCount() + count < item.getMaxStackSize() && slot.equals(item)) {
                 return i;
             }
@@ -265,8 +265,8 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public void decreaseCount(int slot) {
-        Item item = this.getItem(slot);
+    public void decrementCount(int slot) {
+        ItemStack item = this.getItem(slot);
 
         if (item.getCount() > 0) {
             item.decrementCount();
@@ -275,8 +275,8 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public void increaseCount(int slot) {
-        Item item = this.getItem(slot);
+    public void incrementCount(int slot) {
+        ItemStack item = this.getItem(slot);
 
         if (item.getId() != AIR) {
             item.incrementCount();
@@ -285,12 +285,12 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public boolean canAddItem(Item item) {
+    public boolean canAddItem(ItemStack item) {
         item = item.clone();
         boolean checkDamage = item.hasMeta();
         boolean checkTag = item.hasNbtMap();
         for (int i = 0; i < this.getSize(); ++i) {
-            Item slot = this.getItem(i);
+            ItemStack slot = this.getItem(i);
             if (item.equals(slot, checkDamage, checkTag)) {
                 int diff;
                 if ((diff = slot.getMaxStackSize() - slot.getCount()) > 0) {
@@ -309,9 +309,9 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public Item[] addItem(Item... slots) {
-        List<Item> itemSlots = new ArrayList<>();
-        for (Item slot : slots) {
+    public ItemStack[] addItem(ItemStack... slots) {
+        List<ItemStack> itemSlots = new ArrayList<>();
+        for (ItemStack slot : slots) {
             if (slot.getId() != AIR && slot.getCount() > 0) {
                 itemSlots.add(slot.clone());
             }
@@ -320,12 +320,12 @@ public abstract class BaseInventory implements Inventory {
         List<Integer> emptySlots = new ArrayList<>();
 
         for (int i = 0; i < this.getSize(); ++i) {
-            Item item = this.getItem(i);
+            ItemStack item = this.getItem(i);
             if (item.getId() == AIR || item.getCount() <= 0) {
                 emptySlots.add(i);
             }
 
-            for (Item slot : new ArrayList<>(itemSlots)) {
+            for (ItemStack slot : new ArrayList<>(itemSlots)) {
                 if (slot.equals(item) && item.getCount() < item.getMaxStackSize()) {
                     int amount = Math.min(item.getMaxStackSize() - item.getCount(), slot.getCount());
                     amount = Math.min(amount, this.getMaxStackSize());
@@ -347,11 +347,11 @@ public abstract class BaseInventory implements Inventory {
         if (!itemSlots.isEmpty() && !emptySlots.isEmpty()) {
             for (int slotIndex : emptySlots) {
                 if (!itemSlots.isEmpty()) {
-                    Item slot = itemSlots.get(0);
+                    ItemStack slot = itemSlots.get(0);
                     int amount = Math.min(slot.getMaxStackSize(), slot.getCount());
                     amount = Math.min(amount, this.getMaxStackSize());
                     slot.setCount(slot.getCount() - amount);
-                    Item item = slot.clone();
+                    ItemStack item = slot.clone();
                     item.setCount(amount);
                     this.setItem(slotIndex, item);
                     if (slot.getCount() <= 0) {
@@ -361,25 +361,25 @@ public abstract class BaseInventory implements Inventory {
             }
         }
 
-        return itemSlots.toArray(new Item[0]);
+        return itemSlots.toArray(new ItemStack[0]);
     }
 
     @Override
-    public Item[] removeItem(Item... slots) {
-        List<Item> itemSlots = new ArrayList<>();
-        for (Item slot : slots) {
+    public ItemStack[] removeItem(ItemStack... slots) {
+        List<ItemStack> itemSlots = new ArrayList<>();
+        for (ItemStack slot : slots) {
             if (slot.getId() != AIR && slot.getCount() > 0) {
                 itemSlots.add(slot.clone());
             }
         }
 
         for (int i = 0; i < this.size; ++i) {
-            Item item = this.getItem(i);
+            ItemStack item = this.getItem(i);
             if (item.getId() == AIR || item.getCount() <= 0) {
                 continue;
             }
 
-            for (Item slot : new ArrayList<>(itemSlots)) {
+            for (ItemStack slot : new ArrayList<>(itemSlots)) {
                 if (slot.equals(item, item.hasMeta(), item.hasNbtMap())) {
                     int amount = Math.min(item.getCount(), slot.getCount());
                     slot.setCount(slot.getCount() - amount);
@@ -397,14 +397,14 @@ public abstract class BaseInventory implements Inventory {
             }
         }
 
-        return itemSlots.toArray(new Item[0]);
+        return itemSlots.toArray(new ItemStack[0]);
     }
 
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            Item item = Item.get(AIR, 0, 0);
-            Item old = this.slots.get(index);
+            ItemStack item = ItemStack.get(AIR, 0, 0);
+            ItemStack old = this.slots.get(index);
             InventoryHolder holder = this.getHolder();
             if (holder instanceof BaseEntity) {
                 EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent((BaseEntity) holder, old, item, index);
@@ -481,7 +481,7 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public void onSlotChange(int index, Item before, boolean send) {
+    public void onSlotChange(int index, ItemStack before, boolean send) {
         if (send) {
             this.sendSlot(index, this.getViewers());
         }
@@ -517,7 +517,7 @@ public abstract class BaseInventory implements Inventory {
             return false;
         }
 
-        for (Item item : this.slots.values()) {
+        for (ItemStack item : this.slots.values()) {
             if (item == null || item.getId() == AIR || item.getCount() < item.getMaxStackSize() || item.getCount() < this.getMaxStackSize()) {
                 return false;
             }
@@ -532,7 +532,7 @@ public abstract class BaseInventory implements Inventory {
             return false;
         }
 
-        for (Item item : this.slots.values()) {
+        for (ItemStack item : this.slots.values()) {
             if (item != null && item.getId() != AIR && item.getCount() > 0) {
                 return false;
             }
@@ -541,11 +541,11 @@ public abstract class BaseInventory implements Inventory {
         return true;
     }
 
-    public int getFreeSpace(Item item) {
+    public int getFreeSpace(ItemStack item) {
         int maxStackSize = Math.min(item.getMaxStackSize(), this.getMaxStackSize());
         int space = (this.getSize() - this.slots.size()) * maxStackSize;
 
-        for (Item slot : this.getContents().values()) {
+        for (ItemStack slot : this.getContents().values()) {
             if (slot == null || slot.getId() == AIR) {
                 space += maxStackSize;
                 continue;

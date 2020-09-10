@@ -6,5 +6,7 @@ public enum TreeSpecies {
     BIRCH,
     JUNGLE,
     ACACIA,
-    DARK_OAK
+    DARK_OAK,
+    CRIMSON,
+    WARPED
 }

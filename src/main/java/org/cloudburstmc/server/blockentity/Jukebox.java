@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 public interface Jukebox extends BlockEntity {
 
-    Item getRecordItem();
+    ItemStack getRecordItem();
 
-    void setRecordItem(Item recordItem);
+    void setRecordItem(ItemStack recordItem);
 
     void play();
 

@@ -16,14 +16,15 @@ import org.cloudburstmc.server.entity.vehicle.Boat;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleUpdateEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.ArrayList;
 
@@ -63,8 +64,8 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public void setWoodType(int woodType) {
-        this.data.setInt(VARIANT, woodType);
+    public void setWoodType(TreeSpecies woodType) {
+        this.data.setInt(VARIANT, woodType.ordinal());
     }
 
     @Override
@@ -348,7 +349,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public boolean onInteract(Player player, Item item, Vector3f clickedPos) {
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         if (this.passengers.size() >= 2) {
             return false;
         }
@@ -412,7 +413,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         super.kill();
 
         if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-            this.getLevel().dropItem(this.getPosition(), Item.get(ItemIds.BOAT));
+            this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemIds.BOAT));
         }
     }
 

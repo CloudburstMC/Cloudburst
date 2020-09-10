@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.item;
 
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -22,15 +22,15 @@ public interface ItemStackBuilder {
 
     ItemStackBuilder itemData(Object data);
 
-    ItemStackBuilder addEnchantment(Enchantment enchantment);
+    ItemStackBuilder addEnchantment(EnchantmentInstance enchantment);
 
-    ItemStackBuilder addEnchantments(Collection<Enchantment> enchantmentInstanceCollection);
+    ItemStackBuilder addEnchantments(Collection<EnchantmentInstance> enchantmentInstanceCollection);
 
     ItemStackBuilder clearEnchantments();
 
-    ItemStackBuilder removeEnchantment(Enchantment enchantment);
+    ItemStackBuilder removeEnchantment(EnchantmentInstance enchantment);
 
-    ItemStackBuilder removeEnchantments(Collection<Enchantment> enchantments);
+    ItemStackBuilder removeEnchantments(Collection<EnchantmentInstance> enchantments);
 
     ItemStack build();
 }

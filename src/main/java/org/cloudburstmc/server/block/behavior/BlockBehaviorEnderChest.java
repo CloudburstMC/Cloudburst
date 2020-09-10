@@ -8,12 +8,12 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.EnderChest;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.ItemRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.server.block.BlockIds.OBSIDIAN;
@@ -42,7 +42,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
 //    @Override
@@ -71,7 +71,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         int[] faces = {2, 5, 3, 4};
 
         placeBlock(block, item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
@@ -85,7 +85,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockState top = block.up().getState();
             if (!top.inCategory(BlockCategory.TRANSPARENT)) {
@@ -105,13 +105,13 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{
-                    Item.get(OBSIDIAN, 0, 8)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+            return new ItemStack[]{
+                    ItemStack.get(OBSIDIAN, 0, 8)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 
@@ -136,8 +136,8 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return ItemRegistry.get().getItem(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState().defaultState());
     }
 
     @Override

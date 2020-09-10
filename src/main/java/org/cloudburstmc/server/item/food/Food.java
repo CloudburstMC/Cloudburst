@@ -3,7 +3,7 @@ package org.cloudburstmc.server.item.food;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.player.PlayerEatFoodEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.potion.Effect;
@@ -11,7 +11,7 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.*;
 
-import static org.cloudburstmc.server.item.behavior.ItemIds.*;
+import static org.cloudburstmc.server.item.ItemIds.*;
 
 /**
  * Created by Snake1999 on 2016/1/13.
@@ -100,7 +100,7 @@ public abstract class Food {
         return food;
     }
 
-    public static Food getByRelative(Item item) {
+    public static Food getByRelative(ItemStack item) {
         Objects.requireNonNull(item);
         return getByRelative(item.getId(), item.getMeta());
     }

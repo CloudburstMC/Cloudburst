@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,9 +18,9 @@ public interface CraftingRecipe extends Recipe {
 
     boolean requiresCraftingTable();
 
-    List<Item> getExtraResults();
+    List<ItemStack> getExtraResults();
 
-    List<Item> getAllResults();
+    List<ItemStack> getAllResults();
 
     int getPriority();
 
@@ -32,5 +32,5 @@ public interface CraftingRecipe extends Recipe {
      * @param output 2D array of items put back into the crafting grid (secondary results)
      * @return bool
      */
-    boolean matchItems(Item[][] input, Item[][] output);
+    boolean matchItems(ItemStack[][] input, ItemStack[][] output);
 }

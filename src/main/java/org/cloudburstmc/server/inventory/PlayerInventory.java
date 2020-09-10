@@ -10,7 +10,7 @@ import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.event.entity.EntityArmorChangeEvent;
 import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.server.event.player.PlayerItemHeldEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.Collection;
@@ -113,22 +113,25 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
-    public Item getItemInHand() {
-        Item item = this.getItem(this.getHeldItemIndex());
+    public void decrementHandCount() {
+        this.decrementCount(getHeldItemIndex());
+    }
+
+    public void incrementHandCount() {
+        this.incrementCount(getHeldItemIndex());
+    }
+
+    public ItemStack getItemInHand() {
+        ItemStack item = this.getItem(this.getHeldItemIndex());
         if (item != null) {
             return item;
         } else {
-            return Item.get(AIR, 0, 0);
+            return ItemStack.get(AIR, 0, 0);
         }
     }
 
-    public boolean setItemInHand(Item item) {
+    public boolean setItemInHand(ItemStack item) {
         return this.setItem(this.getHeldItemIndex(), item);
-    }
-
-    @Deprecated
-    public int getHeldItemSlot() {
-        return this.itemInHandIndex;
     }
 
     public void setHeldItemSlot(int slot) {
@@ -146,7 +149,7 @@ public class PlayerInventory extends BaseInventory {
     }
 
     public void sendHeldItem(Player... players) {
-        Item item = this.getItemInHand();
+        ItemStack item = this.getItemInHand();
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
         packet.setItem(item.toNetwork());
@@ -169,7 +172,7 @@ public class PlayerInventory extends BaseInventory {
     }
 
     @Override
-    public void onSlotChange(int index, Item before, boolean send) {
+    public void onSlotChange(int index, ItemStack before, boolean send) {
         Human holder = this.getHolder();
         if (holder instanceof Player && !((Player) holder).spawned) {
             return;
@@ -190,56 +193,56 @@ public class PlayerInventory extends BaseInventory {
         return 9;
     }
 
-    public Item getArmorItem(int index) {
+    public ItemStack getArmorItem(int index) {
         return this.getItem(this.getSize() + index);
     }
 
-    public boolean setArmorItem(int index, Item item) {
+    public boolean setArmorItem(int index, ItemStack item) {
         return this.setArmorItem(index, item, false);
     }
 
-    public boolean setArmorItem(int index, Item item, boolean ignoreArmorEvents) {
+    public boolean setArmorItem(int index, ItemStack item, boolean ignoreArmorEvents) {
         return this.setItem(this.getSize() + index, item, ignoreArmorEvents);
     }
 
-    public Item getHelmet() {
+    public ItemStack getHelmet() {
         return this.getItem(this.getSize());
     }
 
-    public Item getChestplate() {
+    public ItemStack getChestplate() {
         return this.getItem(this.getSize() + 1);
     }
 
-    public Item getLeggings() {
+    public ItemStack getLeggings() {
         return this.getItem(this.getSize() + 2);
     }
 
-    public Item getBoots() {
+    public ItemStack getBoots() {
         return this.getItem(this.getSize() + 3);
     }
 
-    public boolean setHelmet(Item helmet) {
+    public boolean setHelmet(ItemStack helmet) {
         return this.setItem(this.getSize(), helmet);
     }
 
-    public boolean setChestplate(Item chestplate) {
+    public boolean setChestplate(ItemStack chestplate) {
         return this.setItem(this.getSize() + 1, chestplate);
     }
 
-    public boolean setLeggings(Item leggings) {
+    public boolean setLeggings(ItemStack leggings) {
         return this.setItem(this.getSize() + 2, leggings);
     }
 
-    public boolean setBoots(Item boots) {
+    public boolean setBoots(ItemStack boots) {
         return this.setItem(this.getSize() + 3, boots);
     }
 
     @Override
-    public boolean setItem(int index, Item item) {
+    public boolean setItem(int index, ItemStack item) {
         return setItem(index, item, true, false);
     }
 
-    private boolean setItem(int index, Item item, boolean send, boolean ignoreArmorEvents) {
+    private boolean setItem(int index, ItemStack item, boolean send, boolean ignoreArmorEvents) {
         if (index < 0 || index >= this.size) {
             return false;
         } else if (item.getId() == AIR || item.getCount() <= 0) {
@@ -268,7 +271,7 @@ public class PlayerInventory extends BaseInventory {
             }
             item = ev.getNewItem();
         }
-        Item old = this.getItem(index);
+        ItemStack old = this.getItem(index);
         this.slots.put(index, item.clone());
         this.onSlotChange(index, old, send);
         return true;
@@ -277,8 +280,8 @@ public class PlayerInventory extends BaseInventory {
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            Item item = Item.get(AIR, 0, 0);
-            Item old = this.slots.get(index);
+            ItemStack item = ItemStack.get(AIR, 0, 0);
+            ItemStack old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
                 Server.getInstance().getEventManager().fire(ev);
@@ -317,8 +320,8 @@ public class PlayerInventory extends BaseInventory {
         return true;
     }
 
-    public Item[] getArmorContents() {
-        Item[] armor = new Item[4];
+    public ItemStack[] getArmorContents() {
+        ItemStack[] armor = new ItemStack[4];
         for (int i = 0; i < 4; i++) {
             armor[i] = this.getItem(this.getSize() + i);
         }
@@ -334,13 +337,13 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
-    public Item getOffHand() {
+    public ItemStack getOffHand() {
         return this.getItem(offHandIndex);
     }
 
-    public void setOffHandContents(Item offhand) {
+    public void setOffHandContents(ItemStack offhand) {
         if (offhand == null) {
-            offhand = Item.get(AIR);
+            offhand = ItemStack.get(AIR);
         }
         this.setItem(offHandIndex, offhand);
     }
@@ -354,10 +357,10 @@ public class PlayerInventory extends BaseInventory {
     }
 
     public void sendOffHandContents(Player[] players) {
-        Item offHand = this.getOffHand();
+        ItemStack offHand = this.getOffHand();
 
         if (offHand == null) {
-            offHand = Item.get(AIR);
+            offHand = ItemStack.get(AIR);
         }
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
@@ -370,7 +373,7 @@ public class PlayerInventory extends BaseInventory {
             if (player.equals(this.getHolder())) {
                 InventoryContentPacket invPacket = new InventoryContentPacket();
                 invPacket.setContainerId(ContainerId.OFFHAND);
-                invPacket.setContents(Item.toNetwork(new Item[]{offHand}));
+                invPacket.setContents(ItemStack.toNetwork(new ItemStack[]{offHand}));
                 player.sendPacket(invPacket);
             } else {
                 player.sendPacket(packet);
@@ -387,7 +390,7 @@ public class PlayerInventory extends BaseInventory {
     }
 
     public void sendOffHandSlot(Player[] players) {
-        Item offhand = this.getOffHand();
+        ItemStack offhand = this.getOffHand();
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
@@ -413,7 +416,7 @@ public class PlayerInventory extends BaseInventory {
     }
 
     public void sendArmorContents(Player[] players) {
-        Item[] armor = this.getArmorContents();
+        ItemStack[] armor = this.getArmorContents();
 
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
@@ -426,7 +429,7 @@ public class PlayerInventory extends BaseInventory {
             if (player.equals(this.getHolder())) {
                 InventoryContentPacket packet2 = new InventoryContentPacket();
                 packet2.setContainerId(ContainerId.ARMOR);
-                packet2.setContents(Item.toNetwork(armor));
+                packet2.setContents(ItemStack.toNetwork(armor));
                 player.sendPacket(packet2);
             } else {
                 player.sendPacket(packet);
@@ -434,16 +437,16 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
-    public void setArmorContents(Item[] items) {
+    public void setArmorContents(ItemStack[] items) {
         if (items.length < 4) {
-            Item[] newItems = new Item[4];
+            ItemStack[] newItems = new ItemStack[4];
             System.arraycopy(items, 0, newItems, 0, items.length);
             items = newItems;
         }
 
         for (int i = 0; i < 4; ++i) {
             if (items[i] == null) {
-                items[i] = Item.get(AIR, 0, 0);
+                items[i] = ItemStack.get(AIR, 0, 0);
             }
 
             if (items[i].getId() == AIR) {
@@ -463,7 +466,7 @@ public class PlayerInventory extends BaseInventory {
     }
 
     public void sendArmorSlot(int index, Player[] players) {
-        Item[] armor = this.getArmorContents();
+        ItemStack[] armor = this.getArmorContents();
 
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
@@ -567,7 +570,7 @@ public class PlayerInventory extends BaseInventory {
         CreativeContentPacket pk = new CreativeContentPacket();
 
         if (!p.isSpectator()) {
-            ItemData[] contents = Item.toNetwork(Item.getCreativeItems());
+            ItemData[] contents = ItemStack.toNetwork(ItemStack.getCreativeItems());
 
             for (int i = 0; i < contents.length; i++) {
                 contents[i].setNetId(i + 1);

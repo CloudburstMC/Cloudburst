@@ -4,8 +4,8 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.food.Food;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
@@ -60,7 +60,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (block.down().getState().getType() != BlockIds.AIR) {
             placeBlock(block, item);
 
@@ -83,17 +83,17 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[0];
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[0];
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.CAKE);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.CAKE);
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null && player.getFoodData().getLevel() < player.getFoodData().getMaxLevel()) {
             int counter = block.getState().ensureTrait(BlockTraits.BITE_COUNTER);
 

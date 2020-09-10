@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
@@ -10,9 +10,9 @@ public interface Lectern extends BlockEntity {
     boolean hasBook();
 
     @Nullable
-    Item getBook();
+    ItemStack getBook();
 
-    void setBook(@Nullable Item book);
+    void setBook(@Nullable ItemStack book);
 
     int getPage();
 

@@ -7,7 +7,7 @@ import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.inventory.transaction.action.SlotChangeAction;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.*;
@@ -84,7 +84,7 @@ public class InventoryTransaction {
         this.inventories.add(inventory);
     }
 
-    protected boolean matchItems(List<Item> needItems, List<Item> haveItems) {
+    protected boolean matchItems(List<ItemStack> needItems, List<ItemStack> haveItems) {
         for (InventoryAction action : this.actions) {
             if (action.getTargetItem().getId() != AIR) {
                 needItems.add(action.getTargetItem());
@@ -99,8 +99,8 @@ public class InventoryTransaction {
             }
         }
 
-        for (Item needItem : new ArrayList<>(needItems)) {
-            for (Item haveItem : new ArrayList<>(haveItems)) {
+        for (ItemStack needItem : new ArrayList<>(needItems)) {
+            for (ItemStack haveItem : new ArrayList<>(haveItems)) {
                 if (needItem.equals(haveItem)) {
                     int amount = Math.min(haveItem.getCount(), needItem.getCount());
                     needItem.setCount(needItem.getCount() - amount);
@@ -171,7 +171,7 @@ public class InventoryTransaction {
             List<SlotChangeAction> originalList = new ArrayList<>(list);
 
             SlotChangeAction originalAction = null;
-            Item lastTargetItem = null;
+            ItemStack lastTargetItem = null;
 
             for (int i = 0; i < list.size(); i++) {
                 SlotChangeAction action = list.get(i);
@@ -195,7 +195,7 @@ public class InventoryTransaction {
                 for (int i = 0; i < list.size(); i++) {
                     SlotChangeAction action = list.get(i);
 
-                    Item actionSource = action.getSourceItem();
+                    ItemStack actionSource = action.getSourceItem();
                     if (actionSource.equalsExact(lastTargetItem)) {
                         lastTargetItem = action.getTargetItem();
                         list.remove(i);
@@ -228,8 +228,8 @@ public class InventoryTransaction {
     public boolean canExecute() {
         this.squashDuplicateSlotChanges();
 
-        List<Item> haveItems = new ArrayList<>();
-        List<Item> needItems = new ArrayList<>();
+        List<ItemStack> haveItems = new ArrayList<>();
+        List<ItemStack> needItems = new ArrayList<>();
         return matchItems(needItems, haveItems) && this.actions.size() > 0 && haveItems.size() == 0 && needItems.size() == 0;
     }
 

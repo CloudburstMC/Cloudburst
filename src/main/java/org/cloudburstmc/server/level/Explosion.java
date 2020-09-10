@@ -19,7 +19,7 @@ import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityExplodeEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.particle.HugeExplodeSeedParticle;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
@@ -178,7 +178,7 @@ public class Explosion {
             }
         }
 
-        Item air = Item.get(BlockIds.AIR, 0, 0);
+        ItemStack air = ItemStack.get(BlockIds.AIR, 0, 0);
 
         //Iterator iter = this.affectedBlocks.entrySet().iterator();
         for (Block block : this.affectedBlockStates) {
@@ -188,7 +188,7 @@ public class Explosion {
             if (state.getType() == BlockIds.TNT) {
                 ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
             } else if (Math.random() * 100 < yield) {
-                for (Item drop : behavior.getDrops(block, air)) {
+                for (ItemStack drop : behavior.getDrops(block, air)) {
                     this.level.dropItem(block.getPosition(), drop);
                 }
             }

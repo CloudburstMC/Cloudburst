@@ -3,12 +3,12 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.ItemRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.item.behavior.ItemIds.ENDER_EYE;
+import static org.cloudburstmc.server.item.ItemIds.ENDER_EYE;
 
 public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
 
@@ -28,7 +28,7 @@ public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean isBreakable(Item item) {
+    public boolean isBreakable(ItemStack item) {
         return false;
     }
 
@@ -56,7 +56,7 @@ public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (!block.getState().ensureTrait(BlockTraits.HAS_END_PORTAL_EYE) && player != null && item.getId() == ENDER_EYE) {
             block.set(block.getState().withTrait(BlockTraits.HAS_END_PORTAL_EYE, true), true);
 
@@ -73,8 +73,8 @@ public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return ItemRegistry.get().getItem(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState().defaultState());
     }
 
     @Override

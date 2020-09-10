@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.player;
 
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -9,14 +9,14 @@ import org.cloudburstmc.server.player.Player;
  */
 public class PlayerMapInfoRequestEvent extends PlayerEvent implements Cancellable {
 
-    private final Item item;
+    private final ItemStack item;
 
-    public PlayerMapInfoRequestEvent(Player player, Item item) {
+    public PlayerMapInfoRequestEvent(Player player, ItemStack item) {
         super(player);
         this.item = item;
     }
 
-    public Item getMap() {
+    public ItemStack getMap() {
         return item;
     }
 }

@@ -1,20 +1,14 @@
 package org.cloudburstmc.server.item.behavior;
 
-import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.Projectile;
 import org.cloudburstmc.server.entity.projectile.LingeringPotion;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.item.ItemStack;
 
-public class ItemPotionLingering extends ProjectileItem {
+public class ItemPotionLingering extends ProjectileItemBehavior {
 
-    public ItemPotionLingering(Identifier id) {
-        super(id);
-    }
-
-    @Override
-    public int getMaxStackSize() {
-        return 1;
+    public ItemPotionLingering() {
+        super(EntityTypes.LINGERING_POTION, 0.5f);
     }
 
     @Override
@@ -23,17 +17,7 @@ public class ItemPotionLingering extends ProjectileItem {
     }
 
     @Override
-    public EntityType<? extends Projectile> getProjectileEntityType() {
-        return EntityTypes.LINGERING_POTION;
-    }
-
-    @Override
-    public float getThrowForce() {
-        return 0.5f;
-    }
-
-    @Override
-    protected void onProjectileCreation(Projectile projectile) {
+    protected void onProjectileCreation(ItemStack item, Projectile projectile) {
         ((LingeringPotion) projectile).setPotionId(this.getMeta());
     }
 }

@@ -9,9 +9,9 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Hopper;
 import org.cloudburstmc.server.inventory.ContainerInventory;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -30,7 +30,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Direction facing = face.getOpposite();
 
         if (facing == Direction.UP) {
@@ -47,7 +47,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Hopper) {
@@ -95,21 +95,21 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{toItem(block)};
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+            return new ItemStack[]{toItem(block)};
         }
 
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.HOPPER);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.HOPPER);
     }
 
     @Override

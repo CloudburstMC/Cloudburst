@@ -10,8 +10,8 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockSpreadEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -36,7 +36,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
 
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0F) {
@@ -63,11 +63,11 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
             }
             return true;
         } else if (item.isHoe()) {
-            item.useOn(block);
+            item.useOn(, block);
             block.set(BlockState.get(FARMLAND));
             return true;
         } else if (item.isShovel()) {
-            item.useOn(block);
+            item.useOn(, block);
             block.set(BlockState.get(GRASS_PATH));
             return true;
         }

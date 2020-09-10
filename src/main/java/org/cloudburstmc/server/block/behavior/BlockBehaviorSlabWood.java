@@ -3,8 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
@@ -34,7 +34,7 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 
     @Override
@@ -48,7 +48,7 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
     }
 
     @Override
-    public Item toItem(Block state) {
-        return Item.get(state.getState().resetTrait(BlockTraits.IS_TOP_SLOT));
+    public ItemStack toItem(Block state) {
+        return ItemStack.get(state.getState().resetTrait(BlockTraits.IS_TOP_SLOT));
     }
 }

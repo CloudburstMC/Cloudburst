@@ -7,15 +7,15 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.inventory.ContainerInventory;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Axis;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.registry.ItemRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
 @Log4j2
@@ -43,7 +43,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+        return ItemToolBehavior.TYPE_AXE;
     }
 
 //    @Override
@@ -78,7 +78,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Direction chestFace = player.getHorizontalDirection().getOpposite();
         Axis axis = chestFace.getAxis() == Axis.X ? Axis.Z : Axis.X;
 
@@ -117,7 +117,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
         if (t instanceof Chest) {
             ((Chest) t).unpair();
@@ -126,7 +126,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             Block top = block.up();
             if (!top.getState().inCategory(BlockCategory.TRANSPARENT)) {
@@ -167,7 +167,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return ItemRegistry.get().getItem(BlockIds.CHEST);
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(BlockIds.CHEST);
     }
 }

@@ -5,8 +5,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -23,8 +23,8 @@ public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.REPEATER);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemIds.REPEATER);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val state = block.getState();
 
         block.set(state.withTrait(BlockTraits.REPEATER_DELAY, (state.ensureTrait(BlockTraits.REPEATER_DELAY) + 1) % 4), true, false);

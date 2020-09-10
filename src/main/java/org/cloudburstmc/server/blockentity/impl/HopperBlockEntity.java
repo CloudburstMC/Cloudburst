@@ -16,8 +16,8 @@ import org.cloudburstmc.server.event.inventory.InventoryMoveItemEvent;
 import org.cloudburstmc.server.inventory.HopperInventory;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.InventoryHolder;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
@@ -64,7 +64,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
         }
         tag.putList("Items", NbtType.COMPOUND, items);
@@ -137,7 +137,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             }
 
             for (int slot : slots) {
-                Item item = inv.getItem(slot);
+                ItemStack item = inv.getItem(slot);
 
                 if (item.isNull()) {
                     continue;
@@ -157,10 +157,10 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                     return false;
                 }
 
-                Item[] items = this.inventory.addItem(item);
+                ItemStack[] items = this.inventory.addItem(item);
 
                 if (items.length <= 0) {
-                    inv.decreaseCount(slot);
+                    inv.decrementCount(slot);
                     return true;
                 }
             }
@@ -181,7 +181,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             }
 
             DroppedItem itemEntity = (DroppedItem) entity;
-            Item item = itemEntity.getItem();
+            ItemStack item = itemEntity.getItem();
 
             if (item.isNull()) {
                 continue;
@@ -200,7 +200,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 continue;
             }
 
-            Item[] items = this.inventory.addItem(item);
+            ItemStack[] items = this.inventory.addItem(item);
 
             if (items.length == 0) {
                 entity.close();
@@ -231,7 +231,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
     @Override
     public void onBreak() {
 
-        for (Item content : inventory.getContents().values()) {
+        for (ItemStack content : inventory.getContents().values()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
     }
@@ -251,7 +251,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             Inventory inv = ((ContainerBlockEntity) be).getInventory();
 
             for (int i = 0; i < this.inventory.getSize(); i++) {
-                Item item = this.inventory.getItem(i);
+                ItemStack item = this.inventory.getItem(i);
 
                 if (item.isNull()) {
                     continue;
@@ -264,7 +264,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 }
 
                 for (int slot : slots) {
-                    Item target = inv.getItem(slot);
+                    ItemStack target = inv.getItem(slot);
 
                     if (!target.isNull() && (!target.equals(item) || target.getCount() >= item.getMaxStackSize())) {
                         continue;
@@ -282,10 +282,10 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                     if (target.isNull()) {
                         inv.setItem(slot, item);
                     } else {
-                        inv.increaseCount(slot);
+                        inv.incrementCount(slot);
                     }
 
-                    inventory.decreaseCount(i);
+                    inventory.decrementCount(i);
                     return true;
                 }
             }

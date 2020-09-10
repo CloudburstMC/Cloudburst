@@ -4,18 +4,17 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.registry.ItemRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 @UtilityClass
 public class ItemUtils {
 
-    public static NbtMap serializeItem(Item item) {
+    public static NbtMap serializeItem(ItemStack item) {
         return serializeItem(item, -1);
     }
 
-    public static NbtMap serializeItem(Item item, int slot) {
+    public static NbtMap serializeItem(ItemStack item, int slot) {
         NbtMapBuilder tag = NbtMap.builder()
                 .putString("Name", item.getId().toString())
                 .putByte("Count", (byte) item.getCount())
@@ -31,22 +30,22 @@ public class ItemUtils {
         return tag.build();
     }
 
-    public static Item deserializeItem(NbtMap tag) {
+    public static ItemStack deserializeItem(NbtMap tag) {
         if (!(tag.containsKey("Name") || tag.containsKey("id")) && !tag.containsKey("Count")) {
-            return Item.get(BlockIds.AIR);
+            return ItemStack.get(BlockIds.AIR);
         }
 
-        Item item;
+        ItemStack item;
         try {
             Identifier identifier;
             if (tag.containsKey("Name")) {
                 identifier = Identifier.fromString(tag.getString("Name"));
             } else {
-                identifier = ItemRegistry.get().fromLegacy(tag.getShort("id"));
+                identifier = CloudItemRegistry.get().fromLegacy(tag.getShort("id"));
             }
-            item = Item.get(identifier, !tag.containsKey("Damage") ? 0 : tag.getShort("Damage"), tag.getByte("Count"));
+            item = ItemStack.get(identifier, !tag.containsKey("Damage") ? 0 : tag.getShort("Damage"), tag.getByte("Count"));
         } catch (Exception e) {
-            item = Item.fromString(tag.getString("id"));
+            item = ItemStack.fromString(tag.getString("id"));
             item.setMeta(!tag.containsKey("Damage") ? 0 : tag.getShort("Damage"));
             item.setCount(tag.getByte("Count"));
         }

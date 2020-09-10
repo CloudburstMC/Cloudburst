@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.dispenser;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.math.Direction;
 
 /**
@@ -10,7 +10,7 @@ import org.cloudburstmc.server.math.Direction;
 public class DefaultDispenseBehavior implements DispenseBehavior {
 
     @Override
-    public void dispense(Block block, Item stack) {
+    public void dispense(Block block, ItemStack stack) {
 
     }
 

@@ -4,9 +4,9 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.registry.ItemRegistry;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.StoneSlabType;
@@ -39,7 +39,7 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
@@ -48,16 +48,16 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
             BlockState state = BlockState.get(slabType);
             if (typeTrait != null) {
                 state = state.withTrait(typeTrait, block.getState().ensureTrait(typeTrait));
             }
 
-            return new Item[]{ItemRegistry.get().getItem(state)};
+            return new ItemStack[]{CloudItemRegistry.get().getItem(state)};
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 

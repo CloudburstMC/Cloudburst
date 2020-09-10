@@ -6,8 +6,8 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.ItemFrame;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.chunk.Chunk;
 
 import java.util.Objects;
@@ -19,7 +19,7 @@ import static org.cloudburstmc.server.block.BlockIds.AIR;
  */
 public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
-    private Item item;
+    private ItemStack item;
     private byte itemRotation;
     private float itemDropChance = 1.0f;
 
@@ -69,12 +69,12 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     }
 
     @Override
-    public Item getItem() {
+    public ItemStack getItem() {
         return this.item.clone();
     }
 
     @Override
-    public void setItem(Item item) {
+    public void setItem(ItemStack item) {
         if (!Objects.equals(this.item, item)) {
             this.item = item.clone();
             this.setDirty();

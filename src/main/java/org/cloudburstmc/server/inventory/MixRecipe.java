@@ -2,31 +2,31 @@ package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import lombok.ToString;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.Identifier;
 
 @ToString
 public abstract class MixRecipe implements Recipe {
 
-    private final Item input;
-    private final Item ingredient;
-    private final Item output;
+    private final ItemStack input;
+    private final ItemStack ingredient;
+    private final ItemStack output;
 
-    public MixRecipe(Item input, Item ingredient, Item output) {
+    public MixRecipe(ItemStack input, ItemStack ingredient, ItemStack output) {
         this.input = input.clone();
         this.ingredient = ingredient.clone();
         this.output = output.clone();
     }
 
-    public Item getIngredient() {
+    public ItemStack getIngredient() {
         return ingredient.clone();
     }
 
-    public Item getInput() {
+    public ItemStack getInput() {
         return input.clone();
     }
 
-    public Item getResult() {
+    public ItemStack getResult() {
         return output.clone();
     }
 

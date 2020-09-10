@@ -289,4 +289,8 @@ public class Utils {
         if ('a' <= ch && ch <= 'f') return ch - 'a' + 10;
         return -1;
     }
+
+    public static <T> T TODO() {
+        throw new UnsupportedOperationException("This method is not implemented");
+    }
 }

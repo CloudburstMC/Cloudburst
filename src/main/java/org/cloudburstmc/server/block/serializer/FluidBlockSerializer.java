@@ -4,8 +4,11 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.server.block.trait.BlockTrait;
+
+import java.util.Map;
 
 import static org.cloudburstmc.server.block.serializer.util.BedrockStateTags.TAG_LIQUID_DEPTH;
 
@@ -14,10 +17,10 @@ public class FluidBlockSerializer implements BlockSerializer {
     public static final BlockSerializer INSTANCE = new FluidBlockSerializer();
 
     @Override
-    public void serialize(NbtMapBuilder builder, BlockState state) {
+    public void serialize(NbtMapBuilder builder, BlockType blockType, Map<BlockTrait<?>, Comparable<?>> traits) {
         NbtMapBuilder statesBuilder = NbtMap.builder();
-        int fluidLevel = state.ensureTrait(BlockTraits.FLUID_LEVEL);
-        boolean flowing = state.ensureTrait(BlockTraits.IS_FLOWING);
+        int fluidLevel = (int) traits.get(BlockTraits.FLUID_LEVEL);
+        boolean flowing = (boolean) traits.get(BlockTraits.IS_FLOWING);
         if (flowing) {
             fluidLevel |= 8;
         }

@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Ocelot;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -43,7 +43,7 @@ public class EntityOcelot extends Animal implements Ocelot {
     }
 
     @Override
-    public boolean isBreedingItem(Item item) {
+    public boolean isBreedingItem(ItemStack item) {
         return item.getId() == ItemIds.FISH;
     }
 }

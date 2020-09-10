@@ -7,14 +7,14 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.inventory.AnvilInventory;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.registry.ItemRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.AnvilDamage;
 
@@ -44,11 +44,11 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
+        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val state = block.getState();
         if (!target.getState().getBehavior().isTransparent() || state.getType() == SNOW_LAYER) {
             BlockState anvil = BlockRegistry.get().getBlock(BlockIds.ANVIL)
@@ -69,7 +69,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             player.addWindow(new AnvilInventory(player.getUIInventory(), block), ContainerIds.ANVIL);
         }
@@ -77,22 +77,22 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     }
 
     @Override
-    public Item toItem(Block block) {
+    public ItemStack toItem(Block block) {
         BlockState state = block.getState();
 
-        return ItemRegistry.get().getItem(
+        return CloudItemRegistry.get().getItem(
                 state.defaultState().withTrait(BlockTraits.DAMAGE, state.ensureTrait(BlockTraits.DAMAGE))
         );
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+            return new ItemStack[]{
                     this.toItem(block)
             };
         }
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     @Override

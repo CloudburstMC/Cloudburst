@@ -2,13 +2,13 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.*;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.ItemRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DoublePlantType;
 
@@ -49,7 +49,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
         Block up = block.up();
 
@@ -63,7 +63,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         Block down = block.down();
 
         if (block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) { // Top half
@@ -76,7 +76,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (!block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) {
             boolean dropSeeds = ThreadLocalRandom.current().nextDouble(100) > 87.5;
             DoublePlantType type = block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE);
@@ -85,24 +85,24 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                 case FERN:
                     if (hand.isShears()) {
                         //todo enchantment
-                        return new Item[]{
-                                Item.get(BlockIds.TALL_GRASS, type == DoublePlantType.GRASS ? 1 : 2, 2)
+                        return new ItemStack[]{
+                                ItemStack.get(BlockIds.TALL_GRASS, type == DoublePlantType.GRASS ? 1 : 2, 2)
                         };
                     }
 
                     if (dropSeeds) {
-                        return new Item[]{
-                                Item.get(ItemIds.WHEAT_SEEDS)
+                        return new ItemStack[]{
+                                ItemStack.get(ItemIds.WHEAT_SEEDS)
                         };
                     } else {
-                        return new Item[0];
+                        return new ItemStack[0];
                     }
             }
 
-            return new Item[]{toItem(block)};
+            return new ItemStack[]{toItem(block)};
         }
 
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     @Override
@@ -116,7 +116,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) { //Bone meal
             switch (block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE)) {
                 case SUNFLOWER:
@@ -127,7 +127,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                         item.decrementCount();
                     }
                     block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
-                    block.getLevel().dropItem(block.getPosition(), ItemRegistry.get().getItem(block.getState()));
+                    block.getLevel().dropItem(block.getPosition(), CloudItemRegistry.get().getItem(block.getState()));
             }
 
             return true;

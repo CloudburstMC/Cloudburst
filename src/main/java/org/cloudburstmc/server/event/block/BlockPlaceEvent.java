@@ -3,7 +3,7 @@ package org.cloudburstmc.server.event.block;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -14,12 +14,12 @@ public class BlockPlaceEvent extends BlockEvent implements Cancellable {
 
     protected final Player player;
 
-    protected final Item item;
+    protected final ItemStack item;
 
     protected final BlockState blockPlace;
     protected final Block blockAgainst;
 
-    public BlockPlaceEvent(Player player, BlockState blockPlace, Block blockReplace, Block blockAgainst, Item item) {
+    public BlockPlaceEvent(Player player, BlockState blockPlace, Block blockReplace, Block blockAgainst, ItemStack item) {
         super(blockReplace);
         this.blockPlace = blockPlace;
         this.blockAgainst = blockAgainst;
@@ -31,7 +31,7 @@ public class BlockPlaceEvent extends BlockEvent implements Cancellable {
         return player;
     }
 
-    public Item getItem() {
+    public ItemStack getItem() {
         return item;
     }
 

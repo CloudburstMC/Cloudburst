@@ -41,6 +41,7 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.EnderChest;
 import org.cloudburstmc.server.blockentity.Sign;
 import org.cloudburstmc.server.command.CommandSender;
+import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.entity.Attribute;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityInteractable;
@@ -65,11 +66,10 @@ import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.inventory.*;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemArmor;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemArmorBehavior;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.chunk.Chunk;
@@ -89,9 +89,9 @@ import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
-import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.*;
 
 import java.io.File;
@@ -959,12 +959,12 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public Item[] getDrops() {
+    public ItemStack[] getDrops() {
         if (!this.isCreative()) {
             return super.getDrops();
         }
 
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     /**
@@ -1517,7 +1517,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
         startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default level name
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
-        startGamePacket.setItemEntries(ItemRegistry.get().getItemEntries());
+        startGamePacket.setItemEntries(CloudItemRegistry.get().getItemEntries());
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setDefaultPlayerPermission(PlayerPermission.MEMBER);
@@ -1527,7 +1527,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(false);
         startGamePacket.setBlockPalette(BlockRegistry.get().getPaletteTag());
-        startGamePacket.setItemEntries(ItemRegistry.get().getItemEntries());
+        startGamePacket.setItemEntries(CloudItemRegistry.get().getItemEntries());
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
@@ -2245,7 +2245,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
      * @param item to drop
      * @return bool if the item was dropped or if the item was null
      */
-    public boolean dropItem(Item item) {
+    public boolean dropItem(ItemStack item) {
         if (!this.spawned || !this.isAlive()) {
             return false;
         }
@@ -2504,7 +2504,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.server.getEventManager().fire(ev);
 
         if (!ev.getKeepInventory() && this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-            for (Item item : ev.getDrops()) {
+            for (ItemStack item : ev.getDrops()) {
                 this.getLevel().dropItem(this.getPosition(), item, null, true, 40);
             }
 
@@ -2887,17 +2887,17 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     public void resetCraftingGridType() {
         if (this.craftingGrid != null) {
-            Item[] drops = this.getInventory().addItem(this.craftingGrid.getContents().values().toArray(new Item[0]));
+            ItemStack[] drops = this.getInventory().addItem(this.craftingGrid.getContents().values().toArray(new ItemStack[0]));
 
             if (drops.length > 0) {
-                for (Item drop : drops) {
+                for (ItemStack drop : drops) {
                     this.dropItem(drop);
                 }
             }
 
             drops = this.getInventory().addItem(this.getCursorInventory().getItem(0));
             if (drops.length > 0) {
-                for (Item drop : drops) {
+                for (ItemStack drop : drops) {
                     this.dropItem(drop);
                 }
             }
@@ -3156,7 +3156,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.sendPacket(blockEntityDataPacket);
     }
 
-    public void startFishing(Item fishingRod) {
+    public void startFishing(ItemStack fishingRod) {
         Location location = Location.from(this.getPosition().add(0, this.getEyeHeight(), 0), this.getYaw(),
                 this.getPitch(), this.getLevel());
         double f = 1;
@@ -3219,7 +3219,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         if (near) {
             if (entity instanceof Arrow && entity.getMotion().lengthSquared() == 0) {
-                Item item = Item.get(ItemIds.ARROW);
+                ItemStack item = ItemStack.get(ItemIds.ARROW);
                 if (this.isSurvival() && !this.getInventory().canAddItem(item)) {
                     return false;
                 }
@@ -3248,7 +3248,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 entity.close();
                 return true;
             } else if (entity instanceof ThrownTrident && entity.getMotion().lengthSquared() == 0) {
-                Item item = ((ThrownTrident) entity).getTrident();
+                ItemStack item = ((ThrownTrident) entity).getTrident();
                 if (this.isSurvival() && !this.getInventory().canAddItem(item)) {
                     return false;
                 }
@@ -3266,7 +3266,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 return true;
             } else if (entity instanceof DroppedItem) {
                 if (((DroppedItem) entity).getPickupDelay() <= 0) {
-                    Item item = ((DroppedItem) entity).getItem();
+                    ItemStack item = ((DroppedItem) entity).getItem();
 
                     if (item != null) {
                         if (this.isSurvival() && !this.getInventory().canAddItem(item)) {
@@ -3311,18 +3311,18 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 //Mending
                 ArrayList<Integer> itemsWithMending = new ArrayList<>();
                 for (int i = 0; i < 4; i++) {
-                    if (getInventory().getArmorItem(i).getEnchantment((short) Enchantment.ID_MENDING) != null) {
+                    if (getInventory().getArmorItem(i).getEnchantment((short) CloudEnchantmentInstance.ID_MENDING) != null) {
                         itemsWithMending.add(getInventory().getSize() + i);
                     }
                 }
-                if (getInventory().getItemInHand().getEnchantment((short) Enchantment.ID_MENDING) != null) {
+                if (getInventory().getItemInHand().getEnchantment((short) CloudEnchantmentInstance.ID_MENDING) != null) {
                     itemsWithMending.add(getInventory().getHeldItemIndex());
                 }
                 if (itemsWithMending.size() > 0) {
                     Random rand = new Random();
                     Integer itemToRepair = itemsWithMending.get(rand.nextInt(itemsWithMending.size()));
-                    Item toRepair = getInventory().getItem(itemToRepair);
-                    if (toRepair instanceof ItemTool || toRepair instanceof ItemArmor) {
+                    ItemStack toRepair = getInventory().getItem(itemToRepair);
+                    if (toRepair instanceof ItemToolBehavior || toRepair instanceof ItemArmorBehavior) {
                         if (toRepair.getMeta() > 0) {
                             int dmg = toRepair.getMeta() - 2;
                             if (dmg < 0)

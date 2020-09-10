@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorSnow extends BlockBehaviorSolid {
@@ -20,17 +20,17 @@ public class BlockBehaviorSnow extends BlockBehaviorSolid {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_SHOVEL;
+        return ItemToolBehavior.TYPE_SHOVEL;
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isShovel() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{
-                    Item.get(ItemIds.SNOWBALL, 0, 4)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.isShovel() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+            return new ItemStack[]{
+                    ItemStack.get(ItemIds.SNOWBALL, 0, 4)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 

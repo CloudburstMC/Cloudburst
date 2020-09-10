@@ -5,14 +5,15 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 import static org.cloudburstmc.server.block.serializer.DirectionHelper.SeqType.*;
 
 @UtilityClass
@@ -21,7 +22,7 @@ public class DirectionHelper {
     private final Map<SeqType, List<Direction>> faceObjTranslators = new EnumMap<>(SeqType.class);
     private final Map<SeqType, Map<Direction, Byte>> faceMetaTranslators = new EnumMap<>(SeqType.class);
 
-    private final Map<Identifier, SeqType> mapping = new HashMap<>();
+    private final Map<BlockType, SeqType> mapping = new HashMap<>();
 
     public void init() {
         register(TYPE_1, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
@@ -48,10 +49,7 @@ public class DirectionHelper {
                 CHEMISTRY_TABLE,
                 GRINDSTONE,
                 CAMPFIRE,
-                SOUL_CAMPFIRE,
                 CORAL_FAN_HANG,
-                CORAL_FAN_HANG2,
-                CORAL_FAN_HANG3,
                 LECTERN,
                 LOOM,
                 BEEHIVE,
@@ -62,14 +60,7 @@ public class DirectionHelper {
                 ANVIL,
                 BED,
                 FENCE_GATE,
-                ACACIA_FENCE_GATE,
                 NETHER_BRICK_FENCE,
-                BIRCH_FENCE_GATE,
-                SPRUCE_FENCE_GATE,
-                DARK_OAK_FENCE_GATE,
-                JUNGLE_FENCE_GATE,
-                CRIMSON_FENCE_GATE,
-                WARPED_FENCE_GATE,
                 POWERED_REPEATER,
                 UNPOWERED_REPEATER,
                 PUMPKIN,
@@ -81,64 +72,24 @@ public class DirectionHelper {
         );
 
         register(TYPE_3,
-                ACACIA_DOOR,
-                BIRCH_DOOR,
-                DARK_OAK_DOOR,
                 IRON_DOOR,
-                JUNGLE_DOOR,
-                SPRUCE_DOOR,
-                WOODEN_DOOR,
-                CRIMSON_DOOR,
-                WARPED_DOOR
+                WOODEN_DOOR
         );
 
         register(TYPE_4,
-                OAK_STAIRS,
-                ACACIA_STAIRS,
-                ANDESITE_STAIRS,
-                BIRCH_STAIRS,
-                BLACKSTONE_STAIRS,
                 BRICK_STAIRS,
-                CRIMSON_STAIRS,
-                DARK_OAK_STAIRS,
                 DARK_PRISMARINE_STAIRS,
-                DIORITE_STAIRS,
-                END_BRICK_STAIRS,
-                GRANITE_STAIRS,
-                JUNGLE_STAIRS,
-                MOSSY_COBBLESTONE_STAIRS,
-                MOSSY_STONE_BRICK_STAIRS,
                 NETHER_BRICK_STAIRS,
-                NORMAL_STONE_STAIRS,
-                OAK_STAIRS,
-                POLISHED_ANDESITE_STAIRS,
-                POLISHED_BLACKSTONE_BRICK_STAIRS,
-                POLISHED_BLACKSTONE_STAIRS,
-                POLISHED_DIORITE_STAIRS,
-                POLISHED_GRANITE_STAIRS,
                 PRISMARINE_BRICKS_STAIRS,
                 PRISMARINE_STAIRS,
                 PURPUR_STAIRS,
                 QUARTZ_STAIRS,
-                RED_NETHER_BRICK_STAIRS,
                 RED_SANDSTONE_STAIRS,
                 SANDSTONE_STAIRS,
-                SMOOTH_QUARTZ_STAIRS,
-                SMOOTH_RED_SANDSTONE_STAIRS,
-                SMOOTH_SANDSTONE_STAIRS,
-                SPRUCE_STAIRS,
                 STONE_BRICK_STAIRS,
                 STONE_STAIRS,
-                WARPED_STAIRS,
                 TRAPDOOR,
-                ACACIA_TRAPDOOR,
-                BIRCH_TRAPDOOR,
-                DARK_OAK_TRAPDOOR,
-                IRON_TRAPDOOR,
-                JUNGLE_TRAPDOOR,
-                SPRUCE_TRAPDOOR,
-                CRIMSON_TRAPDOOR,
-                WARPED_TRAPDOOR
+                IRON_TRAPDOOR
         );
 
         register(TYPE_6,
@@ -161,8 +112,7 @@ public class DirectionHelper {
                 TRAPPED_CHEST,
                 FURNACE,
                 LIT_FURNACE,
-                BLAST_FURNACE,
-                LIT_BLAST_FURNACE
+                BLAST_FURNACE
         );
 
         register(TYPE_8,
@@ -170,16 +120,10 @@ public class DirectionHelper {
         );
 
         register(TYPE_9,
-                SPRUCE_BUTTON,
-                JUNGLE_BUTTON,
-                DARK_OAK_BUTTON,
-                ACACIA_BUTTON,
-                BIRCH_BUTTON,
                 WOODEN_BUTTON,
                 STONE_BUTTON,
                 TORCH,
-                REDSTONE_TORCH,
-                UNLIT_REDSTONE_TORCH
+                REDSTONE_TORCH
         );
 
         register(TYPE_11,
@@ -187,9 +131,9 @@ public class DirectionHelper {
         );
     }
 
-    public void register(SeqType type, Identifier... identifiers) {
-        for (Identifier identifier : identifiers) {
-            mapping.put(identifier, type);
+    public void register(SeqType type, BlockType... types) {
+        for (BlockType blockType : types) {
+            mapping.put(blockType, type);
         }
     }
 
@@ -218,17 +162,17 @@ public class DirectionHelper {
     }
 
     @SuppressWarnings("ConstantConditions")
-    public int serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockState state) {
-        SeqType type = mapping.getOrDefault(state.getType(), TYPE_7); //2 is the most common
+    public int serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockType blockType, @Nonnull Map<BlockTrait<?>, Comparable<?>> traits) {
+        SeqType type = mapping.getOrDefault(blockType, TYPE_7); //2 is the most common
 
-        Direction direction = state.getTrait(BlockTraits.DIRECTION);
+        Direction direction = (Direction) traits.get(BlockTraits.DIRECTION);
 
         if (direction == null) {
-            direction = state.getTrait(BlockTraits.FACING_DIRECTION);
+            direction = (Direction) traits.get(BlockTraits.FACING_DIRECTION);
         }
 
         if (direction == null) {
-            direction = state.getTrait(BlockTraits.TORCH_DIRECTION);
+            direction = (Direction) traits.get(BlockTraits.TORCH_DIRECTION);
         }
 
         return toMeta(direction, type);
