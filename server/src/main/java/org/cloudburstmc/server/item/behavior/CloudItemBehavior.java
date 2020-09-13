@@ -14,8 +14,6 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.util.Optional;
-
 /**
  * author: MagicDroidX
  * Nukkit Project
@@ -81,8 +79,8 @@ public abstract class CloudItemBehavior implements ItemBehavior {
     }
 
     @Override
-    public Optional<TierType> getTier(ItemStack item) {
-        return item.getType().getTierType();
+    public TierType getTier(ItemStack item) {
+        return item.getType().getTierType().orElse(null);
     }
 
     @Override

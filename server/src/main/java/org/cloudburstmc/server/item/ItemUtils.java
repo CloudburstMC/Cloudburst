@@ -4,10 +4,12 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 @UtilityClass
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ItemUtils {
 
     public static NbtMap serializeItem(ItemStack item) {
@@ -16,9 +18,15 @@ public class ItemUtils {
 
     public static NbtMap serializeItem(ItemStack item, int slot) {
         NbtMapBuilder tag = NbtMap.builder()
-                .putString("Name", item.getId().toString())
-                .putByte("Count", (byte) item.getCount())
-                .putShort("Damage", (short) item.getMeta());
+                .putString("Name", item.getType().getId().toString())
+                .putByte("Count", (byte) item.getAmount())
+                .putShort("Damage", (short) 0);
+
+        if (item.getType().getMetadataClass() != null) {
+            ItemDataSerializer serializer = CloudItemRegistry.get().getSerializer(item.getType());
+            serializer.serialize(item, tag, item.getMetadata(item.getType().getMetadataClass()));
+        }
+
         if (slot >= 0) {
             tag.putByte("Slot", (byte) slot);
         }

@@ -14,7 +14,6 @@ import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Nonnull
 @Immutable
@@ -35,7 +34,7 @@ public interface ItemStack {
         return item == null || item.getType() == BlockTypes.AIR;
     }
 
-    Optional<String> getName();
+    String getName();
 
     List<String> getLore();
 
@@ -63,7 +62,7 @@ public interface ItemStack {
         return getCanPlaceOn().contains(state.getId());
     }
 
-    <T> Optional<T> getMetadata(Class<T> metadataClass);
+    <T> T getMetadata(Class<T> metadataClass);
 
     ItemStackBuilder toBuilder();
 

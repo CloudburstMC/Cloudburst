@@ -1,14 +1,23 @@
 package org.cloudburstmc.server.item;
 
+import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
 
 public interface ItemType {
 
     Identifier getId();
 
     boolean isBlock();
+
+    boolean isPlaceable();
+
+    @Nullable
+    BlockType getBlock();
+
+    @Nullable
+    Class<?> getMetadataClass();
 
     int getMaximumStackSize();
 
@@ -36,7 +45,9 @@ public interface ItemType {
         return getMaximumStackSize() > 1;
     }
 
-    Optional<ToolType> getToolType();
+    @Nullable
+    ToolType getToolType();
 
-    Optional<TierType> getTierType();
+    @Nullable
+    TierType getTierType();
 }

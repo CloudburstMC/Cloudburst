@@ -54,8 +54,8 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
         COLORS.put(StoneSlabType.CUT_RED_SANDSTONE, BlockColor.ORANGE_BLOCK_COLOR);
     }
 
-    protected final Identifier type;
-    protected final Identifier doubleSlabType;
+    protected final BlockType type;
+    protected final BlockType doubleSlabType;
 
     @Override
     public BlockColor getColor(Block block) {
@@ -95,14 +95,14 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().resetTrait(BlockTraits.IS_TOP_SLOT));
+        return ItemStack.get(block.getState().resetTrait(BlockTraits.IS_TOP_SLOT).getType());
     }
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         boolean isTop;
 
-        val state = item.getBlock();
+        val state = item.getBehavior().getBlock(item);
         val blockState = block.getState();
         val targetState = target.getState();
 

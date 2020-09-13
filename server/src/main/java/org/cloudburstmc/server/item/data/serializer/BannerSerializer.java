@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.item.serializer;
+package org.cloudburstmc.server.item.data.serializer;
 
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
@@ -17,7 +17,8 @@ import java.util.List;
 public class BannerSerializer implements ItemDataSerializer<Banner> {
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder tag, Banner value) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag, Banner value) {
+        NbtMapBuilder tag = NbtMap.builder();
         tag.putInt("Base", value.getBase().getDyeData());
         tag.putInt("Type", value.getType());
 
@@ -31,10 +32,12 @@ public class BannerSerializer implements ItemDataSerializer<Banner> {
             }
             tag.putList("Patterns", NbtType.COMPOUND, patternsTag);
         }
+
+        itemTag.putCompound(ITEM_TAG, tag.build());
     }
 
     @Override
-    public Banner deserialize(Identifier type, Integer meta, NbtMap tag) {
+    public Banner deserialize(Identifier id, Integer meta, NbtMap tag) {
         val base = DyeColor.getByDyeData(tag.getInt("Base", 0));
         val bannerType = tag.getInt("Type", 0);
 

@@ -18,12 +18,6 @@ import static org.cloudburstmc.server.item.ItemTypes.*;
  * Nukkit Project
  */
 public abstract class ItemToolBehavior extends CloudItemBehavior {
-    public static final int TIER_WOODEN = 1;
-    public static final int TIER_GOLD = 2;
-    public static final int TIER_STONE = 3;
-    public static final int TIER_IRON = 4;
-    public static final int TIER_DIAMOND = 5;
-    public static final int TIER_NETHERITE = 6;
 
     public static final int TYPE_NONE = 0;
     public static final int TYPE_SWORD = 1;

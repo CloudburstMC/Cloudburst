@@ -7,6 +7,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.ToString;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentType;
 import org.cloudburstmc.server.item.behavior.ItemBehavior;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -16,6 +17,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ToString
 @Immutable
@@ -26,7 +28,7 @@ public class CloudItemStack implements ItemStack {
     private final int amount;
     private final String itemName;
     private final List<String> itemLore;
-    private final Set<EnchantmentInstance> enchantments;
+    private final ImmutableMap<EnchantmentType, EnchantmentInstance> enchantments;
     private final Set<Identifier> canDestroy;
     private final Set<Identifier> canPlaceOn;
     private final Map<Class<?>, Object> data;
@@ -48,7 +50,7 @@ public class CloudItemStack implements ItemStack {
             int amount,
             String itemName,
             List<String> itemLore,
-            Collection<EnchantmentInstance> enchantments,
+            Map<EnchantmentType, EnchantmentInstance> enchantments,
             Collection<Identifier> canDestroy,
             Collection<Identifier> canPlaceOn,
             Map<Class<?>, Object> data,
@@ -59,11 +61,11 @@ public class CloudItemStack implements ItemStack {
         this.type = type;
         this.amount = amount;
         this.itemName = itemName;
-        this.itemLore = itemLore == null ? new ArrayList<>() : itemLore;
-        this.enchantments = enchantments == null ? ImmutableSet.of() : ImmutableSet.copyOf(enchantments);
+        this.itemLore = itemLore == null ? ImmutableList.of() : ImmutableList.copyOf(itemLore);
+        this.enchantments = enchantments == null ? ImmutableMap.of() : ImmutableMap.copyOf(enchantments);
         this.canDestroy = canDestroy == null ? ImmutableSet.of() : ImmutableSet.copyOf(canDestroy);
         this.canPlaceOn = canPlaceOn == null ? ImmutableSet.of() : ImmutableSet.copyOf(canPlaceOn);
-        this.data = data == null ? ImmutableMap.of() : ImmutableMap.copyOf(data);
+        this.data = data == null ? new ConcurrentHashMap<>() : new ConcurrentHashMap<>(data);
         this.nbt = nbt;
         this.networkData = networkData;
     }
@@ -72,6 +74,7 @@ public class CloudItemStack implements ItemStack {
         if (id == null) {
             synchronized (type) {
                 if (id == null) {
+
                     id = CloudItemRegistry.get().getId(this);
                 }
             }
@@ -92,23 +95,27 @@ public class CloudItemStack implements ItemStack {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Optional<T> getMetadata(Class<T> metadataClass) {
-        return Optional.ofNullable((T) this.data.get(metadataClass));
+    public <T> T getMetadata(Class<T> metadataClass) {
+        return (T) this.data.get(metadataClass);
+    }
+
+    public ImmutableMap<Class<?>, Object> getData() {
+        return ImmutableMap.copyOf(data);
     }
 
     @Override
-    public Optional<String> getName() {
-        return Optional.ofNullable(itemName);
+    public String getName() {
+        return itemName;
     }
 
     @Override
     public List<String> getLore() {
-        return ImmutableList.copyOf(itemLore);
+        return itemLore;
     }
 
     @Override
     public Collection<EnchantmentInstance> getEnchantments() {
-        return ImmutableList.copyOf(enchantments);
+        return ImmutableList.copyOf(enchantments.values());
     }
 
     @Override
@@ -117,7 +124,7 @@ public class CloudItemStack implements ItemStack {
     }
 
     @Override
-    public Set<Identifier> getCanPlaceOn() {
+    public Collection<Identifier> getCanPlaceOn() {
         return this.canPlaceOn;
     }
 

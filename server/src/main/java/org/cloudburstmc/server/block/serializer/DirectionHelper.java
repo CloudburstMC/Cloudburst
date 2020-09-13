@@ -61,7 +61,7 @@ public class DirectionHelper {
                 BED,
                 FENCE_GATE,
                 NETHER_BRICK_FENCE,
-                POWERED_REPEATER,
+                REPEATER,
                 UNPOWERED_REPEATER,
                 PUMPKIN,
                 CARVED_PUMPKIN,

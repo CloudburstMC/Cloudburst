@@ -310,7 +310,7 @@ public class BlockCategories {
                 HOPPER,
                 PISTON_ARM_COLLISION,
                 MOVING_BLOCK,
-                POWERED_REPEATER,
+                REPEATER,
                 UNPOWERED_REPEATER,
                 POWERED_COMPARATOR,
                 UNPOWERED_COMPARATOR,

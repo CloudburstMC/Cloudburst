@@ -4,8 +4,6 @@ import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.item.ToolType;
 
-import java.util.Optional;
-
 public interface BlockType extends ItemType {
 
     @Override
@@ -35,13 +33,27 @@ public interface BlockType extends ItemType {
 
     float resistance();
 
+    ToolType getTargetToolType();
+
+    TierType getToolTier();
+
     @Override
-    default Optional<ToolType> getToolType() {
-        return Optional.empty();
+    default boolean isPlaceable() {
+        return false;
     }
 
     @Override
-    default Optional<TierType> getTierType() {
-        return Optional.empty();
+    default BlockType getBlock() {
+        return this;
+    }
+
+    @Override
+    default ToolType getToolType() {
+        return null;
+    }
+
+    @Override
+    default TierType getTierType() {
+        return null;
     }
 }
