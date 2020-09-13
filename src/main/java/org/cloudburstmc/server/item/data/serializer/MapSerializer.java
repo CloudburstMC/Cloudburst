@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.item.serializer;
+package org.cloudburstmc.server.item.data.serializer;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -26,14 +26,18 @@ public class MapSerializer implements ItemDataSerializer<Map> {
     private static final String TAG_LOCKED = "mapLocked"; // Boolean
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder tag, Map value) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag, Map value) {
+        NbtMapBuilder tag = NbtMap.builder();
+
         tag.putLong(TAG_ID, value.getId());
         tag.putLong(TAG_PARENT_ID, value.getParentId());
         tag.putByteArray(TAG_COLORS, value.getColors());
+
+        itemTag.putCompound(ITEM_TAG, tag.build());
     }
 
     @Override
-    public Map deserialize(Identifier type, Integer meta, NbtMap tag) {
+    public Map deserialize(Identifier id, Integer meta, NbtMap tag) {
         if (!tag.containsKey(TAG_ID)) {
             return null;
         }

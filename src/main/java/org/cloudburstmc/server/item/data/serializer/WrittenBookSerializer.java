@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.item.serializer;
+package org.cloudburstmc.server.item.data.serializer;
 
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
@@ -27,7 +27,9 @@ public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
     private static final String TAG_ID = "id";
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder tag, WrittenBook value) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag, WrittenBook value) {
+        NbtMapBuilder tag = NbtMap.builder();
+
         tag.putInt(TAG_GENERATION, value.getGeneration());
         tag.putString(TAG_TITLE, value.getTitle());
         tag.putString(TAG_AUTHOR, value.getAuthor());
@@ -40,10 +42,12 @@ public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
             pages.add(page.createTag());
         }
         tag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
+
+        itemTag.putCompound(ITEM_TAG, tag.build());
     }
 
     @Override
-    public WrittenBook deserialize(Identifier type, Integer meta, NbtMap tag) {
+    public WrittenBook deserialize(Identifier id, Integer meta, NbtMap tag) {
         List<PageContent> pages;
         List<NbtMap> pageTags = tag.getList(TAG_PAGES, NbtType.COMPOUND);
 

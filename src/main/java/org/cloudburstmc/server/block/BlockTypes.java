@@ -3,7 +3,11 @@ package org.cloudburstmc.server.block;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Builder;
+import org.cloudburstmc.server.item.TierType;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.utils.Identifier;
+
+import javax.annotation.Nullable;
 
 public class BlockTypes {
 
@@ -45,7 +49,7 @@ public class BlockTypes {
     public static final BlockType PISTON = IntBlock.builder().id(BlockIds.PISTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
     public static final BlockType PISTON_ARM_COLLISION = IntBlock.builder().id(BlockIds.PISTON_ARM_COLLISION).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
     public static final BlockType WOOL = IntBlock.builder().id(BlockIds.WOOL).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.8f).flammable(true).build();
-    public static final BlockType ELEMENT_0 = IntBlock.builder().id(BlockIds.ELEMENT_0).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
+    public static final BlockType ELEMENT_0 = IntBlock.builder().id(BlockIds.ELEMENT_0).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build(); //TODO: register all elements
     public static final BlockType YELLOW_FLOWER = IntBlock.builder().id(BlockIds.YELLOW_FLOWER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
     public static final BlockType RED_FLOWER = IntBlock.builder().id(BlockIds.RED_FLOWER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
     public static final BlockType BROWN_MUSHROOM = IntBlock.builder().id(BlockIds.BROWN_MUSHROOM).maxStackSize(64).diggable(true).solid(true).emitLight(1).filterLight(15).hardness(0f).build();
@@ -101,8 +105,7 @@ public class BlockTypes {
     public static final BlockType PORTAL = IntBlock.builder().id(BlockIds.PORTAL).maxStackSize(0).solid(true).filterLight(15).hardness(-1f).build();
     public static final BlockType LIT_PUMPKIN = IntBlock.builder().id(BlockIds.LIT_PUMPKIN).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(15).filterLight(15).hardness(1f).build();
     public static final BlockType CAKE = IntBlock.builder().id(BlockIds.CAKE).maxStackSize(1).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
-    public static final BlockType UNPOWERED_REPEATER = IntBlock.builder().id(BlockIds.UNPOWERED_REPEATER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
-    public static final BlockType POWERED_REPEATER = IntBlock.builder().id(BlockIds.POWERED_REPEATER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType REPEATER = IntBlock.builder().id(BlockIds.UNPOWERED_REPEATER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
     public static final BlockType INVISIBLE_BEDROCK = IntBlock.builder().id(BlockIds.INVISIBLE_BEDROCK).maxStackSize(64).transparent(true).solid(true).hardness(-1f).build();
     public static final BlockType TRAPDOOR = IntBlock.builder().id(BlockIds.TRAPDOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).fuelTime(300).build(); //TODO: wood types
     public static final BlockType MONSTER_EGG = IntBlock.builder().id(BlockIds.MONSTER_EGG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.75f).build();
@@ -154,8 +157,7 @@ public class BlockTypes {
     public static final BlockType TRAPPED_CHEST = IntBlock.builder().id(BlockIds.TRAPPED_CHEST).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2.5f).fuelTime(300).build();
     public static final BlockType LIGHT_WEIGHTED_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.LIGHT_WEIGHTED_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
     public static final BlockType HEAVY_WEIGHTED_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.HEAVY_WEIGHTED_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
-    public static final BlockType UNPOWERED_COMPARATOR = IntBlock.builder().id(BlockIds.UNPOWERED_COMPARATOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
-    public static final BlockType POWERED_COMPARATOR = IntBlock.builder().id(BlockIds.POWERED_COMPARATOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType COMPARATOR = IntBlock.builder().id(BlockIds.UNPOWERED_COMPARATOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
     public static final BlockType DAYLIGHT_DETECTOR = IntBlock.builder().id(BlockIds.DAYLIGHT_DETECTOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.2f).fuelTime(300).build();
     public static final BlockType REDSTONE_BLOCK = IntBlock.builder().id(BlockIds.REDSTONE_BLOCK).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
     public static final BlockType QUARTZ_ORE = IntBlock.builder().id(BlockIds.QUARTZ_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
@@ -255,12 +257,6 @@ public class BlockTypes {
     public static final BlockType STRIPPED_OAK_LOG = IntBlock.builder().id(BlockIds.STRIPPED_OAK_LOG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).fuelTime(300).build();
     public static final BlockType BLUE_ICE = IntBlock.builder().id(BlockIds.BLUE_ICE).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(2).hardness(0.5f).build();
 
-    static { // Lazy
-        for (int i = 1; i <= 118; i++) {
-            IntBlock.builder().id(Identifier.fromString("element_" + i)).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
-        }
-    }
-
     public static final BlockType SEAGRASS = IntBlock.builder().id(BlockIds.SEAGRASS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
     public static final BlockType CORAL = IntBlock.builder().id(BlockIds.CORAL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.5f).build();
     public static final BlockType CORAL_BLOCK = IntBlock.builder().id(BlockIds.CORAL_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
@@ -348,6 +344,8 @@ public class BlockTypes {
         private final int burnability;
         private final float resistance;
         private final int fuelTime;
+        private final ToolType targetTool;
+        private final TierType toolTier;
 
         public IntBlock(
                 Identifier id,
@@ -363,7 +361,9 @@ public class BlockTypes {
                 int burnChance,
                 int burnability,
                 float resistance,
-                int fuelTime
+                int fuelTime,
+                ToolType targetTool,
+                TierType toolTier
         ) {
             this.id = id;
             this.maxStackSize = Math.max(1, maxStackSize);
@@ -379,6 +379,8 @@ public class BlockTypes {
             this.burnability = burnability;
             this.resistance = resistance;
             this.fuelTime = fuelTime;
+            this.targetTool = targetTool;
+            this.toolTier = toolTier;
 
             BY_ID.put(id, this);
         }
@@ -451,6 +453,22 @@ public class BlockTypes {
         @Override
         public int getFuelTime() {
             return fuelTime;
+        }
+
+        @Nullable
+        @Override
+        public Class<?> getMetadataClass() {
+            return null;
+        }
+
+        @Override
+        public ToolType getTargetToolType() {
+            return this.targetTool;
+        }
+
+        @Override
+        public TierType getToolTier() {
+            return toolTier;
         }
 
         @Override

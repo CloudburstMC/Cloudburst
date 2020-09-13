@@ -12,11 +12,14 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.server.Nukkit;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.item.behavior.*;
-import org.cloudburstmc.server.item.mapper.ItemTypeMapper;
+import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
+import org.cloudburstmc.server.item.serializer.ItemSerializer;
+import org.cloudburstmc.server.item.serializer.RecordSerializer;
+import org.cloudburstmc.server.item.serializer.TreeSpeciesSerializer;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
@@ -28,7 +31,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Log4j2
-public class CloudItemRegistry implements Registry, ItemRegistry {
+public class CloudItemRegistry implements ItemRegistry {
     private static final CloudItemRegistry INSTANCE;
     private static final List<ItemData> VANILLA_ITEMS;
 
@@ -46,7 +49,8 @@ public class CloudItemRegistry implements Registry, ItemRegistry {
     }
 
     private final BiMap<Identifier, ItemType> typeMap = HashBiMap.create();
-    private final Reference2ObjectMap<ItemType, ItemTypeMapper> converterMap = new Reference2ObjectOpenHashMap<>();
+    private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
+    private final Reference2ObjectMap<ItemType, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemBehavior> behaviorMap = new Reference2ObjectOpenHashMap<>();
     private final BiMap<Integer, Identifier> runtimeIdMap = HashBiMap.create();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
@@ -59,6 +63,7 @@ public class CloudItemRegistry implements Registry, ItemRegistry {
         this.blockRegistry = blockRegistry;
         try {
             this.registerVanillaItems();
+            this.registerVanillaIdentifiers();
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
@@ -81,7 +86,7 @@ public class CloudItemRegistry implements Registry, ItemRegistry {
     }
 
     @Override
-    public synchronized void register(ItemType type, ItemTypeMapper converter, ItemBehavior behavior, Identifier... identifiers) throws RegistryException {
+    public synchronized void register(ItemType type, ItemSerializer serializer, ItemBehavior behavior, Identifier... identifiers) throws RegistryException {
         Objects.requireNonNull(type, "type");
         Objects.requireNonNull(behavior, "behavior");
         checkClosed();
@@ -100,8 +105,8 @@ public class CloudItemRegistry implements Registry, ItemRegistry {
             }
         }
 
-        if (converter != null) {
-            this.converterMap.put(type, converter);
+        if (serializer != null) {
+            this.serializers.put(type, serializer);
         }
 
         for (Identifier identifier : identifiers) {
@@ -112,44 +117,45 @@ public class CloudItemRegistry implements Registry, ItemRegistry {
         this.behaviorMap.put(type, behavior);
     }
 
-    private synchronized void registerVanilla(ItemType type, ItemBehavior behavior, int legacyId, Identifier... identifiers) throws RegistryException {
-        registerVanilla(type, null, behavior, legacyId, identifiers);
+    private synchronized void registerVanilla(ItemType type, int legacyId) throws RegistryException {
+        registerVanilla(type, null, NoopItemBehavior.INSTANCE, legacyId);
     }
 
-    private synchronized void registerVanilla(ItemType type, ItemTypeMapper converter, ItemBehavior behavior, int legacyId, Identifier... identifiers) throws RegistryException {
+    private synchronized void registerVanilla(ItemType type, ItemBehavior behavior, int legacyId) throws RegistryException {
+        registerVanilla(type, null, behavior, legacyId);
+    }
+
+    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer, int legacyId) throws RegistryException {
+        registerVanilla(type, serializer, NoopItemBehavior.INSTANCE, legacyId);
+    }
+
+    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer, ItemBehavior behavior, int legacyId) throws RegistryException {
         Objects.requireNonNull(behavior, "type");
         Objects.requireNonNull(behavior, "behavior");
         checkClosed();
 
-        if (identifiers == null || identifiers.length <= 0) {
-            identifiers = new Identifier[]{type.getId()};
+        if (serializer != null) {
+            this.serializers.put(type, serializer);
         }
 
-        if (converter != null) {
-            this.converterMap.put(type, converter);
-        }
-
-        for (Identifier identifier : identifiers) {
-            this.runtimeIdMap.put(legacyId, identifier);
-            this.typeMap.put(identifier, type);
-        }
-
-        if (this.lastLegacyId < legacyId) {
-            this.lastLegacyId = legacyId;
-            this.runtimeIdAllocator.set(this.lastLegacyId + 1);
-        }
-
+        this.registerType(type, type.getId(), legacyId);
         this.behaviorMap.put(type, behavior);
     }
 
-    public Identifier getId(ItemStack item) {
-        val mapper = converterMap.get(item.getType());
+    public ItemSerializer getSerializer(ItemType type) {
+        return serializers.get(type);
+    }
 
-        if (mapper != null) {
-            mapper.convert(item);
-        }
+    public ItemDataSerializer<?> getSerializer(Class<?> metaClass) {
+        return dataSerializers.get(metaClass);
+    }
 
-        return item.getType().getId();
+    public ItemType getType(Identifier id) {
+        return typeMap.get(id);
+    }
+
+    public ItemType getType(int legacyId) {
+        return getType(getIdentifier(legacyId));
     }
 
     @Override
@@ -256,252 +262,287 @@ public class CloudItemRegistry implements Registry, ItemRegistry {
     }
 
     private void registerVanillaItems() throws RegistryException {
-        registerVanilla(ItemIds.IRON_SHOVEL, ItemShovelIron::new, 256);
-        registerVanilla(ItemIds.IRON_PICKAXE, ItemPickaxeIron::new, 257);
-        registerVanilla(ItemIds.IRON_AXE, ItemAxeIron::new, 258);
-        registerVanilla(ItemIds.FLINT_AND_STEEL, ItemFlintSteelBehavior::new, 259);
-        registerVanilla(ItemIds.APPLE, ItemApple::new, 260);
-        registerVanilla(ItemIds.BOW, ItemBowBehavior::new, 261);
-        registerVanilla(ItemIds.ARROW, ItemArrow::new, 262);
-        registerVanilla(ItemIds.COAL, SimpleItem::new, 263);
-        registerVanilla(ItemIds.DIAMOND, SimpleItem::new, 264);
-        registerVanilla(ItemIds.IRON_INGOT, SimpleItem::new, 265);
-        registerVanilla(ItemIds.GOLD_INGOT, SimpleItem::new, 266);
-        registerVanilla(ItemIds.IRON_SWORD, ItemSwordIron::new, 267);
-        registerVanilla(ItemIds.WOODEN_SWORD, ItemSwordWood::new, 268);
-        registerVanilla(ItemIds.WOODEN_SHOVEL, ItemShovelWood::new, 269);
-        registerVanilla(ItemIds.WOODEN_PICKAXE, ItemPickaxeWood::new, 270);
-        registerVanilla(ItemIds.WOODEN_AXE, ItemAxeWood::new, 271);
-        registerVanilla(ItemIds.STONE_SWORD, ItemSwordStone::new, 272);
-        registerVanilla(ItemIds.STONE_SHOVEL, ItemShovelStone::new, 273);
-        registerVanilla(ItemIds.STONE_PICKAXE, ItemPickaxeStone::new, 274);
-        registerVanilla(ItemIds.STONE_AXE, ItemAxeStone::new, 275);
-        registerVanilla(ItemIds.DIAMOND_SWORD, ItemSwordDiamond::new, 276);
-        registerVanilla(ItemIds.DIAMOND_SHOVEL, ItemShovelDiamond::new, 277);
-        registerVanilla(ItemIds.DIAMOND_PICKAXE, ItemPickaxeDiamond::new, 278);
-        registerVanilla(ItemIds.DIAMOND_AXE, ItemAxeDiamond::new, 279);
-        registerVanilla(ItemIds.STICK, SimpleItem::new, 280);
-        registerVanilla(ItemIds.BOWL, SimpleItem::new, 281);
-        registerVanilla(ItemIds.MUSHROOM_STEW, ItemMushroomStew::new, 282);
-        registerVanilla(ItemIds.GOLDEN_SWORD, ItemSwordGold::new, 283);
-        registerVanilla(ItemIds.GOLDEN_SHOVEL, ItemShovelGold::new, 284);
-        registerVanilla(ItemIds.GOLDEN_PICKAXE, ItemPickaxeGold::new, 285);
-        registerVanilla(ItemIds.GOLDEN_AXE, ItemAxeGold::new, 286);
-        registerVanilla(ItemIds.STRING, PlaceableItem.factory(BlockIds.TRIPWIRE), 287);
-        registerVanilla(ItemIds.FEATHER, SimpleItem::new, 288);
-        registerVanilla(ItemIds.GUNPOWDER, SimpleItem::new, 289);
-        registerVanilla(ItemIds.WOODEN_HOE, ItemHoeWood::new, 290);
-        registerVanilla(ItemIds.STONE_HOE, ItemHoeStone::new, 291);
-        registerVanilla(ItemIds.IRON_HOE, ItemHoeIron::new, 292);
-        registerVanilla(ItemIds.DIAMOND_HOE, ItemHoeDiamond::new, 293);
-        registerVanilla(ItemIds.GOLDEN_HOE, ItemHoeGold::new, 294);
-        registerVanilla(ItemIds.WHEAT_SEEDS, PlaceableItem.factory(BlockIds.WHEAT), 295);
-        registerVanilla(ItemIds.WHEAT, SimpleItem::new, 296);
-        registerVanilla(ItemIds.BREAD, ItemBread::new, 297);
-        registerVanilla(ItemIds.LEATHER_HELMET, ItemHelmetLeather::new, 298);
-        registerVanilla(ItemIds.LEATHER_CHESTPLATE, ItemChestplateLeather::new, 299);
-        registerVanilla(ItemIds.LEATHER_LEGGINGS, ItemLeggingsLeather::new, 300);
-        registerVanilla(ItemIds.LEATHER_BOOTS, ItemBootsLeather::new, 301);
-        registerVanilla(ItemIds.CHAINMAIL_HELMET, ItemHelmetChain::new, 302);
-        registerVanilla(ItemIds.CHAINMAIL_CHESTPLATE, ItemChestplateChain::new, 303);
-        registerVanilla(ItemIds.CHAINMAIL_LEGGINGS, ItemLeggingsChain::new, 304);
-        registerVanilla(ItemIds.CHAINMAIL_BOOTS, ItemBootsChain::new, 305);
-        registerVanilla(ItemIds.IRON_HELMET, ItemHelmetIron::new, 306);
-        registerVanilla(ItemIds.IRON_CHESTPLATE, ItemChestplateIron::new, 307);
-        registerVanilla(ItemIds.IRON_LEGGINGS, ItemLeggingsIron::new, 308);
-        registerVanilla(ItemIds.IRON_BOOTS, ItemBootsIron::new, 309);
-        registerVanilla(ItemIds.DIAMOND_HELMET, ItemHelmetDiamond::new, 310);
-        registerVanilla(ItemIds.DIAMOND_CHESTPLATE, ItemChestplateDiamond::new, 311);
-        registerVanilla(ItemIds.DIAMOND_LEGGINGS, ItemLeggingsDiamond::new, 312);
-        registerVanilla(ItemIds.DIAMOND_BOOTS, ItemBootsDiamond::new, 313);
-        registerVanilla(ItemIds.GOLDEN_HELMET, ItemHelmetGold::new, 314);
-        registerVanilla(ItemIds.GOLDEN_CHESTPLATE, ItemChestplateGold::new, 315);
-        registerVanilla(ItemIds.GOLDEN_LEGGINGS, ItemLeggingsGold::new, 316);
-        registerVanilla(ItemIds.GOLDEN_BOOTS, ItemBootsGold::new, 317);
-        registerVanilla(ItemIds.FLINT, SimpleItem::new, 318);
-        registerVanilla(ItemIds.PORKCHOP, ItemPorkchopRaw::new, 319);
-        registerVanilla(ItemIds.COOKED_PORKCHOP, ItemPorkchopCooked::new, 320);
-        registerVanilla(ItemIds.PAINTING, ItemPaintingBehavior::new, 321);
-        registerVanilla(ItemIds.GOLDEN_APPLE, ItemAppleGoldBehavior::new, 322);
-        registerVanilla(ItemIds.SIGN, SignItem.factory(BlockIds.STANDING_SIGN), 323);
-        registerVanilla(ItemIds.WOODEN_DOOR, PlaceableItem.factory(BlockIds.WOODEN_DOOR), 324);
-        registerVanilla(ItemIds.BUCKET, ItemBucketBehavior::new, 325);
+        registerVanilla(ItemTypes.IRON_SHOVEL, 256);
+        registerVanilla(ItemTypes.IRON_PICKAXE, 257);
+        registerVanilla(ItemTypes.IRON_AXE, 258);
+        registerVanilla(ItemTypes.FLINT_AND_STEEL, new ItemFlintSteelBehavior(), 259);
+        registerVanilla(ItemTypes.APPLE, 260);
+        registerVanilla(ItemTypes.BOW, 261);
+        registerVanilla(ItemTypes.ARROW, 262);
+        registerVanilla(ItemTypes.COAL, 263);
+        registerVanilla(ItemTypes.DIAMOND, 264);
+        registerVanilla(ItemTypes.IRON_INGOT, 265);
+        registerVanilla(ItemTypes.GOLD_INGOT, 266);
+        registerVanilla(ItemTypes.IRON_SWORD, 267);
+        registerVanilla(ItemTypes.WOODEN_SWORD, 268);
+        registerVanilla(ItemTypes.WOODEN_SHOVEL, 269);
+        registerVanilla(ItemTypes.WOODEN_PICKAXE, 270);
+        registerVanilla(ItemTypes.WOODEN_AXE, 271);
+        registerVanilla(ItemTypes.STONE_SWORD, 272);
+        registerVanilla(ItemTypes.STONE_SHOVEL, 273);
+        registerVanilla(ItemTypes.STONE_PICKAXE, 274);
+        registerVanilla(ItemTypes.STONE_AXE, 275);
+        registerVanilla(ItemTypes.DIAMOND_SWORD, 276);
+        registerVanilla(ItemTypes.DIAMOND_SHOVEL, 277);
+        registerVanilla(ItemTypes.DIAMOND_PICKAXE, 278);
+        registerVanilla(ItemTypes.DIAMOND_AXE, 279);
+        registerVanilla(ItemTypes.STICK, 280);
+        registerVanilla(ItemTypes.BOWL, 281);
+        registerVanilla(ItemTypes.MUSHROOM_STEW, 282);
+        registerVanilla(ItemTypes.GOLDEN_SWORD, 283);
+        registerVanilla(ItemTypes.GOLDEN_SHOVEL, 284);
+        registerVanilla(ItemTypes.GOLDEN_PICKAXE, 285);
+        registerVanilla(ItemTypes.GOLDEN_AXE, 286);
+        registerVanilla(ItemTypes.STRING, 287);
+        registerVanilla(ItemTypes.FEATHER, 288);
+        registerVanilla(ItemTypes.GUNPOWDER, 289);
+        registerVanilla(ItemTypes.WOODEN_HOE, 290);
+        registerVanilla(ItemTypes.STONE_HOE, 291);
+        registerVanilla(ItemTypes.IRON_HOE, 292);
+        registerVanilla(ItemTypes.DIAMOND_HOE, 293);
+        registerVanilla(ItemTypes.GOLDEN_HOE, 294);
+        registerVanilla(ItemTypes.WHEAT_SEEDS, 295);
+        registerVanilla(ItemTypes.WHEAT, 296);
+        registerVanilla(ItemTypes.BREAD, 297);
+        registerVanilla(ItemTypes.LEATHER_HELMET, 298);
+        registerVanilla(ItemTypes.LEATHER_CHESTPLATE, 299);
+        registerVanilla(ItemTypes.LEATHER_LEGGINGS, 300);
+        registerVanilla(ItemTypes.LEATHER_BOOTS, 301);
+        registerVanilla(ItemTypes.CHAINMAIL_HELMET, 302);
+        registerVanilla(ItemTypes.CHAINMAIL_CHESTPLATE, 303);
+        registerVanilla(ItemTypes.CHAINMAIL_LEGGINGS, 304);
+        registerVanilla(ItemTypes.CHAINMAIL_BOOTS, 305);
+        registerVanilla(ItemTypes.IRON_HELMET, 306);
+        registerVanilla(ItemTypes.IRON_CHESTPLATE, 307);
+        registerVanilla(ItemTypes.IRON_LEGGINGS, 308);
+        registerVanilla(ItemTypes.IRON_BOOTS, 309);
+        registerVanilla(ItemTypes.DIAMOND_HELMET, 310);
+        registerVanilla(ItemTypes.DIAMOND_CHESTPLATE, 311);
+        registerVanilla(ItemTypes.DIAMOND_LEGGINGS, 312);
+        registerVanilla(ItemTypes.DIAMOND_BOOTS, 313);
+        registerVanilla(ItemTypes.GOLDEN_HELMET, 314);
+        registerVanilla(ItemTypes.GOLDEN_CHESTPLATE, 315);
+        registerVanilla(ItemTypes.GOLDEN_LEGGINGS, 316);
+        registerVanilla(ItemTypes.GOLDEN_BOOTS, 317);
+        registerVanilla(ItemTypes.FLINT, 318);
+        registerVanilla(ItemTypes.PORKCHOP, 319);
+        registerVanilla(ItemTypes.COOKED_PORKCHOP, 320);
+        registerVanilla(ItemTypes.PAINTING, new ItemPaintingBehavior(), 321);
+        registerVanilla(ItemTypes.GOLDEN_APPLE, new ItemAppleGoldBehavior(), 322);
+        registerVanilla(ItemTypes.SIGN, TreeSpeciesSerializer.SIGN, 323);
+        registerVanilla(ItemTypes.WOODEN_DOOR, TreeSpeciesSerializer.DOOR, 324);
+        registerVanilla(ItemTypes.BUCKET, new ItemBucketBehavior(), 325);
 
-        registerVanilla(ItemIds.MINECART, ItemMinecartBehavior::new, 328);
-        registerVanilla(ItemIds.SADDLE, ItemSaddle::new, 329);
-        registerVanilla(ItemIds.IRON_DOOR, PlaceableItem.factory(BlockIds.IRON_DOOR), 330);
-        registerVanilla(ItemIds.REDSTONE, PlaceableItem.factory(BlockIds.REDSTONE_WIRE), 331);
-        registerVanilla(ItemIds.SNOWBALL, ItemSnowball::new, 332);
-        registerVanilla(ItemIds.BOAT, ItemBoatBehavior::new, 333);
-        registerVanilla(ItemIds.LEATHER, SimpleItem::new, 334);
-        registerVanilla(ItemIds.KELP, PlaceableItem.factory(BlockIds.KELP), 335);
-        registerVanilla(ItemIds.BRICK, SimpleItem::new, 336);
-        registerVanilla(ItemIds.CLAY_BALL, SimpleItem::new, 337);
-        registerVanilla(ItemIds.REEDS, PlaceableItem.factory(BlockIds.REEDS), 338);
-        registerVanilla(ItemIds.PAPER, SimpleItem::new, 339);
-        registerVanilla(ItemIds.BOOK, ItemBook::new, 340);
-        registerVanilla(ItemIds.SLIME_BALL, SimpleItem::new, 341);
-        registerVanilla(ItemIds.CHEST_MINECART, ItemMinecartChest::new, 342);
+        registerVanilla(ItemTypes.MINECART, new ItemMinecartBehavior(EntityTypes.MINECART), 328);
+        registerVanilla(ItemTypes.SADDLE, 329);
+        registerVanilla(ItemTypes.IRON_DOOR, 330);
+        registerVanilla(ItemTypes.REDSTONE, 331);
+        registerVanilla(ItemTypes.SNOWBALL, new ItemProjectileBehavior(EntityTypes.SNOWBALL, 1.5f), 332);
+        registerVanilla(ItemTypes.BOAT, new ItemBoatBehavior(), 333);
+        registerVanilla(ItemTypes.LEATHER, 334);
+        registerVanilla(ItemTypes.KELP, 335);
+        registerVanilla(ItemTypes.BRICK, 336);
+        registerVanilla(ItemTypes.CLAY_BALL, 337);
+        registerVanilla(ItemTypes.REEDS, 338);
+        registerVanilla(ItemTypes.PAPER, 339);
+        registerVanilla(ItemTypes.BOOK, 340);
+        registerVanilla(ItemTypes.SLIME_BALL, 341);
+        registerVanilla(ItemTypes.CHEST_MINECART, new ItemMinecartBehavior(EntityTypes.CHEST_MINECART), 342);
 
-        registerVanilla(ItemIds.EGG, ItemEgg::new, 344);
-        registerVanilla(ItemIds.COMPASS, SimpleItem::new, 345);
-        registerVanilla(ItemIds.FISHING_ROD, ItemFishingRodBehavior::new, 346);
-        registerVanilla(ItemIds.CLOCK, SimpleItem::new, 347);
-        registerVanilla(ItemIds.GLOWSTONE_DUST, SimpleItem::new, 348);
-        registerVanilla(ItemIds.FISH, ItemFish::new, 349);
-        registerVanilla(ItemIds.COOKED_FISH, ItemFishCooked::new, 350);
-        registerVanilla(ItemIds.DYE, ItemDye::new, 351);
-        registerVanilla(ItemIds.BONE, SimpleItem::new, 352);
-        registerVanilla(ItemIds.SUGAR, SimpleItem::new, 353);
-        registerVanilla(ItemIds.CAKE, ItemCake::new, 354);
-        registerVanilla(ItemIds.BED, ItemBed::new, 355);
-        registerVanilla(ItemIds.REPEATER, PlaceableItem.factory(BlockIds.UNPOWERED_REPEATER), 356);
-        registerVanilla(ItemIds.COOKIE, ItemCookie::new, 357);
-        registerVanilla(ItemIds.MAP, ItemMapBehavior::new, 358);
-        registerVanilla(ItemIds.SHEARS, ItemShears::new, 359);
-        registerVanilla(ItemIds.MELON, ItemMelon::new, 360);
-        registerVanilla(ItemIds.PUMPKIN_SEEDS, PlaceableItem.factory(BlockIds.PUMPKIN_STEM), 361);
-        registerVanilla(ItemIds.MELON_SEEDS, PlaceableItem.factory(BlockIds.MELON_STEM), 362);
-        registerVanilla(ItemIds.BEEF, ItemBeefRaw::new, 363);
-        registerVanilla(ItemIds.COOKED_BEEF, ItemSteak::new, 364);
-        registerVanilla(ItemIds.CHICKEN, ItemChickenRaw::new, 365);
-        registerVanilla(ItemIds.COOKED_CHICKEN, ItemChickenCooked::new, 366);
-        registerVanilla(ItemIds.ROTTEN_FLESH, ItemRottenFlesh::new, 367);
-        registerVanilla(ItemIds.ENDER_PEARL, ItemEnderPearl::new, 368);
-        registerVanilla(ItemIds.BLAZE_ROD, ItemBlazeRod::new, 369);
-        registerVanilla(ItemIds.GHAST_TEAR, SimpleItem::new, 370);
-        registerVanilla(ItemIds.GOLD_NUGGET, SimpleItem::new, 371);
-        registerVanilla(ItemIds.NETHER_WART, PlaceableItem.factory(BlockIds.NETHER_WART), 372);
-        registerVanilla(ItemIds.POTION, ItemPotionBehavior::new, 373);
-        registerVanilla(ItemIds.GLASS_BOTTLE, ItemGlassBottleBehavior::new, 374);
-        registerVanilla(ItemIds.SPIDER_EYE, SimpleItem::new, 375);
-        registerVanilla(ItemIds.FERMENTED_SPIDER_EYE, SimpleItem::new, 376);
-        registerVanilla(ItemIds.BLAZE_POWDER, SimpleItem::new, 377);
-        registerVanilla(ItemIds.MAGMA_CREAM, SimpleItem::new, 378);
-        registerVanilla(ItemIds.BREWING_STAND, PlaceableItem.factory(BlockIds.BREWING_STAND), 379);
-        registerVanilla(ItemIds.CAULDRON, PlaceableItem.factory(BlockIds.CAULDRON), 380);
-        registerVanilla(ItemIds.ENDER_EYE, SimpleItem::new, 381);
-        registerVanilla(ItemIds.SPECKLED_MELON, SimpleItem::new, 382);
-        registerVanilla(ItemIds.SPAWN_EGG, ItemSpawnEggBehavior::new, 383);
-        registerVanilla(ItemIds.EXPERIENCE_BOTTLE, ItemExpBottle::new, 384);
-        registerVanilla(ItemIds.FIREBALL, ItemFireChargeBehavior::new, 385);
-        //TODO: registerVanilla(WRITABLE_BOOK, ItemBookAndQuill::new, 386);
-        registerVanilla(ItemIds.WRITTEN_BOOK, ItemBookWritten::new, 387);
-        registerVanilla(ItemIds.EMERALD, SimpleItem::new, 388);
-        registerVanilla(ItemIds.FRAME, PlaceableItem.factory(BlockIds.FRAME), 389);
-        registerVanilla(ItemIds.FLOWER_POT, PlaceableItem.factory(BlockIds.FLOWER_POT), 390);
-        registerVanilla(ItemIds.CARROT, ItemCarrot::new, 391);
-        registerVanilla(ItemIds.POTATO, ItemPotato::new, 392);
-        registerVanilla(ItemIds.BAKED_POTATO, ItemPotatoBaked::new, 393);
-        registerVanilla(ItemIds.POISONOUS_POTATO, ItemPotatoPoisonous::new, 394);
-        //TODO: registerVanilla(EMPTY_MAP, ItemEmptyMap::new, 395);
-        registerVanilla(ItemIds.GOLDEN_CARROT, ItemCarrotGolden::new, 396);
-        registerVanilla(ItemIds.SKULL, ItemSkull::new, 397);
-        registerVanilla(ItemIds.CARROT_ON_A_STICK, ItemCarrotOnAStick::new, 398);
-        registerVanilla(ItemIds.NETHER_STAR, SimpleItem::new, 399);
-        registerVanilla(ItemIds.PUMPKIN_PIE, ItemPumpkinPie::new, 400);
-        registerVanilla(ItemIds.FIREWORKS, ItemFireworkBehavior::new, 401);
+        registerVanilla(ItemTypes.EGG, new ItemProjectileBehavior(EntityTypes.EGG, 1.5f), 344);
+        registerVanilla(ItemTypes.COMPASS, 345);
+        registerVanilla(ItemTypes.FISHING_ROD, 346);
+        registerVanilla(ItemTypes.CLOCK, 347);
+        registerVanilla(ItemTypes.GLOWSTONE_DUST, 348);
+        registerVanilla(ItemTypes.FISH, 349);
+        registerVanilla(ItemTypes.COOKED_FISH, 350);
+        registerVanilla(ItemTypes.DYE, 351);
+        registerVanilla(ItemTypes.BONE, 352);
+        registerVanilla(ItemTypes.SUGAR, 353);
+        registerVanilla(ItemTypes.CAKE, 354);
+        registerVanilla(ItemTypes.BED, 355);
+        registerVanilla(ItemTypes.REPEATER, 356);
+        registerVanilla(ItemTypes.COOKIE, 357);
+        registerVanilla(ItemTypes.MAP, new ItemMapBehavior(), 358);
+        registerVanilla(ItemTypes.SHEARS, 359);
+        registerVanilla(ItemTypes.MELON, 360);
+        registerVanilla(ItemTypes.PUMPKIN_SEEDS, 361);
+        registerVanilla(ItemTypes.MELON_SEEDS, 362);
+        registerVanilla(ItemTypes.BEEF, 363);
+        registerVanilla(ItemTypes.COOKED_BEEF, 364);
+        registerVanilla(ItemTypes.CHICKEN, 365);
+        registerVanilla(ItemTypes.COOKED_CHICKEN, 366);
+        registerVanilla(ItemTypes.ROTTEN_FLESH, 367);
+        registerVanilla(ItemTypes.ENDER_PEARL, new ItemProjectileBehavior(EntityTypes.ENDER_PEARL, 1.5f), 368);
+        registerVanilla(ItemTypes.BLAZE_ROD, 369);
+        registerVanilla(ItemTypes.GHAST_TEAR, 370);
+        registerVanilla(ItemTypes.GOLD_NUGGET, 371);
+        registerVanilla(ItemTypes.NETHER_WART, 372);
+        registerVanilla(ItemTypes.POTION, new ItemPotionBehavior(), 373);
+        registerVanilla(ItemTypes.GLASS_BOTTLE, new ItemGlassBottleBehavior(), 374);
+        registerVanilla(ItemTypes.SPIDER_EYE, 375);
+        registerVanilla(ItemTypes.FERMENTED_SPIDER_EYE, 376);
+        registerVanilla(ItemTypes.BLAZE_POWDER, 377);
+        registerVanilla(ItemTypes.MAGMA_CREAM, 378);
+        registerVanilla(ItemTypes.BREWING_STAND, 379);
+        registerVanilla(ItemTypes.CAULDRON, 380);
+        registerVanilla(ItemTypes.ENDER_EYE, 381);
+        registerVanilla(ItemTypes.SPECKLED_MELON, 382);
+        registerVanilla(ItemTypes.SPAWN_EGG, new ItemSpawnEggBehavior(), 383);
+        registerVanilla(ItemTypes.EXPERIENCE_BOTTLE, new ItemProjectileBehavior(EntityTypes.XP_BOTTLE, 1f), 384);
+        registerVanilla(ItemTypes.FIREBALL, new ItemFireChargeBehavior(), 385);
+        registerVanilla(ItemTypes.WRITABLE_BOOK, 386);
+        registerVanilla(ItemTypes.WRITTEN_BOOK, 387);
+        registerVanilla(ItemTypes.EMERALD, 388);
+        registerVanilla(ItemTypes.FRAME, 389);
+        registerVanilla(ItemTypes.FLOWER_POT, 390);
+        registerVanilla(ItemTypes.CARROT, 391);
+        registerVanilla(ItemTypes.POTATO, 392);
+        registerVanilla(ItemTypes.BAKED_POTATO, 393);
+        registerVanilla(ItemTypes.POISONOUS_POTATO, 394);
+        registerVanilla(ItemTypes.EMPTY_MAP, 395);
+        registerVanilla(ItemTypes.GOLDEN_CARROT, 396);
+        registerVanilla(ItemTypes.SKULL, 397);
+        registerVanilla(ItemTypes.CARROT_ON_A_STICK, 398);
+        registerVanilla(ItemTypes.NETHER_STAR, 399);
+        registerVanilla(ItemTypes.PUMPKIN_PIE, 400);
+        registerVanilla(ItemTypes.FIREWORKS, new ItemFireworkBehavior(), 401);
 
-        registerVanilla(ItemIds.ENCHANTED_BOOK, ItemBookEnchanted::new, 403);
-        registerVanilla(ItemIds.COMPARATOR, ItemRedstoneComparator::new, 404);
-        registerVanilla(ItemIds.NETHERBRICK, SimpleItem::new, 405);
-        registerVanilla(ItemIds.QUARTZ, ItemQuartz::new, 406);
-        registerVanilla(ItemIds.TNT_MINECART, ItemMinecartTNT::new, 407);
-        registerVanilla(ItemIds.HOPPER_MINECART, ItemMinecartHopper::new, 408);
-        registerVanilla(ItemIds.PRISMARINE_SHARD, SimpleItem::new, 409);
-        registerVanilla(ItemIds.HOPPER, PlaceableItem.factory(BlockIds.HOPPER), 410);
-        registerVanilla(ItemIds.RABBIT, ItemRabbitRaw::new, 411);
-        registerVanilla(ItemIds.COOKED_RABBIT, ItemRabbitCooked::new, 412);
-        registerVanilla(ItemIds.RABBIT_STEW, ItemRabbitStew::new, 413);
-        registerVanilla(ItemIds.RABBIT_FOOT, SimpleItem::new, 414);
-        registerVanilla(ItemIds.RABBIT_HIDE, SimpleItem::new, 415);
-        registerVanilla(ItemIds.HORSE_ARMOR_LEATHER, ItemHorseArmorLeather::new, 416);
-        registerVanilla(ItemIds.HORSE_ARMOR_IRON, ItemHorseArmorIron::new, 417);
-        registerVanilla(ItemIds.HORSE_ARMOR_GOLD, ItemHorseArmorGold::new, 418);
-        registerVanilla(ItemIds.HORSE_ARMOR_DIAMOND, ItemHorseArmorDiamond::new, 419);
-        //TODO: registerVanilla(LEAD, ItemLead::new, 420);
-        //TODO: registerVanilla(NAME_TAG, ItemNameTag::new, 421);
-        registerVanilla(ItemIds.PRISMARINE_CRYSTALS, SimpleItem::new, 422);
-        registerVanilla(ItemIds.MUTTON_RAW, ItemMuttonRaw::new, 423);
-        registerVanilla(ItemIds.MUTTON_COOKED, ItemMuttonCooked::new, 424);
+        registerVanilla(ItemTypes.ENCHANTED_BOOK, 403);
+        registerVanilla(ItemTypes.COMPARATOR, 404);
+        registerVanilla(ItemTypes.NETHERBRICK, 405);
+        registerVanilla(ItemTypes.QUARTZ, 406);
+        registerVanilla(ItemTypes.TNT_MINECART, new ItemMinecartBehavior(EntityTypes.TNT_MINECART), 407);
+        registerVanilla(ItemTypes.HOPPER_MINECART, new ItemMinecartBehavior(EntityTypes.HOPPER_MINECART), 408);
+        registerVanilla(ItemTypes.PRISMARINE_SHARD, 409);
+        registerVanilla(ItemTypes.HOPPER, 410);
+        registerVanilla(ItemTypes.RABBIT, 411);
+        registerVanilla(ItemTypes.COOKED_RABBIT, 412);
+        registerVanilla(ItemTypes.RABBIT_STEW, 413);
+        registerVanilla(ItemTypes.RABBIT_FOOT, 414);
+        registerVanilla(ItemTypes.RABBIT_HIDE, 415);
+        registerVanilla(ItemTypes.HORSE_ARMOR_LEATHER, 416);
+        registerVanilla(ItemTypes.HORSE_ARMOR_IRON, 417);
+        registerVanilla(ItemTypes.HORSE_ARMOR_GOLD, 418);
+        registerVanilla(ItemTypes.HORSE_ARMOR_DIAMOND, 419);
+        registerVanilla(ItemTypes.LEAD, 420);
+        registerVanilla(ItemTypes.NAME_TAG, 421);
+        registerVanilla(ItemTypes.PRISMARINE_CRYSTALS, 422);
+        registerVanilla(ItemTypes.MUTTON_RAW, 423);
+        registerVanilla(ItemTypes.MUTTON_COOKED, 424);
 
-        registerVanilla(ItemIds.ARMOR_STAND, SimpleItem::new, 425);
-        registerVanilla(ItemIds.END_CRYSTAL, ItemEndCrystalBehavior::new, 426);
-        registerVanilla(ItemIds.SPRUCE_DOOR, PlaceableItem.factory(BlockIds.SPRUCE_DOOR), 427);
-        registerVanilla(ItemIds.BIRCH_DOOR, PlaceableItem.factory(BlockIds.BIRCH_DOOR), 428);
-        registerVanilla(ItemIds.JUNGLE_DOOR, PlaceableItem.factory(BlockIds.JUNGLE_DOOR), 429);
-        registerVanilla(ItemIds.ACACIA_DOOR, PlaceableItem.factory(BlockIds.ACACIA_DOOR), 430);
-        registerVanilla(ItemIds.DARK_OAK_DOOR, PlaceableItem.factory(BlockIds.DARK_OAK_DOOR), 431);
-        registerVanilla(ItemIds.CHORUS_FRUIT, ItemChorusFruitBehavior::new, 432);
-        //TODO: registerVanilla(POPPED_CHORUS_FRUIT, ItemChorusFruitPopped::new, 433);
+        registerVanilla(ItemTypes.ARMOR_STAND, 425);
+        registerVanilla(ItemTypes.END_CRYSTAL, new ItemEndCrystalBehavior(), 426);
+        registerVanilla(ItemTypes.CHORUS_FRUIT, new ItemChorusFruitBehavior(), 432);
+        registerVanilla(ItemTypes.CHORUS_FRUIT_POPPED, 433);
 
-        //TODO: registerVanilla(DRAGON_BREATH, ItemDragonBreath::new, 437);
-        registerVanilla(ItemIds.SPLASH_POTION, ItemPotionSplash::new, 438);
+        registerVanilla(ItemTypes.DRAGON_BREATH, 437);
+        registerVanilla(ItemTypes.SPLASH_POTION, new ItemPotionSplashBehavior(), 438);
 
-        registerVanilla(ItemIds.LINGERING_POTION, ItemPotionLingering::new, 441);
+        registerVanilla(ItemTypes.LINGERING_POTION, new ItemPotionLingeringBehavior(), 441);
 
-        //TODO: registerVanilla(ItemIds.COMMAND_BLOCK_MINECART, ItemElytra::new, 444);
-        registerVanilla(ItemIds.ELYTRA, ItemElytra::new, 444);
+        registerVanilla(ItemTypes.COMMAND_BLOCK_MINECART, new ItemMinecartBehavior(EntityTypes.COMMAND_BLOCK_MINECART), 444);
+        registerVanilla(ItemTypes.ELYTRA, 444);
 
-        //TODO: registerVanilla(SHULKER_SHELL, ItemShulkerShell::new, 445);
-        registerVanilla(ItemIds.BANNER, ItemBanner::new, 446);
+        registerVanilla(ItemTypes.SHULKER_SHELL, 445);
+        registerVanilla(ItemTypes.BANNER, 446);
 
-        registerVanilla(ItemIds.IRON_NUGGET, SimpleItem::new, 452);
-        registerVanilla(ItemIds.TRIDENT, ItemTridentBehavior::new, 455);
+        registerVanilla(ItemTypes.IRON_NUGGET, 452);
+        registerVanilla(ItemTypes.TRIDENT, new ItemTridentBehavior(), 455);
 
-        registerVanilla(ItemIds.BEETROOT, ItemBeetroot::new, 457);
-        registerVanilla(ItemIds.BEETROOT_SEEDS, PlaceableItem.factory(BlockIds.BEETROOT), 458);
-        registerVanilla(ItemIds.BEETROOT_SOUP, ItemBeetrootSoup::new, 459);
-        registerVanilla(ItemIds.SALMON, ItemSalmon::new, 460);
-        registerVanilla(ItemIds.CLOWNFISH, ItemClownfish::new, 461);
-        registerVanilla(ItemIds.PUFFERFISH, ItemPufferfish::new, 462);
-        registerVanilla(ItemIds.COOKED_SALMON, ItemSalmonCooked::new, 463);
-        registerVanilla(ItemIds.DRIED_KELP, ItemDriedKelp::new, 464);
+        registerVanilla(ItemTypes.BEETROOT, 457);
+        registerVanilla(ItemTypes.BEETROOT_SEEDS, 458);
+        registerVanilla(ItemTypes.BEETROOT_SOUP, 459);
+        registerVanilla(ItemTypes.SALMON, 460);
+        registerVanilla(ItemTypes.CLOWNFISH, 461);
+        registerVanilla(ItemTypes.PUFFERFISH, 462);
+        registerVanilla(ItemTypes.COOKED_SALMON, 463);
+        registerVanilla(ItemTypes.DRIED_KELP, 464);
 
-        registerVanilla(ItemIds.APPLE_ENCHANTED, ItemAppleGoldEnchantedBehavior::new, 466);
+        registerVanilla(ItemTypes.APPLE_ENCHANTED, new ItemAppleGoldEnchantedBehavior(), 466);
 
-        registerVanilla(ItemIds.TURTLE_HELMET, ItemTurtleShell::new, 469);
-        registerVanilla(ItemIds.SPRUCE_SIGN, SignItem.factory(BlockIds.SPRUCE_STANDING_SIGN), 472);
-        registerVanilla(ItemIds.BIRCH_SIGN, SignItem.factory(BlockIds.BIRCH_STANDING_SIGN), 473);
-        registerVanilla(ItemIds.JUNGLE_SIGN, SignItem.factory(BlockIds.JUNGLE_STANDING_SIGN), 474);
-        registerVanilla(ItemIds.ACACIA_SIGN, SignItem.factory(BlockIds.ACACIA_STANDING_SIGN), 475);
-        registerVanilla(ItemIds.DARK_OAK_SIGN, SignItem.factory(BlockIds.DARK_OAK_STANDING_SIGN), 476);
-        registerVanilla(ItemIds.SWEET_BERRIES, ItemSweetBerries::new, 477);
+        registerVanilla(ItemTypes.TURTLE_HELMET, 469);
+        registerVanilla(ItemTypes.SWEET_BERRIES, 477);
 
-        registerVanilla(ItemIds.RECORD_CAT, RecordItem.factory("record.cat"), 500);
-        registerVanilla(ItemIds.RECORD_13, RecordItem.factory("record.13"), 501);
-        registerVanilla(ItemIds.RECORD_BLOCKS, RecordItem.factory("record.blocks"), 502);
-        registerVanilla(ItemIds.RECORD_CHIRP, RecordItem.factory("record.chirp"), 503);
-        registerVanilla(ItemIds.RECORD_FAR, RecordItem.factory("record.far"), 504);
-        registerVanilla(ItemIds.RECORD_MALL, RecordItem.factory("record.mall"), 505);
-        registerVanilla(ItemIds.RECORD_MELLOHI, RecordItem.factory("record.mellohi"), 506);
-        registerVanilla(ItemIds.RECORD_STAL, RecordItem.factory("record.stal"), 507);
-        registerVanilla(ItemIds.RECORD_STRAD, RecordItem.factory("record.strad"), 508);
-        registerVanilla(ItemIds.RECORD_WARD, RecordItem.factory("record.ward"), 509);
-        registerVanilla(ItemIds.RECORD_11, RecordItem.factory("record.11"), 510);
-        registerVanilla(ItemIds.RECORD_WAIT, RecordItem.factory("record.wait"), 511);
+        registerVanilla(ItemTypes.RECORD, new RecordSerializer(), 500);
+//        registerVanilla(ItemTypes.RECORD_CAT, RecordItem.factory("record.cat"), 500);
+//        registerVanilla(ItemTypes.RECORD_13, RecordItem.factory("record.13"), 501);
+//        registerVanilla(ItemTypes.RECORD_BLOCKS, RecordItem.factory("record.blocks"), 502);
+//        registerVanilla(ItemTypes.RECORD_CHIRP, RecordItem.factory("record.chirp"), 503);
+//        registerVanilla(ItemTypes.RECORD_FAR, RecordItem.factory("record.far"), 504);
+//        registerVanilla(ItemTypes.RECORD_MALL, RecordItem.factory("record.mall"), 505);
+//        registerVanilla(ItemTypes.RECORD_MELLOHI, RecordItem.factory("record.mellohi"), 506);
+//        registerVanilla(ItemTypes.RECORD_STAL, RecordItem.factory("record.stal"), 507);
+//        registerVanilla(ItemTypes.RECORD_STRAD, RecordItem.factory("record.strad"), 508);
+//        registerVanilla(ItemTypes.RECORD_WARD, RecordItem.factory("record.ward"), 509);
+//        registerVanilla(ItemTypes.RECORD_11, RecordItem.factory("record.11"), 510);
+//        registerVanilla(ItemTypes.RECORD_WAIT, RecordItem.factory("record.wait"), 511);
 
-        registerVanilla(ItemIds.SHIELD, ItemShield::new, 513);
+        registerVanilla(ItemTypes.SHIELD, 513);
 
-        registerVanilla(ItemIds.CAMPFIRE, PlaceableItem.factory(BlockIds.CAMPFIRE), 720);
+        registerVanilla(ItemTypes.CAMPFIRE, 720);
 
-        registerVanilla(ItemIds.HONEYCOMB, SimpleItem::new, 736);
-        registerVanilla(ItemIds.HONEY_BOTTLE, ItemHoneyBottle::new, 737);
+        registerVanilla(ItemTypes.HONEYCOMB, 736);
+        registerVanilla(ItemTypes.HONEY_BOTTLE, 737);
 
-        registerVanilla(ItemIds.NETHERITE_SWORD, ItemSwordNetherite::new, 743);
-        registerVanilla(ItemIds.NETHERITE_SHOVEL, ItemShovelNetherite::new, 744);
-        registerVanilla(ItemIds.NETHERITE_PICKAXE, ItemPickaxeNetherite::new, 745);
-        registerVanilla(ItemIds.NETHERITE_AXE, ItemAxeNetherite::new, 746);
-        registerVanilla(ItemIds.NETHERITE_HOE, ItemHoeNetherite::new, 747);
-        registerVanilla(ItemIds.NETHERITE_HELMET, ItemHelmetNetherite::new, 748);
-        registerVanilla(ItemIds.NETHERITE_CHESTPLATE, ItemChestplateNetherite::new, 749);
-        registerVanilla(ItemIds.NETHERITE_LEGGINGS, ItemLeggingsNetherite::new, 750);
-        registerVanilla(ItemIds.NETHERITE_BOOTS, ItemBootsNetherite::new, 751);
+        registerVanilla(ItemTypes.NETHERITE_SWORD, 743);
+        registerVanilla(ItemTypes.NETHERITE_SHOVEL, 744);
+        registerVanilla(ItemTypes.NETHERITE_PICKAXE, 745);
+        registerVanilla(ItemTypes.NETHERITE_AXE, 746);
+        registerVanilla(ItemTypes.NETHERITE_HOE, 747);
+        registerVanilla(ItemTypes.NETHERITE_HELMET, 748);
+        registerVanilla(ItemTypes.NETHERITE_CHESTPLATE, 749);
+        registerVanilla(ItemTypes.NETHERITE_LEGGINGS, 750);
+        registerVanilla(ItemTypes.NETHERITE_BOOTS, 751);
+    }
 
-        registerVanilla(ItemIds.CRIMSON_SIGN, PlaceableItem.factory(BlockIds.CRIMSON_STANDING_SIGN), 753);
-        registerVanilla(ItemIds.WARPED_SIGN, PlaceableItem.factory(BlockIds.WARPED_STANDING_SIGN), 754);
-        registerVanilla(ItemIds.CRIMSON_DOOR, PlaceableItem.factory(BlockIds.CRIMSON_DOOR), 755);
-        registerVanilla(ItemIds.WARPED_DOOR, PlaceableItem.factory(BlockIds.WARPED_DOOR), 756);
+    private void registerType(ItemType type, Identifier id, int legacyId) {
+        this.typeMap.put(id, type);
+        this.runtimeIdMap.put(legacyId, id);
+
+        if (this.lastLegacyId < legacyId) {
+            this.lastLegacyId = legacyId;
+            this.runtimeIdAllocator.set(this.lastLegacyId + 1);
+        }
+    }
+
+    private void registerType(ItemType type, Identifier... identifiers) {
+        for (Identifier id : identifiers) {
+            this.typeMap.put(id, type);
+        }
+    }
+
+    /**
+     * register additional vanilla identifiers not used as a separate ItemType
+     */
+    private void registerVanillaIdentifiers() {
+        registerType(ItemTypes.SIGN, ItemIds.SPRUCE_SIGN, 472);
+        registerType(ItemTypes.SIGN, ItemIds.BIRCH_SIGN, 473);
+        registerType(ItemTypes.SIGN, ItemIds.JUNGLE_SIGN, 474);
+        registerType(ItemTypes.SIGN, ItemIds.ACACIA_SIGN, 475);
+        registerType(ItemTypes.SIGN, ItemIds.DARK_OAK_SIGN, 476);
+        registerType(ItemTypes.SIGN, ItemIds.CRIMSON_SIGN, 753);
+        registerType(ItemTypes.SIGN, ItemIds.WARPED_SIGN, 754);
+
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.SPRUCE_DOOR, 427);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.BIRCH_DOOR, 428);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.JUNGLE_DOOR, 429);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.ACACIA_DOOR, 430);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.DARK_OAK_DOOR, 431);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.CRIMSON_DOOR, 755);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.WARPED_DOOR, 756);
+
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_13, 501);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_BLOCKS, 502);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_CHIRP, 503);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_FAR, 504);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_MALL, 505);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_MELLOHI, 506);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_STAL, 507);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_STRAD, 508);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_WARD, 509);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_11, 510);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_WAIT, 511);
     }
 
     @Getter

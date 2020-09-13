@@ -57,9 +57,9 @@ public class ItemTridentBehavior extends ItemToolBehavior {
         trident.setShooter(player);
         trident.setCritical(f == 2);
         trident.setMotion(motion);
-        trident.setTrident(this);
+        trident.setTrident(item);
 
-        EntityShootBowEvent entityShootBowEvent = new EntityShootBowEvent(player, this, trident, f);
+        EntityShootBowEvent entityShootBowEvent = new EntityShootBowEvent(player, item, trident, f);
 
         if (f < 0.1 || ticksUsed < 5) {
             entityShootBowEvent.setCancelled();

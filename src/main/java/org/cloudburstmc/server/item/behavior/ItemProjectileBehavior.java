@@ -18,7 +18,7 @@ import org.cloudburstmc.server.registry.EntityRegistry;
  */
 @RequiredArgsConstructor
 @Getter
-public abstract class ProjectileItemBehavior extends CloudItemBehavior {
+public class ItemProjectileBehavior extends CloudItemBehavior {
 
     protected final EntityType<? extends Projectile> projectileEntityType;
     protected final float throwForce;

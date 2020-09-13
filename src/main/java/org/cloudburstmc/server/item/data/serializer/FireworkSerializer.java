@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.item.serializer;
+package org.cloudburstmc.server.item.data.serializer;
 
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
@@ -28,7 +28,7 @@ public class FireworkSerializer implements ItemDataSerializer<Firework> {
     private static final String TAG_FLICKER = "FireworkFlicker";
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder tag, Firework value) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag, Firework value) {
         List<NbtMap> explosionTags = new ArrayList<>();
         for (FireworkExplosion explosion : value.getExplosions()) {
             byte[] clrs = new byte[explosion.getColors().size()];
@@ -50,14 +50,16 @@ public class FireworkSerializer implements ItemDataSerializer<Firework> {
                     .build());
         }
 
+        NbtMapBuilder tag = NbtMap.builder();
         tag.putCompound(TAG_FIREWORKS, NbtMap.builder()
                 .putList(TAG_EXPLOSIONS, NbtType.COMPOUND, explosionTags)
                 .putBoolean(TAG_FLIGHT, value.isFlight())
                 .build());
+        itemTag.putCompound(ITEM_TAG, tag.build());
     }
 
     @Override
-    public Firework deserialize(Identifier type, Integer meta, NbtMap tag) {
+    public Firework deserialize(Identifier id, Integer meta, NbtMap tag) {
         val compound = tag.getCompound(TAG_FIREWORKS);
 
         if (compound != null) {

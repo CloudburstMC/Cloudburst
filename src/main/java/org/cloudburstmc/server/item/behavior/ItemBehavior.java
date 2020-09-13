@@ -11,8 +11,6 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.util.Optional;
-
 public interface ItemBehavior {
     boolean canBeActivated();
 
@@ -36,7 +34,7 @@ public interface ItemBehavior {
 
     int getMaxDurability();
 
-    Optional<TierType> getTier(ItemStack item);
+    TierType getTier(ItemStack item);
 
     boolean isPickaxe();
 

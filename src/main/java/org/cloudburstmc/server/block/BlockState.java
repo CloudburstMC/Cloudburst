@@ -81,7 +81,7 @@ public interface BlockState {
         return BlockCategories.inCategory(this.getType(), category);
     }
 
-    static BlockState get(@Nonnull Identifier blockType) {
+    static BlockState get(@Nonnull BlockType blockType) {
         return BlockPalette.INSTANCE.getDefaultState(blockType);
     }
 }

@@ -5,7 +5,7 @@ import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.ItemStack;
 
-public class EnchantmentBehavior {
+public abstract class EnchantmentBehavior {
 
     public int getWeight(EnchantmentInstance enchantment) {
         return enchantment.getType().getWeight();
