@@ -2426,7 +2426,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 case LAVA:
                     BlockState state = this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt());
                     if (state.getType() == BlockIds.MAGMA) {
-                        message = "death.attack.lava.magma";
+                        message = "death.attack.magma";
                         break;
                     }
                     message = "death.attack.lava";

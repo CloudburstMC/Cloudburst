@@ -435,7 +435,7 @@ public class Server {
         this.forceLanguage = this.getConfig("settings.force-language", false);
         this.localeManager.setLocaleOrFallback(this.getConfig("settings.language"));
         Locale locale = this.getLanguage().getLocale();
-        log.info(this.getLanguage().translate("language.selected", locale.getDisplayCountry(locale), locale));
+        log.info(this.getLanguage().translate("cloudburst.language.selected", locale.getDisplayCountry(locale), locale));
         log.info(this.getLanguage().translate("cloudburst.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.RESET));
 
         Object poolSize = this.getConfig("settings.async-workers", (Object) (-1));
