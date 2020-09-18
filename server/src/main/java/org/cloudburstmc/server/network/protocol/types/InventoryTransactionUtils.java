@@ -11,9 +11,11 @@ import org.cloudburstmc.server.inventory.BeaconInventory;
 import org.cloudburstmc.server.inventory.EnchantInventory;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.transaction.action.*;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.Optional;
 
@@ -99,8 +101,8 @@ public class InventoryTransactionUtils {
         InventorySource source = inventoryActionData.getSource();
         int containerId = source.getContainerId();
         int slot = inventoryActionData.getSlot();
-        ItemStack oldItem = ItemStack.fromNetwork(inventoryActionData.getFromItem());
-        ItemStack newItem = ItemStack.fromNetwork(inventoryActionData.getToItem());
+        ItemStack oldItem = ItemUtils.fromNetwork(inventoryActionData.getFromItem());
+        ItemStack newItem = ItemUtils.fromNetwork(inventoryActionData.getToItem());
 
         switch (source.getType()) {
             case CONTAINER:
@@ -189,8 +191,8 @@ public class InventoryTransactionUtils {
                             anvil.clear(0);
                             ItemStack material = anvil.getItem(1);
                             if (!material.isNull()) {
-                                material.setCount(material.getCount() - 1);
-                                anvil.setItem(1, material);
+                                ;
+                                anvil.setItem(1, material.decrementAmount());
                             }
                             anvil.setItem(2, oldItem);
                             //System.out.println("action result");
@@ -226,7 +228,7 @@ public class InventoryTransactionUtils {
                                 // Outputs should only be in slot 0.
                                 return null;
                             }
-                            if (ItemStack.get(ItemIds.DYE, 4).equals(newItem, true, false)) {
+                            if (ItemStack.get(ItemTypes.DYE, DyeColor.BLUE).equals(newItem, true, false)) {
                                 slot = 2; // Fake slot to store used material
                                 if (newItem.getCount() < 1 || newItem.getCount() > 3) {
                                     // Invalid material
@@ -235,7 +237,7 @@ public class InventoryTransactionUtils {
                                 ItemStack material = enchant.getItem(1);
                                 // Material to take away.
                                 int toRemove = newItem.getCount();
-                                if (material.getId() != ItemIds.DYE && material.getMeta() != 4 &&
+                                if (material.getType() != ItemTypes.DYE && material.getMetadata(DyeColor.class) != DyeColor.BLUE &&
                                         material.getCount() < toRemove) {
                                     // Invalid material or not enough
                                     return null;
@@ -244,7 +246,7 @@ public class InventoryTransactionUtils {
                                 ItemStack toEnchant = enchant.getItem(0);
                                 ItemStack material = enchant.getItem(1);
                                 if (toEnchant.equals(newItem, true, true) &&
-                                        (material.getId() == ItemIds.DYE && material.getMeta() == 4 || player.isCreative())) {
+                                        (material.getType() == ItemTypes.DYE && material.getMetadata(DyeColor.class) == DyeColor.BLUE || player.isCreative())) {
                                     slot = 3; // Fake slot to store the resultant item.
 
                                     //TODO: Check (old) item has valid enchantments

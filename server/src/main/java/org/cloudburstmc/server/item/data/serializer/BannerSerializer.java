@@ -18,9 +18,8 @@ public class BannerSerializer implements ItemDataSerializer<Banner> {
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder itemTag, Banner value) {
-        NbtMapBuilder tag = NbtMap.builder();
-        tag.putInt("Base", value.getBase().getDyeData());
-        tag.putInt("Type", value.getType());
+        itemTag.putInt("Base", value.getBase().getDyeData());
+        itemTag.putInt("Type", value.getType());
 
         if (!value.getPatterns().isEmpty()) {
             List<NbtMap> patternsTag = new ArrayList<>();
@@ -30,14 +29,12 @@ public class BannerSerializer implements ItemDataSerializer<Banner> {
                         putString("Pattern", pattern.getType().getName())
                         .build());
             }
-            tag.putList("Patterns", NbtType.COMPOUND, patternsTag);
+            itemTag.putList("Patterns", NbtType.COMPOUND, patternsTag);
         }
-
-        itemTag.putCompound(ITEM_TAG, tag.build());
     }
 
     @Override
-    public Banner deserialize(Identifier id, Integer meta, NbtMap tag) {
+    public Banner deserialize(Identifier id, NbtMap tag) {
         val base = DyeColor.getByDyeData(tag.getInt("Base", 0));
         val bannerType = tag.getInt("Type", 0);
 

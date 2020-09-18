@@ -31,7 +31,7 @@ public class ItemMinecartBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         if (Rail.isRailBlock(target.getState())) {
             RailDirection type = target.getState().ensureTrait(BlockTraits.RAIL_DIRECTION); //TODO: check errors
             double adjacent = 0.0D;
@@ -43,12 +43,10 @@ public class ItemMinecartBehavior extends CloudItemBehavior {
             minecart.spawnToAll();
 
             if (player.isSurvival()) {
-                player.getInventory().decrementHandCount();
+                return itemStack.decrementAmount();
             }
-
-            return true;
         }
-        return false;
+        return null;
     }
 
     @Override

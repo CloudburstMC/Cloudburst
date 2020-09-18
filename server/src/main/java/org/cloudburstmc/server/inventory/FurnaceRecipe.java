@@ -18,18 +18,18 @@ public class FurnaceRecipe implements Recipe {
     private final Identifier block;
 
     public FurnaceRecipe(ItemStack result, ItemStack ingredient, Identifier block) {
-        this.output = result.clone();
-        this.ingredient = ingredient.clone();
+        this.output = result;
+        this.ingredient = ingredient;
         this.block = block;
     }
 
     public ItemStack getInput() {
-        return this.ingredient.clone();
+        return this.ingredient;
     }
 
     @Override
     public ItemStack getResult() {
-        return this.output.clone();
+        return this.output;
     }
 
     @Override

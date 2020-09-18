@@ -10,15 +10,12 @@ public class DamageableSerializer implements ItemDataSerializer<Damageable> {
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder itemTag, Damageable value) {
-        NbtMapBuilder tag = NbtMap.builder();
-        tag.putInt("Damage", value.getDurability());
-        tag.putBoolean("Unbreakable", value.isUnbreakable());
-
-        itemTag.putCompound(ITEM_TAG, tag.build());
+        itemTag.putInt("Damage", value.getDurability());
+        itemTag.putBoolean("Unbreakable", value.isUnbreakable());
     }
 
     @Override
-    public Damageable deserialize(Identifier id, Integer meta, NbtMap tag) {
+    public Damageable deserialize(Identifier id, NbtMap tag) {
         return Damageable.of(
                 tag.getInt("Damage", 0),
                 tag.getBoolean("Unbreakable", false)

@@ -6,18 +6,19 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.FlowerPot;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemType;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
-    protected static boolean canPlaceIntoFlowerPot(Identifier id) {
-        return id == BlockIds.SAPLING || id == BlockIds.WEB || id == BlockIds.TALL_GRASS || id == BlockIds.DEADBUSH || id == BlockIds.YELLOW_FLOWER ||
-                id == BlockIds.RED_FLOWER || id == BlockIds.RED_MUSHROOM || id == BlockIds.BROWN_MUSHROOM || id == BlockIds.CACTUS || id == BlockIds.REEDS;
+    protected static boolean canPlaceIntoFlowerPot(ItemType id) {
+        return id == BlockTypes.SAPLING || id == BlockTypes.WEB || id == BlockTypes.TALL_GRASS || id == BlockTypes.DEADBUSH || id == BlockTypes.YELLOW_FLOWER ||
+                id == BlockTypes.RED_FLOWER || id == BlockTypes.RED_MUSHROOM || id == BlockTypes.BROWN_MUSHROOM || id == BlockTypes.CACTUS || id == BlockTypes.REEDS;
         // TODO: 2016/2/4 case NETHER_WART:
     }
 
@@ -36,9 +37,9 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
         if (face != Direction.UP) return false;
 
         FlowerPot flowerPot = BlockEntityRegistry.get().newEntity(BlockEntityTypes.FLOWER_POT, block);
-        flowerPot.loadAdditionalData(item.getTag());
+        flowerPot.loadAdditionalData(((CloudItemStack) item).getDataTag());
 
-        placeBlock(block, item.getBlock());
+        placeBlock(block, item.getBehavior().getBlock(item));
         return true;
     }
 
@@ -54,12 +55,12 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
         if (!(blockEntity instanceof FlowerPot)) return false;
         FlowerPot flowerPot = (FlowerPot) blockEntity;
 
-        val itemBlock = item.getBlock();
-        if (!canPlaceIntoFlowerPot(item.getId())) {
+        val itemBlock = item.getBehavior().getBlock(item);
+        if (!canPlaceIntoFlowerPot(item.getType())) {
             if (!canPlaceIntoFlowerPot(itemBlock.getType())) {
                 return true;
             }
-        } else if (itemBlock.getType() == BlockIds.AIR) {
+        } else if (itemBlock.getType() == BlockTypes.AIR) {
             return true;
         }
 
@@ -69,8 +70,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
         blockEntity.spawnToAll();
 
         if (player.isSurvival()) {
-            item.decrementCount();
-            player.getInventory().setItemInHand(item);
+            player.getInventory().decrementHandCount();
         }
         return true;
     }
@@ -87,12 +87,12 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
         if (dropInside) {
             return new ItemStack[]{
-                    ItemStack.get(ItemIds.FLOWER_POT),
+                    ItemStack.get(ItemTypes.FLOWER_POT),
                     ItemStack.get(blockState)
             };
         } else {
             return new ItemStack[]{
-                    ItemStack.get(ItemIds.FLOWER_POT)
+                    ItemStack.get(ItemTypes.FLOWER_POT)
             };
         }
     }
@@ -134,7 +134,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.FLOWER_POT);
+        return ItemStack.get(ItemTypes.FLOWER_POT);
     }
 
     @Override

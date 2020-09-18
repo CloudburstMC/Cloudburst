@@ -9,8 +9,9 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Hopper;
 import org.cloudburstmc.server.inventory.ContainerInventory;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
@@ -37,7 +38,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
             facing = Direction.DOWN;
         }
 
-        var hopper = item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, facing)
+        var hopper = item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, facing)
                 .withTrait(BlockTraits.IS_TOGGLED, block.getLevel().isBlockPowered(block.getPosition()));
 
         placeBlock(block, hopper);
@@ -100,7 +101,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+        if (hand.getBehavior().getTier(hand).compareTo(TierTypes.WOOD) >= 0) {
             return new ItemStack[]{toItem(block)};
         }
 
@@ -109,7 +110,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.HOPPER);
+        return ItemStack.get(ItemTypes.HOPPER);
     }
 
     @Override

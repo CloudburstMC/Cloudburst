@@ -14,7 +14,7 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
@@ -40,7 +40,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
             return false;
         }
 
-        placeBlock(block, item.getBlock().withTrait(BlockTraits.DIRECTION, face));
+        placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.DIRECTION, face));
 
         if (player != null) {
             this.calculateState(block, false, false, -1, null);

@@ -6,22 +6,23 @@ import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockSpreadEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DirtType;
+import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorGrass extends BlockBehaviorDirt {
 
@@ -38,10 +39,11 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
+        val behavior = item.getBehavior();
 
-        if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0F) {
+        if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (player != null && player.getGamemode().isSurvival()) {
-                item.decrementCount();
+                player.getInventory().decrementHandCount();
             }
             level.addParticle(new BoneMealParticle(block.getPosition()));
 
@@ -55,19 +57,19 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
                 int blockX = block.getX() + random.nextInt(8) - random.nextInt(8);
                 int blockZ = block.getZ() + random.nextInt(8) - random.nextInt(8);
 
-                BlockState tallGrass = BlockState.get(BlockIds.TALL_GRASS);
+                BlockState tallGrass = BlockState.get(BlockTypes.TALL_GRASS);
                 val toReplace = level.getBlock(blockX, blockY + 1, blockZ);
-                if (toReplace.getState().getType() == BlockIds.AIR) {
+                if (toReplace.getState().getType() == BlockTypes.AIR) {
                     tallGrass.getBehavior().place(null, toReplace, block, Direction.UP, block.getPosition().toFloat(), null);
                 }
             }
             return true;
-        } else if (item.isHoe()) {
-            item.useOn(, block);
+        } else if (behavior.isHoe()) {
+            behavior.useOn(item, block);
             block.set(BlockState.get(FARMLAND));
             return true;
-        } else if (item.isShovel()) {
-            item.useOn(, block);
+        } else if (behavior.isShovel()) {
+            behavior.useOn(item, block);
             block.set(BlockState.get(GRASS_PATH));
             return true;
         }

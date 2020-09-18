@@ -3,8 +3,8 @@ package org.cloudburstmc.server.entity.impl.misc;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
@@ -19,8 +19,8 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
-import static org.cloudburstmc.server.block.BlockIds.TALL_GRASS;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.TALL_GRASS;
 
 /**
  * Created by boybook on 2016/2/27.
@@ -57,7 +57,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                     getServer().getEventManager().fire(e);
 
                     if (!e.isCancelled()) {
-                        val fire = BlockState.get(BlockIds.FIRE);
+                        val fire = BlockState.get(BlockTypes.FIRE);
                         block.set(fire);
 
                         level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
@@ -124,7 +124,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                         getServer().getEventManager().fire(e);
 
                         if (!e.isCancelled()) {
-                            BlockState fire = BlockState.get(BlockIds.FIRE);
+                            BlockState fire = BlockState.get(BlockTypes.FIRE);
                             block.set(fire);
 
                             this.getLevel().scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate());

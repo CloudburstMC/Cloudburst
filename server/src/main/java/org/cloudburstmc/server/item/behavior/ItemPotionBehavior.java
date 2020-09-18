@@ -2,8 +2,8 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.event.player.PlayerItemConsumeEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Potion;
@@ -59,22 +59,23 @@ public class ItemPotionBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onUse(ItemStack item, int ticksUsed, Player player) {
-        PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, this);
+    public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
+        PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, item);
         player.getServer().getEventManager().fire(consumeEvent);
         if (consumeEvent.isCancelled()) {
-            return false;
+            return null;
         }
         Potion potion = Potion.getPotion(this.getMeta()).setSplash(false);
-
-        if (player.getGamemode() == GameMode.SURVIVAL) {
-            player.getInventory().decrementHandCount();
-            player.getInventory().addItem(get(ItemIds.GLASS_BOTTLE));
-        }
 
         if (potion != null) {
             potion.applyPotion(player);
         }
-        return true;
+
+        if (player.getGamemode() == GameMode.SURVIVAL) {
+            player.getInventory().decrementHandCount();
+            player.getInventory().addItem(ItemStack.get(ItemTypes.GLASS_BOTTLE));
+        }
+
+        return null;
     }
 }

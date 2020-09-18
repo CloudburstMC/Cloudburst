@@ -8,15 +8,14 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.server.event.player.PlayerItemConsumeEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 /**
  * author: MagicDroidX
@@ -45,35 +44,29 @@ public class ItemBucketBehavior extends CloudItemBehavior {
         }
     }
 
-    public static Identifier getBlockIdFromDamage(int target) {
-        switch (target) {
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 8:
-            case 9:
+    public static BlockType getBlockIdFromDamage(Bucket data) {
+        switch (data) {
+            case WATER:
                 return FLOWING_WATER;
-            case 10:
-            case 11:
+            case LAVA:
                 return FLOWING_LAVA;
             default:
                 return AIR;
         }
     }
 
-    public int getDamageFromIdentifier(Identifier id) {
+    public Bucket getDamageFromIdentifier(BlockType id) {
         if (id == FLOWING_WATER || id == WATER) {
-            return 8;
+            return Bucket.WATER;
         } else if (id == FLOWING_LAVA || id == LAVA) {
-            return 10;
+            return Bucket.LAVA;
         }
         throw new IllegalArgumentException(id + " cannot be in bucket");
     }
 
     @Override
     public int getMaxStackSize(ItemStack item) {
-        return this.getMeta() == 0 ? 16 : 1;
+        return item.getMetadata(Bucket.class) == Bucket.EMPTY ? 16 : 1;
     }
 
     @Override
@@ -82,8 +75,8 @@ public class ItemBucketBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
-        BlockState bucketContents = BlockState.get(getBlockIdFromDamage(this.getMeta()));
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+        BlockState bucketContents = BlockState.get(getBlockIdFromDamage(itemStack.getMetadata(Bucket.class)));
 
         if (bucketContents == BlockStates.AIR) {
             BlockState liquid;
@@ -95,9 +88,9 @@ public class ItemBucketBehavior extends CloudItemBehavior {
             }
 
             if (liquid.inCategory(BlockCategory.LIQUID) && liquid.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
-                ItemStack result = ItemStack.get(ItemIds.BUCKET, this.getDamageFromIdentifier(liquid.getType()), 1);
+                ItemStack result = ItemStack.get(ItemTypes.BUCKET, this.getDamageFromIdentifier(liquid.getType()), 1);
                 PlayerBucketFillEvent ev;
-                player.getServer().getEventManager().fire(ev = new PlayerBucketFillEvent(player, block, face, this, result));
+                player.getServer().getEventManager().fire(ev = new PlayerBucketFillEvent(player, block, face, itemStack, result));
                 if (!ev.isCancelled()) {
                     target.set(BlockStates.AIR, true);
 
@@ -114,9 +107,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                     }
 
                     if (player.isSurvival()) {
-                        ItemStack clone = this.clone();
-                        clone.setCount(this.getCount() - 1);
-                        player.getInventory().setItemInHand(clone);
+                        player.getInventory().decrementHandCount();
                         player.getInventory().addItem(ev.getItem());
                     }
 
@@ -126,13 +117,13 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                         level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_FILL_WATER);
                     }
 
-                    return true;
+                    return null;
                 } else {
                     player.getInventory().sendContents(player);
                 }
             }
         } else if (bucketContents.inCategory(BlockCategory.LIQUID)) {
-            ItemStack result = ItemStack.get(ItemIds.BUCKET, 0, 1);
+            ItemStack result = ItemStack.get(ItemTypes.BUCKET);
             Block emptyTarget = block;
             val targetState = target.getState();
             val behavior = targetState.getBehavior();
@@ -143,13 +134,13 @@ public class ItemBucketBehavior extends CloudItemBehavior {
 
             val blockBehavior = emptyTarget.getState().getBehavior();
 
-            PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, emptyTarget, face, this, result);
+            PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, emptyTarget, face, itemStack, result);
             if (!blockBehavior.canBeFlooded() && !blockBehavior.canWaterlogSource()) {
                 System.out.println("cancel");
                 ev.setCancelled(true);
             }
 
-            if (player.getLevel().getDimension() == Level.DIMENSION_NETHER && this.getMeta() != 10) {
+            if (player.getLevel().getDimension() == Level.DIMENSION_NETHER && itemStack.getMetadata(Bucket.class) != Bucket.LAVA) {
                 ev.setCancelled(true);
             }
 
@@ -161,19 +152,17 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                     target.getLevel().scheduleUpdate(emptyTarget.getPosition(), bucketContents.getBehavior().tickRate());
                 }
                 if (player.isSurvival()) {
-                    ItemStack clone = this.clone();
-                    clone.setCount(this.getCount() - 1);
-                    player.getInventory().setItemInHand(clone);
+                    player.getInventory().decrementHandCount();
                     player.getInventory().addItem(ev.getItem());
                 }
 
-                if (this.getMeta() == 10) {
+                if (itemStack.getMetadata(Bucket.class) == Bucket.LAVA) {
                     level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_EMPTY_LAVA);
                 } else {
                     level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_EMPTY_WATER);
                 }
 
-                return true;
+                return null;
             } else {
                 player.getLevel().sendBlocks(new Player[]{player},
                         new Block[]{new CloudBlock(block.getLevel(), block.getPosition(), CloudBlock.EMPTY)},
@@ -182,37 +171,36 @@ public class ItemBucketBehavior extends CloudItemBehavior {
             }
         }
 
-        return false;
+        return null;
     }
 
     @Override
     public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
-        return this.getMeta() == 1; // Milk
+        return item.getMetadata(Bucket.class) == Bucket.MILK;
     }
 
     @Override
-    public boolean onUse(ItemStack item, int ticksUsed, Player player) {
-        PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, this);
+    public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
+        PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, item);
 
         player.getServer().getEventManager().fire(consumeEvent);
         if (consumeEvent.isCancelled()) {
             player.getInventory().sendContents(player);
-            return false;
+            return null;
         }
 
         if (player.isSurvival()) {
-            this.decrementCount();
-            player.getInventory().setItemInHand(this);
-            player.getInventory().addItem(ItemStack.get(ItemIds.BUCKET));
+            player.getInventory().decrementHandCount();
+            player.getInventory().addItem(ItemStack.get(ItemTypes.BUCKET));
         }
 
         player.removeAllEffects();
-        return true;
+        return null;
     }
 
     @Override
     public int getFuelTime(ItemStack item) {
-        if (item.ensureMetadata(Bucket.class) == Bucket.LAVA) {
+        if (item.getMetadata(Bucket.class) == Bucket.LAVA) {
             return 20000;
         }
 

@@ -2,17 +2,19 @@ package org.cloudburstmc.server.item.serializer;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.CloudItemStackBuilder;
 import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.data.Record;
-import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
 import org.cloudburstmc.server.utils.Identifier;
 
-public class RecordSerializer implements ItemDataSerializer<Record> {
+public class RecordSerializer extends DefaultItemSerializer {
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder itemTag, Record value) {
+    public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
+        super.serialize(item, itemTag);
         Identifier id;
+        Record value = item.getMetadata(Record.class);
 
         switch (value) {
             default:
@@ -61,59 +63,73 @@ public class RecordSerializer implements ItemDataSerializer<Record> {
     }
 
     @Override
-    public Record deserialize(Identifier id, Integer meta, NbtMap tag) {
+    public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
+        super.deserialize(id, meta, amount, builder, tag);
         if (id == ItemIds.RECORD_13) {
-            return Record.THIRTEEN;
+            builder.itemData(Record.THIRTEEN);
+            return;
         }
 
         if (id == ItemIds.RECORD_CAT) {
-            return Record.CAT;
+            builder.itemData(Record.CAT);
+            return;
         }
 
         if (id == ItemIds.RECORD_BLOCKS) {
-            return Record.BLOCKS;
+            builder.itemData(Record.BLOCKS);
+            return;
         }
 
         if (id == ItemIds.RECORD_CHIRP) {
-            return Record.CHIRP;
+            builder.itemData(Record.CHIRP);
+            return;
         }
 
         if (id == ItemIds.RECORD_FAR) {
-            return Record.FAR;
+            builder.itemData(Record.FAR);
+            return;
         }
 
         if (id == ItemIds.RECORD_MALL) {
-            return Record.MALL;
+            builder.itemData(Record.MALL);
+            return;
         }
 
         if (id == ItemIds.RECORD_MELLOHI) {
-            return Record.MELLOHI;
+            builder.itemData(Record.MELLOHI);
+            return;
         }
 
         if (id == ItemIds.RECORD_STAL) {
-            return Record.STAL;
+            builder.itemData(Record.STAL);
+            return;
         }
 
         if (id == ItemIds.RECORD_STRAD) {
-            return Record.STRAD;
+            builder.itemData(Record.STRAD);
+            return;
         }
 
         if (id == ItemIds.RECORD_WARD) {
-            return Record.WARD;
+            builder.itemData(Record.WARD);
+            return;
         }
 
         if (id == ItemIds.RECORD_11) {
-            return Record.ELEVEN;
+            builder.itemData(Record.ELEVEN);
+            return;
         }
 
         if (id == ItemIds.RECORD_WAIT) {
-            return Record.WAIT;
+            builder.itemData(Record.WAIT);
+            return;
         }
 
         if (id == ItemIds.RECORD_PIGSTEP) {
-            return Record.PIGSTEP;
+            builder.itemData(Record.PIGSTEP);
+            return;
         }
 
-        return Record.THIRTEEN;
+        builder.itemData(Record.THIRTEEN);
     }
 }

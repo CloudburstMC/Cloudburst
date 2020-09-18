@@ -13,21 +13,21 @@ public abstract class MixRecipe implements Recipe {
     private final ItemStack output;
 
     public MixRecipe(ItemStack input, ItemStack ingredient, ItemStack output) {
-        this.input = input.clone();
-        this.ingredient = ingredient.clone();
-        this.output = output.clone();
+        this.input = input;
+        this.ingredient = ingredient;
+        this.output = output;
     }
 
     public ItemStack getIngredient() {
-        return ingredient.clone();
+        return ingredient;
     }
 
     public ItemStack getInput() {
-        return input.clone();
+        return input;
     }
 
     public ItemStack getResult() {
-        return output.clone();
+        return output;
     }
 
     @Override

@@ -14,17 +14,17 @@ import java.io.IOException;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Immutable
-public class Map {
+public class MapItem {
 
     private final long id;
     private final long parentId;
     private final byte[] colors;
 
-    public static Map of(long id, long parentId, byte[] colors) {
-        return new Map(id, parentId, colors);
+    public static MapItem of(long id, long parentId, byte[] colors) {
+        return new MapItem(id, parentId, colors);
     }
 
-    public static Map fromImage(long id, long parentId, BufferedImage img) throws IOException {
+    public static MapItem fromImage(long id, long parentId, BufferedImage img) throws IOException {
         BufferedImage image = img;
 
         if (img.getHeight() != 128 || img.getWidth() != 128) { //resize

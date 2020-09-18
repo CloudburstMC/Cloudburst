@@ -5,6 +5,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.misc.FireworksRocket;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Firework;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
@@ -23,24 +24,22 @@ public class ItemFireworkBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         if (block.getState().getBehavior().canPassThrough()) {
-            this.spawnFirework(level, block.getPosition().toFloat().add(0.5, 0.5, 0.5));
+            this.spawnFirework(itemStack, level, block.getPosition().toFloat().add(0.5, 0.5, 0.5));
 
-            if (!player.isCreative()) {
-                player.getInventory().decrementCount(player.getInventory().getHeldItemIndex());
+            if (player.isSurvival()) {
+                return itemStack.decrementAmount();
             }
-
-            return true;
         }
 
-        return false;
+        return null;
     }
 
     @Override
     public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
-        if (player.getInventory().getChestplate() instanceof ItemElytra && player.isGliding()) {
-            this.spawnFirework(player.getLevel(), player.getPosition());
+        if (player.getInventory().getChestplate().getType() == ItemTypes.ELYTRA && player.isGliding()) {
+            this.spawnFirework(item, player.getLevel(), player.getPosition());
 
             player.setMotion(Vector3f.from(
                     -Math.sin(Math.toRadians(player.getYaw())) * Math.cos(Math.toRadians(player.getPitch())) * 2,
@@ -59,7 +58,7 @@ public class ItemFireworkBehavior extends CloudItemBehavior {
 
     private void spawnFirework(ItemStack item, Level level, Vector3f pos) {
         FireworksRocket rocket = EntityRegistry.get().newEntity(EntityTypes.FIREWORKS_ROCKET, Location.from(pos, level));
-        rocket.setFireworkData(item.ensureMetadata(Firework.class));
+        rocket.setFireworkData(item.getMetadata(Firework.class));
 
         rocket.spawnToAll();
     }

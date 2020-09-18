@@ -5,12 +5,13 @@ import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 /**
  * author: MagicDroidX
@@ -73,7 +74,7 @@ public class ShapedRecipe implements CraftingRecipe {
             }
         }
 
-        this.primaryResult = primaryResult.clone();
+        this.primaryResult = primaryResult;
         this.extraResults = ImmutableList.copyOf(extraResults);
         this.block = block;
         this.shape = shape;
@@ -153,7 +154,7 @@ public class ShapedRecipe implements CraftingRecipe {
     public ItemStack getIngredient(int x, int y) {
         ItemStack item = this.ingredients.get(this.shape[y].charAt(x));
 
-        return item != null ? item.clone() : ItemStack.get(AIR);
+        return item != null ? item : ItemStack.get(AIR);
     }
 
     public String[] getShape() {
@@ -218,7 +219,7 @@ public class ShapedRecipe implements CraftingRecipe {
             }
 
             for (ItemStack needItem : new ArrayList<>(needItems)) {
-                if (needItem.equals(haveItem, needItem.hasMeta(), needItem.hasNbtMap()) && needItem.getCount() == haveItem.getCount()) {
+                if (needItem.equals(haveItem) && needItem.getCount() == haveItem.getCount()) {
                     haveItems.remove(haveItem);
                     needItems.remove(needItem);
                     break;
@@ -238,7 +239,7 @@ public class ShapedRecipe implements CraftingRecipe {
                 ItemStack given = input[y][x];
                 ItemStack required = map.get(y).get(x);
 
-                if (given == null || !required.equals(given, required.hasMeta(), required.hasNbtMap()) || required.getCount() != given.getCount()) {
+                if (given == null || !required.equals(given) || required.getCount() != given.getCount()) {
                     return false;
                 }
 
@@ -267,7 +268,7 @@ public class ShapedRecipe implements CraftingRecipe {
     public String toString() {
         StringJoiner joiner = new StringJoiner(", ");
 
-        ingredients.forEach((character, item) -> joiner.add(item.getName() + ":" + item.getMeta()));
+        ingredients.forEach((character, item) -> joiner.add(item.toString()));
         return joiner.toString();
     }
 
@@ -279,7 +280,7 @@ public class ShapedRecipe implements CraftingRecipe {
     @Override
     public CraftingData toNetwork(int netId) {
         return CraftingData.fromShaped(this.recipeId, this.getWidth(), this.getHeight(),
-                ItemStack.toNetwork(this.getIngredientList()), ItemStack.toNetwork(this.getAllResults()), this.getId(),
+                ItemUtils.toNetwork(this.getIngredientList()), ItemUtils.toNetwork(this.getAllResults()), this.getId(),
                 this.block.getName(), this.priority, netId);
     }
 }

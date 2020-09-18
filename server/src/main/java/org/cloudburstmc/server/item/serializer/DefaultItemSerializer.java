@@ -3,21 +3,21 @@ package org.cloudburstmc.server.item.serializer;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentType;
 import org.cloudburstmc.server.enchantment.EnchantmentTypes.CloudEnchantmentType;
 import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.CloudItemStackBuilder;
 import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 @Log4j2
@@ -33,15 +33,25 @@ public class DefaultItemSerializer implements ItemSerializer {
                 .putByte("Count", (byte) item.getAmount())
                 .putShort("Damage", (short) 0);
 
-        item.getData().forEach((clazz, value) -> {
-            ItemDataSerializer serializer = registry.getSerializer(clazz);
-            if (serializer == null) {
-                log.debug("Unregistered item metadata class {}", clazz);
-                return;
-            }
+        if (!item.getData().isEmpty()) {
+            NbtMapBuilder dataTag = NbtMap.builder();
 
-            serializer.serialize(item, itemTag, value);
-        });
+            item.getData().forEach((clazz, value) -> {
+                ItemDataSerializer serializer = registry.getSerializer(clazz);
+                if (serializer == null) {
+                    log.debug("Unregistered item metadata class {}", clazz);
+                    return;
+                }
+
+                serializer.serialize(item, dataTag, value);
+            });
+
+            if (!dataTag.isEmpty()) {
+                itemTag.putCompound("tag", dataTag.build());
+            }
+        }
+
+        NbtMapBuilder dataTag = NbtMap.builder();
 
         if (item.getName() != null || !item.getLore().isEmpty()) {
             NbtMapBuilder display = NbtMap.builder();
@@ -53,20 +63,20 @@ public class DefaultItemSerializer implements ItemSerializer {
                 display.putList("Lore", NbtType.STRING, item.getLore());
             }
 
-            itemTag.putCompound("display", display.build());
+            dataTag.putCompound("display", display.build());
         }
 
         if (!item.getEnchantments().isEmpty()) {
             List<NbtMap> enchantments = new ArrayList<>(item.getEnchantments().size());
-            for (EnchantmentInstance enchantment : item.getEnchantments()) {
+            for (EnchantmentInstance enchantment : item.getEnchantments().values()) {
                 enchantments.add(NbtMap.builder()
-                        .putShort("id", (short) ((CloudEnchantmentType) enchantment.getType()).getId())
+                        .putShort("id", ((CloudEnchantmentType) enchantment.getType()).getId())
                         .putShort("lvl", (short) enchantment.getLevel())
                         .build()
                 );
             }
 
-            itemTag.putList("ench", NbtType.COMPOUND, enchantments);
+            dataTag.putList("ench", NbtType.COMPOUND, enchantments);
         }
 
         if (!item.getCanDestroy().isEmpty()) {
@@ -75,7 +85,7 @@ public class DefaultItemSerializer implements ItemSerializer {
                 canDestroy.add(identifier.toString());
             }
 
-            itemTag.putList("CanDestroy", NbtType.STRING, canDestroy);
+            dataTag.putList("CanDestroy", NbtType.STRING, canDestroy);
         }
 
         if (!item.getCanPlaceOn().isEmpty()) {
@@ -84,31 +94,32 @@ public class DefaultItemSerializer implements ItemSerializer {
                 canPlaceOn.add(identifier.toString());
             }
 
-            itemTag.putList("CanPlaceOn", NbtType.STRING, canPlaceOn);
+            dataTag.putList("CanPlaceOn", NbtType.STRING, canPlaceOn);
+        }
+
+        if (!dataTag.isEmpty()) {
+            itemTag.putCompound("tag", dataTag.build());
         }
     }
 
     @Override
-    public CloudItemStack deserialize(Identifier id, Integer meta, NbtMap tag) {
+    public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
         ItemType type = registry.getType(id);
-        if (type == null) {
-            throw new IllegalArgumentException("No ItemType found for identifier: " + id);
+        builder.itemType(type);
+        builder.amount(amount);
+
+        if (tag.isEmpty()) {
+            return;
         }
-        String name = null;
-        List<String> lore = null;
-        Map<EnchantmentType, EnchantmentInstance> enchantments = null;
-        Set<Identifier> placeOn = null;
-        Set<Identifier> destroy = null;
 
         val display = tag.getCompound("display");
         if (display != null && !display.isEmpty()) {
-            name = display.getString("Name");
-            lore = display.getList("Lore", NbtType.STRING, null);
+            builder.name(display.getString("Name"));
+            builder.lore(display.getList("Lore", NbtType.STRING, null));
         }
 
         val ench = tag.getList("ench", NbtType.COMPOUND, null);
         if (ench != null && !ench.isEmpty()) {
-            enchantments = new Reference2ObjectOpenHashMap<>();
             for (NbtMap entry : ench) {
                 val enchantmentType = EnchantmentRegistry.get().getType(entry.getShort("id"));
 
@@ -117,38 +128,22 @@ public class DefaultItemSerializer implements ItemSerializer {
                     continue;
                 }
 
-                enchantments.put(enchantmentType, new CloudEnchantmentInstance(enchantmentType, entry.getShort("lvl", (short) 1)));
+                builder.addEnchantment(new CloudEnchantmentInstance(enchantmentType, entry.getShort("lvl", (short) 1)));
             }
         }
 
         val canPlaceOn = tag.getList("CanPlaceOn", NbtType.STRING, null);
         if (canPlaceOn != null && !canPlaceOn.isEmpty()) {
-            placeOn = new HashSet<>(canPlaceOn.size());
             for (String s : canPlaceOn) {
-                placeOn.add(Identifier.fromString(s));
+                builder.addCanPlaceOn(Identifier.fromString(s));
             }
         }
 
         val canDestroy = tag.getList("CanDestroy", NbtType.STRING, null);
         if (canDestroy != null && !canDestroy.isEmpty()) {
-            destroy = new HashSet<>(canDestroy.size());
             for (String s : canDestroy) {
-                destroy.add(Identifier.fromString(s));
+                builder.addCanDestroy(Identifier.fromString(s));
             }
         }
-
-        return new CloudItemStack(
-                id,
-                type,
-                tag.getByte("Count"),
-                name,
-                lore,
-                enchantments,
-                destroy,
-                placeOn,
-                null,
-                tag,
-                null
-        );
     }
 }

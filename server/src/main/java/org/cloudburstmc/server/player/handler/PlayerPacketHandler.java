@@ -24,15 +24,15 @@ import lombok.val;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLectern;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ItemFrame;
 import org.cloudburstmc.server.blockentity.Lectern;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.entity.impl.projectile.EntityArrow;
@@ -53,7 +53,10 @@ import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemMapBehavior;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.data.Damageable;
+import org.cloudburstmc.server.item.data.MapItem;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.gamerule.GameRules;
@@ -68,7 +71,7 @@ import org.cloudburstmc.server.utils.TextFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 import static org.cloudburstmc.server.player.Player.CraftingType;
 import static org.cloudburstmc.server.player.Player.DEFAULT_SPEED;
 
@@ -232,7 +235,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         } else {
             serverItem = player.getInventory().getItem(packet.getHotbarSlot());
         }
-        ItemStack clientItem = ItemStack.fromNetwork(packet.getItem());
+        ItemStack clientItem = ItemUtils.fromNetwork(packet.getItem());
 
         if (!serverItem.equals(clientItem)) {
             log.debug("Tried to equip " + clientItem + " but have " + serverItem + " in target slot");
@@ -281,7 +284,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 }
 
                 Block block = target.getSide(face);
-                if (block.getState().getType() == BlockIds.FIRE) {
+                if (block.getState().getType() == BlockTypes.FIRE) {
                     block.set(BlockStates.AIR, true);
                     player.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.EXTINGUISH_FIRE);
                     break;
@@ -556,8 +559,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             if (blockEntity != null) {
                 NbtMap nbt = blockEntity.getItemTag();
                 if (nbt != null) {
-                    serverItem.addTag(nbt);
-                    serverItem.setLore("+(DATA)");
+//                    CloudItemStackBuilder builder = (CloudItemStackBuilder) serverItem.toBuilder(); //TODO
+//                    builder.nbt()
+//                    serverItem.addTag(nbt);
+//                    serverItem.setLore("+(DATA)");
                 }
             }
         }
@@ -793,7 +798,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         ItemFrameDropItemEvent itemFrameDropItemEvent = new ItemFrameDropItemEvent(player, block, itemFrame, itemDrop);
         player.getServer().getEventManager().fire(itemFrameDropItemEvent);
         if (!itemFrameDropItemEvent.isCancelled()) {
-            if (itemDrop.getId() != AIR) {
+            if (itemDrop.getType() != AIR) {
                 player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
                 itemFrame.setItem(ItemStack.get(AIR, 0, 0));
                 itemFrame.setItemRotation(0);
@@ -810,8 +815,19 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         ItemStack mapItem = null;
 
         for (ItemStack item1 : player.getInventory().getContents().values()) {
-            if (item1 instanceof ItemMapBehavior && ((ItemMapBehavior) item1).getMapId() == packet.getUniqueMapId()) {
+            if (item1.getType() != ItemTypes.MAP) {
+                continue;
+            }
+
+            val data = item1.getMetadata(MapItem.class);
+
+            if (data == null) {
+                continue;
+            }
+
+            if (data.getId() == packet.getUniqueMapId()) {
                 mapItem = item1;
+                break;
             }
         }
 
@@ -819,22 +835,33 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             for (BlockEntity be : player.getLevel().getBlockEntities()) {
                 if (be instanceof ItemFrame) {
                     ItemFrame itemFrame1 = (ItemFrame) be;
+                    val frameItem = itemFrame1.getItem();
 
-                    if (itemFrame1.getItem() instanceof ItemMapBehavior && ((ItemMapBehavior) itemFrame1.getItem()).getMapId() == packet.getUniqueMapId()) {
-                        ((ItemMapBehavior) itemFrame1.getItem()).sendImage(player);
+                    if (frameItem.getType() != ItemTypes.MAP) {
+                        continue;
+                    }
+
+                    val data = frameItem.getMetadata(MapItem.class);
+
+                    if (data == null) {
+                        continue;
+                    }
+
+                    if (data.getId() == packet.getUniqueMapId()) {
+//                        ((ItemMapBehavior) itemFrame1.getItem()).sendImage(player); //TODO: send image
                         break;
                     }
                 }
             }
+
+            return true;
         }
 
-        if (mapItem != null) {
-            PlayerMapInfoRequestEvent event;
-            player.getServer().getEventManager().fire(event = new PlayerMapInfoRequestEvent(player, mapItem));
+        PlayerMapInfoRequestEvent event;
+        player.getServer().getEventManager().fire(event = new PlayerMapInfoRequestEvent(player, mapItem));
 
-            if (!event.isCancelled()) {
-                ((ItemMapBehavior) mapItem).sendImage(player);
-            }
+        if (!event.isCancelled()) {
+//                ((ItemMapBehavior) mapItem).sendImage(player); //TODO: send image
         }
         return true;
     }
@@ -925,7 +952,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         player.setUsingItem(false);
 
                         if (player.canInteract(blockVector.toFloat().add(0.5, 0.5, 0.5), player.isCreative() ? 13 : 7)) {
-                            ItemStack clientHand = ItemStack.fromNetwork(packet.getItemInHand());
+                            ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
                             if (player.isCreative()) {
                                 ItemStack i = player.getInventory().getItemInHand();
                                 if (player.getLevel().useItemOn(blockVector, i, face,
@@ -934,7 +961,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 }
                             } else if (player.getInventory().getItemInHand().equals(clientHand)) {
                                 ItemStack serverHand = player.getInventory().getItemInHand();
-                                ItemStack oldItem = serverHand.clone();
+                                ItemStack oldItem = serverHand;
                                 //TODO: Implement adventure mode checks
                                 if ((serverHand = player.getLevel().useItemOn(blockVector, serverHand, face,
                                         packet.getClickPosition(), player)) != null) {
@@ -968,7 +995,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                         ItemStack i = player.getInventory().getItemInHand();
 
-                        ItemStack oldItem = i.clone();
+                        ItemStack oldItem = i;
 
                         if (player.canInteract(blockVector.toFloat().add(0.5, 0.5, 0.5), player.isCreative() ? 13 : 7) &&
                                 (i = player.getLevel().useBreakOn(blockVector, face, i, player, true)) != null) {
@@ -998,7 +1025,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     case InventoryTransactionUtils.USE_ITEM_ACTION_CLICK_AIR:
                         Vector3f directionVector = player.getDirectionVector();
 
-                        ItemStack clientHand = ItemStack.fromNetwork(packet.getItemInHand());
+                        ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
                         ItemStack serverItem;
 
                         if (player.isCreative()) {
@@ -1019,7 +1046,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             return true;
                         }
 
-                        if (serverItem.onClickAir(, directionVector, player)) {
+                        if (serverItem.getBehavior().onClickAir(serverItem, directionVector, player)) {
                             if (player.isSurvival()) {
                                 player.getInventory().setItemInHand(serverItem);
                             }
@@ -1033,7 +1060,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             int ticksUsed = player.getServer().getTick() - player.getStartActionTick();
                             player.setUsingItem(false);
 
-                            if (!serverItem.onUse(, ticksUsed, player)) {
+                            val result = serverItem.getBehavior().onUse(serverItem, ticksUsed, player);
+                            if (result != null) {
+                                player.getInventory().setItemInHand(result);
+                            } else {
                                 player.getInventory().sendContents(player);
                             }
                         }
@@ -1051,9 +1081,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     return true;
                 }
 
-                ItemStack clientHand = ItemStack.fromNetwork(packet.getItemInHand());
+                ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
 
-                if (!clientHand.equalsExact(player.getInventory().getItemInHand())) {
+                if (!clientHand.equals(player.getInventory().getItemInHand())) {
                     player.getInventory().sendHeldItem(player);
                 }
 
@@ -1069,26 +1099,27 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             break;
                         }
                         if (target.onInteract(player, serverItem, packet.getClickPosition()) && player.isSurvival()) {
-                            if (serverItem.isTool()) {
-                                if (serverItem.useOn(, , target) && serverItem.getMeta() >= serverItem.getMaxDurability()) {
-                                    serverItem = ItemStack.get(AIR, 0, 0);
+                            val behavior = serverItem.getBehavior();
+                            val result = behavior.useOn(serverItem, target);
+                            if (result == null) {
+                                if (serverItem.getCount() > 1) {
+                                    serverItem = serverItem.decrementAmount();
+                                } else {
+                                    serverItem = ItemStack.get(AIR);
                                 }
                             } else {
-                                if (serverItem.getCount() > 1) {
-                                    serverItem.decrementCount();
-                                } else {
-                                    serverItem = ItemStack.get(AIR, 0, 0);
-                                }
+                                serverItem = result;
                             }
 
                             player.getInventory().setItemInHand(serverItem);
                         }
                         break;
                     case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-                        float itemDamage = serverItem.getAttackDamage();
+                        val behavior = serverItem.getBehavior();
+                        float itemDamage = behavior.getAttackDamage(serverItem);
 
-                        for (CloudEnchantmentInstance enchantment : serverItem.getEnchantments()) {
-                            itemDamage += enchantment.getDamageBonus(target);
+                        for (EnchantmentInstance enchantment : serverItem.getEnchantments().values()) {
+                            itemDamage += enchantment.getBehavior().getDamageBonus(enchantment, target);
                         }
 
                         Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
@@ -1106,7 +1137,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                         int knockback = 0;
 
-                        EnchantmentInstance enchKnockback = player.getInventory().getItemInHand().getEnchantment(CloudEnchantmentInstance.ID_KNOCKBACK);
+                        EnchantmentInstance enchKnockback = player.getInventory().getItemInHand().getEnchantment(EnchantmentTypes.KNOCKBACK);
                         if (enchKnockback != null) {
                             knockback = enchKnockback.getLevel();
                         }
@@ -1118,7 +1149,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
 
                         if (!target.attack(entityDamageByEntityEvent)) {
-                            if (serverItem.isTool() && player.isSurvival()) {
+                            if (behavior.isTool(serverItem) && player.isSurvival()) {
                                 player.getInventory().sendContents(player);
                             }
                             break;
@@ -1134,16 +1165,17 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 player.setSprinting(false);
                             }
 
-                            for (CloudEnchantmentInstance enchantment : serverItem.getEnchantments()) {
-                                enchantment.doPostAttack(player, target);
+                            for (EnchantmentInstance enchantment : serverItem.getEnchantments().values()) {
+                                enchantment.getBehavior().doPostAttack(enchantment, player, target);
                             }
                         }
 
-                        if (serverItem.isTool() && player.isSurvival()) {
-                            if (serverItem.useOn(, , target) && serverItem.getMeta() >= serverItem.getMaxDurability()) {
-                                player.getInventory().setItemInHand(ItemStack.get(AIR, 0, 0));
+                        if (behavior.isTool(serverItem) && player.isSurvival()) {
+                            val result = behavior.useOn(serverItem, target);
+                            if (result == null && serverItem.getMetadata(Damageable.class).getDurability() >= behavior.getMaxDurability()) {
+                                player.getInventory().setItemInHand(ItemStack.get(AIR));
                             } else {
-                                player.getInventory().setItemInHand(serverItem);
+                                player.getInventory().setItemInHand(result);
                             }
                         }
                         return true;
@@ -1165,8 +1197,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 serverItem = player.getInventory().getItemInHand();
 
                                 int ticksUsed = player.getServer().getTick() - player.getStartActionTick();
-                                if (!serverItem.onRelease(, ticksUsed, player)) {
-                                    player.getInventory().sendContents(player);
+                                val result = serverItem.getBehavior().onRelease(serverItem, ticksUsed, player);
+                                if (result != null) {
+                                    player.getInventory().setItemInHand(result);
                                 }
 
                                 player.setUsingItem(false);
@@ -1241,7 +1274,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (packet.isDroppingBook()) {
             Block block = player.getLevel().getBlock(blockPosition);
             val state = block.getState();
-            if (state.getType() == BlockIds.LECTERN) {
+            if (state.getType() == BlockTypes.LECTERN) {
                 ((BlockBehaviorLectern) state.getBehavior()).dropBook(block, player);
             }
         } else {
@@ -1255,7 +1288,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     lectern.spawnToAll();
                     val block = lectern.getBlock();
                     val state = block.getState();
-                    if (state.getType() == BlockIds.LECTERN) {
+                    if (state.getType() == BlockTypes.LECTERN) {
                         ((BlockBehaviorLectern) state.getBehavior()).executeRedstonePulse(block);
                     }
                 }

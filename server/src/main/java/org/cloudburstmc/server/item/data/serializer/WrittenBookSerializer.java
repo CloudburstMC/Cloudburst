@@ -28,26 +28,22 @@ public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder itemTag, WrittenBook value) {
-        NbtMapBuilder tag = NbtMap.builder();
-
-        tag.putInt(TAG_GENERATION, value.getGeneration());
-        tag.putString(TAG_TITLE, value.getTitle());
-        tag.putString(TAG_AUTHOR, value.getAuthor());
-        tag.putString(TAG_XUID, value.getXuid());
-        tag.putLong(TAG_ID, value.getId());
-        tag.putBoolean(TAG_RESOLVED, value.isResolved());
+        itemTag.putInt(TAG_GENERATION, value.getGeneration());
+        itemTag.putString(TAG_TITLE, value.getTitle());
+        itemTag.putString(TAG_AUTHOR, value.getAuthor());
+        itemTag.putString(TAG_XUID, value.getXuid());
+        itemTag.putLong(TAG_ID, value.getId());
+        itemTag.putBoolean(TAG_RESOLVED, value.isResolved());
 
         List<NbtMap> pages = new ArrayList<>();
         for (PageContent page : value.getPages()) {
             pages.add(page.createTag());
         }
-        tag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
-
-        itemTag.putCompound(ITEM_TAG, tag.build());
+        itemTag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
     }
 
     @Override
-    public WrittenBook deserialize(Identifier id, Integer meta, NbtMap tag) {
+    public WrittenBook deserialize(Identifier id, NbtMap tag) {
         List<PageContent> pages;
         List<NbtMap> pageTags = tag.getList(TAG_PAGES, NbtType.COMPOUND);
 

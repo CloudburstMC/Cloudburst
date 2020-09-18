@@ -24,8 +24,8 @@ import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorNetherPortal;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
@@ -53,7 +53,6 @@ import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.CardinalDirection;
 
 import javax.annotation.Nullable;
@@ -65,7 +64,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.*;
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 /**
  * @author MagicDroidX
@@ -1298,7 +1297,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
                 if (ev.isCancelled()) {
                     return;
                 }
-                this.level.setBlock(down.getPosition(), BlockState.get(BlockIds.DIRT), false, true);
+                this.level.setBlock(down.getPosition(), BlockState.get(BlockTypes.DIRT), false, true);
             }
         }
     }
@@ -1399,7 +1398,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         }
 
         BlockState state = block.getLiquid();
-        Identifier blockType = state.getType();
+        val blockType = state.getType();
 
         float percent;
 
