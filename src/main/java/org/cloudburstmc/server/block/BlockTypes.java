@@ -22,7 +22,7 @@ public class BlockTypes {
     public static final BlockType SAPLING = IntBlock.builder().id(BlockIds.SAPLING).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).fuelTime(100).build();
     public static final BlockType BEDROCK = IntBlock.builder().id(BlockIds.BEDROCK).maxStackSize(64).solid(true).filterLight(15).hardness(-1f).build();
     public static final BlockType FLOWING_WATER = IntBlock.builder().id(BlockIds.FLOWING_WATER).maxStackSize(0).transparent(true).solid(true).filterLight(2).hardness(100f).build();
-    public static final BlockType WATER = IntBlock.builder().id(BlockIds.WATER).maxStackSize(0).transparent(true).solid(true).filterLight(2).hardness(100f).build();
+    public static final BlockType WATER = IntBlock.builder().id(BlockIds.WATER).maxStackSize(0).transparent(true).solid(true).filterLight(2).hardness(100f).build(); //TODO: flowing trait
     public static final BlockType FLOWING_LAVA = IntBlock.builder().id(BlockIds.FLOWING_LAVA).maxStackSize(0).transparent(true).solid(true).emitLight(15).hardness(100f).build();
     public static final BlockType LAVA = IntBlock.builder().id(BlockIds.LAVA).maxStackSize(0).transparent(true).solid(true).emitLight(15).hardness(100f).build();
     public static final BlockType SAND = IntBlock.builder().id(BlockIds.SAND).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();

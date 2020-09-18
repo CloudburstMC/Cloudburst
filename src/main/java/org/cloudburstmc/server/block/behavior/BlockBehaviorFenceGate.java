@@ -86,7 +86,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return placeBlock(block, item.getBlock().withTrait(BlockTraits.DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
+        return placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
     }
 
     @Override

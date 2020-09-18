@@ -9,6 +9,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierType;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -59,13 +60,13 @@ public abstract class CloudItemBehavior implements ItemBehavior {
     }
 
     @Override
-    public boolean useOn(ItemStack item, Entity entity) {
-        return false;
+    public ItemStack useOn(ItemStack item, Entity entity) {
+        return null;
     }
 
     @Override
-    public boolean useOn(ItemStack item, Block block) {
-        return false;
+    public ItemStack useOn(ItemStack item, Block block) {
+        return null;
     }
 
     @Override
@@ -80,7 +81,12 @@ public abstract class CloudItemBehavior implements ItemBehavior {
 
     @Override
     public TierType getTier(ItemStack item) {
-        return item.getType().getTierType().orElse(null);
+        return item.getType().getTierType();
+    }
+
+    @Override
+    public ToolType getToolType(ItemStack item) {
+        return item.getType().getToolType();
     }
 
     @Override
@@ -164,18 +170,18 @@ public abstract class CloudItemBehavior implements ItemBehavior {
     }
 
     @Override
-    public boolean onUse(ItemStack item, int ticksUsed, Player player) {
-        return false;
+    public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
+        return null;
     }
 
     @Override
-    public boolean onRelease(ItemStack item, int ticksUsed, Player player) {
-        return false;
+    public ItemStack onRelease(ItemStack item, int ticksUsed, Player player) {
+        return null;
     }
 
     @Override
-    public boolean onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
-        return false;
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+        return null;
     }
 
     /**

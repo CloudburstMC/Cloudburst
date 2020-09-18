@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
@@ -35,8 +35,8 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
             }
         }
 
-        val obsidian = BlockState.get(BlockIds.OBSIDIAN);
-        val portal = BlockState.get(BlockIds.PORTAL);
+        val obsidian = BlockState.get(BlockTypes.OBSIDIAN);
+        val portal = BlockState.get(BlockTypes.PORTAL);
 
         level.setBlockAt(x + 1, y, z, obsidian);
         level.setBlockAt(x + 2, y, z, obsidian);
@@ -126,6 +126,6 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(BlockIds.AIR, 0, 0);
+        return ItemStack.get(BlockTypes.AIR);
     }
 }

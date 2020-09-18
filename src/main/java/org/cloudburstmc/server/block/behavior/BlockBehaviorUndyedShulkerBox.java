@@ -13,6 +13,7 @@ import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ShulkerBox;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
@@ -65,9 +66,9 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
         placeBlock(block, item);
 
         ShulkerBox shulkerBox = BlockEntityRegistry.get().newEntity(SHULKER_BOX, block);
-        shulkerBox.loadAdditionalData(item.getTag());
-        if (item.hasCustomName()) {
-            shulkerBox.setCustomName(item.getCustomName());
+        shulkerBox.loadAdditionalData(((CloudItemStack) item).getNbt());
+        if (item.getName() != null) {
+            shulkerBox.setCustomName(item.getName());
         }
         return true;
     }

@@ -17,7 +17,7 @@ import org.cloudburstmc.server.player.Player;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.FIRE;
+import static org.cloudburstmc.server.block.BlockTypes.FIRE;
 
 /**
  * Created by PetteriM1
@@ -30,7 +30,7 @@ public class ItemFireChargeBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         if (block.getState() == BlockStates.AIR && (target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves)) {
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
@@ -44,11 +44,11 @@ public class ItemFireChargeBehavior extends CloudItemBehavior {
                     level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
                 }
                 if (player.isSurvival()) {
-                    player.getInventory().decrementHandCount();
+                    return itemStack.decrementAmount();
                 }
-                return true;
             }
         }
-        return false;
+
+        return null;
     }
 }

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.item;
 
+import com.nukkitx.math.GenericMath;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
@@ -14,6 +15,7 @@ import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @Nonnull
 @Immutable
@@ -26,22 +28,31 @@ public interface ItemStack {
 
     int getAmount();
 
-    static boolean isInvalid(@Nullable ItemStack item) {
-        return isNull(item) || item.getAmount() <= 0;
+    @Deprecated
+    default int getCount() {
+        return getAmount();
     }
 
-    static boolean isNull(@Nullable ItemStack item) {
-        return item == null || item.getType() == BlockTypes.AIR;
+    default boolean isNull() {
+        return this.getType() == BlockTypes.AIR || this.getAmount() <= 0;
     }
 
     String getName();
 
+    default boolean hasName() {
+        return getName() != null;
+    }
+
     List<String> getLore();
 
-    Collection<EnchantmentInstance> getEnchantments();
+    default boolean hasEnchantments() {
+        return !getEnchantments().isEmpty();
+    }
+
+    Map<EnchantmentType, EnchantmentInstance> getEnchantments();
 
     default EnchantmentInstance getEnchantment(EnchantmentType enchantment) {
-        for (EnchantmentInstance ench : getEnchantments()) {
+        for (EnchantmentInstance ench : getEnchantments().values()) {
             if (ench.getType() == enchantment) {
                 return ench;
             }
@@ -62,7 +73,11 @@ public interface ItemStack {
         return getCanPlaceOn().contains(state.getId());
     }
 
-    <T> T getMetadata(Class<T> metadataClass);
+    default <T> T getMetadata(Class<T> metadataClass) {
+        return getMetadata(metadataClass, null);
+    }
+
+    <T> T getMetadata(Class<T> metadataClass, T defaultValue);
 
     ItemStackBuilder toBuilder();
 
@@ -80,7 +95,31 @@ public interface ItemStack {
 
     boolean equals(@Nullable ItemStack other, boolean checkAmount, boolean checkData);
 
-    static ItemStack get(ItemType type) {
-        return registry.getItem(type);
+    default ItemStack decrementAmount() {
+        return decrementAmount(1);
+    }
+
+    default ItemStack decrementAmount(int amount) {
+        return toBuilder().amount(GenericMath.clamp(getAmount() - amount, 0, getBehavior().getMaxStackSize(this))).build();
+    }
+
+    default ItemStack incrementAmount() {
+        return incrementAmount(1);
+    }
+
+    default ItemStack incrementAmount(int amount) {
+        return toBuilder().amount(GenericMath.clamp(getAmount() + amount, 0, getBehavior().getMaxStackSize(this))).build();
+    }
+
+    ItemStack withData(Object data);
+
+    ItemStack withData(Class<?> metadataClass, Object data);
+
+    static ItemStack get(BlockState state) {
+        return registry.getItem(state);
+    }
+
+    static ItemStack get(ItemType type, Object... metadata) {
+        return registry.getItem(type, metadata);
     }
 }

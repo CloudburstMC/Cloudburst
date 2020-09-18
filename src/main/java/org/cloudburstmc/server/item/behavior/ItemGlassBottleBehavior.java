@@ -9,9 +9,9 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
-import static org.cloudburstmc.server.block.BlockIds.FLOWING_WATER;
-import static org.cloudburstmc.server.block.BlockIds.WATER;
-import static org.cloudburstmc.server.item.ItemIds.POTION;
+import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
+import static org.cloudburstmc.server.block.BlockTypes.WATER;
+import static org.cloudburstmc.server.item.ItemTypes.POTION;
 
 public class ItemGlassBottleBehavior extends CloudItemBehavior {
 
@@ -21,7 +21,7 @@ public class ItemGlassBottleBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onActivate(ItemStack item, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack item, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         val targetType = target.getState().getType();
         if (targetType == WATER || targetType == FLOWING_WATER) {
             ItemStack potion = ItemStack.get(POTION);
@@ -37,6 +37,7 @@ public class ItemGlassBottleBehavior extends CloudItemBehavior {
                 }
             }
         }
-        return false;
+
+        return null;
     }
 }

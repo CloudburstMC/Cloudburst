@@ -2,67 +2,105 @@ package org.cloudburstmc.server.item;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
 @UtilityClass
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class ItemUtils {
+
+    private static final CloudItemRegistry registry = CloudItemRegistry.get();
 
     public static NbtMap serializeItem(ItemStack item) {
         return serializeItem(item, -1);
     }
 
     public static NbtMap serializeItem(ItemStack item, int slot) {
-        NbtMapBuilder tag = NbtMap.builder()
-                .putString("Name", item.getType().getId().toString())
-                .putByte("Count", (byte) item.getAmount())
-                .putShort("Damage", (short) 0);
+        NbtMapBuilder tag = NbtMap.builder();
 
-        if (item.getType().getMetadataClass() != null) {
-            ItemDataSerializer serializer = CloudItemRegistry.get().getSerializer(item.getType());
-            serializer.serialize(item, tag, item.getMetadata(item.getType().getMetadataClass()));
-        }
+        registry.getSerializer(item.getType()).serialize((CloudItemStack) item, tag);
 
         if (slot >= 0) {
             tag.putByte("Slot", (byte) slot);
         }
 
-        NbtMapBuilder nbt = item.getTag().toBuilder();
-        item.saveAdditionalData(nbt);
-        tag.putCompound("tag", nbt.build());
-
         return tag.build();
     }
 
     public static ItemStack deserializeItem(NbtMap tag) {
-        if (!(tag.containsKey("Name") || tag.containsKey("id")) && !tag.containsKey("Count")) {
-            return ItemStack.get(BlockIds.AIR);
+        CloudItemStackBuilder builder = new CloudItemStackBuilder();
+
+        if (!tag.containsKey("Name", NbtType.STRING) || !tag.containsKey("Count", NbtType.BYTE)) {
+            return registry.getItem(BlockTypes.AIR);
         }
 
-        ItemStack item;
-        try {
-            Identifier identifier;
-            if (tag.containsKey("Name")) {
-                identifier = Identifier.fromString(tag.getString("Name"));
-            } else {
-                identifier = CloudItemRegistry.get().fromLegacy(tag.getShort("id"));
+        Identifier id = Identifier.fromString(tag.getString("Name"));
+        registry.getSerializer(registry.getType(id)).deserialize(id, tag.getShort("Damage", (short) 0), tag.getByte("Count"), builder, tag);
+
+        return builder.build();
+    }
+
+    public static ItemData[] toNetwork(Collection<ItemStack> items) {
+        return items.stream().map(item -> ((CloudItemStack) item).getNetworkData()).toArray(ItemData[]::new);
+    }
+
+    public static ItemData toNetwork(ItemStack item) {
+        int id = registry.getRuntimeId(((CloudItemStack) item).getId());
+
+        NbtMap tag = ((CloudItemStack) item).getNbt();
+        short meta;
+        if (tag.isEmpty()) {
+            tag = null;
+            meta = 0;
+        } else {
+            meta = tag.getShort("Damage", (short) 0);
+        }
+
+        String[] canPlace = item.getCanPlaceOn().stream().map(Identifier::toString).toArray(String[]::new);
+        String[] canBreak = item.getCanDestroy().stream().map(Identifier::toString).toArray(String[]::new);
+
+        return ItemData.of(id, meta, item.getAmount(), tag, canPlace, canBreak);
+    }
+
+    public static ItemStack fromNetwork(ItemData data) {
+        Identifier id = registry.getIdentifier(data.getId());
+        ItemType type = registry.getType(id);
+
+        String[] canBreak = data.getCanBreak();
+        String[] canPlace = data.getCanPlace();
+
+        NbtMap tag = data.getTag();
+        if (tag == null) {
+            tag = NbtMap.EMPTY;
+        }
+
+        if (canBreak.length > 0 || canPlace.length > 0) {
+            NbtMapBuilder nbt = tag.toBuilder();
+
+            if (canBreak.length > 0) {
+                List<String> listTag = new ArrayList<>(Arrays.asList(canBreak));
+                nbt.putList("CanDestroy", NbtType.STRING, listTag);
             }
-            item = ItemStack.get(identifier, !tag.containsKey("Damage") ? 0 : tag.getShort("Damage"), tag.getByte("Count"));
-        } catch (Exception e) {
-            item = ItemStack.fromString(tag.getString("id"));
-            item.setMeta(!tag.containsKey("Damage") ? 0 : tag.getShort("Damage"));
-            item.setCount(tag.getByte("Count"));
+
+            if (canPlace.length > 0) {
+                List<String> listTag = new ArrayList<>(Arrays.asList(canPlace));
+                nbt.putList("CanPlaceOn", NbtType.STRING, listTag);
+            }
+
+            tag = nbt.build();
         }
 
-        NbtMap tagTag = tag.getCompound("tag", NbtMap.EMPTY);
-        if (tagTag != NbtMap.EMPTY) {
-            item.loadAdditionalData(tagTag);
-        }
+        CloudItemStackBuilder builder = new CloudItemStackBuilder();
+        registry.getSerializer(type).deserialize(id, data.getDamage(), data.getCount(), builder, tag);
 
-        return item;
+        return builder.build();
     }
 }

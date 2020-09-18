@@ -6,8 +6,8 @@ import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.misc.PrimedTnt;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.Sound;
@@ -78,13 +78,13 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == ItemIds.FLINT_AND_STEEL) {
-            item.useOn(, block);
+        if (item.getType() == ItemTypes.FLINT_AND_STEEL) {
+            item.getBehavior().useOn(item, block);
             this.prime(block, 80, player);
             return true;
         }
-        if (item.getId() == ItemIds.FIREBALL) {
-            if (!player.isCreative()) player.getInventory().removeItem(ItemStack.get(ItemIds.FIREBALL, 0, 1));
+        if (item.getType() == ItemTypes.FIREBALL) {
+            if (!player.isCreative()) player.getInventory().removeItem(ItemStack.get(ItemTypes.FIREBALL, 0, 1));
             block.getLevel().addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
             this.prime(block, 80, player);
             return true;

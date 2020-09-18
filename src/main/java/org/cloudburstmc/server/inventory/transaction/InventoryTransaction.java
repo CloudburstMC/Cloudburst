@@ -13,8 +13,6 @@ import org.cloudburstmc.server.player.Player;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
-
 /**
  * @author CreeperFace
  */
@@ -86,7 +84,7 @@ public class InventoryTransaction {
 
     protected boolean matchItems(List<ItemStack> needItems, List<ItemStack> haveItems) {
         for (InventoryAction action : this.actions) {
-            if (action.getTargetItem().getId() != AIR) {
+            if (!action.getTargetItem().isNull()) {
                 needItems.add(action.getTargetItem());
             }
 
@@ -94,7 +92,7 @@ public class InventoryTransaction {
                 return false;
             }
 
-            if (action.getSourceItem().getId() != AIR) {
+            if (!action.getSourceItem().isNull()) {
                 haveItems.add(action.getSourceItem());
             }
         }
@@ -196,7 +194,7 @@ public class InventoryTransaction {
                     SlotChangeAction action = list.get(i);
 
                     ItemStack actionSource = action.getSourceItem();
-                    if (actionSource.equalsExact(lastTargetItem)) {
+                    if (actionSource.equals(lastTargetItem)) {
                         lastTargetItem = action.getTargetItem();
                         list.remove(i);
                         sortedThisLoop++;

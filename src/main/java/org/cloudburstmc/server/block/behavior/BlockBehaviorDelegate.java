@@ -5,6 +5,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -67,7 +68,7 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return parent.getToolType();
     }
 

@@ -4,9 +4,9 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLeaves;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorSolid;
@@ -19,7 +19,7 @@ import org.cloudburstmc.server.registry.BlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.OBSIDIAN;
+import static org.cloudburstmc.server.block.BlockTypes.OBSIDIAN;
 
 /**
  * author: MagicDroidX
@@ -32,13 +32,17 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
      */
     private static final int MAX_PORTAL_SIZE = 23;
 
+    public ItemFlintSteelBehavior() {
+        super(null, null);
+    }
+
     @Override
     public boolean canBeActivated() {
         return true;
     }
 
     @Override
-    public boolean onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         if (block.getState() == BlockStates.AIR && target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves) {
             PORTAL:
             if (target.getState().getType() == OBSIDIAN) {
@@ -160,12 +164,12 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlock(Vector3i.from(scanX - width, scanY + height, scanZ), BlockState.get(BlockIds.PORTAL));
+                            level.setBlock(Vector3i.from(scanX - width, scanY + height, scanZ), BlockState.get(BlockTypes.PORTAL));
                         }
                     }
 
                     level.addLevelSoundEvent(block.getPosition(), SoundEvent.IGNITE);
-                    return true;
+                    return null;
                 } else if (sizeZ >= 2 && sizeZ <= MAX_PORTAL_SIZE) {
                     //start scan from 1 block above base
                     //find pillar or end of portal to start scan
@@ -239,16 +243,16 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlock(Vector3i.from(scanX, scanY + height, scanZ - width), BlockState.get(BlockIds.PORTAL));
+                            level.setBlock(Vector3i.from(scanX, scanY + height, scanZ - width), BlockState.get(BlockTypes.PORTAL));
                         }
                     }
 
                     level.addLevelSoundEvent(block.getPosition(), SoundEvent.IGNITE);
-                    return true;
+                    return null;
                 }
             }
-            BlockState fire = BlockState.get(BlockIds.FIRE);
-            BlockBehaviorFire fireBehavior = (BlockBehaviorFire) BlockRegistry.get().getBehavior(BlockIds.FIRE);
+            BlockState fire = BlockState.get(BlockTypes.FIRE);
+            BlockBehaviorFire fireBehavior = (BlockBehaviorFire) BlockRegistry.get().getBehavior(BlockTypes.FIRE);
 
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
@@ -260,19 +264,15 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
                     block = block.getLevel().getBlock(block.getPosition());
                     level.scheduleUpdate(block, fireBehavior.tickRate() + ThreadLocalRandom.current().nextInt(10));
                 }
-                return true;
+                return null;
             }
 
-            if (player.getGamemode().isSurvival() && this.useOn(itemStack, block)) {
-                if (this.getMeta() >= this.getMaxDurability()) {
-                    this.setCount(0);
-                } else {
-                    this.setMeta(this.getMeta() + 1);
-                }
+            if (player.getGamemode().isSurvival()) {
+                return this.useOn(itemStack, block);
             }
-            return true;
         }
-        return false;
+
+        return null;
     }
 
     @Override

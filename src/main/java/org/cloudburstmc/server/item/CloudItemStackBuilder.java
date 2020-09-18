@@ -8,16 +8,17 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.ToString;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentType;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.*;
 
 @Nonnull
 @ToString
+@ParametersAreNonnullByDefault
 public class CloudItemStackBuilder implements ItemStackBuilder {
 
     private Identifier id;
@@ -26,7 +27,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     private Reference2ObjectMap<Class<?>, Object> data = new Reference2ObjectOpenHashMap<>();
     private String itemName;
     private List<String> itemLore;
-    private final Set<EnchantmentInstance> enchantments = new HashSet<>();
+    private final Map<EnchantmentType, EnchantmentInstance> enchantments = new Reference2ObjectOpenHashMap<>();
     private final Set<Identifier> canDestroy = new HashSet<>();
     private final Set<Identifier> canPlaceOn = new HashSet<>();
     private NbtMap nbt;
@@ -35,24 +36,26 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     public CloudItemStackBuilder() {
     }
 
-    public CloudItemStackBuilder(@Nonnull ItemStack item) {
+    public CloudItemStackBuilder(ItemStack item) {
         itemType = item.getType();
         amount = item.getAmount();
         itemLore = item.getLore();
-        enchantments.addAll(item.getEnchantments());
+        enchantments.putAll(item.getEnchantments());
+        canDestroy.addAll(item.getCanDestroy());
+        canPlaceOn.addAll(item.getCanPlaceOn());
     }
 
-    public CloudItemStackBuilder id(@Nonnull Identifier id) {
+    public CloudItemStackBuilder id(Identifier id) {
         Preconditions.checkNotNull(id, "id");
         this.id = id;
         return this;
     }
 
     @Override
-    public CloudItemStackBuilder itemType(@Nonnull ItemType itemType) {
+    public CloudItemStackBuilder itemType(ItemType itemType) {
         Preconditions.checkNotNull(itemType, "itemType");
         this.itemType = itemType;
-        this.data = new Reference2ObjectOpenHashMap<>(); // If ItemType changed, we can't use the same data.
+//        this.data = new Reference2ObjectOpenHashMap<>(); // If ItemType changed, we can't use the same data.
         return this;
     }
 
@@ -65,7 +68,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     }
 
     @Override
-    public CloudItemStackBuilder name(@Nonnull String itemName) {
+    public CloudItemStackBuilder name(String itemName) {
         Preconditions.checkNotNull(itemName, "name");
         this.itemName = itemName;
         return this;
@@ -92,14 +95,11 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
 
     @Override
     public CloudItemStackBuilder itemData(Object data) {
-        Preconditions.checkState(itemType != null, "ItemType has not been set");
         this.data.put(data.getClass(), data);
         return this;
     }
 
     public CloudItemStackBuilder itemData(Object... data) {
-        Preconditions.checkState(itemType != null, "ItemType has not been set");
-
         for (Object d : data) {
             this.data.put(d.getClass(), d);
         }
@@ -126,15 +126,15 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     }
 
     @Override
-    public CloudItemStackBuilder removeEnchantment(EnchantmentInstance enchantment) {
+    public CloudItemStackBuilder removeEnchantment(EnchantmentType enchantment) {
         enchantments.remove(enchantment);
         return this;
     }
 
     @Override
-    public CloudItemStackBuilder removeEnchantments(Collection<EnchantmentInstance> enchantments) {
+    public CloudItemStackBuilder removeEnchantments(Collection<EnchantmentType> enchantments) {
         Preconditions.checkNotNull(enchantments, "enchantments");
-        this.enchantments.removeAll(enchantments);
+        enchantments.forEach(this::removeEnchantment);
         return this;
     }
 
@@ -149,6 +149,81 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     }
 
     @Override
+    public ItemStackBuilder itemData(Class<?> metadataClass, Object data) {
+        Preconditions.checkNotNull(data, "data");
+        Preconditions.checkNotNull(metadataClass, "metadataClass");
+        Preconditions.checkArgument(metadataClass.isAssignableFrom(data.getClass()), "data must be an instance of metadataClass");
+        this.data.put(metadataClass, data);
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder clearData() {
+        this.data.clear();
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder clearData(Class<?> metadataClass) {
+        this.data.remove(metadataClass);
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder addCanPlaceOn(Identifier id) {
+        Preconditions.checkNotNull(id, "id");
+        this.canPlaceOn.add(id);
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder addCanPlaceOn(ItemType type) {
+        Preconditions.checkNotNull(type, "type");
+        this.canPlaceOn.addAll(CloudItemRegistry.get().getIdentifiers(type));
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder removeCanPlaceOn(Identifier id) {
+        Preconditions.checkNotNull(id, "id");
+        this.canPlaceOn.remove(id);
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder clearCanPlaceOn() {
+        this.canPlaceOn.clear();
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder addCanDestroy(Identifier id) {
+        Preconditions.checkNotNull(id, "id");
+        this.canDestroy.add(id);
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder addCanDestroy(ItemType type) {
+        Preconditions.checkNotNull(type, "type");
+        this.canDestroy.addAll(CloudItemRegistry.get().getIdentifiers(type));
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder removeCanDestroy(Identifier id) {
+        Preconditions.checkNotNull(id, "id");
+        this.canDestroy.remove(id);
+        return this;
+    }
+
+    @Override
+    public ItemStackBuilder clearCanDestroy() {
+        this.canDestroy.clear();
+        return this;
+    }
+
+    @Override
     public CloudItemStack build() {
         Preconditions.checkArgument(itemType != null, "ItemType has not been set");
         return new CloudItemStack(id, itemType, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, networkData);
@@ -156,11 +231,8 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
 
     private void addEnchantment0(EnchantmentInstance enchantment) {
         Preconditions.checkNotNull(enchantment, "enchantment");
-        for (EnchantmentInstance ench : enchantments) {
-            if (ench.getId() == enchantment.getId()) {
-                throw new IllegalArgumentException("Enchantment type is already in builder");
-            }
-        }
-        enchantments.add(enchantment);
+        Preconditions.checkArgument(!this.enchantments.containsKey(enchantment.getType()), "Enchantment type is already in builder");
+
+        enchantments.put(enchantment.getType(), enchantment);
     }
 }

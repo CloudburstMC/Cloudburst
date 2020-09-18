@@ -22,19 +22,19 @@ public abstract class ItemEdibleBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onUse(ItemStack item, int ticksUsed, Player player) {
-        PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, this);
+    public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
+        PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, item);
 
         player.getServer().getEventManager().fire(consumeEvent);
         if (consumeEvent.isCancelled()) {
             player.getInventory().sendContents(player);
-            return false;
+            return null;
         }
 
-        Food food = Food.getByRelative(this);
+        Food food = Food.getByRelative(item);
         if (player.isSurvival() && food != null && food.eatenBy(player)) {
-            player.getInventory().decrementHandCount();
+            return item.decrementAmount();
         }
-        return true;
+        return null;
     }
 }

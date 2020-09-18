@@ -18,6 +18,10 @@ import org.cloudburstmc.server.registry.EntityRegistry;
  */
 public class ItemTridentBehavior extends ItemToolBehavior {
 
+    public ItemTridentBehavior() {
+        super(null, null);
+    }
+
     @Override
     public int getMaxDurability() {
         return DURABILITY_TRIDENT;
@@ -39,7 +43,7 @@ public class ItemTridentBehavior extends ItemToolBehavior {
     }
 
     @Override
-    public boolean onRelease(ItemStack item, int ticksUsed, Player player) {
+    public ItemStack onRelease(ItemStack item, int ticksUsed, Player player) {
         this.useOn(item, player);
 
         Vector3f motion = Vector3f.from(

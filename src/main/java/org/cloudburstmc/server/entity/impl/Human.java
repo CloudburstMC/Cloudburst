@@ -14,8 +14,9 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
+import lombok.val;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
@@ -23,8 +24,10 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.inventory.InventoryHolder;
 import org.cloudburstmc.server.inventory.PlayerEnderChestInventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
@@ -38,7 +41,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 /**
  * author: MagicDroidX
@@ -309,7 +312,7 @@ public class Human extends EntityCreature implements InventoryHolder {
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(this.getInventory().getItemInHand().toNetwork());
+        packet.setHand(((CloudItemStack) this.getInventory().getItemInHand()).getNetworkData());
         packet.setPlatformChatId("");
         packet.setDeviceId("");
         packet.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
@@ -353,7 +356,7 @@ public class Human extends EntityCreature implements InventoryHolder {
             int toughness = 0;
 
             for (ItemStack armor : inventory.getArmorContents()) {
-                armorPoints += armor.getArmorPoints();
+                armorPoints += armor.getBehavior().getArmorPoints(armor);
                 epf += calculateEnchantmentProtectionFactor(armor, source);
                 //toughness += armor.getToughness();
             }
@@ -380,26 +383,30 @@ public class Human extends EntityCreature implements InventoryHolder {
 
                 if (armor.hasEnchantments()) {
                     if (damager != null) {
-                        for (CloudEnchantmentInstance enchantment : armor.getEnchantments()) {
-                            enchantment.doPostAttack(damager, this);
+                        for (EnchantmentInstance enchantment : armor.getEnchantments().values()) {
+                            enchantment.getBehavior().doPostAttack(enchantment, damager, this);
                         }
                     }
 
-                    EnchantmentInstance durability = armor.getEnchantment(CloudEnchantmentInstance.ID_DURABILITY);
+                    EnchantmentInstance durability = armor.getEnchantment(EnchantmentTypes.DURABILITY);
                     if (durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100))
                         continue;
                 }
 
-                if (armor.isUnbreakable()) {
-                    continue;
-                }
+                val damageable = armor.getMetadata(Damageable.class);
 
-                armor.setMeta(armor.getMeta() + 1);
+                if (damageable != null) {
+                    if (damageable.isUnbreakable()) {
+                        continue;
+                    }
 
-                if (armor.getMeta() >= armor.getMaxDurability()) {
-                    inventory.setArmorItem(slot, ItemStack.get(AIR, 0, 0));
-                } else {
-                    inventory.setArmorItem(slot, armor, true);
+                    armor = armor.withData(damageable.damage());
+
+                    if (damageable.getDurability() + 1 >= armor.getBehavior().getMaxDurability()) {
+                        inventory.setArmorItem(slot, ItemStack.get(AIR));
+                    } else {
+                        inventory.setArmorItem(slot, armor, true);
+                    }
                 }
             }
 
@@ -416,8 +423,8 @@ public class Human extends EntityCreature implements InventoryHolder {
 
         double epf = 0;
 
-        for (CloudEnchantmentInstance ench : item.getEnchantments()) {
-            epf += ench.getProtectionFactor(source);
+        for (EnchantmentInstance ench : item.getEnchantments().values()) {
+            epf += ench.getBehavior().getProtectionFactor(ench, source);
         }
 
         return epf;
@@ -428,7 +435,7 @@ public class Human extends EntityCreature implements InventoryHolder {
         int level = 0;
 
         for (ItemStack armor : this.inventory.getArmorContents()) {
-            EnchantmentInstance fireProtection = armor.getEnchantment(CloudEnchantmentInstance.ID_PROTECTION_FIRE);
+            EnchantmentInstance fireProtection = armor.getEnchantment(EnchantmentTypes.FIRE_PROTECTION);
 
             if (fireProtection != null && fireProtection.getLevel() > 0) {
                 level = Math.max(level, fireProtection.getLevel());

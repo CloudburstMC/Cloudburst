@@ -35,13 +35,13 @@ import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.EnderChest;
 import org.cloudburstmc.server.blockentity.Sign;
 import org.cloudburstmc.server.command.CommandSender;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.entity.Attribute;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityInteractable;
@@ -66,10 +66,10 @@ import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.inventory.*;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemArmorBehavior;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.chunk.Chunk;
@@ -482,7 +482,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(this.getInventory().getItemInHand().toNetwork());
+        packet.setHand(((CloudItemStack) this.getInventory().getItemInHand()).getNetworkData());
         packet.setPlatformChatId("");
         packet.setDeviceId("");
         packet.getAdventureSettings().setCommandPermission((this.isOp() ? CommandPermission.OPERATOR : CommandPermission.NORMAL));
@@ -992,7 +992,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         for (Block block : this.getCollisionBlocks()) {
             val state = block.getState();
-            if (state.getType() == BlockIds.PORTAL) {
+            if (state.getType() == BlockTypes.PORTAL) {
                 portal = true;
                 continue;
             }
@@ -2212,7 +2212,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return false;
         } else if (source.getCause() == EntityDamageEvent.DamageCause.FALL) {
         }
-        if (this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockIds.SLIME) {
+        if (this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockTypes.SLIME) {
             if (!this.isSneaking()) {
                 //source.setCancelled();
                 this.resetFallDistance();
@@ -2425,7 +2425,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
                 case LAVA:
                     BlockState state = this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt());
-                    if (state.getType() == BlockIds.MAGMA) {
+                    if (state.getType() == BlockTypes.MAGMA) {
                         message = "death.attack.lava.magma";
                         break;
                     }
@@ -2446,7 +2446,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
                 case CONTACT:
                     if (cause instanceof EntityDamageByBlockEvent) {
-                        if (((EntityDamageByBlockEvent) cause).getDamager().getState().getType() == BlockIds.CACTUS) {
+                        if (((EntityDamageByBlockEvent) cause).getDamager().getState().getType() == BlockTypes.CACTUS) {
                             message = "death.attack.cactus";
                         }
                     }
@@ -3219,7 +3219,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         if (near) {
             if (entity instanceof Arrow && entity.getMotion().lengthSquared() == 0) {
-                ItemStack item = ItemStack.get(ItemIds.ARROW);
+                ItemStack item = ItemStack.get(ItemTypes.ARROW);
                 if (this.isSurvival() && !this.getInventory().canAddItem(item)) {
                     return false;
                 }
@@ -3243,7 +3243,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 this.sendPacket(packet);
 
                 if (!this.isCreative()) {
-                    this.getInventory().addItem(item.clone());
+                    this.getInventory().addItem(item);
                 }
                 entity.close();
                 return true;
@@ -3260,7 +3260,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 this.sendPacket(packet);
 
                 if (!this.isCreative()) {
-                    this.getInventory().addItem(item.clone());
+                    this.getInventory().addItem(item);
                 }
                 entity.close();
                 return true;
@@ -3279,9 +3279,9 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                             return false;
                         }
 
-                        if (item.getId() == BlockIds.LOG) {
+                        if (item.getType() == BlockTypes.LOG) {
                             this.awardAchievement("mineWood");
-                        } else if (item.getId() == ItemIds.DIAMOND) {
+                        } else if (item.getType() == ItemTypes.DIAMOND) {
                             this.awardAchievement("diamond");
                         }
 
@@ -3292,7 +3292,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                         this.sendPacket(packet);
 
                         entity.close();
-                        this.getInventory().addItem(item.clone());
+                        this.getInventory().addItem(item);
                         return true;
                     }
                 }
@@ -3311,24 +3311,23 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 //Mending
                 ArrayList<Integer> itemsWithMending = new ArrayList<>();
                 for (int i = 0; i < 4; i++) {
-                    if (getInventory().getArmorItem(i).getEnchantment((short) CloudEnchantmentInstance.ID_MENDING) != null) {
+                    if (getInventory().getArmorItem(i).getEnchantment(EnchantmentTypes.MENDING) != null) {
                         itemsWithMending.add(getInventory().getSize() + i);
                     }
                 }
-                if (getInventory().getItemInHand().getEnchantment((short) CloudEnchantmentInstance.ID_MENDING) != null) {
+                if (getInventory().getItemInHand().getEnchantment(EnchantmentTypes.MENDING) != null) {
                     itemsWithMending.add(getInventory().getHeldItemIndex());
                 }
                 if (itemsWithMending.size() > 0) {
                     Random rand = new Random();
                     Integer itemToRepair = itemsWithMending.get(rand.nextInt(itemsWithMending.size()));
                     ItemStack toRepair = getInventory().getItem(itemToRepair);
-                    if (toRepair instanceof ItemToolBehavior || toRepair instanceof ItemArmorBehavior) {
-                        if (toRepair.getMeta() > 0) {
-                            int dmg = toRepair.getMeta() - 2;
-                            if (dmg < 0)
-                                dmg = 0;
-                            toRepair.setMeta(dmg);
-                            getInventory().setItem(itemToRepair, toRepair);
+                    val behavior = toRepair.getBehavior();
+                    if (behavior.isTool(toRepair) || behavior.isArmor()) {
+                        val damage = toRepair.getMetadata(Damageable.class);
+
+                        if (damage.getDurability() > 0) {
+                            getInventory().setItem(itemToRepair, toRepair.withData(damage.repair(2)));
                             return true;
                         }
                     }

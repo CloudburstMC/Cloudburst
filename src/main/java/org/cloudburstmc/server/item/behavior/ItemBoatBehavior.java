@@ -24,20 +24,21 @@ public class ItemBoatBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onActivate(ItemStack item, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
-        if (face != Direction.UP) return false;
+    public ItemStack onActivate(ItemStack item, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+        if (face != Direction.UP) return null;
         Vector3f spawnPos = Vector3f.from(block.getX() + 0.5,
                 block.getY() - (target instanceof BlockBehaviorWater ? 0.0625 : 0), block.getZ());
         Boat boat = EntityRegistry.get().newEntity(EntityTypes.BOAT, Location.from(spawnPos, level));
         boat.setRotation((player.getYaw() + 90f) % 360, 0);
-        boat.setWoodType(item.ensureMetadata(TreeSpecies.class));
-
-        if (player.isSurvival()) {
-            player.getInventory().decrementHandCount();
-        }
+        boat.setWoodType(item.getMetadata(TreeSpecies.class));
 
         boat.spawnToAll();
-        return true;
+
+        if (player.isSurvival()) {
+            return item.decrementAmount();
+        }
+
+        return null;
     }
 
     @Override

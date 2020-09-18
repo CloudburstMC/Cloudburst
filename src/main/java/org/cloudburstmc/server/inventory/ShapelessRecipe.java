@@ -2,6 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.*;
@@ -23,7 +24,7 @@ public class ShapelessRecipe implements CraftingRecipe {
     public ShapelessRecipe(String recipeId, int priority, ItemStack result, Collection<ItemStack> ingredients, Identifier block) {
         this.recipeId = recipeId;
         this.priority = priority;
-        this.output = result.clone();
+        this.output = result;
         this.block = block;
         if (ingredients.size() > 9) {
             throw new IllegalArgumentException("Shapeless recipes cannot have more than 9 ingredients");
@@ -35,13 +36,13 @@ public class ShapelessRecipe implements CraftingRecipe {
             if (item.getCount() < 1) {
                 throw new IllegalArgumentException("Recipe '" + recipeId + "' Ingredient amount was not 1 (value: " + item.getCount() + ")");
             }
-            this.ingredients.add(item.clone());
+            this.ingredients.add(item);
         }
     }
 
     @Override
     public ItemStack getResult() {
-        return this.output.clone();
+        return this.output;
     }
 
     @Override
@@ -60,12 +61,7 @@ public class ShapelessRecipe implements CraftingRecipe {
     }
 
     public List<ItemStack> getIngredientList() {
-        List<ItemStack> ingredients = new ArrayList<>();
-        for (ItemStack ingredient : this.ingredients) {
-            ingredients.add(ingredient.clone());
-        }
-
-        return ingredients;
+        return this.ingredients;
     }
 
     public int getIngredientCount() {
@@ -141,7 +137,7 @@ public class ShapelessRecipe implements CraftingRecipe {
             ItemStack haveItem = haveItems.get(i);
             ItemStack needItem = needItems.get(i);
 
-            if (needItem.equals(haveItem, needItem.hasMeta(), needItem.hasNbtMap())) {
+            if (needItem.equals(haveItem)) {
                 completed++;
             }
         }
@@ -156,7 +152,7 @@ public class ShapelessRecipe implements CraftingRecipe {
 
     @Override
     public CraftingData toNetwork(int netId) {
-        return CraftingData.fromShapeless(this.recipeId, ItemStack.toNetwork(this.getIngredientList()),
-                ItemStack.toNetwork(this.getAllResults()), this.id, this.block.getName(), this.priority, netId);
+        return CraftingData.fromShapeless(this.recipeId, ItemUtils.toNetwork(this.getIngredientList()),
+                ItemUtils.toNetwork(this.getAllResults()), this.id, this.block.getName(), this.priority, netId);
     }
 }

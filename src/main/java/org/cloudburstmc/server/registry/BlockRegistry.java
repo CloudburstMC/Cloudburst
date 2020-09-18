@@ -353,7 +353,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(PORTAL, new BlockBehaviorNetherPortal(), BlockTraits.PORTAL_AXIS); //90
         this.registerVanilla(LIT_PUMPKIN, new BlockBehaviorPumpkinLit(), BlockTraits.DIRECTION); //91
         this.registerVanilla(CAKE, new BlockBehaviorCake(), BlockTraits.BITE_COUNTER); //92
-        this.registerVanilla(UNPOWERED_REPEATER, new BlockBehaviorRedstoneRepeater(UNPOWERED_REPEATER), BlockTraits.DIRECTION, BlockTraits.REPEATER_DELAY); //93
+//        this.registerVanilla(UNPOWERED_REPEATER, new BlockBehaviorRedstoneRepeater(UNPOWERED_REPEATER), BlockTraits.DIRECTION, BlockTraits.REPEATER_DELAY); //93
         this.registerVanilla(REPEATER, new BlockBehaviorRedstoneRepeater(REPEATER), BlockTraits.DIRECTION, BlockTraits.REPEATER_DELAY); //94
         this.registerVanilla(INVISIBLE_BEDROCK, new BlockBehaviorBedrockInvisible()); //95
         this.registerVanilla(TRAPDOOR, new BlockBehaviorTrapdoor(), BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN); //96
@@ -409,8 +409,9 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(TRAPPED_CHEST, new BlockBehaviorTrappedChest(), BlockTraits.FACING_DIRECTION); //146
         this.registerVanilla(LIGHT_WEIGHTED_PRESSURE_PLATE, new BlockBehaviorWeightedPressurePlateLight(), BlockTraits.REDSTONE_SIGNAL); //147
         this.registerVanilla(HEAVY_WEIGHTED_PRESSURE_PLATE, new BlockBehaviorWeightedPressurePlateHeavy(), BlockTraits.REDSTONE_SIGNAL); //148
-        this.registerVanilla(UNPOWERED_COMPARATOR, new BlockBehaviorRedstoneComparator(UNPOWERED_COMPARATOR), BlockTraits.DIRECTION, BlockTraits.IS_OUTPUT_LIT, BlockTraits.IS_OUTPUT_SUBTRACT); //149
-        this.registerVanilla(POWERED_COMPARATOR, new BlockBehaviorRedstoneComparator(POWERED_COMPARATOR), BlockTraits.DIRECTION, BlockTraits.IS_OUTPUT_LIT, BlockTraits.IS_OUTPUT_SUBTRACT); //150
+//        this.registerVanilla(UNPOWERED_COMPARATOR, new BlockBehaviorRedstoneComparator(UNPOWERED_COMPARATOR), BlockTraits.DIRECTION, BlockTraits.IS_OUTPUT_LIT, BlockTraits.IS_OUTPUT_SUBTRACT); //149
+//        this.registerVanilla(POWERED_COMPARATOR, new BlockBehaviorRedstoneComparator(POWERED_COMPARATOR), BlockTraits.DIRECTION, BlockTraits.IS_OUTPUT_LIT, BlockTraits.IS_OUTPUT_SUBTRACT); //150
+        this.registerVanilla(COMPARATOR, new BlockBehaviorRedstoneComparator(POWERED_COMPARATOR), BlockTraits.DIRECTION, BlockTraits.IS_OUTPUT_LIT, BlockTraits.IS_OUTPUT_SUBTRACT); //150
         this.registerVanilla(DAYLIGHT_DETECTOR, new BlockBehaviorDaylightDetector(), BlockTraits.REDSTONE_SIGNAL); //151
         this.registerVanilla(REDSTONE_BLOCK, new BlockBehaviorRedstone()); //152
         this.registerVanilla(QUARTZ_ORE, new BlockBehaviorOreQuartz()); //153

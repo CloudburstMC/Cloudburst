@@ -17,25 +17,24 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     private static final byte CAN_FLOW_DOWN = 1;
     private static final byte CAN_FLOW = 0;
     private static final byte BLOCKED = -1;
-    protected final Identifier flowingId;
-    protected final Identifier stationaryId;
+    protected final BlockType flowingId;
+    protected final BlockType stationaryId;
     public int adjacentSources = 0;
     protected Vector3f flowVector = null;
     private Long2ByteMap flowCostVisited = new Long2ByteOpenHashMap();
 
-    public BlockBehaviorLiquid(Identifier flowingId, Identifier stationaryId) {
+    public BlockBehaviorLiquid(BlockType flowingId, BlockType stationaryId) {
         this.flowingId = flowingId;
         this.stationaryId = stationaryId;
     }
@@ -522,15 +521,15 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         return false;
     }
 
-    public boolean isSameLiquid(Identifier other) {
-        return other == getFlowingId() || other == getStationaryId();
+    public boolean isSameLiquid(BlockType other) {
+        return other == getFlowingType() || other == getStationaryId();
     }
 
-    public Identifier getFlowingId() {
+    public BlockType getFlowingType() {
         return flowingId;
     }
 
-    public Identifier getStationaryId() {
+    public BlockType getStationaryId() {
         return stationaryId;
     }
 

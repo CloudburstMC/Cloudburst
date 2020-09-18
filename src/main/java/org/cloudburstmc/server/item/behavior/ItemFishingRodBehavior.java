@@ -1,7 +1,9 @@
 package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -9,6 +11,10 @@ import org.cloudburstmc.server.player.Player;
  * Package cn.nukkit.item in project nukkit.
  */
 public class ItemFishingRodBehavior extends ItemToolBehavior {
+
+    public ItemFishingRodBehavior() {
+        super(null, null);
+    }
 
     @Override
     public int getEnchantAbility(ItemStack item) {
@@ -22,13 +28,22 @@ public class ItemFishingRodBehavior extends ItemToolBehavior {
 
     @Override
     public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
+        return true;
+    }
+
+    @Override
+    public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
         if (player.fishing != null) {
             player.stopFishing(true);
         } else {
-            player.startFishing(this);
-            this.setMeta(this.getMeta() + 1);
+            player.startFishing(item);
+            val damage = item.getMetadata(Damageable.class);
+            if (damage != null) {
+                return item.withData(damage.damage());
+            }
         }
-        return true;
+
+        return null;
     }
 
     @Override

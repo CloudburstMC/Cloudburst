@@ -8,6 +8,8 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -16,7 +18,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.item.behavior.*;
-import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
+import org.cloudburstmc.server.item.data.*;
+import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.ItemSerializer;
 import org.cloudburstmc.server.item.serializer.RecordSerializer;
 import org.cloudburstmc.server.item.serializer.TreeSpeciesSerializer;
@@ -24,11 +27,10 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Log4j2
 public class CloudItemRegistry implements ItemRegistry {
@@ -48,7 +50,7 @@ public class CloudItemRegistry implements ItemRegistry {
         INSTANCE = new CloudItemRegistry(BlockRegistry.get()); // Needs to be initialized afterwards
     }
 
-    private final BiMap<Identifier, ItemType> typeMap = HashBiMap.create();
+    private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemBehavior> behaviorMap = new Reference2ObjectOpenHashMap<>();
@@ -64,6 +66,7 @@ public class CloudItemRegistry implements ItemRegistry {
         try {
             this.registerVanillaItems();
             this.registerVanillaIdentifiers();
+            this.registerVanillaDataSerializers();
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
@@ -85,6 +88,11 @@ public class CloudItemRegistry implements ItemRegistry {
         return INSTANCE;
     }
 
+    public synchronized <T> void registerDataSerializer(Class<T> metadataClass, ItemDataSerializer<T> serializer) {
+        Preconditions.checkNotNull(metadataClass, "metadataClass");
+        Preconditions.checkNotNull(serializer, "serializer");
+    }
+
     @Override
     public synchronized void register(ItemType type, ItemSerializer serializer, ItemBehavior behavior, Identifier... identifiers) throws RegistryException {
         Objects.requireNonNull(type, "type");
@@ -95,7 +103,7 @@ public class CloudItemRegistry implements ItemRegistry {
             identifiers = new Identifier[]{type.getId()};
         }
 
-        if (this.typeMap.inverse().containsKey(type)) {
+        if (this.typeMap.containsValue(type)) {
             throw new RegistryException(type + " has already been registered");
         }
 
@@ -173,6 +181,10 @@ public class CloudItemRegistry implements ItemRegistry {
                 .itemData(metadata);
 
         return builder.build();
+    }
+
+    public Collection<Identifier> getIdentifiers(ItemType type) {
+        return this.typeMap.entrySet().stream().filter((e) -> e.getValue() == type).map(Entry::getKey).collect(Collectors.toSet());
     }
 
     public ItemBehavior getBehavior(ItemType type) {
@@ -543,6 +555,14 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WARD, 509);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_11, 510);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WAIT, 511);
+    }
+
+    private void registerVanillaDataSerializers() {
+        this.registerDataSerializer(Banner.class, new BannerSerializer());
+        this.registerDataSerializer(Damageable.class, new DamageableSerializer());
+        this.registerDataSerializer(Firework.class, new FireworkSerializer());
+        this.registerDataSerializer(MapItem.class, new MapSerializer());
+        this.registerDataSerializer(WrittenBook.class, new WrittenBookSerializer());
     }
 
     @Getter

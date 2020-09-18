@@ -2,10 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
@@ -20,15 +17,15 @@ import java.util.Map;
 
 public class BlockBehaviorLog extends BlockBehaviorSolid {
 
-    protected static final Map<TreeSpecies, Identifier> STRIPPED_MAP = new EnumMap<>(TreeSpecies.class);
+    protected static final Map<TreeSpecies, BlockType> STRIPPED_MAP = new EnumMap<>(TreeSpecies.class);
 
     static {
-        STRIPPED_MAP.put(TreeSpecies.OAK, BlockIds.STRIPPED_OAK_LOG);
-        STRIPPED_MAP.put(TreeSpecies.SPRUCE, BlockIds.STRIPPED_SPRUCE_LOG);
-        STRIPPED_MAP.put(TreeSpecies.BIRCH, BlockIds.STRIPPED_BIRCH_LOG);
-        STRIPPED_MAP.put(TreeSpecies.JUNGLE, BlockIds.STRIPPED_JUNGLE_LOG);
-        STRIPPED_MAP.put(TreeSpecies.ACACIA, BlockIds.STRIPPED_ACACIA_LOG);
-        STRIPPED_MAP.put(TreeSpecies.DARK_OAK, BlockIds.STRIPPED_DARK_OAK_LOG);
+        STRIPPED_MAP.put(TreeSpecies.OAK, BlockTypes.STRIPPED_OAK_LOG);
+        STRIPPED_MAP.put(TreeSpecies.SPRUCE, BlockTypes.STRIPPED_SPRUCE_LOG);
+        STRIPPED_MAP.put(TreeSpecies.BIRCH, BlockTypes.STRIPPED_BIRCH_LOG);
+        STRIPPED_MAP.put(TreeSpecies.JUNGLE, BlockTypes.STRIPPED_JUNGLE_LOG);
+        STRIPPED_MAP.put(TreeSpecies.ACACIA, BlockTypes.STRIPPED_ACACIA_LOG);
+        STRIPPED_MAP.put(TreeSpecies.DARK_OAK, BlockTypes.STRIPPED_DARK_OAK_LOG);
     }
 
     protected Identifier identifier = BlockIds.LOG;
@@ -67,7 +64,9 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (!item.isAxe() || !item.useOn(, block)) {
+        val behavior = item.getBehavior();
+
+        if (!behavior.isAxe() || !behavior.useOn(item, block)) {
             return false;
         }
 
@@ -80,7 +79,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         // Convert the old log bark to the new wood block
-        placeBlock(block, item.getBlock().withTrait(BlockTraits.AXIS, face.getAxis()));
+        placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.AXIS, face.getAxis()));
         return true;
     }
 

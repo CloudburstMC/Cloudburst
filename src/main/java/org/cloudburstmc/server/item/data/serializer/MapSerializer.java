@@ -3,10 +3,10 @@ package org.cloudburstmc.server.item.data.serializer;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.data.Map;
+import org.cloudburstmc.server.item.data.MapItem;
 import org.cloudburstmc.server.utils.Identifier;
 
-public class MapSerializer implements ItemDataSerializer<Map> {
+public class MapSerializer implements ItemDataSerializer<MapItem> {
 
     private static final String TAG_ID = "mapId"; // Long
     private static final String TAG_PARENT_ID = "parentMapId"; // Long
@@ -26,23 +26,19 @@ public class MapSerializer implements ItemDataSerializer<Map> {
     private static final String TAG_LOCKED = "mapLocked"; // Boolean
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder itemTag, Map value) {
-        NbtMapBuilder tag = NbtMap.builder();
-
-        tag.putLong(TAG_ID, value.getId());
-        tag.putLong(TAG_PARENT_ID, value.getParentId());
-        tag.putByteArray(TAG_COLORS, value.getColors());
-
-        itemTag.putCompound(ITEM_TAG, tag.build());
+    public void serialize(ItemStack item, NbtMapBuilder itemTag, MapItem value) {
+        itemTag.putLong(TAG_ID, value.getId());
+        itemTag.putLong(TAG_PARENT_ID, value.getParentId());
+        itemTag.putByteArray(TAG_COLORS, value.getColors());
     }
 
     @Override
-    public Map deserialize(Identifier id, Integer meta, NbtMap tag) {
+    public MapItem deserialize(Identifier id, NbtMap tag) {
         if (!tag.containsKey(TAG_ID)) {
             return null;
         }
 
-        return Map.of(
+        return MapItem.of(
                 tag.getLong(TAG_ID),
                 tag.getLong(TAG_PARENT_ID),
                 tag.getByteArray(TAG_COLORS)

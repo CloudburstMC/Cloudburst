@@ -12,5 +12,5 @@ public interface ItemDataSerializer<T> {
 
     void serialize(ItemStack item, NbtMapBuilder itemTag, T value);
 
-    T deserialize(Identifier id, Integer meta, NbtMap tag);
+    T deserialize(Identifier id, NbtMap tag);
 }

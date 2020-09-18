@@ -1,22 +1,29 @@
 package org.cloudburstmc.server.item.behavior;
 
+import lombok.RequiredArgsConstructor;
 import lombok.val;
+import lombok.var;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.TierType;
+import org.cloudburstmc.server.item.ToolType;
+import org.cloudburstmc.server.item.ToolTypes;
+import org.cloudburstmc.server.item.data.Damageable;
 
 import java.util.Random;
 
-import static org.cloudburstmc.server.block.BlockIds.DIRT;
-import static org.cloudburstmc.server.block.BlockIds.GRASS;
+import static org.cloudburstmc.server.block.BlockTypes.DIRT;
+import static org.cloudburstmc.server.block.BlockTypes.GRASS;
 import static org.cloudburstmc.server.item.ItemTypes.*;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
+@RequiredArgsConstructor
 public abstract class ItemToolBehavior extends CloudItemBehavior {
 
     public static final int TYPE_NONE = 0;
@@ -42,70 +49,80 @@ public abstract class ItemToolBehavior extends CloudItemBehavior {
     public static final int DURABILITY_TRIDENT = 251;
     public static final int DURABILITY_FISHING_ROD = 65;
 
+    protected final ToolType toolType;
+    protected final TierType tierType;
+
     @Override
     public int getMaxStackSize(ItemStack item) {
         return 1;
     }
 
     @Override
-    public boolean useOn(ItemStack item, Block block) {
-        if (this.isUnbreakable(item) || isDurable()) {
-            return true;
+    public ItemStack useOn(ItemStack item, Block block) {
+        if (this.isUnbreakable(item) || isDurable(item)) {
+            return item;
         }
 
         val state = block.getState();
         val behavior = state.getBehavior();
+        var damage = item.getMetadata(Damageable.class);
 
-        if (behavior.getToolType() == ItemToolBehavior.TYPE_PICKAXE && this.isPickaxe() ||
-                behavior.getToolType() == ItemToolBehavior.TYPE_SHOVEL && this.isShovel() ||
-                behavior.getToolType() == ItemToolBehavior.TYPE_AXE && this.isAxe() ||
-                behavior.getToolType() == ItemToolBehavior.TYPE_SWORD && this.isSword() ||
-                behavior.getToolType() == ItemToolBehavior.TYPE_SHEARS && this.isShears()
-        ) {
-            this.setMeta(getMeta() + 1);
-        } else if (!this.isShears() && behavior.getBreakTime(this) > 0) {
-            this.setMeta(getMeta() + 2);
-        } else if (this.isHoe()) {
-            if (state.getType() == GRASS || state.getType() == DIRT) {
-                this.setMeta(getMeta() + 1);
+        if (damage != null) {
+            val itemBehavior = item.getBehavior();
+            if (behavior.getToolType() == itemBehavior.getToolType(item)) {
+                return item.withData(damage.damage());
             }
-        } else {
-            this.setMeta(getMeta() + 1);
+
+            if (itemBehavior.isShears() && behavior.getBreakTime(state, item, null) > 0) {
+                return item.withData(damage.damage(2));
+            }
+
+            if (itemBehavior.isHoe()) {
+                if (state.getType() == GRASS || state.getType() == DIRT) {
+                    return item.withData(damage.damage());
+                }
+            } else {
+                return item.withData(damage.damage());
+            }
         }
-        return true;
+
+        return item;
     }
 
     @Override
-    public boolean useOn(ItemStack item, Entity entity) {
+    public ItemStack useOn(ItemStack item, Entity entity) {
         if (this.isUnbreakable(item) || isDurable(item)) {
-            return true;
+            return item;
         }
 
-        if ((entity != null) && !this.isSword()) {
-            this.setMeta(getMeta() + 2);
-        } else {
-            this.setMeta(getMeta() + 1);
+        var damage = item.getMetadata(Damageable.class);
+
+        if (damage != null) {
+            if ((entity != null) && !this.isSword()) {
+                damage = damage.damage(2);
+            } else {
+                damage = damage.damage();
+            }
+
+            return item.withData(damage);
         }
 
-        return true;
+        return item;
     }
 
     private boolean isDurable(ItemStack item) {
-        if (!hasEnchantments()) {
+        if (!item.hasEnchantments()) {
             return false;
         }
 
-        EnchantmentInstance durability = getEnchantment(CloudEnchantmentInstance.ID_DURABILITY);
+        EnchantmentInstance durability = item.getEnchantment(EnchantmentTypes.DURABILITY);
         return durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100);
     }
 
     @Override
     public boolean isUnbreakable(ItemStack item) {
-        return unbreakable;
-    }
-
-    public void setUnbreakable(boolean unbreakable) {
-        this.unbreakable = unbreakable;
+        val damage = item.getMetadata(Damageable.class);
+        return damage != null && damage.isUnbreakable();
     }
 
     @Override
@@ -135,7 +152,7 @@ public abstract class ItemToolBehavior extends CloudItemBehavior {
 
     @Override
     public boolean isShears() {
-        return (this.getId() == SHEARS);
+        return this.toolType == ToolTypes.SHEARS;
     }
 
     @Override
@@ -147,19 +164,6 @@ public abstract class ItemToolBehavior extends CloudItemBehavior {
 
     @Override
     public int getEnchantAbility(ItemStack item) {
-        switch (this.getTier(item)) {
-            case TIER_STONE:
-                return 5;
-            case TIER_WOODEN:
-                return 15;
-            case TIER_DIAMOND:
-                return 10;
-            case TIER_GOLD:
-                return 22;
-            case TIER_IRON:
-                return 14;
-        }
-
-        return 0;
+        return item.getBehavior().getTier(item).getToolEnchantAbility();
     }
 }

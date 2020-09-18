@@ -6,16 +6,16 @@ import org.cloudburstmc.server.event.inventory.CraftItemEvent;
 import org.cloudburstmc.server.inventory.BigCraftingGrid;
 import org.cloudburstmc.server.inventory.CraftingRecipe;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemType;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.scheduler.Task;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 /**
  * @author CreeperFace
@@ -55,7 +55,7 @@ public class CraftingTransaction extends InventoryTransaction {
         int x = index % this.gridSize;
 
         if (this.inputs[y][x].isNull()) {
-            inputs[y][x] = item.clone();
+            inputs[y][x] = item;
         } else if (!inputs[y][x].equals(item)) {
             throw new RuntimeException("Input " + index + " has already been set and does not match the current item (expected " + inputs[y][x] + ", got " + item + ")");
         }
@@ -70,7 +70,7 @@ public class CraftingTransaction extends InventoryTransaction {
         int x = index % gridSize;
 
         if (secondaryOutputs[y][x].isNull()) {
-            secondaryOutputs[y][x] = item.clone();
+            secondaryOutputs[y][x] = item;
         } else if (!secondaryOutputs[y][x].equals(item)) {
             throw new RuntimeException("Output " + index + " has already been set and does not match the current item (expected " + secondaryOutputs[y][x] + ", got " + item + ")");
         }
@@ -82,7 +82,7 @@ public class CraftingTransaction extends InventoryTransaction {
 
     public void setPrimaryOutput(ItemStack item) {
         if (primaryOutput == null) {
-            primaryOutput = item.clone();
+            primaryOutput = item;
         } else if (!primaryOutput.equals(item)) {
             throw new RuntimeException("Primary result item has already been set and does not match the current item (expected " + primaryOutput + ", got " + item + ")");
         }
@@ -169,24 +169,24 @@ public class CraftingTransaction extends InventoryTransaction {
 
     public boolean execute() {
         if (super.execute()) {
-            Identifier id = this.primaryOutput.getId();
+            ItemType id = this.primaryOutput.getType();
             if (id == CRAFTING_TABLE) {
                 source.awardAchievement("buildWorkBench");
-            } else if (id == ItemIds.WOODEN_PICKAXE) {
+            } else if (id == ItemTypes.WOODEN_PICKAXE) {
                 source.awardAchievement("buildPickaxe");
             } else if (id == FURNACE) {
                 source.awardAchievement("buildFurnace");
-            } else if (id == ItemIds.WOODEN_HOE) {
+            } else if (id == ItemTypes.WOODEN_HOE) {
                 source.awardAchievement("buildHoe");
-            } else if (id == ItemIds.BREAD) {
+            } else if (id == ItemTypes.BREAD) {
                 source.awardAchievement("makeBread");
-            } else if (id == ItemIds.CAKE) {
+            } else if (id == ItemTypes.CAKE) {
                 source.awardAchievement("bakeCake");
-            } else if (id == ItemIds.STONE_PICKAXE || id == ItemIds.GOLDEN_PICKAXE || id == ItemIds.IRON_PICKAXE || id == ItemIds.DIAMOND_PICKAXE) {
+            } else if (id == ItemTypes.STONE_PICKAXE || id == ItemTypes.GOLDEN_PICKAXE || id == ItemTypes.IRON_PICKAXE || id == ItemTypes.DIAMOND_PICKAXE) {
                 source.awardAchievement("buildBetterPickaxe");
-            } else if (id == ItemIds.WOODEN_SWORD) {
+            } else if (id == ItemTypes.WOODEN_SWORD) {
                 source.awardAchievement("buildSword");
-            } else if (id == ItemIds.DIAMOND) {
+            } else if (id == ItemTypes.DIAMOND) {
                 source.awardAchievement("diamond");
             }
 

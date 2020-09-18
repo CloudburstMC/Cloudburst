@@ -26,11 +26,11 @@ public class ItemSpawnEggBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         Chunk chunk = level.getLoadedChunk(block.getPosition());
 
         if (chunk == null) {
-            return false;
+            return null;
         }
 
         Location location = Location.from(block.getPosition().toFloat().add(0.5, 0, 0.5),
@@ -40,17 +40,21 @@ public class ItemSpawnEggBehavior extends CloudItemBehavior {
         level.getServer().getEventManager().fire(ev);
 
         if (ev.isCancelled()) {
-            return false;
+            return null;
         }
 
         Entity entity = EntityRegistry.get().newEntity(ev.getEntityType(), ev.getLocation());
 
-        itemStack.getName().ifPresent(entity::setNameTag);
+        if (itemStack.hasName()) {
+            entity.setNameTag(itemStack.getName());
+        }
+
+        entity.spawnToAll();
 
         if (player.isSurvival()) {
-            player.getInventory().decrementCount(player.getInventory().getHeldItemIndex());
+            return itemStack.decrementAmount();
         }
-        entity.spawnToAll();
-        return true;
+
+        return null;
     }
 }

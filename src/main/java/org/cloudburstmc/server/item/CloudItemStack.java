@@ -1,17 +1,19 @@
 package org.cloudburstmc.server.item;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.ToString;
+import lombok.val;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentType;
 import org.cloudburstmc.server.item.behavior.ItemBehavior;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
-import org.cloudburstmc.server.utils.Utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -74,8 +76,7 @@ public class CloudItemStack implements ItemStack {
         if (id == null) {
             synchronized (type) {
                 if (id == null) {
-
-                    id = CloudItemRegistry.get().getId(this);
+                    id = Identifier.fromString(getNbt().getString("Name"));
                 }
             }
         }
@@ -95,8 +96,8 @@ public class CloudItemStack implements ItemStack {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getMetadata(Class<T> metadataClass) {
-        return (T) this.data.get(metadataClass);
+    public <T> T getMetadata(Class<T> metadataClass, T defaultValue) {
+        return (T) this.data.getOrDefault(metadataClass, defaultValue);
     }
 
     public ImmutableMap<Class<?>, Object> getData() {
@@ -114,8 +115,8 @@ public class CloudItemStack implements ItemStack {
     }
 
     @Override
-    public Collection<EnchantmentInstance> getEnchantments() {
-        return ImmutableList.copyOf(enchantments.values());
+    public Map<EnchantmentType, EnchantmentInstance> getEnchantments() {
+        return enchantments;
     }
 
     @Override
@@ -142,7 +143,9 @@ public class CloudItemStack implements ItemStack {
         if (nbt == null) {
             synchronized (itemName) {
                 if (nbt == null) {
-                    this.nbt = Utils.TODO(); //TODO serialize
+                    NbtMapBuilder builder = NbtMap.builder();
+                    CloudItemRegistry.get().getSerializer(this.type).serialize(this, builder);
+                    this.nbt = builder.build();
                 }
             }
         }
@@ -150,16 +153,46 @@ public class CloudItemStack implements ItemStack {
         return this.nbt;
     }
 
+    public NbtMap getDataTag() {
+        val nbt = getNbt();
+        if (nbt.containsKey("tag")) {
+            return nbt.getCompound("tag");
+        }
+
+        return NbtMap.EMPTY;
+    }
+
     public ItemData getNetworkData() {
         if (networkData == null) {
             synchronized (this) {
                 if (networkData == null) {
-                    //TODO: create network data
-                    this.networkData = Utils.TODO();
+                    this.networkData = ItemUtils.toNetwork(this);
                 }
             }
         }
         return networkData;
+    }
+
+    public boolean hasTag() {
+        if (this.nbt != null) {
+            val tag = this.nbt.getCompound("tag");
+            if (tag != null && !tag.isEmpty()) {
+                return true;
+            }
+        }
+
+        return !(this.data.isEmpty() || this.itemLore.isEmpty() || this.itemName == null || this.enchantments.isEmpty() || this.canPlaceOn.isEmpty() || this.canDestroy.isEmpty());
+    }
+
+    @Override
+    public ItemStack withData(Object data) {
+        Preconditions.checkNotNull(data, "data");
+        return withData(data.getClass(), data);
+    }
+
+    @Override
+    public ItemStack withData(Class<?> metadataClass, Object data) {
+        return this.toBuilder().itemData(metadataClass, data).build();
     }
 
     @Override
@@ -174,7 +207,7 @@ public class CloudItemStack implements ItemStack {
 
     @Override
     public boolean equals(@Nullable ItemStack item) {
-        return equals(item, true, true);
+        return equals(item, true, hasTag());
     }
 
     @Override
@@ -184,7 +217,7 @@ public class CloudItemStack implements ItemStack {
         CloudItemStack that = (CloudItemStack) other;
 
         return this.type == that.type && (!checkAmount || this.amount == that.amount) &&
-                (!checkData || Objects.equals(this.nbt, that.nbt));
+                (!checkData || Objects.equals(this.getNbt(), that.getNbt()));
     }
 
     @Override

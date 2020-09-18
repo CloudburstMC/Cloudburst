@@ -1,11 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import lombok.val;
 import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
@@ -25,7 +26,7 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        var state = item.getBlock()
+        var state = item.getBehavior().getBlock(item)
                 .withTrait(BlockTraits.DIRECTION, player != null ? player.getDirection() : Direction.NORTH);
         if ((clickPos.getY() > 0.5 && face != Direction.UP) || face == Direction.DOWN) {
             state = state.withTrait(BlockTraits.IS_UPSIDE_DOWN, true);
@@ -37,7 +38,8 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+        val behavior = hand.getBehavior();
+        if (behavior.isPickaxe() && behavior.getTier(hand).compareTo(TierTypes.WOOD) >= 0) {
             return new ItemStack[]{
                     toItem(block)
             };

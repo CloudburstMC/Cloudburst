@@ -1,34 +1,33 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
+import lombok.val;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.TierType;
+import org.cloudburstmc.server.item.ToolType;
+import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.cloudburstmc.server.block.BlockIds.WEB;
-import static org.cloudburstmc.server.block.BlockIds.WOOL;
+import static org.cloudburstmc.server.block.BlockTypes.WEB;
+import static org.cloudburstmc.server.block.BlockTypes.WOOL;
 
 public abstract class BlockBehavior {
 
     //http://minecraft.gamepedia.com/Breaking
     private static float breakTime0(float blockHardness, boolean correctTool, boolean canHarvestWithHand,
-                                    Identifier id, int toolType, int toolTier, int efficiencyLoreLevel, int hasteEffectLevel,
+                                    BlockType id, ToolType toolType, TierType toolTier, int efficiencyLoreLevel, int hasteEffectLevel,
                                     boolean insideOfWaterWithoutAquaAffinity, boolean outOfWaterButNotOnGround) {
         float baseTime = ((correctTool || canHarvestWithHand) ? 1.5f : 5.0f) * blockHardness;
         float speed = 1.0f / baseTime;
@@ -41,25 +40,12 @@ public abstract class BlockBehavior {
         return 1.0f / speed;
     }
 
-    private static float toolBreakTimeBonus0(
-            int toolType, int toolTier, boolean isWoolBlock, boolean isCobweb) {
-        if (toolType == ItemToolBehavior.TYPE_SWORD) return isCobweb ? 15.0f : 1.0f;
-        if (toolType == ItemToolBehavior.TYPE_SHEARS) return isWoolBlock ? 5.0f : 15.0f;
-        if (toolType == ItemToolBehavior.TYPE_NONE) return 1.0f;
-        switch (toolTier) {
-            case ItemToolBehavior.TIER_WOODEN:
-                return 2.0f;
-            case ItemToolBehavior.TIER_STONE:
-                return 4.0f;
-            case ItemToolBehavior.TIER_IRON:
-                return 6.0f;
-            case ItemToolBehavior.TIER_DIAMOND:
-                return 8.0f;
-            case ItemToolBehavior.TIER_GOLD:
-                return 12.0f;
-            default:
-                return 1.0f;
-        }
+    private static float toolBreakTimeBonus0(ToolType toolType, TierType toolTier, boolean isWoolBlock, boolean isCobweb) {
+        if (toolType == ToolTypes.SWORD) return isCobweb ? 15.0f : 1.0f;
+        if (toolType == ToolTypes.SHEARS) return isWoolBlock ? 5.0f : 15.0f;
+        if (toolType == null) return 1.0f;
+
+        return Math.max(1, toolTier.getMiningEfficiency());
     }
 
     private static float speedBonusByEfficiencyLore0(int efficiencyLoreLevel) {
@@ -104,8 +90,8 @@ public abstract class BlockBehavior {
         return 0;
     }
 
-    public int getToolType() {
-        return ItemToolBehavior.TYPE_NONE;
+    public ToolType getToolType() {
+        return null;
     }
 
     public int getLightLevel(Block block) {
@@ -190,7 +176,7 @@ public abstract class BlockBehavior {
     }
 
     protected boolean placeBlock(Block block, ItemStack item, boolean update) {
-        return placeBlock(block, item.getBlock(), update);
+        return placeBlock(block, item.getBehavior().getBlock(item), update);
     }
 
     protected boolean placeBlock(Block block, BlockState newState) {
@@ -242,7 +228,7 @@ public abstract class BlockBehavior {
     }
 
     public String getDescriptionId(BlockState state) {
-        return "tile." + state.getType().getName() + ".name";
+        return "tile." + state.getId().getName() + ".name";
     }
 
     public float getResistance() {
@@ -257,24 +243,6 @@ public abstract class BlockBehavior {
         return vector;
     }
 
-    private static int toolType0(ItemStack item) {
-        if (item.isSword()) return ItemToolBehavior.TYPE_SWORD;
-        if (item.isShovel()) return ItemToolBehavior.TYPE_SHOVEL;
-        if (item.isPickaxe()) return ItemToolBehavior.TYPE_PICKAXE;
-        if (item.isAxe()) return ItemToolBehavior.TYPE_AXE;
-        if (item.isShears()) return ItemToolBehavior.TYPE_SHEARS;
-        return ItemToolBehavior.TYPE_NONE;
-    }
-
-    private static boolean correctTool0(int blockToolType, ItemStack item) {
-        return (blockToolType == ItemToolBehavior.TYPE_SWORD && item.isSword()) ||
-                (blockToolType == ItemToolBehavior.TYPE_SHOVEL && item.isShovel()) ||
-                (blockToolType == ItemToolBehavior.TYPE_PICKAXE && item.isPickaxe()) ||
-                (blockToolType == ItemToolBehavior.TYPE_AXE && item.isAxe()) ||
-                (blockToolType == ItemToolBehavior.TYPE_SHEARS && item.isShears()) ||
-                blockToolType == ItemToolBehavior.TYPE_NONE;
-    }
-
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
                 this.toItem(block)
@@ -283,21 +251,25 @@ public abstract class BlockBehavior {
 
     public float getBreakTime(BlockState state, ItemStack item, Player player) {
         Objects.requireNonNull(item, "getBreakTime: Item can not be null");
-        Objects.requireNonNull(player, "getBreakTime: Player can not be null");
+//        Objects.requireNonNull(player, "getBreakTime: Player can not be null");
         float blockHardness = getHardness();
-        boolean correctTool = correctTool0(getToolType(), item);
+        val toolType = getToolType();
+
+        val itemBehavior = item.getBehavior();
+        val itemToolType = itemBehavior.getToolType(item);
+        val itemTier = itemBehavior.getTier(item);
+
+        boolean correctTool = toolType == null || itemToolType == toolType;
         boolean canHarvestWithHand = canHarvestWithHand();
-        Identifier blockType = state.getType();
-        int itemToolType = toolType0(item);
-        int itemTier = item.getTier();
-        int efficiencyLoreLevel = Optional.ofNullable(item.getEnchantment(CloudEnchantmentInstance.ID_EFFICIENCY))
+        val blockType = state.getType();
+        int efficiencyLoreLevel = Optional.ofNullable(item.getEnchantment(EnchantmentTypes.EFFICIENCY))
                 .map(EnchantmentInstance::getLevel).orElse(0);
-        int hasteEffectLevel = Optional.ofNullable(player.getEffect(Effect.HASTE))
+        int hasteEffectLevel = Optional.ofNullable(player).map((p) -> p.getEffect(Effect.HASTE))
                 .map(Effect::getAmplifier).orElse((byte) 0);
-        boolean insideOfWaterWithoutAquaAffinity = player.isInsideOfWater() &&
-                Optional.ofNullable(player.getInventory().getHelmet().getEnchantment(CloudEnchantmentInstance.ID_WATER_WORKER))
+        boolean insideOfWaterWithoutAquaAffinity = player != null && player.isInsideOfWater() &&
+                Optional.ofNullable(player.getInventory().getHelmet().getEnchantment(EnchantmentTypes.WATER_WORKER))
                         .map(EnchantmentInstance::getLevel).map(l -> l >= 1).orElse(false);
-        boolean outOfWaterButNotOnGround = (!player.isInsideOfWater()) && (!player.isOnGround());
+        boolean outOfWaterButNotOnGround = player != null && (!player.isInsideOfWater()) && (!player.isOnGround());
         return breakTime0(blockHardness, correctTool, canHarvestWithHand, blockType, itemToolType, itemTier,
                 efficiencyLoreLevel, hasteEffectLevel, insideOfWaterWithoutAquaAffinity, outOfWaterButNotOnGround);
     }
@@ -313,39 +285,23 @@ public abstract class BlockBehavior {
      */
     @Deprecated
     public float getBreakTime(ItemStack item) {
+        val behavior = item.getBehavior();
         float base = this.getHardness() * 1.5f;
         if (this.canBeBrokenWith(item)) {
-            if (this.getToolType() == ItemToolBehavior.TYPE_SHEARS && item.isShears()) {
+            if (this.getToolType() == ToolTypes.SHEARS && behavior.isShears()) {
                 base /= 15;
             } else if (
-                    (this.getToolType() == ItemToolBehavior.TYPE_PICKAXE && item.isPickaxe()) ||
-                            (this.getToolType() == ItemToolBehavior.TYPE_AXE && item.isAxe()) ||
-                            (this.getToolType() == ItemToolBehavior.TYPE_SHOVEL && item.isShovel())
+                    (this.getToolType() == ToolTypes.PICKAXE && behavior.isPickaxe()) ||
+                            (this.getToolType() == ToolTypes.AXE && behavior.isAxe()) ||
+                            (this.getToolType() == ToolTypes.SHOVEL && behavior.isShovel())
             ) {
-                int tier = item.getTier();
-                switch (tier) {
-                    case ItemToolBehavior.TIER_WOODEN:
-                        base /= 2;
-                        break;
-                    case ItemToolBehavior.TIER_STONE:
-                        base /= 4;
-                        break;
-                    case ItemToolBehavior.TIER_IRON:
-                        base /= 6;
-                        break;
-                    case ItemToolBehavior.TIER_DIAMOND:
-                        base /= 8;
-                        break;
-                    case ItemToolBehavior.TIER_GOLD:
-                        base /= 12;
-                        break;
-                }
+                base /= behavior.getTier(item).getMiningEfficiency();
             }
         } else {
             base *= 3.33f;
         }
 
-        if (item.isSword()) {
+        if (behavior.isSword()) {
             base *= 0.5f;
         }
 

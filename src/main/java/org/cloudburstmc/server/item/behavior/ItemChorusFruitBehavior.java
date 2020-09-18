@@ -15,9 +15,9 @@ public class ItemChorusFruitBehavior extends ItemEdibleBehavior {
     }
 
     @Override
-    public boolean onUse(ItemStack item, int ticksUsed, Player player) {
-        boolean successful = super.onUse(item, ticksUsed, player);
-        if (successful) {
+    public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
+        ItemStack successful = super.onUse(item, ticksUsed, player);
+        if (successful != null) {
             player.onChorusFruitTeleport();
         }
         return successful;

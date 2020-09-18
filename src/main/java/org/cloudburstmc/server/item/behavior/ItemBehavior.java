@@ -6,6 +6,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierType;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -26,15 +27,17 @@ public interface ItemBehavior {
 
     int getFuelTime(ItemStack item);
 
-    boolean useOn(ItemStack item, Entity entity);
+    ItemStack useOn(ItemStack item, Entity entity);
 
-    boolean useOn(ItemStack item, Block block);
+    ItemStack useOn(ItemStack item, Block block);
 
     boolean isTool(ItemStack item);
 
     int getMaxDurability();
 
     TierType getTier(ItemStack item);
+
+    ToolType getToolType(ItemStack item);
 
     boolean isPickaxe();
 
@@ -68,11 +71,11 @@ public interface ItemBehavior {
 
     boolean isUnbreakable(ItemStack item);
 
-    boolean onUse(ItemStack item, int ticksUsed, Player player);
+    ItemStack onUse(ItemStack item, int ticksUsed, Player player);
 
-    boolean onRelease(ItemStack item, int ticksUsed, Player player);
+    ItemStack onRelease(ItemStack item, int ticksUsed, Player player);
 
-    boolean onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level);
+    ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level);
 
     boolean onClickAir(ItemStack item, Vector3f directionVector, Player player);
 }

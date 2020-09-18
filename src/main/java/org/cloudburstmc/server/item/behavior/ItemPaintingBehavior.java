@@ -34,12 +34,12 @@ public class ItemPaintingBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         Chunk chunk = level.getLoadedChunk(block.getPosition());
 
         if (chunk == null || target.getState().inCategory(BlockCategory.TRANSPARENT)
                 || face.getHorizontalIndex() == -1 || block.getState().inCategory(BlockCategory.SOLID)) {
-            return false;
+            return null;
         }
 
         List<EntityPainting.Motive> validMotives = new ArrayList<>();
@@ -86,12 +86,13 @@ public class ItemPaintingBehavior extends CloudItemBehavior {
         entity.setRotation(direction * 90, 0);
         entity.setMotive(motive);
 
+        entity.spawnToAll();
+
         if (player.isSurvival()) {
-            player.getInventory().decrementHandCount();
+            return itemStack.decrementAmount();
         }
 
-        entity.spawnToAll();
-        return true;
+        return null;
     }
 
     private static double offset(int value) {

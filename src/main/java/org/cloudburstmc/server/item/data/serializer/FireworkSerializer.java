@@ -50,16 +50,14 @@ public class FireworkSerializer implements ItemDataSerializer<Firework> {
                     .build());
         }
 
-        NbtMapBuilder tag = NbtMap.builder();
-        tag.putCompound(TAG_FIREWORKS, NbtMap.builder()
+        itemTag.putCompound(TAG_FIREWORKS, NbtMap.builder()
                 .putList(TAG_EXPLOSIONS, NbtType.COMPOUND, explosionTags)
                 .putBoolean(TAG_FLIGHT, value.isFlight())
                 .build());
-        itemTag.putCompound(ITEM_TAG, tag.build());
     }
 
     @Override
-    public Firework deserialize(Identifier id, Integer meta, NbtMap tag) {
+    public Firework deserialize(Identifier id, NbtMap tag) {
         val compound = tag.getCompound(TAG_FIREWORKS);
 
         if (compound != null) {
