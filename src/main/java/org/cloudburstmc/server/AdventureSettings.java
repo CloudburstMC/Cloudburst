@@ -58,7 +58,7 @@ public class AdventureSettings implements Cloneable {
         }
 
         pk.setCommandPermission((player.isOp() ? CommandPermission.OPERATOR : CommandPermission.NORMAL));
-        pk.setPlayerPermission((player.isOp() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER));
+        pk.setPlayerPermission((player.isOp() && !player.isSpectator() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER));
         pk.setUniqueEntityId(player.getUniqueId());
 
         Server.broadcastPacket(player.getViewers(), pk);
