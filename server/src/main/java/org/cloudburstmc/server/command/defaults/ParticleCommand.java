@@ -30,7 +30,7 @@ public class ParticleCommand extends Command {
     public ParticleCommand() {
         super("particle", CommandData.builder("particle")
                 .setDescription("commands.particle.description")
-                .setUsageMessage("/particle <particle> <position> [count] [data[")
+                .setUsageMessage("/particle <particle> <position> [count] [data]")
                 .setPermissions("cloudburst.command.particle")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("name", false, ENUM_VALUES),
