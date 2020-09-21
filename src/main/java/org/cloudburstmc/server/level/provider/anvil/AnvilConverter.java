@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public class AnvilConverter {
 
-    public static void convertToNukkit(ChunkBuilder chunkBuilder, ByteBuf chunkBuf) throws IOException {
+    public static void convertToCloudburst(ChunkBuilder chunkBuilder, ByteBuf chunkBuf) throws IOException {
 
         NbtMap tag;
 
@@ -164,6 +164,8 @@ public class AnvilConverter {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Location getLocation(NbtMap tag, Chunk chunk) {
         List<Float> pos = tag.getList("Pos", NbtType.FLOAT);
+        if (pos == null || pos.size() < 3) return null;
+
         Vector3f position = Vector3f.from(pos.get(0), pos.get(1), pos.get(2));
 
         List<Float> rotation = tag.getList("Rotation", NbtType.FLOAT);
@@ -190,6 +192,10 @@ public class AnvilConverter {
                     continue;
                 }
                 Location location = getLocation(entityTag, chunk);
+                if (location == null) {
+                    dirty = true; // Entity doesn't have a location?!?
+                    continue;
+                }
                 Vector3f position = location.getPosition();
                 if ((position.getFloorX() >> 4) != chunk.getX() || ((position.getFloorZ() >> 4) != chunk.getZ())) {
                     dirty = true;
