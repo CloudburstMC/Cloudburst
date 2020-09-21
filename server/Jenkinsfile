@@ -23,8 +23,9 @@ pipeline {
         stage ('Deploy') {
             when {
                 anyOf {
-                    branch 'master';
-                    branch '2.0'
+                    branch 'stable'
+                    branch 'beta'
+                    branch 'bleeding'
                 }
             }
             steps {
