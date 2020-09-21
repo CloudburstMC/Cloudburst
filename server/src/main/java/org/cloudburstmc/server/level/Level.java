@@ -1880,7 +1880,7 @@ public class Level implements ChunkManager, Metadatable {
 
         if (player != null) {
             BlockPlaceEvent event = new BlockPlaceEvent(player, hand, block, target, item);
-            if (player.getGamemode() == GameMode.ADVENTURE && item.canPlaceOn(target.getState().getType())) {
+            if (player.getGamemode() == GameMode.ADVENTURE && !item.canPlaceOn(target.getState().getType())) {
                 event.setCancelled();
             }
             if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
