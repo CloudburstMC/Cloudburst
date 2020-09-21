@@ -1854,7 +1854,9 @@ public class Level implements ChunkManager, Metadatable {
         BlockBehavior handBehavior = BlockRegistry.get().getBehavior(hand.getType());
 
         if (!handBehavior.canPassThrough() && handBehavior.getBoundingBox() != null) {
-            Set<Entity> entities = this.getCollidingEntities(handBehavior.getBoundingBox());
+            Vector3f blockPosF = block.getPosition().toFloat();
+            AxisAlignedBB aabb = handBehavior.getBoundingBox().offset(blockPosF);
+            Set<Entity> entities = this.getCollidingEntities(aabb);
             int realCount = 0;
             for (Entity e : entities) {
                 if (e instanceof EntityArrow || e instanceof DroppedItem || (e instanceof Player && ((Player) e).isSpectator())) {
@@ -1867,7 +1869,7 @@ public class Level implements ChunkManager, Metadatable {
                 Vector3f diff = player.getNextPosition().sub(player.getPosition());
                 if (diff.lengthSquared() > 0.00001) {
                     AxisAlignedBB bb = player.getBoundingBox().getOffsetBoundingBox(diff);
-                    if (handBehavior.getBoundingBox().intersectsWith(bb)) {
+                    if (handBehavior.getBoundingBox().addCoord(blockPosF).intersectsWith(bb)) {
                         ++realCount;
                     }
                 }
