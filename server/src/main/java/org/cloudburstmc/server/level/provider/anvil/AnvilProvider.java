@@ -107,7 +107,7 @@ class AnvilProvider implements LevelProvider {
 
                 ByteBuf chunkBuf = file.readChunk(inX, inZ);
                 try {
-                    AnvilConverter.convertToNukkit(chunkBuilder, chunkBuf);
+                    AnvilConverter.convertToCloudburst(chunkBuilder, chunkBuf);
 
                     future.complete(chunkBuilder.build());
                 } finally {
@@ -208,7 +208,7 @@ class AnvilProvider implements LevelProvider {
                                 ChunkBuilder builder = factory.create(chunkX, chunkZ);
                                 ByteBuf buffer = regionFile.readChunk(x, z);
                                 try {
-                                    AnvilConverter.convertToNukkit(builder, buffer);
+                                    AnvilConverter.convertToCloudburst(builder, buffer);
                                 } catch (Exception e) {
                                     consumer.accept(null, e);
                                     continue;
