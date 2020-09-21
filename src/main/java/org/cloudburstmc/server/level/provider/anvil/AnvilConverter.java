@@ -161,7 +161,6 @@ public class AnvilConverter {
         return (y << 8) + (z << 4) + x;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private static Location getLocation(NbtMap tag, Chunk chunk) {
         List<Float> pos = tag.getList("Pos", NbtType.FLOAT);
         if (pos == null || pos.size() < 3) return null;
