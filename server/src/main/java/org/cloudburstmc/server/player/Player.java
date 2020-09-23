@@ -15,6 +15,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.BedrockSession;
+import com.nukkitx.protocol.bedrock.data.AuthoritativeMovementMode;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
@@ -1502,7 +1503,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setRotation(Vector2f.from(this.getYaw(), this.getPitch()));
         startGamePacket.setSeed(-1);
         startGamePacket.setDimensionId(0);
-        startGamePacket.setTrustingPlayers(true);
+        startGamePacket.setTrustingPlayers(false);
         startGamePacket.setLevelGameType(GameType.from(this.getGamemode().getVanillaId()));
         startGamePacket.setDifficulty(this.server.getDifficulty().ordinal());
         startGamePacket.setDefaultSpawn(this.getSpawn().getPosition().toInt());
@@ -1526,6 +1527,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setPremiumWorldTemplateId("");
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(false);
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setBlockPalette(BlockRegistry.get().getPaletteTag());
         startGamePacket.setItemEntries(ItemRegistry.get().getItemEntries());
         this.sendPacket(startGamePacket);
