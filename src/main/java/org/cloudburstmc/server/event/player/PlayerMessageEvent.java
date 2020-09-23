@@ -4,7 +4,6 @@ import org.cloudburstmc.server.player.Player;
 
 /**
  * Created on 2015/12/23 by xtypr.
- * Package cn.nukkit.event.player in project Nukkit .
  */
 public abstract class PlayerMessageEvent extends PlayerEvent {
 

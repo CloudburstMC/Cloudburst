@@ -29,9 +29,8 @@ public class PlayerTeleportEvent extends PlayerEvent implements Cancellable {
         return cause;
     }
 
-
     public enum TeleportCause {
-        COMMAND,       // For Nukkit tp command only
+        COMMAND,       // For tp command only
         PLUGIN,        // Every plugin
         NETHER_PORTAL, // Teleport using Nether portal
         ENDER_PEARL,   // Teleport by ender pearl
