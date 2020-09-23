@@ -8,7 +8,7 @@
 Introduction
 -------------
 
-Cloudburst is nuclear-powered server software for Minecraft: Bedrock Edition.
+Cloudburst is a server software for Minecraft: Bedrock Edition.
 It has a few key advantages over other server software:
 
 * Written in Java, Cloudburst is faster and more stable.
