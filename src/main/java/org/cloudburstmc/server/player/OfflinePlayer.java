@@ -9,13 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * 描述一个不在线的玩家的类。<br>
- * Describes an offline player.
- *
- * @author MagicDroidX(code) @ Nukkit Project
- * @author 粉鞋大妈(javadoc) @ Nukkit Project
- * @see Player
- * @since Nukkit 1.0 | Nukkit API 1.0.0
+ * Represents a player that is currently offline.
  */
 public class OfflinePlayer implements IPlayer {
     private final Server server;

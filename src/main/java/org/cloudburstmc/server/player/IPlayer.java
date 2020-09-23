@@ -8,9 +8,6 @@ import java.util.UUID;
 
 /**
  * Represents the data for a player, whether they are online or offline.
-
- * @author MagicDroidX(code) @ Nukkit Project
- * @author 粉鞋大妈(javadoc) @ Nukkit Project
  */
 public interface IPlayer extends ServerOperator, Metadatable {
 
