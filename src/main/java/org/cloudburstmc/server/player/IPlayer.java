@@ -4,6 +4,7 @@ import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.metadata.Metadatable;
 import org.cloudburstmc.server.permission.ServerOperator;
 
+import java.util.OptionalLong;
 import java.util.UUID;
 
 /**
@@ -78,9 +79,9 @@ public interface IPlayer extends ServerOperator, Metadatable {
      * If the player has never played before, this will return 0. Otherwise, it
      * will be the amount of milliseconds since midnight, January 1, 1970 UTC.
      *
-     * @return The time this player first played on this server, or 0
+     * @return An optional with the time this player first played on this server
      */
-    long getFirstPlayed();
+    OptionalLong getFirstPlayed();
 
     /**
      * Returns the time this player last joined in this server.
@@ -88,9 +89,9 @@ public interface IPlayer extends ServerOperator, Metadatable {
      * If the player has never played before, this will return 0. Otherwise, it
      * will be the amount of milliseconds since midnight, January 1, 1970 UTC.
      *
-     * @return The time this player last played on this server, or 0
+     * @return An optional with the time this player last played on this server
      */
-    long getLastPlayed();
+    OptionalLong getLastPlayed();
 
     /**
      * Checks if the player has played on this server before.

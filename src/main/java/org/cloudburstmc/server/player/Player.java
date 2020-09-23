@@ -362,7 +362,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public long getFirstPlayed() {
+    public OptionalLong getFirstPlayed() {
         return this.playerData.getFirstPlayed();
     }
 
@@ -421,7 +421,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public long getLastPlayed() {
+    public OptionalLong getLastPlayed() {
         return this.playerData.getLastPlayed();
     }
 
@@ -444,7 +444,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     @Override
     public boolean hasPlayedBefore() {
-        return this.playerData.getFirstPlayed() > 0;
+        return this.playerData.getFirstPlayed().getAsLong() > 0;
     }
 
     public boolean canSee(Player player) {
