@@ -83,7 +83,7 @@ public interface IPlayer extends ServerOperator, Metadatable {
      *
      * @return The time this player first played on this server, or 0
      */
-    Long getFirstPlayed();
+    long getFirstPlayed();
 
     /**
      * Returns the time this player last joined in this server.
@@ -93,7 +93,7 @@ public interface IPlayer extends ServerOperator, Metadatable {
      *
      * @return The time this player last played on this server, or 0
      */
-    Long getLastPlayed();
+    long getLastPlayed();
 
     /**
      * Checks if the player has played on this server before.
