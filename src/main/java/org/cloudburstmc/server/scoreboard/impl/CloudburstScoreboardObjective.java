@@ -136,10 +136,10 @@ public class CloudburstScoreboardObjective implements ScoreboardObjective {
     }
 
     public static ScoreboardObjectiveBuilder providedBuilder() {
-        return new NukkitScoreboardObjectiveBuilder();
+        return new CloudburstScoreboardObjectiveBuilder();
     }
 
-    public static class NukkitScoreboardObjectiveBuilder implements ScoreboardObjectiveBuilder {
+    public static class CloudburstScoreboardObjectiveBuilder implements ScoreboardObjectiveBuilder {
 
         private final CloudburstScoreboardObjective objective = new CloudburstScoreboardObjective();
 
