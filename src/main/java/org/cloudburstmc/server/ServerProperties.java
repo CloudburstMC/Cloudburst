@@ -1,15 +1,12 @@
 package org.cloudburstmc.server;
 
-import lombok.val;
 import org.cloudburstmc.server.level.Difficulty;
 import org.cloudburstmc.server.player.GameMode;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Properties;
 
@@ -25,7 +22,7 @@ public class ServerProperties {
      * @return prepared server.properties
      */
     public static ServerProperties prepareServerProperties(Path path) {
-        val serverProperties = new ServerProperties(path);
+        ServerProperties serverProperties = new ServerProperties(path);
         //save if the properties do not exists
         if(!Files.exists(serverProperties.path)) {
             serverProperties.save();
