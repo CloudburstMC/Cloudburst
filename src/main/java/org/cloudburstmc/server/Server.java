@@ -401,7 +401,12 @@ public class Server {
         log.debug("DataPath Directory: {}", this.dataPath);
 
         log.info("Loading {} ...", TextFormat.GREEN + "server.properties" + TextFormat.WHITE);
-        this.serverProperties = ServerProperties.prepareServerProperties(this.dataPath.resolve("server.properties"));
+        this.serverProperties = new ServerProperties(this.dataPath.resolve("server.properties"));
+        if(!Files.exists(serverProperties.getPath())) {
+            serverProperties.save();
+        } else {
+            serverProperties.load();
+        }
 
         // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
         this.allowNether = this.getPropertyBoolean("allow-nether", true);

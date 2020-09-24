@@ -15,22 +15,6 @@ import java.util.Properties;
  */
 public class ServerProperties {
 
-    /**
-     * prepare the server.properties file during initialization
-     * it will create the file and save all the default values in if not exists
-     * @param path the path of the file
-     * @return prepared server.properties
-     */
-    public static ServerProperties prepareServerProperties(Path path) {
-        ServerProperties serverProperties = new ServerProperties(path);
-        //save if the properties do not exists
-        if(!Files.exists(serverProperties.path)) {
-            serverProperties.save();
-        }
-        serverProperties.load();
-        return serverProperties;
-    }
-
     private final Path path;
 
     private final Properties properties;
@@ -249,8 +233,6 @@ public class ServerProperties {
     public void load() {
         try (InputStream stream = Files.newInputStream(path)) {
             properties.load(stream);
-
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
