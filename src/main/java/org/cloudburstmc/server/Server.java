@@ -71,7 +71,6 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -209,7 +208,8 @@ public class Server {
     private DB nameLookup;
 
     private PlayerDataSerializer playerDataSerializer = new DefaultPlayerDataSerializer(this);
-    private Properties properties;
+    private ServerProperties serverProperties;
+
     private volatile Identifier defaultStorageId;
 
     private final Set<String> ignoredPackets = new HashSet<>();
@@ -401,33 +401,7 @@ public class Server {
         log.debug("DataPath Directory: {}", this.dataPath);
 
         log.info("Loading {} ...", TextFormat.GREEN + "server.properties" + TextFormat.WHITE);
-        this.properties = new Properties();
-        this.properties.setProperty("motd", "A Cloudburst Powered Server");
-        this.properties.setProperty("sub-motd", "https://cloudburstmc.org");
-        this.properties.setProperty("server-port", "19132");
-        this.properties.setProperty("server-ip", "0.0.0.0");
-        this.properties.setProperty("view-distance", "10");
-        this.properties.setProperty("white-list", "false");
-        this.properties.setProperty("achievements", "true");
-        this.properties.setProperty("announce-player-achievements", "true");
-        this.properties.setProperty("spawn-protection", "16");
-        this.properties.setProperty("max-players", "20");
-        this.properties.setProperty("allow-flight", "false");
-        this.properties.setProperty("spawn-animals", "true");
-        this.properties.setProperty("spawn-mobs", "true");
-        this.properties.setProperty("gamemode", "0");
-        this.properties.setProperty("force-gamemode", "false");
-        this.properties.setProperty("hardcore", "false");
-        this.properties.setProperty("pvp", "true");
-        this.properties.setProperty("difficulty", "1");
-        this.properties.setProperty("default-level", "world");
-        this.properties.setProperty("allow-nether", "true");
-        this.properties.setProperty("enable-query", "true");
-        this.properties.setProperty("auto-save", "true");
-        this.properties.setProperty("force-resources", "false");
-        this.properties.setProperty("bug-report", "true");
-        this.properties.setProperty("xbox-auth", "true");
-        this.loadProperties();
+        this.serverProperties = ServerProperties.prepareServerProperties(this.dataPath.resolve("server.properties"));
 
         // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
         this.allowNether = this.getPropertyBoolean("allow-nether", true);
@@ -471,11 +445,11 @@ public class Server {
         this.banByIP = new BanList(this.dataPath.resolve("banned-ips.json").toString());
         this.banByIP.load();
 
-        this.maxPlayers = this.getPropertyInt("max-players", 20);
-        this.setAutoSave(this.getPropertyBoolean("auto-save", true));
+        this.maxPlayers = this.serverProperties.getMaxPlayers();
+        this.setAutoSave(this.serverProperties.getAutoSave());
 
-        if (this.getPropertyBoolean("hardcore", false) && this.getDifficulty() != Difficulty.HARD) {
-            this.setPropertyInt("difficulty", 3);
+        if (this.serverProperties.getHardcore() && this.getDifficulty() != Difficulty.HARD) {
+            this.serverProperties.setPropertyInt("difficulty", 3);
         }
 
         if (this.getConfig().getBoolean("bug-report", true)) {
@@ -542,7 +516,7 @@ public class Server {
 
         this.loadLevels();
 
-        this.saveProperties();
+        this.serverProperties.save();
 
         if (this.getDefaultLevel() == null) {
             log.fatal(this.getLanguage().translate("cloudburst.level.defaultError"));
@@ -1062,15 +1036,15 @@ public class Server {
     }
 
     public int getPort() {
-        return this.getPropertyInt("server-port", 19132);
+        return this.serverProperties.getPort();
     }
 
     public int getViewDistance() {
-        return this.getPropertyInt("view-distance", 10);
+        return this.serverProperties.getViewDistance();
     }
 
     public String getIp() {
-        return this.getProperty("server-ip", "0.0.0.0");
+        return this.serverProperties.getIp();
     }
 
     public UUID getServerUniqueId() {
@@ -1089,65 +1063,60 @@ public class Server {
     }
 
     public boolean getGenerateStructures() {
-        return this.getPropertyBoolean("generate-structures", true);
+        return this.serverProperties.getGenerateStructures();
     }
 
     public GameMode getGamemode() {
-        try {
-            return GameMode.from(this.getPropertyInt("gamemode", 0));
-        } catch (NumberFormatException exception) {
-            return GameMode.from(this.getProperty("gamemode"));
-        }
+        return this.serverProperties.getGamemode();
     }
 
     public boolean getForceGamemode() {
-        return this.getPropertyBoolean("force-gamemode", false);
+        return this.serverProperties.getForceGamemode();
     }
 
     public Difficulty getDifficulty() {
         if (this.difficulty == null) {
-            this.difficulty = Difficulty.values()[this.getPropertyInt("difficulty", 1) & 0x03];
+            this.difficulty = this.serverProperties.getDifficulty();
         }
         return this.difficulty;
     }
 
     public boolean hasWhitelist() {
-        return this.getPropertyBoolean("white-list", false);
+        return this.serverProperties.getWhitelist();
     }
 
     public int getSpawnRadius() {
-        return this.getPropertyInt("spawn-protection", 16);
+        return this.serverProperties.getSpawnRadius();
     }
 
     public boolean getAllowFlight() {
         if (getAllowFlight == null) {
-            getAllowFlight = this.getPropertyBoolean("allow-flight", false);
+            getAllowFlight = this.serverProperties.getAllowFlight();
         }
         return getAllowFlight;
     }
 
     public boolean isHardcore() {
-        return this.getPropertyBoolean("hardcore", false);
+        return this.serverProperties.getHardcore();
     }
 
     public GameMode getDefaultGamemode() {
         if (this.defaultGamemode == null) {
             this.defaultGamemode = this.getGamemode();
         }
-
         return this.defaultGamemode;
     }
 
     public String getMotd() {
-        return this.getProperty("motd", "A Cloudburst Powered Server");
+        return this.serverProperties.getMotd();
     }
 
     public String getSubMotd() {
-        return this.getProperty("sub-motd", "https://cloudburstmc.org");
+        return this.serverProperties.getSubMotd();
     }
 
     public boolean getForceResources() {
-        return this.getPropertyBoolean("force-resources", false);
+        return this.serverProperties.getForceResources();
     }
 
     public EntityMetadataStore getEntityMetadata() {
@@ -1585,82 +1554,48 @@ public class Server {
         return value == null ? defaultValue : (T) value;
     }
 
+    public ServerProperties getServerProperties() {
+        return this.serverProperties;
+    }
+
     public Properties getProperties() {
-        return this.properties;
+        return this.serverProperties.getRawProperties();
     }
 
     public String getProperty(String property) {
-        return this.getProperty(property, null);
+        return this.getServerProperties().getProperty(property);
     }
 
     public String getProperty(String property, String defaultValue) {
-        return this.properties.getProperty(property, defaultValue);
+        return this.getServerProperties().getProperty(property, defaultValue);
     }
 
     public void setProperty(String property, String value) {
-        this.properties.setProperty(property, value);
-        this.saveProperties();
+        this.getServerProperties().setProperty(property, value);
     }
 
     public int getPropertyInt(String property) {
-        return this.getPropertyInt(property, 0);
+        return this.getServerProperties().getPropertyInt(property);
     }
 
     public int getPropertyInt(String property, int defaultValue) {
-        String value = this.properties.getProperty(property, Integer.toString(0));
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
+        return this.getServerProperties().getPropertyInt(property, defaultValue);
     }
 
     public void setPropertyInt(String property, int value) {
-        this.properties.setProperty(property, Integer.toString(value));
-        this.saveProperties();
+        this.getServerProperties().setPropertyInt(property, value);
     }
 
     public boolean getPropertyBoolean(String variable) {
-        return this.getPropertyBoolean(variable, false);
+        return this.getServerProperties().getPropertyBoolean(variable);
     }
 
     public boolean getPropertyBoolean(String property, boolean defaultValue) {
-        if (!this.properties.containsKey(property)) {
-            return defaultValue;
-        }
-        String value = this.properties.getProperty(property);
-
-        switch (value) {
-            case "on":
-            case "true":
-            case "1":
-            case "yes":
-                return true;
-            default:
-                return false;
-        }
+        return this.getServerProperties().getPropertyBoolean(property, defaultValue);
     }
 
     public void setPropertyBoolean(String property, boolean value) {
-        this.properties.setProperty(property, Boolean.toString(value));
-    }
-
-    private void loadProperties() {
-        try (InputStream stream = Files.newInputStream(this.dataPath.resolve("server.properties"))) {
-            this.properties.load(stream);
-        } catch (FileNotFoundException | NoSuchFileException e) {
-            this.saveProperties();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void saveProperties() {
-        try (OutputStream stream = Files.newOutputStream(this.dataPath.resolve("server.properties"))) {
-            this.properties.store(stream, "");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        this.getServerProperties().setPropertyBoolean(property, value);
     }
 
     public BanList getNameBans() {
@@ -1856,9 +1791,9 @@ public class Server {
 
         //set default level
         if (this.getDefaultLevel() == null) {
-            String defaultName = this.getProperty("default-level");
+            String defaultName = this.serverProperties.getDefaultLevel();
             if (defaultName == null || defaultName.trim().isEmpty()) {
-                this.setProperty("default-level", defaultName = worldNames.keySet().iterator().next());
+                this.serverProperties.setProperty("default-level", defaultName = worldNames.keySet().iterator().next());
                 log.warn("default-level is unset or empty, falling back to \"" + defaultName + '"');
             }
 
