@@ -1,32 +1,24 @@
 package org.cloudburstmc.server.permission;
 
+import org.cloudburstmc.server.player.Player;
+
 /**
- * 能成为服务器管理员(OP)的对象。<br>
- * Who can be an operator(OP).
- *
- * @author MagicDroidX(code) @ Nukkit Project
- * @author 粉鞋大妈(javadoc) @ Nukkit Project
- * @see Permissible
- * @since Nukkit 1.0 | Nukkit API 1.0.0
+ * Represents an object that may become a server operator, such as a
+ * {@link Player}.
  */
 public interface ServerOperator {
 
     /**
-     * 返回这个对象是不是服务器管理员。<br>
-     * Returns if this object is an operator.
+     * Checks if this object is a server operator
      *
-     * @return 这个对象是不是服务器管理员。<br>if this object is an operator.
-     * @since Nukkit 1.0 | Nukkit API 1.0.0
+     * @return true if this is an operator
      */
     boolean isOp();
 
     /**
-     * 把这个对象设置成服务器管理员。<br>
-     * Sets this object to be an operator or not to be.
+     * Sets the operator status of this object
      *
-     * @param value {@code true}为授予管理员，{@code false}为取消管理员。<br>
-     *              {@code true} for giving this operator or {@code false} for cancelling.
-     * @since Nukkit 1.0 | Nukkit API 1.0.0
+     * @param value true if operator status should be given
      */
     void setOp(boolean value);
 }
