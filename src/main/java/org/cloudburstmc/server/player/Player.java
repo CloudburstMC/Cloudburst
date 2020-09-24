@@ -93,7 +93,7 @@ import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.scoreboard.Scoreboard;
-import org.cloudburstmc.server.scoreboard.impl.CloudburstScoreboard;
+import org.cloudburstmc.server.scoreboard.impl.CloudScoreboard;
 import org.cloudburstmc.server.utils.*;
 
 import javax.annotation.Nullable;
@@ -2012,7 +2012,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                     this.stopFishing(false);
                 }
                 if (this.scoreboard != null) {
-                    ((CloudburstScoreboard) this.scoreboard).getPlayers().remove(this);
+                    ((CloudScoreboard) this.scoreboard).getPlayers().remove(this);
                     this.scoreboard = null;
                 }
             }
@@ -3370,10 +3370,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
      */
     public void setScoreboard(@Nullable Scoreboard scoreboard) {
         if (this.scoreboard != null) {
-            ((CloudburstScoreboard) this.scoreboard).hide(this);
+            ((CloudScoreboard) this.scoreboard).hide(this);
         }
         if (scoreboard != null) {
-            ((CloudburstScoreboard) scoreboard).show(this);
+            ((CloudScoreboard) scoreboard).show(this);
         }
         this.scoreboard = scoreboard;
     }

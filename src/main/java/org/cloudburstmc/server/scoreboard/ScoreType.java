@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.scoreboard;
 
-import cn.nukkit.player.Player;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import org.cloudburstmc.server.entity.Entity;
+import org.cloudburstmc.server.player.Player;
 
 /**
  * Represents the score type for the

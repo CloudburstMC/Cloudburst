@@ -11,9 +11,9 @@ import lombok.Getter;
 import java.util.Collections;
 
 @Getter
-public class CloudburstScore<T> implements Score<T> {
+public class CloudScore<T> implements Score<T> {
 
-    protected CloudburstScoreboardObjective objective;
+    protected CloudScoreboardObjective objective;
     protected long id;
 
     private int amount;
@@ -22,7 +22,7 @@ public class CloudburstScore<T> implements Score<T> {
     private ScoreType<T> scoreType;
     private T value;
 
-    private CloudburstScore() {
+    private CloudScore() {
     }
 
     @Override
@@ -77,38 +77,38 @@ public class CloudburstScore<T> implements Score<T> {
         );
     }
 
-    public static <U> NukkitScoreBuilder<U> providedBuilder(ScoreType<U> scoreType) {
-        return new NukkitScoreBuilder<>(scoreType);
+    public static <U> CloudScoreBuilder<U> providedBuilder(ScoreType<U> scoreType) {
+        return new CloudScoreBuilder<>(scoreType);
     }
 
-    public static class NukkitScoreBuilder<T> implements ScoreBuilder<T> {
+    public static class CloudScoreBuilder<T> implements ScoreBuilder<T> {
 
-        private final CloudburstScore<T> score = new CloudburstScore<>();
+        private final CloudScore<T> score = new CloudScore<>();
 
-        public NukkitScoreBuilder(ScoreType<T> scoreType) {
+        public CloudScoreBuilder(ScoreType<T> scoreType) {
             this.score.scoreType = scoreType;
         }
 
         @Override
-        public NukkitScoreBuilder<T> amount(int amount) {
+        public CloudScoreBuilder<T> amount(int amount) {
             this.score.amount = amount;
             return this;
         }
 
         @Override
-        public NukkitScoreBuilder<T> name(String name) {
+        public CloudScoreBuilder<T> name(String name) {
             this.score.name = name;
             return this;
         }
 
         @Override
-        public NukkitScoreBuilder<T> value(T value) {
+        public CloudScoreBuilder<T> value(T value) {
             this.score.value = value;
             return this;
         }
 
         @Override
-        public CloudburstScore<T> build() {
+        public CloudScore<T> build() {
             return this.score;
         }
     }

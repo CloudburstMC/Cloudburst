@@ -1,10 +1,11 @@
 package org.cloudburstmc.server.scoreboard;
 
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.scoreboard.impl.CloudburstScoreboard;
+import org.cloudburstmc.server.scoreboard.impl.CloudScoreboard;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Represents a scoreboard in the game, which can contain
@@ -20,6 +21,8 @@ public interface Scoreboard {
      */
     @Nullable
     ScoreboardObjective getObjective(String objectiveName);
+
+    Set<ScoreboardObjective> getObjectives();
 
     /**
      * Registers a new {@link ScoreboardObjective} to the scoreboard
@@ -40,7 +43,7 @@ public interface Scoreboard {
      * @return a new instance of a scoreboard builder
      */
     static ScoreboardBuilder builder() {
-        return CloudburstScoreboard.providedBuilder();
+        return CloudScoreboard.providedBuilder();
     }
 
     interface ScoreboardBuilder {

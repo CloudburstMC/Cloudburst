@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.scoreboard;
 
-import org.cloudburstmc.server.scoreboard.impl.CloudburstScoreboardObjective;
+import org.cloudburstmc.server.scoreboard.impl.CloudScoreboardObjective;
 
 import javax.annotation.Nullable;
 
@@ -22,6 +22,8 @@ public interface ScoreboardObjective {
      * @return the display mode of this objective
      */
     DisplayMode getDisplayMode();
+
+    void setDisplayMode(DisplayMode displayMode);
 
     /**
      * Gets the {@link SortOrder} of this objective
@@ -111,7 +113,7 @@ public interface ScoreboardObjective {
      * @return a new instance of an objective builder
      */
     static ScoreboardObjectiveBuilder builder() {
-        return CloudburstScoreboardObjective.providedBuilder();
+        return CloudScoreboardObjective.providedBuilder();
     }
 
     interface ScoreboardObjectiveBuilder {

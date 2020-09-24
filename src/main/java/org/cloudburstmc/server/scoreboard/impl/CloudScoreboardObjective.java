@@ -21,9 +21,11 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Getter
-public class CloudburstScoreboardObjective implements ScoreboardObjective {
+public class CloudScoreboardObjective implements ScoreboardObjective {
+    public static final int MAX_NAME_LENGTH = 16;
+    public static final int MAX_DISPLAY_NAME_LENGTH = 32;
 
-    protected CloudburstScoreboard scoreboard;
+    protected CloudScoreboard scoreboard;
     protected AtomicLong id = new AtomicLong(0);
 
     private String name;
@@ -35,12 +37,19 @@ public class CloudburstScoreboardObjective implements ScoreboardObjective {
 
     protected final Map<String, Score<?>> scores = new HashMap<>();
 
-    private CloudburstScoreboardObjective() {
+    private CloudScoreboardObjective() {
     }
 
     @Override
     public void setSortOrder(SortOrder sortOrder) {
         this.sortOrder = sortOrder;
+
+        this.refresh();
+    }
+
+    @Override
+    public void setDisplayMode(DisplayMode displayMode) {
+        this.displayMode = displayMode;
 
         this.refresh();
     }
@@ -87,7 +96,7 @@ public class CloudburstScoreboardObjective implements ScoreboardObjective {
     public void createScore(Score<?> score) {
         this.scores.put(score.getName(), score);
 
-        CloudburstScore<?> scoreImpl = (CloudburstScore<?>) score;
+        CloudScore<?> scoreImpl = (CloudScore<?>) score;
         scoreImpl.objective = this;
         scoreImpl.id = this.id.getAndIncrement();
 
@@ -99,7 +108,7 @@ public class CloudburstScoreboardObjective implements ScoreboardObjective {
 
     @Override
     public void removeScore(String name) {
-        CloudburstScore<?> scoreImpl = (CloudburstScore<?>) this.scores.remove(name);
+        CloudScore<?> scoreImpl = (CloudScore<?>) this.scores.remove(name);
         if (scoreImpl == null) {
             return;
         }
@@ -126,7 +135,7 @@ public class CloudburstScoreboardObjective implements ScoreboardObjective {
 
         List<ScoreInfo> scoreInfos = new ArrayList<>();
         for (Score<?> score : this.scores.values()) {
-            scoreInfos.add(((CloudburstScore<?>) score).createScoreInfo());
+            scoreInfos.add(((CloudScore<?>) score).createScoreInfo());
         }
 
         SetScorePacket setScorePacket = new SetScorePacket();
@@ -136,12 +145,12 @@ public class CloudburstScoreboardObjective implements ScoreboardObjective {
     }
 
     public static ScoreboardObjectiveBuilder providedBuilder() {
-        return new CloudburstScoreboardObjectiveBuilder();
+        return new CloudScoreboardObjectiveBuilder();
     }
 
-    public static class CloudburstScoreboardObjectiveBuilder implements ScoreboardObjectiveBuilder {
+    public static class CloudScoreboardObjectiveBuilder implements ScoreboardObjectiveBuilder {
 
-        private final CloudburstScoreboardObjective objective = new CloudburstScoreboardObjective();
+        private final CloudScoreboardObjective objective = new CloudScoreboardObjective();
 
         @Override
         public ScoreboardObjectiveBuilder name(String name) {

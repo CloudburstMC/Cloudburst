@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.scoreboard.impl;
 
+import com.google.common.collect.Sets;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.scoreboard.Score;
@@ -11,22 +12,16 @@ import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class CloudburstScoreboard implements Scoreboard {
+public class CloudScoreboard implements Scoreboard {
 
     private final Map<String, ScoreboardObjective> objectives = new HashMap<>();
 
     @Getter
     private final Set<Player> players = new HashSet<>();
 
-    private CloudburstScoreboard() {
+    private CloudScoreboard() {
     }
 
     @Override
@@ -35,10 +30,15 @@ public class CloudburstScoreboard implements Scoreboard {
     }
 
     @Override
+    public Set<ScoreboardObjective> getObjectives() {
+        return Collections.unmodifiableSet(Sets.newHashSet(objectives.values()));
+    }
+
+    @Override
     public void registerObjective(ScoreboardObjective objective) {
         this.objectives.put(objective.getName(), objective);
 
-        ((CloudburstScoreboardObjective) objective).scoreboard = this;
+        ((CloudScoreboardObjective) objective).scoreboard = this;
 
         SetDisplayObjectivePacket displayObjectivePacket = new SetDisplayObjectivePacket();
         displayObjectivePacket.setObjectiveId(objective.getName());
@@ -74,8 +74,8 @@ public class CloudburstScoreboard implements Scoreboard {
             Server.broadcastPacket(this.players, displayObjectivePacket);
 
             List<ScoreInfo> scoreInfos = new ArrayList<>();
-            for (Score<?> score : ((CloudburstScoreboardObjective) objective).scores.values()) {
-                scoreInfos.add(((CloudburstScore<?>) score).createScoreInfo());
+            for (Score<?> score : ((CloudScoreboardObjective) objective).scores.values()) {
+                scoreInfos.add(((CloudScore<?>) score).createScoreInfo());
             }
 
             SetScorePacket setScorePacket = new SetScorePacket();
@@ -99,12 +99,12 @@ public class CloudburstScoreboard implements Scoreboard {
     }
 
     public static ScoreboardBuilder providedBuilder() {
-        return new NukkitScoreboardBuilder();
+        return new CloudScoreboardBuilder();
     }
 
-    public static class NukkitScoreboardBuilder implements ScoreboardBuilder {
+    public static class CloudScoreboardBuilder implements ScoreboardBuilder {
 
-        private final CloudburstScoreboard scoreboard = new CloudburstScoreboard();
+        private final CloudScoreboard scoreboard = new CloudScoreboard();
 
         @Override
         public ScoreboardBuilder objectives(ScoreboardObjective... objectives) {

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.scoreboard;
 
-import org.cloudburstmc.server.scoreboard.impl.CloudburstScore;
+import org.cloudburstmc.server.scoreboard.impl.CloudScore;
 
 /**
  * Represents a score for a {@link ScoreboardObjective}.
@@ -65,7 +65,7 @@ public interface Score<T> {
      * @return a new instance of a score builder
      */
     static <U> ScoreBuilder<U> builder(ScoreType<U> scoreType) {
-        return CloudburstScore.providedBuilder(scoreType);
+        return CloudScore.providedBuilder(scoreType);
     }
 
     interface ScoreBuilder<T> {
