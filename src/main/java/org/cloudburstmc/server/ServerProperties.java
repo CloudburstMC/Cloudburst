@@ -142,6 +142,10 @@ public class ServerProperties {
 
     public String getDefaultLevel() { return this.getProperty("default-level"); }
 
+    public void setDefaultLevel(String name) {
+        setProperty("default-level", name);
+    }
+
     public boolean getAllowNether() {
         return this.getPropertyBoolean("allow-nether", true);
     }
@@ -184,24 +188,24 @@ public class ServerProperties {
         return properties;
     }
 
-    public String getProperty(String property) {
+    private String getProperty(String property) {
         return this.getProperty(property, null);
     }
 
-    public String getProperty(String property, String defaultValue) {
+    private String getProperty(String property, String defaultValue) {
         return properties.getProperty(property, defaultValue);
     }
 
-    public void setProperty(String property, String value) {
+    private void setProperty(String property, String value) {
         properties.setProperty(property, value);
         this.save();
     }
 
-    public int getPropertyInt(String property) {
+    private int getPropertyInt(String property) {
         return this.getPropertyInt(property, 0);
     }
 
-    public int getPropertyInt(String property, int defaultValue) {
+    private int getPropertyInt(String property, int defaultValue) {
         String value = properties.getProperty(property, Integer.toString(0));
         try {
             return Integer.parseInt(value);
@@ -210,16 +214,16 @@ public class ServerProperties {
         }
     }
 
-    public void setPropertyInt(String property, int value) {
+    private void setPropertyInt(String property, int value) {
         properties.setProperty(property, Integer.toString(value));
         this.save();
     }
 
-    public boolean getPropertyBoolean(String variable) {
+    private boolean getPropertyBoolean(String variable) {
         return this.getPropertyBoolean(variable, false);
     }
 
-    public boolean getPropertyBoolean(String property, boolean defaultValue) {
+    private boolean getPropertyBoolean(String property, boolean defaultValue) {
         if (!properties.containsKey(property)) {
             return defaultValue;
         }
@@ -236,7 +240,7 @@ public class ServerProperties {
         }
     }
 
-    public void setPropertyBoolean(String property, boolean value) {
+    private void setPropertyBoolean(String property, boolean value) {
         properties.setProperty(property, Boolean.toString(value));
     }
 

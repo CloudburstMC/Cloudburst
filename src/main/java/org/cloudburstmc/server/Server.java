@@ -454,7 +454,7 @@ public class Server {
         this.setAutoSave(this.serverProperties.getAutoSave());
 
         if (this.serverProperties.getHardcore() && this.getDifficulty() != Difficulty.HARD) {
-            this.serverProperties.setPropertyInt("difficulty", 3);
+            this.serverProperties.setDifficulty(Difficulty.HARD);
         }
 
         if (this.getConfig().getBoolean("bug-report", true)) {
@@ -1758,7 +1758,7 @@ public class Server {
         if (this.getDefaultLevel() == null) {
             String defaultName = this.serverProperties.getDefaultLevel();
             if (defaultName == null || defaultName.trim().isEmpty()) {
-                this.serverProperties.setProperty("default-level", defaultName = worldNames.keySet().iterator().next());
+                this.serverProperties.setDefaultLevel(worldNames.keySet().iterator().next());
                 log.warn("default-level is unset or empty, falling back to \"" + defaultName + '"');
             }
 
