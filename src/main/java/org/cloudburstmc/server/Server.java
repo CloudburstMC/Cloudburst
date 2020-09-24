@@ -409,7 +409,7 @@ public class Server {
         }
 
         // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
-        this.allowNether = this.getServerProperties().getAllowNether();
+        this.allowNether = this.serverProperties.getAllowNether();
 
         this.forceLanguage = this.getConfig("settings.force-language", false);
         this.localeManager.setLocaleOrFallback(this.getConfig("settings.language"));
@@ -1559,8 +1559,8 @@ public class Server {
         return value == null ? defaultValue : (T) value;
     }
 
-    public ServerProperties getServerProperties() {
-        return this.serverProperties;
+    public ServerConfig getServerConfig() {
+        return new ServerConfig(serverProperties);
     }
 
     public BanList getNameBans() {
