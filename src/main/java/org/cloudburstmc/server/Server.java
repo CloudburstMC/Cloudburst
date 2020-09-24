@@ -409,7 +409,7 @@ public class Server {
         }
 
         // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
-        this.allowNether = this.getPropertyBoolean("allow-nether", true);
+        this.allowNether = this.getServerProperties().getAllowNether();
 
         this.forceLanguage = this.getConfig("settings.force-language", false);
         this.localeManager.setLocaleOrFallback(this.getConfig("settings.language"));
@@ -669,7 +669,7 @@ public class Server {
     }
 
     public void start() {
-        if (this.getPropertyBoolean("enable-query", true)) {
+        if (this.serverProperties.getEnableQuery()) {
             this.queryHandler = new QueryHandler();
         }
 
@@ -1561,56 +1561,6 @@ public class Server {
 
     public ServerProperties getServerProperties() {
         return this.serverProperties;
-    }
-
-    @Deprecated
-    public Properties getProperties() {
-        return this.serverProperties.getRawProperties();
-    }
-
-    @Deprecated
-    public String getProperty(String property) {
-        return this.getServerProperties().getProperty(property);
-    }
-
-    @Deprecated
-    public String getProperty(String property, String defaultValue) {
-        return this.getServerProperties().getProperty(property, defaultValue);
-    }
-
-    @Deprecated
-    public void setProperty(String property, String value) {
-        this.getServerProperties().setProperty(property, value);
-    }
-
-    @Deprecated
-    public int getPropertyInt(String property) {
-        return this.getServerProperties().getPropertyInt(property);
-    }
-
-    @Deprecated
-    public int getPropertyInt(String property, int defaultValue) {
-        return this.getServerProperties().getPropertyInt(property, defaultValue);
-    }
-
-    @Deprecated
-    public void setPropertyInt(String property, int value) {
-        this.getServerProperties().setPropertyInt(property, value);
-    }
-
-    @Deprecated
-    public boolean getPropertyBoolean(String variable) {
-        return this.getServerProperties().getPropertyBoolean(variable);
-    }
-
-    @Deprecated
-    public boolean getPropertyBoolean(String property, boolean defaultValue) {
-        return this.getServerProperties().getPropertyBoolean(property, defaultValue);
-    }
-
-    @Deprecated
-    public void setPropertyBoolean(String property, boolean value) {
-        this.getServerProperties().setPropertyBoolean(property, value);
     }
 
     public BanList getNameBans() {

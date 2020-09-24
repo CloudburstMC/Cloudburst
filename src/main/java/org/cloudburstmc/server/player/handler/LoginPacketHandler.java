@@ -59,7 +59,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
 
         this.loginData.setChainData(ClientChainData.read(packet));
 
-        if (!this.loginData.getChainData().isXboxAuthed() && this.server.getPropertyBoolean("xbox-auth")) {
+        if (!this.loginData.getChainData().isXboxAuthed() && this.server.getServerProperties().getXboxAuth()) {
             session.disconnect("disconnectionScreen.notAuthenticated");
             return true;
         }

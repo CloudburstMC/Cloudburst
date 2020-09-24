@@ -76,6 +76,10 @@ public class ServerProperties {
         return this.getPropertyBoolean("white-list", false);
     }
 
+    public void setWhitelist(boolean b) {
+        setPropertyBoolean("white-list", b);
+    }
+
     public boolean getAchievements() {
         return this.getPropertyBoolean("achievements", true);
     }
@@ -112,6 +116,10 @@ public class ServerProperties {
         }
     }
 
+    public void setGamemode(GameMode gameMode) {
+        setPropertyInt("gamemode", gameMode.getVanillaId());
+    }
+
     public boolean getForceGamemode() {
         return this.getPropertyBoolean("force-gamemode", false);
     }
@@ -126,6 +134,10 @@ public class ServerProperties {
 
     public Difficulty getDifficulty() {
         return Difficulty.values()[this.getPropertyInt("difficulty", 1) & 0x03];
+    }
+
+    public void setDifficulty(Difficulty difficulty) {
+        setPropertyInt("difficulty", difficulty.ordinal());
     }
 
     public String getDefaultLevel() { return this.getProperty("default-level"); }
