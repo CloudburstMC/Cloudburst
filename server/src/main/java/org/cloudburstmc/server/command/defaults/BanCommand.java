@@ -10,6 +10,7 @@ import org.cloudburstmc.server.event.player.PlayerKickEvent;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 
+import java.util.Arrays;
 import java.util.StringJoiner;
 
 /**
