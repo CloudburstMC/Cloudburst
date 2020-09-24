@@ -1558,42 +1558,52 @@ public class Server {
         return this.serverProperties;
     }
 
+    @Deprecated
     public Properties getProperties() {
         return this.serverProperties.getRawProperties();
     }
 
+    @Deprecated
     public String getProperty(String property) {
         return this.getServerProperties().getProperty(property);
     }
 
+    @Deprecated
     public String getProperty(String property, String defaultValue) {
         return this.getServerProperties().getProperty(property, defaultValue);
     }
 
+    @Deprecated
     public void setProperty(String property, String value) {
         this.getServerProperties().setProperty(property, value);
     }
 
+    @Deprecated
     public int getPropertyInt(String property) {
         return this.getServerProperties().getPropertyInt(property);
     }
 
+    @Deprecated
     public int getPropertyInt(String property, int defaultValue) {
         return this.getServerProperties().getPropertyInt(property, defaultValue);
     }
 
+    @Deprecated
     public void setPropertyInt(String property, int value) {
         this.getServerProperties().setPropertyInt(property, value);
     }
 
+    @Deprecated
     public boolean getPropertyBoolean(String variable) {
         return this.getServerProperties().getPropertyBoolean(variable);
     }
 
+    @Deprecated
     public boolean getPropertyBoolean(String property, boolean defaultValue) {
         return this.getServerProperties().getPropertyBoolean(property, defaultValue);
     }
 
+    @Deprecated
     public void setPropertyBoolean(String property, boolean value) {
         this.getServerProperties().setPropertyBoolean(property, value);
     }
