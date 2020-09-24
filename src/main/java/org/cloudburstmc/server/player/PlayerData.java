@@ -7,6 +7,8 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashSet;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 
 public class PlayerData {
@@ -70,16 +72,16 @@ public class PlayerData {
 
     }
 
-    public long getFirstPlayed() {
-        return firstPlayed;
+    public OptionalLong getFirstPlayed() {
+        return OptionalLong.of(firstPlayed);
     }
 
     public void setFirstPlayed(long firstPlayed) {
         this.firstPlayed = firstPlayed;
     }
 
-    public long getLastPlayed() {
-        return lastPlayed;
+    public OptionalLong getLastPlayed() {
+        return OptionalLong.of(lastPlayed);
     }
 
     public void setLastPlayed(long lastPlayed) {

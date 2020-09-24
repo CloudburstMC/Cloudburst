@@ -6,16 +6,11 @@ import org.cloudburstmc.server.metadata.MetadataValue;
 import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.util.List;
+import java.util.OptionalLong;
 import java.util.UUID;
 
 /**
- * 描述一个不在线的玩家的类。<br>
- * Describes an offline player.
- *
- * @author MagicDroidX(code) @ Nukkit Project
- * @author 粉鞋大妈(javadoc) @ Nukkit Project
- * @see Player
- * @since Nukkit 1.0 | Nukkit API 1.0.0
+ * Represents a player that is currently offline.
  */
 public class OfflinePlayer implements IPlayer {
     private final Server server;
@@ -147,13 +142,13 @@ public class OfflinePlayer implements IPlayer {
     }
 
     @Override
-    public Long getFirstPlayed() {
-        return this.namedTag != null ? this.namedTag.getLong("firstPlayed") : null;
+    public OptionalLong getFirstPlayed() {
+        return this.namedTag != null ? OptionalLong.of(this.namedTag.getLong("firstPlayed")) : OptionalLong.empty();
     }
 
     @Override
-    public Long getLastPlayed() {
-        return this.namedTag != null ? this.namedTag.getLong("lastPlayed") : null;
+    public OptionalLong getLastPlayed() {
+        return this.namedTag != null ? OptionalLong.of(this.namedTag.getLong("lastPlayed")) : OptionalLong.empty();
     }
 
     @Override
