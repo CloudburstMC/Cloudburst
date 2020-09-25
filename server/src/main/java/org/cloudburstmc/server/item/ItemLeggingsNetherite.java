@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.item;
 
+
+import org.cloudburstmc.server.item.behavior.ItemArmor;
 import org.cloudburstmc.server.utils.Identifier;
 
 public class ItemLeggingsNetherite extends ItemArmor {

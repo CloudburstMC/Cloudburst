@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.item;
 
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.utils.Identifier;
 
 public class ItemAxeNetherite extends ItemTool {
