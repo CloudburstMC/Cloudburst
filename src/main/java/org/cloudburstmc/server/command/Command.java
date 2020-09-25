@@ -15,7 +15,6 @@ import java.util.List;
  * Base class for Commands. Plugins should extend {@link PluginCommand} and not this class.
  *
  * @author MagicDroidX
- * @see PluginCommand
  */
 public abstract class Command {
 

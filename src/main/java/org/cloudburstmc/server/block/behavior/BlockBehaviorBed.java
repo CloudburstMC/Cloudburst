@@ -16,6 +16,7 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.TextFormat;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 public class BlockBehaviorBed extends BlockBehaviorTransparent {
@@ -67,7 +68,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
             if (!player.getSpawn().equals(spawn)) {
                 player.setSpawn(spawn);
-                player.sendMessage(new TranslationContainer("tile.bed.respawnSet"));
+                player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.respawnSet"));
             }
         }
 
@@ -76,12 +77,12 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         boolean isNight = (time >= Level.TIME_NIGHT && time < Level.TIME_SUNRISE);
 
         if (player != null && !isNight) {
-            player.sendMessage(new TranslationContainer("tile.bed.noSleep"));
+            player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.noSleep"));
             return true;
         }
 
         if (player != null && !player.sleepOn(block.getPosition())) {
-            player.sendMessage(new TranslationContainer("tile.bed.occupied"));
+            player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.occupied"));
         }
 
 

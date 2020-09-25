@@ -15,6 +15,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.BedrockSession;
+import com.nukkitx.protocol.bedrock.data.AuthoritativeMovementMode;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
@@ -362,7 +363,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public Long getFirstPlayed() {
+    public OptionalLong getFirstPlayed() {
         return this.playerData.getFirstPlayed();
     }
 
@@ -421,7 +422,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public Long getLastPlayed() {
+    public OptionalLong getLastPlayed() {
         return this.playerData.getLastPlayed();
     }
 
@@ -444,7 +445,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     @Override
     public boolean hasPlayedBefore() {
-        return this.playerData.getFirstPlayed() > 0;
+        return this.playerData.getFirstPlayed().getAsLong() > 0;
     }
 
     public boolean canSee(Player player) {
@@ -1502,7 +1503,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setRotation(Vector2f.from(this.getYaw(), this.getPitch()));
         startGamePacket.setSeed(-1);
         startGamePacket.setDimensionId(0);
-        startGamePacket.setTrustingPlayers(true);
+        startGamePacket.setTrustingPlayers(false);
         startGamePacket.setLevelGameType(GameType.from(this.getGamemode().getVanillaId()));
         startGamePacket.setDifficulty(this.server.getDifficulty().ordinal());
         startGamePacket.setDefaultSpawn(this.getSpawn().getPosition().toInt());
@@ -1526,6 +1527,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setPremiumWorldTemplateId("");
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(false);
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setBlockPalette(BlockRegistry.get().getPaletteTag());
         startGamePacket.setItemEntries(CloudItemRegistry.get().getItemEntries());
         this.sendPacket(startGamePacket);
@@ -2425,8 +2427,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
                 case LAVA:
                     BlockState state = this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt());
-                    if (state.getType() == BlockTypes.MAGMA) {
-                        message = "death.attack.lava.magma";
+                    if (state.getType() == BlockIds.MAGMA) {
+                        message = "death.attack.magma";
                         break;
                     }
                     message = "death.attack.lava";
