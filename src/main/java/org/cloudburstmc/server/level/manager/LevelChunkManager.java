@@ -276,12 +276,12 @@ public final class LevelChunkManager {
                 }
 
                 long loadedTime = this.chunkLoadedTimes.get(chunkKey);
-                if ((time - loadedTime) <= TimeUnit.SECONDS.toMillis(serverConfig.getLevelSettingsChunkTimeoutAfterLoad())) {
+                if ((time - loadedTime) <= TimeUnit.SECONDS.toMillis(serverConfig.getLevelSettingsConfig().getChunkTimeoutAfterLoad())) {
                     continue;
                 }
 
                 long lastAccessTime = this.chunkLastAccessTimes.get(chunkKey);
-                if ((time - lastAccessTime) <= TimeUnit.SECONDS.toMillis(serverConfig.getLevelSettingschunkTimeoutAfterLastAccess())) {
+                if ((time - lastAccessTime) <= TimeUnit.SECONDS.toMillis(serverConfig.getLevelSettingsConfig().getChunkTimeoutAfterLastAccess())) {
                     continue;
                 }
 

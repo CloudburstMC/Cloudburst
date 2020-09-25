@@ -86,13 +86,13 @@ public final class Timings {
     public static final Timing permissionDefaultTimer;
 
     static {
-        setTimingsEnabled(Server.getInstance().getServerConfig().getTimingsEnabled());
-        setVerboseEnabled(Server.getInstance().getServerConfig().getTimingsVerbose());
-        setHistoryInterval(Server.getInstance().getServerConfig().getTimingsHistoryInterval());
-        setHistoryLength(Server.getInstance().getServerConfig().getTimingsHistoryLength());
+        setTimingsEnabled(Server.getInstance().getServerConfig().getTimingsConfig().isEnabled());
+        setVerboseEnabled(Server.getInstance().getServerConfig().getTimingsConfig().isVerbose());
+        setHistoryInterval(Server.getInstance().getServerConfig().getTimingsConfig().getHistoryInterval());
+        setHistoryLength(Server.getInstance().getServerConfig().getTimingsConfig().getHistoryLength());
 
-        privacy = Server.getInstance().getServerConfig().getTimingsPrivacy();
-        ignoredConfigSections.addAll(Server.getInstance().getServerConfig().getTimingsIgnore());
+        privacy = Server.getInstance().getServerConfig().getTimingsConfig().isPrivacy();
+        ignoredConfigSections.addAll(Server.getInstance().getServerConfig().getTimingsConfig().getIgnore());
 
         log.debug("Timings: \n" +
                 "Enabled - " + isTimingsEnabled() + "\n" +
@@ -182,7 +182,7 @@ public final class Timings {
         //For special cases of servers with special permission to bypass the max.
         //This max helps keep data file sizes reasonable for processing on Aikar's Timing parser side.
         //Setting this will not help you bypass the max unless Aikar has added an exception on the API side.
-        if (Server.getInstance().getServerConfig().getTimingsBypassMax()) {
+        if (Server.getInstance().getServerConfig().getTimingsConfig().isBypassMax()) {
             maxLength = Integer.MAX_VALUE;
         }
 

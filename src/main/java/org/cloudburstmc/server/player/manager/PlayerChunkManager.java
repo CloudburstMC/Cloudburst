@@ -208,7 +208,7 @@ public class PlayerChunkManager {
 
     public void setChunkRadius(int chunkRadius) {
         chunkRadius = NukkitMath.clamp(chunkRadius, 8,
-                this.player.getServer().getServerConfig().getChunkSendingMaxChunkRadius());
+                this.player.getServer().getServerConfig().getChunkSendingConfig().getMaxChunkRadius());
         this.setRadius(chunkRadius << 4);
     }
 
