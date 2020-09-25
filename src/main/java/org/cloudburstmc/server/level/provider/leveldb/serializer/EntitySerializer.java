@@ -96,26 +96,30 @@ public class EntitySerializer {
         public boolean load(Chunk chunk) {
             boolean dirty = false;
             for (NbtMap entityTag : entityTags) {
-                if (!entityTag.containsKey("identifier")) {
-                    dirty = true;
-                    continue;
-                }
-                Location location = getLocation(entityTag, chunk);
-                Identifier identifier = Identifier.fromString(entityTag.getString("identifier"));
-                EntityRegistry registry = EntityRegistry.get();
-                EntityType<?> type = registry.getEntityType(identifier);
-                if (type == null) {
-                    log.warn("Unknown entity type {}", identifier);
-                    dirty = true;
-                    continue;
-                }
                 try {
-                    Entity entity = registry.newEntity(type, location);
-                    if (entity != null) {
-                        entity.loadAdditionalData(entityTag);
+                    if (!entityTag.containsKey("identifier")) {
+                        dirty = true;
+                        continue;
                     }
-                } catch (RegistryException e) {
-                    dirty = true;
+                    Location location = getLocation(entityTag, chunk);
+                    Identifier identifier = Identifier.fromString(entityTag.getString("identifier"));
+                    EntityRegistry registry = EntityRegistry.get();
+                    EntityType<?> type = registry.getEntityType(identifier);
+                    if (type == null) {
+                        log.warn("Unknown entity type {}", identifier);
+                        dirty = true;
+                        continue;
+                    }
+                    try {
+                        Entity entity = registry.newEntity(type, location);
+                        if (entity != null) {
+                            entity.loadAdditionalData(entityTag);
+                        }
+                    } catch (RegistryException e) {
+                        dirty = true;
+                    }
+                } catch (Exception e) {
+                    log.throwing(e);
                 }
             }
             return dirty;
