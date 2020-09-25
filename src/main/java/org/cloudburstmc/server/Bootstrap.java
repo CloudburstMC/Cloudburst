@@ -42,7 +42,7 @@ import java.util.Properties;
  * The entry point of Cloudburst Server.
  */
 @Log4j2
-public class Nukkit {
+public class Bootstrap {
     public final static Properties GIT_INFO = getGitInfo();
     public final static String VERSION = getVersion();
     public final static String API_VERSION = "2.0.0";
@@ -198,7 +198,7 @@ public class Nukkit {
      * @return The git information as a {@link Properties} object
      */
     private static Properties getGitInfo() {
-        InputStream gitFileStream = Nukkit.class.getClassLoader().getResourceAsStream("git.properties");
+        InputStream gitFileStream = Bootstrap.class.getClassLoader().getResourceAsStream("git.properties");
         if (gitFileStream == null) {
             return null;
         }

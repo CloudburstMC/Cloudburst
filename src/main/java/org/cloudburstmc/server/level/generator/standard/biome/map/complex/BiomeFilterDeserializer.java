@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.google.common.base.Preconditions;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.standard.registry.StandardGeneratorRegistries;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -23,7 +23,7 @@ final class BiomeFilterDeserializer extends JsonDeserializer<BiomeFilter> {
         p.nextToken();
 
         try {
-            return Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.biomeFilter().get(id));
+            return Bootstrap.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.biomeFilter().get(id));
         } catch (Exception e) {
             throw new RuntimeException("While decoding biome filter " + id, e);
         }

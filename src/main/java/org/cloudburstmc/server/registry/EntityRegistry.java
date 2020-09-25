@@ -15,7 +15,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityFactory;
 import org.cloudburstmc.server.entity.EntityType;
@@ -54,7 +54,7 @@ public class EntityRegistry implements Registry {
 
     static {
         try (InputStream stream = RegistryUtils.getOrAssertResource("legacy/entity_names.json")) {
-            Map<String, String> legacyNames = Nukkit.JSON_MAPPER.readValue(stream, new TypeReference<Map<String, String>>() {
+            Map<String, String> legacyNames = Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<Map<String, String>>() {
             });
 
             ImmutableBiMap.Builder<String, Identifier> mapBuilder = ImmutableBiMap.builder();

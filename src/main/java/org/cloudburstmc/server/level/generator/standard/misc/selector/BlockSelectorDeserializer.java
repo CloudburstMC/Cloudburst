@@ -10,7 +10,7 @@ import com.google.common.base.Preconditions;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PValidation;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 final class BlockSelectorDeserializer extends JsonDeserializer<BlockSelector> {
     @Override
     public BlockSelector deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-        BlockSelector.Entry[] entries = Arrays.stream(Nukkit.YAML_MAPPER.readValue(p, String[].class))
+        BlockSelector.Entry[] entries = Arrays.stream(Bootstrap.YAML_MAPPER.readValue(p, String[].class))
                 .flatMap(value -> Arrays.stream(value.split(",")))
                 .map(TempEntry::new)
                 .flatMap(TempEntry::flatten)
