@@ -3,7 +3,7 @@ package org.cloudburstmc.server.permission;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -102,7 +102,7 @@ public class BanEntry {
 
     public String getString() {
         try {
-            return Nukkit.JSON_MAPPER.writeValueAsString(this.getMap());
+            return Bootstrap.JSON_MAPPER.writeValueAsString(this.getMap());
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -111,7 +111,7 @@ public class BanEntry {
     public static BanEntry fromString(String str) {
         Map<String, String> map;
         try {
-            map = Nukkit.JSON_MAPPER.readValue(str, BAN_ENTRY_TYPE_REFERENCE);
+            map = Bootstrap.JSON_MAPPER.readValue(str, BAN_ENTRY_TYPE_REFERENCE);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }

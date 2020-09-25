@@ -228,7 +228,7 @@ public class Server {
 
         val injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
 
-        this.filePath = Nukkit.PATH;
+        this.filePath = Bootstrap.PATH;
         this.dataPath = dataPath;
         this.pluginPath = pluginPath;
         this.predefinedLanguage = predefinedLanguage;
@@ -367,7 +367,7 @@ public class Server {
             configLocaleManager.setLocale(locale);
 
             File configFile = configPath.toFile();
-            InputStream stream = Nukkit.class.getClassLoader().getResourceAsStream("cloudburst.yml");
+            InputStream stream = Bootstrap.class.getClassLoader().getResourceAsStream("cloudburst.yml");
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
                  BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile)))) {
                 String line;
@@ -387,13 +387,13 @@ public class Server {
 
         ignoredPackets.addAll(getConfig().getStringList("debug.ignored-packets"));
 
-        Nukkit.DEBUG = Math.max(this.getConfig("debug.level", 1), 1);
+        Bootstrap.DEBUG = Math.max(this.getConfig("debug.level", 1), 1);
 
-        int logLevel = (Nukkit.DEBUG + 3) * 100;
+        int logLevel = (Bootstrap.DEBUG + 3) * 100;
         for (org.apache.logging.log4j.Level level : org.apache.logging.log4j.Level.values()) {
             if (level.intLevel() == logLevel) {
-                if (level.intLevel() > Nukkit.getLogLevel().intLevel()) {
-                    Nukkit.setLogLevel(level);
+                if (level.intLevel() > Bootstrap.getLogLevel().intLevel()) {
+                    Bootstrap.setLogLevel(level);
                 }
                 break;
             }
@@ -574,7 +574,7 @@ public class Server {
             this.forceShutdown();
         }
 
-        if (Nukkit.DEBUG < 2) {
+        if (Bootstrap.DEBUG < 2) {
             this.watchdog = new Watchdog(this, 60000);
             this.watchdog.start();
         }
@@ -707,7 +707,7 @@ public class Server {
 
         log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", this.getGamemode().getTranslation()));
 
-        log.info(this.getLanguage().translate("cloudburst.server.startFinished", (System.currentTimeMillis() - Nukkit.START_TIME) / 1000d));
+        log.info(this.getLanguage().translate("cloudburst.server.startFinished", (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d));
 
         this.tickProcessor();
         this.forceShutdown();
@@ -995,7 +995,7 @@ public class Server {
 
     // TODO: Fix title tick
     public void titleTick() {
-        if (!Nukkit.ANSI || !Nukkit.TITLE) {
+        if (!Bootstrap.ANSI || !Bootstrap.TITLE) {
             return;
         }
 
@@ -1007,7 +1007,7 @@ public class Server {
                 + this.getNukkitVersion()
                 + " | Online " + this.players.size() + "/" + this.getMaxPlayers()
                 + " | Memory " + usage;
-        if (!Nukkit.shortTitle) {
+        if (!Bootstrap.shortTitle) {
             title += " | U " + NukkitMath.round((this.network.getUpload() / 1024 * 1000), 2)
                     + " D " + NukkitMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
         }
@@ -1030,7 +1030,7 @@ public class Server {
     }
 
     public String getNukkitVersion() {
-        return Nukkit.VERSION;
+        return Bootstrap.VERSION;
     }
 
     public String getVersion() {
@@ -1038,7 +1038,7 @@ public class Server {
     }
 
     public String getApiVersion() {
-        return Nukkit.API_VERSION;
+        return Bootstrap.API_VERSION;
     }
 
     public Path getFilePath() {

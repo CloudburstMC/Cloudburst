@@ -10,7 +10,7 @@ import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -43,7 +43,7 @@ public class BlockRegistry implements Registry {
         InputStream stream = RegistryUtils.getOrAssertResource("data/legacy_block_ids.json");
 
         try {
-            VANILLA_LEGACY_IDS = Nukkit.JSON_MAPPER.readValue(stream, new TypeReference<Map<Identifier, Integer>>() {
+            VANILLA_LEGACY_IDS = Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<Map<Identifier, Integer>>() {
             });
         } catch (IOException e) {
             throw new AssertionError("Unable to load legacy IDs", e);
