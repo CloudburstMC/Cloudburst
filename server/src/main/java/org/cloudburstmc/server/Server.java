@@ -342,8 +342,9 @@ public class Server {
         }
 
         this.consoleThread.start();
+        Path configPath = dataPath.resolve("cloudburst.yml");
 
-        if (!new File(this.dataPath + "cloudburst.yml").exists()) {
+        if (Files.notExists(configPath)) {
             log.info(TextFormat.GREEN + "Welcome! Please choose a language first!");
 
             for (Locale locale : localeManager.getAvailableLocales()) {
@@ -365,7 +366,7 @@ public class Server {
                     "locale/cloudburst/configs");
             configLocaleManager.setLocale(locale);
 
-            File configFile = new File(this.dataPath + "cloudburst.yml");
+            File configFile = configPath.toFile();
             InputStream stream = Nukkit.class.getClassLoader().getResourceAsStream("cloudburst.yml");
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
                  BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile)))) {
@@ -382,7 +383,7 @@ public class Server {
         this.console.setExecutingCommands(true);
 
         log.info("Loading {} ...", TextFormat.GREEN + "cloudburst.yml" + TextFormat.WHITE);
-        this.config = new Config(this.dataPath + "cloudburst.yml", Config.YAML);
+        this.config = new Config(configPath.toString(), Config.YAML);
 
         ignoredPackets.addAll(getConfig().getStringList("debug.ignored-packets"));
 
@@ -434,7 +435,7 @@ public class Server {
         this.forceLanguage = this.getConfig("settings.force-language", false);
         this.localeManager.setLocaleOrFallback(this.getConfig("settings.language"));
         Locale locale = this.getLanguage().getLocale();
-        log.info(this.getLanguage().translate("language.selected", locale.getDisplayCountry(locale), locale));
+        log.info(this.getLanguage().translate("cloudburst.language.selected", locale.getDisplayCountry(locale), locale));
         log.info(this.getLanguage().translate("cloudburst.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.RESET));
 
         Object poolSize = this.getConfig("settings.async-workers", (Object) (-1));
@@ -463,11 +464,11 @@ public class Server {
         this.alwaysTickPlayers = this.getConfig("level-settings.always-tick-players", false);
         this.baseTickRate = this.getConfig("level-settings.base-tick-rate", 1);
 
-        this.operators = new Config(this.dataPath + "ops.txt", Config.ENUM);
-        this.whitelist = new Config(this.dataPath + "white-list.txt", Config.ENUM);
-        this.banByName = new BanList(this.dataPath + "banned-players.json");
+        this.operators = new Config(this.dataPath.resolve("ops.txt").toFile(), Config.ENUM);
+        this.whitelist = new Config(this.dataPath.resolve("white-list.txt").toFile(), Config.ENUM);
+        this.banByName = new BanList(this.dataPath.resolve("banned-players.json").toString());
         this.banByName.load();
-        this.banByIP = new BanList(this.dataPath + "banned-ips.json");
+        this.banByIP = new BanList(this.dataPath.resolve("banned-ips.json").toString());
         this.banByIP.load();
 
         this.maxPlayers = this.getPropertyInt("max-players", 20);

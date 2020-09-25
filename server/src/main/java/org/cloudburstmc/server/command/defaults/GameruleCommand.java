@@ -35,7 +35,7 @@ public class GameruleCommand extends Command {
             return true;
         }
 
-        if (!sender.isPlayer()) {
+        if (!(sender instanceof Player)) {
             sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
             return true;
         }
