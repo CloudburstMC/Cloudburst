@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.command.defaults;
 
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
@@ -38,7 +38,7 @@ public class StatusCommand extends Command {
         Server server = sender.getServer();
         sender.sendMessage(TextFormat.GREEN + "---- " + TextFormat.WHITE + "Server status" + TextFormat.GREEN + " ----");
 
-        long time = System.currentTimeMillis() - Nukkit.START_TIME;
+        long time = System.currentTimeMillis() - Bootstrap.START_TIME;
 
         sender.sendMessage(TextFormat.YELLOW + "Uptime: " + formatUptime(time));
 

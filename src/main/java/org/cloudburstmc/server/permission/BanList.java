@@ -2,7 +2,7 @@ package org.cloudburstmc.server.permission;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.io.ByteArrayInputStream;
@@ -110,7 +110,7 @@ public class BanList {
                 this.save();
             } else {
 
-                LinkedList<TreeMap<String, String>> list = Nukkit.JSON_MAPPER.readValue(Utils.readFile(this.file),
+                LinkedList<TreeMap<String, String>> list = Bootstrap.JSON_MAPPER.readValue(Utils.readFile(this.file),
                         BANLIST_TYPE_REFERENCE);
 
                 for (TreeMap<String, String> map : list) {
@@ -138,7 +138,7 @@ public class BanList {
                 list.add(entry.getMap());
             }
             try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-                Nukkit.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValue(stream, list);
+                Bootstrap.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValue(stream, list);
                 Utils.writeFile(this.file, new ByteArrayInputStream(stream.toByteArray()));
             }
         } catch (IOException e) {

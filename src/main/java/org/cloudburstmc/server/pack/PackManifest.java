@@ -2,7 +2,7 @@ package org.cloudburstmc.server.pack;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.utils.SemVersion;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ public final class PackManifest {
     private List<SubPack> subpacks = Collections.emptyList();
 
     public static PackManifest load(InputStream stream) throws IOException {
-        return Nukkit.JSON_MAPPER.readValue(stream, PackManifest.class);
+        return Bootstrap.JSON_MAPPER.readValue(stream, PackManifest.class);
     }
 
     public boolean isValid() {

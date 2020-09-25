@@ -339,7 +339,7 @@
                         <manifestEntries>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <Main-Class>org.cloudburstmc.server.Nukkit</Main-Class>
+                            <Main-Class>org.cloudburstmc.server.Bootstrap</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>

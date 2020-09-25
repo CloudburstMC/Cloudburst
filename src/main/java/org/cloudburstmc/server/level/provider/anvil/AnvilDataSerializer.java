@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.provider.anvil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.*;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.LevelData;
 import org.cloudburstmc.server.level.gamerule.GameRule;
 import org.cloudburstmc.server.level.gamerule.GameRuleMap;
@@ -58,7 +58,7 @@ public class AnvilDataSerializer implements LevelDataSerializer {
     private void saveData(LevelData data, Path levelDatPath) throws IOException {
         NbtMapBuilder tag = NbtMap.builder()
                 .putString("LevelName", data.getName())
-                .putString("generatorOptions", Nukkit.JSON_MAPPER.writeValueAsString(data.getGeneratorOptions()))
+                .putString("generatorOptions", Bootstrap.JSON_MAPPER.writeValueAsString(data.getGeneratorOptions()))
                 .putString("generatorName", data.getGenerator().toString())
                 .putInt("thunderTime", data.getLightningTime())
                 .putInt("Difficulty", data.getDifficulty())
