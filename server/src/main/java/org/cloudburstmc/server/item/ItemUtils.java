@@ -46,9 +46,7 @@ public class ItemUtils {
             }
             item = Item.get(identifier, !tag.containsKey("Damage") ? 0 : tag.getShort("Damage"), tag.getByte("Count"));
         } catch (Exception e) {
-            item = Item.fromString(tag.getString("id"));
-            item.setMeta(!tag.containsKey("Damage") ? 0 : tag.getShort("Damage"));
-            item.setCount(tag.getByte("Count"));
+            throw new IllegalArgumentException("Unable to deserializer item\n" + tag, e);
         }
 
         NbtMap tagTag = tag.getCompound("tag", NbtMap.EMPTY);
