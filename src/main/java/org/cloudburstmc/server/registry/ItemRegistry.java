@@ -108,7 +108,11 @@ public class ItemRegistry implements Registry {
         ItemFactory itemFactory = this.factoryMap.get(identifier);
         if (itemFactory == null) {
             if (this.blockRegistry.isBlock(identifier)) {
-                return new BlockItem(BlockStateMetaMappings.getStateFromMeta(identifier, meta));
+                BlockState state = BlockStateMetaMappings.getStateFromMeta(identifier, meta);
+                if (state == null) {
+                    throw new RegistryException("Item '" + identifier + "' is not registered");
+                }
+                return new BlockItem(state);
             } else {
                 throw new RegistryException("Item '" + identifier + "' is not registered");
             }
