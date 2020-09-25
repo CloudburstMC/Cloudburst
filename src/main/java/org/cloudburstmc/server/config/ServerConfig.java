@@ -2,13 +2,9 @@ package org.cloudburstmc.server.config;
 
 import org.cloudburstmc.server.level.Difficulty;
 import org.cloudburstmc.server.player.GameMode;
-import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.ConfigSection;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * the universal public facing facade for the server's config
@@ -145,12 +141,28 @@ public class ServerConfig {
 
     // forwarding cloudburst.yml //
 
-    public Object getCommandAliases() {
-        return this.cloudburstYaml.getConfig("aliases");
-    }
-
     public boolean getYamlBugReport() {
         return this.cloudburstYaml.getRawConfig().getBoolean("bug-report", true);
+    }
+
+    public Map<String, List<String>> getCommandAliases() {
+        Object section = this.cloudburstYaml.getConfig("aliases");
+        Map<String, List<String>> result = new LinkedHashMap<>();
+        if (section instanceof Map) {
+            for (Map.Entry entry : (Set<Map.Entry>) ((Map) section).entrySet()) {
+                List<String> commands = new ArrayList<>();
+                String key = (String) entry.getKey();
+                Object value = entry.getValue();
+                if (value instanceof List) {
+                    commands.addAll((List<String>) value);
+                } else {
+                    commands.add((String) value);
+                }
+
+                result.put(key, commands);
+            }
+        }
+        return result;
     }
 
     public ConfigSection getRootSection() {

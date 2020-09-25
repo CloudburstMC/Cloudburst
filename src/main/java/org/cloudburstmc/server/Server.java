@@ -1608,25 +1608,7 @@ public class Server {
     }
 
     public Map<String, List<String>> getCommandAliases() {
-        Object section = this.getCommandAliases();
-        Map<String, List<String>> result = new LinkedHashMap<>();
-        if (section instanceof Map) {
-            for (Map.Entry entry : (Set<Map.Entry>) ((Map) section).entrySet()) {
-                List<String> commands = new ArrayList<>();
-                String key = (String) entry.getKey();
-                Object value = entry.getValue();
-                if (value instanceof List) {
-                    commands.addAll((List<String>) value);
-                } else {
-                    commands.add((String) value);
-                }
-
-                result.put(key, commands);
-            }
-        }
-
-        return result;
-
+        return getServerConfig().getCommandAliases();
     }
 
     public boolean shouldSavePlayerData() {
