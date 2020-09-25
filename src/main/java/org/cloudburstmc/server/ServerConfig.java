@@ -14,9 +14,14 @@ public class ServerConfig {
 
     private final ServerProperties properties;
 
-    public ServerConfig(ServerProperties properties) {
+    private final CloudburstYaml cloudburstYaml;
+
+    public ServerConfig(ServerProperties properties, CloudburstYaml cloudburstYaml) {
         this.properties = properties;
+        this.cloudburstYaml = cloudburstYaml;
     }
+
+    // forwarding server.properties
 
     public String getMotd() {
         return properties.getMotd();
@@ -134,18 +139,14 @@ public class ServerConfig {
         return properties.getXboxAuth();
     }
 
-    public Properties getRawProperties() {
-        return properties.getRawProperties();
-    }
-
-    public Path getPath() {
-        return properties.getPath();
-    }
+    // forwarding cloudburst.yml //
 
     // escape hatch //
 
     public ServerProperties getServerProperties() {
         return properties;
     }
+
+    public CloudburstYaml getCloudburstYaml() { return cloudburstYaml; }
 
 }

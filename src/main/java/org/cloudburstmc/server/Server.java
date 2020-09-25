@@ -179,7 +179,7 @@ public class Server {
     private QueryHandler queryHandler;
 
     private QueryRegenerateEvent queryRegenerateEvent;
-    private Config config;
+    private CloudburstYaml cloudburstYaml;
 
     private final LocaleManager localeManager = LocaleManager.from("locale/cloudburst/languages.json",
             "locale/cloudburst/texts", "locale/vanilla");
@@ -383,7 +383,7 @@ public class Server {
         this.console.setExecutingCommands(true);
 
         log.info("Loading {} ...", TextFormat.GREEN + "cloudburst.yml" + TextFormat.WHITE);
-        this.config = new Config(configPath.toString(), Config.YAML);
+        this.cloudburstYaml = new CloudburstYaml(configPath);
 
         ignoredPackets.addAll(getConfig().getStringList("debug.ignored-packets"));
 
@@ -1546,21 +1546,20 @@ public class Server {
 
     //Revising later...
     public Config getConfig() {
-        return this.config;
+        return this.cloudburstYaml.getRawConfig();
     }
 
     public <T> T getConfig(String variable) {
-        return this.getConfig(variable, null);
+        return this.getServerConfig().getCloudburstYaml().getConfig(variable);
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getConfig(String variable, T defaultValue) {
-        Object value = this.config.get(variable);
-        return value == null ? defaultValue : (T) value;
+        return this.getServerConfig().getCloudburstYaml().getConfig(variable, defaultValue);
     }
 
     public ServerConfig getServerConfig() {
-        return new ServerConfig(serverProperties);
+        return new ServerConfig(serverProperties, cloudburstYaml);
     }
 
     public BanList getNameBans() {
