@@ -12,13 +12,12 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.message.ParameterizedMessage;
-import org.cloudburstmc.server.ServerConfig;
+import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.event.level.ChunkUnloadEvent;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.provider.LevelProvider;
-import org.cloudburstmc.server.utils.Config;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

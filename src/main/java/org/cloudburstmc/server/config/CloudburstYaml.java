@@ -1,4 +1,4 @@
-package org.cloudburstmc.server;
+package org.cloudburstmc.server.config;
 
 import org.cloudburstmc.server.utils.Config;
 
