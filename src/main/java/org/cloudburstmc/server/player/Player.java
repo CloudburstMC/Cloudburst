@@ -233,8 +233,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.perm = new PermissibleBase(this);
         this.server = Server.getInstance();
         this.lastBreak = -1;
-        this.chunksPerTick = this.server.getConfig("chunk-sending.per-tick", 4);
-        this.spawnThreshold = this.server.getConfig("chunk-sending.spawn-threshold", 56);
+        this.chunksPerTick = this.server.getServerConfig().getChunkSendingPerTick();
+        this.spawnThreshold = this.server.getServerConfig().getChunkSendingSpawnThreshold();
         this.spawnLocation = null;
         this.playerData.setGamemode(this.server.getGamemode());
         this.viewDistance = this.server.getViewDistance();

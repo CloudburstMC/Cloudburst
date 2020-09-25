@@ -139,7 +139,7 @@ public class TimingsExport extends Thread {
         //Information on the users Config
         ObjectNode config = Nukkit.JSON_MAPPER.createObjectNode();
         if (!Timings.getIgnoredConfigSections().contains("all")) {
-            Map<String, Object> section = new LinkedHashMap<>(Server.getInstance().getConfig().getRootSection());
+            Map<String, Object> section = new LinkedHashMap<>(Server.getInstance().getServerConfig().getRootSection());
             Timings.getIgnoredConfigSections().forEach(section::remove);
             JsonNode cloudburst = JsonUtil.toObject(section);
             config.set("cloudburst", cloudburst);
