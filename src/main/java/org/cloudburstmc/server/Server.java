@@ -389,9 +389,9 @@ public class Server {
         log.info("Loading {} ...", TextFormat.GREEN + "cloudburst.yml" + TextFormat.WHITE);
         this.cloudburstYaml = new CloudburstYaml(configPath);
 
-        ignoredPackets.addAll(getServerConfig().getDebugConfig().getIgnoredPackets());
+        ignoredPackets.addAll(getConfig().getDebugConfig().getIgnoredPackets());
 
-        Bootstrap.DEBUG = Math.max(getServerConfig().getDebugConfig().getLevel(), 1);
+        Bootstrap.DEBUG = Math.max(getConfig().getDebugConfig().getLevel(), 1);
 
         int logLevel = (Bootstrap.DEBUG + 3) * 100;
         for (org.apache.logging.log4j.Level level : org.apache.logging.log4j.Level.values()) {
@@ -415,13 +415,13 @@ public class Server {
         // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
         this.allowNether = this.serverProperties.getAllowNether();
 
-        this.forceLanguage = getServerConfig().getSettingsConfig().isForceLanguage();
-        this.localeManager.setLocaleOrFallback(getServerConfig().getSettingsConfig().getLanguage());
+        this.forceLanguage = getConfig().getSettingsConfig().isForceLanguage();
+        this.localeManager.setLocaleOrFallback(getConfig().getSettingsConfig().getLanguage());
         Locale locale = this.getLanguage().getLocale();
         log.info(this.getLanguage().translate("cloudburst.language.selected", locale.getDisplayCountry(locale), locale));
         log.info(this.getLanguage().translate("cloudburst.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.RESET));
 
-        Object poolSize = getServerConfig().getSettingsConfig().getAsyncWorkers();
+        Object poolSize = getConfig().getSettingsConfig().getAsyncWorkers();
         if (!(poolSize instanceof Integer)) {
             try {
                 poolSize = Integer.valueOf((String) poolSize);
@@ -439,13 +439,13 @@ public class Server {
 //        this.networkZlibProvider = this.getConfig("network.zlib-provider", 2);
 //        Zlib.setProvider(this.networkZlibProvider);
 
-        this.networkCompressionLevel = getServerConfig().getNetworkConfig().getCompressionLevel();
-        this.networkCompressionAsync = getServerConfig().getNetworkConfig().isAsyncCompression();
+        this.networkCompressionLevel = getConfig().getNetworkConfig().getCompressionLevel();
+        this.networkCompressionAsync = getConfig().getNetworkConfig().isAsyncCompression();
 
-        this.autoTickRate = getServerConfig().getLevelSettingsConfig().isAutoTickRate();
-        this.autoTickRateLimit = getServerConfig().getLevelSettingsConfig().getAutoTickRateLimit();
-        this.alwaysTickPlayers = getServerConfig().getLevelSettingsConfig().isAlwaysTickPlayers();
-        this.baseTickRate = getServerConfig().getLevelSettingsConfig().getBaseTickRate();
+        this.autoTickRate = getConfig().getLevelSettingsConfig().isAutoTickRate();
+        this.autoTickRateLimit = getConfig().getLevelSettingsConfig().getAutoTickRateLimit();
+        this.alwaysTickPlayers = getConfig().getLevelSettingsConfig().isAlwaysTickPlayers();
+        this.baseTickRate = getConfig().getLevelSettingsConfig().getBaseTickRate();
 
         this.operators = new Config(this.dataPath.resolve("ops.txt").toFile(), Config.ENUM);
         this.whitelist = new Config(this.dataPath.resolve("white-list.txt").toFile(), Config.ENUM);
@@ -461,7 +461,7 @@ public class Server {
             this.serverProperties.setDifficulty(Difficulty.HARD);
         }
 
-        if (this.getServerConfig().getYamlBugReport()) {
+        if (this.getConfig().getYamlBugReport()) {
             ExceptionHandler.registerExceptionHandler();
         }
 
@@ -514,7 +514,7 @@ public class Server {
 
         this.registerVanillaComponents();
 
-        Identifier defaultStorageId = Identifier.fromString(getServerConfig().getLevelSettingsConfig().getDefaultFormat());
+        Identifier defaultStorageId = Identifier.fromString(getConfig().getLevelSettingsConfig().getDefaultFormat());
         if (storageRegistry.isRegistered(defaultStorageId)) {
             this.defaultStorageId = defaultStorageId;
         } else {
@@ -535,8 +535,8 @@ public class Server {
 
         EnumLevel.initLevels();
 
-        if (this.getServerConfig().getTicksPerConfig().getAutosave() > 0) {
-            this.autoSaveTicks = this.getServerConfig().getTicksPerConfig().getAutosave();
+        if (this.getConfig().getTicksPerConfig().getAutosave() > 0) {
+            this.autoSaveTicks = this.getConfig().getTicksPerConfig().getAutosave();
         }
 
         //TODO: event
@@ -633,7 +633,7 @@ public class Server {
             this.hasStopped = true;
 
             for (Player player : new ArrayList<>(this.players.values())) {
-                player.close(player.getLeaveMessage(), this.getServerConfig().getSettingsConfig().getShutdownMessage());
+                player.close(player.getLeaveMessage(), this.getConfig().getSettingsConfig().getShutdownMessage());
             }
 
             this.eventManager.fire(ServerShutdownEvent.INSTANCE);
@@ -1547,7 +1547,7 @@ public class Server {
         return network;
     }
 
-    public ServerConfig getServerConfig() {
+    public ServerConfig getConfig() {
         return new ServerConfig(serverProperties, cloudburstYaml);
     }
 
@@ -1608,15 +1608,15 @@ public class Server {
     }
 
     public Map<String, List<String>> getCommandAliases() {
-        return getServerConfig().getCommandAliases();
+        return getConfig().getCommandAliases();
     }
 
     public boolean shouldSavePlayerData() {
-        return this.getServerConfig().getPlayerConfig().isSavePlayerData();
+        return this.getConfig().getPlayerConfig().isSavePlayerData();
     }
 
     public int getPlayerSkinChangeCooldown() {
-        return this.getServerConfig().getPlayerConfig().getSkinChangeCooldown();
+        return this.getConfig().getPlayerConfig().getSkinChangeCooldown();
     }
 
     /**
@@ -1687,7 +1687,7 @@ public class Server {
             throw new RuntimeException("Worlds location " + levelPath + " is not a directory.");
         }
 
-        Map<String, WorldConfig> worldConfigs = getServerConfig().getWorldConfig();
+        Map<String, WorldConfig> worldConfigs = getConfig().getWorldConfig();
         if (worldConfigs.isEmpty()) {
             throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }

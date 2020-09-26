@@ -256,7 +256,7 @@ public final class LevelChunkManager {
         final int spawnZ = this.level.getSafeSpawn().getChunkZ();
         final int spawnRadius = 4;//server.getConfiguration().getAdvanced().getSpawnChunkRadius();
 
-        ServerConfig serverConfig = this.level.getServer().getServerConfig();
+        ServerConfig serverConfig = this.level.getServer().getConfig();
 
         // Do chunk garbage collection
         try (Timing ignored = this.level.timings.doChunkGC.startTiming()) {

@@ -78,7 +78,7 @@ public class TimingsExport extends Thread {
         if (!Timings.isPrivacy()) {
             out.put("server", Server.getInstance().getName());
             out.put("motd", Server.getInstance().getMotd());
-            out.put("online-mode", Server.getInstance().getServerConfig().getPropertiesConfig().getXboxAuth());
+            out.put("online-mode", Server.getInstance().getConfig().getPropertiesConfig().getXboxAuth());
             out.put("icon", ""); //"data:image/png;base64,"
         }
 
@@ -139,7 +139,7 @@ public class TimingsExport extends Thread {
         //Information on the users Config
         ObjectNode config = Bootstrap.JSON_MAPPER.createObjectNode();
         if (!Timings.getIgnoredConfigSections().contains("all")) {
-            Map<String, Object> section = new LinkedHashMap<>(Server.getInstance().getServerConfig().getRootSection());
+            Map<String, Object> section = new LinkedHashMap<>(Server.getInstance().getConfig().getRootSection());
             Timings.getIgnoredConfigSections().forEach(section::remove);
             JsonNode cloudburst = JsonUtil.toObject(section);
             config.set("cloudburst", cloudburst);

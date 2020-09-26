@@ -50,7 +50,7 @@ public class DifficultyCommand extends Command {
         }
 
         if (difficulty != null) {
-            sender.getServer().getServerConfig().getPropertiesConfig().setDifficulty(difficulty);
+            sender.getServer().getConfig().getPropertiesConfig().setDifficulty(difficulty);
 
             SetDifficultyPacket packet = new SetDifficultyPacket();
             packet.setDifficulty(sender.getServer().getDifficulty().ordinal());

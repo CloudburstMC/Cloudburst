@@ -233,8 +233,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.perm = new PermissibleBase(this);
         this.server = Server.getInstance();
         this.lastBreak = -1;
-        this.chunksPerTick = this.server.getServerConfig().getChunkSendingConfig().getPerTick();
-        this.spawnThreshold = this.server.getServerConfig().getChunkSendingConfig().getSpawnThreshold();
+        this.chunksPerTick = this.server.getConfig().getChunkSendingConfig().getPerTick();
+        this.spawnThreshold = this.server.getConfig().getChunkSendingConfig().getSpawnThreshold();
         this.spawnLocation = null;
         this.playerData.setGamemode(this.server.getGamemode());
         this.viewDistance = this.server.getViewDistance();
@@ -870,7 +870,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     public boolean awardAchievement(String achievementId) {
-        if (!Server.getInstance().getServerConfig().getPropertiesConfig().getAchievements()) {
+        if (!Server.getInstance().getConfig().getPropertiesConfig().getAchievements()) {
             return false;
         }
 
@@ -1650,7 +1650,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return;
         }
 
-        if (loginChainData.isXboxAuthed() && server.getServerConfig().getPropertiesConfig().getXboxAuth() || !server.getServerConfig().getPropertiesConfig().getXboxAuth()) {
+        if (loginChainData.isXboxAuthed() && server.getConfig().getPropertiesConfig().getXboxAuth() || !server.getConfig().getPropertiesConfig().getXboxAuth()) {
             server.updateName(this.identity, this.username);
         }
 
