@@ -870,7 +870,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     public boolean awardAchievement(String achievementId) {
-        if (!Server.getInstance().getServerConfig().getAchievements()) {
+        if (!Server.getInstance().getServerConfig().getPropertiesConfig().getAchievements()) {
             return false;
         }
 
@@ -1650,7 +1650,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return;
         }
 
-        if (loginChainData.isXboxAuthed() && server.getServerConfig().getXboxAuth() || !server.getServerConfig().getXboxAuth()) {
+        if (loginChainData.isXboxAuthed() && server.getServerConfig().getPropertiesConfig().getXboxAuth() || !server.getServerConfig().getPropertiesConfig().getXboxAuth()) {
             server.updateName(this.identity, this.username);
         }
 

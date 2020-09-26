@@ -1098,7 +1098,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         } else if (target instanceof Player) {
                             if (((Player) target).getGamemode() != GameMode.SURVIVAL) {
                                 break;
-                            } else if (!player.getServer().getServerConfig().getPVP()) {
+                            } else if (!player.getServer().getServerConfig().getPropertiesConfig().getPVP()) {
                                 break;
                             }
                         }
