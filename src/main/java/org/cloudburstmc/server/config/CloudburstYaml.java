@@ -1,7 +1,10 @@
 package org.cloudburstmc.server.config;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.utils.Config;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 /**
@@ -36,6 +39,14 @@ public class CloudburstYaml {
     public <T> T getConfig(String variable, T defaultValue) {
         Object value = this.config.get(variable);
         return value == null ? defaultValue : (T) value;
+    }
+
+    public ObjectNode getRootNode() {
+        try {
+            return (ObjectNode) Bootstrap.YAML_MAPPER.readTree(location.toFile());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

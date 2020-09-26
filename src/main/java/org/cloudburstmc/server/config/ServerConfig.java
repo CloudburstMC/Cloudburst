@@ -1,9 +1,12 @@
 package org.cloudburstmc.server.config;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.Difficulty;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.utils.ConfigSection;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -47,10 +50,6 @@ public class ServerConfig {
             }
         }
         return result;
-    }
-
-    public ConfigSection getRootSection() {
-        return this.cloudburstYaml.getRawConfig().getRootSection();
     }
 
     public TimingsConfig getTimingsConfig() {

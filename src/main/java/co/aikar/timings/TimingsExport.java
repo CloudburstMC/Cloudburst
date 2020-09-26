@@ -45,6 +45,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.GZIPOutputStream;
 
 import static co.aikar.timings.TimingsManager.HISTORY;
@@ -139,10 +141,9 @@ public class TimingsExport extends Thread {
         //Information on the users Config
         ObjectNode config = Bootstrap.JSON_MAPPER.createObjectNode();
         if (!Timings.getIgnoredConfigSections().contains("all")) {
-            Map<String, Object> section = new LinkedHashMap<>(Server.getInstance().getConfig().getRootSection());
-            Timings.getIgnoredConfigSections().forEach(section::remove);
-            JsonNode cloudburst = JsonUtil.toObject(section);
-            config.set("cloudburst", cloudburst);
+            final ObjectNode rootNode = Server.getInstance().getConfig().getCloudburstYaml().getRootNode();
+            Timings.getIgnoredConfigSections().forEach(rootNode::remove);
+            config.set("cloudburst", rootNode);
         } else {
             config.set("cloudburst", null);
         }
