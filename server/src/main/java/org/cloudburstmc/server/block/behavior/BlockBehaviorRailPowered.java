@@ -9,7 +9,7 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.Rail;
 import org.cloudburstmc.server.utils.data.RailDirection;
 
-import static org.cloudburstmc.server.block.BlockIds.GOLDEN_RAIL;
+import static org.cloudburstmc.server.block.BlockTypes.GOLDEN_RAIL;
 
 public class BlockBehaviorRailPowered extends BlockBehaviorRail {
 

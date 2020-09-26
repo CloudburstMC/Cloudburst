@@ -8,6 +8,7 @@ import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Axis;
@@ -42,7 +43,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_AXE;
     }
 
@@ -91,7 +92,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
             Block b = block.getSide(direction);
             BlockState state = b.getState();
 
-            if (state.getType() != BlockIds.CHEST || state.ensureTrait(BlockTraits.FACING_DIRECTION) != chestFace) {
+            if (state.getType() != BlockTypes.CHEST || state.ensureTrait(BlockTraits.FACING_DIRECTION) != chestFace) {
                 continue;
             }
 
@@ -101,7 +102,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
             }
         }
 
-        placeBlock(block, BlockRegistry.get().getBlock(BlockIds.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace));
+        placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace));
 
         Chest chest1 = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, block.getChunk(), block.getPosition());
         chest1.loadAdditionalData(item.getTag());
@@ -168,6 +169,6 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(BlockIds.CHEST);
+        return CloudItemRegistry.get().getItem(BlockTypes.CHEST);
     }
 }

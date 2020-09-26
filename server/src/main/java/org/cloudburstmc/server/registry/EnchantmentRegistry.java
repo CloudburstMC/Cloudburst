@@ -49,6 +49,10 @@ public class EnchantmentRegistry implements Registry {
 
     private volatile boolean closed;
 
+    public EnchantmentRegistry() {
+        this.registerVanillaEnchantments();
+    }
+
     public synchronized void register(@NonNull EnchantmentType type, @Nonnull EnchantmentBehavior behavior) {
         throw new UnsupportedOperationException("Custom enchantments are not currently supported!");
     }

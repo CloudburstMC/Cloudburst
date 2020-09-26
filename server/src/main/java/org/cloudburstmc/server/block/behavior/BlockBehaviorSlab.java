@@ -8,6 +8,7 @@ import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -84,7 +85,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 
@@ -184,7 +185,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 
     private BlockTrait<?> getSlabType(BlockState state) {
         BlockTrait<?> type;
-        if (state.getType() == BlockIds.WOODEN_SLAB) {
+        if (state.getType() == BlockTypes.WOODEN_SLAB) {
             type = BlockTraits.TREE_SPECIES;
         } else {
             type = BlockTraits.STONE_SLAB_TYPE;

@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
+import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -14,6 +15,7 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.item.*;
@@ -23,6 +25,7 @@ import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.ItemSerializer;
 import org.cloudburstmc.server.item.serializer.RecordSerializer;
 import org.cloudburstmc.server.item.serializer.TreeSpeciesSerializer;
+import org.cloudburstmc.server.utils.Config;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
@@ -54,11 +57,14 @@ public class CloudItemRegistry implements ItemRegistry {
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemBehavior> behaviorMap = new Reference2ObjectOpenHashMap<>();
+    private final List<ItemStack> creativeItems = new ArrayList<>();
     private final BiMap<Integer, Identifier> runtimeIdMap = HashBiMap.create();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
     private int lastLegacyId;
     private final BlockRegistry blockRegistry;
     private List<StartGamePacket.ItemEntry> itemEntries;
+    private volatile CreativeContentPacket creativeContent;
+
     private volatile boolean closed;
 
     private CloudItemRegistry(BlockRegistry blockRegistry) {
@@ -67,6 +73,8 @@ public class CloudItemRegistry implements ItemRegistry {
             this.registerVanillaItems();
             this.registerVanillaIdentifiers();
             this.registerVanillaDataSerializers();
+
+            this.registerVanillaCreativeItems();
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
@@ -457,7 +465,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.ELYTRA, 444);
 
         registerVanilla(ItemTypes.SHULKER_SHELL, 445);
-        registerVanilla(ItemTypes.BANNER, 446);
+        registerVanilla(ItemTypes.BANNER, new org.cloudburstmc.server.item.serializer.BannerSerializer(), 446);
 
         registerVanilla(ItemTypes.IRON_NUGGET, 452);
         registerVanilla(ItemTypes.TRIDENT, new ItemTridentBehavior(), 455);
@@ -563,6 +571,54 @@ public class CloudItemRegistry implements ItemRegistry {
         this.registerDataSerializer(Firework.class, new FireworkSerializer());
         this.registerDataSerializer(MapItem.class, new MapSerializer());
         this.registerDataSerializer(WrittenBook.class, new WrittenBookSerializer());
+    }
+
+    public void registerCreativeItem(ItemStack item) {
+        Preconditions.checkNotNull(item, "item");
+        this.creativeItems.add(item);
+    }
+
+    public List<ItemStack> getCreativeItems() {
+        return ImmutableList.copyOf(creativeItems);
+    }
+
+    public CreativeContentPacket getCreativeContent() {
+        if (creativeContent == null) {
+            synchronized (this.creativeItems) {
+                if (creativeContent == null) {
+                    CreativeContentPacket pk = new CreativeContentPacket();
+
+                    val contents = ItemUtils.toNetwork(this.creativeItems);
+
+                    for (int i = 0; i < contents.length; i++) {
+                        contents[i].setNetId(i + 1);
+                    }
+
+                    pk.setContents(contents);
+                    creativeContent = pk;
+                }
+            }
+        }
+
+        return creativeContent;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private void registerVanillaCreativeItems() {
+        Config config = new Config(Config.JSON);
+        config.load(Server.class.getClassLoader().getResourceAsStream("data/creative_items.json"));
+        List<Map> list = config.getMapList("items");
+
+        for (Map map : list) {
+            try {
+                registerCreativeItem();
+                addCreativeItem(fromJson(map));
+            } catch (RegistryException e) {
+                // ignore
+            } catch (Exception e) {
+                log.error("Error whilst adding creative item", e);
+            }
+        }
     }
 
     @Getter

@@ -6,14 +6,14 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
 
@@ -60,13 +60,13 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.MELON_SEEDS);
+        return ItemStack.get(ItemTypes.MELON_SEEDS);
     }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(ItemIds.MELON_SEEDS, 0, ThreadLocalRandom.current().nextInt(0, 4))
+                ItemStack.get(ItemTypes.MELON_SEEDS, 0, ThreadLocalRandom.current().nextInt(0, 4))
         };
     }
 }

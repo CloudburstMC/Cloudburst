@@ -75,7 +75,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().getBehavior().isNormalBlock(target)) {
-            return placeBlock(block, BlockState.get(BlockIds.LEVER)
+            return placeBlock(block, BlockState.get(BlockTypes.LEVER)
                     .withTrait(
                             BlockTraits.LEVER_DIRECTION,
                             LeverDirection.forDirection(face, player.getHorizontalDirection())

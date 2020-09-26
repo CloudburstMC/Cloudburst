@@ -6,17 +6,18 @@ import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.FARMLAND;
+import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
 
 public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
 
@@ -37,7 +38,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
         //Bone meal
-        if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) {
+        if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (block.getState().ensureTrait(BlockTraits.GROWTH) < 7) {
                 BlockGrowEvent ev = new BlockGrowEvent(block, block.getState().incrementTrait(BlockTraits.GROWTH));
                 Server.getInstance().getEventManager().fire(ev);
@@ -50,7 +51,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
                 block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
 
                 if (player != null && player.getGamemode().isSurvival()) {
-                    item.decrementCount();
+                    player.getInventory().decrementHandCount();
                 }
             }
 

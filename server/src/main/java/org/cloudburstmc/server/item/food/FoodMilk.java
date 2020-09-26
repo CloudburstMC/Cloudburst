@@ -3,7 +3,7 @@ package org.cloudburstmc.server.item.food;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
-import static org.cloudburstmc.server.item.ItemIds.BUCKET;
+import static org.cloudburstmc.server.item.ItemTypes.BUCKET;
 
 /**
  * Created by Snake1999 on 2016/1/21.

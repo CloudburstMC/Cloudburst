@@ -3,8 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -32,12 +33,12 @@ public class BlockBehaviorMelon extends BlockBehaviorSolid {
         }
 
         return new ItemStack[]{
-                ItemStack.get(ItemIds.MELON, 0, Math.min(9, count))
+                ItemStack.get(ItemTypes.MELON, 0, Math.min(9, count))
         };
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_AXE;
     }
 

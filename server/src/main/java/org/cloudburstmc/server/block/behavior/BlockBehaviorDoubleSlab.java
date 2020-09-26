@@ -8,6 +8,7 @@ import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierTypes;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -40,7 +41,7 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

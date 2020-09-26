@@ -8,15 +8,17 @@ import org.cloudburstmc.server.blockentity.Barrel;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.inventory.ContainerInventory;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.ToolType;
+import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockIds.BARREL;
+import static org.cloudburstmc.server.block.BlockTypes.BARREL;
 
 public class BlockBehaviorBarrel extends BlockBehaviorSolid {
 
@@ -43,7 +45,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
         block.set(newState, true, false);
 
         Barrel barrel = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, block.getChunk(), block.getPosition());
-        barrel.loadAdditionalData(item.getTag());
+        barrel.loadAdditionalData(((CloudItemStack) item).getDataTag());
 
         return true;
     }
@@ -83,8 +85,8 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getToolType() {
-        return ItemToolBehavior.TYPE_AXE;
+    public ToolType getToolType() {
+        return ToolTypes.AXE;
     }
 
     @Override

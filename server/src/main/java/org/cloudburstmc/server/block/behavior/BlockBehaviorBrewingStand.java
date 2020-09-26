@@ -4,14 +4,12 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BrewingStand;
 import org.cloudburstmc.server.inventory.ContainerInventory;
-import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -38,8 +36,8 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getToolType() {
-        return ItemToolBehavior.TYPE_PICKAXE;
+    public ToolType getToolType() {
+        return ToolTypes.PICKAXE;
     }
 
     @Override
@@ -51,12 +49,12 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
         if (!state.inCategory(BlockCategory.TRANSPARENT)) {
-            placeBlock(block, BlockRegistry.get().getBlock(BlockIds.BREWING_STAND));
+            placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.BREWING_STAND));
 
             BrewingStand brewingStand = BlockEntityRegistry.get().newEntity(BREWING_STAND, block.getChunk(), block.getPosition());
-            brewingStand.loadAdditionalData(item.getTag());
-            if (item.hasCustomName()) {
-                brewingStand.setCustomName(item.getCustomName());
+            brewingStand.loadAdditionalData(((CloudItemStack) item).getDataTag());
+            if (item.hasName()) {
+                brewingStand.setCustomName(item.getName());
             }
 
             return true;
@@ -87,12 +85,12 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.BREWING_STAND);
+        return ItemStack.get(ItemTypes.BREWING_STAND);
     }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+        if (hand.getBehavior().isPickaxe() && hand.getBehavior().getTier(hand).compareTo(TierTypes.WOOD) >= 0) {
             return new ItemStack[]{
                     toItem(block)
             };

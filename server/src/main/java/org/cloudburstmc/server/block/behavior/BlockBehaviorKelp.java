@@ -8,8 +8,8 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -18,9 +18,9 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.block.BlockTraits.FLUID_LEVEL;
 import static org.cloudburstmc.server.block.BlockTraits.KELP_AGE;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 import static org.cloudburstmc.server.math.Direction.DOWN;
 
 public class BlockBehaviorKelp extends FloodableBlockBehavior {
@@ -128,7 +128,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) { //Bone Meal
+        if (item.getId() == ItemTypes.DYE && item.getMeta() == 0x0f) { //Bone Meal
             val level = block.getLevel();
             int x = block.getX();
             int z = block.getZ();
@@ -165,7 +165,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.KELP);
+        return ItemStack.get(ItemTypes.KELP);
     }
 
     @Override

@@ -16,7 +16,7 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 import java.util.Random;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.ITEM_FRAME;
 
 public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {

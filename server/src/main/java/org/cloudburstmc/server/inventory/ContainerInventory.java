@@ -12,7 +12,7 @@ import org.cloudburstmc.server.player.Player;
 
 import java.util.Map;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 /**
  * author: MagicDroidX
@@ -70,8 +70,8 @@ public abstract class ContainerInventory extends BaseInventory {
             for (int slot = 0; slot < inv.getSize(); ++slot) {
                 ItemStack item = inv.getItem(slot);
 
-                if (item.getId() != AIR) {
-                    averageCount += (float) item.getCount() / (float) Math.min(inv.getMaxStackSize(), item.getMaxStackSize());
+                if (item.getType() != AIR) {
+                    averageCount += (float) item.getCount() / (float) Math.min(inv.getMaxStackSize(), item.getBehavior().getMaxStackSize(item));
                     ++itemCount;
                 }
             }

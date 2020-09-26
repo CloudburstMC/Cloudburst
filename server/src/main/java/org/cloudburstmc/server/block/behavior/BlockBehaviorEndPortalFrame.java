@@ -8,7 +8,7 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.item.ItemIds.ENDER_EYE;
+import static org.cloudburstmc.server.item.ItemTypes.ENDER_EYE;
 
 public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
 

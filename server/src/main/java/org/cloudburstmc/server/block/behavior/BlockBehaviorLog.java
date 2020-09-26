@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -28,7 +29,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
         STRIPPED_MAP.put(TreeSpecies.DARK_OAK, BlockTypes.STRIPPED_DARK_OAK_LOG);
     }
 
-    protected Identifier identifier = BlockIds.LOG;
+    protected Identifier identifier = BlockTypes.LOG;
 
     @Override
     public float getHardness() {
@@ -52,7 +53,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     public static void upgradeLegacyBlock(int[] blockState) {
         if ((blockState[1] & 0b1100) == 0b1100) { // old full bark texture
-            blockState[0] = BlockRegistry.get().getLegacyId(BlockIds.WOOD);
+            blockState[0] = BlockRegistry.get().getLegacyId(BlockTypes.WOOD);
             blockState[1] = blockState[1] & 0x03; // gets only the log type and set pillar to y
         }
     }
@@ -84,7 +85,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_AXE;
     }
 

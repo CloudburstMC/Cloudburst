@@ -3,12 +3,13 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
@@ -105,9 +106,9 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (target.getState().getType() == BlockIds.LOG && target.getState().ensureTrait(BlockTraits.TREE_SPECIES) == TreeSpecies.JUNGLE) {
+        if (target.getState().getType() == BlockTypes.LOG && target.getState().ensureTrait(BlockTraits.TREE_SPECIES) == TreeSpecies.JUNGLE) {
             if (face != Direction.DOWN && face != Direction.UP) {
-                placeBlock(block, BlockRegistry.get().getBlock(BlockIds.COCOA)
+                placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.COCOA)
                         .withTrait(BlockTraits.DIRECTION, face));
                 return true;
             }
@@ -120,7 +121,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             BlockState side = block.getSide(block.getState().ensureTrait(BlockTraits.DIRECTION)).getState();
 
-            if (side.getType() != BlockIds.LOG || side.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE) {
+            if (side.getType() != BlockTypes.LOG || side.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE) {
                 block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
@@ -144,7 +145,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) {
+        if (item.getId() == ItemTypes.DYE && item.getMeta() == 0x0f) {
             if (grow(block)) {
                 block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
 
@@ -187,24 +188,24 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_AXE;
     }
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.DYE, DyeColor.BROWN.getDyeData());
+        return ItemStack.get(ItemTypes.DYE, DyeColor.BROWN.getDyeData());
     }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.AGE) >= 2) {
             return new ItemStack[]{
-                    ItemStack.get(ItemIds.DYE, 3, 3)
+                    ItemStack.get(ItemTypes.DYE, 3, 3)
             };
         } else {
             return new ItemStack[]{
-                    ItemStack.get(ItemIds.DYE, 3, 1)
+                    ItemStack.get(ItemTypes.DYE, 3, 1)
             };
         }
     }

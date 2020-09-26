@@ -35,7 +35,7 @@ public abstract class InventoryAction {
      * @return source item
      */
     public ItemStack getSourceItem() {
-        return sourceItem.clone();
+        return sourceItem;
     }
 
     /**
@@ -44,7 +44,7 @@ public abstract class InventoryAction {
      * @return target item
      */
     public ItemStack getTargetItem() {
-        return targetItem.clone();
+        return targetItem;
     }
 
     /**

@@ -5,13 +5,14 @@ import com.google.common.collect.HashBiMap;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Sign;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
@@ -22,7 +23,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.CardinalDirection;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
 
@@ -30,23 +31,23 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     private static final BiMap<Identifier, Identifier> WALL_MAP = HashBiMap.create();
 
     static {
-        STANDING_MAP.put(ItemIds.SIGN, BlockIds.STANDING_SIGN);
-        STANDING_MAP.put(ItemIds.BIRCH_SIGN, BlockIds.BIRCH_STANDING_SIGN);
-        STANDING_MAP.put(ItemIds.SPRUCE_SIGN, BlockIds.SPRUCE_STANDING_SIGN);
-        STANDING_MAP.put(ItemIds.JUNGLE_SIGN, BlockIds.JUNGLE_STANDING_SIGN);
-        STANDING_MAP.put(ItemIds.ACACIA_SIGN, BlockIds.ACACIA_STANDING_SIGN);
-        STANDING_MAP.put(ItemIds.DARK_OAK_SIGN, BlockIds.DARK_OAK_STANDING_SIGN);
-        STANDING_MAP.put(ItemIds.CRIMSON_SIGN, BlockIds.CRIMSON_STANDING_SIGN);
-        STANDING_MAP.put(ItemIds.WARPED_SIGN, BlockIds.WARPED_STANDING_SIGN);
+        STANDING_MAP.put(ItemTypes.SIGN, BlockTypes.STANDING_SIGN);
+        STANDING_MAP.put(ItemTypes.BIRCH_SIGN, BlockTypes.BIRCH_STANDING_SIGN);
+        STANDING_MAP.put(ItemTypes.SPRUCE_SIGN, BlockTypes.SPRUCE_STANDING_SIGN);
+        STANDING_MAP.put(ItemTypes.JUNGLE_SIGN, BlockTypes.JUNGLE_STANDING_SIGN);
+        STANDING_MAP.put(ItemTypes.ACACIA_SIGN, BlockTypes.ACACIA_STANDING_SIGN);
+        STANDING_MAP.put(ItemTypes.DARK_OAK_SIGN, BlockTypes.DARK_OAK_STANDING_SIGN);
+        STANDING_MAP.put(ItemTypes.CRIMSON_SIGN, BlockTypes.CRIMSON_STANDING_SIGN);
+        STANDING_MAP.put(ItemTypes.WARPED_SIGN, BlockTypes.WARPED_STANDING_SIGN);
 
-        WALL_MAP.put(ItemIds.SIGN, BlockIds.WALL_SIGN);
-        WALL_MAP.put(ItemIds.BIRCH_SIGN, BlockIds.BIRCH_WALL_SIGN);
-        WALL_MAP.put(ItemIds.SPRUCE_SIGN, BlockIds.SPRUCE_WALL_SIGN);
-        WALL_MAP.put(ItemIds.JUNGLE_SIGN, BlockIds.JUNGLE_WALL_SIGN);
-        WALL_MAP.put(ItemIds.ACACIA_SIGN, BlockIds.ACACIA_WALL_SIGN);
-        WALL_MAP.put(ItemIds.DARK_OAK_SIGN, BlockIds.DARK_OAK_WALL_SIGN);
-        WALL_MAP.put(ItemIds.CRIMSON_SIGN, BlockIds.CRIMSON_WALL_SIGN);
-        WALL_MAP.put(ItemIds.WARPED_SIGN, BlockIds.WARPED_WALL_SIGN);
+        WALL_MAP.put(ItemTypes.SIGN, BlockTypes.WALL_SIGN);
+        WALL_MAP.put(ItemTypes.BIRCH_SIGN, BlockTypes.BIRCH_WALL_SIGN);
+        WALL_MAP.put(ItemTypes.SPRUCE_SIGN, BlockTypes.SPRUCE_WALL_SIGN);
+        WALL_MAP.put(ItemTypes.JUNGLE_SIGN, BlockTypes.JUNGLE_WALL_SIGN);
+        WALL_MAP.put(ItemTypes.ACACIA_SIGN, BlockTypes.ACACIA_WALL_SIGN);
+        WALL_MAP.put(ItemTypes.DARK_OAK_SIGN, BlockTypes.DARK_OAK_WALL_SIGN);
+        WALL_MAP.put(ItemTypes.CRIMSON_SIGN, BlockTypes.CRIMSON_WALL_SIGN);
+        WALL_MAP.put(ItemTypes.WARPED_SIGN, BlockTypes.WARPED_WALL_SIGN);
     }
 
     @Override
@@ -107,7 +108,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_AXE;
     }
 

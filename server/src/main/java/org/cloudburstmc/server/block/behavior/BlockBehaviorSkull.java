@@ -3,13 +3,14 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Skull;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -39,7 +40,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
             return false;
         }
 
-        placeBlock(block, BlockState.get(BlockIds.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
+        placeBlock(block, BlockState.get(BlockTypes.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
 
         Skull skull = BlockEntityRegistry.get().newEntity(BlockEntityTypes.SKULL, block);
         skull.loadAdditionalData(item.getTag());
@@ -60,11 +61,11 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
             meta = ((Skull) be).getSkullType();
         }
 
-        return ItemStack.get(ItemIds.SKULL, meta);
+        return ItemStack.get(ItemTypes.SKULL, meta);
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

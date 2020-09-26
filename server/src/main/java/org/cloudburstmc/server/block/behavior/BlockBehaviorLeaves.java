@@ -8,6 +8,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.LeavesDecayEvent;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
@@ -18,9 +19,9 @@ import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
-import static org.cloudburstmc.server.item.ItemIds.APPLE;
-import static org.cloudburstmc.server.item.ItemIds.STICK;
+import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.item.ItemTypes.APPLE;
+import static org.cloudburstmc.server.item.ItemTypes.STICK;
 
 public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
@@ -30,7 +31,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_SHEARS;
     }
 

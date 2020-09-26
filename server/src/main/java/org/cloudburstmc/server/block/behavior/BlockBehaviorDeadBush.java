@@ -4,9 +4,9 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -24,8 +24,8 @@ public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val down = block.down().getState().getType();
-        if (down == BlockIds.SAND || down == BlockIds.HARDENED_CLAY || down == BlockIds.STAINED_HARDENED_CLAY ||
-                down == BlockIds.DIRT || down == BlockIds.PODZOL) {
+        if (down == BlockTypes.SAND || down == BlockTypes.HARDENED_CLAY || down == BlockTypes.STAINED_HARDENED_CLAY ||
+                down == BlockTypes.DIRT || down == BlockTypes.PODZOL) {
             placeBlock(block, item);
             return true;
         }
@@ -52,7 +52,7 @@ public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
             };
         } else {
             return new ItemStack[]{
-                    ItemStack.get(ItemIds.STICK, 0, new Random().nextInt(3))
+                    ItemStack.get(ItemTypes.STICK, 0, new Random().nextInt(3))
             };
         }
     }

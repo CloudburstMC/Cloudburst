@@ -3,8 +3,8 @@ package org.cloudburstmc.server.inventory;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Barrel;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
@@ -45,7 +45,7 @@ public class BarrelInventory extends ContainerInventory {
             Block block = barrel.getBlock();
             val state = block.getState();
 
-            if (state.getType() == BlockIds.BARREL) {
+            if (state.getType() == BlockTypes.BARREL) {
                 if (state.ensureTrait(BlockTraits.IS_OPEN) != open) {
                     block.set(state.withTrait(BlockTraits.IS_OPEN, open));
                     level.addLevelSoundEvent(this.getHolder().getPosition(), open ? SoundEvent.BARREL_OPEN : SoundEvent.BARREL_CLOSE);

@@ -4,7 +4,8 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.ShulkerBox;
 import org.cloudburstmc.server.inventory.ShulkerBoxInventory;
@@ -12,7 +13,6 @@ import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -76,8 +76,8 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
 
     @Override
     public boolean isValid() {
-        Identifier blockId = this.getBlockState().getType();
-        return blockId == BlockIds.SHULKER_BOX || blockId == BlockIds.UNDYED_SHULKER_BOX;
+        BlockType type = this.getBlockState().getType();
+        return type == BlockTypes.SHULKER_BOX || type == BlockTypes.UNDYED_SHULKER_BOX;
     }
 
     @Override

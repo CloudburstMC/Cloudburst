@@ -1,9 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -19,7 +20,7 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
     };
 
     public BlockBehaviorSlabWood() {
-        super(BlockIds.WOODEN_SLAB, BlockIds.DOUBLE_WOODEN_SLAB);
+        super(BlockTypes.WOODEN_SLAB, BlockTypes.DOUBLE_WOODEN_SLAB);
     }
 
     @Override
@@ -33,7 +34,7 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_AXE;
     }
 

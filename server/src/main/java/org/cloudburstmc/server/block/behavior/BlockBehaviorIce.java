@@ -3,11 +3,12 @@ package org.cloudburstmc.server.block.behavior;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.ToolType;
+import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.Player;
@@ -31,8 +32,8 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getToolType() {
-        return ItemToolBehavior.TYPE_PICKAXE;
+    public ToolType getToolType() {
+        return ToolTypes.PICKAXE;
     }
 
     @Override
@@ -43,7 +44,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
         }
 
         if (block.down().getState().inCategory(BlockCategory.SOLID)) {
-            block.set(BlockState.get(BlockIds.WATER));
+            block.set(BlockState.get(BlockTypes.WATER));
         } else {
             return removeBlock(block);
         }
@@ -55,7 +56,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_RANDOM) {
             if (block.getLevel().getBlockLightAt(block.getX(), block.getY(), block.getZ()) >= 12) {
-                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockIds.WATER));
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.WATER));
                 block.getLevel().getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
                     block.getLevel().setBlock(block.getPosition(), event.getNewState(), true);

@@ -10,7 +10,7 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 
-import static org.cloudburstmc.server.block.BlockIds.DETECTOR_RAIL;
+import static org.cloudburstmc.server.block.BlockTypes.DETECTOR_RAIL;
 
 public class BlockBehaviorRailDetector extends BlockBehaviorRail {
 

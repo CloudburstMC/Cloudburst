@@ -5,9 +5,9 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
@@ -66,7 +66,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
                     LevelEventPacket packet = new LevelEventPacket();
                     packet.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
                     packet.setPosition(block.getPosition().toFloat().add(0.5, 0.5, 0.5));
-                    packet.setData(BlockRegistry.get().getRuntimeId(BlockIds.FLOWING_WATER, 0));
+                    packet.setData(BlockRegistry.get().getRuntimeId(BlockTypes.FLOWING_WATER, 0));
                     level.addChunkPacket(block.getPosition(), packet);
                 }
             }

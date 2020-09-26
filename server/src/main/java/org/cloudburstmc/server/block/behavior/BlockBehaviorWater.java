@@ -8,8 +8,8 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockIds.FLOWING_WATER;
-import static org.cloudburstmc.server.block.BlockIds.WATER;
+import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
+import static org.cloudburstmc.server.block.BlockTypes.WATER;
 
 public class BlockBehaviorWater extends BlockBehaviorLiquid {
 

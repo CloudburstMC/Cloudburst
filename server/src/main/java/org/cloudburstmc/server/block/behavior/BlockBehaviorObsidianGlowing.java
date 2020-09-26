@@ -2,14 +2,15 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 
-import static org.cloudburstmc.server.block.BlockIds.OBSIDIAN;
+import static org.cloudburstmc.server.block.BlockTypes.OBSIDIAN;
 
 public class BlockBehaviorObsidianGlowing extends BlockBehaviorSolid {
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.ItemStack;
 
-import static org.cloudburstmc.server.block.BlockIds.DAYLIGHT_DETECTOR;
+import static org.cloudburstmc.server.block.BlockTypes.DAYLIGHT_DETECTOR;
 
 public class BlockBehaviorDaylightDetectorInverted extends BlockBehaviorDaylightDetector {
 

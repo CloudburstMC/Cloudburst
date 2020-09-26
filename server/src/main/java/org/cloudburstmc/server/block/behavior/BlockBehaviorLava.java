@@ -22,8 +22,8 @@ import org.cloudburstmc.server.utils.BlockColor;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.FLOWING_LAVA;
-import static org.cloudburstmc.server.block.BlockIds.LAVA;
+import static org.cloudburstmc.server.block.BlockTypes.FLOWING_LAVA;
+import static org.cloudburstmc.server.block.BlockTypes.LAVA;
 
 public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
@@ -60,7 +60,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        boolean ret = placeBlock(block, BlockState.get(BlockIds.FLOWING_LAVA));
+        boolean ret = placeBlock(block, BlockState.get(BlockTypes.FLOWING_LAVA));
 
         block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
         return ret;
@@ -84,13 +84,13 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                     val b = level.getBlock(v);
                     val state = b.getState();
 
-                    if (state.getType() == BlockIds.AIR) {
+                    if (state.getType() == BlockTypes.AIR) {
                         if (this.isSurroundingBlockFlammable(b)) {
                             BlockIgniteEvent e = new BlockIgniteEvent(b, block, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
                             level.getServer().getEventManager().fire(e);
 
                             if (!e.isCancelled()) {
-                                BlockState fire = BlockState.get(BlockIds.FIRE);
+                                BlockState fire = BlockState.get(BlockTypes.FIRE);
                                 b.set(fire, true);
                                 level.scheduleUpdate(v, fire.getBehavior().tickRate());
                                 return Level.BLOCK_UPDATE_RANDOM;
@@ -108,12 +108,12 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                     val b = level.getBlock(v);
                     val state = b.getState();
 
-                    if (b.up().getState().getType() == BlockIds.AIR && state.getBehavior().getBurnChance() > 0) {
+                    if (b.up().getState().getType() == BlockTypes.AIR && state.getBehavior().getBurnChance() > 0) {
                         BlockIgniteEvent e = new BlockIgniteEvent(b, block, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
                         level.getServer().getEventManager().fire(e);
 
                         if (!e.isCancelled()) {
-                            BlockState fire = BlockState.get(BlockIds.FIRE);
+                            BlockState fire = BlockState.get(BlockTypes.FIRE);
                             b.set(fire, true);
                             level.scheduleUpdate(v, fire.getBehavior().tickRate());
                         }
@@ -173,9 +173,9 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
         if (colliding != null) {
             int level = block.getState().ensureTrait(BlockTraits.FLUID_LEVEL);
             if (level == 0) {
-                this.liquidCollide(colliding, BlockState.get(BlockIds.OBSIDIAN));
+                this.liquidCollide(colliding, BlockState.get(BlockTypes.OBSIDIAN));
             } else if (level <= 4) {
-                this.liquidCollide(colliding, BlockState.get(BlockIds.COBBLESTONE));
+                this.liquidCollide(colliding, BlockState.get(BlockTypes.COBBLESTONE));
             }
         }
     }
@@ -184,7 +184,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     protected void flowIntoBlock(Block block, int newFlowDecay) {
         val behavior = block.getState().getBehavior();
         if (behavior instanceof BlockBehaviorWater) {
-            ((BlockBehaviorLiquid) behavior).liquidCollide(block, BlockState.get(BlockIds.STONE));
+            ((BlockBehaviorLiquid) behavior).liquidCollide(block, BlockState.get(BlockTypes.STONE));
         } else {
             super.flowIntoBlock(block, newFlowDecay);
         }

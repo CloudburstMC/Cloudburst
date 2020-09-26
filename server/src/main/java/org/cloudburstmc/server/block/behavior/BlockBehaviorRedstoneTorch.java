@@ -13,8 +13,8 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockIds.REDSTONE_TORCH;
-import static org.cloudburstmc.server.block.BlockIds.UNLIT_REDSTONE_TORCH;
+import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_TORCH;
+import static org.cloudburstmc.server.block.BlockTypes.UNLIT_REDSTONE_TORCH;
 
 public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 

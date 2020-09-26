@@ -5,10 +5,10 @@ import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
@@ -49,7 +49,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == ItemIds.DYE && item.getMeta() == DyeColor.WHITE.getDyeData()) {
+        if (item.getId() == ItemTypes.DYE && item.getMeta() == DyeColor.WHITE.getDyeData()) {
             if (player != null && player.getGamemode().isSurvival()) {
                 item.decrementCount();
             }
@@ -80,7 +80,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
 
     public boolean canStay(Block block) {
         val state = block.down().getState();
-        return state.getType() == BlockIds.MYCELIUM || state.getType() == BlockIds.PODZOL ||
+        return state.getType() == BlockTypes.MYCELIUM || state.getType() == BlockTypes.PODZOL ||
                 (!state.inCategory(BlockCategory.TRANSPARENT) && block.getLevel().getFullLight(block.getPosition()) < 13);
     }
 
