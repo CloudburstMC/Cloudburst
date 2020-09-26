@@ -119,10 +119,6 @@ public class PropertiesConfig {
         return properties.getGenerateStructures();
     }
 
-    public boolean getBugReport() {
-        return properties.getBugReport();
-    }
-
     public boolean getXboxAuth() {
         return properties.getXboxAuth();
     }

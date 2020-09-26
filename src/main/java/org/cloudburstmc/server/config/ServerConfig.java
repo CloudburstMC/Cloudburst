@@ -29,10 +29,6 @@ public class ServerConfig {
 
     // forwarding cloudburst.yml //
 
-    public boolean getYamlBugReport() {
-        return this.cloudburstYaml.getRawConfig().getBoolean("bug-report", true);
-    }
-
     public Map<String, List<String>> getCommandAliases() {
         Object section = this.cloudburstYaml.getConfig("aliases");
         Map<String, List<String>> result = new LinkedHashMap<>();
@@ -130,6 +126,7 @@ public class ServerConfig {
         return DebugConfig.builder()
                 .level(this.cloudburstYaml.getConfig("debug.level", 1))
                 .ignoredPackets(this.cloudburstYaml.getRawConfig().getStringList("debug.ignored-packets"))
+                .bugReport(this.cloudburstYaml.getRawConfig().getBoolean("debug.bug-report", true))
                 .build()
                 ;
     }

@@ -15,4 +15,6 @@ public class DebugConfig {
 
     List<String> ignoredPackets;
 
+    boolean bugReport;
+
 }

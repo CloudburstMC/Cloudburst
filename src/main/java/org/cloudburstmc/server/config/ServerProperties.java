@@ -46,7 +46,6 @@ public class ServerProperties {
         this.properties.setProperty("enable-query", "true");
         this.properties.setProperty("auto-save", "true");
         this.properties.setProperty("force-resources", "false");
-        this.properties.setProperty("bug-report", "true");
         this.properties.setProperty("xbox-auth", "true");
     }
 
@@ -164,10 +163,6 @@ public class ServerProperties {
 
     public boolean getGenerateStructures() {
         return this.getPropertyBoolean("generate-structures", true);
-    }
-
-    public boolean getBugReport() {
-        return this.getPropertyBoolean("bug-report", true);
     }
 
     public boolean getXboxAuth() {

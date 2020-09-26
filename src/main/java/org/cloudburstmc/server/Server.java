@@ -461,7 +461,7 @@ public class Server {
             this.serverProperties.setDifficulty(Difficulty.HARD);
         }
 
-        if (this.getConfig().getYamlBugReport()) {
+        if (this.getConfig().getDebugConfig().isBugReport()) {
             ExceptionHandler.registerExceptionHandler();
         }
 
