@@ -1,18 +1,20 @@
 package org.cloudburstmc.server.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
-@Value
-@AllArgsConstructor
+@Data
+@Setter(AccessLevel.PRIVATE)
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ChunkSendingConfig {
 
-    int maxChunkRadius;
+    private int maxChunkRadius = 10;
 
-    int perTick;
+    private int perTick = 4;
 
-    int spawnThreshold;
+    private int spawnThreshold = 56;
+
+    private boolean cacheChunks = false;
 
 }

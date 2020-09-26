@@ -1,20 +1,23 @@
 package org.cloudburstmc.server.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
+import java.util.Collections;
 import java.util.List;
 
-@Value
-@AllArgsConstructor
+@Data
+@Setter(AccessLevel.PRIVATE)
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class DebugConfig {
 
-    int level;
+    private int level = 1;
 
-    List<String> ignoredPackets;
+    private List<String> ignoredPackets = Collections.emptyList();
 
-    boolean bugReport;
+    private boolean bugReport = true;
+
+    private boolean commands = false;
 
 }

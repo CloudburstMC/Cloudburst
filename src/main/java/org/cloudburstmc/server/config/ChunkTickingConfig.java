@@ -1,18 +1,20 @@
 package org.cloudburstmc.server.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
-@Value
-@AllArgsConstructor
+@Data
+@Setter(AccessLevel.PRIVATE)
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ChunkTickingConfig {
 
-    int tickRadius;
+    private int tickRadius = 4;
 
-    int perTick;
+    private int perTick = 40;
 
-    boolean clearTickList;
+    private boolean clearTickList = true;
+
+    private boolean lightUpdates = false;
 
 }

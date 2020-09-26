@@ -1,14 +1,20 @@
 package org.cloudburstmc.server.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
-@Value
-@AllArgsConstructor
+@Data
+@Setter(AccessLevel.PRIVATE)
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class TicksPerConfig {
 
-    int autosave;
+    private int autosave = 6000;
+
+    private int animalSpawns = 400;
+
+    private int monsterSpawns = 1;
+
+    private int cacheCleanup = 900;
 
 }

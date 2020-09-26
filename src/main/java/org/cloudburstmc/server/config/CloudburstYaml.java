@@ -1,52 +1,89 @@
 package org.cloudburstmc.server.config;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.*;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.utils.Config;
+import org.cloudburstmc.server.config.serializer.WorldConfigDeserializer;
 
-import java.io.IOException;
 import java.nio.file.Path;
+import java.util.*;
 
-/**
- * represents the cloudburst.yml file on disk
- */
+@Data
+@Setter(AccessLevel.PRIVATE)
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CloudburstYaml {
-    
-    private final Path location;
 
-    private final Config config;
-
-    public CloudburstYaml(Path location) {
-        this.location = location;
-        this.config = new Config(location.toString(), Config.YAML);
+    @SneakyThrows
+    public static CloudburstYaml fromFile(Path file) {
+        final CloudburstYaml yaml = new CloudburstYaml();
+        CloudburstYaml mapped = Bootstrap.KEBAB_CASE_YAML_MAPPER.readerForUpdating(yaml).readValue(file.toFile());
+        //fix: when writing commandAlias in yaml but have no item, mapper will treat it as null
+        if(mapped.getCommandAliases() == null) {
+            mapped = new CloudburstYaml(
+                    Collections.emptyMap(),
+                    mapped.timingsConfig,
+                    mapped.settingsConfig,
+                    mapped.networkConfig,
+                    mapped.levelSettingsConfig,
+                    mapped.chunkSendingConfig,
+                    mapped.chunkTickingConfig,
+                    mapped.chunkGenerationConfig,
+                    mapped.spawnLimitsConfig,
+                    mapped.ticksPerConfig,
+                    mapped.debugConfig,
+                    mapped.playerConfig,
+                    mapped.worldConfig
+            );
+        }
+        return mapped;
     }
 
-    // generic getter //
+    @JsonProperty("aliases")
+    private Map<String, List<String>> commandAliases = new HashMap<>();
 
-    public Path getLocation() {
-        return location;
-    }
+    @JsonProperty("timings")
+    private TimingsConfig timingsConfig = new TimingsConfig();
 
-    public Config getRawConfig() {
-        return config;
-    }
+    @JsonProperty("settings")
+    private SettingsConfig settingsConfig = new SettingsConfig();
 
-    public <T> T getConfig(String variable) {
-        return this.getConfig(variable, null);
-    }
+    @JsonProperty("network")
+    private NetworkConfig networkConfig = new NetworkConfig();
 
-    @SuppressWarnings("unchecked")
-    public <T> T getConfig(String variable, T defaultValue) {
-        Object value = this.config.get(variable);
-        return value == null ? defaultValue : (T) value;
-    }
+    @JsonProperty("level-settings")
+    private LevelSettingsConfig levelSettingsConfig = new LevelSettingsConfig();
+
+    @JsonProperty("chunk-sending")
+    private ChunkSendingConfig chunkSendingConfig = new ChunkSendingConfig();
+
+    @JsonProperty("chunk-ticking")
+    private ChunkTickingConfig chunkTickingConfig = new ChunkTickingConfig();
+
+    @JsonProperty("chunk-generation")
+    private ChunkGenerationConfig chunkGenerationConfig = new ChunkGenerationConfig();
+
+    @JsonProperty("spawn-limits")
+    private SpawnLimitsConfig spawnLimitsConfig = new SpawnLimitsConfig();
+
+    @JsonProperty("ticks-per")
+    private TicksPerConfig ticksPerConfig = new TicksPerConfig();
+
+    @JsonProperty("debug")
+    private DebugConfig debugConfig = new DebugConfig();
+
+    @JsonProperty("player")
+    private PlayerConfig playerConfig = new PlayerConfig();
+
+    @JsonProperty("worlds")
+    @JsonDeserialize(using= WorldConfigDeserializer.class)
+    private Map<String, WorldConfig> worldConfig = new HashMap<>();
 
     public ObjectNode getRootNode() {
-        try {
-            return (ObjectNode) Bootstrap.YAML_MAPPER.readTree(location.toFile());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return Bootstrap.KEBAB_CASE_YAML_MAPPER.valueToTree(this);
     }
 
 }

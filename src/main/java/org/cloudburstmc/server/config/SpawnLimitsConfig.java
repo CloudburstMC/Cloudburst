@@ -7,10 +7,14 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlayerConfig {
+public class SpawnLimitsConfig {
 
-    private int skinChangeCooldown = 30;
+    private int monsters;
 
-    private boolean savePlayerData = true;
+    private int animals;
+
+    private int waterAnimals;
+
+    private int ambient;
 
 }

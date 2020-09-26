@@ -7,10 +7,10 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlayerConfig {
+public class ChunkGenerationConfig {
 
-    private int skinChangeCooldown = 30;
+    private int queueSize = 8;
 
-    private boolean savePlayerData = true;
+    private int populationQueueSize = 8;
 
 }

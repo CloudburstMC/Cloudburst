@@ -1,24 +1,29 @@
 package org.cloudburstmc.server.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import lombok.*;
 
 import java.util.List;
 
-@Value
-@AllArgsConstructor
+@Data
+@Setter(AccessLevel.PRIVATE)
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class SettingsConfig {
 
-    boolean queryPlugins;
+    private boolean queryPlugins = true;
 
-    String shutdownMessage;
+    private String shutdownMessage = "Server closed";
 
-    boolean forceLanguage;
+    private boolean forceLanguage = false;
 
-    String language;
+    private String language = "en_US";
 
-    Object asyncWorkers;
+    private String asyncWorkers = "auto";
+
+    private boolean deprecatedVerbose = true;
 
 }

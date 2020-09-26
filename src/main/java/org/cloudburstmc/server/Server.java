@@ -387,7 +387,7 @@ public class Server {
         this.console.setExecutingCommands(true);
 
         log.info("Loading {} ...", TextFormat.GREEN + "cloudburst.yml" + TextFormat.WHITE);
-        this.cloudburstYaml = new CloudburstYaml(configPath);
+        this.cloudburstYaml = CloudburstYaml.fromFile(configPath);
 
         ignoredPackets.addAll(getConfig().getDebugConfig().getIgnoredPackets());
 

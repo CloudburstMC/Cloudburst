@@ -1,26 +1,26 @@
 package org.cloudburstmc.server.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
-@Value
-@AllArgsConstructor
+@Data
+@Setter(AccessLevel.PRIVATE)
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class LevelSettingsConfig {
 
-    boolean autoTickRate;
+    private boolean autoTickRate = true;
 
-    int autoTickRateLimit;
+    private int autoTickRateLimit = 20;
 
-    boolean alwaysTickPlayers;
+    private boolean alwaysTickPlayers = false;
 
-    int baseTickRate;
+    private int baseTickRate = 1;
 
-    int chunkTimeoutAfterLoad;
+    private int chunkTimeoutAfterLoad = 30;
 
-    String defaultFormat;
+    private String defaultFormat = "minecraft:leveldb";
 
-    int chunkTimeoutAfterLastAccess;
+    private int chunkTimeoutAfterLastAccess = 120;
 
 }

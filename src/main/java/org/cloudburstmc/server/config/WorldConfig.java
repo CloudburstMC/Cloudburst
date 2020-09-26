@@ -1,18 +1,18 @@
 package org.cloudburstmc.server.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
-@Value
-@AllArgsConstructor
+@Data
+@Setter(AccessLevel.PRIVATE)
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class WorldConfig {
 
-    Object seed;
+    private Object seed = null;
 
-    String generator;
+    private String generator = null;
 
-    String options;
+    private String options = null;
 
 }

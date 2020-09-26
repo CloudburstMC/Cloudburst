@@ -1,16 +1,18 @@
 package org.cloudburstmc.server.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
-@Value
-@AllArgsConstructor
+@Data
+@Setter(AccessLevel.PRIVATE)
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class NetworkConfig {
 
-    int compressionLevel;
+    private int compressionLevel = 7;
 
-    boolean asyncCompression;
+    private boolean asyncCompression = true;
+
+    private int batchThreshold = 256;
 
 }

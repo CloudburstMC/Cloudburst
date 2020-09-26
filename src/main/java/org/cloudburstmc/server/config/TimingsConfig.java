@@ -1,28 +1,29 @@
 package org.cloudburstmc.server.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 
+import java.util.Collections;
 import java.util.List;
 
-@Value
-@AllArgsConstructor
+@Data
+@Setter(AccessLevel.PRIVATE)
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class TimingsConfig {
 
-    boolean enabled;
+    private boolean enabled = false;
 
-    boolean verbose;
+    private boolean verbose = false;
 
-    boolean privacy;
+    private boolean privacy = false;
 
-    int historyInterval;
+    private int historyInterval = 6000;
 
-    int historyLength;
+    private int historyLength = 72000;
 
-    List<String> ignore;
+    private List<String> ignore = Collections.emptyList();
 
-    boolean bypassMax;
+    private boolean bypassMax = false;
 
 }
