@@ -2,10 +2,10 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.food.Food;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
@@ -61,7 +61,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (block.down().getState().getType() != BlockIds.AIR) {
+        if (block.down().getState().getType() != BlockTypes.AIR) {
             placeBlock(block, item);
 
             return true;
@@ -72,7 +72,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (block.down().getState().getType() == BlockIds.AIR) {
+            if (block.down().getState().getType() == BlockTypes.AIR) {
                 removeBlock(block, true);
 
                 return Level.BLOCK_UPDATE_NORMAL;
@@ -89,7 +89,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.CAKE);
+        return ItemStack.get(ItemTypes.CAKE);
     }
 
     @Override

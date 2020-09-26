@@ -3,15 +3,14 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Banner;
 import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
@@ -23,8 +22,8 @@ import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.CardinalDirection;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
-import static org.cloudburstmc.server.block.BlockIds.WALL_BANNER;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.WALL_BANNER;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.BANNER;
 
 public class BlockBehaviorBanner extends BlockBehaviorTransparent {
@@ -40,8 +39,8 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     @Override
-    public int getToolType() {
-        return ItemToolBehavior.TYPE_AXE;
+    public ToolType getToolType() {
+        return ToolTypes.AXE;
     }
 
     @Override
@@ -59,12 +58,11 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
         if (face != Direction.DOWN) {
             BlockState banner;
             if (face == Direction.UP) {
-                banner = BlockRegistry.get().getBlock(BlockIds.STANDING_BANNER)
+                banner = BlockRegistry.get().getBlock(BlockTypes.STANDING_BANNER)
                         .withTrait(
                                 BlockTraits.CARDINAL_DIRECTION,
                                 CardinalDirection.values()[NukkitMath.floorDouble(((player.getYaw() + 180) * 16 / 360) + 0.5) & 0x0f]
                         );
-
             } else {
                 banner = BlockRegistry.get().getBlock(WALL_BANNER)
                         .withTrait(BlockTraits.FACING_DIRECTION, face);
@@ -72,11 +70,8 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
 
             block.set(banner, true);
 
-            NbtMapBuilder tag = NbtMap.builder();
-            item.saveAdditionalData(tag);
-            tag.putInt("Base", item.getMeta());
-
-            BlockEntityRegistry.get().newEntity(BANNER, block.getChunk(), block.getPosition()).loadAdditionalData(tag.build());
+            NbtMap tag = ((CloudItemStack) item).getDataTag();
+            BlockEntityRegistry.get().newEntity(BANNER, block.getChunk(), block.getPosition()).loadAdditionalData(tag);
 
             return true;
         }
@@ -99,18 +94,18 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     @Override
     public ItemStack toItem(Block block) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
-        ItemStack item = ItemStack.get(ItemIds.BANNER);
+        val builder = new CloudItemStackBuilder();
+        builder.itemType(ItemTypes.BANNER);
         if (blockEntity instanceof Banner) {
             Banner banner = (Banner) blockEntity;
-            item.setMeta(banner.getBase().getDyeData());
 
             NbtMapBuilder tag = NbtMap.builder();
             banner.saveAdditionalData(tag);
-            tag.remove("Base");
 
-            item.loadAdditionalData(tag.build());
+            return ItemUtils.deserializeItem(ItemIds.BANNER, (short) banner.getBase().getDyeData(), 1, tag.build());
+        } else {
+            return ItemStack.get(ItemTypes.BANNER);
         }
-        return item;
     }
 
     @Override

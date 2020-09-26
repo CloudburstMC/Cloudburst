@@ -3,8 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -23,7 +24,7 @@ public class BlockBehaviorOreCoal extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 
@@ -43,7 +44,7 @@ public class BlockBehaviorOreCoal extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemIds.COAL, 0, count)
+                    ItemStack.get(ItemTypes.COAL, 0, count)
             };
         } else {
             return new ItemStack[0];

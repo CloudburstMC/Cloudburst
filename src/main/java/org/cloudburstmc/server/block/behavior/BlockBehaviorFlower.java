@@ -12,11 +12,12 @@ import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
-import static org.cloudburstmc.server.item.ItemIds.DYE;
+import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.item.ItemTypes.DYE;
 
 public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
@@ -55,10 +56,10 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == DYE && item.getMeta() == 0x0f) { //Bone meal
+        if (item.getType() == DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bone meal
             val level = block.getLevel();
             if (player != null && player.getGamemode().isSurvival()) {
-                item.decrementCount();
+                player.getInventory().decrementHandCount();
             }
 
             level.addParticle(new BoneMealParticle(block.getPosition()));

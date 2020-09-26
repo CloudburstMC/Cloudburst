@@ -12,7 +12,7 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockIds.COBBLESTONE_WALL;
+import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE_WALL;
 
 public class BlockBehaviorTorch extends FloodableBlockBehavior {
 

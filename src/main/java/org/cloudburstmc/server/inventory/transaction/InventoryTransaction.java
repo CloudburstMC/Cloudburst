@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.inventory.transaction;
 
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.server.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.server.event.inventory.InventoryTransactionEvent;
 import org.cloudburstmc.server.inventory.Inventory;
@@ -97,18 +98,29 @@ public class InventoryTransaction {
             }
         }
 
-        for (ItemStack needItem : new ArrayList<>(needItems)) {
-            for (ItemStack haveItem : new ArrayList<>(haveItems)) {
+        val needIterator = needItems.listIterator();
+
+        while (needIterator.hasNext()) {
+            val needItem = needIterator.next();
+            val haveIterator = haveItems.listIterator();
+
+            while (haveIterator.hasNext()) {
+                val haveItem = haveIterator.next();
+
                 if (needItem.equals(haveItem)) {
                     int amount = Math.min(haveItem.getCount(), needItem.getCount());
-                    needItem.setCount(needItem.getCount() - amount);
-                    haveItem.setCount(haveItem.getCount() - amount);
-                    if (haveItem.getCount() == 0) {
-                        haveItems.remove(haveItem);
+
+                    if (haveItem.getCount() - amount <= 0) {
+                        haveIterator.remove();
+                    } else {
+                        haveIterator.set(haveItem.decrementAmount(amount));
                     }
-                    if (needItem.getCount() == 0) {
-                        needItems.remove(needItem);
+
+                    if (needItem.getCount() - amount <= 0) {
+                        needIterator.remove();
                         break;
+                    } else {
+                        needIterator.set(needItem.decrementAmount(amount));
                     }
                 }
             }
@@ -199,7 +211,7 @@ public class InventoryTransaction {
                         list.remove(i);
                         sortedThisLoop++;
                     } else if (actionSource.equals(lastTargetItem)) {
-                        lastTargetItem.decrementCount(actionSource.getCount());
+                        lastTargetItem = lastTargetItem.decrementAmount(actionSource.getCount());
                         list.remove(i);
                         if (lastTargetItem.getCount() == 0) sortedThisLoop++;
                     }

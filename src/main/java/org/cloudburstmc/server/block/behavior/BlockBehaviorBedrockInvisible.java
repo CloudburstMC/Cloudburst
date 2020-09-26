@@ -4,7 +4,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
 

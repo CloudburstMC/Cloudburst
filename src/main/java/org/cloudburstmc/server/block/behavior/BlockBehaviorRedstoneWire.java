@@ -9,8 +9,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -20,8 +20,8 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.cloudburstmc.server.block.BlockIds.GLOWSTONE;
-import static org.cloudburstmc.server.block.BlockIds.REDSTONE_WIRE;
+import static org.cloudburstmc.server.block.BlockTypes.GLOWSTONE;
+import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_WIRE;
 
 public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
@@ -198,7 +198,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.REDSTONE);
+        return ItemStack.get(ItemTypes.REDSTONE);
     }
 
     public int getStrongPower(Block block, Direction side) {

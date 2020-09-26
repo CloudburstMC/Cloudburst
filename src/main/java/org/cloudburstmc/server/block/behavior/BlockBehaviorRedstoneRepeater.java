@@ -2,20 +2,13 @@ package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
-
-    public BlockBehaviorRedstoneRepeater(Identifier type) {
-        super(type);
-        this.isPowered = true;
-    }
 
     @Override
     protected boolean isAlternateInput(Block block) {
@@ -24,22 +17,12 @@ public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.REPEATER);
+        return ItemStack.get(ItemTypes.REPEATER);
     }
 
     @Override
     protected int getDelay(BlockState state) {
         return (1 + state.ensureTrait(BlockTraits.REPEATER_DELAY)) * 2;
-    }
-
-    @Override
-    protected BlockState getPowered(BlockState state) {
-        return BlockState.get(BlockIds.POWERED_REPEATER).copyTraits(state);
-    }
-
-    @Override
-    protected BlockState getUnpowered(BlockState state) {
-        return BlockState.get(BlockIds.UNPOWERED_REPEATER).copyTraits(state);
     }
 
     @Override

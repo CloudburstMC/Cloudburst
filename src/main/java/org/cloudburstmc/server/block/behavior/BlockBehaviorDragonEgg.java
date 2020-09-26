@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
@@ -52,7 +52,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
             Block t = block.getLevel().getBlock(block.getPosition().add(random.nextInt(-16, 16),
                     random.nextInt(-16, 16), random.nextInt(-16, 16)));
             BlockBehavior behavior = t.getState().getBehavior();
-            if (t.getState().getType() == BlockIds.AIR || (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging())) {
+            if (t.getState().getType() == BlockTypes.AIR || (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging())) {
                 int diffX = block.getX() - t.getX();
                 int diffY = block.getY() - t.getY();
                 int diffZ = block.getZ() - t.getZ();

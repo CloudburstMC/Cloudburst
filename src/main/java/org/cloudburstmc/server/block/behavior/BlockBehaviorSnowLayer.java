@@ -3,8 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
@@ -24,7 +25,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_SHOVEL;
     }
 
@@ -37,7 +38,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
         if (down.inCategory(BlockCategory.SOLID)) {
-            placeBlock(block, BlockState.get(BlockIds.SNOW_LAYER));
+            placeBlock(block, BlockState.get(BlockTypes.SNOW_LAYER));
             return true;
         }
         return false;
@@ -61,7 +62,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.SNOWBALL);
+        return ItemStack.get(ItemTypes.SNOWBALL);
     }
 
     @Override

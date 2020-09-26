@@ -12,19 +12,11 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-import static org.cloudburstmc.server.block.BlockIds.REDSTONE_BLOCK;
-import static org.cloudburstmc.server.block.BlockIds.REDSTONE_WIRE;
+import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_BLOCK;
+import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_WIRE;
 
 public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior {
-
-    protected final Identifier type;
-    protected boolean isPowered = false;
-
-    public BlockBehaviorRedstoneDiode(Identifier type) {
-        this.type = type;
-    }
 
     @Override
     public boolean onBreak(Block block, ItemStack item) {
@@ -43,7 +35,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
             return false;
         }
 
-        placeBlock(block, BlockState.get(this.type).withTrait(
+        placeBlock(block, item.getBehavior().getBlock(item).withTrait(
                 BlockTraits.DIRECTION,
                 player != null ? player.getHorizontalDirection().getOpposite() : Direction.NORTH
         ));
@@ -62,13 +54,14 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
             if (!this.isLocked(block)) {
                 Vector3i pos = block.getPosition();
                 boolean shouldBePowered = this.shouldBePowered(block);
+                boolean powered = isPowered(block.getState());
                 val state = block.getState();
 
-                if (this.isPowered && !shouldBePowered) {
+                if (powered && !shouldBePowered) {
                     block.set(this.getUnpowered(state), true, true);
 
                     level.updateAroundRedstone(this.getFacing(state).getOpposite().getOffset(pos), null);
-                } else if (!this.isPowered) {
+                } else if (!powered) {
                     block.set(this.getPowered(state), true, true);
                     level.updateAroundRedstone(this.getFacing(state).getOpposite().getOffset(pos), null);
 
@@ -95,10 +88,9 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
 
     public void updateState(Block block) {
         if (!this.isLocked(block)) {
-            boolean shouldPowered = this.shouldBePowered(block);
 
             Level level = block.getLevel();
-            if ((this.isPowered && !shouldPowered || !this.isPowered && shouldPowered) &&
+            if (this.isPowered(block.getState()) != this.shouldBePowered(block) &&
                     !level.isBlockTickPending(block.getPosition(), block)) {
                 /*int priority = -1;
 
@@ -162,9 +154,13 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
 
     protected abstract int getDelay(BlockState state);
 
-    protected abstract BlockState getUnpowered(BlockState state);
+    protected BlockState getPowered(BlockState state) {
+        return state.withTrait(BlockTraits.IS_POWERED, true);
+    }
 
-    protected abstract BlockState getPowered(BlockState state);
+    protected BlockState getUnpowered(BlockState state) {
+        return state.withTrait(BlockTraits.IS_POWERED, false);
+    }
 
 //    @Override //TODO: bounding box
 //    public float getMaxY() {
@@ -203,7 +199,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     public boolean isPowered(BlockState state) {
-        return isPowered;
+        return state.ensureTrait(BlockTraits.IS_POWERED);
     }
 
     public boolean isFacingTowardsRepeater(Block block) {

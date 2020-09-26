@@ -3,14 +3,15 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.ToolType;
+import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.player.Player;
 
 public class BlockBehaviorBlueIce extends BlockBehaviorIce {
 
     @Override
-    public int getToolType() {
-        return ItemToolBehavior.TYPE_PICKAXE;
+    public ToolType getToolType() {
+        return ToolTypes.PICKAXE;
     }
 
     @Override

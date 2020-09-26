@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 
 public class BlockBehaviorPumpkinLit extends BlockBehaviorPumpkin {
 
     public BlockBehaviorPumpkinLit() {
-        super(BlockIds.LIT_PUMPKIN);
+        super(BlockTypes.LIT_PUMPKIN);
     }
 
     @Override

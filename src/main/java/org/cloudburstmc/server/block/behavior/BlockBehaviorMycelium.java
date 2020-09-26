@@ -9,6 +9,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockSpreadEvent;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -16,13 +17,13 @@ import org.cloudburstmc.server.utils.data.DirtType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.DIRT;
-import static org.cloudburstmc.server.block.BlockIds.MYCELIUM;
+import static org.cloudburstmc.server.block.BlockTypes.DIRT;
+import static org.cloudburstmc.server.block.BlockTypes.MYCELIUM;
 
 public class BlockBehaviorMycelium extends BlockBehaviorSolid {
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_SHOVEL;
     }
 

@@ -7,25 +7,18 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Comparator;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
-import static org.cloudburstmc.server.block.BlockIds.POWERED_COMPARATOR;
-import static org.cloudburstmc.server.block.BlockIds.UNPOWERED_COMPARATOR;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.COMPARATOR;
 
 public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode {
-
-    public BlockBehaviorRedstoneComparator(Identifier type) {
-        super(type);
-    }
 
     @Override
     protected int getDelay(BlockState state) {
@@ -34,16 +27,6 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     public Mode getMode(BlockState state) {
         return state.ensureTrait(BlockTraits.IS_OUTPUT_SUBTRACT) ? Mode.SUBTRACT : Mode.COMPARE;
-    }
-
-    @Override
-    protected BlockState getUnpowered(BlockState state) {
-        return BlockState.get(UNPOWERED_COMPARATOR).copyTraits(state);
-    }
-
-    @Override
-    protected BlockState getPowered(BlockState state) {
-        return BlockState.get(POWERED_COMPARATOR).copyTraits(state);
     }
 
     @Override
@@ -172,12 +155,12 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     @Override
     public boolean isPowered(BlockState state) {
-        return this.isPowered || state.ensureTrait(BlockTraits.IS_OUTPUT_LIT);
+        return state.ensureTrait(BlockTraits.IS_POWERED) || state.ensureTrait(BlockTraits.IS_OUTPUT_LIT);
     }
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.COMPARATOR);
+        return ItemStack.get(ItemTypes.COMPARATOR);
     }
 
     public enum Mode {

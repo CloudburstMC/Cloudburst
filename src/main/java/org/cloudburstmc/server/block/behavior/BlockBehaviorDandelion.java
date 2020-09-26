@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.BlockState;
 
-import static org.cloudburstmc.server.block.BlockIds.RED_FLOWER;
+import static org.cloudburstmc.server.block.BlockTypes.RED_FLOWER;
 
 public class BlockBehaviorDandelion extends BlockBehaviorFlower {
 

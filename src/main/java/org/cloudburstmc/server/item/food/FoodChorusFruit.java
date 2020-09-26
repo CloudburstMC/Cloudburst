@@ -18,7 +18,7 @@ public class FoodChorusFruit extends FoodNormal {
 
     public FoodChorusFruit() {
         super(4, 2.4F);
-        addRelative(ItemIds.CHORUS_FRUIT);
+        setMetadata(ItemIds.CHORUS_FRUIT);
     }
 
     @Override

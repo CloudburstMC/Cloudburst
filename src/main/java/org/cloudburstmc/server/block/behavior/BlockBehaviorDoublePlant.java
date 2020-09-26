@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.*;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -14,7 +14,7 @@ import org.cloudburstmc.server.utils.data.DoublePlantType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
@@ -86,13 +86,13 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                     if (hand.isShears()) {
                         //todo enchantment
                         return new ItemStack[]{
-                                ItemStack.get(BlockIds.TALL_GRASS, type == DoublePlantType.GRASS ? 1 : 2, 2)
+                                ItemStack.get(BlockTypes.TALL_GRASS, type == DoublePlantType.GRASS ? 1 : 2, 2)
                         };
                     }
 
                     if (dropSeeds) {
                         return new ItemStack[]{
-                                ItemStack.get(ItemIds.WHEAT_SEEDS)
+                                ItemStack.get(ItemTypes.WHEAT_SEEDS)
                         };
                     } else {
                         return new ItemStack[0];
@@ -117,7 +117,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) { //Bone meal
+        if (item.getId() == ItemTypes.DYE && item.getMeta() == 0x0f) { //Bone meal
             switch (block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE)) {
                 case SUNFLOWER:
                 case SYRINGA:

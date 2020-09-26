@@ -178,7 +178,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (block.down().getState().getType() == BlockIds.AIR) {
+            if (block.down().getState().getType() == BlockTypes.AIR) {
                 Block up = block.up();
 
                 if (up.getState().inCategory(BlockCategory.DOOR)) {

@@ -5,8 +5,8 @@ import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -19,7 +19,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.REEDS);
+        return ItemStack.get(ItemTypes.REEDS);
     }
 
     @Override
@@ -29,14 +29,14 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0F) { //Bonemeal
+        if (item.getId() == ItemTypes.DYE && item.getMeta() == 0x0F) { //Bonemeal
             int count = 1;
             val level = block.getLevel();
 
             for (int i = 1; i <= 2; i++) {
                 Identifier id = level.getBlockAt(block.getX(), block.getY() - i, block.getZ()).getType();
 
-                if (id == BlockIds.REEDS) {
+                if (id == BlockTypes.REEDS) {
                     count++;
                 }
             }
@@ -48,14 +48,14 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
                 for (int i = 1; i <= toGrow; i++) {
                     Block b = block.up(i);
                     if (b.getState() == BlockStates.AIR) {
-                        BlockGrowEvent ev = new BlockGrowEvent(b, BlockState.get(BlockIds.REEDS));
+                        BlockGrowEvent ev = new BlockGrowEvent(b, BlockState.get(BlockTypes.REEDS));
                         Server.getInstance().getEventManager().fire(ev);
 
                         if (!ev.isCancelled()) {
                             b.set(ev.getNewState(), true);
                             success = true;
                         }
-                    } else if (b.getState().getType() != BlockIds.REEDS) {
+                    } else if (b.getState().getType() != BlockTypes.REEDS) {
                         break;
                     }
                 }
@@ -78,19 +78,19 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             BlockState down = block.downState();
-            if (down.inCategory(BlockCategory.TRANSPARENT) && down.getType() != BlockIds.REEDS) {
+            if (down.inCategory(BlockCategory.TRANSPARENT) && down.getType() != BlockTypes.REEDS) {
                 block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
         } else if (type == Level.BLOCK_UPDATE_RANDOM) {
-            if (block.downState().getType() != BlockIds.REEDS) {
+            if (block.downState().getType() != BlockTypes.REEDS) {
                 val state = block.getState();
 
                 if (state.ensureTrait(BlockTraits.AGE) == 15) {
                     for (int y = 1; y < 3; ++y) {
                         Block b = block.up(y);
                         if (b.getState() == BlockStates.AIR) {
-                            b.set(BlockState.get(BlockIds.REEDS));
+                            b.set(BlockState.get(BlockTypes.REEDS));
                             break;
                         }
                     }
@@ -113,14 +113,14 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
         Block down = block.down();
         val downType = down.getState().getType();
 
-        if (downType == BlockIds.REEDS) {
-            return placeBlock(block, BlockState.get(BlockIds.REEDS));
-        } else if (downType == BlockIds.GRASS || downType == BlockIds.DIRT || downType == BlockIds.SAND) {
+        if (downType == BlockTypes.REEDS) {
+            return placeBlock(block, BlockState.get(BlockTypes.REEDS));
+        } else if (downType == BlockTypes.GRASS || downType == BlockTypes.DIRT || downType == BlockTypes.SAND) {
             for (Direction direction : Plane.HORIZONTAL) {
                 val sideType = down.getSideState(direction).getType();
 
-                if (sideType == BlockIds.WATER || sideType == BlockIds.FLOWING_WATER) {
-                    return placeBlock(block, BlockState.get(BlockIds.REEDS));
+                if (sideType == BlockTypes.WATER || sideType == BlockTypes.FLOWING_WATER) {
+                    return placeBlock(block, BlockState.get(BlockTypes.REEDS));
                 }
             }
         }

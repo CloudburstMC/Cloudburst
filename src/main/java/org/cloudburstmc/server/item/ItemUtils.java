@@ -36,14 +36,22 @@ public class ItemUtils {
     }
 
     public static ItemStack deserializeItem(NbtMap tag) {
-        CloudItemStackBuilder builder = new CloudItemStackBuilder();
-
         if (!tag.containsKey("Name", NbtType.STRING) || !tag.containsKey("Count", NbtType.BYTE)) {
             return registry.getItem(BlockTypes.AIR);
         }
 
-        Identifier id = Identifier.fromString(tag.getString("Name"));
-        registry.getSerializer(registry.getType(id)).deserialize(id, tag.getShort("Damage", (short) 0), tag.getByte("Count"), builder, tag);
+        return deserializeItem(
+                Identifier.fromString(tag.getString("Name")),
+                tag.getShort("Damage", (short) 0),
+                tag.getByte("Count"),
+                tag.getCompound("tag", NbtMap.EMPTY)
+        );
+    }
+
+    public static ItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag) {
+        CloudItemStackBuilder builder = new CloudItemStackBuilder();
+
+        registry.getSerializer(registry.getType(id)).deserialize(id, damage, amount, builder, tag);
 
         return builder.build();
     }

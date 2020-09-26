@@ -3,8 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 
 import java.util.Random;
@@ -23,7 +24,7 @@ public class BlockBehaviorOreLapis extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 
@@ -43,7 +44,7 @@ public class BlockBehaviorOreLapis extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemIds.DYE, 4, new Random().nextInt(4) + 4)
+                    ItemStack.get(ItemTypes.DYE, 4, new Random().nextInt(4) + 4)
             };
         } else {
             return new ItemStack[0];

@@ -1,9 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 
-import static org.cloudburstmc.server.block.BlockIds.WOODEN_SLAB;
+import static org.cloudburstmc.server.block.BlockTypes.WOODEN_SLAB;
 
 public class BlockBehaviorDoubleSlabWood extends BlockBehaviorDoubleSlab {
 
@@ -17,7 +18,7 @@ public class BlockBehaviorDoubleSlabWood extends BlockBehaviorDoubleSlab {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_AXE;
     }
 

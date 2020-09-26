@@ -1,19 +1,17 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.enchantment.EnchantmentTypes;
+import org.cloudburstmc.server.item.*;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorOreEmerald extends BlockBehaviorSolid {
 
     @Override
-    public int getToolType() {
-        return ItemToolBehavior.TYPE_PICKAXE;
+    public ToolType getToolType() {
+        return ToolTypes.PICKAXE;
     }
 
     @Override
@@ -28,9 +26,9 @@ public class BlockBehaviorOreEmerald extends BlockBehaviorSolid {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_IRON) {
+        if (hand.getBehavior().isPickaxe() && hand.getBehavior().getTier(hand).compareTo(TierTypes.IRON) >= 0) {
             int count = 1;
-            EnchantmentInstance fortune = hand.getEnchantment(CloudEnchantmentInstance.ID_FORTUNE_DIGGING);
+            EnchantmentInstance fortune = hand.getEnchantment(EnchantmentTypes.FORTUNE);
             if (fortune != null && fortune.getLevel() >= 1) {
                 int i = ThreadLocalRandom.current().nextInt(fortune.getLevel() + 2) - 1;
 
@@ -42,7 +40,7 @@ public class BlockBehaviorOreEmerald extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemIds.EMERALD, 0, count)
+                    ItemStack.get(ItemTypes.EMERALD, 0, count)
             };
         } else {
             return new ItemStack[0];

@@ -8,6 +8,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.ToString;
+import lombok.experimental.Delegate;
 import lombok.val;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentType;
@@ -196,6 +197,7 @@ public class CloudItemStack implements ItemStack {
     }
 
     @Override
+    @Delegate
     public ItemBehavior getBehavior() {
         return CloudItemRegistry.get().getBehavior(this.type);
     }

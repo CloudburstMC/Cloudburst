@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.misc.FallingBlock;
 import org.cloudburstmc.server.level.Level;
@@ -15,7 +15,7 @@ public abstract class BlockBehaviorFallable extends BlockBehaviorSolid {
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             BlockState down = block.down().getState();
-            if (down.getType() == BlockIds.AIR || down.inCategory(BlockCategory.LIQUID)) {
+            if (down.getType() == BlockTypes.AIR || down.inCategory(BlockCategory.LIQUID)) {
                 removeBlock(block, true);
 
                 FallingBlock fallingBlock = EntityRegistry.get().newEntity(EntityTypes.FALLING_BLOCK,

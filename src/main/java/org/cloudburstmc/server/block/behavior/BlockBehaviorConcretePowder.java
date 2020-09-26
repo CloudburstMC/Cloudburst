@@ -6,6 +6,7 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
@@ -14,7 +15,7 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
-import static org.cloudburstmc.server.block.BlockIds.CONCRETE;
+import static org.cloudburstmc.server.block.BlockTypes.CONCRETE;
 
 public class BlockBehaviorConcretePowder extends BlockBehaviorFallable {
 
@@ -29,7 +30,7 @@ public class BlockBehaviorConcretePowder extends BlockBehaviorFallable {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_SHOVEL;
     }
 

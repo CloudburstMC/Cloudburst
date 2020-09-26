@@ -3,8 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -38,7 +38,7 @@ public class BlockBehaviorGlowstone extends BlockBehaviorTransparent {
         }
 
         return new ItemStack[]{
-                ItemStack.get(ItemIds.GLOWSTONE_DUST, 0, MathHelper.clamp(count, 1, 4))
+                ItemStack.get(ItemTypes.GLOWSTONE_DUST, 0, MathHelper.clamp(count, 1, 4))
         };
     }
 

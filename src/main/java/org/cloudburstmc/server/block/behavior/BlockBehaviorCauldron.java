@@ -8,8 +8,9 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Cauldron;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemBucketBehavior;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Sound;
@@ -33,7 +34,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 
@@ -66,7 +67,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
         Identifier itemType = item.getId();
 
-        if (itemType == ItemIds.BUCKET) {
+        if (itemType == ItemTypes.BUCKET) {
             if (item.getMeta() == 0) {//empty bucket
                 if (!isFull(block) || cauldron.hasCustomColor() || cauldron.getPotionId() != 0) {
                     return true;
@@ -114,12 +115,12 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                     //this.update();
                 }
             }
-        } else if (itemType == ItemIds.DYE) {
+        } else if (itemType == ItemTypes.DYE) {
             // todo
-        } else if (itemType == ItemIds.LEATHER_HELMET || itemType == ItemIds.LEATHER_CHESTPLATE ||
-                itemType == ItemIds.LEATHER_LEGGINGS || itemType == ItemIds.LEATHER_BOOTS) {
+        } else if (itemType == ItemTypes.LEATHER_HELMET || itemType == ItemTypes.LEATHER_CHESTPLATE ||
+                itemType == ItemTypes.LEATHER_LEGGINGS || itemType == ItemTypes.LEATHER_BOOTS) {
             // todo
-        } else if (itemType == ItemIds.POTION) {
+        } else if (itemType == ItemTypes.POTION) {
             if (isFull(block)) {
                 return true;
             }
@@ -130,7 +131,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 item.setCount(item.getCount() - 1);
                 player.getInventory().setItemInHand(item);
 
-                ItemStack bottle = ItemStack.get(ItemIds.GLASS_BOTTLE);
+                ItemStack bottle = ItemStack.get(ItemTypes.GLASS_BOTTLE);
                 if (player.getInventory().canAddItem(bottle)) {
                     player.getInventory().addItem(bottle);
                 } else {
@@ -140,18 +141,18 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
             block.set(block.getState().incrementTrait(BlockTraits.FILL_LEVEL));
             block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_FILLPOTION);
-        } else if (itemType == ItemIds.GLASS_BOTTLE) {
+        } else if (itemType == ItemTypes.GLASS_BOTTLE) {
             if (isEmpty(block)) {
                 return true;
             }
 
             if (item.getCount() == 1) {
-                player.getInventory().setItemInHand(ItemStack.get(ItemIds.POTION));
+                player.getInventory().setItemInHand(ItemStack.get(ItemTypes.POTION));
             } else if (item.getCount() > 1) {
                 item.setCount(item.getCount() - 1);
                 player.getInventory().setItemInHand(item);
 
-                ItemStack potion = ItemStack.get(ItemIds.POTION);
+                ItemStack potion = ItemStack.get(ItemTypes.POTION);
                 if (player.getInventory().canAddItem(potion)) {
                     player.getInventory().addItem(potion);
                 } else {
@@ -196,7 +197,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
-            return new ItemStack[]{ItemStack.get(ItemIds.CAULDRON)};
+            return new ItemStack[]{ItemStack.get(ItemTypes.CAULDRON)};
         }
 
         return new ItemStack[0];
@@ -204,7 +205,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemIds.CAULDRON);
+        return ItemStack.get(ItemTypes.CAULDRON);
     }
 
     public boolean hasComparatorInputOverride() {

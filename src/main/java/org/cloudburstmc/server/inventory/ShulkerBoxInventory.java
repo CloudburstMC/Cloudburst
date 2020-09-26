@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.impl.ShulkerBoxBlockEntity;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
@@ -49,7 +49,7 @@ public class ShulkerBoxInventory extends ContainerInventory {
 
     @Override
     public boolean canAddItem(ItemStack item) {
-        if (item.getId() == BlockIds.SHULKER_BOX || item.getId() == BlockIds.UNDYED_SHULKER_BOX) {
+        if (item.getType() == BlockTypes.SHULKER_BOX || item.getType() == BlockTypes.UNDYED_SHULKER_BOX) {
             // Do not allow nested shulker boxes.
             return false;
         }

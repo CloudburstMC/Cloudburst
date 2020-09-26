@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 
@@ -26,7 +27,7 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getToolType() {
+    public ToolType getToolType() {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 
@@ -41,7 +42,7 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemIds.REDSTONE, 0, count)
+                    ItemStack.get(ItemTypes.REDSTONE, 0, count)
             };
         } else {
             return new ItemStack[0];
@@ -51,7 +52,7 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_TOUCH) { //type == Level.BLOCK_UPDATE_NORMAL ||
-            block.set(BlockState.get(BlockIds.LIT_REDSTONE_ORE), false, false);
+            block.set(BlockState.get(BlockTypes.LIT_REDSTONE_ORE), false, false);
 
             return Level.BLOCK_UPDATE_WEAK;
         }

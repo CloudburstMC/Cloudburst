@@ -19,7 +19,7 @@ import java.util.Map;
 
 @Nonnull
 @Immutable
-public interface ItemStack {
+public interface ItemStack /*extends ItemBehavior*/ {
 
     @Inject
     ItemRegistry registry = null; //does that work?

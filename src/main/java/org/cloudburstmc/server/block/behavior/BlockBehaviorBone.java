@@ -2,7 +2,9 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.TierTypes;
+import org.cloudburstmc.server.item.ToolType;
+import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorBone extends BlockBehaviorSolid {
@@ -18,13 +20,13 @@ public class BlockBehaviorBone extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getToolType() {
-        return ItemToolBehavior.TYPE_PICKAXE;
+    public ToolType getToolType() {
+        return ToolTypes.PICKAXE;
     }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+        if (hand.getBehavior().isPickaxe() && hand.getBehavior().getTier(hand).compareTo(TierTypes.WOOD) >= 0) {
             return new ItemStack[]{ItemStack.get(block.getState().getType())};
         }
 

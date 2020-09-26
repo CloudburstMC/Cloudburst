@@ -1529,7 +1529,6 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setInventoriesServerAuthoritative(false);
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setBlockPalette(BlockRegistry.get().getPaletteTag());
-        startGamePacket.setItemEntries(CloudItemRegistry.get().getItemEntries());
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
@@ -2427,7 +2426,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
                 case LAVA:
                     BlockState state = this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt());
-                    if (state.getType() == BlockIds.MAGMA) {
+                    if (state.getType() == BlockTypes.MAGMA) {
                         message = "death.attack.magma";
                         break;
                     }

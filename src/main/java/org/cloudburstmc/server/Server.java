@@ -18,14 +18,12 @@ import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.console.NukkitConsole;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.entity.Attribute;
 import org.cloudburstmc.server.event.server.*;
 import org.cloudburstmc.server.inject.CloudburstModule;
 import org.cloudburstmc.server.inject.CloudburstPrivateModule;
 import org.cloudburstmc.server.inventory.CraftingManager;
 import org.cloudburstmc.server.inventory.Recipe;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.storage.StorageIds;
 import org.cloudburstmc.server.locale.LocaleManager;
@@ -187,6 +185,7 @@ public class Server {
     private final GameRuleRegistry gameRuleRegistry = GameRuleRegistry.get();
     private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
     private final StorageRegistry storageRegistry = StorageRegistry.get();
+    private final EnchantmentRegistry enchantmentRegistry = EnchantmentRegistry.get();
     private final BlockRegistry blockRegistry = BlockRegistry.get();
     private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
     private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
@@ -515,6 +514,7 @@ public class Server {
         try {
             this.blockEntityRegistry.close();
             this.blockRegistry.close();
+            this.enchantmentRegistry.close();
             this.itemRegistry.close();
             this.entityRegistry.close();
             this.biomeRegistry.close();
@@ -1801,8 +1801,7 @@ public class Server {
     }
 
     private void registerVanillaComponents() {
-        CloudEnchantmentInstance.init();
-        ItemStack.initCreativeItems();
+//        ItemStack.initCreativeItems(); //TODO: creative items
         Effect.init();
         Potion.init();
         Attribute.init();
