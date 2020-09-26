@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
+import org.cloudburstmc.server.blockentity.impl.BaseBlockEntity;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
@@ -62,7 +63,11 @@ public class BlockEntitySerializer {
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
              NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
             for (BlockEntity entity : entities) {
-                nbtOutputStream.writeTag(entity.getServerTag());
+                if (((BaseBlockEntity) entity).getTag() != null) {
+                    nbtOutputStream.writeTag(((BaseBlockEntity) entity).getTag());
+                } else {
+                    nbtOutputStream.writeTag(entity.getServerTag());
+                }
             }
             value = stream.toByteArray();
         } catch (IOException e) {
@@ -100,6 +105,8 @@ public class BlockEntitySerializer {
                         }
                         blockEntity.loadAdditionalData(tag);
                     } catch (RegistryException e) {
+                        log.throwing(e);
+                        log.info("unknown: {}", tag.getString("id"));
                         dirty = true;
                     }
                 }

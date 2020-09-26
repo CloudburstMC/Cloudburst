@@ -227,6 +227,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     @Override
     public void loadAdditionalData(NbtMap tag) {
+        this.tag = tag;
+
         tag.listenForList("Pos", NbtType.FLOAT, list -> {
             this.setPosition(Vector3f.from(list.get(0), list.get(1), list.get(2)));
         });
@@ -263,6 +265,10 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
+        if (this.tag != null && !this.tag.isEmpty()) {
+            tag.putAll(this.tag);
+        }
+
         if (this.hasNameTag()) {
             tag.putString("CustomName", this.getNameTag());
             tag.putBoolean("CustomNameVisible", this.isNameTagVisible());
@@ -1404,7 +1410,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         float percent;
 
         if (blockType == WATER || blockType == FLOWING_WATER) {
-            percent = BlockBehaviorLiquid.getFluidHeightPercent(block.getState());
+            percent = BlockBehaviorLiquid.getFluidHeightPercent(state);
         } else {
             return false;
         }
@@ -1415,13 +1421,14 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     public boolean isInsideOfSolid() {
         double y = this.getY() + this.getEyeHeight();
-        BlockState state = this.level.getBlockAt(Vector3i.from(this.getX(), y, this.getZ()));
+        Vector3i pos = Vector3i.from(this.getX(), y, this.getZ());
+        BlockState state = this.level.getBlockAt(pos);
 
         if (state == null) {
             return true;
         }
 
-        AxisAlignedBB bb = state.getBehavior().getBoundingBox();
+        AxisAlignedBB bb = state.getBehavior().getBoundingBox(pos);
 
         return bb != null && state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT) && bb.intersectsWith(this.getBoundingBox());
 
