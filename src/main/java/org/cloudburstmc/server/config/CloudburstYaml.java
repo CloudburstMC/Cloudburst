@@ -42,42 +42,55 @@ public class CloudburstYaml {
         return mapped;
     }
 
+    @Builder.Default
     @JsonProperty("aliases")
     private Map<String, List<String>> commandAliases = new HashMap<>();
 
+    @Builder.Default
     @JsonProperty("timings")
     private TimingsConfig timingsConfig = new TimingsConfig();
 
+    @Builder.Default
     @JsonProperty("settings")
     private SettingsConfig settingsConfig = new SettingsConfig();
 
+    @Builder.Default
     @JsonProperty("network")
     private NetworkConfig networkConfig = new NetworkConfig();
 
+    @Builder.Default
     @JsonProperty("level-settings")
     private LevelSettingsConfig levelSettingsConfig = new LevelSettingsConfig();
 
+    @Builder.Default
     @JsonProperty("chunk-sending")
     private ChunkSendingConfig chunkSendingConfig = new ChunkSendingConfig();
 
+    @Builder.Default
     @JsonProperty("chunk-ticking")
     private ChunkTickingConfig chunkTickingConfig = new ChunkTickingConfig();
 
+    @Builder.Default
     @JsonProperty("chunk-generation")
     private ChunkGenerationConfig chunkGenerationConfig = new ChunkGenerationConfig();
 
+    @Builder.Default
     @JsonProperty("spawn-limits")
     private SpawnLimitsConfig spawnLimitsConfig = new SpawnLimitsConfig();
 
+    @Builder.Default
     @JsonProperty("ticks-per")
     private TicksPerConfig ticksPerConfig = new TicksPerConfig();
 
+    @Builder.Default
     @JsonProperty("debug")
     private DebugConfig debugConfig = new DebugConfig();
 
+    @Builder.Default
     @JsonProperty("player")
     private PlayerConfig playerConfig = new PlayerConfig();
 
+    @Builder.Default
     @JsonProperty("worlds")
     @JsonDeserialize(using= WorldConfigDeserializer.class)
     private Map<String, WorldConfig> worldConfig = new HashMap<>();

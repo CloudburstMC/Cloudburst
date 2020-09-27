@@ -9,12 +9,16 @@ import lombok.*;
 @NoArgsConstructor
 public class SpawnLimitsConfig {
 
-    private int monsters;
+    @Builder.Default
+    private int monsters = 70;
 
-    private int animals;
+    @Builder.Default
+    private int animals = 15;
 
-    private int waterAnimals;
+    @Builder.Default
+    private int waterAnimals = 5;
 
-    private int ambient;
+    @Builder.Default
+    private int ambient = 15;
 
 }

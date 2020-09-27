@@ -9,8 +9,10 @@ import lombok.*;
 @NoArgsConstructor
 public class PlayerConfig {
 
+    @Builder.Default
     private int skinChangeCooldown = 30;
 
+    @Builder.Default
     private boolean savePlayerData = true;
 
 }

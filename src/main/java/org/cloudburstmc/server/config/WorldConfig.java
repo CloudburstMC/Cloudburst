@@ -9,10 +9,13 @@ import lombok.*;
 @NoArgsConstructor
 public class WorldConfig {
 
+    @Builder.Default
     private Object seed = null;
 
+    @Builder.Default
     private String generator = null;
 
+    @Builder.Default
     private String options = null;
 
 }

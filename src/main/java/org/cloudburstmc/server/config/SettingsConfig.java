@@ -14,16 +14,22 @@ import java.util.List;
 @NoArgsConstructor
 public class SettingsConfig {
 
+    @Builder.Default
     private boolean queryPlugins = true;
 
+    @Builder.Default
     private String shutdownMessage = "Server closed";
 
+    @Builder.Default
     private boolean forceLanguage = false;
 
+    @Builder.Default
     private String language = "en_US";
 
+    @Builder.Default
     private String asyncWorkers = "auto";
 
+    @Builder.Default
     private boolean deprecatedVerbose = true;
 
 }

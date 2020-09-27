@@ -9,8 +9,10 @@ import lombok.*;
 @NoArgsConstructor
 public class ChunkGenerationConfig {
 
+    @Builder.Default
     private int queueSize = 8;
 
+    @Builder.Default
     private int populationQueueSize = 8;
 
 }

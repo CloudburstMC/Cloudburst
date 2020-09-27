@@ -9,10 +9,13 @@ import lombok.*;
 @NoArgsConstructor
 public class NetworkConfig {
 
+    @Builder.Default
     private int compressionLevel = 7;
 
+    @Builder.Default
     private boolean asyncCompression = true;
 
+    @Builder.Default
     private int batchThreshold = 256;
 
 }

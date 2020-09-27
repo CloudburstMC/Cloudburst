@@ -12,12 +12,16 @@ import java.util.List;
 @NoArgsConstructor
 public class DebugConfig {
 
+    @Builder.Default
     private int level = 1;
 
+    @Builder.Default
     private List<String> ignoredPackets = Collections.emptyList();
 
+    @Builder.Default
     private boolean bugReport = true;
 
+    @Builder.Default
     private boolean commands = false;
 
 }
