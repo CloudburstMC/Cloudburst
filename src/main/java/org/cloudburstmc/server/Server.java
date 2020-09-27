@@ -18,8 +18,8 @@ import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.config.CloudburstYaml;
-import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.config.ServerProperties;
+import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.config.WorldConfig;
 import org.cloudburstmc.server.console.NukkitConsole;
 import org.cloudburstmc.server.entity.Attribute;
@@ -405,15 +405,15 @@ public class Server {
         log.debug("DataPath Directory: {}", this.dataPath);
 
         log.info("Loading {} ...", TextFormat.GREEN + "server.properties" + TextFormat.WHITE);
-        this.serverProperties = new ServerProperties(this.dataPath.resolve("server.properties"));
         if(!Files.exists(serverProperties.getPath())) {
+            serverProperties = new ServerProperties();
             serverProperties.save();
         } else {
-            serverProperties.load();
+            serverProperties = ServerProperties.fromFile(this.dataPath.resolve("server.properties"));
         }
 
         // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
-        this.allowNether = this.serverProperties.getAllowNether();
+        this.allowNether = this.serverProperties.isAllowNether();
 
         this.forceLanguage = getConfig().getSettingsConfig().isForceLanguage();
         this.localeManager.setLocaleOrFallback(getConfig().getSettingsConfig().getLanguage());
@@ -455,10 +455,10 @@ public class Server {
         this.banByIP.load();
 
         this.maxPlayers = this.serverProperties.getMaxPlayers();
-        this.setAutoSave(this.serverProperties.getAutoSave());
+        this.setAutoSave(this.serverProperties.isAutoSave());
 
-        if (this.serverProperties.getHardcore() && this.getDifficulty() != Difficulty.HARD) {
-            this.serverProperties.setDifficulty(Difficulty.HARD);
+        if (this.serverProperties.isHardcore() && this.getDifficulty() != Difficulty.HARD) {
+            this.serverProperties.modifyDifficulty(Difficulty.HARD);
         }
 
         if (this.getConfig().getDebugConfig().isBugReport()) {
@@ -672,7 +672,7 @@ public class Server {
     }
 
     public void start() {
-        if (this.serverProperties.getEnableQuery()) {
+        if (this.serverProperties.isEnableQuery()) {
             this.queryHandler = new QueryHandler();
         }
 
@@ -1044,7 +1044,7 @@ public class Server {
     }
 
     public int getPort() {
-        return this.serverProperties.getPort();
+        return this.serverProperties.getServerPort();
     }
 
     public int getViewDistance() {
@@ -1052,7 +1052,7 @@ public class Server {
     }
 
     public String getIp() {
-        return this.serverProperties.getIp();
+        return this.serverProperties.getServerIp();
     }
 
     public UUID getServerUniqueId() {
@@ -1071,41 +1071,41 @@ public class Server {
     }
 
     public boolean getGenerateStructures() {
-        return this.serverProperties.getGenerateStructures();
+        return this.serverProperties.isGenerateStructures();
     }
 
     public GameMode getGamemode() {
-        return this.serverProperties.getGamemode();
+        return GameMode.from(this.serverProperties.getGamemode());
     }
 
     public boolean getForceGamemode() {
-        return this.serverProperties.getForceGamemode();
+        return this.serverProperties.isForceGamemode();
     }
 
     public Difficulty getDifficulty() {
         if (this.difficulty == null) {
-            this.difficulty = this.serverProperties.getDifficulty();
+            this.difficulty = Difficulty.values()[this.serverProperties.getDifficulty()];
         }
         return this.difficulty;
     }
 
     public boolean hasWhitelist() {
-        return this.serverProperties.getWhitelist();
+        return this.serverProperties.isWhiteList();
     }
 
     public int getSpawnRadius() {
-        return this.serverProperties.getSpawnRadius();
+        return this.serverProperties.getSpawnProtection();
     }
 
     public boolean getAllowFlight() {
         if (getAllowFlight == null) {
-            getAllowFlight = this.serverProperties.getAllowFlight();
+            getAllowFlight = this.serverProperties.isAllowFlight();
         }
         return getAllowFlight;
     }
 
     public boolean isHardcore() {
-        return this.serverProperties.getHardcore();
+        return this.serverProperties.isHardcore();
     }
 
     public GameMode getDefaultGamemode() {
@@ -1124,7 +1124,7 @@ public class Server {
     }
 
     public boolean getForceResources() {
-        return this.serverProperties.getForceResources();
+        return this.serverProperties.isForceResources();
     }
 
     public EntityMetadataStore getEntityMetadata() {
@@ -1729,7 +1729,7 @@ public class Server {
         if (this.getDefaultLevel() == null) {
             String defaultName = this.serverProperties.getDefaultLevel();
             if (defaultName == null || defaultName.trim().isEmpty()) {
-                this.serverProperties.setDefaultLevel(worldConfigs.keySet().iterator().next());
+                this.serverProperties.modifyDefaultLevel(worldConfigs.keySet().iterator().next());
                 log.warn("default-level is unset or empty, falling back to \"" + defaultName + '"');
             }
 

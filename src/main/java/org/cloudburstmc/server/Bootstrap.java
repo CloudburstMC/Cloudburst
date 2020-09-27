@@ -54,7 +54,9 @@ public class Bootstrap {
     public static final YAMLMapper KEBAB_CASE_YAML_MAPPER = (YAMLMapper)new YAMLMapper()
             .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE)
             ;
-    public static final JavaPropsMapper JAVA_PROPS_MAPPER = new JavaPropsMapper();
+    public static final JavaPropsMapper JAVA_PROPS_MAPPER = (JavaPropsMapper) new JavaPropsMapper()
+            .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE)
+            ;
     public static final long START_TIME = System.currentTimeMillis();
     public static boolean ANSI = true;
     public static boolean TITLE = false;
