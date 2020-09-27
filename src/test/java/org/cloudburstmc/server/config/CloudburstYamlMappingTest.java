@@ -148,7 +148,7 @@ public class CloudburstYamlMappingTest {
                 "overworld"
         ));
         worldConfig.put("nether", new WorldConfig(
-                null,
+                "nether",
                 "cloudburst:standard",
                 "nether"
         ));
