@@ -468,10 +468,6 @@ public class ServerConfig {
         return cloudburstYaml.getDebug();
     }
 
-    public ObjectNode getRootNode() {
-        return cloudburstYaml.getRootNode();
-    }
-
     // escape hatch //
 
     public ServerProperties getServerProperties() {
