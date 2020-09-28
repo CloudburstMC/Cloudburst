@@ -120,17 +120,20 @@ public class BlockStorage {
             for (int i = 0; i < paletteSize; i++) {
                 try {
                     NbtMap tag = (NbtMap) nbtInputStream.readTag();
-                    BlockState state = null;
+                    BlockState state;
 
-                    if (tag.containsKey("states", NbtType.COMPOUND)) {
-                        state = BlockPalette.INSTANCE.getBlockState(tag);
+                    if (!tag.containsKey("states", NbtType.COMPOUND)) {
+                        tag = tag.toBuilder().putCompound("states", NbtMap.EMPTY).build();
                     }
+
+                    state = BlockPalette.INSTANCE.getBlockState(tag);
+
                     if (state == null) {
                         tag = BlockStateUpdaters.updateBlockState(tag, tag.getInt("version"));
                         state = BlockPalette.INSTANCE.getBlockState(tag);
                     }
 
-                    if (state == null && tag.containsKey("states", NbtType.COMPOUND)) { //TODO: fix unknown states
+                    if (state == null/* && tag.containsKey("states", NbtType.COMPOUND)*/) { //TODO: fix unknown states
                         val defaultState = BlockRegistry.get().getBlock(Identifier.fromString(tag.getString("name")));
                         val serialized = BlockPalette.INSTANCE.getSerialized(defaultState);
 
