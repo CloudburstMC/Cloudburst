@@ -22,7 +22,7 @@ public class CloudburstYamlMappingTest {
         final CloudburstYaml yml = Bootstrap.KEBAB_CASE_YAML_MAPPER.readValue(stream, CloudburstYaml.class);
 
         assertEquals(
-                SettingsConfig.builder()
+                ServerConfig.Settings.builder()
                         .language("en_US")
                         .forceLanguage(false)
                         .shutdownMessage("Server closed")
@@ -30,30 +30,30 @@ public class CloudburstYamlMappingTest {
                         .asyncWorkers("auto")
                         .deprecatedVerbose(true)
                         .build(),
-                yml.getSettingsConfig()
+                yml.getSettings()
         );
 
         assertEquals(
-                NetworkConfig.builder()
+                ServerConfig.Network.builder()
                         .batchThreshold(256)
                         .compressionLevel(7)
                         .asyncCompression(false)
                         .build(),
-                yml.getNetworkConfig()
+                yml.getNetwork()
         );
 
         assertEquals(
-                DebugConfig.builder()
+                ServerConfig.Debug.builder()
                         .level(1)
                         .commands(false)
                         .bugReport(false)
                         .ignoredPackets(Stream.of("LevelChunkPacket").collect(Collectors.toList()))
                         .build(),
-                yml.getDebugConfig()
+                yml.getDebug()
         );
 
         assertEquals(
-                TimingsConfig.builder()
+                ServerConfig.Timings.builder()
                         .enabled(false)
                         .verbose(false)
                         .historyInterval(6000)
@@ -62,11 +62,11 @@ public class CloudburstYamlMappingTest {
                         .privacy(false)
                         .ignore(Collections.emptyList())
                         .build(),
-                yml.getTimingsConfig()
+                yml.getTimings()
         );
 
         assertEquals(
-                LevelSettingsConfig.builder()
+                ServerConfig.LevelSettings.builder()
                         .defaultFormat("leveldb")
                         .autoTickRate(true)
                         .autoTickRateLimit(20)
@@ -75,86 +75,86 @@ public class CloudburstYamlMappingTest {
                         .chunkTimeoutAfterLoad(30)
                         .chunkTimeoutAfterLastAccess(120)
                         .build(),
-                yml.getLevelSettingsConfig()
+                yml.getLevelSettings()
         );
 
         assertEquals(
-                ChunkSendingConfig.builder()
+                ServerConfig.ChunkSending.builder()
                         .perTick(4)
                         .maxChunkRadius(48)
                         .spawnThreshold(56)
                         .cacheChunks(false)
                         .build(),
-                yml.getChunkSendingConfig()
+                yml.getChunkSending()
         );
 
         assertEquals(
-                ChunkTickingConfig.builder()
+                ServerConfig.ChunkTicking.builder()
                         .perTick(40)
                         .tickRadius(3)
                         .lightUpdates(false)
                         .clearTickList(false)
                         .build(),
-                yml.getChunkTickingConfig()
+                yml.getChunkTicking()
         );
 
         assertEquals(
-                ChunkGenerationConfig.builder()
+                ServerConfig.ChunkGeneration.builder()
                         .queueSize(8)
                         .populationQueueSize(8)
                         .build(),
-                yml.getChunkGenerationConfig()
+                yml.getChunkGeneration()
         );
 
         assertEquals(
-                TicksPerConfig.builder()
+                ServerConfig.TicksPer.builder()
                         .animalSpawns(400)
                         .monsterSpawns(1)
                         .autosave(6000)
                         .cacheCleanup(900)
                         .build(),
-                yml.getTicksPerConfig()
+                yml.getTicksPer()
         );
 
         assertEquals(
-                SpawnLimitsConfig.builder()
+                ServerConfig.SpawnLimits.builder()
                         .monsters(70)
                         .animals(15)
                         .waterAnimals(5)
                         .ambient(15)
                         .build(),
-                yml.getSpawnLimitsConfig()
+                yml.getSpawnLimits()
         );
 
         assertEquals(
-                PlayerConfig.builder()
+                ServerConfig.Player.builder()
                         .savePlayerData(true)
                         .skinChangeCooldown(30)
                         .build(),
-                yml.getPlayerConfig()
+                yml.getPlayer()
         );
 
         HashMap<String, List<String>> aliases = new HashMap<>();
         aliases.put("savestop", Stream.of("save-all", "stop").collect(Collectors.toList()));
         assertEquals(
                 aliases,
-                yml.getCommandAliases()
+                yml.getAliases()
         );
 
-        HashMap<String, WorldConfig> worldConfig = new HashMap<>();
-        worldConfig.put("world", new WorldConfig(
+        HashMap<String, ServerConfig.World> worldConfig = new HashMap<>();
+        worldConfig.put("world", new ServerConfig.World(
                 "test",
                 "cloudburst:standard",
                 "overworld"
         ));
-        worldConfig.put("nether", new WorldConfig(
+        worldConfig.put("nether", new ServerConfig.World(
                 "nether",
                 "cloudburst:standard",
                 "nether"
         ));
         assertEquals(
                 worldConfig,
-                yml.getWorldConfig()
+                yml.getWorlds()
         );
     }
 

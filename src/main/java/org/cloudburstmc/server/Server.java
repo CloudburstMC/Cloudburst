@@ -20,7 +20,6 @@ import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.config.CloudburstYaml;
 import org.cloudburstmc.server.config.ServerProperties;
 import org.cloudburstmc.server.config.ServerConfig;
-import org.cloudburstmc.server.config.WorldConfig;
 import org.cloudburstmc.server.console.NukkitConsole;
 import org.cloudburstmc.server.entity.Attribute;
 import org.cloudburstmc.server.event.server.*;
@@ -389,9 +388,9 @@ public class Server {
         log.info("Loading {} ...", TextFormat.GREEN + "cloudburst.yml" + TextFormat.WHITE);
         this.cloudburstYaml = CloudburstYaml.fromFile(configPath);
 
-        ignoredPackets.addAll(getConfig().getDebugConfig().getIgnoredPackets());
+        ignoredPackets.addAll(getConfig().getDebug().getIgnoredPackets());
 
-        Bootstrap.DEBUG = Math.max(getConfig().getDebugConfig().getLevel(), 1);
+        Bootstrap.DEBUG = Math.max(getConfig().getDebug().getLevel(), 1);
 
         int logLevel = (Bootstrap.DEBUG + 3) * 100;
         for (org.apache.logging.log4j.Level level : org.apache.logging.log4j.Level.values()) {
@@ -415,13 +414,13 @@ public class Server {
         // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
         this.allowNether = this.serverProperties.isAllowNether();
 
-        this.forceLanguage = getConfig().getSettingsConfig().isForceLanguage();
-        this.localeManager.setLocaleOrFallback(getConfig().getSettingsConfig().getLanguage());
+        this.forceLanguage = getConfig().getSettings().isForceLanguage();
+        this.localeManager.setLocaleOrFallback(getConfig().getSettings().getLanguage());
         Locale locale = this.getLanguage().getLocale();
         log.info(this.getLanguage().translate("cloudburst.language.selected", locale.getDisplayCountry(locale), locale));
         log.info(this.getLanguage().translate("cloudburst.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.RESET));
 
-        Object poolSize = getConfig().getSettingsConfig().getAsyncWorkers();
+        Object poolSize = getConfig().getSettings().getAsyncWorkers();
         if (!(poolSize instanceof Integer)) {
             try {
                 poolSize = Integer.valueOf((String) poolSize);
@@ -439,13 +438,13 @@ public class Server {
 //        this.networkZlibProvider = this.getConfig("network.zlib-provider", 2);
 //        Zlib.setProvider(this.networkZlibProvider);
 
-        this.networkCompressionLevel = getConfig().getNetworkConfig().getCompressionLevel();
-        this.networkCompressionAsync = getConfig().getNetworkConfig().isAsyncCompression();
+        this.networkCompressionLevel = getConfig().getNetwork().getCompressionLevel();
+        this.networkCompressionAsync = getConfig().getNetwork().isAsyncCompression();
 
-        this.autoTickRate = getConfig().getLevelSettingsConfig().isAutoTickRate();
-        this.autoTickRateLimit = getConfig().getLevelSettingsConfig().getAutoTickRateLimit();
-        this.alwaysTickPlayers = getConfig().getLevelSettingsConfig().isAlwaysTickPlayers();
-        this.baseTickRate = getConfig().getLevelSettingsConfig().getBaseTickRate();
+        this.autoTickRate = getConfig().getLevelSettings().isAutoTickRate();
+        this.autoTickRateLimit = getConfig().getLevelSettings().getAutoTickRateLimit();
+        this.alwaysTickPlayers = getConfig().getLevelSettings().isAlwaysTickPlayers();
+        this.baseTickRate = getConfig().getLevelSettings().getBaseTickRate();
 
         this.operators = new Config(this.dataPath.resolve("ops.txt").toFile(), Config.ENUM);
         this.whitelist = new Config(this.dataPath.resolve("white-list.txt").toFile(), Config.ENUM);
@@ -461,7 +460,7 @@ public class Server {
             this.serverProperties.modifyDifficulty(Difficulty.HARD);
         }
 
-        if (this.getConfig().getDebugConfig().isBugReport()) {
+        if (this.getConfig().getDebug().isBugReport()) {
             ExceptionHandler.registerExceptionHandler();
         }
 
@@ -514,7 +513,7 @@ public class Server {
 
         this.registerVanillaComponents();
 
-        Identifier defaultStorageId = Identifier.fromString(getConfig().getLevelSettingsConfig().getDefaultFormat());
+        Identifier defaultStorageId = Identifier.fromString(getConfig().getLevelSettings().getDefaultFormat());
         if (storageRegistry.isRegistered(defaultStorageId)) {
             this.defaultStorageId = defaultStorageId;
         } else {
@@ -535,8 +534,8 @@ public class Server {
 
         EnumLevel.initLevels();
 
-        if (this.getConfig().getTicksPerConfig().getAutosave() > 0) {
-            this.autoSaveTicks = this.getConfig().getTicksPerConfig().getAutosave();
+        if (this.getConfig().getTicksPer().getAutosave() > 0) {
+            this.autoSaveTicks = this.getConfig().getTicksPer().getAutosave();
         }
 
         //TODO: event
@@ -633,7 +632,7 @@ public class Server {
             this.hasStopped = true;
 
             for (Player player : new ArrayList<>(this.players.values())) {
-                player.close(player.getLeaveMessage(), this.getConfig().getSettingsConfig().getShutdownMessage());
+                player.close(player.getLeaveMessage(), this.getConfig().getSettings().getShutdownMessage());
             }
 
             this.eventManager.fire(ServerShutdownEvent.INSTANCE);
@@ -1612,11 +1611,11 @@ public class Server {
     }
 
     public boolean shouldSavePlayerData() {
-        return this.getConfig().getPlayerConfig().isSavePlayerData();
+        return this.getConfig().getPlayer().isSavePlayerData();
     }
 
     public int getPlayerSkinChangeCooldown() {
-        return this.getConfig().getPlayerConfig().getSkinChangeCooldown();
+        return this.getConfig().getPlayer().getSkinChangeCooldown();
     }
 
     /**
@@ -1687,14 +1686,14 @@ public class Server {
             throw new RuntimeException("Worlds location " + levelPath + " is not a directory.");
         }
 
-        Map<String, WorldConfig> worldConfigs = getConfig().getWorldConfig();
+        Map<String, ServerConfig.World> worldConfigs = getConfig().getWorlds();
         if (worldConfigs.isEmpty()) {
             throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }
         List<CompletableFuture<Level>> levelFutures = new ArrayList<>(worldConfigs.size());
 
         for (String name : worldConfigs.keySet()) {
-            final WorldConfig config = worldConfigs.get(name);
+            final ServerConfig.World config = worldConfigs.get(name);
             //fallback to level name if no seed is set
             Object seedObj = config.getSeed();
             long seed;

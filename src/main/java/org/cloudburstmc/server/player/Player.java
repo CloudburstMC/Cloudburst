@@ -233,8 +233,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.perm = new PermissibleBase(this);
         this.server = Server.getInstance();
         this.lastBreak = -1;
-        this.chunksPerTick = this.server.getConfig().getChunkSendingConfig().getPerTick();
-        this.spawnThreshold = this.server.getConfig().getChunkSendingConfig().getSpawnThreshold();
+        this.chunksPerTick = this.server.getConfig().getChunkSending().getPerTick();
+        this.spawnThreshold = this.server.getConfig().getChunkSending().getSpawnThreshold();
         this.spawnLocation = null;
         this.playerData.setGamemode(this.server.getGamemode());
         this.viewDistance = this.server.getViewDistance();
@@ -3150,7 +3150,6 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         if (!(blockEntity instanceof Sign)) {
             return;
         }
-
         NbtMap tag = blockEntity.getChunkTag().toBuilder().putString("Text", String.join("\n", lines)).build();
         BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
         blockEntityDataPacket.setBlockPosition(position);
@@ -3366,4 +3365,5 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         ENCHANT,
         BEACON
     }
+
 }
