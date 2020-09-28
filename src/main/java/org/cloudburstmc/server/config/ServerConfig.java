@@ -26,56 +26,100 @@ public class ServerConfig {
             return properties.getMotd();
         }
 
+        public int getServerPort() {
+            return properties.getServerPort();
+        }
+
         public String getSubMotd() {
             return properties.getSubMotd();
         }
 
-        public String getIp() {
+        public String getServerIp() {
             return properties.getServerIp();
-        }
-
-        public int getPort() {
-            return properties.getServerPort();
         }
 
         public int getViewDistance() {
             return properties.getViewDistance();
         }
 
-        public boolean getWhitelist() {
-            return properties.isWhiteList();
-        }
-
-        public void setWhitelist(boolean b) {
-            properties.modifyWhitelist(b);
-        }
-
-        public boolean getAchievements() {
+        public boolean isAchievements() {
             return properties.isAchievements();
         }
 
-        public boolean getAnnouncePlayerAchievements() {
+        public boolean isAnnouncePlayerAchievements() {
             return properties.isAnnouncePlayerAchievements();
-        }
-
-        public int getSpawnRadius() {
-            return properties.getSpawnProtection();
         }
 
         public int getMaxPlayers() {
             return properties.getMaxPlayers();
         }
 
-        public boolean getAllowFlight() {
-            return properties.isAllowFlight();
+        public boolean isHardcore() {
+            return properties.isHardcore();
         }
 
-        public boolean getSpawnAnimals() {
+        public boolean isSpawnAnimals() {
             return properties.isSpawnAnimals();
         }
 
-        public boolean getSpawnMobs() {
+        public boolean isSpawnMobs() {
             return properties.isSpawnMobs();
+        }
+
+        public boolean isAllowFlight() {
+            return properties.isAllowFlight();
+        }
+
+        public void setWhitelist(boolean b) {
+            properties.setWhitelist(b);
+        }
+
+        public void setDefaultLevel(String name) {
+            properties.modifyDefaultLevel(name);
+        }
+
+        public String getDefaultLevel() {
+            return properties.getDefaultLevel();
+        }
+
+        public boolean isWhiteList() {
+            return properties.isWhiteList();
+        }
+
+        public int getSpawnProtection() {
+            return properties.getSpawnProtection();
+        }
+
+        public boolean isForceGamemode() {
+            return properties.isForceGamemode();
+        }
+
+        public boolean isPVP() {
+            return properties.isPvp();
+        }
+
+        public boolean isGenerateStructures() {
+            return properties.isGenerateStructures();
+        }
+
+        public boolean isAllowNether() {
+            return properties.isAllowNether();
+        }
+
+        public boolean isEnableQuery() {
+            return properties.isEnableQuery();
+        }
+
+        public boolean isAutoSave() {
+            return properties.isAutoSave();
+        }
+
+        public boolean isForceResources() {
+            return properties.isForceResources();
+        }
+
+        public boolean isXboxAuth() {
+            return properties.isXboxAuth();
         }
 
         public GameMode getGamemode() {
@@ -83,19 +127,7 @@ public class ServerConfig {
         }
 
         public void setGamemode(GameMode gameMode) {
-            properties.modifyGamemode(gameMode);
-        }
-
-        public boolean getForceGamemode() {
-            return properties.isForceGamemode();
-        }
-
-        public boolean getHardcore() {
-            return properties.isHardcore();
-        }
-
-        public boolean getPVP() {
-            return properties.isPvp();
+            properties.setGamemode(gameMode);
         }
 
         public Difficulty getDifficulty() {
@@ -103,35 +135,7 @@ public class ServerConfig {
         }
 
         public void setDifficulty(Difficulty difficulty) {
-            properties.modifyDifficulty(difficulty);
-        }
-
-        public String getDefaultLevel() {
-            return properties.getDefaultLevel();
-        }
-
-        public boolean getAllowNether() {
-            return properties.isAllowNether();
-        }
-
-        public boolean getEnableQuery() {
-            return properties.isEnableQuery();
-        }
-
-        public boolean getAutoSave() {
-            return properties.isAutoSave();
-        }
-
-        public boolean getForceResources() {
-            return properties.isForceResources();
-        }
-
-        public boolean getGenerateStructures() {
-            return properties.isGenerateStructures();
-        }
-
-        public boolean getXboxAuth() {
-            return properties.isXboxAuth();
+            properties.setDifficulty(difficulty);
         }
 
     }
@@ -404,9 +408,9 @@ public class ServerConfig {
         this.cloudburstYaml = cloudburstYaml;
     }
 
-    // forwarding server.properties
+    // forwarding server.properties //
 
-    public Properties getPropertiesConfig() {
+    public Properties getProperties() {
         return new Properties(properties);
     }
 

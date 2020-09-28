@@ -23,7 +23,6 @@
  */
 package co.aikar.timings;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
@@ -43,10 +42,6 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import java.util.zip.GZIPOutputStream;
 
 import static co.aikar.timings.TimingsManager.HISTORY;
@@ -80,7 +75,7 @@ public class TimingsExport extends Thread {
         if (!Timings.isPrivacy()) {
             out.put("server", Server.getInstance().getName());
             out.put("motd", Server.getInstance().getMotd());
-            out.put("online-mode", Server.getInstance().getConfig().getPropertiesConfig().getXboxAuth());
+            out.put("online-mode", Server.getInstance().getConfig().getProperties().isXboxAuth());
             out.put("icon", ""); //"data:image/png;base64,"
         }
 
