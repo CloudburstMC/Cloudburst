@@ -5,27 +5,27 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Noteblock;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
 
-    private static final Map<Identifier, Instrument> INSTRUMENTS = new IdentityHashMap<>();
+    private static final Map<BlockType, Instrument> INSTRUMENTS = new IdentityHashMap<>();
 
     static {
         INSTRUMENTS.put(BlockTypes.GOLD_BLOCK, Instrument.GLOCKENSPIEL);
@@ -40,31 +40,15 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         INSTRUMENTS.put(BlockTypes.HAY_BLOCK, Instrument.BANJO);
         INSTRUMENTS.put(BlockTypes.GLOWSTONE, Instrument.ELECTRIC_PIANO);
         INSTRUMENTS.put(BlockTypes.LOG, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.LOG2, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.PLANKS, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.DOUBLE_WOODEN_SLAB, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.WOODEN_SLAB, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.OAK_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.SPRUCE_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.BIRCH_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.JUNGLE_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.ACACIA_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.DARK_OAK_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.FENCE, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.SPRUCE_FENCE_GATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.BIRCH_FENCE_GATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.JUNGLE_FENCE_GATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.DARK_OAK_FENCE_GATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.ACACIA_FENCE_GATE, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WOODEN_STAIRS, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WOODEN_FENCE, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.WOODEN_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.SPRUCE_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.BIRCH_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.JUNGLE_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.ACACIA_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.DARK_OAK_DOOR, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.WOODEN_PRESSURE_PLATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.TRAPDOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.STANDING_SIGN, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WOODEN_TRAPDOOR, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WOODEN_STANDING_SIGN, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.WALL_SIGN, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.NOTEBLOCK, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.BOOKSHELF, Instrument.BASS);
@@ -99,8 +83,6 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         INSTRUMENTS.put(BlockTypes.QUARTZ_BLOCK, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.DOUBLE_STONE_SLAB, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.STONE_SLAB, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.DOUBLE_STONE_SLAB2, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.STONE_SLAB2, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.STONE_STAIRS, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.BRICK_STAIRS, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.STONE_BRICK_STAIRS, Instrument.BASS_DRUM);
@@ -148,7 +130,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
 
     @Override
     public ToolType getToolType() {
-        return ItemToolBehavior.TYPE_AXE;
+        return ToolTypes.AXE;
     }
 
     @Override

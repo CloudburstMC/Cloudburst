@@ -4,7 +4,6 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.ItemStack;
@@ -14,7 +13,6 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_TORCH;
-import static org.cloudburstmc.server.block.BlockTypes.UNLIT_REDSTONE_TORCH;
 
 public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
@@ -97,14 +95,15 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     protected boolean checkState(Block block) {
-        val type = block.getState().getType();
+        val state = block.getState();
         boolean powered = isPoweredFromSide(block);
+        boolean poweredState = state.ensureTrait(BlockTraits.IS_POWERED);
 
-        if (powered && type == REDSTONE_TORCH || !powered && type == UNLIT_REDSTONE_TORCH) {
-            Direction face = getBlockFace(block.getState()).getOpposite();
+        if (powered != poweredState) {
+            Direction face = getBlockFace(state).getOpposite();
             Vector3i pos = block.getPosition();
 
-            block.set(BlockState.get(type == REDSTONE_TORCH ? UNLIT_REDSTONE_TORCH : REDSTONE_TORCH).copyTrait(BlockTraits.TORCH_DIRECTION, block.getState()));
+            block.set(state.withTrait(BlockTraits.IS_POWERED, powered));
 
             for (Direction side : Direction.values()) {
                 if (side == face) {
