@@ -87,7 +87,7 @@ public class ItemTypes {
     public static final ItemType COOKED_PORKCHOP = IntItem.builder().id(ItemIds.COOKED_PORKCHOP).maxStackSize(64).build();
     public static final ItemType PAINTING = IntItem.builder().id(ItemIds.PAINTING).maxStackSize(64).build();
     public static final ItemType GOLDEN_APPLE = IntItem.builder().id(ItemIds.GOLDEN_APPLE).maxStackSize(64).build();
-    public static final ItemType SIGN = IntItem.builder().id(ItemIds.SIGN).maxStackSize(16).blockType(BlockTypes.STANDING_SIGN).data(TreeSpecies.class).build(); //TODO: wood types
+    public static final ItemType SIGN = IntItem.builder().id(ItemIds.SIGN).maxStackSize(16).blockType(BlockTypes.WOODEN_STANDING_SIGN).data(TreeSpecies.class).build(); //TODO: wood types
     public static final ItemType WOODEN_DOOR = IntItem.builder().id(ItemIds.WOODEN_DOOR).maxStackSize(64).blockType(BlockTypes.WOODEN_DOOR).build(); //TODO: wood types
     public static final ItemType BUCKET = IntItem.builder().id(ItemIds.BUCKET).data(Bucket.class).maxStackSize(16).build();
     public static final ItemType MINECART = IntItem.builder().id(ItemIds.MINECART).maxStackSize(1).build();

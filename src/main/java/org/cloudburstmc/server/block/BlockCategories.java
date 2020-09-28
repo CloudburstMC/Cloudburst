@@ -104,8 +104,8 @@ public class BlockCategories {
                 END_PORTAL_FRAME,
                 END_STONE,
                 FARMLAND,
-                FENCE,
-                FENCE_GATE,
+                WOODEN_FENCE,
+                WOOD_FENCE_GATE,
                 FLETCHING_TABLE,
                 FROSTED_ICE,
                 FURNACE,
@@ -171,7 +171,7 @@ public class BlockCategories {
                 NETHER_GOLD_ORE,
                 NETHER_WART_BLOCK,
                 NOTEBLOCK,
-                WOOD_STAIRS,
+                WOODEN_STAIRS,
                 OBSERVER,
                 OBSIDIAN,
                 ORANGE_GLAZED_TERRACOTTA,
@@ -222,7 +222,7 @@ public class BlockCategories {
                 STAINED_GLASS_PANE,
                 STAINED_HARDENED_CLAY,
                 STANDING_BANNER,
-                STANDING_SIGN,
+                WOODEN_STANDING_SIGN,
                 STICKY_PISTON,
                 STONE,
                 STONEBRICK,
@@ -237,7 +237,7 @@ public class BlockCategories {
 //                STRUCTURE_VOID,
                 TARGET,
                 TNT,
-                TRAPDOOR,
+                WOODEN_TRAPDOOR,
                 TRAPPED_CHEST,
                 TURTLE_EGG,
                 UNDYED_SHULKER_BOX,
@@ -359,7 +359,7 @@ public class BlockCategories {
         );
 
         categorize(BlockCategory.STAIRS,
-                WOOD_STAIRS,
+                WOODEN_STAIRS,
                 BRICK_STAIRS,
                 DARK_PRISMARINE_STAIRS,
                 NETHER_BRICK_STAIRS,
@@ -389,7 +389,7 @@ public class BlockCategories {
 
         categorize(BlockCategory.TRAPDOOR,
                 IRON_TRAPDOOR,
-                TRAPDOOR
+                WOODEN_TRAPDOOR
         );
 
         categorize(BlockCategory.LIQUID,
@@ -425,7 +425,7 @@ public class BlockCategories {
 
         categorize(BlockCategory.SIGN,
                 WALL_SIGN,
-                STANDING_SIGN
+                WOODEN_STANDING_SIGN
         );
 
         categorize(BlockCategory.STEM,

@@ -18,7 +18,7 @@ public class BlockTypes {
     public static final BlockType GRASS = IntBlock.builder().id(BlockIds.GRASS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.6f).build();
     public static final BlockType DIRT = IntBlock.builder().id(BlockIds.DIRT).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
     public static final BlockType COBBLESTONE = IntBlock.builder().id(BlockIds.COBBLESTONE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).build();
-    public static final BlockType PLANKS = IntBlock.builder().id(BlockIds.PLANKS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).flammable(true).fuelTime(300).build(); //TODO: planks type (warped, crimson)
+    public static final BlockType PLANKS = IntBlock.builder().id(BlockIds.PLANKS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).flammable(true).fuelTime(300).build();
     public static final BlockType SAPLING = IntBlock.builder().id(BlockIds.SAPLING).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).fuelTime(100).build();
     public static final BlockType BEDROCK = IntBlock.builder().id(BlockIds.BEDROCK).maxStackSize(64).solid(true).filterLight(15).hardness(-1f).build();
     public static final BlockType FLOWING_WATER = IntBlock.builder().id(BlockIds.FLOWING_WATER).maxStackSize(0).transparent(true).solid(true).filterLight(2).hardness(100f).build();
@@ -30,7 +30,7 @@ public class BlockTypes {
     public static final BlockType GOLD_ORE = IntBlock.builder().id(BlockIds.GOLD_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
     public static final BlockType IRON_ORE = IntBlock.builder().id(BlockIds.IRON_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
     public static final BlockType COAL_ORE = IntBlock.builder().id(BlockIds.COAL_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
-    public static final BlockType LOG = IntBlock.builder().id(BlockIds.LOG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).flammable(true).build(); //TODO: include warped and stripped logs?
+    public static final BlockType LOG = IntBlock.builder().id(BlockIds.LOG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).flammable(true).build();
     public static final BlockType LEAVES = IntBlock.builder().id(BlockIds.LEAVES).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.2f).build();
     public static final BlockType SPONGE = IntBlock.builder().id(BlockIds.SPONGE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.6f).build();
     public static final BlockType GLASS = IntBlock.builder().id(BlockIds.GLASS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.3f).build();
@@ -66,7 +66,7 @@ public class BlockTypes {
     public static final BlockType TORCH = IntBlock.builder().id(BlockIds.TORCH).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(14).hardness(0f).floodable(true).build(); //TODO: soul type
     public static final BlockType FIRE = IntBlock.builder().id(BlockIds.FIRE).maxStackSize(0).diggable(true).transparent(true).solid(true).emitLight(15).hardness(0f).floodable(true).build(); //TODO: soul fire type
     public static final BlockType MOB_SPAWNER = IntBlock.builder().id(BlockIds.MOB_SPAWNER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
-    public static final BlockType WOOD_STAIRS = IntBlock.builder().id(BlockIds.OAK_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(2f).flammable(true).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType WOODEN_STAIRS = IntBlock.builder().id(BlockIds.OAK_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(2f).flammable(true).fuelTime(300).build();
     public static final BlockType CHEST = IntBlock.builder().id(BlockIds.CHEST).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2.5f).fuelTime(300).build();
     public static final BlockType REDSTONE_WIRE = IntBlock.builder().id(BlockIds.REDSTONE_WIRE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
     public static final BlockType DIAMOND_ORE = IntBlock.builder().id(BlockIds.DIAMOND_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
@@ -76,16 +76,16 @@ public class BlockTypes {
     public static final BlockType FARMLAND = IntBlock.builder().id(BlockIds.FARMLAND).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(0.6f).build();
     public static final BlockType FURNACE = IntBlock.builder().id(BlockIds.FURNACE).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(13).hardness(3.5f).build();
     public static final BlockType LIT_FURNACE = IntBlock.builder().id(BlockIds.LIT_FURNACE).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(13).hardness(3.5f).build();
-    public static final BlockType STANDING_SIGN = IntBlock.builder().id(BlockIds.STANDING_SIGN).maxStackSize(16).diggable(true).transparent(true).solid(true).hardness(1f).build(); //TODO: wood types
-    public static final BlockType WOODEN_DOOR = IntBlock.builder().id(BlockIds.WOODEN_DOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).flammable(true).fuelTime(200).build(); //TODO: wood types
+    public static final BlockType WOODEN_STANDING_SIGN = IntBlock.builder().id(BlockIds.OAK_STANDING_SIGN).maxStackSize(16).diggable(true).transparent(true).solid(true).hardness(1f).build();
+    public static final BlockType WOODEN_DOOR = IntBlock.builder().id(BlockIds.OAK_DOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).flammable(true).fuelTime(200).build();
     public static final BlockType LADDER = IntBlock.builder().id(BlockIds.LADDER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.4f).fuelTime(300).build();
     public static final BlockType RAIL = IntBlock.builder().id(BlockIds.RAIL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.7f).floodable(true).build();
     public static final BlockType STONE_STAIRS = IntBlock.builder().id(BlockIds.STONE_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).filterLight(15).build(); //TODO: stone types
-    public static final BlockType WALL_SIGN = IntBlock.builder().id(BlockIds.WALL_SIGN).maxStackSize(16).diggable(true).transparent(true).solid(true).hardness(1f).build(); //TODO: wood types
+    public static final BlockType WALL_SIGN = IntBlock.builder().id(BlockIds.OAK_WALL_SIGN).maxStackSize(16).diggable(true).transparent(true).solid(true).hardness(1f).build();
     public static final BlockType LEVER = IntBlock.builder().id(BlockIds.LEVER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
     public static final BlockType STONE_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.STONE_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build(); //TODO: blackstone type
     public static final BlockType IRON_DOOR = IntBlock.builder().id(BlockIds.IRON_DOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
-    public static final BlockType WOODEN_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.WOODEN_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType WOODEN_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.OAK_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).fuelTime(300).build();
     public static final BlockType REDSTONE_ORE = IntBlock.builder().id(BlockIds.REDSTONE_ORE).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(9).hardness(3f).build();
     public static final BlockType LIT_REDSTONE_ORE = IntBlock.builder().id(BlockIds.LIT_REDSTONE_ORE).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(9).hardness(3f).build();
     public static final BlockType REDSTONE_TORCH = IntBlock.builder().id(BlockIds.REDSTONE_TORCH).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(7).hardness(0f).floodable(true).build(); //TODO: unlit type
@@ -97,7 +97,7 @@ public class BlockTypes {
     public static final BlockType CLAY = IntBlock.builder().id(BlockIds.CLAY).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.6f).build();
     public static final BlockType REEDS = IntBlock.builder().id(BlockIds.REEDS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
     public static final BlockType JUKEBOX = IntBlock.builder().id(BlockIds.JUKEBOX).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).fuelTime(300).build();
-    public static final BlockType FENCE = IntBlock.builder().id(BlockIds.FENCE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType WOODEN_FENCE = IntBlock.builder().id(BlockIds.FENCE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build();
     public static final BlockType PUMPKIN = IntBlock.builder().id(BlockIds.PUMPKIN).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(1f).build();
     public static final BlockType NETHERRACK = IntBlock.builder().id(BlockIds.NETHERRACK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.4f).build();
     public static final BlockType SOUL_SAND = IntBlock.builder().id(BlockIds.SOUL_SAND).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
@@ -107,7 +107,7 @@ public class BlockTypes {
     public static final BlockType CAKE = IntBlock.builder().id(BlockIds.CAKE).maxStackSize(1).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
     public static final BlockType REPEATER = IntBlock.builder().id(BlockIds.UNPOWERED_REPEATER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
     public static final BlockType INVISIBLE_BEDROCK = IntBlock.builder().id(BlockIds.INVISIBLE_BEDROCK).maxStackSize(64).transparent(true).solid(true).hardness(-1f).build();
-    public static final BlockType TRAPDOOR = IntBlock.builder().id(BlockIds.TRAPDOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType WOODEN_TRAPDOOR = IntBlock.builder().id(BlockIds.OAK_TRAPDOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).fuelTime(300).build();
     public static final BlockType MONSTER_EGG = IntBlock.builder().id(BlockIds.MONSTER_EGG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.75f).build();
     public static final BlockType STONEBRICK = IntBlock.builder().id(BlockIds.STONEBRICK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
     public static final BlockType BROWN_MUSHROOM_BLOCK = IntBlock.builder().id(BlockIds.BROWN_MUSHROOM_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.2f).fuelTime(300).build();
@@ -118,7 +118,7 @@ public class BlockTypes {
     public static final BlockType PUMPKIN_STEM = IntBlock.builder().id(BlockIds.PUMPKIN_STEM).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
     public static final BlockType MELON_STEM = IntBlock.builder().id(BlockIds.MELON_STEM).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
     public static final BlockType VINE = IntBlock.builder().id(BlockIds.VINE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.2f).floodable(true).build();
-    public static final BlockType FENCE_GATE = IntBlock.builder().id(BlockIds.FENCE_GATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType WOOD_FENCE_GATE = IntBlock.builder().id(BlockIds.OAK_FENCE_GATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build();
     public static final BlockType BRICK_STAIRS = IntBlock.builder().id(BlockIds.BRICK_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(2f).build();
     public static final BlockType STONE_BRICK_STAIRS = IntBlock.builder().id(BlockIds.STONE_BRICK_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.5f).filterLight(15).build();
     public static final BlockType MYCELIUM = IntBlock.builder().id(BlockIds.MYCELIUM).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.6f).build();
@@ -151,7 +151,7 @@ public class BlockTypes {
     public static final BlockType FLOWER_POT = IntBlock.builder().id(BlockIds.FLOWER_POT).maxStackSize(64).diggable(true).transparent(true).solid(true).floodable(true).hardness(0f).build();
     public static final BlockType CARROTS = IntBlock.builder().id(BlockIds.CARROTS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0f).floodable(true).build();
     public static final BlockType POTATOES = IntBlock.builder().id(BlockIds.POTATOES).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0f).floodable(true).build();
-    public static final BlockType WOODEN_BUTTON = IntBlock.builder().id(BlockIds.WOODEN_BUTTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).fuelTime(100).build(); //TODO: wood types
+    public static final BlockType WOODEN_BUTTON = IntBlock.builder().id(BlockIds.OAK_BUTTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).fuelTime(100).build();
     public static final BlockType SKULL = IntBlock.builder().id(BlockIds.SKULL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1f).floodable(true).build();
     public static final BlockType ANVIL = IntBlock.builder().id(BlockIds.ANVIL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
     public static final BlockType TRAPPED_CHEST = IntBlock.builder().id(BlockIds.TRAPPED_CHEST).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2.5f).fuelTime(300).build();
@@ -164,8 +164,8 @@ public class BlockTypes {
     public static final BlockType HOPPER = IntBlock.builder().id(BlockIds.HOPPER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).build();
     public static final BlockType QUARTZ_BLOCK = IntBlock.builder().id(BlockIds.QUARTZ_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.8f).build(); //TODO: quartz bricks
     public static final BlockType QUARTZ_STAIRS = IntBlock.builder().id(BlockIds.QUARTZ_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(0.8f).build();
-    public static final BlockType DOUBLE_WOODEN_SLAB = IntBlock.builder().id(BlockIds.DOUBLE_WOODEN_SLAB).maxStackSize(64).diggable(true).transparent(true).solid(true).flammable(true).hardness(2f).fuelTime(300).build(); //TODO: wood types
-    public static final BlockType WOODEN_SLAB = IntBlock.builder().id(BlockIds.WOODEN_SLAB).maxStackSize(64).diggable(true).transparent(true).solid(true).flammable(true).hardness(2f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType DOUBLE_WOODEN_SLAB = IntBlock.builder().id(BlockIds.DOUBLE_WOODEN_SLAB).maxStackSize(64).diggable(true).transparent(true).solid(true).flammable(true).hardness(2f).fuelTime(300).build(); //TODO: wood types or add half trait?
+    public static final BlockType WOODEN_SLAB = IntBlock.builder().id(BlockIds.WOODEN_SLAB).maxStackSize(64).diggable(true).transparent(true).solid(true).flammable(true).hardness(2f).fuelTime(300).build();
     public static final BlockType STAINED_HARDENED_CLAY = IntBlock.builder().id(BlockIds.STAINED_HARDENED_CLAY).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.25f).build();
     public static final BlockType STAINED_GLASS_PANE = IntBlock.builder().id(BlockIds.STAINED_GLASS_PANE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.3f).build();
     public static final BlockType SLIME = IntBlock.builder().id(BlockIds.SLIME).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();

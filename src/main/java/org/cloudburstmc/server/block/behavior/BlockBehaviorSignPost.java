@@ -31,7 +31,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     private static final BiMap<Identifier, Identifier> WALL_MAP = HashBiMap.create();
 
     static {
-        STANDING_MAP.put(ItemTypes.SIGN, BlockTypes.STANDING_SIGN);
+        STANDING_MAP.put(ItemTypes.SIGN, BlockTypes.WOODEN_STANDING_SIGN);
         STANDING_MAP.put(ItemTypes.BIRCH_SIGN, BlockTypes.BIRCH_STANDING_SIGN);
         STANDING_MAP.put(ItemTypes.SPRUCE_SIGN, BlockTypes.SPRUCE_STANDING_SIGN);
         STANDING_MAP.put(ItemTypes.JUNGLE_SIGN, BlockTypes.JUNGLE_STANDING_SIGN);

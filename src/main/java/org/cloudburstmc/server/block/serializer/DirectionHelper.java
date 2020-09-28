@@ -59,7 +59,7 @@ public class DirectionHelper {
         register(TYPE_2,
                 ANVIL,
                 BED,
-                FENCE_GATE,
+                WOOD_FENCE_GATE,
                 NETHER_BRICK_FENCE,
                 REPEATER,
                 UNPOWERED_REPEATER,
@@ -88,7 +88,7 @@ public class DirectionHelper {
                 SANDSTONE_STAIRS,
                 STONE_BRICK_STAIRS,
                 STONE_STAIRS,
-                TRAPDOOR,
+                WOODEN_TRAPDOOR,
                 IRON_TRAPDOOR
         );
 
