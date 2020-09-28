@@ -457,7 +457,7 @@ public class Server {
         this.setAutoSave(this.serverProperties.isAutoSave());
 
         if (this.serverProperties.isHardcore() && this.getDifficulty() != Difficulty.HARD) {
-            this.serverProperties.setDifficulty(Difficulty.HARD);
+            this.serverProperties.modifyDifficulty(Difficulty.HARD);
         }
 
         if (this.getConfig().getDebug().isBugReport()) {

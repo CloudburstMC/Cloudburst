@@ -109,17 +109,17 @@ public class ServerProperties {
     public void setPath(Path path) { this.path = path; }
 
 
-    public void setWhitelist(boolean b) {
+    public void modifyWhitelist(boolean b) {
         this.whiteList = b;
         this.save();
     }
 
-    public void setGamemode(GameMode gameMode) {
-        this.gamemode = gameMode.getVanillaId();
+    public void modifyGamemode(int id) {
+        this.gamemode = id;
         this.save();
     }
 
-    public void setDifficulty(Difficulty difficulty) {
+    public void modifyDifficulty(Difficulty difficulty) {
         this.difficulty = difficulty.ordinal();
         this.save();
     }

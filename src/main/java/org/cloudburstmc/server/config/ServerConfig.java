@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.config;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.*;
 import org.cloudburstmc.server.level.Difficulty;
 import org.cloudburstmc.server.player.GameMode;
@@ -71,7 +70,7 @@ public class ServerConfig {
         }
 
         public void setWhitelist(boolean b) {
-            properties.setWhitelist(b);
+            properties.modifyWhitelist(b);
         }
 
         public void setDefaultLevel(String name) {
@@ -127,7 +126,7 @@ public class ServerConfig {
         }
 
         public void setGamemode(GameMode gameMode) {
-            properties.setGamemode(gameMode);
+            properties.modifyGamemode(gameMode.getVanillaId());
         }
 
         public Difficulty getDifficulty() {
@@ -135,7 +134,7 @@ public class ServerConfig {
         }
 
         public void setDifficulty(Difficulty difficulty) {
-            properties.setDifficulty(difficulty);
+            properties.modifyDifficulty(difficulty);
         }
 
     }
