@@ -84,6 +84,9 @@ public class ItemBucket extends Item {
 
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+        if (player.isAdventure()) {
+            return false;
+        }
         BlockState bucketContents = BlockState.get(getBlockIdFromDamage(this.getMeta()));
 
         if (bucketContents == BlockStates.AIR) {
