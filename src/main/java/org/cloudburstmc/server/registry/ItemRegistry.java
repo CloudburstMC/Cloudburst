@@ -114,7 +114,10 @@ public class ItemRegistry implements Registry {
                 }
                 return new BlockItem(state);
             } else {
-                throw new RegistryException("Item '" + identifier + "' is not registered");
+                log.warn("Registering unknown item {}", identifier);
+                itemFactory = ItemUnknown::new;
+                this.factoryMap.put(identifier, itemFactory);
+                this.runtimeIdMap.put(this.runtimeIdAllocator.getAndIncrement(), identifier);
             }
         }
         return itemFactory.create(identifier);
