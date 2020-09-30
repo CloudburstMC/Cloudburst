@@ -12,133 +12,6 @@ import java.util.*;
  */
 public class ServerConfig {
 
-
-    public static class Properties {
-
-        private final ServerProperties properties;
-
-        public Properties(ServerProperties properties) {
-            this.properties = properties;
-        }
-
-        public String getMotd() {
-            return properties.getMotd();
-        }
-
-        public int getServerPort() {
-            return properties.getServerPort();
-        }
-
-        public String getSubMotd() {
-            return properties.getSubMotd();
-        }
-
-        public String getServerIp() {
-            return properties.getServerIp();
-        }
-
-        public int getViewDistance() {
-            return properties.getViewDistance();
-        }
-
-        public boolean isAchievements() {
-            return properties.isAchievements();
-        }
-
-        public boolean isAnnouncePlayerAchievements() {
-            return properties.isAnnouncePlayerAchievements();
-        }
-
-        public int getMaxPlayers() {
-            return properties.getMaxPlayers();
-        }
-
-        public boolean isHardcore() {
-            return properties.isHardcore();
-        }
-
-        public boolean isSpawnAnimals() {
-            return properties.isSpawnAnimals();
-        }
-
-        public boolean isSpawnMobs() {
-            return properties.isSpawnMobs();
-        }
-
-        public boolean isAllowFlight() {
-            return properties.isAllowFlight();
-        }
-
-        public void setWhitelist(boolean b) {
-            properties.modifyWhitelist(b);
-        }
-
-        public void setDefaultLevel(String name) {
-            properties.modifyDefaultLevel(name);
-        }
-
-        public String getDefaultLevel() {
-            return properties.getDefaultLevel();
-        }
-
-        public boolean isWhiteList() {
-            return properties.isWhiteList();
-        }
-
-        public int getSpawnProtection() {
-            return properties.getSpawnProtection();
-        }
-
-        public boolean isForceGamemode() {
-            return properties.isForceGamemode();
-        }
-
-        public boolean isPVP() {
-            return properties.isPvp();
-        }
-
-        public boolean isGenerateStructures() {
-            return properties.isGenerateStructures();
-        }
-
-        public boolean isAllowNether() {
-            return properties.isAllowNether();
-        }
-
-        public boolean isEnableQuery() {
-            return properties.isEnableQuery();
-        }
-
-        public boolean isAutoSave() {
-            return properties.isAutoSave();
-        }
-
-        public boolean isForceResources() {
-            return properties.isForceResources();
-        }
-
-        public boolean isXboxAuth() {
-            return properties.isXboxAuth();
-        }
-
-        public GameMode getGamemode() {
-            return GameMode.from(properties.getGamemode());
-        }
-
-        public void setGamemode(GameMode gameMode) {
-            properties.modifyGamemode(gameMode.getVanillaId());
-        }
-
-        public Difficulty getDifficulty() {
-            return Difficulty.values()[properties.getDifficulty()];
-        }
-
-        public void setDifficulty(Difficulty difficulty) {
-            properties.modifyDifficulty(difficulty);
-        }
-
-    }
-
     @Data
     @Setter(AccessLevel.PRIVATE)
     @Builder
@@ -409,8 +282,120 @@ public class ServerConfig {
 
     // forwarding server.properties //
 
-    public Properties getProperties() {
-        return new Properties(properties);
+    public String getMotd() {
+        return properties.getMotd();
+    }
+
+    public int getServerPort() {
+        return properties.getServerPort();
+    }
+
+    public String getSubMotd() {
+        return properties.getSubMotd();
+    }
+
+    public String getServerIp() {
+        return properties.getServerIp();
+    }
+
+    public int getViewDistance() {
+        return properties.getViewDistance();
+    }
+
+    public boolean isAchievements() {
+        return properties.isAchievements();
+    }
+
+    public boolean isAnnouncePlayerAchievements() {
+        return properties.isAnnouncePlayerAchievements();
+    }
+
+    public int getMaxPlayers() {
+        return properties.getMaxPlayers();
+    }
+
+    public boolean isHardcore() {
+        return properties.isHardcore();
+    }
+
+    public boolean isSpawnAnimals() {
+        return properties.isSpawnAnimals();
+    }
+
+    public boolean isSpawnMobs() {
+        return properties.isSpawnMobs();
+    }
+
+    public boolean isAllowFlight() {
+        return properties.isAllowFlight();
+    }
+
+    public void setWhitelist(boolean b) {
+        properties.modifyWhitelist(b);
+    }
+
+    public void setDefaultLevel(String name) {
+        properties.modifyDefaultLevel(name);
+    }
+
+    public String getDefaultLevel() {
+        return properties.getDefaultLevel();
+    }
+
+    public boolean isWhiteList() {
+        return properties.isWhiteList();
+    }
+
+    public int getSpawnProtection() {
+        return properties.getSpawnProtection();
+    }
+
+    public boolean isForceGamemode() {
+        return properties.isForceGamemode();
+    }
+
+    public boolean isPVP() {
+        return properties.isPvp();
+    }
+
+    public boolean isGenerateStructures() {
+        return properties.isGenerateStructures();
+    }
+
+    public boolean isAllowNether() {
+        return properties.isAllowNether();
+    }
+
+    public boolean isEnableQuery() {
+        return properties.isEnableQuery();
+    }
+
+    public boolean isAutoSave() {
+        return properties.isAutoSave();
+    }
+
+    public boolean isForceResources() {
+        return properties.isForceResources();
+    }
+
+    public boolean isXboxAuth() {
+        return properties.isXboxAuth();
+    }
+
+    public GameMode getGamemode() {
+        return GameMode.from(properties.getGamemode());
+    }
+
+    public void setGamemode(GameMode gameMode) {
+        properties.modifyGamemode(gameMode.getVanillaId());
+    }
+
+    public Difficulty getDifficulty() {
+        return Difficulty.values()[properties.getDifficulty()];
+    }
+
+    public void setDifficulty(Difficulty difficulty) {
+        properties.modifyDifficulty(difficulty);
     }
 
     // forwarding cloudburst.yml //
