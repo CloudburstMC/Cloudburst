@@ -66,10 +66,10 @@ public class InventoryTransaction {
     }
 
     public void addAction(InventoryAction action) {
-        Item targetItem = action.getTargetItem();
         Item sourceItem = action.getSourceItem();
-
-        if ((targetItem.getCount() > targetItem.getMaxStackSize()) || (sourceItem.getCount() > sourceItem.getMaxStackSize())) {
+        Item targetItem = action.getTargetItem();
+        
+        if ((sourceItem.getCount() > sourceItem.getMaxStackSize()) || (targetItem.getCount() > targetItem.getMaxStackSize())) {
             return;
         }
 
