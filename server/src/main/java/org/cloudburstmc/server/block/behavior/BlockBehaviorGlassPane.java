@@ -11,10 +11,6 @@ public class BlockBehaviorGlassPane extends BlockBehaviorThin {
         return 1.5f;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.3f;
-    }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {

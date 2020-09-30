@@ -82,10 +82,6 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
         return 11;
     }
 
-    @Override
-    public float getHardness() {
-        return -1;
-    }
 
     @Override
     public boolean onBreak(Block block, ItemStack item) {

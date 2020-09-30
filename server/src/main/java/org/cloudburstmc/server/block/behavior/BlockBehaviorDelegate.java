@@ -58,17 +58,17 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public int getBurnChance() {
+    public int getBurnChance(BlockState state) {
         return parent.getBurnChance();
     }
 
     @Override
-    public int getBurnAbility() {
+    public int getBurnAbility(BlockState state) {
         return parent.getBurnAbility();
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return parent.getToolType();
     }
 
@@ -188,7 +188,7 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public float getHardness() {
+    public float getHardness(BlockState blockState) {
         return parent.getHardness();
     }
 
@@ -223,14 +223,14 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean canBeBrokenWith(ItemStack item) {
-        return parent.canBeBrokenWith(item);
+    public boolean canBeBrokenWith(BlockState state, ItemStack item) {
+        return parent.canBeBrokenWith(, item);
     }
 
     @Override
     @Deprecated
-    public float getBreakTime(ItemStack item) {
-        return parent.getBreakTime(item);
+    public float getBreakTime(BlockState blockState, ItemStack item) {
+        return parent.getBreakTime(, item);
     }
 
     @Override

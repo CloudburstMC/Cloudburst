@@ -17,10 +17,6 @@ public class BlockBehaviorEndPortal extends FloodableBlockBehavior {
         return false;
     }
 
-    @Override
-    public float getHardness() {
-        return -1;
-    }
 
     @Override
     public float getResistance() {

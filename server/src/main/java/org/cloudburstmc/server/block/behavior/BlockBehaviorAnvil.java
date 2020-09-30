@@ -32,17 +32,12 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     }
 
     @Override
-    public float getHardness() {
-        return 5;
-    }
-
-    @Override
     public float getResistance() {
         return 6000;
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ToolTypes.PICKAXE;
     }
 

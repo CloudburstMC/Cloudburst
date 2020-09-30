@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
@@ -17,10 +18,7 @@ public class BlockBehaviorCraftingTable extends BlockBehaviorSolid {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 2.5f;
-    }
+
 
     @Override
     public float getResistance() {
@@ -28,7 +26,7 @@ public class BlockBehaviorCraftingTable extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

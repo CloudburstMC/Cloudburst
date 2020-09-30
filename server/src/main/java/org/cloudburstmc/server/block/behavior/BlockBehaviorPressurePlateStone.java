@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.item.ItemStack;
@@ -16,10 +17,6 @@ public class BlockBehaviorPressurePlateStone extends BlockBehaviorPressurePlateB
         this.offPitch = 0.5f;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
 
     @Override
     public float getResistance() {
@@ -27,7 +24,7 @@ public class BlockBehaviorPressurePlateStone extends BlockBehaviorPressurePlateB
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

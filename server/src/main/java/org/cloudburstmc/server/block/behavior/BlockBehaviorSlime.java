@@ -5,10 +5,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorSlime extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 0;
-    }
 
     @Override
     public float getResistance() {

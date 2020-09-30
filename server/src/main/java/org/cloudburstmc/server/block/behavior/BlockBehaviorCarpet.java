@@ -14,10 +14,6 @@ import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 public class BlockBehaviorCarpet extends FloodableBlockBehavior {
 
-    @Override
-    public float getHardness() {
-        return 0.1f;
-    }
 
     @Override
     public float getResistance() {

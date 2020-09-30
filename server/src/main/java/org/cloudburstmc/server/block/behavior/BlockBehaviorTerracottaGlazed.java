@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ToolType;
@@ -16,13 +17,9 @@ public class BlockBehaviorTerracottaGlazed extends BlockBehaviorSolid {
         return 7;
     }
 
-    @Override
-    public float getHardness() {
-        return 1.4f;
-    }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

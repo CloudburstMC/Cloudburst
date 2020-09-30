@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.item.*;
@@ -10,14 +11,10 @@ import java.util.concurrent.ThreadLocalRandom;
 public class BlockBehaviorOreEmerald extends BlockBehaviorSolid {
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ToolTypes.PICKAXE;
     }
 
-    @Override
-    public float getHardness() {
-        return 3;
-    }
 
     @Override
     public float getResistance() {

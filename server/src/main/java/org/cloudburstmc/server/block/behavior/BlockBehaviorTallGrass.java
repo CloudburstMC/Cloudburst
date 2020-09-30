@@ -36,12 +36,12 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public int getBurnChance() {
+    public int getBurnChance(BlockState state) {
         return 60;
     }
 
     @Override
-    public int getBurnAbility() {
+    public int getBurnAbility(BlockState state) {
         return 100;
     }
 
@@ -117,7 +117,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SHEARS;
     }
 

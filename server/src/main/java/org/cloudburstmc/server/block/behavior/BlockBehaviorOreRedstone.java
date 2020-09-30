@@ -16,10 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 3;
-    }
+
 
     @Override
     public float getResistance() {
@@ -27,7 +24,7 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

@@ -15,10 +15,6 @@ public class BlockBehaviorSeaLantern extends BlockBehaviorTransparent {
         return 1.5f;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.3f;
-    }
 
     @Override
     public int getLightLevel(Block block) {

@@ -17,10 +17,6 @@ public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
         return 18000000;
     }
 
-    @Override
-    public float getHardness() {
-        return -1;
-    }
 
     @Override
     public int getLightLevel(Block block) {

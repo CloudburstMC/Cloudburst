@@ -105,7 +105,7 @@ public class BlockCategories {
                 END_STONE,
                 FARMLAND,
                 WOODEN_FENCE,
-                WOOD_FENCE_GATE,
+                WOODEN_FENCE_GATE,
                 FLETCHING_TABLE,
                 FROSTED_ICE,
                 FURNACE,
@@ -222,7 +222,7 @@ public class BlockCategories {
                 STAINED_GLASS_PANE,
                 STAINED_HARDENED_CLAY,
                 STANDING_BANNER,
-                WOODEN_STANDING_SIGN,
+                STANDING_SIGN,
                 STICKY_PISTON,
                 STONE,
                 STONEBRICK,
@@ -425,7 +425,7 @@ public class BlockCategories {
 
         categorize(BlockCategory.SIGN,
                 WALL_SIGN,
-                WOODEN_STANDING_SIGN
+                STANDING_SIGN
         );
 
         categorize(BlockCategory.STEM,

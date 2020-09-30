@@ -27,14 +27,10 @@ public class BlockBehaviorObserver extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 
-    @Override
-    public float getHardness() {
-        return 3.5f;
-    }
 
     @Override
     public float getResistance() {

@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.item.ItemStack;
@@ -13,9 +14,7 @@ import java.util.Random;
 
 public class BlockBehaviorMelon extends BlockBehaviorSolid {
 
-    public float getHardness() {
-        return 1;
-    }
+
 
     @Override
     public float getResistance() {
@@ -38,7 +37,7 @@ public class BlockBehaviorMelon extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

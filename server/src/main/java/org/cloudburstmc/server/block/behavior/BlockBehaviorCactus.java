@@ -20,10 +20,6 @@ import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorCactus extends BlockBehaviorTransparent {
 
-    @Override
-    public float getHardness() {
-        return 0.4f;
-    }
 
     @Override
     public float getResistance() {

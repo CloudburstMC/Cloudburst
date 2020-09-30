@@ -35,10 +35,6 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     // If the rail can be powered. So its a complex rail!
     protected boolean canBePowered = false;
 
-    @Override
-    public float getHardness() {
-        return 0.7f;
-    }
 
     @Override
     public float getResistance() {
@@ -51,7 +47,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ToolTypes.PICKAXE;
     }
 

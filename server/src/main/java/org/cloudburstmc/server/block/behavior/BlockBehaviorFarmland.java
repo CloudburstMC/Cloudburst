@@ -16,13 +16,9 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
         return 3;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.6f;
-    }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SHOVEL;
     }
 

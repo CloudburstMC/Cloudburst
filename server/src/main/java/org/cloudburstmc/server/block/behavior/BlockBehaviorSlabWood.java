@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
@@ -24,17 +25,17 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
     }
 
     @Override
-    public int getBurnChance() {
+    public int getBurnChance(BlockState state) {
         return 5;
     }
 
     @Override
-    public int getBurnAbility() {
+    public int getBurnAbility(BlockState state) {
         return 20;
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

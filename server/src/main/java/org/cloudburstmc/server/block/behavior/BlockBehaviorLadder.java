@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ToolType;
@@ -34,10 +35,7 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
     private float offMaxX;
     private float offMaxZ;
 
-    @Override
-    public float getHardness() {
-        return 0.4f;
-    }
+
 
     @Override
     public float getResistance() {
@@ -129,7 +127,7 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

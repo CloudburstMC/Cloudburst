@@ -31,10 +31,6 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         return 1;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.2f;
-    }
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {

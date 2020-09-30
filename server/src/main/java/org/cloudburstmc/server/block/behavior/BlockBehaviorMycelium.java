@@ -23,14 +23,10 @@ import static org.cloudburstmc.server.block.BlockTypes.MYCELIUM;
 public class BlockBehaviorMycelium extends BlockBehaviorSolid {
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SHOVEL;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.6f;
-    }
 
     @Override
     public float getResistance() {

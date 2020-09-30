@@ -13,10 +13,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
 
-    @Override
-    public float getHardness() {
-        return 3;
-    }
 
     @Override
     public float getResistance() {

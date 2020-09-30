@@ -12,14 +12,10 @@ import org.cloudburstmc.server.utils.BlockColor;
 public class BlockBehaviorFenceNetherBrick extends BlockBehaviorFence {
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
 
     @Override
     public float getResistance() {

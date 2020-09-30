@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.ItemStack;
@@ -26,7 +27,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 
@@ -45,10 +46,6 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
         offMaxZ[1] = 1;
     }
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
 
     @Override
     public float getResistance() {

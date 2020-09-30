@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
@@ -10,10 +11,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorCobweb extends FloodableBlockBehavior {
 
-    @Override
-    public float getHardness() {
-        return 4;
-    }
+
 
     @Override
     public float getResistance() {
@@ -21,7 +19,7 @@ public class BlockBehaviorCobweb extends FloodableBlockBehavior {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SWORD;
     }
 

@@ -44,10 +44,6 @@ public class BlockBehaviorAir extends BlockBehaviorTransparent {
         return null;
     }
 
-    @Override
-    public float getHardness() {
-        return 0;
-    }
 
     @Override
     public float getResistance() {

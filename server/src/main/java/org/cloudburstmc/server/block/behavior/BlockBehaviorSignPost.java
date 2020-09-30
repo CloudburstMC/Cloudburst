@@ -31,7 +31,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     private static final BiMap<Identifier, Identifier> WALL_MAP = HashBiMap.create();
 
     static {
-        STANDING_MAP.put(ItemTypes.SIGN, BlockTypes.WOODEN_STANDING_SIGN);
+        STANDING_MAP.put(ItemTypes.SIGN, BlockTypes.STANDING_SIGN);
         STANDING_MAP.put(ItemTypes.BIRCH_SIGN, BlockTypes.BIRCH_STANDING_SIGN);
         STANDING_MAP.put(ItemTypes.SPRUCE_SIGN, BlockTypes.SPRUCE_STANDING_SIGN);
         STANDING_MAP.put(ItemTypes.JUNGLE_SIGN, BlockTypes.JUNGLE_STANDING_SIGN);
@@ -50,10 +50,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
         WALL_MAP.put(ItemTypes.WARPED_SIGN, BlockTypes.WARPED_WALL_SIGN);
     }
 
-    @Override
-    public float getHardness() {
-        return 1;
-    }
+
 
     @Override
     public float getResistance() {
@@ -108,7 +105,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

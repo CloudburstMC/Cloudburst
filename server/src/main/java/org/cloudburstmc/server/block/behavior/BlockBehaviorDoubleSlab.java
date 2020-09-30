@@ -36,12 +36,7 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     }
 
     @Override
-    public float getHardness() {
-        return 2;
-    }
-
-    @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

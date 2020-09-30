@@ -1,20 +1,19 @@
 package org.cloudburstmc.server.block.behavior;
 
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
+import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 public class BlockBehaviorTerracottaStained extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 1.25f;
-    }
+
 
     @Override
     public float getResistance() {
@@ -22,13 +21,14 @@ public class BlockBehaviorTerracottaStained extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
-        return ItemToolBehavior.TYPE_PICKAXE;
+    public ToolType getToolType(BlockState state) {
+        return ToolTypes.PICKAXE;
     }
 
     @Override
     public ItemStack[] getDrops(Block blockState, ItemStack hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+        val behavior = hand.getBehavior();
+        if (behavior.isPickaxe() && behavior.getTier(hand).compareTo(TierTypes.WOOD) >= 0) {
             return new ItemStack[]{toItem(blockState)};
         } else {
             return new ItemStack[0];

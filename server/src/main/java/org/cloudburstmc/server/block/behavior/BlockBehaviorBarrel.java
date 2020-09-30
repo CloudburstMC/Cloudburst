@@ -74,10 +74,6 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 2.5f;
-    }
 
     @Override
     public float getResistance() {
@@ -85,7 +81,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ToolTypes.AXE;
     }
 

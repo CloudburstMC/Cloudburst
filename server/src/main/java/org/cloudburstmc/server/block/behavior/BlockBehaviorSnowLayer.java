@@ -14,10 +14,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
 
-    @Override
-    public float getHardness() {
-        return 0.1f;
-    }
+
 
     @Override
     public float getResistance() {
@@ -25,7 +22,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SHOVEL;
     }
 

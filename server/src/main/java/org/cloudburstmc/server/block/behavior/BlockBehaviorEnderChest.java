@@ -31,10 +31,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
         return 7;
     }
 
-    @Override
-    public float getHardness() {
-        return 22.5f;
-    }
+
 
     @Override
     public float getResistance() {
@@ -42,7 +39,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

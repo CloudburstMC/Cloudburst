@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ToolType;
@@ -9,10 +10,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorBookshelf extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 1.5f;
-    }
+
 
     @Override
     public float getResistance() {
@@ -20,17 +18,17 @@ public class BlockBehaviorBookshelf extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 
     @Override
-    public int getBurnChance() {
+    public int getBurnChance(BlockState state) {
         return 30;
     }
 
     @Override
-    public int getBurnAbility() {
+    public int getBurnAbility(BlockState state) {
         return 20;
     }
 

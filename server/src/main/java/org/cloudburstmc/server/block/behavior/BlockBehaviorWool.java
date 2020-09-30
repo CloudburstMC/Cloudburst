@@ -11,14 +11,10 @@ import org.cloudburstmc.server.utils.data.DyeColor;
 public class BlockBehaviorWool extends BlockBehaviorSolid {
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SHEARS;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.8f;
-    }
 
     @Override
     public float getResistance() {
@@ -26,12 +22,12 @@ public class BlockBehaviorWool extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getBurnChance() {
+    public int getBurnChance(BlockState state) {
         return 30;
     }
 
     @Override
-    public int getBurnAbility() {
+    public int getBurnAbility(BlockState state) {
         return 60;
     }
 

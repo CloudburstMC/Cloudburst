@@ -5,10 +5,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorDaylightDetector extends BlockBehaviorTransparent {
 
-    @Override
-    public float getHardness() {
-        return 0.2f;
-    }
 
     @Override
     public BlockColor getColor(Block state) {

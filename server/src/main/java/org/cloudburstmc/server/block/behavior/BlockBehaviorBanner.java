@@ -29,17 +29,12 @@ import static org.cloudburstmc.server.blockentity.BlockEntityTypes.BANNER;
 public class BlockBehaviorBanner extends BlockBehaviorTransparent {
 
     @Override
-    public float getHardness() {
-        return 1;
-    }
-
-    @Override
     public float getResistance() {
         return 5;
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ToolTypes.AXE;
     }
 

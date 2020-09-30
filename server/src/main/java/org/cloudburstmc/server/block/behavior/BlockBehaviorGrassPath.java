@@ -13,7 +13,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SHOVEL;
     }
 

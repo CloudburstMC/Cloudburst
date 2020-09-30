@@ -18,11 +18,6 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
 
 
     @Override
-    public float getHardness() {
-        return 0.2f;
-    }
-
-    @Override
     public float getResistance() {
         return 1;
     }
@@ -178,7 +173,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SHEARS;
     }
 
