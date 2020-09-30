@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ToolType;
@@ -10,10 +11,6 @@ import java.util.Random;
 
 public class BlockBehaviorGravel extends BlockBehaviorFallable {
 
-    @Override
-    public float getHardness() {
-        return 0.6f;
-    }
 
     @Override
     public float getResistance() {
@@ -21,7 +18,7 @@ public class BlockBehaviorGravel extends BlockBehaviorFallable {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SHOVEL;
     }
 

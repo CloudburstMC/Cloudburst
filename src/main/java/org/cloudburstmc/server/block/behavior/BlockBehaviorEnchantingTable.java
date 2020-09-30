@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.EnchantingTable;
 import org.cloudburstmc.server.inventory.EnchantInventory;
@@ -19,14 +20,10 @@ import static org.cloudburstmc.server.blockentity.BlockEntityTypes.ENCHANTING_TA
 public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 
-    @Override
-    public float getHardness() {
-        return 5;
-    }
 
     @Override
     public float getResistance() {

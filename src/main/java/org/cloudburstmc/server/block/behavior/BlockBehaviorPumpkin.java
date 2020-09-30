@@ -20,10 +20,7 @@ public class BlockBehaviorPumpkin extends BlockBehaviorSolid {
         this.type = type;
     }
 
-    @Override
-    public float getHardness() {
-        return 1;
-    }
+
 
     @Override
     public float getResistance() {
@@ -31,7 +28,7 @@ public class BlockBehaviorPumpkin extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ToolTypes.AXE;
     }
 

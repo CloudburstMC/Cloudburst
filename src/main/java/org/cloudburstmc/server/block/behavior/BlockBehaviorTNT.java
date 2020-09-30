@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityTypes;
@@ -19,10 +20,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorTNT extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 0;
-    }
 
     @Override
     public float getResistance() {
@@ -35,12 +32,12 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getBurnChance() {
+    public int getBurnChance(BlockState state) {
         return 15;
     }
 
     @Override
-    public int getBurnAbility() {
+    public int getBurnAbility(BlockState state) {
         return 100;
     }
 

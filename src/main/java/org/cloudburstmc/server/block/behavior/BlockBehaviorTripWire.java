@@ -28,10 +28,6 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
         return 0;
     }
 
-    @Override
-    public float getHardness() {
-        return 0;
-    }
 
     @Override
     public AxisAlignedBB getBoundingBox() {

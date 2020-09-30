@@ -19,10 +19,6 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
 
     @Override
     public float getResistance() {

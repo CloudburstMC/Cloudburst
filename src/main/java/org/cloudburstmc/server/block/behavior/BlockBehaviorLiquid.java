@@ -371,10 +371,6 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         return cost;
     }
 
-    @Override
-    public float getHardness() {
-        return 100f;
-    }
 
     @Override
     public float getResistance() {

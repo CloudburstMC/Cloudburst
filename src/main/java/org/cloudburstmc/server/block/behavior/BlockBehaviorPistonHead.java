@@ -11,10 +11,6 @@ public class BlockBehaviorPistonHead extends BlockBehaviorTransparent {
         return 2.5f;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {

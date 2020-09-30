@@ -26,10 +26,6 @@ import static org.cloudburstmc.server.utils.data.SpongeType.WET;
 
 public class BlockBehaviorSponge extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 0.6f;
-    }
 
     @Override
     public float getResistance() {

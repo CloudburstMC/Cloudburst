@@ -14,10 +14,6 @@ public abstract class FloodableBlockBehavior extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 0;
-    }
 
     @Override
     public float getResistance() {

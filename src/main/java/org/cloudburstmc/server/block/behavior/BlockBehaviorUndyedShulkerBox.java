@@ -11,6 +11,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ShulkerBox;
 import org.cloudburstmc.server.item.CloudItemStack;
@@ -26,10 +27,7 @@ import static org.cloudburstmc.server.blockentity.BlockEntityTypes.SHULKER_BOX;
 
 public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
+
 
     @Override
     public float getResistance() {
@@ -42,7 +40,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

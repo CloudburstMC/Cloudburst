@@ -103,10 +103,6 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
         }
     }
 
-    @Override
-    public float getHardness() {
-        return 3;
-    }
 
     @Override
     public boolean canBeActivated(Block block) {
@@ -114,7 +110,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

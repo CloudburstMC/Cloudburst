@@ -5,6 +5,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
@@ -48,7 +49,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         INSTRUMENTS.put(BlockTypes.WOODEN_DOOR, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.WOODEN_PRESSURE_PLATE, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.WOODEN_TRAPDOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.WOODEN_STANDING_SIGN, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.STANDING_SIGN, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.WALL_SIGN, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.NOTEBLOCK, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.BOOKSHELF, Instrument.BASS);
@@ -129,14 +130,10 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ToolTypes.AXE;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.8f;
-    }
 
     @Override
     public float getResistance() {

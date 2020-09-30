@@ -19,10 +19,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorSkull extends BlockBehaviorTransparent {
 
-    @Override
-    public float getHardness() {
-        return 1;
-    }
 
     @Override
     public float getResistance() {
@@ -65,7 +61,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

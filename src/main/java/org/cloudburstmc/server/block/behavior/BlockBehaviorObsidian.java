@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.item.ToolType;
@@ -14,13 +15,8 @@ import static org.cloudburstmc.server.block.BlockTypes.PORTAL;
 public class BlockBehaviorObsidian extends BlockBehaviorSolid {
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ToolTypes.PICKAXE;
-    }
-
-    @Override
-    public float getHardness() {
-        return 35; //50 in PC
     }
 
     @Override

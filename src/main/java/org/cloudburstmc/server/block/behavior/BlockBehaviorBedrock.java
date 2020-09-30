@@ -4,10 +4,6 @@ import org.cloudburstmc.server.item.ItemStack;
 
 public class BlockBehaviorBedrock extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return -1;
-    }
 
     @Override
     public float getResistance() {

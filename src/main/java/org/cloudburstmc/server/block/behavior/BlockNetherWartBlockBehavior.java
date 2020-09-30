@@ -11,10 +11,6 @@ public class BlockNetherWartBlockBehavior extends BlockBehaviorSolid {
         return 5;
     }
 
-    @Override
-    public float getHardness() {
-        return 1;
-    }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {

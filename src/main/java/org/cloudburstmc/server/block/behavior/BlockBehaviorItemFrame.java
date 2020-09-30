@@ -122,10 +122,6 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
         return super.getComparatorInputOverride(block);
     }
 
-    @Override
-    public float getHardness() {
-        return 0.25f;
-    }
 
     @Override
     public boolean canWaterlogSource() {

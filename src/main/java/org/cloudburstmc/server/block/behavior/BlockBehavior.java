@@ -82,16 +82,36 @@ public abstract class BlockBehavior {
         return false;
     }
 
-    public int getBurnChance() {
-        return 0;
+    public int getBurnChance(BlockState state) {
+        return state.getType().burnChance();
     }
 
-    public int getBurnAbility() {
-        return 0;
+    public int getBurnAbility(BlockState state) {
+        return state.getType().burnability();
     }
 
-    public ToolType getToolType() {
-        return null;
+    public ToolType getToolType(BlockState state) {
+        return state.getType().getToolType();
+    }
+
+    public TierType getMinimalTier(BlockState state) {
+        return state.getType().getTierType();
+    }
+
+    public boolean checkTier(BlockState state, ItemStack item) {
+        val toolType = getToolType(state);
+        val tier = getMinimalTier(state);
+
+        val type = item.getType();
+        if (toolType != null && type.getToolType() != toolType) {
+            return false;
+        }
+
+        if (tier == null) {
+            return true;
+        }
+
+        return type.getTierType() != null && type.getTierType().compareTo(tier) >= 0;
     }
 
     public int getLightLevel(Block block) {
@@ -223,8 +243,8 @@ public abstract class BlockBehavior {
         return onBreak(block, item);
     }
 
-    public float getHardness() {
-        return 10;
+    public float getHardness(BlockState blockState) {
+        return blockState.getType().hardness();
     }
 
     public String getDescriptionId(BlockState state) {
@@ -252,8 +272,8 @@ public abstract class BlockBehavior {
     public float getBreakTime(BlockState state, ItemStack item, Player player) {
         Objects.requireNonNull(item, "getBreakTime: Item can not be null");
 //        Objects.requireNonNull(player, "getBreakTime: Player can not be null");
-        float blockHardness = getHardness();
-        val toolType = getToolType();
+        float blockHardness = getHardness(state);
+        val toolType = getToolType(state);
 
         val itemBehavior = item.getBehavior();
         val itemToolType = itemBehavior.getToolType(item);
@@ -274,26 +294,27 @@ public abstract class BlockBehavior {
                 efficiencyLoreLevel, hasteEffectLevel, insideOfWaterWithoutAquaAffinity, outOfWaterButNotOnGround);
     }
 
-    public boolean canBeBrokenWith(ItemStack item) {
-        return this.getHardness() != -1;
+    public boolean canBeBrokenWith(BlockState state, ItemStack item) {
+        return this.getHardness(state) != -1;
     }
 
     /**
-     * @param item item used
+     * @param blockState
+     * @param item       item used
      * @return break time
      * @deprecated This function is lack of Player class and is not accurate enough, use #getBreakTime(Item, Player)
      */
     @Deprecated
-    public float getBreakTime(ItemStack item) {
+    public float getBreakTime(BlockState blockState, ItemStack item) {
         val behavior = item.getBehavior();
-        float base = this.getHardness() * 1.5f;
-        if (this.canBeBrokenWith(item)) {
-            if (this.getToolType() == ToolTypes.SHEARS && behavior.isShears()) {
+        float base = this.getHardness(blockState) * 1.5f;
+        if (this.canBeBrokenWith(blockState, item)) {
+            if (this.getToolType(blockState) == ToolTypes.SHEARS && behavior.isShears()) {
                 base /= 15;
             } else if (
-                    (this.getToolType() == ToolTypes.PICKAXE && behavior.isPickaxe()) ||
-                            (this.getToolType() == ToolTypes.AXE && behavior.isAxe()) ||
-                            (this.getToolType() == ToolTypes.SHOVEL && behavior.isShovel())
+                    (this.getToolType(blockState) == ToolTypes.PICKAXE && behavior.isPickaxe()) ||
+                            (this.getToolType(blockState) == ToolTypes.AXE && behavior.isAxe()) ||
+                            (this.getToolType(blockState) == ToolTypes.SHOVEL && behavior.isShovel())
             ) {
                 base /= behavior.getTier(item).getMiningEfficiency();
             }

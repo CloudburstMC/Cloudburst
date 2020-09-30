@@ -15,10 +15,7 @@ import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE;
 
 public class BlockBehaviorStone extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 1.5f;
-    }
+
 
     @Override
     public float getResistance() {
@@ -26,7 +23,7 @@ public class BlockBehaviorStone extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

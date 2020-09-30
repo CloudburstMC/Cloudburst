@@ -35,10 +35,6 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
         return false;
     }
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
 
     @Override
     public float getResistance() {
@@ -81,7 +77,7 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

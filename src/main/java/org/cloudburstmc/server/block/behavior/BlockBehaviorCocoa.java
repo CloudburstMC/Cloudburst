@@ -182,13 +182,9 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
         return 15;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.2f;
-    }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

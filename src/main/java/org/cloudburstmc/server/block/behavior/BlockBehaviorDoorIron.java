@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ToolType;
@@ -15,10 +16,6 @@ public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 5;
-    }
 
     @Override
     public float getResistance() {
@@ -26,7 +23,7 @@ public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

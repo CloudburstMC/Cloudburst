@@ -79,13 +79,9 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
         return 30;
     }
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

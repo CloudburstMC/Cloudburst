@@ -32,10 +32,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 2.5f;
-    }
+
 
     @Override
     public float getResistance() {
@@ -43,7 +40,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

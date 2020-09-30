@@ -9,10 +9,6 @@ public abstract class BlockBehaviorPistonBase extends BlockBehaviorSolid {
         return 2.5f;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
 
     @Override
     public boolean canWaterlogSource() {

@@ -9,10 +9,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorFenceWooden extends BlockBehaviorFence {
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
 
     @Override
     public float getResistance() {
@@ -20,7 +16,7 @@ public class BlockBehaviorFenceWooden extends BlockBehaviorFence {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 
@@ -30,12 +26,12 @@ public class BlockBehaviorFenceWooden extends BlockBehaviorFence {
     }
 
     @Override
-    public int getBurnChance() {
+    public int getBurnChance(BlockState state) {
         return 5;
     }
 
     @Override
-    public int getBurnAbility() {
+    public int getBurnAbility(BlockState state) {
         return 20;
     }
 

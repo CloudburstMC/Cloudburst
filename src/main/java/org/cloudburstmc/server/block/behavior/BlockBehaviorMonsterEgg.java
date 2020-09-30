@@ -11,10 +11,6 @@ public class BlockBehaviorMonsterEgg extends BlockBehaviorSolid {
     public static final int CRACKED_BRICK = 4;
     public static final int CHISELED_BRICK = 5;
 
-    @Override
-    public float getHardness() {
-        return 0.75f;
-    }
 
     @Override
     public float getResistance() {

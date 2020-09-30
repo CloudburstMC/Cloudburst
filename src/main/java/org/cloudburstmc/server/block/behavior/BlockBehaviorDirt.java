@@ -26,13 +26,9 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
         return 2.5f;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SHOVEL;
     }
 

@@ -25,23 +25,19 @@ import static org.cloudburstmc.server.item.ItemTypes.STICK;
 
 public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
-    @Override
-    public float getHardness() {
-        return 0.2f;
-    }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_SHEARS;
     }
 
     @Override
-    public int getBurnChance() {
+    public int getBurnChance(BlockState state) {
         return 30;
     }
 
     @Override
-    public int getBurnAbility() {
+    public int getBurnAbility(BlockState state) {
         return 60;
     }
 

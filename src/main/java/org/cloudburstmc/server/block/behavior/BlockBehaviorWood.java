@@ -26,10 +26,6 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     private static final int AXIS_X = 1 << 4;
     private static final int AXIS_Z = 2 << 4;
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
 
     @Override
     public float getResistance() {
@@ -37,17 +33,17 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getBurnChance() {
+    public int getBurnChance(BlockState state) {
         return 5;
     }
 
     @Override
-    public int getBurnAbility() {
+    public int getBurnAbility(BlockState state) {
         return 20;
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

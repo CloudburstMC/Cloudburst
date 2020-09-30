@@ -27,10 +27,6 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
         return 2.5f;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {

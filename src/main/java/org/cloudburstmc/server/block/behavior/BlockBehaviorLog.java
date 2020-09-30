@@ -31,10 +31,6 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     protected Identifier identifier = BlockTypes.LOG;
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
 
     @Override
     public float getResistance() {
@@ -42,12 +38,12 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public int getBurnChance() {
+    public int getBurnChance(BlockState state) {
         return 5;
     }
 
     @Override
-    public int getBurnAbility() {
+    public int getBurnAbility(BlockState state) {
         return 10;
     }
 
@@ -85,7 +81,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

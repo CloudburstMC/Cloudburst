@@ -32,10 +32,6 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     private static final int CAMPFIRE_LIT_MASK = 0x04; // Bit is 1 when fire is extinguished
     private static final int CAMPFIRE_FACING_MASK = 0x03;
 
-    @Override
-    public float getHardness() {
-        return 2.0f;
-    }
 
     @Override
     public float getResistance() {
@@ -43,7 +39,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_AXE;
     }
 

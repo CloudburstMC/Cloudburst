@@ -37,10 +37,6 @@ public class BlockBehaviorLight extends BlockBehaviorTransparent {
         return false;
     }
 
-    @Override
-    public float getHardness() {
-        return 0;
-    }
 
     @Override
     public float getResistance() {

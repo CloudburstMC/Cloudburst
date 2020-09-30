@@ -19,10 +19,6 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
 
     @Override
     public float getResistance() {

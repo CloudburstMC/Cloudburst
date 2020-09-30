@@ -11,10 +11,6 @@ public class BlockBehaviorBarrier extends BlockBehaviorSolid {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return -1;
-    }
 
     @Override
     public float getResistance() {

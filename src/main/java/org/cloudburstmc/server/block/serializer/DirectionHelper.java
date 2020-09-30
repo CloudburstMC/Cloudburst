@@ -59,7 +59,7 @@ public class DirectionHelper {
         register(TYPE_2,
                 ANVIL,
                 BED,
-                WOOD_FENCE_GATE,
+                WOODEN_FENCE_GATE,
                 NETHER_BRICK_FENCE,
                 REPEATER,
                 UNPOWERED_REPEATER,

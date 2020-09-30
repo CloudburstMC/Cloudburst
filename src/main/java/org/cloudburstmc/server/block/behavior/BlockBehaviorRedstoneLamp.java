@@ -16,10 +16,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 0.3f;
-    }
 
     @Override
     public float getResistance() {
@@ -27,7 +23,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ItemToolBehavior.TYPE_PICKAXE;
     }
 

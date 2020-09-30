@@ -22,10 +22,6 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
         // TODO: 2016/2/4 case NETHER_WART:
     }
 
-    @Override
-    public float getHardness() {
-        return 0;
-    }
 
     @Override
     public float getResistance() {

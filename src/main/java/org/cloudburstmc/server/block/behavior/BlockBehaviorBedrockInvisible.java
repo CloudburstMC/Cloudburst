@@ -8,10 +8,6 @@ import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return -1;
-    }
 
     @Override
     public float getResistance() {

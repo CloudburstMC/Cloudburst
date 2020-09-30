@@ -26,10 +26,6 @@ import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorGrass extends BlockBehaviorDirt {
 
-    @Override
-    public float getHardness() {
-        return 0.6f;
-    }
 
     @Override
     public float getResistance() {

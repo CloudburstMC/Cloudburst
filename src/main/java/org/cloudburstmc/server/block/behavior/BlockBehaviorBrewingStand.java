@@ -25,10 +25,6 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
 
     @Override
     public float getResistance() {
@@ -36,7 +32,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     }
 
     @Override
-    public ToolType getToolType() {
+    public ToolType getToolType(BlockState state) {
         return ToolTypes.PICKAXE;
     }
 
