@@ -17,8 +17,7 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import static java.lang.Math.sqrt;
 import static java.util.Objects.requireNonNull;
-import static net.daporkchop.lib.math.primitive.PMath.clamp;
-import static net.daporkchop.lib.math.primitive.PMath.lerp;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * A {@link NoiseSource} that provides noise similar to that of vanilla's end terrain.
