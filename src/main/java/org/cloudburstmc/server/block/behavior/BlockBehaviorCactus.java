@@ -9,14 +9,14 @@ import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 public class BlockBehaviorCactus extends BlockBehaviorTransparent {
 
@@ -100,7 +100,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
                         Block b = block.getLevel().getBlock(block.getX(), block.getY() + y, block.getZ());
                         if (b.getState().getType() == AIR) {
                             BlockGrowEvent event = new BlockGrowEvent(b, BlockState.get(CACTUS));
-                            Server.getInstance().getPluginManager().callEvent(event);
+                            Server.getInstance().getEventManager().fire(event);
                             if (!event.isCancelled()) {
                                 block.set(event.getNewState(), true);
                             }

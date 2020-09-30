@@ -23,7 +23,7 @@ import static net.daporkchop.lib.common.math.PMath.*;
  */
 @JsonDeserialize
 public class NetherDensitySource extends AbstractGenerationPass implements DensitySource {
-    public static final Identifier ID = Identifier.fromString("nukkitx:nether");
+    public static final Identifier ID = Identifier.fromString("cloudburst:nether");
 
     private static final double NOISE_SCALE_FACTOR = ((1 << 16) - 1.0d) / 512.0d;
 

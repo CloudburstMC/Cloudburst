@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -49,7 +49,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
         val state = block.getState();
 
         boolean powerOn = isPowerOn(state);
-        level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, powerOn ? 15 : 0, powerOn ? 0 : 15));
+        level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, powerOn ? 15 : 0, powerOn ? 0 : 15));
 
 
         block.set(state.toggleTrait(BlockTraits.IS_OPEN));
@@ -75,7 +75,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().getBehavior().isNormalBlock(target)) {
-            return placeBlock(block, BlockState.get(BlockTypes.LEVER)
+            return placeBlock(block, BlockState.get(BlockIds.LEVER)
                     .withTrait(
                             BlockTraits.LEVER_DIRECTION,
                             LeverDirection.forDirection(face, player.getHorizontalDirection())

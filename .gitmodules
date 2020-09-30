@@ -1,6 +1,6 @@
-[submodule "src/main/resources/locale/nukkit"]
-	path = src/main/resources/locale/nukkit
-	url = https://github.com/NukkitX/Languages/
+[submodule "src/main/resources/locale/cloudburst"]
+	path = src/main/resources/locale/cloudburst
+	url = https://github.com/CloudburstMC/Languages/
 [submodule "src/main/resources/locale/vanilla"]
 	path = src/main/resources/locale/vanilla
 	url = https://github.com/NukkitX/Language/

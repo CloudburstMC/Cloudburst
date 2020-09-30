@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.concurrent.Immutable;
@@ -48,11 +48,11 @@ public class FurnaceRecipe implements Recipe {
     }
 
     @Override
-    public CraftingData toNetwork() {
+    public CraftingData toNetwork(int netId) {
         if (this.ingredient.hasMeta()) {
-            return CraftingData.fromFurnaceData(ingredient.getNetworkId(), ingredient.getMeta(), output.toNetwork(), block.getName());
+            return CraftingData.fromFurnaceData(ingredient.getNetworkId(), ingredient.getMeta(), output.toNetwork(), block.getName(), netId);
         } else {
-            return CraftingData.fromFurnace(ingredient.getNetworkId(), output.toNetwork(), block.getName());
+            return CraftingData.fromFurnace(ingredient.getNetworkId(), output.toNetwork(), block.getName(), netId);
         }
     }
 }

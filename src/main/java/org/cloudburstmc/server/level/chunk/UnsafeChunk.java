@@ -4,9 +4,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.level.Level;
@@ -156,7 +156,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
         checkBounds(x, y, z);
         ChunkSection section = this.getSection(y >> 4);
         if (section == null) {
-            if (blockState.getType() == BlockTypes.AIR) {
+            if (blockState.getType() == BlockIds.AIR) {
                 // Setting air in an empty section.
                 return;
             }
@@ -412,7 +412,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
                 entity.close();
             }
 
-            this.tiles.values().forEach(BlockEntity::close);
+            ImmutableList.copyOf(this.tiles.values()).forEach(BlockEntity::close);
             clear();
         }
     }

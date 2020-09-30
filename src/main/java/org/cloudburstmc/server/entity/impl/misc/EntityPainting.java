@@ -10,8 +10,8 @@ import org.cloudburstmc.server.entity.impl.HangingEntity;
 import org.cloudburstmc.server.entity.misc.Painting;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.player.Player;
@@ -23,7 +23,7 @@ import org.cloudburstmc.server.player.Player;
 public class EntityPainting extends HangingEntity implements Painting {
 
     public final static Motive[] motives = Motive.values();
-    private Motive motive;
+    private Motive motive = Motive.KEBAB;
 
     public EntityPainting(EntityType<Painting> type, Location location) {
         super(type, location);

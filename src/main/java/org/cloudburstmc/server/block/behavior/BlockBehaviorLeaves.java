@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.LeavesDecayEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
@@ -18,9 +18,9 @@ import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
-import static org.cloudburstmc.server.item.ItemIds.APPLE;
-import static org.cloudburstmc.server.item.ItemIds.STICK;
+import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.item.behavior.ItemIds.APPLE;
+import static org.cloudburstmc.server.item.behavior.ItemIds.STICK;
 
 public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
@@ -90,7 +90,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
         } else if (type == Level.BLOCK_UPDATE_RANDOM && isCheckDecay(state) && !isPersistent(state)) {
             LeavesDecayEvent ev = new LeavesDecayEvent(block);
 
-            Server.getInstance().getPluginManager().callEvent(ev);
+            Server.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled() || findLog(block, 7)) {
                 block.set(state.withTrait(BlockTraits.HAS_UPDATE, false), false, false);
             } else {

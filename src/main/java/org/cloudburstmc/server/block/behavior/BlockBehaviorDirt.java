@@ -1,17 +1,17 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DirtType;
 
+import static org.cloudburstmc.server.block.BlockIds.DIRT;
+import static org.cloudburstmc.server.block.BlockIds.FARMLAND;
 import static org.cloudburstmc.server.block.BlockTraits.DIRT_TYPE;
-import static org.cloudburstmc.server.block.BlockTypes.DIRT;
-import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
 
 public class BlockBehaviorDirt extends BlockBehaviorSolid {
 
@@ -48,7 +48,7 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
 
     @Override
     public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{Item.get(BlockTypes.DIRT)};
+        return new Item[]{Item.get(BlockIds.DIRT)};
     }
 
     @Override

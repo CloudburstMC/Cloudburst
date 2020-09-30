@@ -46,19 +46,13 @@ public class LoginPacketHandler implements BedrockPacketHandler {
         BedrockPacketCodec packetCodec = ProtocolInfo.getPacketCodec(protocolVersion);
 
         if (packetCodec == null) {
-            String message;
             PlayStatusPacket statusPacket = new PlayStatusPacket();
             if (protocolVersion < ProtocolInfo.getDefaultProtocolVersion()) {
-                message = "disconnectionScreen.outdatedClient";
-
                 statusPacket.setStatus(PlayStatusPacket.Status.LOGIN_FAILED_CLIENT_OLD);
             } else {
-                message = "disconnectionScreen.outdatedServer";
-
                 statusPacket.setStatus(PlayStatusPacket.Status.LOGIN_FAILED_SERVER_OLD);
             }
-            session.sendPacket(statusPacket);
-            session.disconnect(message);
+            session.sendPacketImmediately(statusPacket);
             return true;
         }
         session.setPacketCodec(packetCodec);
@@ -86,7 +80,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
         }
 
         PlayerPreLoginEvent playerPreLoginEvent;
-        this.server.getPluginManager().callEvent(playerPreLoginEvent = new PlayerPreLoginEvent(loginData, "Plugin reason"));
+        this.server.getEventManager().fire(playerPreLoginEvent = new PlayerPreLoginEvent(loginData, "Plugin reason"));
         if (playerPreLoginEvent.isCancelled()) {
             session.disconnect(playerPreLoginEvent.getKickMessage());
             return true;
@@ -101,7 +95,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
             @Override
             public void onRun() {
                 e = new PlayerAsyncPreLoginEvent(loginDataInstance);
-                server.getPluginManager().callEvent(e);
+                server.getEventManager().fire(e);
             }
 
             @Override

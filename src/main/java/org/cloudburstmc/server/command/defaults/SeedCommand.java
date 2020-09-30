@@ -14,7 +14,7 @@ public class SeedCommand extends Command {
 
     public SeedCommand() {
         super("seed", CommandData.builder("seed")
-                .setPermissions("nukkit.command.seed")
+                .setPermissions("cloudburst.command.seed")
                 .build());
     }
 

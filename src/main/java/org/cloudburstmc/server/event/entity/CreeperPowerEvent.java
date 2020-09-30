@@ -3,18 +3,12 @@ package org.cloudburstmc.server.event.entity;
 import org.cloudburstmc.server.entity.hostile.Creeper;
 import org.cloudburstmc.server.entity.misc.LightningBolt;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
 public class CreeperPowerEvent extends EntityEvent implements Cancellable {
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final PowerCause cause;
     private LightningBolt lightningBolt;

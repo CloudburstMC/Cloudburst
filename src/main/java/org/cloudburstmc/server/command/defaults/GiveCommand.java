@@ -7,12 +7,12 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.TextFormat;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * Created on 2015/12/9 by xtypr.
@@ -24,7 +24,7 @@ public class GiveCommand extends Command {
         super("give", CommandData.builder("give")
                 .setDescription("commands.give.description")
                 .setUsageMessage("commands.give.usage")
-                .setPermissions("nukkit.command.give")
+                .setPermissions("cloudburst.command.give")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false),
                         new CommandParameter("itemName", false, CommandParameter.ENUM_TYPE_ITEM_LIST),

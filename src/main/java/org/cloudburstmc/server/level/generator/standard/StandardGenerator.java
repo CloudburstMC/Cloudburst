@@ -15,8 +15,7 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import net.daporkchop.lib.unsafe.PUnsafe;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
@@ -30,7 +29,6 @@ import org.cloudburstmc.server.level.generator.standard.finish.Finisher;
 import org.cloudburstmc.server.level.generator.standard.generation.decorator.Decorator;
 import org.cloudburstmc.server.level.generator.standard.generation.density.DensitySource;
 import org.cloudburstmc.server.level.generator.standard.generation.density.DensitySourceReferenceDeserializer;
-import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 import org.cloudburstmc.server.level.generator.standard.misc.GenerationPass;
 import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
@@ -45,14 +43,14 @@ import java.util.stream.Stream;
 import static net.daporkchop.lib.common.util.PorkUtil.fallbackIfNull;
 
 /**
- * Main class of the NukkitX Standard Generator.
+ * Main class of the Cloudburst Standard Generator.
  *
  * @author DaPorkchop_
  */
 @NoArgsConstructor
 @Accessors(fluent = true)
 public final class StandardGenerator implements Generator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:standard");
+    public static final Identifier ID = Identifier.fromString("cloudburst:standard");
 
     private static final String DEFAULT_PRESET = "minecraft:overworld";
 
@@ -60,7 +58,7 @@ public final class StandardGenerator implements Generator {
         Identifier presetId = Identifier.fromString(Strings.isNullOrEmpty(options) ? DEFAULT_PRESET : options);
         try (InputStream in = StandardGeneratorUtils.read("preset", presetId)) {
             synchronized (StandardGenerator.class) {
-                return Nukkit.YAML_MAPPER.readValue(in, StandardGenerator.class).init(seed);
+                return Bootstrap.YAML_MAPPER.readValue(in, StandardGenerator.class).init(seed);
             }
         } catch (IOException e) {
             throw new RuntimeException("While decoding preset " + presetId, e);
@@ -287,7 +285,7 @@ public final class StandardGenerator implements Generator {
     @JsonSetter("copyFrom")
     private void copyFrom(@NonNull Identifier presetId) {
         try (InputStream in = StandardGeneratorUtils.read("preset", presetId)) {
-            StandardGenerator from = Nukkit.YAML_MAPPER.readValue(in, StandardGenerator.class);
+            StandardGenerator from = Bootstrap.YAML_MAPPER.readValue(in, StandardGenerator.class);
             this.biomes = from.biomes;
             this.density = from.density;
             this.decorators = from.decorators;

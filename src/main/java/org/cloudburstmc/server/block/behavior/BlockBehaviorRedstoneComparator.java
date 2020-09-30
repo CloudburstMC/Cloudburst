@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Comparator;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -17,8 +17,8 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Identifier;
 
-import static org.cloudburstmc.server.block.BlockTypes.POWERED_COMPARATOR;
-import static org.cloudburstmc.server.block.BlockTypes.UNPOWERED_COMPARATOR;
+import static org.cloudburstmc.server.block.BlockIds.POWERED_COMPARATOR;
+import static org.cloudburstmc.server.block.BlockIds.UNPOWERED_COMPARATOR;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.COMPARATOR;
 
 public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode {
@@ -163,7 +163,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
         if (super.place(item, block, target, face, clickPos, player)) {
             BlockEntityRegistry.get().newEntity(COMPARATOR, block);
 
-            this.onUpdate(block, Level.BLOCK_UPDATE_REDSTONE);
+            this.onUpdate(block.refresh(), Level.BLOCK_UPDATE_REDSTONE);
             return true;
         }
 

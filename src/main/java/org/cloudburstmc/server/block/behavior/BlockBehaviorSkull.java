@@ -3,14 +3,14 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Skull;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -39,7 +39,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
             return false;
         }
 
-        placeBlock(block, BlockState.get(BlockTypes.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
+        placeBlock(block, BlockState.get(BlockIds.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
 
         Skull skull = BlockEntityRegistry.get().newEntity(BlockEntityTypes.SKULL, block);
         skull.loadAdditionalData(item.getTag());

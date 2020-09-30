@@ -18,7 +18,7 @@ public class ListCommand extends Command {
         super("list", CommandData.builder("list")
                 .setDescription("commands.list.description")
                 .setUsageMessage("/list")
-                .setPermissions("nukkit.command.list")
+                .setPermissions("cloudburst.command.list")
                 .build());
     }
 

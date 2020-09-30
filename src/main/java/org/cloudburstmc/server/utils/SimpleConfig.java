@@ -2,7 +2,6 @@ package org.cloudburstmc.server.utils;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
-import org.cloudburstmc.server.plugin.Plugin;
 
 import java.io.File;
 import java.lang.annotation.ElementType;
@@ -13,6 +12,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
 import java.util.List;
 
 /**
@@ -24,12 +24,12 @@ public abstract class SimpleConfig {
 
     private final File configFile;
 
-    public SimpleConfig(Plugin plugin) {
-        this(plugin, "config.yml");
-    }
+    public SimpleConfig(java.nio.file.Path path) {
+        if (Files.isDirectory(path)) {
+            path = path.resolve("config.yml");
+        }
 
-    public SimpleConfig(Plugin plugin, String fileName) {
-        this(new File(plugin.getDataFolder() + File.separator + fileName));
+        configFile = path.toFile();
     }
 
     public SimpleConfig(File file) {

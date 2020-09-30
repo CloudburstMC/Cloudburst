@@ -4,13 +4,13 @@ elevationVanilla:
   variation: 0.2
 
 decorators:
-  - id: "nukkitx:surface"
+  - id: "cloudburst:surface"
     top: "grass"
     filler: "dirt"
 
 populators:
     # Fallen trees
-  - id: "nukkitx:tree"
+  - id: "cloudburst:tree"
     chance: 0.0005580357 # about 1 per 7 chunks
     on: "grass"
     type:
@@ -18,7 +18,7 @@ populators:
       fallen: true
 
     # Trees
-  - id: "nukkitx:tree"
+  - id: "cloudburst:tree"
     chance: 0.015625 # about 4 per chunk
     on: "grass"
     replace: "air"
@@ -27,14 +27,14 @@ populators:
       height: "4-12"
 
     # Cocoa on small jungle trees
-  - id: "nukkitx:cocoa"
+  - id: "cloudburst:cocoa"
     chance: 0.2 # about one per 5 logs
     avoidDouble: true
     height: "60-75"
     on: "log{tree_species=jungle}"
 
     # Melons
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.00390625 # about 1 per chunk
     on: "grass"
     replace: "air"
@@ -42,7 +42,7 @@ populators:
     block: "melon_block"
 
     # Huge trees
-  - id: "nukkitx:huge_tree"
+  - id: "cloudburst:huge_tree"
     chance: 0.02197265625 # about 5.625 per chunk
     on: "grass"
     replace: "air,leaves{tree_species=jungle}"
@@ -50,7 +50,7 @@ populators:
     type: "jungle"
 
     # Bushes
-  - id: "nukkitx:bush"
+  - id: "cloudburst:bush"
     chance: 0.0390625 # about 10 per chunk
     on: "grass"
     replace: "air"
@@ -58,7 +58,7 @@ populators:
     leaves: "leaves{tree_species=jungle}"
 
     # Flowers
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.015625 # about 4 per chunk
     on: "grass"
     replace: "air"
@@ -66,7 +66,7 @@ populators:
     block: "2*yellow_flower,red_flower"
 
     # Tall grass
-  - id: "nukkitx:shrub"
+  - id: "cloudburst:shrub"
     chance: 0.09765625 # about 25 per chunk
     on: "grass"
     block: "3*tallgrass,tallgrass{tall_grass_type=fern}"

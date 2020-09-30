@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.event.player;
 
 import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.network.SourceInterface;
 import org.cloudburstmc.server.player.Player;
 
@@ -12,12 +11,6 @@ import java.net.InetSocketAddress;
  * Nukkit Project
  */
 public class PlayerCreationEvent extends Event {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final SourceInterface interfaz;
 

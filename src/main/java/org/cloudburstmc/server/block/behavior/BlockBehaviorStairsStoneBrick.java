@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 
 public class BlockBehaviorStairsStoneBrick extends BlockBehaviorStairs {
 

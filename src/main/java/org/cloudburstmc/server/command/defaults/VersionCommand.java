@@ -1,15 +1,14 @@
 package org.cloudburstmc.server.command.defaults;
 
+import lombok.val;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.network.ProtocolInfo;
-import org.cloudburstmc.server.plugin.Plugin;
-import org.cloudburstmc.server.plugin.PluginDescription;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.utils.TextFormat;
 
-import java.util.List;
 import java.util.StringJoiner;
 
 /**
@@ -20,9 +19,9 @@ public class VersionCommand extends Command {
 
     public VersionCommand() {
         super("version", CommandData.builder("version")
-                .setDescription("%nukkit.command.version.description")
+                .setDescription("%cloudburst.command.version.description")
                 .setAliases("ver", "about")
-                .setPermissions("nukkit.command.version")
+                .setPermissions("cloudburst.command.version")
                 .build());
     }
 
@@ -32,7 +31,7 @@ public class VersionCommand extends Command {
             return true;
         }
         if (args.length == 0) {
-            sender.sendMessage(new TranslationContainer("nukkit.server.info.extended", sender.getServer().getName(),
+            sender.sendMessage(new TranslationContainer("cloudburst.server.info.extended", sender.getServer().getName(),
                     sender.getServer().getNukkitVersion(),
                     sender.getServer().getApiVersion(),
                     sender.getServer().getVersion(),
@@ -41,31 +40,28 @@ public class VersionCommand extends Command {
             StringJoiner pluginName = new StringJoiner(" ");
             for (String arg : args) pluginName.add(arg);
 
-            final boolean[] found = {false};
-            final Plugin[] exactPlugin = {sender.getServer().getPluginManager().getPlugin(pluginName.toString())};
-
-            if (exactPlugin[0] == null) {
+            val exactPlugin = sender.getServer().getPluginManager().getPlugin(pluginName.toString()).orElseGet(() -> {
                 final String finalPluginName = pluginName.toString().toLowerCase();
-                sender.getServer().getPluginManager().getPlugins().forEach((s, p) -> {
-                    if (s.toLowerCase().contains(finalPluginName)) {
-                        exactPlugin[0] = p;
-                        found[0] = true;
+                for (PluginContainer container : sender.getServer().getPluginManager().getAllPlugins()) {
+                    if (container.getName().toLowerCase().contains(finalPluginName)) {
+                        return container;
                     }
-                });
-            } else {
-                found[0] = true;
-            }
+                }
 
-            if (found[0]) {
-                PluginDescription desc = exactPlugin[0].getDescription();
-                sender.sendMessage(TextFormat.DARK_GREEN + desc.getName() + TextFormat.WHITE + " version " + TextFormat.DARK_GREEN + desc.getVersion());
-                if (desc.getDescription() != null) {
-                    sender.sendMessage(desc.getDescription());
-                }
-                if (desc.getWebsite() != null) {
-                    sender.sendMessage("Website: " + desc.getWebsite());
-                }
-                List<String> authors = desc.getAuthors();
+                return null;
+            });
+
+            if (exactPlugin != null) {
+                sender.sendMessage(TextFormat.DARK_GREEN + exactPlugin.getName() + TextFormat.WHITE + " version " + TextFormat.DARK_GREEN + exactPlugin.getVersion());
+                exactPlugin.getDescription().ifPresent((desc) -> {
+                    sender.sendMessage(desc);
+                });
+
+                exactPlugin.getUrl().ifPresent(url -> {
+                    sender.sendMessage("Website: " + url);
+                });
+
+                val authors = exactPlugin.getAuthors();
                 final String[] authorsString = {""};
                 authors.forEach((s) -> authorsString[0] += s);
                 if (authors.size() == 1) {
@@ -74,7 +70,7 @@ public class VersionCommand extends Command {
                     sender.sendMessage("Authors: " + authorsString[0]);
                 }
             } else {
-                sender.sendMessage(new TranslationContainer("nukkit.command.version.noSuchPlugin"));
+                sender.sendMessage(new TranslationContainer("cloudburst.command.version.noSuchPlugin"));
             }
         }
         return true;

@@ -7,7 +7,8 @@ import org.cloudburstmc.server.Server;
  * Nukkit Project
  */
 public abstract class DefaultPermissions {
-    public static final String ROOT = "nukkit";
+
+    public static final String ROOT = "cloudburst";
 
     public static Permission registerPermission(Permission perm) {
         return registerPermission(perm, null);
@@ -17,13 +18,15 @@ public abstract class DefaultPermissions {
         if (parent != null) {
             parent.getChildren().put(perm.getName(), true);
         }
-        Server.getInstance().getPluginManager().addPermission(perm);
 
-        return Server.getInstance().getPluginManager().getPermission(perm.getName());
+        Server.getInstance().getPermissionManager().addPermission(perm);
+
+        //noinspection OptionalGetWithoutIsPresent
+        return Server.getInstance().getPermissionManager().getPermission(perm.getName()).get();
     }
 
     public static void registerCorePermissions() {
-        Permission parent = registerPermission(new Permission(ROOT, "Allows using all Nukkit commands and utilities"));
+        Permission parent = registerPermission(new Permission(ROOT, "Allows using all Cloudburst commands and utilities"));
 
         Permission broadcasts = registerPermission(new Permission(ROOT + ".broadcast", "Allows the user to receive all broadcast messages"), parent);
 
@@ -32,7 +35,7 @@ public abstract class DefaultPermissions {
 
         broadcasts.recalculatePermissibles();
 
-        Permission commands = registerPermission(new Permission(ROOT + ".command", "Allows using all Nukkit commands"), parent);
+        Permission commands = registerPermission(new Permission(ROOT + ".command", "Allows using all Cloudburst commands"), parent);
 
         Permission whitelist = registerPermission(new Permission(ROOT + ".command.whitelist", "Allows the user to modify the server whitelist", Permission.DEFAULT_OP), commands);
         registerPermission(new Permission(ROOT + ".command.whitelist.add", "Allows the user to add a player to the server whitelist"), whitelist);

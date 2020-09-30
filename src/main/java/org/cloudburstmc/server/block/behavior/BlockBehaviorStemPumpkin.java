@@ -6,14 +6,14 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
 
@@ -30,7 +30,7 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 7) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), true);
                     }
@@ -46,7 +46,7 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
                     BlockState d = side.down().getState();
                     if (side.getState().getType() == AIR && (d.getType() == FARMLAND || d.getType() == GRASS || d.getType() == DIRT)) {
                         BlockGrowEvent ev = new BlockGrowEvent(side, BlockState.get(PUMPKIN));
-                        Server.getInstance().getPluginManager().callEvent(ev);
+                        Server.getInstance().getEventManager().fire(ev);
                         if (!ev.isCancelled()) {
                             side.set(ev.getNewState(), true);
                         }

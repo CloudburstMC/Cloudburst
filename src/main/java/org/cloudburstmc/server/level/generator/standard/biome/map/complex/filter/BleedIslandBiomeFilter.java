@@ -21,7 +21,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class BleedIslandBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("nukkitx:bleed_island");
+    public static final Identifier ID = Identifier.fromString("cloudburst:bleed_island");
 
     protected int oceanId;
     protected int preserveId;

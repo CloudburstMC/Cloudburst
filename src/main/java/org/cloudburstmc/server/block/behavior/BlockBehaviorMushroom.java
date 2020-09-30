@@ -5,10 +5,10 @@ import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
@@ -80,7 +80,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
 
     public boolean canStay(Block block) {
         val state = block.down().getState();
-        return state.getType() == BlockTypes.MYCELIUM || state.getType() == BlockTypes.PODZOL ||
+        return state.getType() == BlockIds.MYCELIUM || state.getType() == BlockIds.PODZOL ||
                 (!state.inCategory(BlockCategory.TRANSPARENT) && block.getLevel().getFullLight(block.getPosition()) < 13);
     }
 

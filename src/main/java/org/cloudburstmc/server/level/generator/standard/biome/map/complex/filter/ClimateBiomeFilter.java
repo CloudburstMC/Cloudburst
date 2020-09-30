@@ -19,7 +19,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class ClimateBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("nukkitx:climate");
+    public static final Identifier ID = Identifier.fromString("cloudburst:climate");
 
     protected int icyId;
     protected int coolId;

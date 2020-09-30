@@ -6,8 +6,8 @@ import org.cloudburstmc.server.event.inventory.CraftItemEvent;
 import org.cloudburstmc.server.inventory.BigCraftingGrid;
 import org.cloudburstmc.server.inventory.CraftingRecipe;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.scheduler.Task;
 import org.cloudburstmc.server.utils.Identifier;
@@ -15,7 +15,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 /**
  * @author CreeperFace
@@ -142,7 +142,7 @@ public class CraftingTransaction extends InventoryTransaction {
     protected boolean callExecuteEvent() {
         CraftItemEvent ev;
 
-        this.source.getServer().getPluginManager().callEvent(ev = new CraftItemEvent(this));
+        this.source.getServer().getEventManager().fire(ev = new CraftItemEvent(this));
         return !ev.isCancelled();
     }
 

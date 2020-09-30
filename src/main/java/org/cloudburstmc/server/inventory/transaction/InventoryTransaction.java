@@ -7,13 +7,13 @@ import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.inventory.transaction.action.SlotChangeAction;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.*;
 import java.util.Map.Entry;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * @author CreeperFace
@@ -235,7 +235,7 @@ public class InventoryTransaction {
 
     protected boolean callExecuteEvent() {
         InventoryTransactionEvent ev = new InventoryTransactionEvent(this);
-        this.source.getServer().getPluginManager().callEvent(ev);
+        this.source.getServer().getEventManager().fire(ev);
 
         SlotChangeAction from = null;
         SlotChangeAction to = null;
@@ -264,7 +264,7 @@ public class InventoryTransaction {
             }
 
             InventoryClickEvent ev2 = new InventoryClickEvent(who, from.getInventory(), from.getSlot(), from.getSourceItem(), from.getTargetItem());
-            this.source.getServer().getPluginManager().callEvent(ev2);
+            this.source.getServer().getEventManager().fire(ev2);
 
             if (ev2.isCancelled()) {
                 return false;

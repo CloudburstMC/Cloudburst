@@ -3,7 +3,7 @@ package org.cloudburstmc.server.entity.impl.misc;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import lombok.val;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -13,15 +13,15 @@ import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.FallingBlock;
 import org.cloudburstmc.server.event.entity.EntityBlockChangeEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.VARIANT;
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
-import static org.cloudburstmc.server.block.BlockTypes.ANVIL;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockIds.ANVIL;
 
 /**
  * @author MagicDroidX
@@ -142,15 +142,15 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
 
             if (onGround) {
                 close();
-                val b = level.getBlock(pos);
+                Block b = level.getBlock(pos);
                 BlockState blockState = b.getState();
                 if (blockState.getType() != AIR && blockState.inCategory(BlockCategory.TRANSPARENT) && !blockState.getBehavior().canBeReplaced(b)) {
                     if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
                         getLevel().dropItem(this.getPosition(), Item.get(this.getBlock()));
                     }
                 } else {
-                    EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, blockState, this.getBlock());
-                    server.getPluginManager().callEvent(event);
+                    EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, b, this.getBlock());
+                    server.getEventManager().fire(event);
                     if (!event.isCancelled()) {
                         getLevel().setBlock(pos, event.getTo(), true);
 

@@ -30,7 +30,7 @@ import static net.daporkchop.lib.common.math.PMath.*;
  */
 @JsonDeserialize
 public class HugeTreePopulator extends AbstractTreePopulator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:huge_tree");
+    public static final Identifier ID = Identifier.fromString("cloudburst:huge_tree");
 
     @JsonProperty
     protected BlockSelector below;

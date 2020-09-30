@@ -24,7 +24,7 @@ import static net.daporkchop.lib.common.math.PMath.*;
  */
 @JsonDeserialize
 public class OrePopulator extends AbstractReplacingPopulator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:ore");
+    public static final Identifier ID = Identifier.fromString("cloudburst:ore");
 
     @JsonProperty
     protected IntRange height;

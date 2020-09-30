@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.ref.Ref;
 
 /**
- * Registries for looking up the various different resources required for parsing the config for the NukkitX standard generator.
+ * Registries for looking up the various different resources required for parsing the config for the Cloudburst standard generator.
  *
  * @author DaPorkchop_
  */

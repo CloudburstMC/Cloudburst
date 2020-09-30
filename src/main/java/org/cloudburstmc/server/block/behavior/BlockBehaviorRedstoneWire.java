@@ -9,8 +9,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -20,8 +20,8 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.cloudburstmc.server.block.BlockTypes.GLOWSTONE;
-import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_WIRE;
+import static org.cloudburstmc.server.block.BlockIds.GLOWSTONE;
+import static org.cloudburstmc.server.block.BlockIds.REDSTONE_WIRE;
 
 public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
@@ -56,7 +56,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
         placeBlock(block, item.getBlock());
 
-        this.updateSurroundingRedstone(block, true);
+        this.updateSurroundingRedstone(block.refresh(), true);
         val level = block.getLevel();
         Vector3i pos = block.getPosition();
 
@@ -131,7 +131,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         }
 
         if (meta != maxStrength) {
-            level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, meta, maxStrength));
+            level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, meta, maxStrength));
 
             block.set(block.getState().withTrait(BlockTraits.REDSTONE_SIGNAL, maxStrength), false, false);
 
@@ -243,7 +243,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         val level = block.getLevel();
         // Redstone event
         RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
-        level.getServer().getPluginManager().callEvent(ev);
+        level.getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return 0;
         }

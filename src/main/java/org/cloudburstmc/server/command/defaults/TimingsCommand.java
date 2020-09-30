@@ -16,9 +16,9 @@ public class TimingsCommand extends Command {
 
     public TimingsCommand() {
         super("timings", CommandData.builder("timings")
-                .setDescription("nukkit.command.timings.description")
+                .setDescription("cloudburst.command.timings.description")
                 .setUsageMessage("/timings <on|off|paste>")
-                .setPermissions("nukkit.command.timings")
+                .setPermissions("cloudburst.command.timings")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("on|off|paste")
                 })
@@ -40,31 +40,31 @@ public class TimingsCommand extends Command {
         if (mode.equals("on")) {
             Timings.setTimingsEnabled(true);
             Timings.reset();
-            sender.sendMessage(new TranslationContainer("nukkit.command.timings.enable"));
+            sender.sendMessage(new TranslationContainer("cloudburst.command.timings.enable"));
             return true;
         } else if (mode.equals("off")) {
             Timings.setTimingsEnabled(false);
-            sender.sendMessage(new TranslationContainer("nukkit.command.timings.disable"));
+            sender.sendMessage(new TranslationContainer("cloudburst.command.timings.disable"));
             return true;
         }
 
         if (!Timings.isTimingsEnabled()) {
-            sender.sendMessage(new TranslationContainer("nukkit.command.timings.timingsDisabled"));
+            sender.sendMessage(new TranslationContainer("cloudburst.command.timings.timingsDisabled"));
             return true;
         }
 
         switch (mode) {
             case "verbon":
-                sender.sendMessage(new TranslationContainer("nukkit.command.timings.verboseEnable"));
+                sender.sendMessage(new TranslationContainer("cloudburst.command.timings.verboseEnable"));
                 Timings.setVerboseEnabled(true);
                 break;
             case "verboff":
-                sender.sendMessage(new TranslationContainer("nukkit.command.timings.verboseDisable"));
+                sender.sendMessage(new TranslationContainer("cloudburst.command.timings.verboseDisable"));
                 Timings.setVerboseEnabled(true);
                 break;
             case "reset":
                 Timings.reset();
-                sender.sendMessage(new TranslationContainer("nukkit.command.timings.reset"));
+                sender.sendMessage(new TranslationContainer("cloudburst.command.timings.reset"));
                 break;
             case "report":
             case "paste":

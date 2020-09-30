@@ -2,9 +2,9 @@ parent: "minecraft:plains"
 
 populators:
     # Sunflower
-  - id: "nukkitx:double_plant"
+  - id: "cloudburst:double_plant"
     chance: 0.0390625 # about 10 per chunk
     on: "grass"
     type: 0
 
-  - id: "nukkitx:next"
+  - id: "cloudburst:next"

@@ -5,7 +5,7 @@
     <name>Cloudburst</name>
     <groupId>org.cloudburstmc</groupId>
     <artifactId>cloudburst-server</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.0.1-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -116,6 +116,7 @@
             <groupId>org.jline</groupId>
             <artifactId>jline-terminal-jna</artifactId>
             <version>${jline.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.jline</groupId>
@@ -138,6 +139,7 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j18-impl</artifactId>
             <version>${log4j2.version}</version>
+            <scope>runtime</scope>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -246,13 +248,25 @@
         <!-- Miscellaneous -->
         <dependency>
             <groupId>com.nukkitx.protocol</groupId>
-            <artifactId>bedrock-v407</artifactId>
+            <artifactId>bedrock-v408</artifactId>
             <version>2.6.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.nukkitx</groupId>
+                    <artifactId>nbt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.nukkitx</groupId>
             <artifactId>block-state-updater</artifactId>
-            <version>1.16.0.2</version>
+            <version>1.16.20.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.nukkitx</groupId>
+                    <artifactId>nbt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.nukkitx</groupId>
@@ -267,7 +281,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>21.0</version>
+            <version>29.0-jre</version>
         </dependency>
         <dependency>
             <groupId>net.daporkchop</groupId>
@@ -294,6 +308,23 @@
             <artifactId>jopt-simple</artifactId>
             <version>5.0.4</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.2.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx</groupId>
+            <artifactId>nbt</artifactId>
+            <version>2.0.2</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -308,7 +339,7 @@
                         <manifestEntries>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <Main-Class>org.cloudburstmc.server.Nukkit</Main-Class>
+                            <Main-Class>org.cloudburstmc.server.Bootstrap</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>

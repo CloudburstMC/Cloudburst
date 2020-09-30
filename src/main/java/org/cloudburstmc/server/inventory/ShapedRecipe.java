@@ -4,13 +4,13 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * author: MagicDroidX
@@ -277,9 +277,9 @@ public class ShapedRecipe implements CraftingRecipe {
     }
 
     @Override
-    public CraftingData toNetwork() {
+    public CraftingData toNetwork(int netId) {
         return CraftingData.fromShaped(this.recipeId, this.getWidth(), this.getHeight(),
                 Item.toNetwork(this.getIngredientList()), Item.toNetwork(this.getAllResults()), this.getId(),
-                this.block.getName(), this.priority);
+                this.block.getName(), this.priority, netId);
     }
 }

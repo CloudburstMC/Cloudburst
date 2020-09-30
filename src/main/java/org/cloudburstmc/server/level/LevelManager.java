@@ -10,6 +10,8 @@ import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.Utils;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.Closeable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Log4j2
+@Singleton
 public class LevelManager implements Closeable {
     private final ExecutorService chunkExecutor = Executors.newWorkStealingPool();
     private final Server server;
@@ -26,6 +29,7 @@ public class LevelManager implements Closeable {
     private final Map<String, Level> levelIds = new HashMap<>();
     private volatile Level defaultLevel;
 
+    @Inject
     public LevelManager(Server server) {
         this.server = server;
     }
@@ -36,7 +40,7 @@ public class LevelManager implements Closeable {
         Preconditions.checkArgument(!levels.contains(level), "level already registered");
 
         LevelLoadEvent event = new LevelLoadEvent(level);
-        this.server.getPluginManager().callEvent(event);
+        this.server.getEventManager().fire(event);
 
         this.levels.add(level);
         this.levelIds.put(level.getId(), level);
@@ -51,7 +55,7 @@ public class LevelManager implements Closeable {
         Preconditions.checkArgument(levels.contains(level), "level not registered");
 
         LevelUnloadEvent event = new LevelUnloadEvent(level);
-        this.server.getPluginManager().callEvent(event);
+        this.server.getEventManager().fire(event);
         if (event.isCancelled() && !force) {
             return false;
         } else {
@@ -133,7 +137,7 @@ public class LevelManager implements Closeable {
                     level.doChunkGarbageCollection();
                 }
             } catch (Exception e) {
-                log.error(server.getLanguage().translate("nukkit.level.tickError", level.getId(), Utils.getExceptionMessage(e)));
+                log.error(server.getLanguage().translate("cloudburst.level.tickError", level.getId(), Utils.getExceptionMessage(e)));
             }
         }
     }

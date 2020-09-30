@@ -2,16 +2,12 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.FlowerPot;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -20,8 +16,8 @@ import org.cloudburstmc.server.utils.Identifier;
 public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
     protected static boolean canPlaceIntoFlowerPot(Identifier id) {
-        return id == BlockTypes.SAPLING || id == BlockTypes.WEB || id == BlockTypes.TALL_GRASS || id == BlockTypes.DEADBUSH || id == BlockTypes.YELLOW_FLOWER ||
-                id == BlockTypes.RED_FLOWER || id == BlockTypes.RED_MUSHROOM || id == BlockTypes.BROWN_MUSHROOM || id == BlockTypes.CACTUS || id == BlockTypes.REEDS;
+        return id == BlockIds.SAPLING || id == BlockIds.WEB || id == BlockIds.TALL_GRASS || id == BlockIds.DEADBUSH || id == BlockIds.YELLOW_FLOWER ||
+                id == BlockIds.RED_FLOWER || id == BlockIds.RED_MUSHROOM || id == BlockIds.BROWN_MUSHROOM || id == BlockIds.CACTUS || id == BlockIds.REEDS;
         // TODO: 2016/2/4 case NETHER_WART:
     }
 
@@ -63,7 +59,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
             if (!canPlaceIntoFlowerPot(itemBlock.getType())) {
                 return true;
             }
-        } else if (itemBlock.getType() == BlockTypes.AIR) {
+        } else if (itemBlock.getType() == BlockIds.AIR) {
             return true;
         }
 

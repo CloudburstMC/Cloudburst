@@ -2,7 +2,7 @@ package org.cloudburstmc.server.utils.bugreport;
 
 import com.sun.management.OperatingSystemMXBean;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.locale.LocaleManager;
 import org.cloudburstmc.server.utils.Utils;
@@ -35,23 +35,23 @@ public class BugReportGenerator extends Thread {
     public void run() {
         LocaleManager localeManager = Server.getInstance().getLanguage();
         try {
-            log.info("[BugReport] " + localeManager.translate("nukkit.bugreport.create"));
+            log.info("[BugReport] " + localeManager.translate("cloudburst.bugreport.create"));
             String path = generate();
-            log.info("[BugReport] " + localeManager.translate("nukkit.bugreport.archive", path));
+            log.info("[BugReport] " + localeManager.translate("cloudburst.bugreport.archive", path));
         } catch (Exception e) {
             StringWriter stringWriter = new StringWriter();
             e.printStackTrace(new PrintWriter(stringWriter));
-            log.info("[BugReport] " + localeManager.translate("nukkit.bugreport.error", stringWriter.toString()));
+            log.info("[BugReport] " + localeManager.translate("cloudburst.bugreport.error", stringWriter.toString()));
         }
     }
 
     private String generate() throws IOException {
-        File reports = new File(Nukkit.DATA_PATH, "logs/bug_reports");
+        File reports = Server.getInstance().getDataPath().resolve("logs/bug_reports").toFile();
         if (!reports.isDirectory()) {
             reports.mkdirs();
         }
 
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmSS");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         String date = simpleDateFormat.format(new Date());
 
         StringBuilder model = new StringBuilder();
@@ -75,7 +75,7 @@ public class BugReportGenerator extends Thread {
         StackTraceElement[] stackTrace = throwable.getStackTrace();
         boolean pluginError = false;
         if (stackTrace.length > 0) {
-            pluginError = !throwable.getStackTrace()[0].getClassName().startsWith("cn.nukkit");
+            pluginError = !throwable.getStackTrace()[0].getClassName().startsWith("cn.cloudburst");
         }
 
 
@@ -85,7 +85,7 @@ public class BugReportGenerator extends Thread {
 
         String cpuType = System.getenv("PROCESSOR_IDENTIFIER");
         OperatingSystemMXBean osMXBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        content = content.replace("${NUKKIT_VERSION}", Nukkit.VERSION);
+        content = content.replace("${CLOUDBURST_VERSION}", Bootstrap.VERSION);
         content = content.replace("${JAVA_VERSION}", System.getProperty("java.vm.name") + " (" + System.getProperty("java.runtime.version") + ")");
         content = content.replace("${HOSTOS}", osMXBean.getName() + "-" + osMXBean.getArch() + " [" + osMXBean.getVersion() + "]");
         content = content.replace("${MEMORY}", getCount(osMXBean.getTotalPhysicalMemorySize(), true));

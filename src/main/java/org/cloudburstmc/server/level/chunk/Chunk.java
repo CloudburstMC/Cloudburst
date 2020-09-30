@@ -109,6 +109,12 @@ public final class Chunk implements IChunk, Closeable {
                 this.unsafe.getLevel().scheduleUpdate(update);
             }
             this.blockUpdates = null;
+
+//            if(getX() == 0 && getZ() == 0) {
+//                for (BlockEntity blockEntity : this.getBlockEntities()) {
+//                    log.info(NbtUtils.toString(blockEntity.getServerTag()));
+//                }
+//            }
         }
     }
 

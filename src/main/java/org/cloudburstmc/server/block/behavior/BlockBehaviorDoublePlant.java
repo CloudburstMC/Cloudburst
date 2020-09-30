@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.*;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -14,7 +14,7 @@ import org.cloudburstmc.server.utils.data.DoublePlantType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
@@ -86,7 +86,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                     if (hand.isShears()) {
                         //todo enchantment
                         return new Item[]{
-                                Item.get(BlockTypes.TALL_GRASS, type == DoublePlantType.GRASS ? 1 : 2, 2)
+                                Item.get(BlockIds.TALL_GRASS, type == DoublePlantType.GRASS ? 1 : 2, 2)
                         };
                     }
 

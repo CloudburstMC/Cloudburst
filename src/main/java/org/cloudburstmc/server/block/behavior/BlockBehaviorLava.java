@@ -11,7 +11,7 @@ import org.cloudburstmc.server.event.block.BlockIgniteEvent;
 import org.cloudburstmc.server.event.entity.EntityCombustByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.math.Direction;
@@ -22,8 +22,8 @@ import org.cloudburstmc.server.utils.BlockColor;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.FLOWING_LAVA;
-import static org.cloudburstmc.server.block.BlockTypes.LAVA;
+import static org.cloudburstmc.server.block.BlockIds.FLOWING_LAVA;
+import static org.cloudburstmc.server.block.BlockIds.LAVA;
 
 public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
@@ -43,7 +43,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
         // Always setting the duration to 15 seconds? TODO
         EntityCombustByBlockEvent ev = new EntityCombustByBlockEvent(block, entity, 15);
-        Server.getInstance().getPluginManager().callEvent(ev);
+        Server.getInstance().getEventManager().fire(ev);
         if (!ev.isCancelled()
                 // Making sure the entity is actually alive and not invulnerable.
                 && entity.isAlive()
@@ -60,7 +60,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        boolean ret = placeBlock(block, BlockState.get(BlockTypes.FLOWING_LAVA));
+        boolean ret = placeBlock(block, BlockState.get(BlockIds.FLOWING_LAVA));
 
         block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
         return ret;
@@ -84,13 +84,13 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                     val b = level.getBlock(v);
                     val state = b.getState();
 
-                    if (state.getType() == BlockTypes.AIR) {
+                    if (state.getType() == BlockIds.AIR) {
                         if (this.isSurroundingBlockFlammable(b)) {
                             BlockIgniteEvent e = new BlockIgniteEvent(b, block, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
-                            level.getServer().getPluginManager().callEvent(e);
+                            level.getServer().getEventManager().fire(e);
 
                             if (!e.isCancelled()) {
-                                BlockState fire = BlockState.get(BlockTypes.FIRE);
+                                BlockState fire = BlockState.get(BlockIds.FIRE);
                                 b.set(fire, true);
                                 level.scheduleUpdate(v, fire.getBehavior().tickRate());
                                 return Level.BLOCK_UPDATE_RANDOM;
@@ -108,12 +108,12 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                     val b = level.getBlock(v);
                     val state = b.getState();
 
-                    if (b.up().getState().getType() == BlockTypes.AIR && state.getBehavior().getBurnChance() > 0) {
+                    if (b.up().getState().getType() == BlockIds.AIR && state.getBehavior().getBurnChance() > 0) {
                         BlockIgniteEvent e = new BlockIgniteEvent(b, block, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
-                        level.getServer().getPluginManager().callEvent(e);
+                        level.getServer().getEventManager().fire(e);
 
                         if (!e.isCancelled()) {
-                            BlockState fire = BlockState.get(BlockTypes.FIRE);
+                            BlockState fire = BlockState.get(BlockIds.FIRE);
                             b.set(fire, true);
                             level.scheduleUpdate(v, fire.getBehavior().tickRate());
                         }
@@ -173,9 +173,9 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
         if (colliding != null) {
             int level = block.getState().ensureTrait(BlockTraits.FLUID_LEVEL);
             if (level == 0) {
-                this.liquidCollide(colliding, BlockState.get(BlockTypes.OBSIDIAN));
+                this.liquidCollide(colliding, BlockState.get(BlockIds.OBSIDIAN));
             } else if (level <= 4) {
-                this.liquidCollide(colliding, BlockState.get(BlockTypes.COBBLESTONE));
+                this.liquidCollide(colliding, BlockState.get(BlockIds.COBBLESTONE));
             }
         }
     }
@@ -184,7 +184,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     protected void flowIntoBlock(Block block, int newFlowDecay) {
         val behavior = block.getState().getBehavior();
         if (behavior instanceof BlockBehaviorWater) {
-            ((BlockBehaviorLiquid) behavior).liquidCollide(block, BlockState.get(BlockTypes.STONE));
+            ((BlockBehaviorLiquid) behavior).liquidCollide(block, BlockState.get(BlockIds.STONE));
         } else {
             super.flowIntoBlock(block, newFlowDecay);
         }

@@ -2,11 +2,11 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
@@ -14,7 +14,7 @@ public class BlockBehaviorObserver extends BlockBehaviorSolid {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return placeBlock(block, BlockState.get(BlockTypes.OBSERVER).withTrait(
+        return placeBlock(block, BlockState.get(BlockIds.OBSERVER).withTrait(
                 BlockTraits.FACING_DIRECTION,
                 (player != null ? player.getHorizontalDirection() : Direction.NORTH).getOpposite()
         ));

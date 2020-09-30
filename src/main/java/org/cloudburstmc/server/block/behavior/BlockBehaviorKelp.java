@@ -8,8 +8,8 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -18,9 +18,9 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.block.BlockTraits.FLUID_LEVEL;
 import static org.cloudburstmc.server.block.BlockTraits.KELP_AGE;
-import static org.cloudburstmc.server.block.BlockTypes.*;
 import static org.cloudburstmc.server.math.Direction.DOWN;
 
 public class BlockBehaviorKelp extends FloodableBlockBehavior {
@@ -103,7 +103,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
                 BlockState grown = block.getState().incrementTrait(KELP_AGE);
                 BlockGrowEvent ev = new BlockGrowEvent(block, grown);
-                Server.getInstance().getPluginManager().callEvent(ev);
+                Server.getInstance().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     block.set(block.getState().withTrait(KELP_AGE, 25), true);
 

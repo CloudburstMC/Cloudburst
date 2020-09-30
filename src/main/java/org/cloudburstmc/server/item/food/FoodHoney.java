@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.item.food;
 
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
 
-import static org.cloudburstmc.server.item.ItemIds.GLASS_BOTTLE;
+import static org.cloudburstmc.server.item.behavior.ItemIds.GLASS_BOTTLE;
 
 public class FoodHoney extends Food {
     public FoodHoney(int restoreFood, float restoreSaturation) {

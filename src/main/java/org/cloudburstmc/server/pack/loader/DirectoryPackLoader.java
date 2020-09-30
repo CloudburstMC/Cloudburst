@@ -89,7 +89,7 @@ public class DirectoryPackLoader implements PackLoader {
         if (networkPreparedFuture == null) {
             networkPreparedFuture = CompletableFuture.supplyAsync(() -> {
                 try {
-                    Path temp = Files.createTempFile("nukkit-pack", String.valueOf(System.currentTimeMillis()));
+                    Path temp = Files.createTempFile("cloudburst-pack", String.valueOf(System.currentTimeMillis()));
                     try (OutputStream out = Files.newOutputStream(temp); ZipOutputStream zipOut = new ZipOutputStream(out)) {
                         this.forEachIn(Paths.get(""), entry -> {
                             try {

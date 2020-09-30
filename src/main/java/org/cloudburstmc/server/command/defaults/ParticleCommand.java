@@ -6,8 +6,8 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.particle.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
@@ -30,8 +30,8 @@ public class ParticleCommand extends Command {
     public ParticleCommand() {
         super("particle", CommandData.builder("particle")
                 .setDescription("commands.particle.description")
-                .setUsageMessage("/particle <particle> <position> [count] [data[")
-                .setPermissions("nukkit.command.particle")
+                .setUsageMessage("/particle <particle> <position> [count] [data]")
+                .setPermissions("cloudburst.command.particle")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("name", false, ENUM_VALUES),
                         new CommandParameter("position", CommandParamType.POSITION, false),

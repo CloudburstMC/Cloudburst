@@ -30,7 +30,7 @@ public class NukkitConsole extends SimpleTerminalConsole {
             try (Timing ignored = Timings.serverCommandTimer.startTiming()) {
                 ServerCommandEvent event = new ServerCommandEvent(server.getConsoleSender(), command);
                 if (server.getPluginManager() != null) {
-                    server.getPluginManager().callEvent(event);
+                    server.getEventManager().fire(event);
                 }
                 if (!event.isCancelled()) {
                     Server.getInstance().getScheduler().scheduleTask(null, () -> server.dispatchCommand(event.getSender(), event.getCommand()));
@@ -57,7 +57,7 @@ public class NukkitConsole extends SimpleTerminalConsole {
     @Override
     protected LineReader buildReader(LineReaderBuilder builder) {
         builder.completer(new NukkitConsoleCompleter(server));
-        builder.appName("Nukkit");
+        builder.appName("Cloudburst");
         builder.option(LineReader.Option.HISTORY_BEEP, false);
         builder.option(LineReader.Option.HISTORY_IGNORE_DUPS, true);
         builder.option(LineReader.Option.HISTORY_IGNORE_SPACE, true);

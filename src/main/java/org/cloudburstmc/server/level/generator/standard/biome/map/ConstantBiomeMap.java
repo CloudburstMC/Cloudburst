@@ -20,7 +20,7 @@ import java.util.Set;
  */
 @JsonDeserialize
 public final class ConstantBiomeMap extends AbstractGenerationPass implements BiomeMap {
-    public static final Identifier ID = Identifier.fromString("nukkitx:constant");
+    public static final Identifier ID = Identifier.fromString("cloudburst:constant");
 
     @JsonProperty
     private GenerationBiome biome;

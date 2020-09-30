@@ -7,14 +7,14 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_TORCH;
-import static org.cloudburstmc.server.block.BlockTypes.UNLIT_REDSTONE_TORCH;
+import static org.cloudburstmc.server.block.BlockIds.REDSTONE_TORCH;
+import static org.cloudburstmc.server.block.BlockIds.UNLIT_REDSTONE_TORCH;
 
 public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
@@ -81,7 +81,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
                 block.getLevel().scheduleUpdate(block, tickRate());
             } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
                 RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
-                block.getLevel().getServer().getPluginManager().callEvent(ev);
+                block.getLevel().getServer().getEventManager().fire(ev);
 
                 if (ev.isCancelled()) {
                     return 0;

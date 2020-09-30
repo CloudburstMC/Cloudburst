@@ -1,13 +1,14 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
@@ -20,8 +21,8 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.cloudburstmc.server.block.BlockTypes.WEB;
-import static org.cloudburstmc.server.block.BlockTypes.WOOL;
+import static org.cloudburstmc.server.block.BlockIds.WEB;
+import static org.cloudburstmc.server.block.BlockIds.WOOL;
 
 public abstract class BlockBehavior {
 
@@ -127,7 +128,7 @@ public abstract class BlockBehavior {
         return true;
     }
 
-    public boolean isLiquid()   {
+    public boolean isLiquid() {
         return false;
     }
 
@@ -219,12 +220,17 @@ public abstract class BlockBehavior {
     }
 
     final protected boolean removeBlock(Block block, boolean update) {
+        BlockState state;
+
         if (block.isWaterlogged()) {
-            BlockState water = block.getExtra();
-            block.getLevel().setBlock(block.getPosition(), water, true, false);
+            state = block.getExtra();
+
+            block.setExtra(BlockStates.AIR, true, false);
+        } else {
+            state = BlockStates.AIR;
         }
 
-        return block.getLevel().setBlock(block.getPosition(), BlockStates.AIR, true, update);
+        return block.getLevel().setBlock(block.getPosition(), state, true, update);
     }
 
     public boolean onBreak(Block block, Item item, Player player) {
@@ -351,12 +357,22 @@ public abstract class BlockBehavior {
     }
 
     public boolean collidesWithBB(Block block, AxisAlignedBB bb, boolean collisionBB) {
-        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block) : this.getBoundingBox();
+        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block) : this.getBoundingBox(block.getPosition());
         return bb1 != null && bb.intersectsWith(bb1);
     }
 
     public void onEntityCollide(Block block, Entity entity) {
 
+    }
+
+    public AxisAlignedBB getBoundingBox(Vector3i pos) {
+        AxisAlignedBB bb = getBoundingBox();
+
+        if (bb != null) {
+            bb = bb.offset(pos);
+        }
+
+        return bb;
     }
 
     public AxisAlignedBB getBoundingBox() {
@@ -366,7 +382,7 @@ public abstract class BlockBehavior {
     }
 
     public AxisAlignedBB getCollisionBoxes(Block block) {
-        return getBoundingBox();
+        return getBoundingBox(block.getPosition());
     }
 
     public String getSaveId() {

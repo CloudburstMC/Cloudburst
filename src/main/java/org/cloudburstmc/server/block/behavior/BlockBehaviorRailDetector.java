@@ -5,12 +5,12 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.vehicle.EntityAbstractMinecart;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 
-import static org.cloudburstmc.server.block.BlockTypes.DETECTOR_RAIL;
+import static org.cloudburstmc.server.block.BlockIds.DETECTOR_RAIL;
 
 public class BlockBehaviorRailDetector extends BlockBehaviorRail {
 

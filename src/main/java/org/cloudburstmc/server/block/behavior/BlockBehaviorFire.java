@@ -11,7 +11,7 @@ import org.cloudburstmc.server.event.block.BlockIgniteEvent;
 import org.cloudburstmc.server.event.entity.EntityCombustByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.math.Direction;
@@ -54,7 +54,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         if (entity instanceof EntityArrow) {
             ev.setCancelled();
         }
-        Server.getInstance().getPluginManager().callEvent(ev);
+        Server.getInstance().getEventManager().fire(ev);
         if (!ev.isCancelled() && entity.isAlive() && entity.getNoDamageTicks() == 0) {
             entity.setOnFire(ev.getDuration());
         }
@@ -73,7 +73,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_RANDOM) {
             if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.down().getState()) && !BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockStates.AIR);
-                level.getServer().getPluginManager().callEvent(event);
+                level.getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
                     level.setBlock(position, event.getNewState(), true);
                 }
@@ -82,15 +82,15 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
             return Level.BLOCK_UPDATE_NORMAL;
         } else if (type == Level.BLOCK_UPDATE_SCHEDULED && level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
             val down = block.down().getState();
-            boolean forever = down.getType() == BlockTypes.NETHERRACK || down.getType() == BlockTypes.MAGMA;
+            boolean forever = down.getType() == BlockIds.NETHERRACK || down.getType() == BlockIds.MAGMA;
 
             ThreadLocalRandom random = ThreadLocalRandom.current();
 
             //TODO: END
 
             if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(down) && !BlockBehaviorFire.canNeighborBurn(block)) {
-                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
-                level.getServer().getPluginManager().callEvent(event);
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockIds.AIR));
+                level.getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
                     level.setBlock(position, event.getNewState(), true);
                 }
@@ -103,8 +103,8 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                             level.canBlockSeeSky(position.south()) ||
                             level.canBlockSeeSky(position.north()))
             ) {
-                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
-                level.getServer().getPluginManager().callEvent(event);
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockIds.AIR));
+                level.getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
                     block.set(event.getNewState(), true);
                 }
@@ -121,15 +121,15 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
                 if (!forever && !BlockBehaviorFire.canNeighborBurn(block)) {
                     if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(down) || age > 3) {
-                        BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
-                        level.getServer().getPluginManager().callEvent(event);
+                        BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockIds.AIR));
+                        level.getServer().getEventManager().fire(event);
                         if (!event.isCancelled()) {
                             level.setBlock(position, event.getNewState(), true);
                         }
                     }
                 } else if (!forever && !(down.getBehavior().getBurnAbility() > 0) && age == 15 && random.nextInt(4) == 0) {
-                    BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
-                    level.getServer().getPluginManager().callEvent(event);
+                    BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockIds.AIR));
+                    level.getServer().getEventManager().fire(event);
                     if (!event.isCancelled()) {
                         level.setBlock(position, event.getNewState(), true);
                     }
@@ -172,10 +172,10 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                                             }
 
                                             BlockIgniteEvent e = new BlockIgniteEvent(blockState, block, null, BlockIgniteEvent.BlockIgniteCause.SPREAD);
-                                            level.getServer().getPluginManager().callEvent(e);
+                                            level.getServer().getEventManager().fire(e);
 
                                             if (!e.isCancelled()) {
-                                                blockState.set(BlockState.get(BlockTypes.FIRE).withTrait(BlockTraits.AGE, age_));
+                                                blockState.set(BlockState.get(BlockIds.FIRE).withTrait(BlockTraits.AGE, age_));
                                                 level.scheduleUpdate(blockState, this.tickRate());
                                             }
                                         }
@@ -209,22 +209,22 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                 }
 
                 BlockIgniteEvent e = new BlockIgniteEvent(block, fire, null, BlockIgniteEvent.BlockIgniteCause.SPREAD);
-                block.getLevel().getServer().getPluginManager().callEvent(e);
+                block.getLevel().getServer().getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
-                    block.set(BlockState.get(BlockTypes.FIRE).withTrait(BlockTraits.AGE, meta), true);
+                    block.set(BlockState.get(BlockIds.FIRE).withTrait(BlockTraits.AGE, meta), true);
                     block.getLevel().scheduleUpdate(block, this.tickRate());
                 }
             } else {
                 BlockBurnEvent ev = new BlockBurnEvent(block);
-                block.getLevel().getServer().getPluginManager().callEvent(ev);
+                block.getLevel().getServer().getEventManager().fire(ev);
 
                 if (!ev.isCancelled()) {
                     removeBlock(block, true);
                 }
             }
 
-            if (state.getType() == BlockTypes.TNT && behavior instanceof BlockBehaviorTNT) {
+            if (state.getType() == BlockIds.TNT && behavior instanceof BlockBehaviorTNT) {
                 ((BlockBehaviorTNT) behavior).prime(block);
             }
         }
@@ -232,7 +232,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
     private int getChanceOfNeighborsEncouragingFire(Block block) {
         val state = block.getState();
-        if (state.getType() != BlockTypes.AIR) {
+        if (state.getType() != BlockIds.AIR) {
             return 0;
         } else {
             int chance = 0;
@@ -263,7 +263,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                 return state.ensureTrait(BlockTraits.IS_UPSIDE_DOWN);
             } else if (state.inCategory(BlockCategory.SLAB)) {
                 return state.ensureTrait(BlockTraits.IS_TOP_SLOT);
-            } else if (state.getType() == BlockTypes.SNOW_LAYER) {
+            } else if (state.getType() == BlockIds.SNOW_LAYER) {
                 return state.ensureTrait(BlockTraits.HEIGHT) == 7;
             }
         }
@@ -283,6 +283,6 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
     @Override
     public Item toItem(Block block) {
-        return Item.get(BlockTypes.AIR);
+        return Item.get(BlockIds.AIR);
     }
 }

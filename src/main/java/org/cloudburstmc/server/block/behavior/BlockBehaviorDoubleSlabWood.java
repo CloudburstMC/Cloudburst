@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 
-import static org.cloudburstmc.server.block.BlockTypes.WOODEN_SLAB;
+import static org.cloudburstmc.server.block.BlockIds.WOODEN_SLAB;
 
 public class BlockBehaviorDoubleSlabWood extends BlockBehaviorDoubleSlab {
 

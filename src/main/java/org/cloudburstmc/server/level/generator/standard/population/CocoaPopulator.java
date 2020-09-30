@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorCocoa;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
@@ -22,7 +20,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class CocoaPopulator extends ChancePopulator {
-    public static final Identifier ID = Identifier.fromString("nukkitx:cocoa");
+    public static final Identifier ID = Identifier.fromString("cloudburst:cocoa");
 
     @JsonProperty
     protected IntRange height = IntRange.WHOLE_WORLD;

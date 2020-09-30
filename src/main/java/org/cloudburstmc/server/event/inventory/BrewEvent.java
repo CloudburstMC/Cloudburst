@@ -2,19 +2,12 @@ package org.cloudburstmc.server.event.inventory;
 
 import org.cloudburstmc.server.blockentity.BrewingStand;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 
 /**
  * @author CreeperFace
  */
 public class BrewEvent extends InventoryEvent implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final BrewingStand brewingStand;
     private final Item ingredient;

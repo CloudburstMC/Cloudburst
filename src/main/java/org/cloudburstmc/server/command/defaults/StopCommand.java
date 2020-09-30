@@ -15,7 +15,7 @@ public class StopCommand extends Command {
     public StopCommand() {
         super("stop", CommandData.builder("stop")
                 .setDescription("commands.stop.description")
-                .setPermissions("nukkit.command.stop")
+                .setPermissions("cloudburst.command.stop")
                 .build());
     }
 

@@ -6,9 +6,9 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import lombok.val;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Furnace;
 import org.cloudburstmc.server.event.inventory.FurnaceBurnEvent;
@@ -16,9 +16,9 @@ import org.cloudburstmc.server.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.server.inventory.FurnaceInventory;
 import org.cloudburstmc.server.inventory.FurnaceRecipe;
 import org.cloudburstmc.server.inventory.InventoryType;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 /**
  * @author MagicDroidX
@@ -39,7 +39,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     protected final FurnaceInventory inventory;
     protected short burnTime = 0;
     protected short cookTime = 0;
-    protected short maxTime = 0;
+    protected short burnDuration = 0;
 
     protected FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, InventoryType inventoryType) {
         super(type, chunk, position);
@@ -61,7 +61,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         });
         tag.listenForShort("CookTime", this::setCookTime);
         tag.listenForShort("BurnTime", this::setBurnTime);
-        tag.listenForShort("MaxTime", this::setMaxTime);
+        tag.listenForShort("BurnDuration", this::setBurnDuration);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
         tag.putShort("CookTime", cookTime);
         tag.putShort("BurnTime", burnTime);
-        tag.putShort("MaxTime", maxTime);
+        tag.putShort("BurnDuration", burnDuration);
         List<NbtMap> items = new ArrayList<>();
         for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
@@ -112,18 +112,18 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
     protected void checkFuel(Item fuel) {
         FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel, fuel.getFuelTime() == null ? 0 : fuel.getFuelTime());
-        this.server.getPluginManager().callEvent(ev);
+        this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return;
         }
 
-        maxTime = (short) (ev.getBurnTime() / getBurnRate());
+        burnDuration = (short) (ev.getBurnTime() / getBurnRate());
         burnTime = (short) (ev.getBurnTime() / getBurnRate());
 
         val type = getBlockState().getType();
-        if (type == BlockTypes.FURNACE
-                || type == BlockTypes.SMOKER
-                || type == BlockTypes.BLAST_FURNACE) {
+        if (type == BlockIds.FURNACE
+                || type == BlockIds.SMOKER
+                || type == BlockIds.BLAST_FURNACE) {
             lightFurnace();
         }
 
@@ -132,7 +132,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                 ContainerSetDataPacket packet = new ContainerSetDataPacket();
                 packet.setWindowId(p.getWindowId(this.getInventory()));
                 packet.setProperty(ContainerSetDataPacket.FURNACE_LIT_DURATION);
-                packet.setValue(maxTime);
+                packet.setValue(burnDuration);
 
                 p.sendPacket(packet);
             }
@@ -179,7 +179,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                     product = Item.get(smelt.getResult().getId(), smelt.getResult().getMeta(), product.getCount() + 1);
 
                     FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
-                    this.server.getPluginManager().callEvent(ev);
+                    this.server.getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         this.inventory.setResult(ev.getResult());
                         raw.setCount(raw.getCount() - 1);
@@ -199,7 +199,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             }
             ret = true;
         } else {
-            if (blockId == BlockTypes.LIT_FURNACE || blockId == LIT_BLAST_FURNACE || blockId == LIT_SMOKER) {
+            if (blockId == BlockIds.LIT_FURNACE || blockId == LIT_BLAST_FURNACE || blockId == LIT_SMOKER) {
                 extinguishFurnace();
             }
             burnTime = 0;
@@ -257,12 +257,12 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         this.cookTime = (short) cookTime;
     }
 
-    public int getMaxTime() {
-        return maxTime;
+    public int getBurnDuration() {
+        return burnDuration;
     }
 
-    public void setMaxTime(int maxTime) {
-        this.maxTime = (short) maxTime;
+    public void setBurnDuration(int burnDuration) {
+        this.burnDuration = (short) burnDuration;
     }
 
     @Override

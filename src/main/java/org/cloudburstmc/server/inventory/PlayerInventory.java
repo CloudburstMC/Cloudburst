@@ -5,18 +5,17 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.event.entity.EntityArmorChangeEvent;
 import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.server.event.player.PlayerItemHeldEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.Collection;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * author: MagicDroidX
@@ -62,7 +61,7 @@ public class PlayerInventory extends BaseInventory {
         if (this.getHolder() instanceof Player) {
             Player player = (Player) this.getHolder();
             PlayerItemHeldEvent ev = new PlayerItemHeldEvent(player, this.getItem(slot), slot);
-            this.getHolder().getLevel().getServer().getPluginManager().callEvent(ev);
+            this.getHolder().getLevel().getServer().getEventManager().fire(ev);
 
             if (ev.isCancelled()) {
                 this.sendContents(this.getViewers());
@@ -250,7 +249,7 @@ public class PlayerInventory extends BaseInventory {
         //Armor change
         if (!ignoreArmorEvents && index >= this.getSize()) {
             EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), this.getItem(index), item, index);
-            Server.getInstance().getPluginManager().callEvent(ev);
+            Server.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled() && this.getHolder() != null) {
                 if (index == this.offHandIndex) {
                     this.sendOffHandSlot(this.getViewers());
@@ -262,7 +261,7 @@ public class PlayerInventory extends BaseInventory {
             item = ev.getNewItem();
         } else {
             EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent(this.getHolder(), this.getItem(index), item, index);
-            Server.getInstance().getPluginManager().callEvent(ev);
+            Server.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 this.sendSlot(index, this.getViewers());
                 return false;
@@ -282,7 +281,7 @@ public class PlayerInventory extends BaseInventory {
             Item old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
-                Server.getInstance().getPluginManager().callEvent(ev);
+                Server.getInstance().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     if (index >= this.size) {
                         this.sendArmorSlot(index, this.getViewers());
@@ -294,7 +293,7 @@ public class PlayerInventory extends BaseInventory {
                 item = ev.getNewItem();
             } else {
                 EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent(this.getHolder(), old, item, index);
-                Server.getInstance().getPluginManager().callEvent(ev);
+                Server.getInstance().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     if (index >= this.size) {
                         this.sendArmorSlot(index, this.getViewers());
@@ -567,13 +566,11 @@ public class PlayerInventory extends BaseInventory {
 
         CreativeContentPacket pk = new CreativeContentPacket();
 
-        if (!p.isSpectator()) { //fill it for all gamemodes except spectator
-            int i = 0; //TODO: figure out why this was originally 1...
-            val items = Item.getCreativeItems();
-            ItemData[] contents = new ItemData[items.size()];
+        if (!p.isSpectator()) {
+            ItemData[] contents = Item.toNetwork(Item.getCreativeItems());
 
-            for (Item item : items) {
-                contents[i++] = item.toNetwork();
+            for (int i = 0; i < contents.length; i++) {
+                contents[i].setNetId(i + 1);
             }
 
             pk.setContents(contents);

@@ -12,6 +12,14 @@ public class TorchDirectionSerializer implements TraitSerializer<Direction> {
 
     @Override
     public Comparable<?> serialize(NbtMapBuilder builder, BlockState state, Direction direction) {
+        if (direction == Direction.UP) {
+            return "top";
+        }
+
+        if (direction == Direction.DOWN) {
+            return "unknown";
+        }
+
         return direction.name().toLowerCase();
     }
 }

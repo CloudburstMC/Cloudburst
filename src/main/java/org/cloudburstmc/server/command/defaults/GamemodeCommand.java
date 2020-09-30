@@ -22,11 +22,11 @@ public class GamemodeCommand extends Command {
                 .setDescription("commands.gamemode.description")
                 .setUsageMessage("/gamemode <mode> [player]")
                 .setAliases("gm")
-                .addPermission("nukkit.command.gamemode.survival")
-                .addPermission("nukkit.command.gamemode.creative")
-                .addPermission("nukkit.command.gamemode.adventure")
-                .addPermission("nukkit.command.gamemode.spectator")
-                .addPermission("nukkit.command.gamemode.other")
+                .addPermission("cloudburst.command.gamemode.survival")
+                .addPermission("cloudburst.command.gamemode.creative")
+                .addPermission("cloudburst.command.gamemode.adventure")
+                .addPermission("cloudburst.command.gamemode.spectator")
+                .addPermission("cloudburst.command.gamemode.other")
                 .setParameters(
                         new CommandParameter[]{
                                 new CommandParameter("mode", CommandParamType.INT, false),
@@ -53,7 +53,7 @@ public class GamemodeCommand extends Command {
 
         CommandSender target = sender;
         if (args.length > 1) {
-            if (sender.hasPermission("nukkit.command.gamemode.other")) {
+            if (sender.hasPermission("cloudburst.command.gamemode.other")) {
                 target = sender.getServer().getPlayer(args[1]);
                 if (target == null) {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
@@ -67,7 +67,7 @@ public class GamemodeCommand extends Command {
             return false;
         }
 
-        if (!sender.hasPermission("nukkit.command.gamemode." + gameMode.getName())) {
+        if (!sender.hasPermission("cloudburst.command.gamemode." + gameMode.getName())) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
             return true;
         }

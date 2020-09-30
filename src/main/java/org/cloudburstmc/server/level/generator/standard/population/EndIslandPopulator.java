@@ -19,7 +19,7 @@ import static net.daporkchop.lib.common.math.PMath.*;
  */
 @JsonDeserialize
 public class EndIslandPopulator extends ChancePopulator.Column {
-    public static final Identifier ID = Identifier.fromString("nukkitx:end_island");
+    public static final Identifier ID = Identifier.fromString("cloudburst:end_island");
 
     @JsonProperty
     protected IntRange height;

@@ -10,7 +10,7 @@ import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.impl.*;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 import javax.annotation.Nonnull;
 import java.util.IdentityHashMap;
@@ -24,6 +24,8 @@ public class BlockEntityRegistry implements Registry {
     private final Map<BlockEntityType<?>, RegistryServiceProvider<BlockEntityFactory<?>>> providers = new IdentityHashMap<>();
     private final BiMap<BlockEntityType<?>, String> persistentMap = HashBiMap.create();
     private volatile boolean closed;
+
+    private static RegistryServiceProvider<BlockEntityFactory<?>> UNKNOWN_PROVIDER = new RegistryServiceProvider<>(new RegistryProvider<>(UnknownBlockEntity::new, null, 1000));
 
     private BlockEntityRegistry() {
         this.registerVanillaEntities();
@@ -42,7 +44,7 @@ public class BlockEntityRegistry implements Registry {
         this.providers.put(type, new RegistryServiceProvider<>(new RegistryProvider<>(factory, null, 1000)));
     }
 
-    public synchronized <T extends BlockEntity> void register(Plugin plugin, BlockEntityType<T> type,
+    public synchronized <T extends BlockEntity> void register(PluginContainer plugin, BlockEntityType<T> type,
                                                               BlockEntityFactory<T> factory, int priority) throws RegistryException {
         checkClosed();
         checkNotNull(type, "type");
@@ -61,11 +63,7 @@ public class BlockEntityRegistry implements Registry {
 
     @Nonnull
     public BlockEntityType<?> getBlockEntityType(String persistentId) {
-        BlockEntityType<?> type = persistentMap.inverse().get(persistentId);
-        if (type == null) {
-            throw new RegistryException("No BlockEntityType exists for id: " + persistentId);
-        }
-        return type;
+        return persistentMap.inverse().computeIfAbsent(persistentId, id -> BlockEntityType.from(id, UnknownBlockEntity.class));
     }
 
     public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, Block block) {
@@ -99,7 +97,7 @@ public class BlockEntityRegistry implements Registry {
      * @param <T>      entity class type
      * @return new entity
      */
-    public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, Plugin plugin, Chunk chunk, Vector3i position) {
+    public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, PluginContainer plugin, Chunk chunk, Vector3i position) {
         checkState(closed, "Cannot create entity till registry is closed");
         checkNotNull(type, "type");
         checkNotNull(plugin, "plugin");
@@ -116,7 +114,11 @@ public class BlockEntityRegistry implements Registry {
     private <T extends BlockEntity> RegistryServiceProvider<BlockEntityFactory<T>> getServiceProvider(BlockEntityType<T> type) {
         RegistryServiceProvider<BlockEntityFactory<T>> service = (RegistryServiceProvider) this.providers.get(type);
         if (service == null) {
-            throw new RegistryException(type.getIdentifier() + " is not a registered entity");
+            if (type.getBlockEntityClass() != UnknownBlockEntity.class) {
+                throw new RegistryException(type.getIdentifier() + " is not a registered entity");
+            }
+
+            service = (RegistryServiceProvider) UNKNOWN_PROVIDER;
         }
         return service;
     }
@@ -140,7 +142,7 @@ public class BlockEntityRegistry implements Registry {
         registerVanilla(BlockEntityTypes.ENDER_CHEST, EnderChestBlockEntity::new, "EnderChest");
         registerVanilla(BlockEntityTypes.FURNACE, FurnaceBlockEntity::new, "Furnace");
         registerVanilla(BlockEntityTypes.SIGN, SignBlockEntity::new, "Sign");
-        //registerVanilla(MOB_SPAWNER, MobSpawnerBlockEntity::new, "MobSpawner");
+//        registerVanilla(BlockEntityTypes.MOB_SPAWNER, MobSpawnerBlockEntity::new, "MobSpawner");
         registerVanilla(BlockEntityTypes.ENCHANTING_TABLE, EnchantingTableBlockEntity::new, "EnchantTable");
         registerVanilla(BlockEntityTypes.SKULL, SkullBlockEntity::new, "Skull");
         registerVanilla(BlockEntityTypes.FLOWER_POT, FlowerPotBlockEntity::new, "FlowerPot");

@@ -4,11 +4,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.google.common.base.Preconditions;
-import net.daporkchop.lib.unsafe.PUnsafe;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
-import org.cloudburstmc.server.level.generator.standard.registry.StandardGeneratorRegistries;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
@@ -23,7 +20,7 @@ public final class BiomeMapReferenceDeserializer extends JsonDeserializer<BiomeM
         Identifier id = Identifier.fromString(p.getText());
 
         try (InputStream in = StandardGeneratorUtils.read("biomemap", id)) {
-            return Nukkit.YAML_MAPPER.readValue(in, BiomeMap.class);
+            return Bootstrap.YAML_MAPPER.readValue(in, BiomeMap.class);
         } catch (IOException e) {
             throw new RuntimeException("While decoding biome map " + id, e);
         }

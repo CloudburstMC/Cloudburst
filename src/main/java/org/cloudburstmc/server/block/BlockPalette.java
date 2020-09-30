@@ -1,21 +1,24 @@
 package org.cloudburstmc.server.block;
 
 import com.google.common.collect.ImmutableMap;
+import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
-import org.cloudburstmc.server.block.serializer.BlockSerializers;
-import org.cloudburstmc.server.block.serializer.NoopBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.utils.Identifier;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static net.daporkchop.lib.random.impl.FastPRandom.mix32;
 
 @Log4j2
 public class BlockPalette {
@@ -23,13 +26,23 @@ public class BlockPalette {
 
     private final Reference2IntMap<BlockState> stateRuntimeMap = new Reference2IntOpenHashMap<>();
     private final Int2ReferenceMap<BlockState> runtimeStateMap = new Int2ReferenceOpenHashMap<>();
-    private final Object2ReferenceMap<NbtMap, BlockState> serializedStateMap = new Object2ReferenceLinkedOpenHashMap<>();
+    private final Object2ReferenceMap<NbtMap, BlockState> serializedStateMap = new Object2ReferenceLinkedOpenCustomHashMap<>(new Hash.Strategy<NbtMap>() {
+        @Override
+        public int hashCode(NbtMap o) {
+            return mix32(o.hashCode());
+        }
+
+        @Override
+        public boolean equals(NbtMap a, NbtMap b) {
+            return Objects.equals(a, b);
+        }
+    });
     private final Reference2ObjectMap<BlockState, NbtMap> stateSerializedMap = new Reference2ObjectLinkedOpenHashMap<>();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
     private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
 
     public void addBlock(Identifier identifier, BlockSerializer serializer, BlockTrait<?>[] traits) {
-        if (this.defaultStateMap.containsKey(identifier))   {
+        if (this.defaultStateMap.containsKey(identifier)) {
             log.warn("Duplicate block identifier: {}", identifier);
         }
 
@@ -51,11 +64,9 @@ public class BlockPalette {
             this.runtimeStateMap.put(runtimeId, state);
 
             NbtMapBuilder tagBuilder = NbtMap.builder();
-            BlockSerializers.serializeCommon(tagBuilder, identifier);
+            BlockStateUpdaters.serializeCommon(tagBuilder, identifier.toString());
+            serializer.serialize(tagBuilder, state);
 
-            NbtMapBuilder statesBuilder = NbtMap.builder();
-            serializer.serialize(statesBuilder, state);
-            tagBuilder.putCompound("states", statesBuilder.build());
 
             NbtMap tag = tagBuilder.build();
             this.stateSerializedMap.put(state, tag);
@@ -75,12 +86,9 @@ public class BlockPalette {
         return blockState;
     }
 
+    @Nullable
     public BlockState getBlockState(NbtMap tag) {
-        BlockState blockState = this.serializedStateMap.get(tag);
-        if (blockState == null) {
-            throw new IllegalArgumentException("Invalid block state\n" + tag);
-        }
-        return blockState;
+        return this.serializedStateMap.get(tag);
     }
 
     public int getRuntimeId(BlockState blockState) {

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.item.enchantment.damage;
 
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.item.enchantment.EnchantmentType;
 

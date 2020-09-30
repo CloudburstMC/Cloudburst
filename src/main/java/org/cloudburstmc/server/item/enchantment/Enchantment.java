@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.enchantment;
 
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.enchantment.bow.EnchantmentBowFlame;
 import org.cloudburstmc.server.item.enchantment.bow.EnchantmentBowInfinity;
 import org.cloudburstmc.server.item.enchantment.bow.EnchantmentBowKnockback;

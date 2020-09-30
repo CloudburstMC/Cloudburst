@@ -3,13 +3,14 @@ package org.cloudburstmc.server.blockentity.impl;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import lombok.val;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Campfire;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemEdible;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemEdible;
 import org.cloudburstmc.server.level.chunk.Chunk;
 
 /**
@@ -65,7 +66,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.CAMPFIRE;
+        return getBlockState().getType() == BlockIds.CAMPFIRE;
     }
 
     @Override
@@ -73,7 +74,15 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         if (this.closed) {
             return false;
         }
-        if (getBlockState().ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
+
+        val state = getBlockState();
+
+        if (state.getTrait(BlockTraits.IS_EXTINGUISHED) == null) {
+            this.close();
+            return false;
+        }
+
+        if (state.ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
             return false;
         }
 
@@ -82,7 +91,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         for (int i = 0; i < items.length; i++) {
             if (items[i] != null) {
                 if (++itemTimes[i] >= 600) {
-                    Item output = getLevel().getServer().getCraftingManager().matchFurnaceRecipe(items[i], BlockTypes.CAMPFIRE).getResult();
+                    Item output = getLevel().getServer().getCraftingManager().matchFurnaceRecipe(items[i], BlockIds.CAMPFIRE).getResult();
                     this.getLevel().dropItem(this.getPosition(), output);
                     items[i] = null;
                     itemTimes[i] = 0;
@@ -116,7 +125,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     public boolean putItemInFire(Item item) {
         if (!(item instanceof ItemEdible)) return false;
 
-        if (this.getLevel().getServer().getCraftingManager().matchFurnaceRecipe(item, BlockTypes.CAMPFIRE) != null) {
+        if (this.getLevel().getServer().getCraftingManager().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
             for (int i = 0; i < items.length; i++) {
                 if (items[i] == null) {
                     Item food = item.clone();

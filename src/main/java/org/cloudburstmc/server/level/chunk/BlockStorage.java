@@ -1,32 +1,28 @@
 package org.cloudburstmc.server.level.chunk;
 
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NBTOutputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.blockstateupdater.BlockStateUpdaters;
+import com.nukkitx.nbt.*;
 import com.nukkitx.network.VarInts;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.function.IntConsumer;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+@Log4j2
 public class BlockStorage {
 
     private static final int SIZE = 4096;
@@ -121,28 +117,47 @@ public class BlockStorage {
 
         try (ByteBufInputStream stream = new ByteBufInputStream(buffer);
              NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
-            Map<NbtMap, BlockState> tags = new LinkedHashMap<>();
             for (int i = 0; i < paletteSize; i++) {
-                NbtMap tag = (NbtMap) nbtInputStream.readTag();
-                Identifier id = Identifier.fromString(tag.getString("name"));
-                BlockState state;
+                try {
+                    NbtMap tag = (NbtMap) nbtInputStream.readTag();
+                    BlockState state;
 
-                NbtMap states = tag.getCompound("states", null);
-                if (states != null) {
-                    state = BlockState.get(id);
-                    for (Map.Entry<String, Object> entry : states.entrySet())   {
-                        BlockTrait trait = BlockTraits.fromVanilla(entry.getKey());
-                        state = state.withTrait(trait, trait.parseValue((String) entry.getValue()));
+                    if (!tag.containsKey("states", NbtType.COMPOUND)) {
+                        tag = tag.toBuilder().putCompound("states", NbtMap.EMPTY).build();
                     }
-                } else {
-                    state = BlockStateMetaMappings.getStateFromMeta(id, tag.getShort("val"));
-                }
-                tags.put(tag, state);
 
-                int runtimeId = BlockRegistry.get().getRuntimeId(state);
-                checkArgument(!this.palette.contains(runtimeId),
-                        "Palette contains block state (%s) twice! (%s) (palette: %s)", state, tags, this.palette);
-                this.palette.add(runtimeId);
+                    state = BlockPalette.INSTANCE.getBlockState(tag);
+
+                    if (state == null) {
+                        tag = BlockStateUpdaters.updateBlockState(tag, tag.getInt("version"));
+                        state = BlockPalette.INSTANCE.getBlockState(tag);
+                    }
+
+                    if (state == null/* && tag.containsKey("states", NbtType.COMPOUND)*/) { //TODO: fix unknown states
+                        val defaultState = BlockRegistry.get().getBlock(Identifier.fromString(tag.getString("name")));
+                        val serialized = BlockPalette.INSTANCE.getSerialized(defaultState);
+
+                        if (serialized.containsKey("states", NbtType.COMPOUND)) {
+                            val builder = tag.toBuilder();
+
+                            val statesBuilder = ((NbtMap) builder.get("states")).toBuilder();
+                            serialized.getCompound("states").forEach(statesBuilder::putIfAbsent);
+                            builder.putCompound("states", statesBuilder.build());
+                            state = BlockPalette.INSTANCE.getBlockState(builder.build());
+                        }
+                    }
+
+                    if (state == null) throw new IllegalStateException("Invalid block state\n" + tag);
+
+                    int runtimeId = BlockRegistry.get().getRuntimeId(state);
+                    if (this.palette.contains(runtimeId)) {
+                        log.warn("Palette contains block state ({}) twice! ({}) (palette: {})", state, tag, this.palette);
+                    }
+
+                    this.palette.add(runtimeId);
+                } catch (Exception e) {
+                    log.throwing(e);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -20,7 +20,7 @@ public class DeopCommand extends Command {
         super("deop", CommandData.builder("deop")
                 .setDescription("commands.deop.description")
                 .setUsageMessage("/deop <player>")
-                .setPermissions("nukkit.command.op.take")
+                .setPermissions("cloudburst.command.op.take")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false)
                 })

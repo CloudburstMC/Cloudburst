@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.google.common.base.Preconditions;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.standard.registry.StandardGeneratorRegistries;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -23,8 +23,8 @@ final class NoiseGeneratorDeserializer extends JsonDeserializer<NoiseGenerator> 
         p.nextToken();
 
         try {
-            return Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.noiseGenerator().get(id));
-        } catch (Exception e)   {
+            return Bootstrap.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.noiseGenerator().get(id));
+        } catch (Exception e) {
             throw new RuntimeException("While decoding noise generator " + id, e);
         }
     }

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
 import org.cloudburstmc.server.event.player.PlayerDropItemEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -24,7 +24,7 @@ public class DropItemAction extends InventoryAction {
     @Override
     public boolean onPreExecute(Player source) {
         PlayerDropItemEvent ev;
-        source.getServer().getPluginManager().callEvent(ev = new PlayerDropItemEvent(source, this.targetItem));
+        source.getServer().getEventManager().fire(ev = new PlayerDropItemEvent(source, this.targetItem));
         return !ev.isCancelled();
     }
 

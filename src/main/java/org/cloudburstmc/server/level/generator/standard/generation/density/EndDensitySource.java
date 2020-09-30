@@ -15,9 +15,10 @@ import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationP
 import org.cloudburstmc.server.level.generator.standard.misc.TerrainDoubleCache;
 import org.cloudburstmc.server.utils.Identifier;
 
-import static java.lang.Math.*;
-import static java.util.Objects.*;
-import static net.daporkchop.lib.common.math.PMath.*;
+import static java.lang.Math.sqrt;
+import static java.util.Objects.requireNonNull;
+import static net.daporkchop.lib.math.primitive.PMath.clamp;
+import static net.daporkchop.lib.math.primitive.PMath.lerp;
 
 /**
  * A {@link NoiseSource} that provides noise similar to that of vanilla's end terrain.
@@ -26,7 +27,7 @@ import static net.daporkchop.lib.common.math.PMath.*;
  */
 @JsonDeserialize
 public class EndDensitySource extends AbstractGenerationPass implements DensitySource {
-    public static final Identifier ID = Identifier.fromString("nukkitx:end");
+    public static final Identifier ID = Identifier.fromString("cloudburst:end");
 
     private static final double NOISE_SCALE_FACTOR = ((1 << 16) - 1.0d) / 512.0d;
 

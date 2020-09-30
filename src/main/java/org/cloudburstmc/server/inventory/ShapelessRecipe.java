@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.*;
@@ -155,8 +155,8 @@ public class ShapelessRecipe implements CraftingRecipe {
     }
 
     @Override
-    public CraftingData toNetwork() {
+    public CraftingData toNetwork(int netId) {
         return CraftingData.fromShapeless(this.recipeId, Item.toNetwork(this.getIngredientList()),
-                Item.toNetwork(this.getAllResults()), this.id, this.block.getName(), this.priority);
+                Item.toNetwork(this.getAllResults()), this.id, this.block.getName(), this.priority, netId);
     }
 }

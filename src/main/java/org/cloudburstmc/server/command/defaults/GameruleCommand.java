@@ -21,7 +21,7 @@ public class GameruleCommand extends Command {
         super("gamerule", CommandData.builder("gamerule")
                 .setDescription("commands.gamerule.description")
                 .setUsageMessage("/gamerule <gamerule> [value]")
-                .setPermissions("nukkit.command.gamerule")
+                .setPermissions("cloudburst.command.gamerule")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("gamerule", true, registry.getRuleNames().toArray(new String[0])),
                         new CommandParameter("value", CommandParamType.STRING, true)
@@ -35,7 +35,7 @@ public class GameruleCommand extends Command {
             return true;
         }
 
-        if (!sender.isPlayer()) {
+        if (!(sender instanceof Player)) {
             sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
             return true;
         }

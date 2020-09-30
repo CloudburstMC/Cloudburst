@@ -9,12 +9,12 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 
 public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
@@ -160,10 +160,10 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         val level = block.getLevel();
         if (nextPowered && !powered) {
             level.addLevelSoundEvent(pos, SoundEvent.POWER_ON);
-            level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 0, 15));
+            level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
         } else if (!nextPowered && powered) {
             level.addLevelSoundEvent(pos, SoundEvent.POWER_OFF);
-            level.getServer().getPluginManager().callEvent(new BlockRedstoneEvent(block, 15, 0));
+            level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
         } else if (canConnect && !attached) {
             level.addLevelSoundEvent(pos, SoundEvent.ATTACH);
         } else if (!canConnect && attached) {

@@ -26,7 +26,7 @@ package co.aikar.timings;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.val;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.Entity;
@@ -66,7 +66,7 @@ public class TimingsHistory {
     private final MinuteReport[] minuteReports;
 
     private final TimingsHistoryEntry[] entries;
-    private final ObjectNode levels = Nukkit.JSON_MAPPER.createObjectNode();
+    private final ObjectNode levels = Bootstrap.JSON_MAPPER.createObjectNode();
 
     TimingsHistory() {
         this.endTime = System.currentTimeMillis() / 1000;
@@ -97,7 +97,7 @@ public class TimingsHistory {
         final Map<Identifier, AtomicInteger> blockEntityCounts = new HashMap<>();
         // Information about all loaded entities/block entities
         for (Level level : Server.getInstance().getLevels()) {
-            ArrayNode jsonLevel = Nukkit.JSON_MAPPER.createArrayNode();
+            ArrayNode jsonLevel = Bootstrap.JSON_MAPPER.createArrayNode();
             for (Chunk chunk : level.getChunks()) {
                 entityCounts.clear();
                 blockEntityCounts.clear();
@@ -124,7 +124,7 @@ public class TimingsHistory {
                     continue;
                 }
 
-                ArrayNode jsonChunk = Nukkit.JSON_MAPPER.createArrayNode();
+                ArrayNode jsonChunk = Bootstrap.JSON_MAPPER.createArrayNode();
                 jsonChunk.add(chunk.getX());
                 jsonChunk.add(chunk.getZ());
                 jsonChunk.add(JsonUtil.mapToObject(entityCounts.entrySet(), (entry) ->
@@ -151,7 +151,7 @@ public class TimingsHistory {
     }
 
     ObjectNode export() {
-        ObjectNode json = Nukkit.JSON_MAPPER.createObjectNode();
+        ObjectNode json = Bootstrap.JSON_MAPPER.createObjectNode();
         json.put("s", this.startTime);
         json.put("e", this.endTime);
         json.put("tk", this.totalTicks);

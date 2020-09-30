@@ -4,6 +4,8 @@ import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Guice;
+import com.google.inject.Stage;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
@@ -11,19 +13,18 @@ import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.spotify.futures.CompletableFutures;
 import io.netty.buffer.ByteBuf;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.console.NukkitConsole;
 import org.cloudburstmc.server.entity.Attribute;
-import org.cloudburstmc.server.event.HandlerList;
-import org.cloudburstmc.server.event.server.BatchPacketsEvent;
-import org.cloudburstmc.server.event.server.PlayerDataSerializeEvent;
-import org.cloudburstmc.server.event.server.QueryRegenerateEvent;
-import org.cloudburstmc.server.event.server.RegistriesClosedEvent;
+import org.cloudburstmc.server.event.server.*;
+import org.cloudburstmc.server.inject.CloudburstModule;
+import org.cloudburstmc.server.inject.CloudburstPrivateModule;
 import org.cloudburstmc.server.inventory.CraftingManager;
 import org.cloudburstmc.server.inventory.Recipe;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.storage.StorageIds;
@@ -42,18 +43,16 @@ import org.cloudburstmc.server.network.query.QueryHandler;
 import org.cloudburstmc.server.pack.PackManager;
 import org.cloudburstmc.server.permission.BanEntry;
 import org.cloudburstmc.server.permission.BanList;
-import org.cloudburstmc.server.permission.DefaultPermissions;
+import org.cloudburstmc.server.permission.CloudPermissionManager;
 import org.cloudburstmc.server.permission.Permissible;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.IPlayer;
 import org.cloudburstmc.server.player.OfflinePlayer;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.JavaPluginLoader;
-import org.cloudburstmc.server.plugin.Plugin;
-import org.cloudburstmc.server.plugin.PluginLoadOrder;
+import org.cloudburstmc.server.plugin.CloudPluginManager;
 import org.cloudburstmc.server.plugin.PluginManager;
-import org.cloudburstmc.server.plugin.service.NKServiceManager;
-import org.cloudburstmc.server.plugin.service.ServiceManager;
+import org.cloudburstmc.server.plugin.event.CloudEventManager;
+import org.cloudburstmc.server.plugin.loader.JavaPluginLoader;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.potion.Potion;
 import org.cloudburstmc.server.registry.*;
@@ -74,7 +73,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -89,8 +87,8 @@ import java.util.stream.Collectors;
 @Log4j2
 public class Server {
 
-    public static final String BROADCAST_CHANNEL_ADMINISTRATIVE = "nukkit.broadcast.admin";
-    public static final String BROADCAST_CHANNEL_USERS = "nukkit.broadcast.user";
+    public static final String BROADCAST_CHANNEL_ADMINISTRATIVE = "cloudburst.broadcast.admin";
+    public static final String BROADCAST_CHANNEL_USERS = "cloudburst.broadcast.user";
 
     private static Server instance = null;
 
@@ -106,7 +104,11 @@ public class Server {
 
     private boolean hasStopped = false;
 
-    private PluginManager pluginManager;
+    private final CloudPluginManager pluginManager;
+
+    private final CloudEventManager eventManager;
+
+    private final CloudPermissionManager permissionManager;
 
     private final int profilingTickrate = 20;
 
@@ -131,21 +133,21 @@ public class Server {
     private final NukkitConsole console;
     private final ConsoleThread consoleThread;
 
-    private CraftingManager craftingManager;
+    private final CraftingManager craftingManager;
 
-    private final PackManager packManager = new PackManager();
+    private final PackManager packManager;
 
-    private ConsoleCommandSender consoleSender;
+    private final ConsoleCommandSender consoleSender;
 
     private int maxPlayers;
 
     private boolean autoSave = true;
 
-    private EntityMetadataStore entityMetadata;
+    private final EntityMetadataStore entityMetadata;
 
-    private PlayerMetadataStore playerMetadata;
+    private final PlayerMetadataStore playerMetadata;
 
-    private LevelMetadataStore levelMetadata;
+    private final LevelMetadataStore levelMetadata;
 
     private Network network;
 
@@ -167,11 +169,11 @@ public class Server {
 
     private UUID serverID;
 
-    private final LevelManager levelManager = new LevelManager(this);
+    private final LevelManager levelManager;
 
-    private final String filePath;
-    private final String dataPath;
-    private final String pluginPath;
+    private final Path filePath;
+    private final Path dataPath;
+    private final Path pluginPath;
 
     private final Set<UUID> uniquePlayers = new HashSet<>();
 
@@ -180,8 +182,8 @@ public class Server {
     private QueryRegenerateEvent queryRegenerateEvent;
     private Config config;
 
-    private final LocaleManager localeManager = LocaleManager.from("locale/nukkit/languages.json",
-            "locale/nukkit/texts", "locale/vanilla");
+    private final LocaleManager localeManager = LocaleManager.from("locale/cloudburst/languages.json",
+            "locale/cloudburst/texts", "locale/vanilla");
     private final GameRuleRegistry gameRuleRegistry = GameRuleRegistry.get();
     private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
     private final StorageRegistry storageRegistry = StorageRegistry.get();
@@ -197,8 +199,6 @@ public class Server {
     private final Map<UUID, Player> playerList = new HashMap<>();
     private final LevelData defaultLevelData = new LevelData();
     private String predefinedLanguage;
-
-    private final ServiceManager serviceManager = new NKServiceManager();
 
     private boolean allowNether;
 
@@ -216,14 +216,36 @@ public class Server {
 
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.dat$", Pattern.CASE_INSENSITIVE);
 
-    public Server(String filePath, String dataPath, String pluginPath, String predefinedLanguage) {
+    public Server(
+            final Path dataPath,
+            final Path pluginPath,
+            final Path levelPath,
+            final String predefinedLanguage
+    ) {
         Preconditions.checkState(instance == null, "Already initialized!");
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
-        this.filePath = filePath;
+
+        val injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
+
+        this.filePath = Bootstrap.PATH;
         this.dataPath = dataPath;
         this.pluginPath = pluginPath;
         this.predefinedLanguage = predefinedLanguage;
+
+        this.pluginManager = injector.getInstance(CloudPluginManager.class);
+        this.eventManager = injector.getInstance(CloudEventManager.class);
+        this.permissionManager = injector.getInstance(CloudPermissionManager.class);
+        this.levelManager = injector.getInstance(LevelManager.class);
+        this.craftingManager = injector.getInstance(CraftingManager.class);
+        this.packManager = injector.getInstance(PackManager.class);
+//        this.scheduler = injector.getInstance(ServerScheduler.class);
+
+        this.playerMetadata = injector.getInstance(PlayerMetadataStore.class);
+        this.levelMetadata = injector.getInstance(LevelMetadataStore.class);
+        this.entityMetadata = injector.getInstance(EntityMetadataStore.class);
+
+        this.consoleSender = injector.getInstance(ConsoleCommandSender.class);
 
         this.console = new NukkitConsole(this);
         this.consoleThread = new ConsoleThread();
@@ -273,7 +295,7 @@ public class Server {
         Set<CommandSender> recipients = new HashSet<>();
 
         for (String permission : permissions.split(";")) {
-            for (Permissible permissible : this.pluginManager.getPermissionSubscriptions(permission)) {
+            for (Permissible permissible : this.permissionManager.getPermissionSubscriptions(permission)) {
                 if (permissible instanceof CommandSender && permissible.hasPermission(permission)) {
                     recipients.add((CommandSender) permissible);
                 }
@@ -291,7 +313,7 @@ public class Server {
         Set<CommandSender> recipients = new HashSet<>();
 
         for (String permission : permissions.split(";")) {
-            for (Permissible permissible : this.pluginManager.getPermissionSubscriptions(permission)) {
+            for (Permissible permissible : this.permissionManager.getPermissionSubscriptions(permission)) {
                 if (permissible instanceof CommandSender && permissible.hasPermission(permission)) {
                     recipients.add((CommandSender) permissible);
                 }
@@ -311,21 +333,18 @@ public class Server {
 
     public void boot() throws IOException {
         // Create directories
-        if (!new File(dataPath + "worlds/").exists()) {
-            new File(dataPath + "worlds/").mkdirs();
-        }
+        Path playerPath = dataPath.resolve("players");
 
-        if (!new File(dataPath + "players/").exists()) {
-            new File(dataPath + "players/").mkdirs();
-        }
-
-        if (!new File(pluginPath).exists()) {
-            new File(pluginPath).mkdirs();
+        if (Files.notExists(playerPath)) {
+            Files.createDirectory(playerPath);
+        } else if (!Files.isDirectory(playerPath)) {
+            throw new RuntimeException("Players path " + playerPath + " is not a directory.");
         }
 
         this.consoleThread.start();
+        Path configPath = dataPath.resolve("cloudburst.yml");
 
-        if (!new File(this.dataPath + "nukkit.yml").exists()) {
+        if (Files.notExists(configPath)) {
             log.info(TextFormat.GREEN + "Welcome! Please choose a language first!");
 
             for (Locale locale : localeManager.getAvailableLocales()) {
@@ -343,12 +362,12 @@ public class Server {
             } while (!localeManager.setLocale(locale));
 
             // Generate config with specified locale
-            LocaleManager configLocaleManager = LocaleManager.from("locale/nukkit/languages.json",
-                    "locale/nukkit/configs");
+            LocaleManager configLocaleManager = LocaleManager.from("locale/cloudburst/languages.json",
+                    "locale/cloudburst/configs");
             configLocaleManager.setLocale(locale);
 
-            File configFile = new File(this.dataPath + "nukkit.yml");
-            InputStream stream = Nukkit.class.getClassLoader().getResourceAsStream("nukkit.yml");
+            File configFile = configPath.toFile();
+            InputStream stream = Bootstrap.class.getClassLoader().getResourceAsStream("cloudburst.yml");
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
                  BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile)))) {
                 String line;
@@ -363,18 +382,18 @@ public class Server {
 
         this.console.setExecutingCommands(true);
 
-        log.info("Loading {} ...", TextFormat.GREEN + "nukkit.yml" + TextFormat.WHITE);
-        this.config = new Config(this.dataPath + "nukkit.yml", Config.YAML);
+        log.info("Loading {} ...", TextFormat.GREEN + "cloudburst.yml" + TextFormat.WHITE);
+        this.config = new Config(configPath.toString(), Config.YAML);
 
         ignoredPackets.addAll(getConfig().getStringList("debug.ignored-packets"));
 
-        Nukkit.DEBUG = Math.max(this.getConfig("debug.level", 1), 1);
+        Bootstrap.DEBUG = Math.max(this.getConfig("debug.level", 1), 1);
 
-        int logLevel = (Nukkit.DEBUG + 3) * 100;
+        int logLevel = (Bootstrap.DEBUG + 3) * 100;
         for (org.apache.logging.log4j.Level level : org.apache.logging.log4j.Level.values()) {
             if (level.intLevel() == logLevel) {
-                if (level.intLevel() > Nukkit.getLogLevel().intLevel()) {
-                    Nukkit.setLogLevel(level);
+                if (level.intLevel() > Bootstrap.getLogLevel().intLevel()) {
+                    Bootstrap.setLogLevel(level);
                 }
                 break;
             }
@@ -416,8 +435,8 @@ public class Server {
         this.forceLanguage = this.getConfig("settings.force-language", false);
         this.localeManager.setLocaleOrFallback(this.getConfig("settings.language"));
         Locale locale = this.getLanguage().getLocale();
-        log.info(this.getLanguage().translate("language.selected", locale.getDisplayCountry(locale), locale));
-        log.info(this.getLanguage().translate("nukkit.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.RESET));
+        log.info(this.getLanguage().translate("cloudburst.language.selected", locale.getDisplayCountry(locale), locale));
+        log.info(this.getLanguage().translate("cloudburst.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.RESET));
 
         Object poolSize = this.getConfig("settings.async-workers", (Object) (-1));
         if (!(poolSize instanceof Integer)) {
@@ -429,7 +448,7 @@ public class Server {
         }
         int parallelism = (int) poolSize;
         System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", String.valueOf(parallelism));
-        System.setProperty("java.util.concurrent.ForkJoinPool.common.exceptionHandler", "cn.nukkit.scheduler.ServerScheduler.ExceptionHandler");
+        System.setProperty("java.util.concurrent.ForkJoinPool.common.exceptionHandler", "cn.cloudburst.scheduler.ServerScheduler.ExceptionHandler");
         log.debug("Async pool parallelism: {}", parallelism == -1 ? "auto" : parallelism);
 
         this.scheduler = new ServerScheduler();
@@ -445,15 +464,11 @@ public class Server {
         this.alwaysTickPlayers = this.getConfig("level-settings.always-tick-players", false);
         this.baseTickRate = this.getConfig("level-settings.base-tick-rate", 1);
 
-        this.entityMetadata = new EntityMetadataStore();
-        this.playerMetadata = new PlayerMetadataStore();
-        this.levelMetadata = new LevelMetadataStore();
-
-        this.operators = new Config(this.dataPath + "ops.txt", Config.ENUM);
-        this.whitelist = new Config(this.dataPath + "white-list.txt", Config.ENUM);
-        this.banByName = new BanList(this.dataPath + "banned-players.json");
+        this.operators = new Config(this.dataPath.resolve("ops.txt").toFile(), Config.ENUM);
+        this.whitelist = new Config(this.dataPath.resolve("white-list.txt").toFile(), Config.ENUM);
+        this.banByName = new BanList(this.dataPath.resolve("banned-players.json").toString());
         this.banByName.load();
-        this.banByIP = new BanList(this.dataPath + "banned-ips.json");
+        this.banByIP = new BanList(this.dataPath.resolve("banned-ips.json").toString());
         this.banByIP.load();
 
         this.maxPlayers = this.getPropertyInt("max-players", 20);
@@ -467,15 +482,12 @@ public class Server {
             ExceptionHandler.registerExceptionHandler();
         }
 
-        log.info(this.getLanguage().translate("nukkit.server.info", this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + TextFormat.WHITE, TextFormat.AQUA + "" + TextFormat.WHITE, this.getApiVersion()));
-        log.info(this.getLanguage().translate("nukkit.server.license", this.getName()));
-
-        this.consoleSender = new ConsoleCommandSender();
-        // this.commandMap = new SimpleCommandMap(this);
+        log.info(this.getLanguage().translate("cloudburst.server.info", this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + TextFormat.WHITE, TextFormat.AQUA + "" + TextFormat.WHITE, this.getApiVersion()));
+        log.info(this.getLanguage().translate("cloudburst.server.license", this.getName()));
 
         // Convert legacy data before plugins get the chance to mess with it.
         try {
-            nameLookup = LevelDB.PROVIDER.open(new File(dataPath, "players"), new Options()
+            nameLookup = LevelDB.PROVIDER.open(playerPath.toFile(), new Options()
                     .createIfMissing(true)
                     .compressionType(CompressionType.ZLIB_RAW));
         } catch (IOException e) {
@@ -486,18 +498,15 @@ public class Server {
 
         this.convertLegacyPlayerData();
 
-        this.craftingManager = new CraftingManager();
+        this.permissionManager.subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this.consoleSender);
 
-        this.pluginManager = new PluginManager(this);
-        this.pluginManager.subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this.consoleSender);
-
-        this.pluginManager.registerInterface(JavaPluginLoader.class);
+        this.pluginManager.registerLoader(JavaPluginLoader.class, JavaPluginLoader.builder().build());
 
         this.queryRegenerateEvent = new QueryRegenerateEvent(this, 5);
 
-        this.pluginManager.loadPlugins(this.pluginPath);
+        this.loadPlugins();
 
-        this.enablePlugins(PluginLoadOrder.STARTUP);
+        this.eventManager.fire(ServerInitializationEvent.INSTANCE);
 
         // load packs before registry closes to register new blocks and after plugins to register block factories.
         this.loadPacks();
@@ -517,7 +526,7 @@ public class Server {
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to close registries", e);
         } finally {
-            this.pluginManager.callEvent(new RegistriesClosedEvent(this.packManager));
+            this.eventManager.fire(new RegistriesClosedEvent(this.packManager));
         }
 
         this.registerVanillaComponents();
@@ -536,7 +545,7 @@ public class Server {
         this.saveProperties();
 
         if (this.getDefaultLevel() == null) {
-            log.fatal(this.getLanguage().translate("nukkit.level.defaultError"));
+            log.fatal(this.getLanguage().translate("cloudburst.level.defaultError"));
             this.forceShutdown();
 
             return;
@@ -548,9 +557,9 @@ public class Server {
             this.autoSaveTicks = this.getConfig("ticks-per.autosave", 6000);
         }
 
-        this.enablePlugins(PluginLoadOrder.POSTWORLD);
+        //TODO: event
 
-        log.info(this.getLanguage().translate("nukkit.server.networkStart", this.getIp().equals("") ? "*" : this.getIp(), this.getPort()));
+        log.info(this.getLanguage().translate("cloudburst.server.networkStart", this.getIp().equals("") ? "*" : this.getIp(), this.getPort()));
         this.serverID = UUID.randomUUID();
 
         this.network = new Network(this);
@@ -565,10 +574,12 @@ public class Server {
             this.forceShutdown();
         }
 
-        if (Nukkit.DEBUG < 2) {
+        if (Bootstrap.DEBUG < 2) {
             this.watchdog = new Watchdog(this, 60000);
             this.watchdog.start();
         }
+
+        this.eventManager.fire(ServerStartEvent.INSTANCE);
 
         this.start();
     }
@@ -583,7 +594,7 @@ public class Server {
         }
 
         BatchPacketsEvent ev = new BatchPacketsEvent(players, packets, forceSync);
-        getPluginManager().callEvent(ev);
+        this.eventManager.fire(ev);
         if (ev.isCancelled()) {
             return;
         }
@@ -598,26 +609,6 @@ public class Server {
                 }
             }
         }
-    }
-
-    public void enablePlugins(PluginLoadOrder type) {
-        for (Plugin plugin : new ArrayList<>(this.pluginManager.getPlugins().values())) {
-            if (!plugin.isEnabled() && type == plugin.getDescription().getOrder()) {
-                this.enablePlugin(plugin);
-            }
-        }
-
-        if (type == PluginLoadOrder.POSTWORLD) {
-            DefaultPermissions.registerCorePermissions();
-        }
-    }
-
-    public void enablePlugin(Plugin plugin) {
-        this.pluginManager.enablePlugin(plugin);
-    }
-
-    public void disablePlugins() {
-        this.pluginManager.disablePlugins();
     }
 
     public boolean dispatchCommand(CommandSender sender, String commandLine) throws ServerException {
@@ -663,11 +654,9 @@ public class Server {
                 player.close(player.getLeaveMessage(), this.getConfig("settings.shutdown-message", "Server closed"));
             }
 
-            log.debug("Disabling all plugins");
-            this.pluginManager.disablePlugins();
+            this.eventManager.fire(ServerShutdownEvent.INSTANCE);
 
-            log.debug("Removing event handlers");
-            HandlerList.unregisterAll();
+            this.pluginManager.deregisterLoader(JavaPluginLoader.class);
 
             log.debug("Stopping all tasks");
             this.scheduler.cancelAllTasks();
@@ -696,8 +685,7 @@ public class Server {
             }
             //todo other things
         } catch (Exception e) {
-            log.fatal("Exception happened while shutting down, exiting the process", e);
-            System.exit(1);
+            log.fatal("Exception happened while shutting down", e);
         }
     }
 
@@ -717,9 +705,9 @@ public class Server {
         //todo send usage setting
         this.tickCounter = 0;
 
-        log.info(this.getLanguage().translate("nukkit.server.defaultGameMode", this.getGamemode().getTranslation()));
+        log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", this.getGamemode().getTranslation()));
 
-        log.info(this.getLanguage().translate("nukkit.server.startFinished", (System.currentTimeMillis() - Nukkit.START_TIME) / 1000d));
+        log.info(this.getLanguage().translate("cloudburst.server.startFinished", (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d));
 
         this.tickProcessor();
         this.forceShutdown();
@@ -948,7 +936,7 @@ public class Server {
 
                 if ((this.tickCounter & 0b111111111) == 0) {
                     try {
-                        this.getPluginManager().callEvent(this.queryRegenerateEvent = new QueryRegenerateEvent(this, 5));
+                        this.eventManager.fire(this.queryRegenerateEvent = new QueryRegenerateEvent(this, 5));
                         if (this.queryHandler != null) {
                             this.queryHandler.regenerateInfo();
                         }
@@ -1007,7 +995,7 @@ public class Server {
 
     // TODO: Fix title tick
     public void titleTick() {
-        if (!Nukkit.ANSI || !Nukkit.TITLE) {
+        if (!Bootstrap.ANSI || !Bootstrap.TITLE) {
             return;
         }
 
@@ -1019,7 +1007,7 @@ public class Server {
                 + this.getNukkitVersion()
                 + " | Online " + this.players.size() + "/" + this.getMaxPlayers()
                 + " | Memory " + usage;
-        if (!Nukkit.shortTitle) {
+        if (!Bootstrap.shortTitle) {
             title += " | U " + NukkitMath.round((this.network.getUpload() / 1024 * 1000), 2)
                     + " D " + NukkitMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
         }
@@ -1034,7 +1022,7 @@ public class Server {
     }
 
     public String getName() {
-        return "Nukkit";
+        return "Cloudburst";
     }
 
     public boolean isRunning() {
@@ -1042,7 +1030,7 @@ public class Server {
     }
 
     public String getNukkitVersion() {
-        return Nukkit.VERSION;
+        return Bootstrap.VERSION;
     }
 
     public String getVersion() {
@@ -1050,18 +1038,18 @@ public class Server {
     }
 
     public String getApiVersion() {
-        return Nukkit.API_VERSION;
+        return Bootstrap.API_VERSION;
     }
 
-    public String getFilePath() {
+    public Path getFilePath() {
         return filePath;
     }
 
-    public String getDataPath() {
+    public Path getDataPath() {
         return dataPath;
     }
 
-    public String getPluginPath() {
+    public Path getPluginPath() {
         return pluginPath;
     }
 
@@ -1174,8 +1162,16 @@ public class Server {
         return levelMetadata;
     }
 
+    public CloudEventManager getEventManager() {
+        return eventManager;
+    }
+
     public PluginManager getPluginManager() {
         return this.pluginManager;
+    }
+
+    public CloudPermissionManager getPermissionManager() {
+        return permissionManager;
     }
 
     public CraftingManager getCraftingManager() {
@@ -1310,7 +1306,7 @@ public class Server {
 
         PlayerDataSerializeEvent event = new PlayerDataSerializeEvent(name, playerDataSerializer);
         if (runEvent) {
-            pluginManager.callEvent(event);
+            eventManager.fire(event);
         }
 
         Optional<InputStream> dataStream = Optional.empty();
@@ -1322,7 +1318,7 @@ public class Server {
                 }
             }
         } catch (IOException e) {
-            log.warn(this.getLanguage().translate("nukkit.data.playerCorrupted", name));
+            log.warn(this.getLanguage().translate("cloudburst.data.playerCorrupted", name));
             log.throwing(e);
         } finally {
             if (dataStream.isPresent()) {
@@ -1335,7 +1331,7 @@ public class Server {
         }
         NbtMap nbt = null;
         if (create) {
-            log.info(this.getLanguage().translate("nukkit.data.playerNotFound", name));
+            log.info(this.getLanguage().translate("cloudburst.data.playerNotFound", name));
             Location spawn = this.getDefaultLevel().getSafeSpawn();
             nbt = NbtMap.builder()
                     .putLong("firstPlayed", System.currentTimeMillis() / 1000)
@@ -1380,7 +1376,7 @@ public class Server {
         if (this.shouldSavePlayerData()) {
             PlayerDataSerializeEvent event = new PlayerDataSerializeEvent(nameLower, playerDataSerializer);
             if (runEvent) {
-                pluginManager.callEvent(event);
+                eventManager.fire(event);
             }
 
             this.getScheduler().scheduleTask(new Task() {
@@ -1408,12 +1404,12 @@ public class Server {
              NBTOutputStream stream = NbtUtils.createGZIPWriter(dataStream)) {
             stream.writeTag(tag);
         } catch (Exception e) {
-            log.error(this.getLanguage().translate("nukkit.data.saveError", name, e));
+            log.error(this.getLanguage().translate("cloudburst.data.saveError", name, e));
         }
     }
 
     private void convertLegacyPlayerData() {
-        File dataDirectory = new File(getDataPath(), "players/");
+        File dataDirectory = this.dataPath.resolve("players").toFile();
 
         File[] files = dataDirectory.listFiles(file -> {
             String name = file.getName();
@@ -1650,9 +1646,7 @@ public class Server {
     }
 
     private void loadProperties() {
-        File propertiesFile = new File(this.dataPath, "server.properties");
-
-        try (InputStream stream = new FileInputStream(propertiesFile)) {
+        try (InputStream stream = Files.newInputStream(this.dataPath.resolve("server.properties"))) {
             this.properties.load(stream);
         } catch (FileNotFoundException | NoSuchFileException e) {
             this.saveProperties();
@@ -1662,9 +1656,7 @@ public class Server {
     }
 
     private void saveProperties() {
-        File propertiesFile = new File(this.dataPath, "server.properties");
-
-        try (OutputStream stream = new FileOutputStream(propertiesFile)) {
+        try (OutputStream stream = Files.newOutputStream(this.dataPath.resolve("server.properties"))) {
             this.properties.store(stream, "");
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -1727,10 +1719,6 @@ public class Server {
         this.whitelist.reload();
     }
 
-    public ServiceManager getServiceManager() {
-        return serviceManager;
-    }
-
     public Map<String, List<String>> getCommandAliases() {
         Object section = this.getConfig("aliases");
         Map<String, List<String>> result = new LinkedHashMap<>();
@@ -1781,8 +1769,26 @@ public class Server {
         return currentThread;
     }
 
+    private void loadPlugins() {
+        log.info("Loading Plugins...");
+        try {
+            Path pluginPath = dataPath.resolve("plugins");
+            if (Files.notExists(pluginPath)) {
+                Files.createDirectory(pluginPath);
+            } else {
+                if (!Files.isDirectory(pluginPath)) {
+                    log.info("Plugin location {} is not a directory, continuing without loading plugins.", pluginPath);
+                    return;
+                }
+            }
+            pluginManager.loadPlugins(pluginPath);
+        } catch (Exception e) {
+            log.error("Can't load plugins", e);
+        }
+        log.info("Loaded {} plugins.", pluginManager.getAllPlugins().size());
+    }
+
     private void loadPacks() {
-        Path dataPath = Paths.get(this.dataPath);
         Path resourcePath = dataPath.resolve("resource_packs");
         if (Files.notExists(resourcePath)) {
             try {
@@ -1803,10 +1809,17 @@ public class Server {
         this.defaultLevelData.getGameRules().putAll(this.gameRuleRegistry.getDefaultRules());
     }
 
-    private void loadLevels() {
+    private void loadLevels() throws IOException {
+        Path levelPath = dataPath.resolve("worlds");
+        if (Files.notExists(levelPath)) {
+            Files.createDirectory(levelPath);
+        } else if (!Files.isDirectory(levelPath)) {
+            throw new RuntimeException("Worlds location " + levelPath + " is not a directory.");
+        }
+
         Map<String, Object> worldNames = this.getConfig("worlds", Collections.emptyMap());
         if (worldNames.isEmpty()) {
-            throw new IllegalStateException("No worlds configured! Add a world to nukkit.yml and try again!");
+            throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }
         List<CompletableFuture<Level>> levelFutures = new ArrayList<>(worldNames.size());
 

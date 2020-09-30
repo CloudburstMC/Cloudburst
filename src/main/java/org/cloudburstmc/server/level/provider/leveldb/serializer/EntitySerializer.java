@@ -75,14 +75,12 @@ public class EntitySerializer {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Location getLocation(NbtMap tag, Chunk chunk) {
-        List<NbtMap> pos = (List) tag.getList("Pos", NbtType.FLOAT);
-        Vector3f position = Vector3f.from((float) pos.get(0).get(0)
-                , (float) pos.get(1).get(0)
-                , (float) pos.get(2).get(0));
+        List<Float> pos = tag.getList("Pos", NbtType.FLOAT);
+        Vector3f position = Vector3f.from(pos.get(0), pos.get(1), pos.get(2));
 
-        List<NbtMap> rotation = (List) tag.getList("Rotation", NbtType.FLOAT);
-        float yaw = (float) rotation.get(0).get(0);
-        float pitch = (float) rotation.get(1).get(0);
+        List<Float> rotation = (List) tag.getList("Rotation", NbtType.FLOAT);
+        float yaw = rotation.get(0);
+        float pitch = rotation.get(1);
 
         checkArgument(position.getFloorX() >> 4 == chunk.getX() && position.getFloorZ() >> 4 == chunk.getZ(),
                 "Entity is not in chunk of origin");
@@ -98,21 +96,30 @@ public class EntitySerializer {
         public boolean load(Chunk chunk) {
             boolean dirty = false;
             for (NbtMap entityTag : entityTags) {
-                if (!entityTag.containsKey("identifier")) {
-                    dirty = true;
-                    continue;
-                }
-                Location location = getLocation(entityTag, chunk);
-                Identifier identifier = Identifier.fromString(entityTag.getString("identifier"));
-                EntityRegistry registry = EntityRegistry.get();
-                EntityType<?> type = registry.getEntityType(identifier);
                 try {
-                    Entity entity = registry.newEntity(type, location);
-                    if (entity != null) {
-                        entity.loadAdditionalData(entityTag);
+                    if (!entityTag.containsKey("identifier")) {
+                        dirty = true;
+                        continue;
                     }
-                } catch (RegistryException e) {
-                    dirty = true;
+                    Location location = getLocation(entityTag, chunk);
+                    Identifier identifier = Identifier.fromString(entityTag.getString("identifier"));
+                    EntityRegistry registry = EntityRegistry.get();
+                    EntityType<?> type = registry.getEntityType(identifier);
+                    if (type == null) {
+                        log.warn("Unknown entity type {}", identifier);
+                        dirty = true;
+                        continue;
+                    }
+                    try {
+                        Entity entity = registry.newEntity(type, location);
+                        if (entity != null) {
+                            entity.loadAdditionalData(entityTag);
+                        }
+                    } catch (RegistryException e) {
+                        dirty = true;
+                    }
+                } catch (Exception e) {
+                    log.throwing(e);
                 }
             }
             return dirty;

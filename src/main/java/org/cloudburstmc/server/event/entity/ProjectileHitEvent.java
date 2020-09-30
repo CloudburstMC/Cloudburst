@@ -2,7 +2,6 @@ package org.cloudburstmc.server.event.entity;
 
 import org.cloudburstmc.server.entity.impl.projectile.EntityProjectile;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.level.MovingObjectPosition;
 
 /**
@@ -10,11 +9,6 @@ import org.cloudburstmc.server.level.MovingObjectPosition;
  * Nukkit Project
  */
 public class ProjectileHitEvent extends EntityEvent implements Cancellable {
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private MovingObjectPosition movingObjectPosition;
 

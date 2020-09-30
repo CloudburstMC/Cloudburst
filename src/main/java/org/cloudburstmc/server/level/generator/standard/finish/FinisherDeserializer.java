@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.google.common.base.Preconditions;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.registry.StandardGeneratorRegistries;
 import org.cloudburstmc.server.utils.Identifier;
@@ -25,8 +25,8 @@ final class FinisherDeserializer extends JsonDeserializer<Finisher> {
 
         try {
             return id == NextGenerationPass.ID
-                    ? NextGenerationPass.INSTANCE : Nukkit.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.finisher().get(id));
-        } catch (Exception e)   {
+                    ? NextGenerationPass.INSTANCE : Bootstrap.YAML_MAPPER.readValue(p, StandardGeneratorRegistries.finisher().get(id));
+        } catch (Exception e) {
             throw new RuntimeException("While decoding finisher " + id, e);
         }
     }

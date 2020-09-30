@@ -11,6 +11,7 @@ import org.cloudburstmc.server.pack.loader.PackLoader;
 import org.cloudburstmc.server.pack.loader.ZipPackLoader;
 
 import javax.annotation.Nullable;
+import javax.inject.Singleton;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -20,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 @Log4j2
+@Singleton
 public class PackManager implements Closeable {
     private static final Path MANIFEST_PATH = Paths.get("manifest.json");
 
@@ -149,7 +151,7 @@ public class PackManager implements Closeable {
         }
 
         log.info(Server.getInstance().getLanguage()
-                .translate("nukkit.resources.success", String.valueOf(manifestMap.size())));
+                .translate("cloudburst.resources.success", String.valueOf(manifestMap.size())));
     }
 
     public void loadPack(Path packPath) throws IOException {
@@ -188,7 +190,7 @@ public class PackManager implements Closeable {
             }
         }
         if (loader == null) {
-            log.warn(Server.getInstance().getLanguage().translate("nukkit.resources.unknown-format", path));
+            log.warn(Server.getInstance().getLanguage().translate("cloudburst.resources.unknown-format", path));
         }
         return loader;
     }
@@ -204,7 +206,6 @@ public class PackManager implements Closeable {
         packsInfos.getResourcePackInfos().clear();
         packStack.getBehaviorPacks().clear();
         packStack.getResourcePacks().clear();
-        packStack.setExperimental(true); // Needed for custom blocks, items and entities
         packStack.setGameVersion("*");
         for (Pack pack : packs.values()) {
             if (pack.getType() != ResourcePackType.BEHAVIOR) {

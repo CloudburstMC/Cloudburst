@@ -1,7 +1,8 @@
 package org.cloudburstmc.server.block.util;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nukkitx.blockstateupdater.BlockStateUpdaterBase;
+import com.nukkitx.blockstateupdater.BlockStateUpdaters;
+import com.nukkitx.nbt.NbtMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
@@ -13,14 +14,8 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.utils.Identifier;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 @UtilityClass
 @Log4j2
@@ -33,48 +28,30 @@ public class BlockStateMetaMappings {
         init();
     }
 
-    @SuppressWarnings("rawtypes")
     @SneakyThrows
     public void init() {
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, List<Map<String, String>>> data = mapper.readValue(
-                BlockStateMetaMappings.class.getClassLoader().getResourceAsStream("data/legacy_block_data_map.json"),
-                new TypeReference<Map<String, List<Map<String, String>>>>() {
-                });
 
-        data.forEach((name, states) -> {
+        BlockStateUpdaterBase.LEGACY_BLOCK_DATA_MAP.forEach((name, states) -> {
             Identifier type = Identifier.fromString(name);
-            BlockState defaultState = BlockPalette.INSTANCE.getDefaultState(type);
-            if (defaultState == null) {
-                log.warn("unregistered block: {}", type);
-                return;
-            }
 
             Int2ReferenceMap<BlockState> mapping = new Int2ReferenceOpenHashMap<>();
-            meta2state.put(type, mapping);
 
-            for (int i = 0; i < states.size(); i++) {
-                Map<String, String> traits = states.get(i);
-                BlockState state = defaultState;
+            for (int i = 0; i < states.length; i++) {
+                NbtMap map = BlockStateUpdaters.updateBlockState(NbtMap.builder()
+                        .putString("name", name)
+                        .putShort("val", (short) i)
+                        .build(), 0);
 
-                for (Entry<String, String> entry : traits.entrySet()) {
-                    String key = entry.getKey();
-
-                    BlockTrait trait = BlockTraits.fromVanilla(key);
-
-                    if (trait == null) {
-                        log.warn("Unknown trait {}", key);
-                        return;
-                    } else if (state.getTrait(trait) == null)   {
-                        log.warn("trait {} is unknown for block {}", key, type);
-                        return;
-                    }
-
-                    state = state.withTrait(trait, trait.parseValue(entry.getValue()));
-                }
+                BlockState state = BlockPalette.INSTANCE.getBlockState(map);
+                if (state == null) state = mapping.get(0);
+                if (state == null) continue;
 
                 state2meta.put(state, i);
                 mapping.put(i, state);
+            }
+
+            if (!mapping.isEmpty()) {
+                meta2state.put(type, mapping);
             }
         });
     }

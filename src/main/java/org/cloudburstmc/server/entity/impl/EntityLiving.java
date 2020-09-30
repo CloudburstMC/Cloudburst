@@ -14,7 +14,7 @@ import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityDamageable;
 import org.cloudburstmc.server.entity.EntityType;
@@ -24,8 +24,8 @@ import org.cloudburstmc.server.event.entity.EntityDamageByChildEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityDeathEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTurtleShell;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTurtleShell;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.math.BlockRayTrace;
@@ -38,8 +38,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.BREATHING;
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
-import static org.cloudburstmc.server.block.BlockTypes.MAGMA;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockIds.MAGMA;
 
 /**
  * author: MagicDroidX
@@ -177,7 +177,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
         }
         super.kill();
         EntityDeathEvent ev = new EntityDeathEvent(this, this.getDrops());
-        this.server.getPluginManager().callEvent(ev);
+        this.server.getEventManager().fire(ev);
 
         if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
             for (Item item : ev.getDrops()) {
@@ -222,7 +222,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
                 }
 
                 Identifier block = this.getLevel().getBlockAt(this.getPosition().toInt()).getType();
-                boolean ignore = block == BlockTypes.LADDER || block == BlockTypes.VINE || block == BlockTypes.WEB;
+                boolean ignore = block == BlockIds.LADDER || block == BlockIds.VINE || block == BlockIds.WEB;
                 if (ignore || this.hasEffect(Effect.LEVITATION)) {
                     this.resetFallDistance();
                 }

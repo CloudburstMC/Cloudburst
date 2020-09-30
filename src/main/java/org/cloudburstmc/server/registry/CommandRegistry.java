@@ -13,8 +13,7 @@ import org.cloudburstmc.server.command.defaults.*;
 import org.cloudburstmc.server.command.simple.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.Plugin;
-import org.cloudburstmc.server.plugin.PluginBase;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.utils.TextFormat;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -24,12 +23,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * <p><code>CommandRegistry</code> is used to register custom commands. Use the {@link #register(Plugin, Command) register()}
- * method to pass a <code>{@link PluginCommand}</code> object with a reference to your {@link PluginBase Plugin}.
+ * <p><code>CommandRegistry</code> is used to register custom commands. Use the {@link #register(PluginContainer, Command) register()}
+ * method to pass a <code>{@link PluginCommand}</code> object with a reference to your {@link PluginContainer Plugin}.
  * If the name used in the Command constructor is not unique, the registry will try to prefix the command with the
  * lower cased version of your plugin name (ex: <code>nukkitx:commnad</code>).</p>
  * <p>You may also use the {@link org.cloudburstmc.server.command.simple.SimpleCommand} annotations to create your Command,
- * in which case you would use {@link #registerSimpleCommand(Plugin, Object) registerSimpleCommand()}
+ * in which case you would use {@link #registerSimpleCommand(PluginContainer, Object) registerSimpleCommand()}
  * method to register the command.</p>
  *
  * @author Sleepybear
@@ -38,7 +37,7 @@ import java.util.regex.Pattern;
  */
 @Log4j2
 public class CommandRegistry implements Registry {
-    private final Matcher NAME_MATCHER = Pattern.compile("^[a-z0-9_?\\-/\\.]+$").matcher("");
+    private final Matcher NAME_MATCHER = Pattern.compile("^[a-z0-9_\\-/.]+$").matcher("");
     private static final CommandRegistry INSTANCE = new CommandRegistry();
     private Map<String, Command> registeredCommands = new HashMap<>();
     private Map<String, String> knownAliases = new HashMap<>();
@@ -68,13 +67,13 @@ public class CommandRegistry implements Registry {
      * {@link org.cloudburstmc.server.command.data.CommandData CommandData} created during the Command construction are also
      * registered. Your Command should extend from {@link PluginCommand}.</p><p>If you are using the {@link SimpleCommand}
      * annotations to create your command, you should register it using
-     * {@link #registerSimpleCommand(Plugin, Object) registerSimpleCommand()}.</p>
+     * {@link #registerSimpleCommand(PluginContainer, Object) registerSimpleCommand()}.</p>
      *
-     * @param plugin  A reference to your {@link PluginBase Plugin}
+     * @param plugin  A reference to your {@link PluginContainer Plugin}
      * @param command The {@link PluginCommand Command} object of your Command.
      * @throws RegistryException if command is unable to be registered
      */
-    public synchronized void register(Plugin plugin, Command command) throws RegistryException {
+    public synchronized void register(PluginContainer plugin, Command command) throws RegistryException {
         Objects.requireNonNull(command, "command");
         Objects.requireNonNull(plugin, "plugin");
         checkClosed();
@@ -107,10 +106,10 @@ public class CommandRegistry implements Registry {
      * Used to register {@link SimpleCommand}s created using the annotations found in <code>cn.nukkit.command.simple</code>
      * package.
      *
-     * @param plugin        Reference to your {@link PluginBase Plugin}
+     * @param plugin        Reference to your {@link PluginContainer Plugin}
      * @param simpleCommand Object reference to the class containing the SimpleCommand annotations.
      */
-    public synchronized void registerSimpleCommand(Plugin plugin, Object simpleCommand) {
+    public synchronized void registerSimpleCommand(PluginContainer plugin, Object simpleCommand) {
         Objects.requireNonNull(simpleCommand, "simpleCommand");
         Objects.requireNonNull(plugin, "plugin");
         checkClosed();
@@ -168,14 +167,14 @@ public class CommandRegistry implements Registry {
             throw new RegistryException("Unable to register alias " + alias + " as command " + cmdName + " is not yet registered.");
         }
 
-        NAME_MATCHER.reset(alias);
-        Preconditions.checkArgument(NAME_MATCHER.matches(), "Invalid alias name: %s", alias);
+//        NAME_MATCHER.reset(alias);
+//        Preconditions.checkArgument(NAME_MATCHER.matches(), "Invalid alias name '%s' for command '%s'", alias, cmdName);
 
         if (this.knownAliases.containsKey(alias)) {
             Command cmd = this.registeredCommands.get(cmdName);
             if (cmd instanceof PluginCommand) {
                 log.warn("Alias {} already registered, trying with plugin prefix", alias);
-                alias = ((PluginCommand) cmd).getPlugin().getName().toLowerCase() + ":" + alias;
+                alias = ((PluginCommand<?>) cmd).getPlugin().getName().toLowerCase() + ":" + alias;
             }
         }
 
@@ -188,11 +187,11 @@ public class CommandRegistry implements Registry {
      * Method used to unregister a command. Please note that a Plugin may only unregister it's own
      * commands, or a built in command.
      *
-     * @param plugin A reference to your {@link PluginBase} instance
+     * @param plugin A reference to your {@link PluginContainer} instance
      * @param name   The command name, or alias for the command
      * @throws RegistryException if unregistering was unsuccessful
      */
-    public void unregister(Plugin plugin, String name) throws RegistryException {
+    public void unregister(PluginContainer plugin, String name) throws RegistryException {
         Objects.requireNonNull(name, "commandName");
         Objects.requireNonNull(plugin, "plugin");
         checkClosed();
@@ -204,7 +203,7 @@ public class CommandRegistry implements Registry {
         Command cmd = registeredCommands.get(knownAliases.get(name));
 
         if (cmd instanceof PluginCommand) {
-            if (((PluginCommand) cmd).getPlugin() != plugin) {
+            if (((PluginCommand<?>) cmd).getPlugin() != plugin) {
                 throw new RegistryException("Unable to unregister another plugin's command");
             }
         }
@@ -228,11 +227,11 @@ public class CommandRegistry implements Registry {
      * Unregisters an alias for one of your Plugin's {@link PluginCommand Commands}, or for a
      * built-in command.
      *
-     * @param plugin A reference to your {@link PluginBase Plugin}
+     * @param plugin A reference to your {@link PluginContainer Plugin}
      * @param alias  The alias to unregister
      * @throws RegistryException on attempt to unregister another Plugin's alias
      */
-    public void unregisterAlias(Plugin plugin, String alias) throws RegistryException {
+    public void unregisterAlias(PluginContainer plugin, String alias) throws RegistryException {
         Objects.requireNonNull(plugin, "plugin");
         Objects.requireNonNull(alias, "alias");
         checkClosed();
@@ -247,7 +246,7 @@ public class CommandRegistry implements Registry {
             return;
         }
         Command cmd = registeredCommands.get(knownAliases.get(alias));
-        if (cmd instanceof PluginCommand && ((PluginCommand) cmd).getPlugin() != plugin) {
+        if (cmd instanceof PluginCommand && ((PluginCommand<?>) cmd).getPlugin() != plugin) {
             throw new RegistryException("Plugins may not unregister another Plugin's command aliases");
         }
         knownAliases.remove(alias);
@@ -269,7 +268,7 @@ public class CommandRegistry implements Registry {
         checkClosed();
 
         // Want to do this after all plugins have registered thier commands,
-        // so the aliases defined in nukkit.yml can use the plugin commands
+        // so the aliases defined in cloudburst.yml can use the plugin commands
         this.registerServerAliases(Server.getInstance());
         this.closed = true;
         this.registeredCommands = ImmutableMap.copyOf(this.registeredCommands);
@@ -378,7 +377,7 @@ public class CommandRegistry implements Registry {
             }
         } catch (Exception e) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.exception"));
-            log.error(Server.getInstance().getLanguage().translate("nukkit.command.exception", commandLine,
+            log.error(Server.getInstance().getLanguage().translate("cloudburst.command.exception", commandLine,
                     target.toString(), Utils.getExceptionMessage(e)));
         }
         target.timing.stopTiming();
@@ -490,7 +489,7 @@ public class CommandRegistry implements Registry {
             List<String> commands = entry.getValue();
 
             if (alias.contains(" ") || alias.contains(":")) {
-                log.warn(server.getLanguage().translate("nukkit.command.alias.illegal", alias));
+                log.warn(server.getLanguage().translate("cloudburst.command.alias.illegal", alias));
                 continue;
             }
 
@@ -512,7 +511,7 @@ public class CommandRegistry implements Registry {
             }
 
             if (bad.length() > 0) {
-                log.warn(server.getLanguage().translate("nukkit.command.alias.notFound", alias, bad.toString()));
+                log.warn(server.getLanguage().translate("cloudburst.command.alias.notFound", alias, bad.toString()));
                 continue;
             }
             alias = alias.toLowerCase();

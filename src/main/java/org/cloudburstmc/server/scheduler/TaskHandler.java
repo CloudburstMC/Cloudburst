@@ -3,7 +3,7 @@ package org.cloudburstmc.server.scheduler;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 
 /**
  * @author MagicDroidX
@@ -13,7 +13,7 @@ public class TaskHandler {
     private final int taskId;
     private final boolean asynchronous;
 
-    private final Plugin plugin;
+    private final PluginContainer plugin;
     private final Runnable task;
 
     private int delay;
@@ -26,7 +26,7 @@ public class TaskHandler {
 
     public final Timing timing;
 
-    public TaskHandler(Plugin plugin, Runnable task, int taskId, boolean asynchronous) {
+    public TaskHandler(PluginContainer plugin, Runnable task, int taskId, boolean asynchronous) {
         this.asynchronous = asynchronous;
         this.plugin = plugin;
         this.task = task;
@@ -70,7 +70,7 @@ public class TaskHandler {
         return this.period;
     }
 
-    public Plugin getPlugin() {
+    public PluginContainer getPlugin() {
         return plugin;
     }
 

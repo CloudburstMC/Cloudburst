@@ -7,7 +7,7 @@ import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.Item;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
@@ -19,7 +19,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.utils.data.SpongeType.DRY;
 import static org.cloudburstmc.server.utils.data.SpongeType.WET;
 

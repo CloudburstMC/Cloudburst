@@ -27,7 +27,7 @@ public class KillCommand extends Command {
                 .setDescription("commands.kill.description")
                 .setUsageMessage("/kill [player]")
                 .setAliases("suicide")
-                .setPermissions("nukkit.command.kill.self", "nukkit.command.kill.other")
+                .setPermissions("cloudburst.command.kill.self", "cloudburst.command.kill.other")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, true)
                 })
@@ -43,14 +43,14 @@ public class KillCommand extends Command {
             return false;
         }
         if (args.length == 1) {
-            if (!sender.hasPermission("nukkit.command.kill.other")) {
+            if (!sender.hasPermission("cloudburst.command.kill.other")) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                 return true;
             }
             Player player = sender.getServer().getPlayer(args[0]);
             if (player != null) {
                 EntityDamageEvent ev = new EntityDamageEvent(player, EntityDamageEvent.DamageCause.SUICIDE, 1000);
-                sender.getServer().getPluginManager().callEvent(ev);
+                sender.getServer().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return true;
                 }
@@ -70,12 +70,12 @@ public class KillCommand extends Command {
                 String entities = joiner.toString();
                 sender.sendMessage(new TranslationContainer("commands.kill.successful", entities.isEmpty() ? "0" : entities));
             } else if (args[0].equals("@s")) {
-                if (!sender.hasPermission("nukkit.command.kill.self")) {
+                if (!sender.hasPermission("cloudburst.command.kill.self")) {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                     return true;
                 }
                 EntityDamageEvent ev = new EntityDamageEvent((Player) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
-                sender.getServer().getPluginManager().callEvent(ev);
+                sender.getServer().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return true;
                 }
@@ -83,7 +83,7 @@ public class KillCommand extends Command {
                 ((Player) sender).setHealth(0);
                 sender.sendMessage(new TranslationContainer("commands.kill.successful", sender.getName()));
             } else if (args[0].equals("@a")) {
-                if (!sender.hasPermission("nukkit.command.kill.other")) {
+                if (!sender.hasPermission("cloudburst.command.kill.other")) {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                     return true;
                 }
@@ -101,12 +101,12 @@ public class KillCommand extends Command {
             return true;
         }
         if (sender instanceof Player) {
-            if (!sender.hasPermission("nukkit.command.kill.self")) {
+            if (!sender.hasPermission("cloudburst.command.kill.self")) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                 return true;
             }
             EntityDamageEvent ev = new EntityDamageEvent((Player) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
-            sender.getServer().getPluginManager().callEvent(ev);
+            sender.getServer().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return true;
             }

@@ -1,564 +1,506 @@
 package org.cloudburstmc.server.block;
 
-import lombok.experimental.UtilityClass;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import lombok.Builder;
 import org.cloudburstmc.server.utils.Identifier;
 
-@SuppressWarnings("RedundantModifiersUtilityClassLombok")
-@UtilityClass
-public final class BlockTypes {
+public class BlockTypes {
 
-    public static final Identifier ACACIA_BUTTON = Identifier.fromString("acacia_button");
-    public static final Identifier ACACIA_DOOR = Identifier.fromString("acacia_door");
-    public static final Identifier ACACIA_FENCE_GATE = Identifier.fromString("acacia_fence_gate");
-    public static final Identifier ACACIA_PRESSURE_PLATE = Identifier.fromString("acacia_pressure_plate");
-    public static final Identifier ACACIA_STAIRS = Identifier.fromString("acacia_stairs");
-    public static final Identifier ACACIA_STANDING_SIGN = Identifier.fromString("acacia_standing_sign");
-    public static final Identifier ACACIA_TRAPDOOR = Identifier.fromString("acacia_trapdoor");
-    public static final Identifier ACACIA_WALL_SIGN = Identifier.fromString("acacia_wall_sign");
-    public static final Identifier ACTIVATOR_RAIL = Identifier.fromString("activator_rail");
-    public static final Identifier AIR = Identifier.fromString("air");
-    public static final Identifier ALLOW = Identifier.fromString("allow");
-    public static final Identifier ANCIENT_DEBRIS = Identifier.fromString("ancient_debris");
-    public static final Identifier ANDESITE_STAIRS = Identifier.fromString("andesite_stairs");
-    public static final Identifier ANVIL = Identifier.fromString("anvil");
-    public static final Identifier BAMBOO = Identifier.fromString("bamboo");
-    public static final Identifier BAMBOO_SAPLING = Identifier.fromString("bamboo_sapling");
-    public static final Identifier BARREL = Identifier.fromString("barrel");
-    public static final Identifier BARRIER = Identifier.fromString("barrier");
-    public static final Identifier BASALT = Identifier.fromString("basalt");
-    public static final Identifier BEACON = Identifier.fromString("beacon");
-    public static final Identifier BED = Identifier.fromString("bed");
-    public static final Identifier BEDROCK = Identifier.fromString("bedrock");
-    public static final Identifier BEEHIVE = Identifier.fromString("beehive");
-    public static final Identifier BEETROOT = Identifier.fromString("beetroot");
-    public static final Identifier BEE_NEST = Identifier.fromString("bee_nest");
-    public static final Identifier BELL = Identifier.fromString("bell");
-    public static final Identifier BIRCH_BUTTON = Identifier.fromString("birch_button");
-    public static final Identifier BIRCH_DOOR = Identifier.fromString("birch_door");
-    public static final Identifier BIRCH_FENCE_GATE = Identifier.fromString("birch_fence_gate");
-    public static final Identifier BIRCH_PRESSURE_PLATE = Identifier.fromString("birch_pressure_plate");
-    public static final Identifier BIRCH_STAIRS = Identifier.fromString("birch_stairs");
-    public static final Identifier BIRCH_STANDING_SIGN = Identifier.fromString("birch_standing_sign");
-    public static final Identifier BIRCH_TRAPDOOR = Identifier.fromString("birch_trapdoor");
-    public static final Identifier BIRCH_WALL_SIGN = Identifier.fromString("birch_wall_sign");
-    public static final Identifier BLACKSTONE = Identifier.fromString("blackstone");
-    public static final Identifier BLACKSTONE_DOUBLE_SLAB = Identifier.fromString("blackstone_double_slab");
-    public static final Identifier BLACKSTONE_SLAB = Identifier.fromString("blackstone_slab");
-    public static final Identifier BLACKSTONE_STAIRS = Identifier.fromString("blackstone_stairs");
-    public static final Identifier BLACKSTONE_WALL = Identifier.fromString("blackstone_wall");
-    public static final Identifier BLACK_GLAZED_TERRACOTTA = Identifier.fromString("black_glazed_terracotta");
-    public static final Identifier BLAST_FURNACE = Identifier.fromString("blast_furnace");
-    public static final Identifier BLUE_GLAZED_TERRACOTTA = Identifier.fromString("blue_glazed_terracotta");
-    public static final Identifier BLUE_ICE = Identifier.fromString("blue_ice");
-    public static final Identifier BONE_BLOCK = Identifier.fromString("bone_block");
-    public static final Identifier BOOKSHELF = Identifier.fromString("bookshelf");
-    public static final Identifier BORDER_BLOCK = Identifier.fromString("border_block");
-    public static final Identifier BREWING_STAND = Identifier.fromString("brewing_stand");
-    public static final Identifier BRICK_BLOCK = Identifier.fromString("brick_block");
-    public static final Identifier BRICK_STAIRS = Identifier.fromString("brick_stairs");
-    public static final Identifier BROWN_GLAZED_TERRACOTTA = Identifier.fromString("brown_glazed_terracotta");
-    public static final Identifier BROWN_MUSHROOM = Identifier.fromString("brown_mushroom");
-    public static final Identifier BROWN_MUSHROOM_BLOCK = Identifier.fromString("brown_mushroom_block");
-    public static final Identifier BUBBLE_COLUMN = Identifier.fromString("bubble_column");
-    public static final Identifier CACTUS = Identifier.fromString("cactus");
-    public static final Identifier CAKE = Identifier.fromString("cake");
-    public static final Identifier CAMERA = Identifier.fromString("camera");
-    public static final Identifier CAMPFIRE = Identifier.fromString("campfire");
-    public static final Identifier CARPET = Identifier.fromString("carpet");
-    public static final Identifier CARROTS = Identifier.fromString("carrots");
-    public static final Identifier CARTOGRAPHY_TABLE = Identifier.fromString("cartography_table");
-    public static final Identifier CARVED_PUMPKIN = Identifier.fromString("carved_pumpkin");
-    public static final Identifier CAULDRON = Identifier.fromString("cauldron");
-    public static final Identifier CHAIN = Identifier.fromString("chain");
-    public static final Identifier CHAIN_COMMAND_BLOCK = Identifier.fromString("chain_command_block");
-    public static final Identifier CHEMICAL_HEAT = Identifier.fromString("chemical_heat");
-    public static final Identifier CHEMISTRY_TABLE = Identifier.fromString("chemistry_table");
-    public static final Identifier CHEST = Identifier.fromString("chest");
-    public static final Identifier CHISELED_NETHER_BRICKS = Identifier.fromString("chiseled_nether_bricks");
-    public static final Identifier CHISELED_POLISHED_BLACKSTONE = Identifier.fromString("chiseled_polished_blackstone");
-    public static final Identifier CHORUS_FLOWER = Identifier.fromString("chorus_flower");
-    public static final Identifier CHORUS_PLANT = Identifier.fromString("chorus_plant");
-    public static final Identifier CLAY = Identifier.fromString("clay");
-    public static final Identifier COAL_BLOCK = Identifier.fromString("coal_block");
-    public static final Identifier COAL_ORE = Identifier.fromString("coal_ore");
-    public static final Identifier COBBLESTONE = Identifier.fromString("cobblestone");
-    public static final Identifier COBBLESTONE_WALL = Identifier.fromString("cobblestone_wall");
-    public static final Identifier COCOA = Identifier.fromString("cocoa");
-    public static final Identifier COLORED_TORCH_BP = Identifier.fromString("colored_torch_bp");
-    public static final Identifier COLORED_TORCH_RG = Identifier.fromString("colored_torch_rg");
-    public static final Identifier COMMAND_BLOCK = Identifier.fromString("command_block");
-    public static final Identifier COMPOSTER = Identifier.fromString("composter");
-    public static final Identifier CONCRETE = Identifier.fromString("concrete");
-    public static final Identifier CONCRETE_POWDER = Identifier.fromString("concretepowder");
-    public static final Identifier CONDUIT = Identifier.fromString("conduit");
-    public static final Identifier CORAL = Identifier.fromString("coral");
-    public static final Identifier CORAL_BLOCK = Identifier.fromString("coral_block");
-    public static final Identifier CORAL_FAN = Identifier.fromString("coral_fan");
-    public static final Identifier CORAL_FAN_DEAD = Identifier.fromString("coral_fan_dead");
-    public static final Identifier CORAL_FAN_HANG = Identifier.fromString("coral_fan_hang");
-    public static final Identifier CORAL_FAN_HANG2 = Identifier.fromString("coral_fan_hang2");
-    public static final Identifier CORAL_FAN_HANG3 = Identifier.fromString("coral_fan_hang3");
-    public static final Identifier CRACKED_NETHER_BRICKS = Identifier.fromString("cracked_nether_bricks");
-    public static final Identifier CRACKED_POLISHED_BLACKSTONE_BRICKS = Identifier.fromString("cracked_polished_blackstone_bricks");
-    public static final Identifier CRAFTING_TABLE = Identifier.fromString("crafting_table");
-    public static final Identifier CRIMSON_BUTTON = Identifier.fromString("crimson_button");
-    public static final Identifier CRIMSON_DOOR = Identifier.fromString("crimson_door");
-    public static final Identifier CRIMSON_DOUBLE_SLAB = Identifier.fromString("crimson_double_slab");
-    public static final Identifier CRIMSON_FENCE = Identifier.fromString("crimson_fence");
-    public static final Identifier CRIMSON_FENCE_GATE = Identifier.fromString("crimson_fence_gate");
-    public static final Identifier CRIMSON_FUNGUS = Identifier.fromString("crimson_fungus");
-    public static final Identifier CRIMSON_HYPHAE = Identifier.fromString("crimson_hyphae");
-    public static final Identifier CRIMSON_NYLIUM = Identifier.fromString("crimson_nylium");
-    public static final Identifier CRIMSON_PLANKS = Identifier.fromString("crimson_planks");
-    public static final Identifier CRIMSON_PRESSURE_PLATE = Identifier.fromString("crimson_pressure_plate");
-    public static final Identifier CRIMSON_ROOTS = Identifier.fromString("crimson_roots");
-    public static final Identifier CRIMSON_SLAB = Identifier.fromString("crimson_slab");
-    public static final Identifier CRIMSON_STAIRS = Identifier.fromString("crimson_stairs");
-    public static final Identifier CRIMSON_STANDING_SIGN = Identifier.fromString("crimson_standing_sign");
-    public static final Identifier CRIMSON_STEM = Identifier.fromString("crimson_stem");
-    public static final Identifier CRIMSON_TRAPDOOR = Identifier.fromString("crimson_trapdoor");
-    public static final Identifier CRIMSON_WALL_SIGN = Identifier.fromString("crimson_wall_sign");
-    public static final Identifier CRYING_OBSIDIAN = Identifier.fromString("crying_obsidian");
-    public static final Identifier CYAN_GLAZED_TERRACOTTA = Identifier.fromString("cyan_glazed_terracotta");
-    public static final Identifier DARK_OAK_STANDING_SIGN = Identifier.fromString("darkoak_standing_sign");
-    public static final Identifier DARK_OAK_WALL_SIGN = Identifier.fromString("darkoak_wall_sign");
-    public static final Identifier DARK_OAK_BUTTON = Identifier.fromString("dark_oak_button");
-    public static final Identifier DARK_OAK_DOOR = Identifier.fromString("dark_oak_door");
-    public static final Identifier DARK_OAK_FENCE_GATE = Identifier.fromString("dark_oak_fence_gate");
-    public static final Identifier DARK_OAK_PRESSURE_PLATE = Identifier.fromString("dark_oak_pressure_plate");
-    public static final Identifier DARK_OAK_STAIRS = Identifier.fromString("dark_oak_stairs");
-    public static final Identifier DARK_OAK_TRAPDOOR = Identifier.fromString("dark_oak_trapdoor");
-    public static final Identifier DARK_PRISMARINE_STAIRS = Identifier.fromString("dark_prismarine_stairs");
-    public static final Identifier DAYLIGHT_DETECTOR = Identifier.fromString("daylight_detector");
-    public static final Identifier DAYLIGHT_DETECTOR_INVERTED = Identifier.fromString("daylight_detector_inverted");
-    public static final Identifier DEADBUSH = Identifier.fromString("deadbush");
-    public static final Identifier DENY = Identifier.fromString("deny");
-    public static final Identifier DETECTOR_RAIL = Identifier.fromString("detector_rail");
-    public static final Identifier DIAMOND_BLOCK = Identifier.fromString("diamond_block");
-    public static final Identifier DIAMOND_ORE = Identifier.fromString("diamond_ore");
-    public static final Identifier DIORITE_STAIRS = Identifier.fromString("diorite_stairs");
-    public static final Identifier DIRT = Identifier.fromString("dirt");
-    public static final Identifier DISPENSER = Identifier.fromString("dispenser");
-    public static final Identifier DOUBLE_PLANT = Identifier.fromString("double_plant");
-    public static final Identifier DOUBLE_STONE_SLAB = Identifier.fromString("double_stone_slab");
-    public static final Identifier DOUBLE_STONE_SLAB2 = Identifier.fromString("double_stone_slab2");
-    public static final Identifier DOUBLE_STONE_SLAB3 = Identifier.fromString("double_stone_slab3");
-    public static final Identifier DOUBLE_STONE_SLAB4 = Identifier.fromString("double_stone_slab4");
-    public static final Identifier DOUBLE_WOODEN_SLAB = Identifier.fromString("double_wooden_slab");
-    public static final Identifier DRAGON_EGG = Identifier.fromString("dragon_egg");
-    public static final Identifier DRIED_KELP_BLOCK = Identifier.fromString("dried_kelp_block");
-    public static final Identifier DROPPER = Identifier.fromString("dropper");
-    public static final Identifier ELEMENT_0 = Identifier.fromString("element_0");
-    public static final Identifier ELEMENT_1 = Identifier.fromString("element_1");
-    public static final Identifier ELEMENT_10 = Identifier.fromString("element_10");
-    public static final Identifier ELEMENT_100 = Identifier.fromString("element_100");
-    public static final Identifier ELEMENT_101 = Identifier.fromString("element_101");
-    public static final Identifier ELEMENT_102 = Identifier.fromString("element_102");
-    public static final Identifier ELEMENT_103 = Identifier.fromString("element_103");
-    public static final Identifier ELEMENT_104 = Identifier.fromString("element_104");
-    public static final Identifier ELEMENT_105 = Identifier.fromString("element_105");
-    public static final Identifier ELEMENT_106 = Identifier.fromString("element_106");
-    public static final Identifier ELEMENT_107 = Identifier.fromString("element_107");
-    public static final Identifier ELEMENT_108 = Identifier.fromString("element_108");
-    public static final Identifier ELEMENT_109 = Identifier.fromString("element_109");
-    public static final Identifier ELEMENT_11 = Identifier.fromString("element_11");
-    public static final Identifier ELEMENT_110 = Identifier.fromString("element_110");
-    public static final Identifier ELEMENT_111 = Identifier.fromString("element_111");
-    public static final Identifier ELEMENT_112 = Identifier.fromString("element_112");
-    public static final Identifier ELEMENT_113 = Identifier.fromString("element_113");
-    public static final Identifier ELEMENT_114 = Identifier.fromString("element_114");
-    public static final Identifier ELEMENT_115 = Identifier.fromString("element_115");
-    public static final Identifier ELEMENT_116 = Identifier.fromString("element_116");
-    public static final Identifier ELEMENT_117 = Identifier.fromString("element_117");
-    public static final Identifier ELEMENT_118 = Identifier.fromString("element_118");
-    public static final Identifier ELEMENT_12 = Identifier.fromString("element_12");
-    public static final Identifier ELEMENT_13 = Identifier.fromString("element_13");
-    public static final Identifier ELEMENT_14 = Identifier.fromString("element_14");
-    public static final Identifier ELEMENT_15 = Identifier.fromString("element_15");
-    public static final Identifier ELEMENT_16 = Identifier.fromString("element_16");
-    public static final Identifier ELEMENT_17 = Identifier.fromString("element_17");
-    public static final Identifier ELEMENT_18 = Identifier.fromString("element_18");
-    public static final Identifier ELEMENT_19 = Identifier.fromString("element_19");
-    public static final Identifier ELEMENT_2 = Identifier.fromString("element_2");
-    public static final Identifier ELEMENT_20 = Identifier.fromString("element_20");
-    public static final Identifier ELEMENT_21 = Identifier.fromString("element_21");
-    public static final Identifier ELEMENT_22 = Identifier.fromString("element_22");
-    public static final Identifier ELEMENT_23 = Identifier.fromString("element_23");
-    public static final Identifier ELEMENT_24 = Identifier.fromString("element_24");
-    public static final Identifier ELEMENT_25 = Identifier.fromString("element_25");
-    public static final Identifier ELEMENT_26 = Identifier.fromString("element_26");
-    public static final Identifier ELEMENT_27 = Identifier.fromString("element_27");
-    public static final Identifier ELEMENT_28 = Identifier.fromString("element_28");
-    public static final Identifier ELEMENT_29 = Identifier.fromString("element_29");
-    public static final Identifier ELEMENT_3 = Identifier.fromString("element_3");
-    public static final Identifier ELEMENT_30 = Identifier.fromString("element_30");
-    public static final Identifier ELEMENT_31 = Identifier.fromString("element_31");
-    public static final Identifier ELEMENT_32 = Identifier.fromString("element_32");
-    public static final Identifier ELEMENT_33 = Identifier.fromString("element_33");
-    public static final Identifier ELEMENT_34 = Identifier.fromString("element_34");
-    public static final Identifier ELEMENT_35 = Identifier.fromString("element_35");
-    public static final Identifier ELEMENT_36 = Identifier.fromString("element_36");
-    public static final Identifier ELEMENT_37 = Identifier.fromString("element_37");
-    public static final Identifier ELEMENT_38 = Identifier.fromString("element_38");
-    public static final Identifier ELEMENT_39 = Identifier.fromString("element_39");
-    public static final Identifier ELEMENT_4 = Identifier.fromString("element_4");
-    public static final Identifier ELEMENT_40 = Identifier.fromString("element_40");
-    public static final Identifier ELEMENT_41 = Identifier.fromString("element_41");
-    public static final Identifier ELEMENT_42 = Identifier.fromString("element_42");
-    public static final Identifier ELEMENT_43 = Identifier.fromString("element_43");
-    public static final Identifier ELEMENT_44 = Identifier.fromString("element_44");
-    public static final Identifier ELEMENT_45 = Identifier.fromString("element_45");
-    public static final Identifier ELEMENT_46 = Identifier.fromString("element_46");
-    public static final Identifier ELEMENT_47 = Identifier.fromString("element_47");
-    public static final Identifier ELEMENT_48 = Identifier.fromString("element_48");
-    public static final Identifier ELEMENT_49 = Identifier.fromString("element_49");
-    public static final Identifier ELEMENT_5 = Identifier.fromString("element_5");
-    public static final Identifier ELEMENT_50 = Identifier.fromString("element_50");
-    public static final Identifier ELEMENT_51 = Identifier.fromString("element_51");
-    public static final Identifier ELEMENT_52 = Identifier.fromString("element_52");
-    public static final Identifier ELEMENT_53 = Identifier.fromString("element_53");
-    public static final Identifier ELEMENT_54 = Identifier.fromString("element_54");
-    public static final Identifier ELEMENT_55 = Identifier.fromString("element_55");
-    public static final Identifier ELEMENT_56 = Identifier.fromString("element_56");
-    public static final Identifier ELEMENT_57 = Identifier.fromString("element_57");
-    public static final Identifier ELEMENT_58 = Identifier.fromString("element_58");
-    public static final Identifier ELEMENT_59 = Identifier.fromString("element_59");
-    public static final Identifier ELEMENT_6 = Identifier.fromString("element_6");
-    public static final Identifier ELEMENT_60 = Identifier.fromString("element_60");
-    public static final Identifier ELEMENT_61 = Identifier.fromString("element_61");
-    public static final Identifier ELEMENT_62 = Identifier.fromString("element_62");
-    public static final Identifier ELEMENT_63 = Identifier.fromString("element_63");
-    public static final Identifier ELEMENT_64 = Identifier.fromString("element_64");
-    public static final Identifier ELEMENT_65 = Identifier.fromString("element_65");
-    public static final Identifier ELEMENT_66 = Identifier.fromString("element_66");
-    public static final Identifier ELEMENT_67 = Identifier.fromString("element_67");
-    public static final Identifier ELEMENT_68 = Identifier.fromString("element_68");
-    public static final Identifier ELEMENT_69 = Identifier.fromString("element_69");
-    public static final Identifier ELEMENT_7 = Identifier.fromString("element_7");
-    public static final Identifier ELEMENT_70 = Identifier.fromString("element_70");
-    public static final Identifier ELEMENT_71 = Identifier.fromString("element_71");
-    public static final Identifier ELEMENT_72 = Identifier.fromString("element_72");
-    public static final Identifier ELEMENT_73 = Identifier.fromString("element_73");
-    public static final Identifier ELEMENT_74 = Identifier.fromString("element_74");
-    public static final Identifier ELEMENT_75 = Identifier.fromString("element_75");
-    public static final Identifier ELEMENT_76 = Identifier.fromString("element_76");
-    public static final Identifier ELEMENT_77 = Identifier.fromString("element_77");
-    public static final Identifier ELEMENT_78 = Identifier.fromString("element_78");
-    public static final Identifier ELEMENT_79 = Identifier.fromString("element_79");
-    public static final Identifier ELEMENT_8 = Identifier.fromString("element_8");
-    public static final Identifier ELEMENT_80 = Identifier.fromString("element_80");
-    public static final Identifier ELEMENT_81 = Identifier.fromString("element_81");
-    public static final Identifier ELEMENT_82 = Identifier.fromString("element_82");
-    public static final Identifier ELEMENT_83 = Identifier.fromString("element_83");
-    public static final Identifier ELEMENT_84 = Identifier.fromString("element_84");
-    public static final Identifier ELEMENT_85 = Identifier.fromString("element_85");
-    public static final Identifier ELEMENT_86 = Identifier.fromString("element_86");
-    public static final Identifier ELEMENT_87 = Identifier.fromString("element_87");
-    public static final Identifier ELEMENT_88 = Identifier.fromString("element_88");
-    public static final Identifier ELEMENT_89 = Identifier.fromString("element_89");
-    public static final Identifier ELEMENT_9 = Identifier.fromString("element_9");
-    public static final Identifier ELEMENT_90 = Identifier.fromString("element_90");
-    public static final Identifier ELEMENT_91 = Identifier.fromString("element_91");
-    public static final Identifier ELEMENT_92 = Identifier.fromString("element_92");
-    public static final Identifier ELEMENT_93 = Identifier.fromString("element_93");
-    public static final Identifier ELEMENT_94 = Identifier.fromString("element_94");
-    public static final Identifier ELEMENT_95 = Identifier.fromString("element_95");
-    public static final Identifier ELEMENT_96 = Identifier.fromString("element_96");
-    public static final Identifier ELEMENT_97 = Identifier.fromString("element_97");
-    public static final Identifier ELEMENT_98 = Identifier.fromString("element_98");
-    public static final Identifier ELEMENT_99 = Identifier.fromString("element_99");
-    public static final Identifier EMERALD_BLOCK = Identifier.fromString("emerald_block");
-    public static final Identifier EMERALD_ORE = Identifier.fromString("emerald_ore");
-    public static final Identifier ENCHANTING_TABLE = Identifier.fromString("enchanting_table");
-    public static final Identifier ENDER_CHEST = Identifier.fromString("ender_chest");
-    public static final Identifier END_BRICKS = Identifier.fromString("end_bricks");
-    public static final Identifier END_BRICK_STAIRS = Identifier.fromString("end_brick_stairs");
-    public static final Identifier END_GATEWAY = Identifier.fromString("end_gateway");
-    public static final Identifier END_PORTAL = Identifier.fromString("end_portal");
-    public static final Identifier END_PORTAL_FRAME = Identifier.fromString("end_portal_frame");
-    public static final Identifier END_ROD = Identifier.fromString("end_rod");
-    public static final Identifier END_STONE = Identifier.fromString("end_stone");
-    public static final Identifier FARMLAND = Identifier.fromString("farmland");
-    public static final Identifier FENCE = Identifier.fromString("fence");
-    public static final Identifier FENCE_GATE = Identifier.fromString("fence_gate");
-    public static final Identifier FIRE = Identifier.fromString("fire");
-    public static final Identifier FLETCHING_TABLE = Identifier.fromString("fletching_table");
-    public static final Identifier FLOWER_POT = Identifier.fromString("flower_pot");
-    public static final Identifier FLOWING_LAVA = Identifier.fromString("flowing_lava");
-    public static final Identifier FLOWING_WATER = Identifier.fromString("flowing_water");
-    public static final Identifier FRAME = Identifier.fromString("frame");
-    public static final Identifier FROSTED_ICE = Identifier.fromString("frosted_ice");
-    public static final Identifier FURNACE = Identifier.fromString("furnace");
-    public static final Identifier GILDED_BLACKSTONE = Identifier.fromString("gilded_blackstone");
-    public static final Identifier GLASS = Identifier.fromString("glass");
-    public static final Identifier GLASS_PANE = Identifier.fromString("glass_pane");
-    public static final Identifier GLOWING_OBSIDIAN = Identifier.fromString("glowingobsidian");
-    public static final Identifier GLOWSTONE = Identifier.fromString("glowstone");
-    public static final Identifier GOLDEN_RAIL = Identifier.fromString("golden_rail");
-    public static final Identifier GOLD_BLOCK = Identifier.fromString("gold_block");
-    public static final Identifier GOLD_ORE = Identifier.fromString("gold_ore");
-    public static final Identifier GRANITE_STAIRS = Identifier.fromString("granite_stairs");
-    public static final Identifier GRASS = Identifier.fromString("grass");
-    public static final Identifier GRASS_PATH = Identifier.fromString("grass_path");
-    public static final Identifier GRAVEL = Identifier.fromString("gravel");
-    public static final Identifier GRAY_GLAZED_TERRACOTTA = Identifier.fromString("gray_glazed_terracotta");
-    public static final Identifier GREEN_GLAZED_TERRACOTTA = Identifier.fromString("green_glazed_terracotta");
-    public static final Identifier GRINDSTONE = Identifier.fromString("grindstone");
-    public static final Identifier HARDENED_CLAY = Identifier.fromString("hardened_clay");
-    public static final Identifier HARD_GLASS = Identifier.fromString("hard_glass");
-    public static final Identifier HARD_GLASS_PANE = Identifier.fromString("hard_glass_pane");
-    public static final Identifier HARD_STAINED_GLASS = Identifier.fromString("hard_stained_glass");
-    public static final Identifier HARD_STAINED_GLASS_PANE = Identifier.fromString("hard_stained_glass_pane");
-    public static final Identifier HAY_BLOCK = Identifier.fromString("hay_block");
-    public static final Identifier HEAVY_WEIGHTED_PRESSURE_PLATE = Identifier.fromString("heavy_weighted_pressure_plate");
-    public static final Identifier HONEYCOMB_BLOCK = Identifier.fromString("honeycomb_block");
-    public static final Identifier HONEY_BLOCK = Identifier.fromString("honey_block");
-    public static final Identifier HOPPER = Identifier.fromString("hopper");
-    public static final Identifier ICE = Identifier.fromString("ice");
-    public static final Identifier INFO_UPDATE = Identifier.fromString("info_update");
-    public static final Identifier INFO_UPDATE2 = Identifier.fromString("info_update2");
-    public static final Identifier INVISIBLE_BEDROCK = Identifier.fromString("invisiblebedrock");
-    public static final Identifier IRON_BARS = Identifier.fromString("iron_bars");
-    public static final Identifier IRON_BLOCK = Identifier.fromString("iron_block");
-    public static final Identifier IRON_DOOR = Identifier.fromString("iron_door");
-    public static final Identifier IRON_ORE = Identifier.fromString("iron_ore");
-    public static final Identifier IRON_TRAPDOOR = Identifier.fromString("iron_trapdoor");
-    public static final Identifier JIGSAW = Identifier.fromString("jigsaw");
-    public static final Identifier JUKEBOX = Identifier.fromString("jukebox");
-    public static final Identifier JUNGLE_BUTTON = Identifier.fromString("jungle_button");
-    public static final Identifier JUNGLE_DOOR = Identifier.fromString("jungle_door");
-    public static final Identifier JUNGLE_FENCE_GATE = Identifier.fromString("jungle_fence_gate");
-    public static final Identifier JUNGLE_PRESSURE_PLATE = Identifier.fromString("jungle_pressure_plate");
-    public static final Identifier JUNGLE_STAIRS = Identifier.fromString("jungle_stairs");
-    public static final Identifier JUNGLE_STANDING_SIGN = Identifier.fromString("jungle_standing_sign");
-    public static final Identifier JUNGLE_TRAPDOOR = Identifier.fromString("jungle_trapdoor");
-    public static final Identifier JUNGLE_WALL_SIGN = Identifier.fromString("jungle_wall_sign");
-    public static final Identifier KELP = Identifier.fromString("kelp");
-    public static final Identifier LADDER = Identifier.fromString("ladder");
-    public static final Identifier LANTERN = Identifier.fromString("lantern");
-    public static final Identifier LAPIS_BLOCK = Identifier.fromString("lapis_block");
-    public static final Identifier LAPIS_ORE = Identifier.fromString("lapis_ore");
-    public static final Identifier LAVA = Identifier.fromString("lava");
-    public static final Identifier LAVA_CAULDRON = Identifier.fromString("lava_cauldron");
-    public static final Identifier LEAVES = Identifier.fromString("leaves");
-    public static final Identifier LEAVES2 = Identifier.fromString("leaves2");
-    public static final Identifier LECTERN = Identifier.fromString("lectern");
-    public static final Identifier LEVER = Identifier.fromString("lever");
-    public static final Identifier LIGHT_BLOCK = Identifier.fromString("light_block");
-    public static final Identifier LIGHT_BLUE_GLAZED_TERRACOTTA = Identifier.fromString("light_blue_glazed_terracotta");
-    public static final Identifier LIGHT_WEIGHTED_PRESSURE_PLATE = Identifier.fromString("light_weighted_pressure_plate");
-    public static final Identifier LIME_GLAZED_TERRACOTTA = Identifier.fromString("lime_glazed_terracotta");
-    public static final Identifier LIT_BLAST_FURNACE = Identifier.fromString("lit_blast_furnace");
-    public static final Identifier LIT_FURNACE = Identifier.fromString("lit_furnace");
-    public static final Identifier LIT_PUMPKIN = Identifier.fromString("lit_pumpkin");
-    public static final Identifier LIT_REDSTONE_LAMP = Identifier.fromString("lit_redstone_lamp");
-    public static final Identifier LIT_REDSTONE_ORE = Identifier.fromString("lit_redstone_ore");
-    public static final Identifier LIT_SMOKER = Identifier.fromString("lit_smoker");
-    public static final Identifier LODESTONE = Identifier.fromString("lodestone");
-    public static final Identifier LOG = Identifier.fromString("log");
-    public static final Identifier LOG2 = Identifier.fromString("log2");
-    public static final Identifier LOOM = Identifier.fromString("loom");
-    public static final Identifier MAGENTA_GLAZED_TERRACOTTA = Identifier.fromString("magenta_glazed_terracotta");
-    public static final Identifier MAGMA = Identifier.fromString("magma");
-    public static final Identifier MELON_BLOCK = Identifier.fromString("melon_block");
-    public static final Identifier MELON_STEM = Identifier.fromString("melon_stem");
-    public static final Identifier MOB_SPAWNER = Identifier.fromString("mob_spawner");
-    public static final Identifier MONSTER_EGG = Identifier.fromString("monster_egg");
-    public static final Identifier MOSSY_COBBLESTONE = Identifier.fromString("mossy_cobblestone");
-    public static final Identifier MOSSY_COBBLESTONE_STAIRS = Identifier.fromString("mossy_cobblestone_stairs");
-    public static final Identifier MOSSY_STONE_BRICK_STAIRS = Identifier.fromString("mossy_stone_brick_stairs");
-    public static final Identifier MOVING_BLOCK = Identifier.fromString("movingblock");
-    public static final Identifier MYCELIUM = Identifier.fromString("mycelium");
-    public static final Identifier NETHERITE_BLOCK = Identifier.fromString("netherite_block");
-    public static final Identifier NETHERRACK = Identifier.fromString("netherrack");
-    public static final Identifier NETHER_REACTOR = Identifier.fromString("netherreactor");
-    public static final Identifier NETHER_BRICK = Identifier.fromString("nether_brick");
-    public static final Identifier NETHER_BRICK_FENCE = Identifier.fromString("nether_brick_fence");
-    public static final Identifier NETHER_BRICK_STAIRS = Identifier.fromString("nether_brick_stairs");
-    public static final Identifier NETHER_GOLD_ORE = Identifier.fromString("nether_gold_ore");
-    public static final Identifier NETHER_SPROUTS = Identifier.fromString("nether_sprouts");
-    public static final Identifier NETHER_WART = Identifier.fromString("nether_wart");
-    public static final Identifier NETHER_WART_BLOCK = Identifier.fromString("nether_wart_block");
-    public static final Identifier NORMAL_STONE_STAIRS = Identifier.fromString("normal_stone_stairs");
-    public static final Identifier NOTEBLOCK = Identifier.fromString("noteblock");
-    public static final Identifier OAK_STAIRS = Identifier.fromString("oak_stairs");
-    public static final Identifier OBSERVER = Identifier.fromString("observer");
-    public static final Identifier OBSIDIAN = Identifier.fromString("obsidian");
-    public static final Identifier ORANGE_GLAZED_TERRACOTTA = Identifier.fromString("orange_glazed_terracotta");
-    public static final Identifier PACKED_ICE = Identifier.fromString("packed_ice");
-    public static final Identifier PINK_GLAZED_TERRACOTTA = Identifier.fromString("pink_glazed_terracotta");
-    public static final Identifier PISTON = Identifier.fromString("piston");
-    public static final Identifier PISTON_ARM_COLLISION = Identifier.fromString("pistonarmcollision");
-    public static final Identifier PLANKS = Identifier.fromString("planks");
-    public static final Identifier PODZOL = Identifier.fromString("podzol");
-    public static final Identifier POLISHED_ANDESITE_STAIRS = Identifier.fromString("polished_andesite_stairs");
-    public static final Identifier POLISHED_BASALT = Identifier.fromString("polished_basalt");
-    public static final Identifier POLISHED_BLACKSTONE = Identifier.fromString("polished_blackstone");
-    public static final Identifier POLISHED_BLACKSTONE_BRICKS = Identifier.fromString("polished_blackstone_bricks");
-    public static final Identifier POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB = Identifier.fromString("polished_blackstone_brick_double_slab");
-    public static final Identifier POLISHED_BLACKSTONE_BRICK_SLAB = Identifier.fromString("polished_blackstone_brick_slab");
-    public static final Identifier POLISHED_BLACKSTONE_BRICK_STAIRS = Identifier.fromString("polished_blackstone_brick_stairs");
-    public static final Identifier POLISHED_BLACKSTONE_BRICK_WALL = Identifier.fromString("polished_blackstone_brick_wall");
-    public static final Identifier POLISHED_BLACKSTONE_BUTTON = Identifier.fromString("polished_blackstone_button");
-    public static final Identifier POLISHED_BLACKSTONE_DOUBLE_SLAB = Identifier.fromString("polished_blackstone_double_slab");
-    public static final Identifier POLISHED_BLACKSTONE_PRESSURE_PLATE = Identifier.fromString("polished_blackstone_pressure_plate");
-    public static final Identifier POLISHED_BLACKSTONE_SLAB = Identifier.fromString("polished_blackstone_slab");
-    public static final Identifier POLISHED_BLACKSTONE_STAIRS = Identifier.fromString("polished_blackstone_stairs");
-    public static final Identifier POLISHED_BLACKSTONE_WALL = Identifier.fromString("polished_blackstone_wall");
-    public static final Identifier POLISHED_DIORITE_STAIRS = Identifier.fromString("polished_diorite_stairs");
-    public static final Identifier POLISHED_GRANITE_STAIRS = Identifier.fromString("polished_granite_stairs");
-    public static final Identifier PORTAL = Identifier.fromString("portal");
-    public static final Identifier POTATOES = Identifier.fromString("potatoes");
-    public static final Identifier POWERED_COMPARATOR = Identifier.fromString("powered_comparator");
-    public static final Identifier POWERED_REPEATER = Identifier.fromString("powered_repeater");
-    public static final Identifier PRISMARINE = Identifier.fromString("prismarine");
-    public static final Identifier PRISMARINE_BRICKS_STAIRS = Identifier.fromString("prismarine_bricks_stairs");
-    public static final Identifier PRISMARINE_STAIRS = Identifier.fromString("prismarine_stairs");
-    public static final Identifier PUMPKIN = Identifier.fromString("pumpkin");
-    public static final Identifier PUMPKIN_STEM = Identifier.fromString("pumpkin_stem");
-    public static final Identifier PURPLE_GLAZED_TERRACOTTA = Identifier.fromString("purple_glazed_terracotta");
-    public static final Identifier PURPUR_BLOCK = Identifier.fromString("purpur_block");
-    public static final Identifier PURPUR_STAIRS = Identifier.fromString("purpur_stairs");
-    public static final Identifier QUARTZ_BLOCK = Identifier.fromString("quartz_block");
-    public static final Identifier QUARTZ_BRICKS = Identifier.fromString("quartz_bricks");
-    public static final Identifier QUARTZ_ORE = Identifier.fromString("quartz_ore");
-    public static final Identifier QUARTZ_STAIRS = Identifier.fromString("quartz_stairs");
-    public static final Identifier RAIL = Identifier.fromString("rail");
-    public static final Identifier REDSTONE_BLOCK = Identifier.fromString("redstone_block");
-    public static final Identifier REDSTONE_LAMP = Identifier.fromString("redstone_lamp");
-    public static final Identifier REDSTONE_ORE = Identifier.fromString("redstone_ore");
-    public static final Identifier REDSTONE_TORCH = Identifier.fromString("redstone_torch");
-    public static final Identifier REDSTONE_WIRE = Identifier.fromString("redstone_wire");
-    public static final Identifier RED_FLOWER = Identifier.fromString("red_flower");
-    public static final Identifier RED_GLAZED_TERRACOTTA = Identifier.fromString("red_glazed_terracotta");
-    public static final Identifier RED_MUSHROOM = Identifier.fromString("red_mushroom");
-    public static final Identifier RED_MUSHROOM_BLOCK = Identifier.fromString("red_mushroom_block");
-    public static final Identifier RED_NETHER_BRICK = Identifier.fromString("red_nether_brick");
-    public static final Identifier RED_NETHER_BRICK_STAIRS = Identifier.fromString("red_nether_brick_stairs");
-    public static final Identifier RED_SANDSTONE = Identifier.fromString("red_sandstone");
-    public static final Identifier RED_SANDSTONE_STAIRS = Identifier.fromString("red_sandstone_stairs");
-    public static final Identifier REEDS = Identifier.fromString("reeds");
-    public static final Identifier REPEATING_COMMAND_BLOCK = Identifier.fromString("repeating_command_block");
-    public static final Identifier RESERVED6 = Identifier.fromString("reserved6");
-    public static final Identifier RESPAWN_ANCHOR = Identifier.fromString("respawn_anchor");
-    public static final Identifier SAND = Identifier.fromString("sand");
-    public static final Identifier SANDSTONE = Identifier.fromString("sandstone");
-    public static final Identifier SANDSTONE_STAIRS = Identifier.fromString("sandstone_stairs");
-    public static final Identifier SAPLING = Identifier.fromString("sapling");
-    public static final Identifier SCAFFOLDING = Identifier.fromString("scaffolding");
-    public static final Identifier SEAGRASS = Identifier.fromString("seagrass");
-    public static final Identifier SEA_LANTERN = Identifier.fromString("sealantern");
-    public static final Identifier SEA_PICKLE = Identifier.fromString("sea_pickle");
-    public static final Identifier SHROOMLIGHT = Identifier.fromString("shroomlight");
-    public static final Identifier SHULKER_BOX = Identifier.fromString("shulker_box");
-    public static final Identifier SILVER_GLAZED_TERRACOTTA = Identifier.fromString("silver_glazed_terracotta");
-    public static final Identifier SKULL = Identifier.fromString("skull");
-    public static final Identifier SLIME = Identifier.fromString("slime");
-    public static final Identifier SMITHING_TABLE = Identifier.fromString("smithing_table");
-    public static final Identifier SMOKER = Identifier.fromString("smoker");
-    public static final Identifier SMOOTH_QUARTZ_STAIRS = Identifier.fromString("smooth_quartz_stairs");
-    public static final Identifier SMOOTH_RED_SANDSTONE_STAIRS = Identifier.fromString("smooth_red_sandstone_stairs");
-    public static final Identifier SMOOTH_SANDSTONE_STAIRS = Identifier.fromString("smooth_sandstone_stairs");
-    public static final Identifier SMOOTH_STONE = Identifier.fromString("smooth_stone");
-    public static final Identifier SNOW = Identifier.fromString("snow");
-    public static final Identifier SNOW_LAYER = Identifier.fromString("snow_layer");
-    public static final Identifier SOUL_CAMPFIRE = Identifier.fromString("soul_campfire");
-    public static final Identifier SOUL_FIRE = Identifier.fromString("soul_fire");
-    public static final Identifier SOUL_LANTERN = Identifier.fromString("soul_lantern");
-    public static final Identifier SOUL_SAND = Identifier.fromString("soul_sand");
-    public static final Identifier SOUL_SOIL = Identifier.fromString("soul_soil");
-    public static final Identifier SOUL_TORCH = Identifier.fromString("soul_torch");
-    public static final Identifier SPONGE = Identifier.fromString("sponge");
-    public static final Identifier SPRUCE_BUTTON = Identifier.fromString("spruce_button");
-    public static final Identifier SPRUCE_DOOR = Identifier.fromString("spruce_door");
-    public static final Identifier SPRUCE_FENCE_GATE = Identifier.fromString("spruce_fence_gate");
-    public static final Identifier SPRUCE_PRESSURE_PLATE = Identifier.fromString("spruce_pressure_plate");
-    public static final Identifier SPRUCE_STAIRS = Identifier.fromString("spruce_stairs");
-    public static final Identifier SPRUCE_STANDING_SIGN = Identifier.fromString("spruce_standing_sign");
-    public static final Identifier SPRUCE_TRAPDOOR = Identifier.fromString("spruce_trapdoor");
-    public static final Identifier SPRUCE_WALL_SIGN = Identifier.fromString("spruce_wall_sign");
-    public static final Identifier STAINED_GLASS = Identifier.fromString("stained_glass");
-    public static final Identifier STAINED_GLASS_PANE = Identifier.fromString("stained_glass_pane");
-    public static final Identifier STAINED_HARDENED_CLAY = Identifier.fromString("stained_hardened_clay");
-    public static final Identifier STANDING_BANNER = Identifier.fromString("standing_banner");
-    public static final Identifier STANDING_SIGN = Identifier.fromString("standing_sign");
-    public static final Identifier STICKY_PISTON_ARM_COLLISION = Identifier.fromString("stickypistonarmcollision");
-    public static final Identifier STICKY_PISTON = Identifier.fromString("sticky_piston");
-    public static final Identifier STONE = Identifier.fromString("stone");
-    public static final Identifier STONEBRICK = Identifier.fromString("stonebrick");
-    public static final Identifier STONECUTTER = Identifier.fromString("stonecutter");
-    public static final Identifier STONECUTTER_BLOCK = Identifier.fromString("stonecutter_block");
-    public static final Identifier STONE_BRICK_STAIRS = Identifier.fromString("stone_brick_stairs");
-    public static final Identifier STONE_BUTTON = Identifier.fromString("stone_button");
-    public static final Identifier STONE_PRESSURE_PLATE = Identifier.fromString("stone_pressure_plate");
-    public static final Identifier STONE_SLAB = Identifier.fromString("stone_slab");
-    public static final Identifier STONE_SLAB2 = Identifier.fromString("stone_slab2");
-    public static final Identifier STONE_SLAB3 = Identifier.fromString("stone_slab3");
-    public static final Identifier STONE_SLAB4 = Identifier.fromString("stone_slab4");
-    public static final Identifier STONE_STAIRS = Identifier.fromString("stone_stairs");
-    public static final Identifier STRIPPED_ACACIA_LOG = Identifier.fromString("stripped_acacia_log");
-    public static final Identifier STRIPPED_BIRCH_LOG = Identifier.fromString("stripped_birch_log");
-    public static final Identifier STRIPPED_CRIMSON_HYPHAE = Identifier.fromString("stripped_crimson_hyphae");
-    public static final Identifier STRIPPED_CRIMSON_STEM = Identifier.fromString("stripped_crimson_stem");
-    public static final Identifier STRIPPED_DARK_OAK_LOG = Identifier.fromString("stripped_dark_oak_log");
-    public static final Identifier STRIPPED_JUNGLE_LOG = Identifier.fromString("stripped_jungle_log");
-    public static final Identifier STRIPPED_OAK_LOG = Identifier.fromString("stripped_oak_log");
-    public static final Identifier STRIPPED_SPRUCE_LOG = Identifier.fromString("stripped_spruce_log");
-    public static final Identifier STRIPPED_WARPED_HYPHAE = Identifier.fromString("stripped_warped_hyphae");
-    public static final Identifier STRIPPED_WARPED_STEM = Identifier.fromString("stripped_warped_stem");
-    public static final Identifier STRUCTURE_BLOCK = Identifier.fromString("structure_block");
-    public static final Identifier STRUCTURE_VOID = Identifier.fromString("structure_void");
-    public static final Identifier SWEET_BERRY_BUSH = Identifier.fromString("sweet_berry_bush");
-    public static final Identifier TALL_GRASS = Identifier.fromString("tallgrass");
-    public static final Identifier TARGET = Identifier.fromString("target");
-    public static final Identifier TNT = Identifier.fromString("tnt");
-    public static final Identifier TORCH = Identifier.fromString("torch");
-    public static final Identifier TRAPDOOR = Identifier.fromString("trapdoor");
-    public static final Identifier TRAPPED_CHEST = Identifier.fromString("trapped_chest");
-    public static final Identifier TRIPWIRE = Identifier.fromString("tripwire");
-    public static final Identifier TRIPWIRE_HOOK = Identifier.fromString("tripwire_hook");
-    public static final Identifier TURTLE_EGG = Identifier.fromString("turtle_egg");
-    public static final Identifier TWISTING_VINES = Identifier.fromString("twisting_vines");
-    public static final Identifier UNDERWATER_TORCH = Identifier.fromString("underwater_torch");
-    public static final Identifier UNDYED_SHULKER_BOX = Identifier.fromString("undyed_shulker_box");
-    public static final Identifier UNLIT_REDSTONE_TORCH = Identifier.fromString("unlit_redstone_torch");
-    public static final Identifier UNPOWERED_COMPARATOR = Identifier.fromString("unpowered_comparator");
-    public static final Identifier UNPOWERED_REPEATER = Identifier.fromString("unpowered_repeater");
-    public static final Identifier VINE = Identifier.fromString("vine");
-    public static final Identifier WALL_BANNER = Identifier.fromString("wall_banner");
-    public static final Identifier WALL_SIGN = Identifier.fromString("wall_sign");
-    public static final Identifier WARPED_BUTTON = Identifier.fromString("warped_button");
-    public static final Identifier WARPED_DOOR = Identifier.fromString("warped_door");
-    public static final Identifier WARPED_DOUBLE_SLAB = Identifier.fromString("warped_double_slab");
-    public static final Identifier WARPED_FENCE = Identifier.fromString("warped_fence");
-    public static final Identifier WARPED_FENCE_GATE = Identifier.fromString("warped_fence_gate");
-    public static final Identifier WARPED_FUNGUS = Identifier.fromString("warped_fungus");
-    public static final Identifier WARPED_HYPHAE = Identifier.fromString("warped_hyphae");
-    public static final Identifier WARPED_NYLIUM = Identifier.fromString("warped_nylium");
-    public static final Identifier WARPED_PLANKS = Identifier.fromString("warped_planks");
-    public static final Identifier WARPED_PRESSURE_PLATE = Identifier.fromString("warped_pressure_plate");
-    public static final Identifier WARPED_ROOTS = Identifier.fromString("warped_roots");
-    public static final Identifier WARPED_SLAB = Identifier.fromString("warped_slab");
-    public static final Identifier WARPED_STAIRS = Identifier.fromString("warped_stairs");
-    public static final Identifier WARPED_STANDING_SIGN = Identifier.fromString("warped_standing_sign");
-    public static final Identifier WARPED_STEM = Identifier.fromString("warped_stem");
-    public static final Identifier WARPED_TRAPDOOR = Identifier.fromString("warped_trapdoor");
-    public static final Identifier WARPED_WALL_SIGN = Identifier.fromString("warped_wall_sign");
-    public static final Identifier WARPED_WART_BLOCK = Identifier.fromString("warped_wart_block");
-    public static final Identifier WATER = Identifier.fromString("water");
-    public static final Identifier WATERLILY = Identifier.fromString("waterlily");
-    public static final Identifier WEB = Identifier.fromString("web");
-    public static final Identifier WEEPING_VINES = Identifier.fromString("weeping_vines");
-    public static final Identifier WHEAT = Identifier.fromString("wheat");
-    public static final Identifier WHITE_GLAZED_TERRACOTTA = Identifier.fromString("white_glazed_terracotta");
-    public static final Identifier WITHER_ROSE = Identifier.fromString("wither_rose");
-    public static final Identifier WOOD = Identifier.fromString("wood");
-    public static final Identifier WOODEN_BUTTON = Identifier.fromString("wooden_button");
-    public static final Identifier WOODEN_DOOR = Identifier.fromString("wooden_door");
-    public static final Identifier WOODEN_PRESSURE_PLATE = Identifier.fromString("wooden_pressure_plate");
-    public static final Identifier WOODEN_SLAB = Identifier.fromString("wooden_slab");
-    public static final Identifier WOOL = Identifier.fromString("wool");
-    public static final Identifier YELLOW_FLOWER = Identifier.fromString("yellow_flower");
-    public static final Identifier YELLOW_GLAZED_TERRACOTTA = Identifier.fromString("yellow_glazed_terracotta");
+    private static final Reference2ReferenceMap<Identifier, BlockType> BY_ID = new Reference2ReferenceOpenHashMap<>();
 
+    public static final BlockType AIR = IntBlock.builder().id(BlockIds.AIR).maxStackSize(0).transparent(true).solid(true).floodable(true).build();
+    public static final BlockType STONE = IntBlock.builder().id(BlockIds.STONE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
+    public static final BlockType GRASS_BLOCK = IntBlock.builder().id(BlockIds.GRASS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.6f).build();
+    public static final BlockType DIRT = IntBlock.builder().id(BlockIds.DIRT).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
+    public static final BlockType COBBLESTONE = IntBlock.builder().id(BlockIds.COBBLESTONE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).build();
+    public static final BlockType PLANKS = IntBlock.builder().id(BlockIds.PLANKS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).flammable(true).fuelTime(300).build(); //TODO: planks type (warped, crimson)
+    public static final BlockType SAPLING = IntBlock.builder().id(BlockIds.SAPLING).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).fuelTime(100).build();
+    public static final BlockType BEDROCK = IntBlock.builder().id(BlockIds.BEDROCK).maxStackSize(64).solid(true).filterLight(15).hardness(-1f).build();
+    public static final BlockType WATER = IntBlock.builder().id(BlockIds.FLOWING_WATER).maxStackSize(0).transparent(true).solid(true).filterLight(2).hardness(100f).build();
+    public static final BlockType STATIONARY_WATER = IntBlock.builder().id(BlockIds.WATER).maxStackSize(0).transparent(true).solid(true).filterLight(2).hardness(100f).build();
+    public static final BlockType LAVA = IntBlock.builder().id(BlockIds.FLOWING_LAVA).maxStackSize(0).transparent(true).solid(true).emitLight(15).hardness(100f).build();
+    public static final BlockType STATIONARY_LAVA = IntBlock.builder().id(BlockIds.LAVA).maxStackSize(0).transparent(true).solid(true).emitLight(15).hardness(100f).build();
+    public static final BlockType SAND = IntBlock.builder().id(BlockIds.SAND).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
+    public static final BlockType GRAVEL = IntBlock.builder().id(BlockIds.GRAVEL).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.6f).build();
+    public static final BlockType GOLD_ORE = IntBlock.builder().id(BlockIds.GOLD_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType IRON_ORE = IntBlock.builder().id(BlockIds.IRON_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType COAL_ORE = IntBlock.builder().id(BlockIds.COAL_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType LOG = IntBlock.builder().id(BlockIds.LOG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).flammable(true).build(); //TODO: include warped and stripped logs?
+    public static final BlockType LEAVES = IntBlock.builder().id(BlockIds.LEAVES).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.2f).build();
+    public static final BlockType SPONGE = IntBlock.builder().id(BlockIds.SPONGE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.6f).build();
+    public static final BlockType GLASS = IntBlock.builder().id(BlockIds.GLASS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.3f).build();
+    public static final BlockType LAPIS_LAZULI_ORE = IntBlock.builder().id(BlockIds.LAPIS_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType LAPIS_LAZULI_BLOCK = IntBlock.builder().id(BlockIds.LAPIS_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType DISPENSER = IntBlock.builder().id(BlockIds.DISPENSER).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3.5f).build();
+    public static final BlockType SANDSTONE = IntBlock.builder().id(BlockIds.SANDSTONE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.8f).build();
+    public static final BlockType NOTEBLOCK = IntBlock.builder().id(BlockIds.NOTEBLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.8f).fuelTime(300).build();
+    public static final BlockType BED = IntBlock.builder().id(BlockIds.BED).maxStackSize(1).diggable(true).transparent(true).solid(true).hardness(0.2f).floodable(true).build();
+    public static final BlockType POWERED_RAIL = IntBlock.builder().id(BlockIds.GOLDEN_RAIL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.7f).floodable(true).build();
+    public static final BlockType DETECTOR_RAIL = IntBlock.builder().id(BlockIds.DETECTOR_RAIL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.7f).floodable(true).build();
+    public static final BlockType STICKY_PISTON = IntBlock.builder().id(BlockIds.STICKY_PISTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.7f).build();
+    public static final BlockType COBWEB = IntBlock.builder().id(BlockIds.WEB).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(4f).floodable(true).build();
+    public static final BlockType TALL_GRASS = IntBlock.builder().id(BlockIds.TALL_GRASS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType DEAD_BUSH = IntBlock.builder().id(BlockIds.DEADBUSH).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType PISTON = IntBlock.builder().id(BlockIds.PISTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
+    public static final BlockType PISTON_HEAD = IntBlock.builder().id(BlockIds.PISTON_ARM_COLLISION).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
+    public static final BlockType WOOL = IntBlock.builder().id(BlockIds.WOOL).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.8f).flammable(true).build();
+    public static final BlockType ELEMENT_0 = IntBlock.builder().id(BlockIds.ELEMENT_0).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
+    public static final BlockType YELLOW_FLOWER = IntBlock.builder().id(BlockIds.YELLOW_FLOWER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType RED_FLOWER = IntBlock.builder().id(BlockIds.RED_FLOWER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType BROWN_MUSHROOM = IntBlock.builder().id(BlockIds.BROWN_MUSHROOM).maxStackSize(64).diggable(true).solid(true).emitLight(1).filterLight(15).hardness(0f).build();
+    public static final BlockType RED_MUSHROOM = IntBlock.builder().id(BlockIds.RED_MUSHROOM).maxStackSize(64).diggable(true).solid(true).emitLight(1).filterLight(15).hardness(0f).floodable(true).build();
+    public static final BlockType GOLD_BLOCK = IntBlock.builder().id(BlockIds.GOLD_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType IRON_BLOCK = IntBlock.builder().id(BlockIds.IRON_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(5f).build();
+    public static final BlockType DOUBLE_STONE_SLAB = IntBlock.builder().id(BlockIds.DOUBLE_STONE_SLAB).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).build(); //TODO: stone types
+    public static final BlockType STONE_SLAB = IntBlock.builder().id(BlockIds.STONE_SLAB).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).build(); //TODO: stone types
+    public static final BlockType BRICKS = IntBlock.builder().id(BlockIds.BRICK_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).build();
+    public static final BlockType TNT = IntBlock.builder().id(BlockIds.TNT).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType BOOKSHELF = IntBlock.builder().id(BlockIds.BOOKSHELF).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).fuelTime(300).build();
+    public static final BlockType MOSS_STONE = IntBlock.builder().id(BlockIds.MOSSY_COBBLESTONE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).build();
+    public static final BlockType OBSIDIAN = IntBlock.builder().id(BlockIds.OBSIDIAN).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(50f).build();
+    public static final BlockType TORCH = IntBlock.builder().id(BlockIds.TORCH).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(14).hardness(0f).floodable(true).build(); //TODO: soul type
+    public static final BlockType FIRE = IntBlock.builder().id(BlockIds.FIRE).maxStackSize(0).diggable(true).transparent(true).solid(true).emitLight(15).hardness(0f).floodable(true).build(); //TODO: soul fire type
+    public static final BlockType MONSTER_SPAWNER = IntBlock.builder().id(BlockIds.MOB_SPAWNER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
+    public static final BlockType OAK_WOOD_STAIRS = IntBlock.builder().id(BlockIds.OAK_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(2f).flammable(true).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType CHEST = IntBlock.builder().id(BlockIds.CHEST).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2.5f).fuelTime(300).build();
+    public static final BlockType REDSTONE_WIRE = IntBlock.builder().id(BlockIds.REDSTONE_WIRE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType DIAMOND_ORE = IntBlock.builder().id(BlockIds.DIAMOND_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType DIAMOND_BLOCK = IntBlock.builder().id(BlockIds.DIAMOND_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(5f).build();
+    public static final BlockType CRAFTING_TABLE = IntBlock.builder().id(BlockIds.CRAFTING_TABLE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2.5f).fuelTime(300).build();
+    public static final BlockType CROPS = IntBlock.builder().id(BlockIds.WHEAT).maxStackSize(0).diggable(true).solid(true).filterLight(15).hardness(0f).floodable(true).build();
+    public static final BlockType FARMLAND = IntBlock.builder().id(BlockIds.FARMLAND).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(0.6f).build();
+    public static final BlockType FURNACE = IntBlock.builder().id(BlockIds.FURNACE).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(13).hardness(3.5f).build();
+    public static final BlockType BURNING_FURNACE = IntBlock.builder().id(BlockIds.LIT_FURNACE).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(13).hardness(3.5f).build();
+    public static final BlockType SIGN = IntBlock.builder().id(BlockIds.STANDING_SIGN).maxStackSize(16).diggable(true).transparent(true).solid(true).hardness(1f).build(); //TODO: wood types
+    public static final BlockType WOODEN_DOOR = IntBlock.builder().id(BlockIds.WOODEN_DOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).flammable(true).fuelTime(200).build(); //TODO: wood types
+    public static final BlockType LADDER = IntBlock.builder().id(BlockIds.LADDER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.4f).fuelTime(300).build();
+    public static final BlockType RAIL = IntBlock.builder().id(BlockIds.RAIL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.7f).floodable(true).build();
+    public static final BlockType COBBLESTONE_STAIRS = IntBlock.builder().id(BlockIds.STONE_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).filterLight(15).build(); //TODO: stone types
+    public static final BlockType WALL_SIGN = IntBlock.builder().id(BlockIds.WALL_SIGN).maxStackSize(16).diggable(true).transparent(true).solid(true).hardness(1f).build(); //TODO: wood types
+    public static final BlockType LEVER = IntBlock.builder().id(BlockIds.LEVER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType STONE_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.STONE_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build(); //TODO: blackstone type
+    public static final BlockType IRON_DOOR = IntBlock.builder().id(BlockIds.IRON_DOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
+    public static final BlockType WOODEN_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.WOODEN_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType REDSTONE_ORE = IntBlock.builder().id(BlockIds.REDSTONE_ORE).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(9).hardness(3f).build();
+    public static final BlockType GLOWING_REDSTONE_ORE = IntBlock.builder().id(BlockIds.LIT_REDSTONE_ORE).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(9).hardness(3f).build();
+    public static final BlockType REDSTONE_TORCH = IntBlock.builder().id(BlockIds.REDSTONE_TORCH).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(7).hardness(0f).floodable(true).build(); //TODO: unlit type
+    public static final BlockType STONE_BUTTON = IntBlock.builder().id(BlockIds.STONE_BUTTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build(); //TODO: blackstone
+    public static final BlockType TOP_SNOW = IntBlock.builder().id(BlockIds.SNOW_LAYER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.1f).floodable(true).build();
+    public static final BlockType ICE = IntBlock.builder().id(BlockIds.ICE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
+    public static final BlockType SNOW = IntBlock.builder().id(BlockIds.SNOW).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.2f).build();
+    public static final BlockType CACTUS = IntBlock.builder().id(BlockIds.CACTUS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.4f).build();
+    public static final BlockType CLAY = IntBlock.builder().id(BlockIds.CLAY).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.6f).build();
+    public static final BlockType SUGAR_CANE = IntBlock.builder().id(BlockIds.REEDS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType JUKEBOX = IntBlock.builder().id(BlockIds.JUKEBOX).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).fuelTime(300).build();
+    public static final BlockType FENCE = IntBlock.builder().id(BlockIds.FENCE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType PUMPKIN = IntBlock.builder().id(BlockIds.PUMPKIN).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(1f).build();
+    public static final BlockType NETHERRACK = IntBlock.builder().id(BlockIds.NETHERRACK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.4f).build();
+    public static final BlockType SOUL_SAND = IntBlock.builder().id(BlockIds.SOUL_SAND).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
+    public static final BlockType GLOWSTONE = IntBlock.builder().id(BlockIds.GLOWSTONE).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(15).hardness(0.3f).build();
+    public static final BlockType PORTAL = IntBlock.builder().id(BlockIds.PORTAL).maxStackSize(0).solid(true).filterLight(15).hardness(-1f).build();
+    public static final BlockType JACK_OLANTERN = IntBlock.builder().id(BlockIds.LIT_PUMPKIN).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(15).filterLight(15).hardness(1f).build();
+    public static final BlockType CAKE = IntBlock.builder().id(BlockIds.CAKE).maxStackSize(1).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
+    public static final BlockType REDSTONE_REPEATER = IntBlock.builder().id(BlockIds.UNPOWERED_REPEATER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType REDSTONE_REPEATER_ACTIVE = IntBlock.builder().id(BlockIds.POWERED_REPEATER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType INVISIBLE_BEDROCK = IntBlock.builder().id(BlockIds.INVISIBLE_BEDROCK).maxStackSize(64).transparent(true).solid(true).hardness(-1f).build();
+    public static final BlockType TRAPDOOR = IntBlock.builder().id(BlockIds.TRAPDOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType MONSTER_EGG = IntBlock.builder().id(BlockIds.MONSTER_EGG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.75f).build();
+    public static final BlockType STONE_BRICK = IntBlock.builder().id(BlockIds.STONEBRICK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
+    public static final BlockType BROWN_MUSHROOM_BLOCK = IntBlock.builder().id(BlockIds.BROWN_MUSHROOM_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.2f).fuelTime(300).build();
+    public static final BlockType RED_MUSHROOM_BLOCK = IntBlock.builder().id(BlockIds.RED_MUSHROOM_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.2f).fuelTime(300).build();
+    public static final BlockType IRON_BARS = IntBlock.builder().id(BlockIds.IRON_BARS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
+    public static final BlockType GLASS_PANE = IntBlock.builder().id(BlockIds.GLASS_PANE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.3f).build();
+    public static final BlockType MELON = IntBlock.builder().id(BlockIds.MELON_BLOCK).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(1f).build();
+    public static final BlockType PUMPKIN_STEM = IntBlock.builder().id(BlockIds.PUMPKIN_STEM).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType MELON_STEM = IntBlock.builder().id(BlockIds.MELON_STEM).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType VINES = IntBlock.builder().id(BlockIds.VINE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.2f).floodable(true).build();
+    public static final BlockType FENCE_GATE = IntBlock.builder().id(BlockIds.FENCE_GATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType BRICK_STAIRS = IntBlock.builder().id(BlockIds.BRICK_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(2f).build();
+    public static final BlockType STONE_BRICK_STAIRS = IntBlock.builder().id(BlockIds.STONE_BRICK_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.5f).filterLight(15).build();
+    public static final BlockType MYCELIUM = IntBlock.builder().id(BlockIds.MYCELIUM).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.6f).build();
+    public static final BlockType LILY_PAD = IntBlock.builder().id(BlockIds.WATERLILY).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType NETHER_BRICK = IntBlock.builder().id(BlockIds.NETHER_BRICK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).build(); //TODO: nether brick type red/cracked/chiseled
+    public static final BlockType NETHER_BRICK_FENCE = IntBlock.builder().id(BlockIds.NETHER_BRICK_FENCE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).build();
+    public static final BlockType NETHER_BRICK_STAIRS = IntBlock.builder().id(BlockIds.NETHER_BRICK_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(2f).build();
+    public static final BlockType NETHER_WART = IntBlock.builder().id(BlockIds.NETHER_WART).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType ENCHANTMENT_TABLE = IntBlock.builder().id(BlockIds.ENCHANTING_TABLE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
+    public static final BlockType BREWING_STAND = IntBlock.builder().id(BlockIds.BREWING_STAND).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(1).hardness(0.5f).build();
+    public static final BlockType CAULDRON = IntBlock.builder().id(BlockIds.CAULDRON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).build(); //TODO: lava
+    public static final BlockType END_PORTAL = IntBlock.builder().id(BlockIds.END_PORTAL).maxStackSize(64).transparent(true).solid(true).emitLight(15).hardness(-1f).build();
+    public static final BlockType END_PORTAL_FRAME = IntBlock.builder().id(BlockIds.END_PORTAL_FRAME).maxStackSize(64).transparent(true).solid(true).emitLight(1).hardness(-1f).build();
+    public static final BlockType END_STONE = IntBlock.builder().id(BlockIds.END_STONE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType DRAGON_EGG = IntBlock.builder().id(BlockIds.DRAGON_EGG).maxStackSize(64).transparent(true).solid(true).emitLight(1).hardness(3f).build();
+    public static final BlockType REDSTONE_LAMP = IntBlock.builder().id(BlockIds.REDSTONE_LAMP).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(15).hardness(0.3f).build();
+    public static final BlockType REDSTONE_LAMP_ACTIVE = IntBlock.builder().id(BlockIds.LIT_REDSTONE_LAMP).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(15).hardness(0.3f).build();
+    public static final BlockType DROPPER = IntBlock.builder().id(BlockIds.DROPPER).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3.5f).build();
+    public static final BlockType ACTIVATOR_RAIL = IntBlock.builder().id(BlockIds.ACTIVATOR_RAIL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.7f).floodable(true).build();
+    public static final BlockType COCOA = IntBlock.builder().id(BlockIds.COCOA).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.2f).build();
+    public static final BlockType SANDSTONE_STAIRS = IntBlock.builder().id(BlockIds.SANDSTONE_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(0.8f).build();
+    public static final BlockType EMERALD_ORE = IntBlock.builder().id(BlockIds.EMERALD_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType ENDER_CHEST = IntBlock.builder().id(BlockIds.ENDER_CHEST).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(22.5f).build();
+    public static final BlockType TRIPWIRE_HOOK = IntBlock.builder().id(BlockIds.TRIPWIRE_HOOK).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType TRIPWIRE = IntBlock.builder().id(BlockIds.TRIPWIRE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType EMERALD_BLOCK = IntBlock.builder().id(BlockIds.EMERALD_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(5f).build();
+    public static final BlockType SPRUCE_WOOD_STAIRS = IntBlock.builder().id(BlockIds.SPRUCE_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(2f).flammable(true).fuelTime(300).build();
+    public static final BlockType BIRCH_WOOD_STAIRS = IntBlock.builder().id(BlockIds.BIRCH_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(2f).flammable(true).fuelTime(300).build();
+    public static final BlockType JUNGLE_WOOD_STAIRS = IntBlock.builder().id(BlockIds.JUNGLE_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(2f).flammable(true).fuelTime(300).build();
+    public static final BlockType COMMAND_BLOCK = IntBlock.builder().id(BlockIds.COMMAND_BLOCK).maxStackSize(64).solid(true).filterLight(15).hardness(-1f).build();
+    public static final BlockType BEACON = IntBlock.builder().id(BlockIds.BEACON).maxStackSize(64).diggable(true).solid(true).emitLight(15).hardness(3f).build();
+    public static final BlockType COBBLESTONE_WALL = IntBlock.builder().id(BlockIds.COBBLESTONE_WALL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).build(); //TODO: blackstone
+    public static final BlockType FLOWER_POT = IntBlock.builder().id(BlockIds.FLOWER_POT).maxStackSize(64).diggable(true).transparent(true).solid(true).floodable(true).hardness(0f).build();
+    public static final BlockType CARROTS = IntBlock.builder().id(BlockIds.CARROTS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0f).floodable(true).build();
+    public static final BlockType POTATO = IntBlock.builder().id(BlockIds.POTATOES).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0f).floodable(true).build();
+    public static final BlockType WOODEN_BUTTON = IntBlock.builder().id(BlockIds.WOODEN_BUTTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).fuelTime(100).build(); //TODO: wood types
+    public static final BlockType MOB_HEAD = IntBlock.builder().id(BlockIds.SKULL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1f).floodable(true).build();
+    public static final BlockType ANVIL = IntBlock.builder().id(BlockIds.ANVIL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
+    public static final BlockType TRAPPED_CHEST = IntBlock.builder().id(BlockIds.TRAPPED_CHEST).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2.5f).fuelTime(300).build();
+    public static final BlockType WEIGHTED_PRESSURE_PLATE_LIGHT = IntBlock.builder().id(BlockIds.LIGHT_WEIGHTED_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
+    public static final BlockType WEIGHTED_PRESSURE_PLATE_HEAVY = IntBlock.builder().id(BlockIds.HEAVY_WEIGHTED_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).build();
+    public static final BlockType REDSTONE_COMPARATOR_UNPOWERED = IntBlock.builder().id(BlockIds.UNPOWERED_COMPARATOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType REDSTONE_COMPARATOR_POWERED = IntBlock.builder().id(BlockIds.POWERED_COMPARATOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType DAYLIGHT_DETECTOR = IntBlock.builder().id(BlockIds.DAYLIGHT_DETECTOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.2f).fuelTime(300).build();
+    public static final BlockType REDSTONE_BLOCK = IntBlock.builder().id(BlockIds.REDSTONE_BLOCK).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
+    public static final BlockType NETHER_QUARTZ_ORE = IntBlock.builder().id(BlockIds.QUARTZ_ORE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType HOPPER = IntBlock.builder().id(BlockIds.HOPPER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).build();
+    public static final BlockType QUARTZ_BLOCK = IntBlock.builder().id(BlockIds.QUARTZ_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.8f).build(); //TODO: quartz bricks
+    public static final BlockType QUARTZ_STAIRS = IntBlock.builder().id(BlockIds.QUARTZ_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(0.8f).build();
+    public static final BlockType WOODEN_DOUBLE_SLAB = IntBlock.builder().id(BlockIds.DOUBLE_WOODEN_SLAB).maxStackSize(64).diggable(true).transparent(true).solid(true).flammable(true).hardness(2f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType WOODEN_SLAB = IntBlock.builder().id(BlockIds.WOODEN_SLAB).maxStackSize(64).diggable(true).transparent(true).solid(true).flammable(true).hardness(2f).fuelTime(300).build(); //TODO: wood types
+    public static final BlockType COLORED_TERRACOTTA = IntBlock.builder().id(BlockIds.STAINED_HARDENED_CLAY).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.25f).build();
+    public static final BlockType STAINED_GLASS_PANE = IntBlock.builder().id(BlockIds.STAINED_GLASS_PANE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.3f).build();
+    public static final BlockType LEAVES2 = IntBlock.builder().id(BlockIds.LEAVES2).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.2f).build();
+    public static final BlockType ACACIA_WOOD_STAIRS = IntBlock.builder().id(BlockIds.ACACIA_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).flammable(true).hardness(2f).fuelTime(300).build();
+    public static final BlockType DARK_OAK_WOOD_STAIRS = IntBlock.builder().id(BlockIds.DARK_OAK_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).flammable(true).hardness(2f).fuelTime(300).build();
+    public static final BlockType SLIME_BLOCK = IntBlock.builder().id(BlockIds.SLIME).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    //    public static final BlockType GLOW_STICK = IntBlock.builder().id(BlockIds.GLOW_STICK).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(14).hardness(0f).floodable(true).build();
+    public static final BlockType IRON_TRAPDOOR = IntBlock.builder().id(BlockIds.IRON_TRAPDOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5f).build();
+    public static final BlockType PRISMARINE = IntBlock.builder().id(BlockIds.PRISMARINE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
+    public static final BlockType SEA_LANTERN = IntBlock.builder().id(BlockIds.SEA_LANTERN).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(15).hardness(0.3f).build();
+    public static final BlockType HAY_BALE = IntBlock.builder().id(BlockIds.HAY_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
+    public static final BlockType CARPET = IntBlock.builder().id(BlockIds.CARPET).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.1f).floodable(true).build();
+    public static final BlockType TERRACOTTA = IntBlock.builder().id(BlockIds.HARDENED_CLAY).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.25f).build();
+    public static final BlockType COAL_BLOCK = IntBlock.builder().id(BlockIds.COAL_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(5f).fuelTime(16000).build();
+    public static final BlockType PACKED_ICE = IntBlock.builder().id(BlockIds.PACKED_ICE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
+    public static final BlockType DOUBLE_PLANT = IntBlock.builder().id(BlockIds.DOUBLE_PLANT).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).floodable(true).build();
+    public static final BlockType STANDING_BANNER = IntBlock.builder().id(BlockIds.STANDING_BANNER).maxStackSize(16).diggable(true).transparent(true).solid(true).hardness(1f).build();
+    public static final BlockType WALL_BANNER = IntBlock.builder().id(BlockIds.WALL_BANNER).maxStackSize(16).diggable(true).transparent(true).solid(true).hardness(1f).build();
+    public static final BlockType INVERTED_DAYLIGHT_SENSOR = IntBlock.builder().id(BlockIds.DAYLIGHT_DETECTOR_INVERTED).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.2f).fuelTime(300).build();
+    public static final BlockType RED_SANDSTONE = IntBlock.builder().id(BlockIds.RED_SANDSTONE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.8f).build();
+    public static final BlockType RED_SANDSTONE_STAIRS = IntBlock.builder().id(BlockIds.RED_SANDSTONE_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(0.8f).build();
+    public static final BlockType DOUBLE_STONE_SLAB_2 = IntBlock.builder().id(BlockIds.DOUBLE_STONE_SLAB2).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).build();
+    public static final BlockType STONE_SLAB_2 = IntBlock.builder().id(BlockIds.STONE_SLAB2).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).build();
+    public static final BlockType SPRUCE_FENCE_GATE = IntBlock.builder().id(BlockIds.SPRUCE_FENCE_GATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build();
+    public static final BlockType BIRCH_FENCE_GATE = IntBlock.builder().id(BlockIds.BIRCH_FENCE_GATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build();
+    public static final BlockType JUNGLE_FENCE_GATE = IntBlock.builder().id(BlockIds.JUNGLE_FENCE_GATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build();
+    public static final BlockType DARK_OAK_FENCE_GATE = IntBlock.builder().id(BlockIds.DARK_OAK_FENCE_GATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build();
+    public static final BlockType ACACIA_FENCE_GATE = IntBlock.builder().id(BlockIds.ACACIA_FENCE_GATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2f).fuelTime(300).build();
+    public static final BlockType REPEATING_COMMAND_BLOCK = IntBlock.builder().id(BlockIds.REPEATING_COMMAND_BLOCK).maxStackSize(64).solid(true).filterLight(15).hardness(-1f).build();
+    public static final BlockType CHAIN_COMMAND_BLOCK = IntBlock.builder().id(BlockIds.CHAIN_COMMAND_BLOCK).maxStackSize(64).solid(true).filterLight(15).hardness(-1f).build();
+    public static final BlockType HARD_GLASS_PANE = IntBlock.builder().id(BlockIds.HARD_GLASS_PANE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.8f).build();
+    public static final BlockType HARD_STAINED_GLASS_PANE = IntBlock.builder().id(BlockIds.HARD_STAINED_GLASS_PANE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.8f).build();
+    public static final BlockType CHEMICAL_HEAT = IntBlock.builder().id(BlockIds.CHEMICAL_HEAT).maxStackSize(64).diggable(false).transparent(true).build();
+    public static final BlockType SPRUCE_DOOR = IntBlock.builder().id(BlockIds.SPRUCE_DOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).fuelTime(200).build();
+    public static final BlockType BIRCH_DOOR = IntBlock.builder().id(BlockIds.BIRCH_DOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).fuelTime(200).build();
+    public static final BlockType JUNGLE_DOOR = IntBlock.builder().id(BlockIds.JUNGLE_DOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).fuelTime(200).build();
+    public static final BlockType ACACIA_DOOR = IntBlock.builder().id(BlockIds.ACACIA_DOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).fuelTime(200).build();
+    public static final BlockType DARK_OAK_DOOR = IntBlock.builder().id(BlockIds.DARK_OAK_DOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).fuelTime(200).build();
+    public static final BlockType GRASS_PATH = IntBlock.builder().id(BlockIds.GRASS_PATH).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.65f).build();
+    public static final BlockType ITEM_FRAME = IntBlock.builder().id(BlockIds.FRAME).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0f).floodable(true).build();
+    public static final BlockType CHORUS_FLOWER = IntBlock.builder().id(BlockIds.CHORUS_FLOWER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.4f).build();
+    public static final BlockType PURPUR_BLOCK = IntBlock.builder().id(BlockIds.PURPUR_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
+    public static final BlockType COLORED_TORCH_RG = IntBlock.builder().id(BlockIds.COLORED_TORCH_RG).maxStackSize(64).diggable(true).solid(true).transparent(true).build();
+    public static final BlockType PURPUR_STAIRS = IntBlock.builder().id(BlockIds.PURPUR_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.5f).build();
+    public static final BlockType COLORED_TORCH_BP = IntBlock.builder().id(BlockIds.COLORED_TORCH_BP).maxStackSize(64).diggable(true).solid(true).transparent(true).build();
+    public static final BlockType SHULKER_BOX_UNDYED = IntBlock.builder().id(BlockIds.UNDYED_SHULKER_BOX).maxStackSize(1).diggable(true).transparent(true).solid(true).hardness(2f).build();
+    public static final BlockType END_STONE_BRICKS = IntBlock.builder().id(BlockIds.END_BRICKS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).build();
+    public static final BlockType FROSTED_ICE = IntBlock.builder().id(BlockIds.FROSTED_ICE).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(2).hardness(0.5f).build();
+    public static final BlockType END_ROD = IntBlock.builder().id(BlockIds.END_ROD).maxStackSize(64).diggable(true).transparent(true).solid(true).emitLight(14).hardness(0f).floodable(true).build();
+    public static final BlockType END_GATEWAY = IntBlock.builder().id(BlockIds.END_GATEWAY).maxStackSize(64).solid(true).emitLight(15).filterLight(15).hardness(-1f).build();
+    public static final BlockType ALLOW = IntBlock.builder().id(BlockIds.ALLOW).maxStackSize(64).solid(true).filterLight(15).hardness(-1f).build();
+    public static final BlockType DENY = IntBlock.builder().id(BlockIds.DENY).maxStackSize(64).solid(true).filterLight(15).hardness(-1f).build();
+    public static final BlockType BORDER_BLOCK = IntBlock.builder().id(BlockIds.BORDER_BLOCK).maxStackSize(64).transparent(true).solid(true).hardness(-1f).build();
+    public static final BlockType MAGMA_BLOCK = IntBlock.builder().id(BlockIds.MAGMA).maxStackSize(64).diggable(true).solid(true).emitLight(3).filterLight(15).hardness(0.5f).build();
+    public static final BlockType NETHER_WART_BLOCK = IntBlock.builder().id(BlockIds.NETHER_WART_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1f).build(); //TODO: warped type
+    public static final BlockType RED_NETHER_BRICK = IntBlock.builder().id(BlockIds.RED_NETHER_BRICK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).build();
+    public static final BlockType BONE_BLOCK = IntBlock.builder().id(BlockIds.BONE_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).build();
+    public static final BlockType SHULKER_BOX = IntBlock.builder().id(BlockIds.SHULKER_BOX).maxStackSize(1).diggable(true).transparent(true).solid(true).hardness(2f).build();
+    public static final BlockType PURPLE_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.PURPLE_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType WHITE_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.WHITE_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType ORANGE_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.ORANGE_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType MAGENTA_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.MAGENTA_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType LIGHT_BLUE_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.LIGHT_BLUE_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType YELLOW_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.YELLOW_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType LIME_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.LIME_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType PINK_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.PINK_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType GRAY_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.GRAY_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType LIGHT_GRAY_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.SILVER_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType CYAN_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.CYAN_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    //    public static final BlockType CHALKBOARD = IntBlock.builder().id(BlockIds.CHALKBOARD).maxStackSize(16).transparent(true).solid(true).hardness(-1f).build();
+    public static final BlockType BLUE_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.BLUE_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType BROWN_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.BROWN_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType GREEN_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.GREEN_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType RED_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.RED_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType BLACK_GLAZED_TERRACOTTA = IntBlock.builder().id(BlockIds.BLACK_GLAZED_TERRACOTTA).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.4f).build();
+    public static final BlockType CONCRETE = IntBlock.builder().id(BlockIds.CONCRETE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.8f).build();
+    public static final BlockType CONCRETE_POWDER = IntBlock.builder().id(BlockIds.CONCRETE_POWDER).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
+    public static final BlockType CHEMISTRY_TABLE = IntBlock.builder().id(BlockIds.CHEMISTRY_TABLE).maxStackSize(64).diggable(true).solid(true).hardness(0.5f).build();
+    public static final BlockType UNDERWATER_TORCH = IntBlock.builder().id(BlockIds.UNDERWATER_TORCH).maxStackSize(64).diggable(true).solid(true).transparent(true).build();
+    public static final BlockType CHORUS_PLANT = IntBlock.builder().id(BlockIds.CHORUS_PLANT).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.4f).build();
+    public static final BlockType STAINED_GLASS = IntBlock.builder().id(BlockIds.STAINED_GLASS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.3f).build();
+    public static final BlockType CAMERA = IntBlock.builder().id(BlockIds.CAMERA).maxStackSize(64).solid(true).filterLight(15).hardness(-1f).build();
+    public static final BlockType PODZOL = IntBlock.builder().id(BlockIds.PODZOL).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
+    public static final BlockType BEETROOT = IntBlock.builder().id(BlockIds.BEETROOT).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType STONECUTTER = IntBlock.builder().id(BlockIds.STONECUTTER).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3.5f).build();
+    public static final BlockType GLOWING_OBSIDIAN = IntBlock.builder().id(BlockIds.GLOWING_OBSIDIAN).maxStackSize(64).diggable(true).solid(true).emitLight(12).filterLight(15).hardness(50f).build();
+    public static final BlockType NETHER_REACTOR = IntBlock.builder().id(BlockIds.NETHER_REACTOR).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(3f).build();
+    public static final BlockType UPDATE_GAME_BLOCK = IntBlock.builder().id(BlockIds.INFO_UPDATE).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0f).build();
+    public static final BlockType UPDATE_GAME_BLOCK2 = IntBlock.builder().id(BlockIds.INFO_UPDATE2).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0f).build();
+    public static final BlockType MOVING_BLOCK = IntBlock.builder().id(BlockIds.MOVING_BLOCK).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType OBSERVER = IntBlock.builder().id(BlockIds.OBSERVER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).build();
+    public static final BlockType STRUCTURE_BLOCK = IntBlock.builder().id(BlockIds.STRUCTURE_BLOCK).maxStackSize(64).solid(true).filterLight(15).hardness(-1f).build();
+    public static final BlockType HARD_GLASS = IntBlock.builder().id(BlockIds.HARD_GLASS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.8f).build();
+    public static final BlockType HARD_STAINED_GLASS = IntBlock.builder().id(BlockIds.HARD_STAINED_GLASS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.8f).build();
+    public static final BlockType RESERVED6 = IntBlock.builder().id(BlockIds.RESERVED6).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(-1f).build();
+    public static final BlockType PRISMARINE_STAIRS = IntBlock.builder().id(BlockIds.PRISMARINE_STAIRS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
+    public static final BlockType DARK_PRISMARINE_STAIRS = IntBlock.builder().id(BlockIds.DARK_PRISMARINE_STAIRS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
+    public static final BlockType PRISMARINE_BRICKS_STAIRS = IntBlock.builder().id(BlockIds.PRISMARINE_BRICKS_STAIRS).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
+    public static final BlockType STRIPPED_SPRUCE_LOG = IntBlock.builder().id(BlockIds.STRIPPED_SPRUCE_LOG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).fuelTime(300).build();
+    public static final BlockType STRIPPED_BIRCH_LOG = IntBlock.builder().id(BlockIds.STRIPPED_BIRCH_LOG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).fuelTime(300).build();
+    public static final BlockType STRIPPED_JUNGLE_LOG = IntBlock.builder().id(BlockIds.STRIPPED_JUNGLE_LOG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).fuelTime(300).build();
+    public static final BlockType STRIPPED_ACACIA_LOG = IntBlock.builder().id(BlockIds.STRIPPED_ACACIA_LOG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).fuelTime(300).build();
+    public static final BlockType STRIPPED_DARK_OAK_LOG = IntBlock.builder().id(BlockIds.STRIPPED_DARK_OAK_LOG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).fuelTime(300).build();
+    public static final BlockType STRIPPED_OAK_LOG = IntBlock.builder().id(BlockIds.STRIPPED_OAK_LOG).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(2f).fuelTime(300).build();
+    public static final BlockType BLUE_ICE = IntBlock.builder().id(BlockIds.BLUE_ICE).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(2).hardness(0.5f).build();
+
+    static { // Lazy
+        for (int i = 1; i <= 118; i++) {
+            IntBlock.builder().id(Identifier.fromString("element_" + i)).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(0.5f).build();
+        }
+    }
+
+    public static final BlockType SEA_GRASS = IntBlock.builder().id(BlockIds.SEAGRASS).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType CORAL = IntBlock.builder().id(BlockIds.CORAL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.5f).build();
+    public static final BlockType CORAL_BLOCK = IntBlock.builder().id(BlockIds.CORAL_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).build();
+    public static final BlockType CORAL_FAN = IntBlock.builder().id(BlockIds.CORAL_FAN).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.5f).build();
+    public static final BlockType CORAL_FAN_DEAD = IntBlock.builder().id(BlockIds.CORAL_FAN_DEAD).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.5f).build();
+    public static final BlockType CORAL_FAN_HANG = IntBlock.builder().id(BlockIds.CORAL_FAN_HANG).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.5f).build();
+    public static final BlockType CORAL_FAN_HANG_2 = IntBlock.builder().id(BlockIds.CORAL_FAN_HANG2).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.5f).build();
+    public static final BlockType CORAL_FAN_HANG_3 = IntBlock.builder().id(BlockIds.CORAL_FAN_HANG3).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(1.5f).build();
+    public static final BlockType KELP = IntBlock.builder().id(BlockIds.KELP).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType DRIED_KELP_BLOCK = IntBlock.builder().id(BlockIds.DRIED_KELP_BLOCK).maxStackSize(64).diggable(true).solid(true).filterLight(15).hardness(1.5f).fuelTime(4000).build();
+    public static final BlockType ACACIA_BUTTON = IntBlock.builder().id(BlockIds.ACACIA_BUTTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType BIRCH_BUTTON = IntBlock.builder().id(BlockIds.ACACIA_BUTTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType DARK_OAK_BUTTON = IntBlock.builder().id(BlockIds.ACACIA_BUTTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType JUNGLE_BUTTON = IntBlock.builder().id(BlockIds.ACACIA_BUTTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType SPRUCE_BUTTON = IntBlock.builder().id(BlockIds.ACACIA_BUTTON).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType ACACIA_TRAPDOOR = IntBlock.builder().id(BlockIds.ACACIA_TRAPDOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).fuelTime(300).build();
+    public static final BlockType BIRCH_TRAPDOOR = IntBlock.builder().id(BlockIds.ACACIA_TRAPDOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).floodable(true).fuelTime(300).build();
+    public static final BlockType DARK_OAK_TRAPDOOR = IntBlock.builder().id(BlockIds.ACACIA_TRAPDOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).floodable(true).fuelTime(300).build();
+    public static final BlockType JUNGLE_TRAPDOOR = IntBlock.builder().id(BlockIds.ACACIA_TRAPDOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).floodable(true).fuelTime(300).build();
+    public static final BlockType SPRUCE_TRAPDOOR = IntBlock.builder().id(BlockIds.ACACIA_TRAPDOOR).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).floodable(true).fuelTime(300).build();
+    public static final BlockType ACACIA_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.ACACIA_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType BIRCH_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.ACACIA_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType DARK_OAK_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.ACACIA_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType JUNGLE_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.ACACIA_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType SPRUCE_PRESSURE_PLATE = IntBlock.builder().id(BlockIds.ACACIA_PRESSURE_PLATE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).floodable(true).build();
+    public static final BlockType CARVED_PUMPKIN = IntBlock.builder().id(BlockIds.CARVED_PUMPKIN).maxStackSize(64).diggable(true).transparent(true).solid(true).filterLight(15).hardness(1f).build();
+    public static final BlockType SEA_PICKLE = IntBlock.builder().id(BlockIds.SEA_PICKLE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType CONDUIT = IntBlock.builder().id(BlockIds.CONDUIT).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).build();
+
+    public static final BlockType TURTLE_EGG = IntBlock.builder().id(BlockIds.TURTLE_EGG).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0f).build();
+    public static final BlockType BUBBLE_COLUMN = IntBlock.builder().id(BlockIds.BUBBLE_COLUMN).maxStackSize(64).diggable(false).transparent(true).solid(false).hardness(0f).build();
+    public static final BlockType BARRIER = IntBlock.builder().id(BlockIds.BARRIER).maxStackSize(64).diggable(false).transparent(true).solid(true).hardness(-1f).build();
+    public static final BlockType BAMBOO = IntBlock.builder().id(BlockIds.BAMBOO).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3f).build();
+    public static final BlockType SCAFFOLDING = IntBlock.builder().id(BlockIds.SCAFFOLDING).maxStackSize(64).diggable(true).transparent(true).solid(true).flammable(true).fuelTime(1200).build();
+    public static final BlockType STONE_STAIRS = IntBlock.builder().id(BlockIds.STONE_STAIRS).maxStackSize(64).diggable(true).transparent(true).solid(true).build(); //TODO: stone types
+    public static final BlockType LECTERN = IntBlock.builder().id(BlockIds.LECTERN).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2.5f).resistance(2.5f).flammable(true).fuelTime(300).build();
+    public static final BlockType GRINDSTONE = IntBlock.builder().id(BlockIds.GRINDSTONE).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(2).resistance(6).build();
+    public static final BlockType BLAST_FURNACE = IntBlock.builder().id(BlockIds.BLAST_FURNACE).maxStackSize(64).diggable(true).solid(true).hardness(3.5f).resistance(3.5f).build(); //TODO: lit type
+    public static final BlockType STONECUTTER_BLOCK = IntBlock.builder().id(BlockIds.STONECUTTER_BLOCK).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3.5f).resistance(3.5f).build();
+    public static final BlockType SMOKER = IntBlock.builder().id(BlockIds.SMOKER).maxStackSize(64).diggable(true).solid(true).hardness(3.5f).resistance(3.5f).build();
+    public static final BlockType CARTOGRAPHY_TABLE = IntBlock.builder().id(BlockIds.CARTOGRAPHY_TABLE).maxStackSize(64).diggable(true).solid(true).hardness(2.5f).resistance(2.5f).build();
+    public static final BlockType FLETCHING_TABLE = IntBlock.builder().id(BlockIds.FLETCHING_TABLE).maxStackSize(64).diggable(true).solid(true).hardness(2.5f).resistance(2.5f).flammable(true).build();
+    public static final BlockType SMITHING_TABLE = IntBlock.builder().id(BlockIds.SMITHING_TABLE).maxStackSize(64).diggable(true).solid(true).hardness(2.5f).resistance(2.5f).build();
+    public static final BlockType BARREL = IntBlock.builder().id(BlockIds.BARREL).maxStackSize(64).diggable(true).solid(true).hardness(2.5f).resistance(2.5f).build();
+    public static final BlockType LOOM = IntBlock.builder().id(BlockIds.LOOM).maxStackSize(64).diggable(true).solid(true).hardness(2.5f).resistance(2.5f).build();
+    public static final BlockType BELL = IntBlock.builder().id(BlockIds.BELL).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(5).resistance(5).build();
+    public static final BlockType SWEET_BERRY_BUSH = IntBlock.builder().id(BlockIds.SWEET_BERRY_BUSH).maxStackSize(64).diggable(true).transparent(true).flammable(true).build();
+    public static final BlockType LANTERN = IntBlock.builder().id(BlockIds.LANTERN).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(3.5f).resistance(3.5f).build(); //TODO: lantern type
+    public static final BlockType CAMPFIRE = IntBlock.builder().id(BlockIds.CAMPFIRE).diggable(true).transparent(true).solid(true).hardness(2).resistance(2).build(); //TODO: campfire type
+    public static final BlockType JIGSAW = IntBlock.builder().id(BlockIds.JIGSAW).maxStackSize(64).solid(true).resistance(3600000).build();
+    public static final BlockType WOOD = IntBlock.builder().id(BlockIds.WOOD).maxStackSize(64).diggable(true).solid(true).hardness(2).resistance(2).flammable(true).build(); //TODO: properties per trait? //hyphae types
+    public static final BlockType COMPOSTER = IntBlock.builder().id(BlockIds.COMPOSTER).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.6f).resistance(0.6f).flammable(true).build();
+    public static final BlockType LIGHT_BLOCK = IntBlock.builder().id(BlockIds.LIGHT_BLOCK).maxStackSize(64).transparent(true).resistance(3600000).build();
+    public static final BlockType BEE_NEST = IntBlock.builder().id(BlockIds.BEE_NEST).maxStackSize(64).diggable(true).solid(true).hardness(0.3f).resistance(0.3f).flammable(true).build();
+    public static final BlockType BEEHIVE = IntBlock.builder().id(BlockIds.BEEHIVE).maxStackSize(64).diggable(true).solid(true).hardness(0.6f).resistance(0.6f).flammable(true).build();
+    public static final BlockType HONEY_BLOCK = IntBlock.builder().id(BlockIds.HONEY_BLOCK).maxStackSize(64).diggable(true).transparent(true).solid(true).build();
+    public static final BlockType HONEYCOMB_BLOCK = IntBlock.builder().id(BlockIds.HONEYCOMB_BLOCK).maxStackSize(64).diggable(true).solid(true).hardness(0.6f).resistance(0.6f).build();
+    public static final BlockType LODESTONE = IntBlock.builder().id(BlockIds.LODESTONE).maxStackSize(64).diggable(true).solid(true).hardness(3.5f).resistance(3.5f).build();
+    public static final BlockType ROOTS = IntBlock.builder().id(BlockIds.CRIMSON_ROOTS).maxStackSize(64).diggable(true).transparent(true).build(); //TODO: roots type
+    public static final BlockType FUNGUS = IntBlock.builder().id(BlockIds.CRIMSON_FUNGUS).maxStackSize(64).diggable(true).transparent(true).build(); //TODO: fungus type
+    public static final BlockType SHROOMLIGHT = IntBlock.builder().id(BlockIds.SHROOMLIGHT).maxStackSize(64).diggable(true).solid(true).hardness(1).resistance(1).emitLight(15).build();
+    public static final BlockType WEEPING_WINES = IntBlock.builder().id(BlockIds.WEEPING_VINES).maxStackSize(64).diggable(true).transparent(true).build();
+    public static final BlockType NYLIUM = IntBlock.builder().id(BlockIds.CRIMSON_NYLIUM).maxStackSize(64).diggable(true).solid(true).hardness(1).resistance(1).build(); //TODO: nylium type
+    public static final BlockType BASALT = IntBlock.builder().id(BlockIds.BASALT).maxStackSize(64).diggable(true).solid(true).hardness(1.25f).resistance(4.2f).build(); //TODO: polished type
+    public static final BlockType SOUL_SOIL = IntBlock.builder().id(BlockIds.SOUL_SOIL).maxStackSize(64).diggable(true).solid(true).hardness(0.5f).resistance(0.5f).build();
+    public static final BlockType NETHER_SPROUTS = IntBlock.builder().id(BlockIds.NETHER_SPROUTS).maxStackSize(64).diggable(true).transparent(true).build();
+    public static final BlockType TARGET = IntBlock.builder().id(BlockIds.TARGET).maxStackSize(64).diggable(true).transparent(true).solid(true).hardness(0.5f).resistance(0.5f).flammable(true).build();
+    public static final BlockType NETHERITE_BLOCK = IntBlock.builder().id(BlockIds.NETHERITE_BLOCK).maxStackSize(64).diggable(true).solid(true).hardness(50).resistance(1200).build();
+    public static final BlockType ANCIENT_DEBRIS = IntBlock.builder().id(BlockIds.ANCIENT_DEBRIS).maxStackSize(64).diggable(true).solid(true).hardness(30).resistance(1200).build();
+    public static final BlockType RESPAWN_ANCHOR = IntBlock.builder().id(BlockIds.RESPAWN_ANCHOR).maxStackSize(64).diggable(true).solid(true).hardness(50).resistance(1200).build();
+    public static final BlockType BLACKSTONE = IntBlock.builder().id(BlockIds.BLACKSTONE).maxStackSize(64).diggable(true).solid(true).hardness(1.5f).resistance(6).build();
+    public static final BlockType POLISHED_BLACKSTONE_BRICKS = IntBlock.builder().id(BlockIds.POLISHED_BLACKSTONE_BRICKS).maxStackSize(64).diggable(true).solid(true).hardness(1.5f).resistance(6).build(); //TODO: cracked type
+    public static final BlockType POLISHED_BLACKSTONE = IntBlock.builder().id(BlockIds.POLISHED_BLACKSTONE).maxStackSize(64).diggable(true).solid(true).resistance(6).build(); //TODO: chiseled type
+    public static final BlockType GILDED_BLACKSTONE = IntBlock.builder().id(BlockIds.GILDED_BLACKSTONE).maxStackSize(64).diggable(true).solid(true).hardness(1.5f).resistance(6).build();
+    public static final BlockType CHAIN = IntBlock.builder().id(BlockIds.CHAIN).maxStackSize(64).diggable(true).transparent(true).hardness(5).resistance(6).build();
+    public static final BlockType TWISTING_VINES = IntBlock.builder().id(BlockIds.TWISTING_VINES).maxStackSize(64).diggable(true).transparent(true).build();
+    public static final BlockType NETHER_GOLD_ORE = IntBlock.builder().id(BlockIds.NETHER_GOLD_ORE).maxStackSize(64).diggable(true).solid(true).hardness(3).resistance(3).build();
+    public static final BlockType CRYING_OBISIDAN = IntBlock.builder().id(BlockIds.CRYING_OBSIDIAN).maxStackSize(64).diggable(true).solid(true).hardness(50).resistance(1200).emitLight(10).build();
+
+    public static BlockType byId(Identifier id) {
+        BlockType type = BY_ID.get(id);
+        if (type == null) {
+            throw new IllegalArgumentException("ID " + id + " is not valid.");
+        }
+        return type;
+    }
+
+    @Builder
+    private static class IntBlock implements BlockType {
+
+        private final Identifier id;
+        private final int maxStackSize;
+        private final boolean diggable;
+        private final boolean transparent;
+        private final boolean flammable;
+        private final boolean floodable;
+        private final boolean solid;
+        private final int emitLight;
+        private final int filterLight;
+        private final float hardness;
+        private final int burnChance;
+        private final int burnability;
+        private final float resistance;
+        private final int fuelTime;
+
+        public IntBlock(
+                Identifier id,
+                int maxStackSize,
+                boolean diggable,
+                boolean transparent,
+                boolean flammable,
+                boolean floodable,
+                boolean solid,
+                int emitLight,
+                int filterLight,
+                float hardness,
+                int burnChance,
+                int burnability,
+                float resistance,
+                int fuelTime
+        ) {
+            this.id = id;
+            this.maxStackSize = Math.max(1, maxStackSize);
+            this.diggable = diggable;
+            this.transparent = transparent;
+            this.flammable = flammable;
+            this.floodable = floodable;
+            this.solid = solid;
+            this.emitLight = emitLight;
+            this.filterLight = filterLight;
+            this.hardness = hardness;
+            this.burnChance = burnChance;
+            this.burnability = burnability;
+            this.resistance = resistance;
+            this.fuelTime = fuelTime;
+
+            BY_ID.put(id, this);
+        }
+
+        @Override
+        public Identifier getId() {
+            return id;
+        }
+
+        @Override
+        public int getMaximumStackSize() {
+            return maxStackSize;
+        }
+
+        @Override
+        public boolean isDiggable() {
+            return diggable;
+        }
+
+        @Override
+        public boolean isTransparent() {
+            return transparent;
+        }
+
+        @Override
+        public boolean isFlammable() {
+            return flammable;
+        }
+
+        @Override
+        public int emitsLight() {
+            return emitLight;
+        }
+
+        @Override
+        public int filtersLight() {
+            return filterLight;
+        }
+
+        @Override
+        public float hardness() {
+            return hardness;
+        }
+
+        @Override
+        public boolean isFloodable() {
+            return floodable;
+        }
+
+        @Override
+        public boolean isSolid() {
+            return solid;
+        }
+
+        @Override
+        public int burnChance() {
+            return burnChance;
+        }
+
+        @Override
+        public int burnability() {
+            return burnability;
+        }
+
+        @Override
+        public float resistance() {
+            return resistance;
+        }
+
+        @Override
+        public int getFuelTime() {
+            return fuelTime;
+        }
+
+        @Override
+        public String toString() {
+            return "BlockType(" + id + ")";
+        }
+
+        @Override
+        public int hashCode() {
+            return id.hashCode();
+        }
+
+        @Override
+        public Class<?> getMetadataClass() {
+            return null;
+        }
+    }
 }

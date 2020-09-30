@@ -5,8 +5,8 @@ import lombok.val;
 import lombok.var;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
@@ -114,7 +114,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().inCategory(BlockCategory.SOLID) && face.getAxis().isHorizontal()) {
-            var state = BlockState.get(BlockTypes.VINE)
+            var state = BlockState.get(BlockIds.VINE)
                     .withTrait(BlockTraits.VINE_DIRECTION_BITS, 1 << face.getOpposite().getHorizontalIndex());
 
             placeBlock(block, state);
@@ -164,7 +164,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
 
             if (bits == 0) {
                 val upState = block.up().getState();
-                if (upState.getType() != BlockTypes.VINE || (upState.ensureTrait(BlockTraits.VINE_DIRECTION_BITS) & current) == 0) {
+                if (upState.getType() != BlockIds.VINE || (upState.ensureTrait(BlockTraits.VINE_DIRECTION_BITS) & current) == 0) {
                     block.getLevel().useBreakOn(block.getPosition(), null, null, true);
                     return Level.BLOCK_UPDATE_NORMAL;
                 }

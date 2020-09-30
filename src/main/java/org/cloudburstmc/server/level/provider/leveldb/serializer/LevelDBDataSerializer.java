@@ -61,13 +61,17 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
     }
 
     private void saveData(LevelData data, Path levelDatPath) throws IOException {
-        NbtMapBuilder tag = NbtMap.builder()
-                .putString("LevelName", data.getName())
+        NbtMapBuilder tag = NbtMap.builder();
+        if (data.getData() != null) {
+            tag.putAll(data.getData());
+        }
+        tag.putString("LevelName", data.getName())
                 .putString("FlatWorldLayers", data.getGeneratorOptions())
                 .putString("generatorName", data.getGenerator().toString())
                 .putInt("lightningTime", data.getLightningTime())
                 .putInt("Difficulty", data.getDifficulty())
                 .putInt("GameType", data.getGameType())
+                .putInt("StorageVersion", VERSION)
                 .putInt("serverChunkTickRange", data.getServerChunkTickRange())
                 .putInt("NetherScale", data.getNetherScale())
                 .putLong("currentTick", data.getCurrentTick())
@@ -124,6 +128,8 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
             tag = (NbtMap) nbtInputStream.readTag();
         }
 
+        data.setData(tag);
+
         /*tag.listenForString("LevelName", data::setName);
         if (tag.contains("FlatWorldLayers")) {
             data.setGeneratorOptions(tag.getString("FlatWorldLayers"));
@@ -151,8 +157,8 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
         tag.listenForBoolean("Hardcore", data::setHardcore);
 
         GameRuleRegistry.get().getRules().forEach(rule -> {
-            NbtMap gameRuleTag = tag.getCompound(rule.getName().toLowerCase());
-            Object value = gameRuleTag == null ? null : gameRuleTag.get(0);
+            Object value = tag.get(rule.getName().toLowerCase());
+
             if (value instanceof Byte) {
                 data.getGameRules().put((GameRule<Boolean>) rule, (byte) value != 0);
             } else if (value instanceof Integer) {

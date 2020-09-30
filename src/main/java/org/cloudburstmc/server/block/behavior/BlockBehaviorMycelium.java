@@ -8,16 +8,16 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockSpreadEvent;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DirtType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.DIRT;
-import static org.cloudburstmc.server.block.BlockTypes.MYCELIUM;
+import static org.cloudburstmc.server.block.BlockIds.DIRT;
+import static org.cloudburstmc.server.block.BlockIds.MYCELIUM;
 
 public class BlockBehaviorMycelium extends BlockBehaviorSolid {
 
@@ -57,7 +57,7 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
                 if (b.up().getState().inCategory(BlockCategory.TRANSPARENT)) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(MYCELIUM));
-                    Server.getInstance().getPluginManager().callEvent(ev);
+                    Server.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         b.set(ev.getNewState());
                     }

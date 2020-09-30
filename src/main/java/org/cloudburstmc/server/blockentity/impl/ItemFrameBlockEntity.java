@@ -3,16 +3,16 @@ package org.cloudburstmc.server.blockentity.impl;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.ItemFrame;
-import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.chunk.Chunk;
 
 import java.util.Objects;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * Created by Pub4Game on 03.07.2016.
@@ -20,7 +20,7 @@ import static org.cloudburstmc.server.block.BlockTypes.AIR;
 public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     private Item item;
-    private byte itemRotation;
+    private float itemRotation;
     private float itemDropChance = 1.0f;
 
     public ItemFrameBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
@@ -34,7 +34,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
         tag.listenForCompound("Item", itemTag -> {
             this.item = ItemUtils.deserializeItem(itemTag);
         });
-        tag.listenForByte("ItemRotation", value -> this.itemRotation = value);
+        tag.listenForFloat("ItemRotation", value -> this.itemRotation = value);
         tag.listenForFloat("ItemDropChance", value -> this.itemDropChance = value);
     }
 
@@ -44,19 +44,19 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
         if (this.item != null && !this.item.isNull()) {
             tag.putCompound("Item", ItemUtils.serializeItem(this.item));
-            tag.putByte("ItemRotation", this.itemRotation);
+            tag.putFloat("ItemRotation", this.itemRotation);
             tag.putFloat("ItemDropChance", this.itemDropChance);
         }
     }
 
     @Override
     public boolean isValid() {
-        return this.getBlockState().getType() == BlockTypes.FRAME;
+        return this.getBlockState().getType() == BlockIds.FRAME;
     }
 
     @Override
     public int getItemRotation() {
-        return this.itemRotation;
+        return (int) this.itemRotation;
     }
 
     @Override

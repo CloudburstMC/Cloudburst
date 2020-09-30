@@ -12,7 +12,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.block.serializer.DirectionHelper.SeqType.*;
 
 @UtilityClass
@@ -34,7 +34,7 @@ public class DirectionHelper {
         register(TYPE_7, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
         register(TYPE_8, Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST);
         register(TYPE_9, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.UP);
-        register(TYPE_10, Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST);
+        register(TYPE_10, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
         register(TYPE_11, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.DOWN, Direction.UP);
 
         registerDefaultMappings();
@@ -43,7 +43,19 @@ public class DirectionHelper {
     private void registerDefaultMappings() {
         register(TYPE_1,
                 END_PORTAL_FRAME,
-                BELL
+                //TODO: check below
+                BELL,
+                CHEMISTRY_TABLE,
+                GRINDSTONE,
+                CAMPFIRE,
+                SOUL_CAMPFIRE,
+                CORAL_FAN_HANG,
+                CORAL_FAN_HANG2,
+                CORAL_FAN_HANG3,
+                LECTERN,
+                LOOM,
+                BEEHIVE,
+                BEE_NEST
         );
 
         register(TYPE_2,
@@ -53,6 +65,7 @@ public class DirectionHelper {
                 ACACIA_FENCE_GATE,
                 NETHER_BRICK_FENCE,
                 BIRCH_FENCE_GATE,
+                SPRUCE_FENCE_GATE,
                 DARK_OAK_FENCE_GATE,
                 JUNGLE_FENCE_GATE,
                 CRIMSON_FENCE_GATE,
@@ -62,7 +75,9 @@ public class DirectionHelper {
                 PUMPKIN,
                 CARVED_PUMPKIN,
                 LIT_PUMPKIN,
-                TRIPWIRE_HOOK
+                TRIPWIRE_HOOK,
+                POWERED_COMPARATOR,
+                UNPOWERED_COMPARATOR
         );
 
         register(TYPE_3,
@@ -72,7 +87,9 @@ public class DirectionHelper {
                 IRON_DOOR,
                 JUNGLE_DOOR,
                 SPRUCE_DOOR,
-                WOODEN_DOOR
+                WOODEN_DOOR,
+                CRIMSON_DOOR,
+                WARPED_DOOR
         );
 
         register(TYPE_4,
@@ -112,10 +129,7 @@ public class DirectionHelper {
                 SPRUCE_STAIRS,
                 STONE_BRICK_STAIRS,
                 STONE_STAIRS,
-                WARPED_STAIRS
-        );
-
-        register(TYPE_5,
+                WARPED_STAIRS,
                 TRAPDOOR,
                 ACACIA_TRAPDOOR,
                 BIRCH_TRAPDOOR,
@@ -128,9 +142,7 @@ public class DirectionHelper {
         );
 
         register(TYPE_6,
-                COCOA,
-                POWERED_COMPARATOR,
-                UNPOWERED_COMPARATOR
+                COCOA
         );
 
         register(TYPE_7,
@@ -143,7 +155,14 @@ public class DirectionHelper {
                 PISTON_ARM_COLLISION,
                 LADDER,
                 WALL_SIGN,
-                WALL_BANNER
+                WALL_BANNER,
+                CHEST,
+                ENDER_CHEST,
+                TRAPPED_CHEST,
+                FURNACE,
+                LIT_FURNACE,
+                BLAST_FURNACE,
+                LIT_BLAST_FURNACE
         );
 
         register(TYPE_8,
@@ -161,16 +180,6 @@ public class DirectionHelper {
                 TORCH,
                 REDSTONE_TORCH,
                 UNLIT_REDSTONE_TORCH
-        );
-
-        register(TYPE_10,
-                CHEST,
-                ENDER_CHEST,
-                TRAPPED_CHEST,
-                FURNACE,
-                LIT_FURNACE,
-                BLAST_FURNACE,
-                LIT_BLAST_FURNACE
         );
 
         register(TYPE_11,
@@ -209,7 +218,7 @@ public class DirectionHelper {
     }
 
     @SuppressWarnings("ConstantConditions")
-    public short serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockState state) {
+    public int serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockState state) {
         SeqType type = mapping.getOrDefault(state.getType(), TYPE_7); //2 is the most common
 
         Direction direction = state.getTrait(BlockTraits.DIRECTION);

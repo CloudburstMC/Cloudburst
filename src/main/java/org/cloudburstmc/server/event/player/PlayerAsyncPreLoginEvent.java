@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.event.player;
 
-import org.cloudburstmc.server.event.HandlerList;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.player.PlayerLoginData;
 
@@ -14,12 +13,6 @@ import java.util.function.Consumer;
  * @author CreeperFace
  */
 public class PlayerAsyncPreLoginEvent extends PlayerEvent {
-
-    private static final HandlerList handlers = new HandlerList();
-
-    public static HandlerList getHandlers() {
-        return handlers;
-    }
 
     private final PlayerLoginData loginData;
 

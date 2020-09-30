@@ -4,11 +4,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.google.common.base.Preconditions;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
-import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
-import org.cloudburstmc.server.level.generator.standard.registry.StandardGeneratorRegistries;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
@@ -23,7 +20,7 @@ public final class DensitySourceReferenceDeserializer extends JsonDeserializer<D
         Identifier id = Identifier.fromString(p.getText());
 
         try (InputStream in = StandardGeneratorUtils.read("density", id)) {
-            return Nukkit.YAML_MAPPER.readValue(in, DensitySource.class);
+            return Bootstrap.YAML_MAPPER.readValue(in, DensitySource.class);
         } catch (IOException e) {
             throw new RuntimeException("While decoding density source " + id, e);
         }

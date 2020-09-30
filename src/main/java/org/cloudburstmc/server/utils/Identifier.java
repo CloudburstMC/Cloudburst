@@ -27,7 +27,7 @@ public final class Identifier implements Comparable<Identifier> {
 
     public static final Identifier EMPTY = new Identifier("", "", String.valueOf(NAMESPACE_SEPARATOR));
 
-    private static final Ref<Matcher> MATCHER_CACHE = ThreadRef.regex("^(?>minecraft:)?(?>([a-z0-9_]*)" + NAMESPACE_SEPARATOR + ")?([a-zA-Z0-9_]*)$");
+    private static final Ref<Matcher> MATCHER_CACHE = ThreadRef.regex("^(?>minecraft:)?(?>([a-z0-9_.]*)" + NAMESPACE_SEPARATOR + ")?([a-zA-Z0-9_.]*)$");
 
     private static final Lock READ_LOCK;
     private static final Lock WRITE_LOCK;

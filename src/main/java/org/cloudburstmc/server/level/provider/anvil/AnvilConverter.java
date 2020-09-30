@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public class AnvilConverter {
 
-    public static void convertToNukkit(ChunkBuilder chunkBuilder, ByteBuf chunkBuf) throws IOException {
+    public static void convertToCloudburst(ChunkBuilder chunkBuilder, ByteBuf chunkBuf) throws IOException {
 
         NbtMap tag;
 
@@ -70,11 +70,11 @@ public class AnvilConverter {
                 for (int blockZ = 0; blockZ < 16; blockZ++) {
                     for (int blockY = 0; blockY < 16; blockY++) {
                         int anvilIndex = getAnvilIndex(blockX, blockY, blockZ);
-                        int nukkitIndex = ChunkSection.blockIndex(blockX, blockY, blockZ);
+                        int cloudburstIndex = ChunkSection.blockIndex(blockX, blockY, blockZ);
                         blockState[0] = blocks[anvilIndex] & 0xff;
                         blockState[1] = data.get(anvilIndex);
                         legacyBlockConverter.convertBlockState(blockState);
-                        blockStorage.setBlock(nukkitIndex, blockRegistry.getBlock(blockState[0], blockState[1]));
+                        blockStorage.setBlock(cloudburstIndex, blockRegistry.getBlock(blockState[0], blockState[1]));
                     }
                 }
             }
@@ -161,9 +161,10 @@ public class AnvilConverter {
         return (y << 8) + (z << 4) + x;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private static Location getLocation(NbtMap tag, Chunk chunk) {
         List<Float> pos = tag.getList("Pos", NbtType.FLOAT);
+        if (pos == null || pos.size() < 3) return null;
+
         Vector3f position = Vector3f.from(pos.get(0), pos.get(1), pos.get(2));
 
         List<Float> rotation = tag.getList("Rotation", NbtType.FLOAT);
@@ -190,6 +191,10 @@ public class AnvilConverter {
                     continue;
                 }
                 Location location = getLocation(entityTag, chunk);
+                if (location == null) {
+                    dirty = true; // Entity doesn't have a location?!?
+                    continue;
+                }
                 Vector3f position = location.getPosition();
                 if ((position.getFloorX() >> 4) != chunk.getX() || ((position.getFloorZ() >> 4) != chunk.getZ())) {
                     dirty = true;

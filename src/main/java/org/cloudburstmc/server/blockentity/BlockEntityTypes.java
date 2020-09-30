@@ -2,6 +2,7 @@ package org.cloudburstmc.server.blockentity;
 
 import lombok.experimental.UtilityClass;
 
+@SuppressWarnings("RedundantModifiersUtilityClassLombok")
 @UtilityClass
 public class BlockEntityTypes {
 

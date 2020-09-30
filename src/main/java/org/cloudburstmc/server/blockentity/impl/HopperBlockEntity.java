@@ -4,8 +4,8 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
@@ -16,8 +16,8 @@ import org.cloudburstmc.server.event.inventory.InventoryMoveItemEvent;
 import org.cloudburstmc.server.inventory.HopperInventory;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.InventoryHolder;
-import org.cloudburstmc.server.item.Item;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
@@ -74,7 +74,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.HOPPER;
+        return getBlockState().getType() == BlockIds.HOPPER;
     }
 
     public boolean isOnTransferCooldown() {
@@ -96,7 +96,9 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             return false;
         }
 
-        this.transferCooldown--;
+        if (this.transferCooldown > 0) {
+            this.transferCooldown--;
+        }
 
         if (!this.isOnTransferCooldown()) {
             BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition().add(UP));
@@ -151,7 +153,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 }
 
                 InventoryMoveItemEvent ev = new InventoryMoveItemEvent(inv, this.inventory, this, item, InventoryMoveItemEvent.Action.SLOT_CHANGE);
-                this.server.getPluginManager().callEvent(ev);
+                this.server.getEventManager().fire(ev);
 
                 if (ev.isCancelled()) {
                     return false;
@@ -194,7 +196,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             }
 
             InventoryMoveItemEvent ev = new InventoryMoveItemEvent(null, this.inventory, this, item, InventoryMoveItemEvent.Action.PICKUP);
-            this.server.getPluginManager().callEvent(ev);
+            this.server.getEventManager().fire(ev);
 
             if (ev.isCancelled()) {
                 continue;
@@ -273,7 +275,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                     item.setCount(1);
 
                     InventoryMoveItemEvent event = new InventoryMoveItemEvent(this.inventory, inv, this, item, InventoryMoveItemEvent.Action.SLOT_CHANGE);
-                    this.server.getPluginManager().callEvent(event);
+                    this.server.getEventManager().fire(event);
 
                     if (event.isCancelled()) {
                         return false;

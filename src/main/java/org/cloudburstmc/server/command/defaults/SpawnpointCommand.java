@@ -22,7 +22,7 @@ public class SpawnpointCommand extends Command {
         super("spawnpoint", CommandData.builder("spawnpoint")
                 .setDescription("commands.spawnpoint.description")
                 .setUsageMessage("/spawnpoint [player] <position>")
-                .setPermissions("nukkit.command.spawnpoint")
+                .setPermissions("cloudburst.command.spawnpoint")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("blockPos", CommandParamType.POSITION, true),
                 }, new CommandParameter[]{

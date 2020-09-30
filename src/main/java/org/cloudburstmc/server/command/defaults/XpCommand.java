@@ -18,7 +18,7 @@ public class XpCommand extends Command {
         super("xp", CommandData.builder("xp")
                 .setDescription("commands.xp.description")
                 .setUsageMessage("/xp <amount>[L] [player]")
-                .setPermissions("nukkit.command.xp")
+                .setPermissions("cloudburst.command.xp")
                 .setParameters(new CommandParameter[]{
                         new CommandParameter("amount|level", CommandParamType.INT, false),
                         new CommandParameter("player", CommandParamType.TARGET, true)

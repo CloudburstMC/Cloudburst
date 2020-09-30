@@ -10,6 +10,7 @@ import org.cloudburstmc.server.event.player.PlayerKickEvent;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 
+import java.util.Arrays;
 import java.util.StringJoiner;
 
 /**
@@ -22,7 +23,7 @@ public class BanCommand extends Command {
         super("ban", CommandData.builder("ban")
                 .setDescription("commands.ban.description")
                 .setUsageMessage("/ban <player> [reason]")
-                .setPermissions("nukkit.command.ban.player")
+                .setPermissions("cloudburst.command.ban.player")
                 .setParameters(
                         new CommandParameter[]{
                                 new CommandParameter("player", CommandParamType.TARGET, false),

@@ -15,6 +15,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.BedrockSession;
+import com.nukkitx.protocol.bedrock.data.AuthoritativeMovementMode;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
@@ -35,8 +36,8 @@ import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.EnderChest;
 import org.cloudburstmc.server.blockentity.Sign;
@@ -65,10 +66,10 @@ import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.inventory.*;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
-import org.cloudburstmc.server.item.Item;
-import org.cloudburstmc.server.item.ItemArmor;
-import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.ItemTool;
+import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.behavior.ItemArmor;
+import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.biome.Biome;
@@ -87,7 +88,7 @@ import org.cloudburstmc.server.permission.PermissionAttachment;
 import org.cloudburstmc.server.permission.PermissionAttachmentInfo;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
-import org.cloudburstmc.server.plugin.Plugin;
+import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -362,7 +363,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public Long getFirstPlayed() {
+    public OptionalLong getFirstPlayed() {
         return this.playerData.getFirstPlayed();
     }
 
@@ -421,7 +422,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public Long getLastPlayed() {
+    public OptionalLong getLastPlayed() {
         return this.playerData.getLastPlayed();
     }
 
@@ -444,7 +445,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     @Override
     public boolean hasPlayedBefore() {
-        return this.playerData.getFirstPlayed() > 0;
+        return this.playerData.getFirstPlayed().getAsLong() > 0;
     }
 
     public boolean canSee(Player player) {
@@ -539,17 +540,17 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin) {
+    public PermissionAttachment addAttachment(PluginContainer plugin) {
         return this.addAttachment(plugin, null);
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin, String name) {
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name) {
         return this.addAttachment(plugin, name, null);
     }
 
     @Override
-    public PermissionAttachment addAttachment(Plugin plugin, String name, Boolean value) {
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name, Boolean value) {
         return this.perm.addAttachment(plugin, name, value);
     }
 
@@ -560,8 +561,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     @Override
     public void recalculatePermissions() {
-        this.server.getPluginManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
-        this.server.getPluginManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
+        this.server.getPermissionManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
+        this.server.getPermissionManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
 
         if (this.perm == null) {
             return;
@@ -570,11 +571,11 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.perm.recalculatePermissions();
 
         if (this.hasPermission(Server.BROADCAST_CHANNEL_USERS)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
+            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
         }
 
         if (this.hasPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
+            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
         }
 
         if (this.isEnableClientCommand() && spawned) this.sendCommandData();
@@ -754,7 +755,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this, loc, true);
 
-        this.server.getPluginManager().callEvent(respawnEvent);
+        this.server.getEventManager().fire(respawnEvent);
 
         loc = respawnEvent.getRespawnLocation();
 
@@ -832,7 +833,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         PlayerBedEnterEvent ev;
-        this.server.getPluginManager().callEvent(ev = new PlayerBedEnterEvent(this, this.getLevel().getBlock(pos)));
+        this.server.getEventManager().fire(ev = new PlayerBedEnterEvent(this, this.getLevel().getBlock(pos)));
         if (ev.isCancelled()) {
             return false;
         }
@@ -852,7 +853,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     public void stopSleep() {
         if (this.sleeping != null) {
-            this.server.getPluginManager().callEvent(new PlayerBedLeaveEvent(this, this.getLevel().getBlock(this.sleeping)));
+            this.server.getEventManager().fire(new PlayerBedLeaveEvent(this, this.getLevel().getBlock(this.sleeping)));
 
             this.sleeping = null;
             this.data.setVector3i(BED_POSITION, Vector3i.ZERO);
@@ -885,7 +886,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             }
         }
         PlayerAchievementAwardedEvent event = new PlayerAchievementAwardedEvent(this, achievementId);
-        this.server.getPluginManager().callEvent(event);
+        this.server.getEventManager().fire(event);
 
         if (event.isCancelled()) {
             return false;
@@ -918,7 +919,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         PlayerPacketSendEvent event = new PlayerPacketSendEvent(this, packet);
-        this.server.getPluginManager().callEvent(event);
+        this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
         }
@@ -992,7 +993,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         for (Block block : this.getCollisionBlocks()) {
             val state = block.getState();
-            if (state.getType() == BlockTypes.PORTAL) {
+            if (state.getType() == BlockIds.PORTAL) {
                 portal = true;
                 continue;
             }
@@ -1029,7 +1030,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         PlayerGameModeChangeEvent ev;
-        this.server.getPluginManager().callEvent(ev = new PlayerGameModeChangeEvent(this, gamemode));
+        this.server.getEventManager().fire(ev = new PlayerGameModeChangeEvent(this, gamemode));
 
         if (ev.isCancelled()) {
             return false;
@@ -1254,7 +1255,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 this.blocksAround = null;
                 this.collisionBlockStates = null;
 
-                this.server.getPluginManager().callEvent(ev);
+                this.server.getEventManager().fire(ev);
 
                 if (!(revert = ev.isCancelled())) { //Yes, this is intended
                     if (!to.equals(ev.getTo())) { //If plugins modify the destination
@@ -1486,7 +1487,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     public void completeLoginSequence() {
         PlayerLoginEvent ev;
-        this.server.getPluginManager().callEvent(ev = new PlayerLoginEvent(this, "Plugin reason"));
+        this.server.getEventManager().fire(ev = new PlayerLoginEvent(this, "Plugin reason"));
         if (ev.isCancelled()) {
             this.close(this.getLeaveMessage(), ev.getKickMessage());
             return;
@@ -1502,7 +1503,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setRotation(Vector2f.from(this.getYaw(), this.getPitch()));
         startGamePacket.setSeed(-1);
         startGamePacket.setDimensionId(0);
-        startGamePacket.setTrustingPlayers(true);
+        startGamePacket.setTrustingPlayers(false);
         startGamePacket.setLevelGameType(GameType.from(this.getGamemode().getVanillaId()));
         startGamePacket.setDifficulty(this.server.getDifficulty().ordinal());
         startGamePacket.setDefaultSpawn(this.getSpawn().getPosition().toInt());
@@ -1526,6 +1527,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setPremiumWorldTemplateId("");
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(false);
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setBlockPalette(BlockRegistry.get().getPaletteTag());
         startGamePacket.setItemEntries(ItemRegistry.get().getItemEntries());
         this.sendPacket(startGamePacket);
@@ -1552,7 +1554,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.setNameTagAlwaysVisible(true);
         this.setCanClimb(true);
 
-        log.info(this.getServer().getLanguage().translate("nukkit.player.logIn",
+        log.info(this.getServer().getLanguage().translate("cloudburst.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,
                 this.getAddress(),
                 this.getPort(),
@@ -1563,7 +1565,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 NukkitMath.round(pos.getZ(), 4)
         ));
 
-        if (this.isOp() || this.hasPermission("nukkit.textcolor")) {
+        if (this.isOp() || this.hasPermission("cloudburst.textcolor")) {
             this.setRemoveFormat(false);
         }
 
@@ -1609,10 +1611,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         if (this.hasPermission(Server.BROADCAST_CHANNEL_USERS)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
+            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
         }
         if (this.hasPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
-            this.server.getPluginManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
+            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
         }
 
         Player oldPlayer = null;
@@ -1707,7 +1709,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         for (String msg : message.split("\n")) {
             if (!msg.trim().isEmpty() && msg.length() <= 255 && this.messageCounter-- > 0) {
                 PlayerChatEvent chatEvent = new PlayerChatEvent(this, msg);
-                this.server.getPluginManager().callEvent(chatEvent);
+                this.server.getEventManager().fire(chatEvent);
                 if (!chatEvent.isCancelled()) {
                     this.server.broadcastMessage(this.getServer().getLanguage().translate(chatEvent.getFormat(), chatEvent.getPlayer().getDisplayName(), chatEvent.getMessage()), chatEvent.getRecipients());
                 }
@@ -1743,7 +1745,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     public boolean kick(PlayerKickEvent.Reason reason, String reasonString, boolean isAdmin) {
         PlayerKickEvent ev;
-        this.server.getPluginManager().callEvent(ev = new PlayerKickEvent(this, reason, this.getLeaveMessage()));
+        this.server.getEventManager().fire(ev = new PlayerKickEvent(this, reason, this.getLeaveMessage()));
         if (!ev.isCancelled()) {
             String message;
             if (isAdmin) {
@@ -1785,7 +1787,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.RAW);
         packet.setXuid(this.getXuid());
-        packet.setMessage(this.server.getLanguage().translateOnly("nukkit.", message));
+        packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message));
         this.sendPacket(packet);
     }
 
@@ -1803,10 +1805,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         TextPacket packet = new TextPacket();
         if (!this.server.isLanguageForced()) {
             packet.setType(TextPacket.Type.TRANSLATION);
-            packet.setMessage(this.server.getLanguage().translateOnly("nukkit.", message, parameters));
+            packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message, parameters));
             String[] params = new String[parameters.length];
             for (int i = 0; i < parameters.length; i++) {
-                params[i] = this.server.getLanguage().translateOnly("nukkit.", parameters[i].toString());
+                params[i] = this.server.getLanguage().translateOnly("cloudburst.", parameters[i].toString());
             }
             packet.setParameters(Arrays.asList(params));
         } else {
@@ -1826,7 +1828,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.CHAT);
         packet.setSourceName(source);
-        packet.setMessage(this.server.getLanguage().translateOnly("nukkit.", message));
+        packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message));
         packet.setXuid(this.getXuid());
         this.sendPacket(packet);
     }
@@ -1999,7 +2001,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             this.connected = false;
             PlayerQuitEvent ev = null;
             if (this.getName() != null && this.getName().length() > 0) {
-                this.server.getPluginManager().callEvent(ev = new PlayerQuitEvent(this, message, true, reason));
+                this.server.getEventManager().fire(ev = new PlayerQuitEvent(this, message, true, reason));
                 if (this.loggedIn && ev.getAutoSave()) {
                     this.save();
                 }
@@ -2045,9 +2047,9 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 this.server.broadcastMessage(ev.getQuitMessage());
             }
 
-            this.server.getPluginManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
+            this.server.getPermissionManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
             this.spawned = false;
-            log.info(this.getServer().getLanguage().translate("nukkit.player.logOut",
+            log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     TextFormat.AQUA + (this.getName() == null ? "" : this.getName()) + TextFormat.WHITE,
                     this.getAddress(),
                     this.getPort(),
@@ -2212,7 +2214,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return false;
         } else if (source.getCause() == EntityDamageEvent.DamageCause.FALL) {
         }
-        if (this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockTypes.SLIME) {
+        if (this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockIds.SLIME) {
             if (!this.isSneaking()) {
                 //source.setCancelled();
                 this.resetFallDistance();
@@ -2425,8 +2427,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
                 case LAVA:
                     BlockState state = this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt());
-                    if (state.getType() == BlockTypes.MAGMA) {
-                        message = "death.attack.lava.magma";
+                    if (state.getType() == BlockIds.MAGMA) {
+                        message = "death.attack.magma";
                         break;
                     }
                     message = "death.attack.lava";
@@ -2446,7 +2448,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
                 case CONTACT:
                     if (cause instanceof EntityDamageByBlockEvent) {
-                        if (((EntityDamageByBlockEvent) cause).getDamager().getState().getType() == BlockTypes.CACTUS) {
+                        if (((EntityDamageByBlockEvent) cause).getDamager().getState().getType() == BlockIds.CACTUS) {
                             message = "death.attack.cactus";
                         }
                     }
@@ -2501,7 +2503,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         ev.setKeepExperience(this.getLevel().getGameRules().get(GameRules.KEEP_INVENTORY));
         ev.setKeepInventory(ev.getKeepExperience());
-        this.server.getPluginManager().callEvent(ev);
+        this.server.getEventManager().fire(ev);
 
         if (!ev.getKeepInventory() && this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
             for (Item item : ev.getDrops()) {
@@ -2946,7 +2948,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public void removeMetadata(String metadataKey, Plugin owningPlugin) {
+    public void removeMetadata(String metadataKey, PluginContainer owningPlugin) {
         this.server.getPlayerMetadata().removeMetadata(this, metadataKey, owningPlugin);
     }
 
@@ -2984,7 +2986,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         if (cause != null) {
             PlayerTeleportEvent event = new PlayerTeleportEvent(this, from, to, cause);
-            this.server.getPluginManager().callEvent(event);
+            this.server.getEventManager().fire(event);
             if (event.isCancelled()) return false;
             to = event.getTo();
         }
@@ -3166,7 +3168,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         fishingHook.setMotion(Vector3f.from(-Math.sin(Math.toRadians(this.getYaw())) * Math.cos(Math.toRadians(this.getPitch())) * f * f,
                 -Math.sin(Math.toRadians(this.getPitch())) * f * f, Math.cos(Math.toRadians(this.getYaw())) * Math.cos(Math.toRadians(this.getPitch())) * f * f));
         ProjectileLaunchEvent ev = new ProjectileLaunchEvent(fishingHook);
-        this.getServer().getPluginManager().callEvent(ev);
+        this.getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
             fishingHook.kill();
         } else {
@@ -3231,7 +3233,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                     ev.setCancelled();
                 }
 
-                this.server.getPluginManager().callEvent(ev);
+                this.server.getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return false;
                 }
@@ -3274,12 +3276,12 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                         }
 
                         InventoryPickupItemEvent ev;
-                        this.server.getPluginManager().callEvent(ev = new InventoryPickupItemEvent(this.getInventory(), (DroppedItem) entity));
+                        this.server.getEventManager().fire(ev = new InventoryPickupItemEvent(this.getInventory(), (DroppedItem) entity));
                         if (ev.isCancelled()) {
                             return false;
                         }
 
-                        if (item.getId() == BlockTypes.LOG) {
+                        if (item.getId() == BlockIds.LOG) {
                             this.awardAchievement("mineWood");
                         } else if (item.getId() == ItemIds.DIAMOND) {
                             this.awardAchievement("diamond");
