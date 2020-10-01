@@ -39,6 +39,10 @@ public class TimeCommand extends Command {
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+        if (!this.testPermission(sender)) {
+            return true;
+        }
+
         if (args.length < 1) {
             return false;
         }
