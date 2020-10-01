@@ -24,7 +24,6 @@ import java.nio.file.PathMatcher;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
-import java.util.jar.Manifest;
 
 public class JavaPluginLoader implements PluginLoader {
     private static final PathMatcher PATH_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.jar");
@@ -44,11 +43,6 @@ public class JavaPluginLoader implements PluginLoader {
         Objects.requireNonNull(path, "path");
 
         try (JarInputStream jis = new JarInputStream(new BufferedInputStream(Files.newInputStream(path)))) {
-            Manifest manifest = jis.getManifest();
-            if (manifest == null) {
-                throw new IllegalArgumentException("Jar has no manifest");
-            }
-
             JarEntry entry;
             while ((entry = jis.getNextJarEntry()) != null) {
                 if (entry.isDirectory() || !entry.getName().endsWith(".class")) {
