@@ -21,17 +21,29 @@ public interface BlockType extends ItemType {
 
     int filtersLight();
 
-    float hardness();
+    float getHardness();
 
     boolean isFloodable();
 
     boolean isSolid();
 
-    int burnChance();
+    int getBurnChance();
 
-    int burnability();
+    int getBurnAbility();
 
-    float resistance();
+    float getResistance();
+
+    float getFriction();
+
+    boolean pushesOutItems();
+
+    boolean isFallable();
+
+    boolean isVanilla();
+
+    boolean isExperimental();
+
+    boolean isReplaceable();
 
     ToolType getTargetToolType();
 
