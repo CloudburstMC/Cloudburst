@@ -2,6 +2,7 @@ package org.cloudburstmc.server;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import com.dosse.upnp.UPnP;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
@@ -156,6 +157,7 @@ public class Server {
     private boolean networkCompressionAsync = true;
     public int networkCompressionLevel = 7;
 
+    private boolean upnpEnabled = false;
     private boolean autoTickRate = true;
     private int autoTickRateLimit = 20;
     private boolean alwaysTickPlayers = false;
@@ -560,6 +562,25 @@ public class Server {
             this.watchdog.start();
         }
 
+        if (this.getConfig("settings.upnp")) {
+            if (UPnP.isUPnPAvailable()) {
+                log.debug(this.getLanguage().translate("cloudburst.server.upnp.enabled"));
+                if (UPnP.openPortUDP(getPort(), "CloudburstServer")) {
+                    this.upnpEnabled = true; // Saved to disable the port-forwarding on shutdown
+                    log.info(this.getLanguage().translate("cloudburst.server.upnp.success", getPort()));
+                } else {
+                    this.upnpEnabled = false;
+                    log.warn("cloudburst.server.upnp.fail");
+                }
+            } else {
+                this.upnpEnabled = false;
+                log.warn(this.getLanguage().translate("cloudburst.server.upnp.unavailable"));
+            }
+        } else {
+            this.upnpEnabled = false;
+            log.debug(this.getLanguage().translate("cloudburst.server.upnp.disabled"));
+        }
+
         this.eventManager.fire(ServerStartEvent.INSTANCE);
 
         this.start();
@@ -648,6 +669,13 @@ public class Server {
 
             log.debug("Closing console");
             this.consoleThread.interrupt();
+
+            if (this.upnpEnabled) {
+                log.debug("Closing UPnP port");
+                if (UPnP.closePortUDP(this.getPort())) {
+                    log.info(this.getLanguage().translate("cloudburst.server.upnp.closed"));
+                }
+            }
 
             log.debug("Stopping network interfaces");
             for (SourceInterface interfaz : this.network.getInterfaces()) {
