@@ -83,11 +83,11 @@ public abstract class BlockBehavior {
     }
 
     public int getBurnChance(BlockState state) {
-        return state.getType().burnChance();
+        return state.getType().getBurnChance();
     }
 
     public int getBurnAbility(BlockState state) {
-        return state.getType().burnability();
+        return state.getType().getBurnAbility();
     }
 
     public ToolType getToolType(BlockState state) {
@@ -244,7 +244,7 @@ public abstract class BlockBehavior {
     }
 
     public float getHardness(BlockState blockState) {
-        return blockState.getType().hardness();
+        return blockState.getType().getHardness();
     }
 
     public String getDescriptionId(BlockState state) {
