@@ -19,8 +19,8 @@ import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.config.CloudburstYaml;
-import org.cloudburstmc.server.config.ServerProperties;
 import org.cloudburstmc.server.config.ServerConfig;
+import org.cloudburstmc.server.config.ServerProperties;
 import org.cloudburstmc.server.console.NukkitConsole;
 import org.cloudburstmc.server.entity.Attribute;
 import org.cloudburstmc.server.event.server.*;
@@ -562,7 +562,7 @@ public class Server {
             this.watchdog.start();
         }
 
-        if (this.getConfig("settings.upnp")) {
+        if (this.getConfig().getSettings().isUpnp()) {
             if (UPnP.isUPnPAvailable()) {
                 log.debug(this.getLanguage().translate("cloudburst.server.upnp.enabled"));
                 if (UPnP.openPortUDP(getPort(), "CloudburstServer")) {
