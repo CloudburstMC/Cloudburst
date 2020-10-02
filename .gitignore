@@ -213,10 +213,12 @@ rebel-remote.xml
 # Nukkit generated files
 banned-ips.json
 banned-players.json
-nukkit.yml
+cloudburst.yml
+!src/test/resources/config/cloudburst.yml
 ops.txt
 server.log
 server.properties
+!src/test/resources/config/server.properties
 white-list.txt
 worlds
 worlds/*
