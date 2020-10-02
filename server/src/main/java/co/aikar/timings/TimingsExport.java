@@ -23,7 +23,6 @@
  */
 package co.aikar.timings;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
@@ -43,8 +42,6 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 import static co.aikar.timings.TimingsManager.HISTORY;
@@ -78,7 +75,7 @@ public class TimingsExport extends Thread {
         if (!Timings.isPrivacy()) {
             out.put("server", Server.getInstance().getName());
             out.put("motd", Server.getInstance().getMotd());
-            out.put("online-mode", Server.getInstance().getPropertyBoolean("xbox-auth", true));
+            out.put("online-mode", Server.getInstance().getConfig().isXboxAuth());
             out.put("icon", ""); //"data:image/png;base64,"
         }
 
@@ -139,10 +136,9 @@ public class TimingsExport extends Thread {
         //Information on the users Config
         ObjectNode config = Bootstrap.JSON_MAPPER.createObjectNode();
         if (!Timings.getIgnoredConfigSections().contains("all")) {
-            Map<String, Object> section = new LinkedHashMap<>(Server.getInstance().getConfig().getRootSection());
-            Timings.getIgnoredConfigSections().forEach(section::remove);
-            JsonNode cloudburst = JsonUtil.toObject(section);
-            config.set("cloudburst", cloudburst);
+            final ObjectNode rootNode = Server.getInstance().getConfig().getCloudburstYaml().getRootNode();
+            Timings.getIgnoredConfigSections().forEach(rootNode::remove);
+            config.set("cloudburst", rootNode);
         } else {
             config.set("cloudburst", null);
         }
