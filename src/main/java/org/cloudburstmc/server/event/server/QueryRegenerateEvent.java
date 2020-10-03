@@ -12,6 +12,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * author: MagicDroidX
@@ -20,6 +23,7 @@ import java.util.Map;
 public class QueryRegenerateEvent extends ServerEvent {
     //alot todo
 
+    private static final Pattern PLUGIN_NAME_PATTERN = Pattern.compile("[;: ]");
     private static final String GAME_ID = "MINECRAFTPE";
 
     private int timeout;
@@ -136,13 +140,18 @@ public class QueryRegenerateEvent extends ServerEvent {
     public byte[] getLongQuery() {
         ByteArrayOutputStream query = new ByteArrayOutputStream();
         try {
-            StringBuilder plist = new StringBuilder(this.server_engine);
+
+            String plist = this.server_engine;
+
             if (this.plugins.length > 0 && this.listPlugins) {
-                plist.append(":");
+                StringJoiner joiner = new StringJoiner(";");
+                Matcher matcher = PLUGIN_NAME_PATTERN.matcher("");
                 for (PluginContainer p : this.plugins) {
-                    plist.append(" ").append(p.getName().replace(";", "").replace(":", "").replace(" ", "_")).append(" ").append(p.getVersion().replace(";", "").replace(":", "").replace(" ", "_")).append(";");
+                    String name = matcher.reset(p.getDescription().getName()).replaceAll(" ");
+                    String version = matcher.reset(p.getDescription().getVersion()).replaceAll(" ");
+                    joiner.add(name + " " + version);
                 }
-                plist = new StringBuilder(plist.substring(0, plist.length() - 2));
+                plist += ":" + joiner.toString();
             }
 
             query.write("splitnum".getBytes());
@@ -156,7 +165,7 @@ public class QueryRegenerateEvent extends ServerEvent {
             KVdata.put("game_id", GAME_ID);
             KVdata.put("version", this.version);
             KVdata.put("server_engine", this.server_engine);
-            KVdata.put("plugins", plist.toString());
+            KVdata.put("plugins", plist);
             KVdata.put("map", this.map);
             KVdata.put("numplayers", String.valueOf(this.numPlayers));
             KVdata.put("maxplayers", String.valueOf(this.maxPlayers));

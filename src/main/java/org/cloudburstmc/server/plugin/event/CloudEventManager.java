@@ -1,17 +1,18 @@
 package org.cloudburstmc.server.plugin.event;
 
 import co.aikar.timings.Timings;
-import com.google.common.base.Preconditions;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.event.EventFireHandler;
 import org.cloudburstmc.server.event.EventManager;
 import org.cloudburstmc.server.event.Listener;
 import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.server.plugin.PluginManager;
 import org.cloudburstmc.server.plugin.event.firehandler.ReflectionEventFireHandler;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -19,29 +20,29 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 @Log4j2
 @ParametersAreNonnullByDefault
 @Singleton
 public class CloudEventManager implements EventManager {
 
-    private final Map<PluginContainer, List<Object>> listenersByPlugin = new HashMap<>();
+    private final Map<PluginContainer, Set<Object>> listenersByPlugin = new IdentityHashMap<>();
     private final Deque<Object> listeners = new ArrayDeque<>();
     private final Object registerLock = new Object();
     private volatile Map<Class<? extends Event>, EventFireHandler> eventHandlers = Collections.emptyMap();
 
-    private final Server server;
+    private final PluginManager pluginManager;
 
     @Inject
-    public CloudEventManager(Server server) {
-        this.server = server;
+    public CloudEventManager(PluginManager pluginManager) {
+        this.pluginManager = pluginManager;
     }
 
     @Override
     public void registerListeners(Object plugin, Object listener) {
-        Preconditions.checkNotNull(plugin, "plugin");
-        Preconditions.checkNotNull(listener, "listener");
-
-        val container = this.server.getPluginManager().fromInstance(plugin).orElseThrow(() -> new IllegalArgumentException("Unknown plugin: " + plugin));
+        PluginContainer container = ensurePlugin(plugin);
+        checkNotNull(listener, "listener");
 
         // Verify that all listeners are valid.
         boolean validListener = false;
@@ -61,7 +62,7 @@ public class CloudEventManager implements EventManager {
                 }
 
                 if (eventClass.getAnnotation(Deprecated.class) != null) {
-                    log.warn("{} registered deprecated event {} in {}", container.getName(),
+                    log.warn("{} registered deprecated event {} in {}", container.getDescription().getName(),
                             eventClass.getSimpleName(), listener.getClass().getSimpleName());
                 }
 
@@ -72,7 +73,7 @@ public class CloudEventManager implements EventManager {
 
         if (validListener) {
             synchronized (registerLock) {
-                listenersByPlugin.computeIfAbsent(container, k -> new ArrayList<>()).add(listener);
+                listenersByPlugin.computeIfAbsent(container, k -> new ReferenceOpenHashSet<>()).add(listener);
                 listeners.add(listener);
                 bakeHandlers();
             }
@@ -81,7 +82,7 @@ public class CloudEventManager implements EventManager {
 
     @Override
     public void fire(Event event) {
-        Preconditions.checkNotNull(event, "event");
+        checkNotNull(event, "event");
         EventFireHandler handler = eventHandlers.get(event.getClass());
         if (handler != null) {
             handler.fire(event);
@@ -90,9 +91,9 @@ public class CloudEventManager implements EventManager {
 
     @Override
     public void deregisterListener(Object listener) {
-        Preconditions.checkNotNull(listener, "listener");
+        checkNotNull(listener, "listener");
         synchronized (registerLock) {
-            for (List<Object> listeners : listenersByPlugin.values()) {
+            for (Set<Object> listeners : listenersByPlugin.values()) {
                 listeners.remove(listener);
             }
             listeners.remove(listener);
@@ -102,16 +103,10 @@ public class CloudEventManager implements EventManager {
 
     @Override
     public void deregisterAllListeners(Object plugin) {
-        Preconditions.checkNotNull(plugin, "plugin");
-        synchronized (registerLock) {
-            PluginContainer container;
-            if (plugin instanceof PluginContainer) {
-                container = (PluginContainer) plugin;
-            } else {
-                container = server.getPluginManager().fromInstance(plugin).orElse(null);
-            }
+        PluginContainer container = ensurePlugin(plugin);
 
-            List<Object> listeners = listenersByPlugin.remove(container);
+        synchronized (registerLock) {
+            Set<Object> listeners = listenersByPlugin.remove(container);
             if (listeners != null) {
                 this.listeners.removeAll(listeners);
                 bakeHandlers();
@@ -121,7 +116,7 @@ public class CloudEventManager implements EventManager {
 
     @Override
     public void deregisterListeners(Collection<Object> listeners) {
-        Preconditions.checkNotNull(listeners, "listeners");
+        checkNotNull(listeners, "listeners");
         synchronized (registerLock) {
             if (listeners.size() > 0) {
                 this.listeners.removeAll(listeners);
@@ -130,8 +125,15 @@ public class CloudEventManager implements EventManager {
         }
     }
 
+    @Nonnull
+    private PluginContainer ensurePlugin(Object plugin) {
+        checkNotNull(plugin, "plugin");
+        return this.pluginManager.fromInstance(plugin).orElseThrow(() ->
+                new IllegalArgumentException("Object was not a registered plugin"));
+    }
+
     public List<EventFireHandler.ListenerMethod> getEventListenerMethods(Class<? extends Event> eventClass) {
-        Preconditions.checkNotNull(eventClass, "eventClass");
+        checkNotNull(eventClass, "eventClass");
         return eventHandlers.get(eventClass).getMethods();
     }
 
@@ -139,7 +141,7 @@ public class CloudEventManager implements EventManager {
     private void bakeHandlers() {
         Map<Class<? extends Event>, List<ReflectionEventFireHandler.ListenerMethod>> listenerMap = new HashMap<>();
 
-        for (Entry<PluginContainer, List<Object>> entry : listenersByPlugin.entrySet()) {
+        for (Entry<PluginContainer, Set<Object>> entry : listenersByPlugin.entrySet()) {
             val container = entry.getKey();
 
             for (Object listener : entry.getValue()) {
