@@ -3,6 +3,7 @@ package org.cloudburstmc.server.plugin.loader;
 import com.google.inject.Injector;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.cloudburstmc.server.inject.PluginModule;
 import org.cloudburstmc.server.plugin.*;
 import org.cloudburstmc.server.plugin.loader.java.JavaPluginClassLoader;
 import org.cloudburstmc.server.plugin.loader.java.JavaPluginDescription;
@@ -81,10 +82,13 @@ public class JavaPluginLoader implements PluginLoader {
         }
 
         Path path = description.getPath().orElseThrow(() -> new IllegalArgumentException("No path in plugin description"));
-
+        Path dataDirectory = path.getParent().resolve(description.getId());
         Logger logger = LoggerFactory.getLogger(description.getId());
-        return new CloudPluginContainer(injector, path.getParent().resolve(description.getName()), description, getPluginClass(path, (JavaPluginDescription) description),
-                logger);
+
+        Object plugin = injector.createChildInjector(new PluginModule(description, logger, dataDirectory,
+                getPluginClass(path, (JavaPluginDescription) description)));
+
+        return new CloudPluginContainer(plugin, description, logger, dataDirectory);
     }
 
     @Nonnull
