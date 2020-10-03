@@ -4,7 +4,9 @@ import lombok.*;
 import org.cloudburstmc.server.level.Difficulty;
 import org.cloudburstmc.server.player.GameMode;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * the universal public facing facade for the server's config
@@ -177,6 +179,9 @@ public class ServerConfig {
 
         @Builder.Default
         private boolean deprecatedVerbose = true;
+
+        @Builder.Default
+        private boolean upnp = true;
 
     }
 
