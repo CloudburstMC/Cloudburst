@@ -18,8 +18,8 @@ import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.config.CloudburstYaml;
-import org.cloudburstmc.server.config.ServerProperties;
 import org.cloudburstmc.server.config.ServerConfig;
+import org.cloudburstmc.server.config.ServerProperties;
 import org.cloudburstmc.server.console.NukkitConsole;
 import org.cloudburstmc.server.entity.Attribute;
 import org.cloudburstmc.server.event.server.*;
@@ -404,11 +404,13 @@ public class Server {
         log.debug("DataPath Directory: {}", this.dataPath);
 
         log.info("Loading {} ...", TextFormat.GREEN + "server.properties" + TextFormat.WHITE);
-        if(!Files.exists(serverProperties.getPath())) {
+        Path serverPropPath = this.dataPath.resolve("server.properties");
+        if (!Files.exists(serverPropPath)) {
             serverProperties = new ServerProperties();
+            serverProperties.setPath(serverPropPath);
             serverProperties.save();
         } else {
-            serverProperties = ServerProperties.fromFile(this.dataPath.resolve("server.properties"));
+            serverProperties = ServerProperties.fromFile(serverPropPath);
         }
 
         // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
