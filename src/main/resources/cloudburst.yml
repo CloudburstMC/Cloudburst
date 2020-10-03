@@ -16,6 +16,8 @@ settings:
   # %settings.async-workers.1
   # %settings.async-workers.2
   async-workers: auto
+  # %settings.upnp
+  upnp: true
 
 network:
   # %network.batch-threshold.1
