@@ -565,7 +565,7 @@ public class Server {
         if (this.getConfig().getSettings().isUpnp()) {
             if (UPnP.isUPnPAvailable()) {
                 log.debug(this.getLanguage().translate("cloudburst.server.upnp.enabled"));
-                if (UPnP.openPortUDP(getPort(), "CloudburstServer")) {
+                if (UPnP.openPortUDP(getPort(), "Cloudburst")) {
                     this.upnpEnabled = true; // Saved to disable the port-forwarding on shutdown
                     log.info(this.getLanguage().translate("cloudburst.server.upnp.success", getPort()));
                 } else {
