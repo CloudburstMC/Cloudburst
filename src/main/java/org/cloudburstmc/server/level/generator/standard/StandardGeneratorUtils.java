@@ -159,7 +159,7 @@ public class StandardGeneratorUtils {
             default:
                 val plugin = Server.getInstance().getPluginManager().getPlugin(id.getNamespace());
                 if (plugin.isPresent()) {
-                    in = plugin.get().getResource(name);
+                    in = plugin.get().getPlugin().getClass().getClassLoader().getResourceAsStream(name);
                 }
         }
         if (in == null) {

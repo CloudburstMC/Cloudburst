@@ -219,7 +219,7 @@ public final class Timings {
         }
 
         if (handler.getTask() instanceof PluginTask) {
-            String owner = ((PluginTask<?>) handler.getTask()).getContainer().getName();
+            String owner = ((PluginTask<?>) handler.getTask()).getContainer().getDescription().getName();
             return TimingsManager.getTiming(owner, "PluginTask: " + handler.getTaskId() + repeating, schedulerSyncTimer);
         } else if (!handler.isAsynchronous()) {
             return TimingsManager.getTiming(DEFAULT_GROUP.name, "Task: " + handler.getTaskId() + repeating, schedulerSyncTimer);
@@ -229,9 +229,9 @@ public final class Timings {
     }
 
     public static Timing getPluginEventTiming(Class<? extends Event> event, Object listener, Method method, PluginContainer plugin) {
-        Timing group = TimingsManager.getTiming(plugin.getName(), "Combined Total", pluginEventTimer);
+        Timing group = TimingsManager.getTiming(plugin.getDescription().getName(), "Combined Total", pluginEventTimer);
 
-        return TimingsManager.getTiming(plugin.getName(), "Event: " + listener.getClass().getName() + "."
+        return TimingsManager.getTiming(plugin.getDescription().getName(), "Event: " + listener.getClass().getName() + "."
                 + (method.getName())
                 + " (" + event.getSimpleName() + ")", group);
     }

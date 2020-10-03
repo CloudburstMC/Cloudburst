@@ -125,12 +125,12 @@ public class TimingsExport extends Thread {
         //Information about loaded plugins
         out.set("plugins", JsonUtil.mapToObject(Server.getInstance().getPluginManager().getAllPlugins(), (plugin) -> {
             ObjectNode jsonPlugin = Bootstrap.JSON_MAPPER.createObjectNode();
-            jsonPlugin.put("version", plugin.getVersion());
+            jsonPlugin.put("version", plugin.getDescription().getVersion());
 
-            plugin.getDescription().ifPresent((desc) -> jsonPlugin.put("description", desc));
-            plugin.getUrl().ifPresent((url) -> jsonPlugin.put("website", url));
-            jsonPlugin.putPOJO("authors", String.join(", ", plugin.getAuthors()));
-            return new JsonUtil.JSONPair(plugin.getName(), jsonPlugin);
+            plugin.getDescription().getDescription().ifPresent((desc) -> jsonPlugin.put("description", desc));
+            plugin.getDescription().getUrl().ifPresent((url) -> jsonPlugin.put("website", url));
+            jsonPlugin.putPOJO("authors", String.join(", ", plugin.getDescription().getAuthors()));
+            return new JsonUtil.JSONPair(plugin.getDescription().getName(), jsonPlugin);
         }));
 
         //Information on the users Config
