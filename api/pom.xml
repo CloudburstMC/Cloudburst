@@ -4,7 +4,7 @@
 
     <name>Cloudburst API</name>
     <groupId>org.cloudburstmc</groupId>
-    <artifactId>api</artifactId>
+    <artifactId>cloudburst-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <properties>
