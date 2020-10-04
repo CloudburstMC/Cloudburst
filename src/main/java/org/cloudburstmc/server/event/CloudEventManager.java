@@ -1,16 +1,12 @@
-package org.cloudburstmc.server.plugin.event;
+package org.cloudburstmc.server.event;
 
 import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.event.EventFireHandler;
-import org.cloudburstmc.server.event.EventManager;
-import org.cloudburstmc.server.event.Listener;
+import org.cloudburstmc.server.event.firehandler.ReflectionEventFireHandler;
 import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.plugin.PluginManager;
-import org.cloudburstmc.server.plugin.event.firehandler.ReflectionEventFireHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -28,7 +24,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class CloudEventManager implements EventManager {
 
     private final Map<PluginContainer, Set<Object>> listenersByPlugin = new IdentityHashMap<>();
-    private final Deque<Object> listeners = new ArrayDeque<>();
     private final Object registerLock = new Object();
     private volatile Map<Class<? extends Event>, EventFireHandler> eventHandlers = Collections.emptyMap();
 
@@ -74,7 +69,6 @@ public class CloudEventManager implements EventManager {
         if (validListener) {
             synchronized (registerLock) {
                 listenersByPlugin.computeIfAbsent(container, k -> new ReferenceOpenHashSet<>()).add(listener);
-                listeners.add(listener);
                 bakeHandlers();
             }
         }
@@ -96,7 +90,6 @@ public class CloudEventManager implements EventManager {
             for (Set<Object> listeners : listenersByPlugin.values()) {
                 listeners.remove(listener);
             }
-            listeners.remove(listener);
             bakeHandlers();
         }
     }
@@ -108,7 +101,6 @@ public class CloudEventManager implements EventManager {
         synchronized (registerLock) {
             Set<Object> listeners = listenersByPlugin.remove(container);
             if (listeners != null) {
-                this.listeners.removeAll(listeners);
                 bakeHandlers();
             }
         }
@@ -119,7 +111,9 @@ public class CloudEventManager implements EventManager {
         checkNotNull(listeners, "listeners");
         synchronized (registerLock) {
             if (listeners.size() > 0) {
-                this.listeners.removeAll(listeners);
+                for (Set<Object> pluginListeners : this.listenersByPlugin.values()) {
+                    pluginListeners.removeAll(listeners);
+                }
                 bakeHandlers();
             }
         }
@@ -129,7 +123,7 @@ public class CloudEventManager implements EventManager {
     private PluginContainer ensurePlugin(Object plugin) {
         checkNotNull(plugin, "plugin");
         return this.pluginManager.fromInstance(plugin).orElseThrow(() ->
-                new IllegalArgumentException("Object was not a registered plugin"));
+                new IllegalArgumentException("Object is not a registered plugin"));
     }
 
     public List<EventFireHandler.ListenerMethod> getEventListenerMethods(Class<? extends Event> eventClass) {
