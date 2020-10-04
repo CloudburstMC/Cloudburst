@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.plugin.event.firehandler;
+package org.cloudburstmc.server.event.firehandler;
 
 import co.aikar.timings.Timing;
 import lombok.RequiredArgsConstructor;

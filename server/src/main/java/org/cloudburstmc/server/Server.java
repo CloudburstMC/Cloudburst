@@ -23,6 +23,7 @@ import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.config.ServerProperties;
 import org.cloudburstmc.server.console.NukkitConsole;
 import org.cloudburstmc.server.entity.Attribute;
+import org.cloudburstmc.server.event.CloudEventManager;
 import org.cloudburstmc.server.event.server.*;
 import org.cloudburstmc.server.inject.CloudburstModule;
 import org.cloudburstmc.server.inject.CloudburstPrivateModule;
@@ -55,7 +56,6 @@ import org.cloudburstmc.server.player.OfflinePlayer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
 import org.cloudburstmc.server.plugin.PluginManager;
-import org.cloudburstmc.server.plugin.event.CloudEventManager;
 import org.cloudburstmc.server.plugin.loader.JavaPluginLoader;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.potion.Potion;
@@ -221,12 +221,7 @@ public class Server {
 
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.dat$", Pattern.CASE_INSENSITIVE);
 
-    public Server(
-            final Path dataPath,
-            final Path pluginPath,
-            final Path levelPath,
-            final String predefinedLanguage
-    ) {
+    public Server(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
@@ -244,7 +239,7 @@ public class Server {
         this.levelManager = injector.getInstance(LevelManager.class);
         this.craftingManager = injector.getInstance(CraftingManager.class);
         this.packManager = injector.getInstance(PackManager.class);
-//        this.scheduler = injector.getInstance(ServerScheduler.class);
+        this.scheduler = injector.getInstance(ServerScheduler.class);
 
         this.playerMetadata = injector.getInstance(PlayerMetadataStore.class);
         this.levelMetadata = injector.getInstance(LevelMetadataStore.class);
@@ -436,8 +431,6 @@ public class Server {
         System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", String.valueOf(parallelism));
         System.setProperty("java.util.concurrent.ForkJoinPool.common.exceptionHandler", "cn.cloudburst.scheduler.ServerScheduler.ExceptionHandler");
         log.debug("Async pool parallelism: {}", parallelism == -1 ? "auto" : parallelism);
-
-        this.scheduler = new ServerScheduler();
 
 //        this.networkZlibProvider = this.getConfig("network.zlib-provider", 2);
 //        Zlib.setProvider(this.networkZlibProvider);
