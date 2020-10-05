@@ -39,8 +39,6 @@ public interface BlockType extends ItemType {
 
     boolean isFallable();
 
-    boolean isVanilla();
-
     boolean isExperimental();
 
     boolean isReplaceable();
