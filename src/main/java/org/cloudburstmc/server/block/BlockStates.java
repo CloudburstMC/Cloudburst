@@ -34,9 +34,7 @@ public class BlockStates {
     public static final BlockState BLACKSTONE_SLAB = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BLACKSTONE_SLAB);
     public static final BlockState BLACKSTONE_STAIRS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BLACKSTONE_STAIRS);
     public static final BlockState BLACKSTONE_WALL = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BLACKSTONE_WALL);
-    public static final BlockState BLACK_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BLACK_GLAZED_TERRACOTTA);
     public static final BlockState BLAST_FURNACE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BLAST_FURNACE);
-    public static final BlockState BLUE_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BLUE_GLAZED_TERRACOTTA);
     public static final BlockState BLUE_ICE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BLUE_ICE);
     public static final BlockState BONE_BLOCK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BONE_BLOCK);
     public static final BlockState BOOKSHELF = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BOOKSHELF);
@@ -44,7 +42,6 @@ public class BlockStates {
     public static final BlockState BREWING_STAND = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BREWING_STAND);
     public static final BlockState BRICK_BLOCK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BRICK_BLOCK);
     public static final BlockState BRICK_STAIRS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BRICK_STAIRS);
-    public static final BlockState BROWN_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BROWN_GLAZED_TERRACOTTA);
     public static final BlockState BROWN_MUSHROOM = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BROWN_MUSHROOM);
     public static final BlockState BROWN_MUSHROOM_BLOCK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BROWN_MUSHROOM_BLOCK);
     public static final BlockState BUBBLE_COLUMN = BlockPalette.INSTANCE.getDefaultState(BlockTypes.BUBBLE_COLUMN);
@@ -91,7 +88,6 @@ public class BlockStates {
     public static final BlockState CRIMSON_NYLIUM = BlockPalette.INSTANCE.getDefaultState(BlockTypes.CRIMSON_NYLIUM);
     public static final BlockState CRIMSON_ROOTS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.CRIMSON_ROOTS);
     public static final BlockState CRYING_OBSIDIAN = BlockPalette.INSTANCE.getDefaultState(BlockTypes.CRYING_OBSIDIAN);
-    public static final BlockState CYAN_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.CYAN_GLAZED_TERRACOTTA);
     public static final BlockState DARK_PRISMARINE_STAIRS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.DARK_PRISMARINE_STAIRS);
     public static final BlockState DAYLIGHT_DETECTOR = BlockPalette.INSTANCE.getDefaultState(BlockTypes.DAYLIGHT_DETECTOR);
     public static final BlockState DAYLIGHT_DETECTOR_INVERTED = BlockPalette.INSTANCE.getDefaultState(BlockTypes.DAYLIGHT_DETECTOR_INVERTED);
@@ -262,8 +258,6 @@ public class BlockStates {
     public static final BlockState GRASS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.GRASS);
     public static final BlockState GRASS_PATH = BlockPalette.INSTANCE.getDefaultState(BlockTypes.GRASS_PATH);
     public static final BlockState GRAVEL = BlockPalette.INSTANCE.getDefaultState(BlockTypes.GRAVEL);
-    public static final BlockState GRAY_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.GRAY_GLAZED_TERRACOTTA);
-    public static final BlockState GREEN_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.GREEN_GLAZED_TERRACOTTA);
     public static final BlockState GRINDSTONE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.GRINDSTONE);
     public static final BlockState HARDENED_CLAY = BlockPalette.INSTANCE.getDefaultState(BlockTypes.HARDENED_CLAY);
     public static final BlockState HARD_GLASS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.HARD_GLASS);
@@ -297,9 +291,7 @@ public class BlockStates {
     public static final BlockState LECTERN = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LECTERN);
     public static final BlockState LEVER = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LEVER);
     public static final BlockState LIGHT_BLOCK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LIGHT_BLOCK);
-    public static final BlockState LIGHT_BLUE_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LIGHT_BLUE_GLAZED_TERRACOTTA);
     public static final BlockState LIGHT_WEIGHTED_PRESSURE_PLATE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LIGHT_WEIGHTED_PRESSURE_PLATE);
-    public static final BlockState LIME_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LIME_GLAZED_TERRACOTTA);
     public static final BlockState LIT_BLAST_FURNACE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LIT_BLAST_FURNACE);
     public static final BlockState LIT_FURNACE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LIT_FURNACE);
     public static final BlockState LIT_PUMPKIN = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LIT_PUMPKIN);
@@ -309,7 +301,6 @@ public class BlockStates {
     public static final BlockState LODESTONE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LODESTONE);
     public static final BlockState LOG = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LOG);
     public static final BlockState LOOM = BlockPalette.INSTANCE.getDefaultState(BlockTypes.LOOM);
-    public static final BlockState MAGENTA_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.MAGENTA_GLAZED_TERRACOTTA);
     public static final BlockState MAGMA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.MAGMA);
     public static final BlockState MELON_BLOCK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.MELON_BLOCK);
     public static final BlockState MELON_STEM = BlockPalette.INSTANCE.getDefaultState(BlockTypes.MELON_STEM);
@@ -335,9 +326,7 @@ public class BlockStates {
     public static final BlockState OAK_STAIRS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.OAK_STAIRS);
     public static final BlockState OBSERVER = BlockPalette.INSTANCE.getDefaultState(BlockTypes.OBSERVER);
     public static final BlockState OBSIDIAN = BlockPalette.INSTANCE.getDefaultState(BlockTypes.OBSIDIAN);
-    public static final BlockState ORANGE_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.ORANGE_GLAZED_TERRACOTTA);
     public static final BlockState PACKED_ICE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PACKED_ICE);
-    public static final BlockState PINK_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PINK_GLAZED_TERRACOTTA);
     public static final BlockState PISTON = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PISTON);
     public static final BlockState PISTON_ARM_COLLISION = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PISTON_ARM_COLLISION);
     public static final BlockState PLANKS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PLANKS);
@@ -367,7 +356,6 @@ public class BlockStates {
     public static final BlockState PRISMARINE_STAIRS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PRISMARINE_STAIRS);
     public static final BlockState PUMPKIN = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PUMPKIN);
     public static final BlockState PUMPKIN_STEM = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PUMPKIN_STEM);
-    public static final BlockState PURPLE_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PURPLE_GLAZED_TERRACOTTA);
     public static final BlockState PURPUR_BLOCK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PURPUR_BLOCK);
     public static final BlockState PURPUR_STAIRS = BlockPalette.INSTANCE.getDefaultState(BlockTypes.PURPUR_STAIRS);
     public static final BlockState QUARTZ_BLOCK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.QUARTZ_BLOCK);
@@ -381,7 +369,6 @@ public class BlockStates {
     public static final BlockState REDSTONE_TORCH = BlockPalette.INSTANCE.getDefaultState(BlockTypes.REDSTONE_TORCH);
     public static final BlockState REDSTONE_WIRE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.REDSTONE_WIRE);
     public static final BlockState RED_FLOWER = BlockPalette.INSTANCE.getDefaultState(BlockTypes.RED_FLOWER);
-    public static final BlockState RED_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.RED_GLAZED_TERRACOTTA);
     public static final BlockState RED_MUSHROOM = BlockPalette.INSTANCE.getDefaultState(BlockTypes.RED_MUSHROOM);
     public static final BlockState RED_MUSHROOM_BLOCK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.RED_MUSHROOM_BLOCK);
     public static final BlockState RED_NETHER_BRICK = BlockPalette.INSTANCE.getDefaultState(BlockTypes.RED_NETHER_BRICK);
@@ -402,7 +389,6 @@ public class BlockStates {
     public static final BlockState SEA_PICKLE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SEA_PICKLE);
     public static final BlockState SHROOMLIGHT = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SHROOMLIGHT);
     public static final BlockState SHULKER_BOX = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SHULKER_BOX);
-    public static final BlockState SILVER_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SILVER_GLAZED_TERRACOTTA);
     public static final BlockState SKULL = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SKULL);
     public static final BlockState SLIME = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SLIME);
     public static final BlockState SMITHING_TABLE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.SMITHING_TABLE);
@@ -462,13 +448,12 @@ public class BlockStates {
     public static final BlockState WEB = BlockPalette.INSTANCE.getDefaultState(BlockTypes.WEB);
     public static final BlockState WEEPING_VINES = BlockPalette.INSTANCE.getDefaultState(BlockTypes.WEEPING_VINES);
     public static final BlockState WHEAT = BlockPalette.INSTANCE.getDefaultState(BlockTypes.WHEAT);
-    public static final BlockState WHITE_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.WHITE_GLAZED_TERRACOTTA);
+    public static final BlockState GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.GLAZED_TERRACOTTA);
     public static final BlockState WITHER_ROSE = BlockPalette.INSTANCE.getDefaultState(BlockTypes.WITHER_ROSE);
     public static final BlockState WOOD = BlockPalette.INSTANCE.getDefaultState(BlockTypes.WOOD);
     public static final BlockState WOODEN_SLAB = BlockPalette.INSTANCE.getDefaultState(BlockTypes.WOODEN_SLAB);
     public static final BlockState WOOL = BlockPalette.INSTANCE.getDefaultState(BlockTypes.WOOL);
     public static final BlockState YELLOW_FLOWER = BlockPalette.INSTANCE.getDefaultState(BlockTypes.YELLOW_FLOWER);
-    public static final BlockState YELLOW_GLAZED_TERRACOTTA = BlockPalette.INSTANCE.getDefaultState(BlockTypes.YELLOW_GLAZED_TERRACOTTA);
 
 
     public static final BlockState[] EMPTY_STATES = {
