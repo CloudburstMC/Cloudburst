@@ -87,6 +87,7 @@ public class ItemBucket extends Item {
         if (player.isAdventure()) {
             return false;
         }
+
         BlockState bucketContents = BlockState.get(getBlockIdFromDamage(this.getMeta()));
 
         if (bucketContents == BlockStates.AIR) {
@@ -196,6 +197,10 @@ public class ItemBucket extends Item {
 
     @Override
     public boolean onUse(Player player, int ticksUsed) {
+        if (player.isSpectator()) {
+            return false;
+        }
+
         PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, this);
 
         player.getServer().getEventManager().fire(consumeEvent);
@@ -204,7 +209,7 @@ public class ItemBucket extends Item {
             return false;
         }
 
-        if (player.isSurvival()) {
+        if (!player.isCreative()) {
             this.decrementCount();
             player.getInventory().setItemInHand(this);
             player.getInventory().addItem(Item.get(ItemIds.BUCKET));
