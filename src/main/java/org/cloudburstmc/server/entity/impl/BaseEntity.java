@@ -1284,11 +1284,14 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public void fall(float fallDistance) {
+        if (this.isPlayer && !level.getGameRules().get(GameRules.FALL_DAMAGE)) {
+            return;
+        }
+
         float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(Effect.JUMP) ? this.getEffect(Effect.JUMP).getAmplifier() + 1 : 0));
+
         if (damage > 0) {
-            if (!this.isPlayer || level.getGameRules().get(GameRules.FALL_DAMAGE)) {
-                this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.FALL, damage));
-            }
+            this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.FALL, damage));
         }
 
         if (fallDistance > 0.75) {
