@@ -141,8 +141,5 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
             return super.getHardness(blockState);
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

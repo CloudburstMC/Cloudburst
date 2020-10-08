@@ -25,10 +25,6 @@ public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
         return (1 + state.ensureTrait(BlockTraits.REPEATER_DELAY)) * 2;
     }
 
-    @Override
-    public int getLightLevel(Block block) {
-        return 7;
-    }
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {

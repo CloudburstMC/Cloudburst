@@ -10,8 +10,6 @@ import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -76,16 +74,6 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
 
 
     @Override
-    public float getResistance() {
-        return 12.5f;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ToolTypes.AXE;
-    }
-
-    @Override
     public BlockColor getColor(Block block) {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
@@ -95,10 +83,6 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
         return CloudItemRegistry.get().getItem(block.getState().defaultState());
     }
 
-    @Override
-    public boolean hasComparatorInputOverride() {
-        return true;
-    }
 
     @Override
     public int getComparatorInputOverride(Block block) {

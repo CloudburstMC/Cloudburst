@@ -16,10 +16,6 @@ import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE_WALL;
 
 public class BlockBehaviorTorch extends FloodableBlockBehavior {
 
-    @Override
-    public int getLightLevel(Block block) {
-        return 14;
-    }
 
     @Override
     public int onUpdate(Block block, int type) {
@@ -47,11 +43,16 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
         }
 
         if (!target.getState().inCategory(BlockCategory.TRANSPARENT) && face != Direction.DOWN) {
-            return placeBlock(block, item.getBlock().withTrait(BlockTraits.TORCH_DIRECTION, face.getOpposite()));
+            return placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.TORCH_DIRECTION, face.getOpposite()));
         } else if (!below.inCategory(BlockCategory.TRANSPARENT) || below.inCategory(BlockCategory.FENCE) || below.getType() == COBBLESTONE_WALL) {
-            return placeBlock(block, item.getBlock());
+            return placeBlock(block, item.getBehavior().getBlock(item));
         }
         return false;
+    }
+
+    @Override
+    public int getLightLevel(Block block) {
+        return block.getState().ensureTrait(BlockTraits.IS_SOUL) ? 10 : 14;
     }
 
     @Override

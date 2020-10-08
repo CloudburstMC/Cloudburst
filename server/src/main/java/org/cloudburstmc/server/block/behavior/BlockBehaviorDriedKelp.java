@@ -7,11 +7,6 @@ public class BlockBehaviorDriedKelp extends BlockBehaviorSolid {
 
 
     @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
-    @Override
     public BlockColor getColor(Block state) {
         return BlockColor.GREEN_BLOCK_COLOR;
     }

@@ -39,11 +39,6 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         this.stationaryId = stationaryId;
     }
 
-    @Override
-    public boolean canBeFlooded() {
-        return true;
-    }
-
     protected AxisAlignedBB recalculateBoundingBox() {
         return null;
     }
@@ -58,28 +53,8 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean isBreakable(ItemStack item) {
-        return false;
-    }
-
-    @Override
-    public boolean canBeReplaced(Block block) {
-        return true;
-    }
-
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
-
-    @Override
     public boolean isLiquid() {
         return true;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
     }
 
     @Override
@@ -189,7 +164,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 if (mainBlockState.getType() == AIR) {
                     block.set(mainBlockState, 1, true, false);
                     block.set(liquid, 0, true, false);
-                } else if (!behavior.canWaterlogSource() || !behavior.canWaterlogFlowing() && liquid.ensureTrait(BlockTraits.FLUID_LEVEL) > 0) {
+                } else if (!behavior.canWaterlogSource(mainBlockState) || !behavior.canWaterlogFlowing(mainBlockState) && liquid.ensureTrait(BlockTraits.FLUID_LEVEL) > 0) {
                     removeBlock(block);
                     return type;
                 }
@@ -298,7 +273,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                     return;
                 }
 
-                if (!state.getBehavior().canWaterlogFlowing()) {
+                if (!state.getBehavior().canWaterlogFlowing(state)) {
                     state = liquid;
                 } else {
                     waterlog = true;
@@ -371,11 +346,6 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         return cost;
     }
 
-
-    @Override
-    public float getResistance() {
-        return 500;
-    }
 
     private boolean[] getOptimalFlowDirections(Block block) {
         int[] flowCost = new int[]{
@@ -464,11 +434,6 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
-    @Override
     public void onEntityCollide(Block block, Entity entity) {
         entity.resetFallDistance();
     }
@@ -499,7 +464,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     private boolean canBlockBeFlooded(BlockState state) {
         val behavior = state.getBehavior();
-        return behavior.canBeFlooded() || (usesWaterLogging() && behavior.canWaterlogFlowing());
+        return behavior.canBeFlooded(state) || (usesWaterLogging() && behavior.canWaterlogFlowing(state));
     }
 
     protected BlockState getState(int decay) {
@@ -510,7 +475,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(AIR, 0, 0);
+        return ItemStack.get(AIR);
     }
 
     public boolean usesWaterLogging() {

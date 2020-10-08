@@ -8,17 +8,6 @@ import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
 
-
-    @Override
-    public float getResistance() {
-        return 18000000;
-    }
-
-    @Override
-    public boolean isBreakable(ItemStack item) {
-        return false;
-    }
-
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.TRANSPARENT_BLOCK_COLOR;
@@ -31,6 +20,6 @@ public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(AIR, 0, 0);
+        return ItemStack.get(AIR);
     }
 }

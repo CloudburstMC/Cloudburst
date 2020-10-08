@@ -175,14 +175,16 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     @Override
-    public ItemStack getItem(BlockState state) throws RegistryException {
+    public ItemStack getItem(BlockState state, int amount) throws RegistryException {
         Preconditions.checkNotNull(state);
+        Preconditions.checkArgument(amount > 0, "amount must be positive");
         return getItem(state.getType());
     }
 
     @Override
-    public CloudItemStack getItem(ItemType type, Object... metadata) throws RegistryException {
+    public CloudItemStack getItem(ItemType type, int amount, Object... metadata) throws RegistryException {
         Objects.requireNonNull(type, "identifier");
+        Preconditions.checkArgument(amount > 0, "amount must be positive");
 
         val builder = new CloudItemStackBuilder()
                 .itemType(type)

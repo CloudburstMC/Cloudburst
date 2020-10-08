@@ -37,14 +37,15 @@ public class CloudItemStack implements ItemStack {
     private final Map<Class<?>, Object> data;
 
     private volatile NbtMap nbt;
+    private volatile NbtMap dataTag;
     private volatile ItemData networkData;
 
     public CloudItemStack(Identifier id, ItemType type) {
-        this(id, type, 1, null, null, null, null, null, null, null, null);
+        this(id, type, 1, null, null, null, null, null, null, null, null, null);
     }
 
     public CloudItemStack(Identifier id, ItemType type, int amount) {
-        this(id, type, amount, null, null, null, null, null, null, null, null);
+        this(id, type, amount, null, null, null, null, null, null, null, null, null);
     }
 
     public CloudItemStack(
@@ -58,6 +59,7 @@ public class CloudItemStack implements ItemStack {
             Collection<Identifier> canPlaceOn,
             Map<Class<?>, Object> data,
             NbtMap nbt,
+            NbtMap dataTag,
             ItemData networkData
     ) {
         this.id = id;
@@ -70,6 +72,7 @@ public class CloudItemStack implements ItemStack {
         this.canPlaceOn = canPlaceOn == null ? ImmutableSet.of() : ImmutableSet.copyOf(canPlaceOn);
         this.data = data == null ? new ConcurrentHashMap<>() : new ConcurrentHashMap<>(data);
         this.nbt = nbt;
+        this.dataTag = dataTag;
         this.networkData = networkData;
     }
 
@@ -155,12 +158,20 @@ public class CloudItemStack implements ItemStack {
     }
 
     public NbtMap getDataTag() {
-        val nbt = getNbt();
-        if (nbt.containsKey("tag")) {
-            return nbt.getCompound("tag");
+        if (dataTag == null) {
+            synchronized (itemLore) {
+                if (dataTag == null) {
+                    getNbt();
+                    if (nbt.containsKey("tag")) {
+                        dataTag = nbt.getCompound("tag");
+                    } else {
+                        dataTag = NbtMap.EMPTY;
+                    }
+                }
+            }
         }
 
-        return NbtMap.EMPTY;
+        return dataTag;
     }
 
     public ItemData getNetworkData() {

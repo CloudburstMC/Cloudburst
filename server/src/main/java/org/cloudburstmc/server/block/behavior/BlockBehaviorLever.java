@@ -21,11 +21,6 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
 
 
     @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
-    @Override
     public ItemStack toItem(Block block) {
         return ItemStack.get(block.getState().defaultState());
     }
@@ -103,23 +98,11 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
         return !isPowerOn(state) ? 0 : state.ensureTrait(BlockTraits.LEVER_DIRECTION).getDirection() == side ? 15 : 0;
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 
-    @Override
-    public boolean canWaterlogFlowing() {
-        return true;
-    }
 }

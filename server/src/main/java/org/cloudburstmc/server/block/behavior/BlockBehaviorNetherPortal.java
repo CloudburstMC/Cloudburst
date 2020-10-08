@@ -13,16 +13,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
 
-    @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
-    @Override
-    public boolean isBreakable(ItemStack item) {
-        return false;
-    }
-
     public static void spawnPortal(Vector3f pos, Level level) {
         int x = pos.getFloorX(), y = pos.getFloorY(), z = pos.getFloorZ();
 
@@ -77,11 +67,6 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
         level.setBlockAt(x + 3, y, z, obsidian);
     }
 
-    @Override
-    public int getLightLevel(Block block) {
-        return 11;
-    }
-
 
     @Override
     public boolean onBreak(Block block, ItemStack item) {
@@ -110,10 +95,6 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
         return false;
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
 //    @Override //TODO: bounding box
 //    protected AxisAlignedBB recalculateBoundingBox() {

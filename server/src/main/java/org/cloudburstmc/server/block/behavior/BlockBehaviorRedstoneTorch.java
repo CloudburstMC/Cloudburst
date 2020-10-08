@@ -12,13 +12,11 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.REDSTONE_TORCH;
-
 public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
     @Override
     public int getLightLevel(Block block) {
-        return block.getState().getType() == REDSTONE_TORCH ? 7 : 0;
+        return block.getState().ensureTrait(BlockTraits.IS_POWERED) ? 7 : 0;
     }
 
     @Override
@@ -46,12 +44,12 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
     @Override
     public int getWeakPower(Block block, Direction side) {
-        return block.getState().getType() == REDSTONE_TORCH && getBlockFace(block.getState()) != side ? 15 : 0;
+        return block.getState().ensureTrait(BlockTraits.IS_POWERED) && getBlockFace(block.getState()) != side ? 15 : 0;
     }
 
     @Override
     public int getStrongPower(Block block, Direction side) {
-        return block.getState().getType() == REDSTONE_TORCH && side == Direction.DOWN ? this.getWeakPower(block, side) : 0;
+        return block.getState().ensureTrait(BlockTraits.IS_POWERED) && side == Direction.DOWN ? this.getWeakPower(block, side) : 0;
     }
 
     @Override
@@ -97,13 +95,12 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     protected boolean checkState(Block block) {
         val state = block.getState();
         boolean powered = isPoweredFromSide(block);
-        boolean poweredState = state.ensureTrait(BlockTraits.IS_POWERED);
 
-        if (powered != poweredState) {
+        if (powered != state.ensureTrait(BlockTraits.IS_POWERED)) {
             Direction face = getBlockFace(state).getOpposite();
             Vector3i pos = block.getPosition();
 
-            block.set(state.withTrait(BlockTraits.IS_POWERED, powered));
+            block.set(state.toggleTrait(BlockTraits.IS_POWERED));
 
             for (Direction side : Direction.values()) {
                 if (side == face) {
@@ -129,10 +126,6 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
         return 2;
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
 
     @Override
     public BlockColor getColor(Block block) {

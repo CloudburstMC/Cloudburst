@@ -31,7 +31,8 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (block.getSide(Direction.DOWN).getState().getBehavior().isTransparent()) {
+        val downState = block.getSide(Direction.DOWN).getState();
+        if (downState.getBehavior().isTransparent(downState)) {
             return false;
         }
 
@@ -76,7 +77,8 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
             RedstoneUpdateEvent event = new RedstoneUpdateEvent(block);
             level.getServer().getEventManager().fire(event);
             if (event.isCancelled()) return 0;
-            if (type == Level.BLOCK_UPDATE_NORMAL && block.down().getState().getBehavior().isTransparent()) {
+            val downState = block.down().getState();
+            if (type == Level.BLOCK_UPDATE_NORMAL && downState.getBehavior().isTransparent(downState)) {
                 level.useBreakOn(block.getPosition());
             } else {
                 this.updateState(block);
@@ -139,10 +141,6 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
                         : block.getLevel().getStrongPower(pos, side))) : 0;
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
 
     protected boolean shouldBePowered(Block block) {
         return this.calculateInputStrength(block) > 0;
@@ -166,11 +164,6 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
 //    public float getMaxY() {
 //        return this.getY() + 0.125f;
 //    }
-
-    @Override
-    public boolean canPassThrough() {
-        return false;
-    }
 
     protected boolean isAlternateInput(Block block) {
         return block.getState().getBehavior().isPowerSource(block);
@@ -213,13 +206,5 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         return BlockColor.AIR_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 
-    @Override
-    public boolean canWaterlogFlowing() {
-        return true;
-    }
 }

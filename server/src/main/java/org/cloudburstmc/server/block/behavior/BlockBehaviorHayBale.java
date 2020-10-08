@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.math.Direction;
@@ -13,23 +12,8 @@ public class BlockBehaviorHayBale extends BlockBehaviorSolid {
 
 
     @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
-    @Override
-    public int getBurnChance(BlockState state) {
-        return 60;
-    }
-
-    @Override
-    public int getBurnAbility(BlockState state) {
-        return 20;
-    }
-
-    @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return placeBlock(block, item.getBlock().withTrait(BlockTraits.AXIS, face.getAxis()));
+        return placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.AXIS, face.getAxis()));
     }
 
     @Override

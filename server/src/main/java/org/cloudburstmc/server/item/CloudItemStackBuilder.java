@@ -31,6 +31,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     private final Set<Identifier> canDestroy = new HashSet<>();
     private final Set<Identifier> canPlaceOn = new HashSet<>();
     private NbtMap nbt;
+    private NbtMap dataTag;
     private ItemData networkData;
 
     public CloudItemStackBuilder() {
@@ -140,6 +141,11 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
 
     public CloudItemStackBuilder nbt(NbtMap nbt) {
         this.nbt = nbt;
+        return this;
+    }
+
+    public CloudItemStackBuilder dataTag(NbtMap nbt) {
+        this.dataTag = nbt;
         return this;
     }
 

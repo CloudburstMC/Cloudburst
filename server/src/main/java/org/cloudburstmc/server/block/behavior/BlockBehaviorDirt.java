@@ -4,8 +4,6 @@ import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DirtType;
@@ -21,16 +19,6 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
         return true;
     }
 
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_SHOVEL;
-    }
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {

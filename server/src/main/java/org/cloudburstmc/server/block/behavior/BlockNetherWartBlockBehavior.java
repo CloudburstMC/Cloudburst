@@ -7,12 +7,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 public class BlockNetherWartBlockBehavior extends BlockBehaviorSolid {
 
     @Override
-    public float getResistance() {
-        return 5;
-    }
-
-
-    @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
                 toItem(block)

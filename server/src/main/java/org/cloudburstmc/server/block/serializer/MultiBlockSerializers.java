@@ -200,6 +200,46 @@ public class MultiBlockSerializers {
             .defaultId(WOODEN_SLAB)
             .buildSerializer();
 
+    public static final MultiBlockSerializer REDSTONE_TORCH = builder()
+            .add(BedrockStateTags.TAG_EXTINGUISHED, true, UNLIT_REDSTONE_TORCH)
+            .defaultId(BlockIds.REDSTONE_TORCH)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer FURNACE = builder()
+            .add(BedrockStateTags.TAG_EXTINGUISHED, false, LIT_FURNACE)
+            .defaultId(BlockIds.FURNACE)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer BLAST_FURNACE = builder()
+            .add(BedrockStateTags.TAG_EXTINGUISHED, false, LIT_BLAST_FURNACE)
+            .defaultId(BlockIds.BLAST_FURNACE)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer REDSTONE_LAMP = builder()
+            .add(BedrockStateTags.TAG_EXTINGUISHED, false, LIT_REDSTONE_LAMP)
+            .defaultId(BlockIds.REDSTONE_LAMP)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer SMOKER = builder()
+            .add(BedrockStateTags.TAG_EXTINGUISHED, false, LIT_SMOKER)
+            .defaultId(BlockIds.SMOKER)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer TORCH = builder()
+            .add("is_soul", true, SOUL_TORCH)
+            .defaultId(BlockIds.TORCH)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer CAMPFIRE = builder()
+            .add("is_soul", true, SOUL_CAMPFIRE)
+            .defaultId(BlockIds.CAMPFIRE)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer LANTERN = builder()
+            .add("is_soul", true, SOUL_LANTERN)
+            .defaultId(BlockIds.LANTERN)
+            .buildSerializer();
+
 
     public static MultiBlockSerializer buildTreeSpecies(String traitName, Identifier... ids) {
         Preconditions.checkNotNull(ids, "ids");

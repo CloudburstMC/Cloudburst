@@ -23,10 +23,6 @@ public class BlockBehaviorRedSandstone extends BlockBehaviorSandstone {
         return ItemStack.get(block.getState());
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
     @Override
     public BlockColor getColor(Block block) {

@@ -1,41 +1,17 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorBookshelf extends BlockBehaviorSolid {
 
 
-
-    @Override
-    public float getResistance() {
-        return 7.5f;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_AXE;
-    }
-
-    @Override
-    public int getBurnChance(BlockState state) {
-        return 30;
-    }
-
-    @Override
-    public int getBurnAbility(BlockState state) {
-        return 20;
-    }
-
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.BOOK, 0, 3)
+                ItemStack.get(ItemTypes.BOOK, 3)
         };
     }
 
@@ -44,8 +20,5 @@ public class BlockBehaviorBookshelf extends BlockBehaviorSolid {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
+
 }

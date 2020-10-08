@@ -58,12 +58,13 @@ public abstract class BlockBehavior {
     }
 
     //http://minecraft.gamepedia.com/Breaking
-    public boolean canHarvestWithHand() {  //used for calculating breaking time
-        return true;
+    public boolean canHarvestWithHand(BlockState state) {  //used for calculating breaking time
+        val type = state.getType();
+        return type.isDiggable() && type.getTargetToolType() == null && type.getToolTier() == null;
     }
 
-    public boolean isBreakable(ItemStack item) {
-        return true;
+    public boolean isBreakable(BlockState state, ItemStack item) {
+        return state.getType().isDiggable();
     }
 
     public int tickRate() {
@@ -98,7 +99,7 @@ public abstract class BlockBehavior {
         return state.getType().getTierType();
     }
 
-    public boolean checkTier(BlockState state, ItemStack item) {
+    public boolean checkTool(BlockState state, ItemStack item) {
         val toolType = getToolType(state);
         val tier = getMinimalTier(state);
 
@@ -123,24 +124,25 @@ public abstract class BlockBehavior {
     }
 
     public boolean canBeReplaced(Block block) {
-        return false;
+        return block.getState().getType().isReplaceable();
     }
 
-    public boolean isTransparent() {
-        return false;
+    public boolean isTransparent(BlockState state) {
+        val type = state.getType();
+        return type.isTransparent() || type.getTranslucency() > 0;
     }
 
-    public boolean isSolid() {
-        return true;
+    public boolean isSolid(BlockState state) {
+        return state.getType().isSolid();
     }
 
     public boolean isLiquid() {
         return false;
     }
 
-    public int getFilterLevel() {
-        if (isSolid()) {
-            if (isTransparent()) {
+    public int getFilterLevel(BlockState state) {
+        if (isSolid(state)) {
+            if (isTransparent(state)) {
                 if (this instanceof BlockBehaviorLiquid || this instanceof BlockBehaviorIce) {
                     return 2;
                 }
@@ -159,16 +161,16 @@ public abstract class BlockBehavior {
         return false;
     }
 
-    public boolean canPassThrough() {
-        return false;
+    public boolean canPassThrough(BlockState state) {
+        return !state.getType().blocksMotion();
     }
 
     public boolean canBePushed() {
         return true;
     }
 
-    public boolean hasComparatorInputOverride() {
-        return false;
+    public boolean hasComparatorInputOverride(BlockState state) {
+        return state.getType().hasComparatorSignal();
     }
 
     public int getComparatorInputOverride(Block block) {
@@ -183,8 +185,8 @@ public abstract class BlockBehavior {
         return BlockColor.VOID_BLOCK_COLOR;
     }
 
-    public boolean canBeFlooded() {
-        return false;
+    public boolean canBeFlooded(BlockState state) {
+        return !state.getType().blocksWater();
     }
 
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
@@ -204,13 +206,13 @@ public abstract class BlockBehavior {
     }
 
     protected boolean placeBlock(Block block, BlockState newState, boolean update) {
-        BlockBehavior behavior = block.getState().getBehavior();
+        val state = block.getState();
+        BlockBehavior behavior = state.getBehavior();
         if (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging()) {
-            BlockState state = block.getState();
             boolean flowing = state.ensureTrait(BlockTraits.IS_FLOWING) || state.ensureTrait(BlockTraits.FLUID_LEVEL) != 0;
 
-            if (!flowing && canWaterlogSource() || flowing && canWaterlogFlowing()) {
-                block.set(block.getState(), 1, true, false);
+            if (!flowing && canWaterlogSource(state) || flowing && canWaterlogFlowing(state)) {
+                block.set(state, 1, true, false);
             }
         }
 
@@ -251,12 +253,12 @@ public abstract class BlockBehavior {
         return "tile." + state.getId().getName() + ".name";
     }
 
-    public float getResistance() {
-        return 1;
+    public float getResistance(BlockState blockState) {
+        return blockState.getType().getResistance();
     }
 
-    public float getFrictionFactor() {
-        return 0.6f;
+    public float getFrictionFactor(BlockState blockState) {
+        return blockState.getType().getFriction();
     }
 
     public Vector3f addVelocityToEntity(Block block, Vector3f vector, Entity entity) {
@@ -264,9 +266,13 @@ public abstract class BlockBehavior {
     }
 
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        return new ItemStack[]{
-                this.toItem(block)
-        };
+        if (checkTool(block.getState(), hand)) {
+            return new ItemStack[]{
+                    this.toItem(block)
+            };
+        } else {
+            return new ItemStack[0];
+        }
     }
 
     public float getBreakTime(BlockState state, ItemStack item, Player player) {
@@ -280,7 +286,7 @@ public abstract class BlockBehavior {
         val itemTier = itemBehavior.getTier(item);
 
         boolean correctTool = toolType == null || itemToolType == toolType;
-        boolean canHarvestWithHand = canHarvestWithHand();
+        boolean canHarvestWithHand = canHarvestWithHand(state);
         val blockType = state.getType();
         int efficiencyLoreLevel = Optional.ofNullable(item.getEnchantment(EnchantmentTypes.EFFICIENCY))
                 .map(EnchantmentInstance::getLevel).orElse(0);
@@ -366,7 +372,7 @@ public abstract class BlockBehavior {
     }
 
     public boolean isPowerSource(Block block) {
-        return false;
+        return block.getState().getType().isPowerSource();
     }
 
     public int getDropExp() {
@@ -374,7 +380,8 @@ public abstract class BlockBehavior {
     }
 
     public boolean isNormalBlock(Block block) {
-        return !isTransparent() && isSolid() && !isPowerSource(block);
+        val state = block.getState();
+        return !isTransparent(state) && isSolid(state) && !isPowerSource(block);
     }
 
     public BlockBehavior clone() {
@@ -389,15 +396,16 @@ public abstract class BlockBehavior {
         return ItemStack.get(block.getState());
     }
 
-    public boolean canSilkTouch() {
-        return false;
+    public boolean canSilkTouch(BlockState state) {
+        return state.getType().canBeSilkTouched();
     }
 
-    public boolean canWaterlogSource() {
-        return false;
+    public boolean canWaterlogSource(BlockState state) {
+        return state.getType().waterlogsSource();
     }
 
-    public boolean canWaterlogFlowing() {
-        return false;
+    public boolean canWaterlogFlowing(BlockState state) {
+        val type = state.getType();
+        return !type.breaksFlowing() && type.blocksWater();
     }
 }

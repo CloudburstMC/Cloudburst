@@ -3,11 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -25,22 +22,12 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
 
     private float offMinX;
     private float offMinZ;
     private float offMaxX;
     private float offMaxZ;
 
-
-
-    @Override
-    public float getResistance() {
-        return 2;
-    }
 
 //    private void calculateOffsets() { //TODO: bounding box
 //        float f = 0.1875f;
@@ -126,10 +113,6 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
         return 0;
     }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_AXE;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
@@ -143,8 +126,5 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
         };
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

@@ -24,11 +24,6 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
 
     @Override
-    public float getResistance() {
-        return 0;
-    }
-
-    @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.UP) return false;
 
@@ -124,17 +119,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 //    }
 
     @Override
-    public boolean canPassThrough() {
-        return false;
-    }
-
-    @Override
     public ItemStack toItem(Block block) {
         return ItemStack.get(ItemTypes.FLOWER_POT);
-    }
-
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
     }
 }

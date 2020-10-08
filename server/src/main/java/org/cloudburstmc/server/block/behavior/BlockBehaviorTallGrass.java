@@ -8,8 +8,6 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -28,21 +26,6 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     @Override
     public boolean canBeActivated(Block block) {
         return true;
-    }
-
-    @Override
-    public boolean canBeReplaced(Block block) {
-        return true;
-    }
-
-    @Override
-    public int getBurnChance(BlockState state) {
-        return 60;
-    }
-
-    @Override
-    public int getBurnAbility(BlockState state) {
-        return 100;
     }
 
     @Override
@@ -116,10 +99,6 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
         }
     }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_SHEARS;
-    }
 
     @Override
     public BlockColor getColor(Block block) {

@@ -22,11 +22,6 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
 
 
     @Override
-    public float getResistance() {
-        return 2;
-    }
-
-    @Override
     public boolean hasEntityCollision() {
         return true;
     }
@@ -139,12 +134,9 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(CACTUS, 0, 1)
+                ItemStack.get(CACTUS, 1)
         };
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

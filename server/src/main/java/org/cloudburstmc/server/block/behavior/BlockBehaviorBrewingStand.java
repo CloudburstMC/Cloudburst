@@ -9,7 +9,10 @@ import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BrewingStand;
 import org.cloudburstmc.server.inventory.ContainerInventory;
-import org.cloudburstmc.server.item.*;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -23,22 +26,6 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
     @Override
     public boolean canBeActivated(Block block) {
         return true;
-    }
-
-
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ToolTypes.PICKAXE;
-    }
-
-    @Override
-    public int getLightLevel(Block block) {
-        return 1;
     }
 
     @Override
@@ -100,9 +87,6 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
         return BlockColor.IRON_BLOCK_COLOR;
     }
 
-    public boolean hasComparatorInputOverride() {
-        return true;
-    }
 
     @Override
     public int getComparatorInputOverride(Block block) {
@@ -115,13 +99,5 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
         return super.getComparatorInputOverride(block);
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 }

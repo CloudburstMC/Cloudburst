@@ -17,7 +17,7 @@ public class BlockBehaviorWheat extends BlockBehaviorCrops {
         if (block.getState().ensureTrait(BlockTraits.GROWTH) >= 0x07) {
             return new ItemStack[]{
                     ItemStack.get(ItemTypes.WHEAT),
-                    ItemStack.get(ItemTypes.WHEAT, 0, (int) (4f * Math.random()))
+                    ItemStack.get(ItemTypes.WHEAT, (int) (4f * Math.random()))
             };
         } else {
             return new ItemStack[]{

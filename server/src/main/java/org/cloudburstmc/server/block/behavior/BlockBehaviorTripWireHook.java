@@ -179,10 +179,6 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         return state.ensureTrait(BlockTraits.IS_POWERED);
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
 
     @Override
     public int getWeakPower(Block block, Direction face) {
@@ -200,15 +196,6 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         return ItemStack.get(block.getState().defaultState());
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
-
-    @Override
-    public boolean canWaterlogFlowing() {
-        return true;
-    }
 
     private boolean _isNormalBlock(Block block) {
         return block.getState().getBehavior().isNormalBlock(block);

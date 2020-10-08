@@ -18,37 +18,6 @@ public class BlockBehaviorLight extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
-
-    @Override
-    public boolean canWaterlogFlowing() {
-        return true;
-    }
-
-    @Override
-    public boolean canBeReplaced(Block block) {
-        return true;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
-
-
-    @Override
-    public float getResistance() {
-        return 0;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
-    @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[0];
     }

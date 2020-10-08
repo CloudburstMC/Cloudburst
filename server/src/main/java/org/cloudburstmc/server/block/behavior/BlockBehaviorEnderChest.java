@@ -8,9 +8,8 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.EnderChest;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -26,22 +25,6 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public int getLightLevel(Block block) {
-        return 7;
-    }
-
-
-
-    @Override
-    public float getResistance() {
-        return 3000;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
 
 //    @Override
 //    public float getMinX() {
@@ -72,12 +55,12 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         int[] faces = {2, 5, 3, 4};
 
-        placeBlock(block, item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
+        placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
 
         EnderChest enderChest = BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, block);
-        enderChest.loadAdditionalData(item.getTag());
-        if (item.hasCustomName()) {
-            enderChest.setCustomName(item.getCustomName());
+        enderChest.loadAdditionalData(((CloudItemStack) item).getDataTag());
+        if (item.hasName()) {
+            enderChest.setCustomName(item.getName());
         }
         return true;
     }
@@ -92,7 +75,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             if (!(blockEntity instanceof EnderChest)) {
-                BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, block.getChunk(), block.getPosition());
+                blockEntity = BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, block.getChunk(), block.getPosition());
             }
 
             player.setViewingEnderChest((EnderChest) blockEntity);
@@ -104,9 +87,9 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+        if (checkTool(block.getState(), hand)) {
             return new ItemStack[]{
-                    ItemStack.get(OBSIDIAN, 0, 8)
+                    ItemStack.get(OBSIDIAN, 8)
             };
         } else {
             return new ItemStack[0];
@@ -123,23 +106,11 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
         return false;
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
-
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 
     @Override
     public ItemStack toItem(Block block) {
         return CloudItemRegistry.get().getItem(block.getState().defaultState());
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

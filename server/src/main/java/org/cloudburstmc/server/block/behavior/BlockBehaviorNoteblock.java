@@ -5,15 +5,12 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Noteblock;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -101,12 +98,10 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         INSTRUMENTS.put(BlockTypes.LAPIS_ORE, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.DIAMOND_ORE, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.REDSTONE_ORE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.LIT_REDSTONE_ORE, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.EMERALD_ORE, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.DROPPER, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.DISPENSER, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.FURNACE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.LIT_FURNACE, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.OBSIDIAN, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.GLOWING_OBSIDIAN, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.MOB_SPAWNER, Instrument.BASS_DRUM);
@@ -129,16 +124,6 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         INSTRUMENTS.put(BlockTypes.OBSERVER, Instrument.BASS_DRUM);
     }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ToolTypes.AXE;
-    }
-
-
-    @Override
-    public float getResistance() {
-        return 4f;
-    }
 
     @Override
     public boolean canBeActivated(Block block) {

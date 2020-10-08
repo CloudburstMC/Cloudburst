@@ -8,8 +8,6 @@ import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -74,21 +72,8 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 //        return this.isTopSlab() ? (this.getY() + 1f) : (this.getY() + 0.5f);
 //    }
 
-    @Override
-    public float getResistance() {
-        return 30;
-    }
 
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
     @Override
     public ItemStack toItem(Block block) {
@@ -190,10 +175,6 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
         return type;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 
     protected void playDoublePlaceSound(Block block) {
         LevelSoundEvent2Packet pk = new LevelSoundEvent2Packet();

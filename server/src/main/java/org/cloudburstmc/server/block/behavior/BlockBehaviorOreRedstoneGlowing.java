@@ -9,10 +9,6 @@ import org.cloudburstmc.server.level.Level;
 
 public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
 
-    @Override
-    public int getLightLevel(Block block) {
-        return 9;
-    }
 
     @Override
     public ItemStack toItem(Block block) {
@@ -34,13 +30,5 @@ public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
         return 0;
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 }

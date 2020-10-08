@@ -1,30 +1,17 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorClay extends BlockBehaviorSolid {
 
 
     @Override
-    public float getResistance() {
-        return 3;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_SHOVEL;
-    }
-
-    @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.CLAY_BALL, 0, 4)
+                ItemStack.get(ItemTypes.CLAY_BALL, 4)
         };
     }
 
@@ -33,8 +20,5 @@ public class BlockBehaviorClay extends BlockBehaviorSolid {
         return BlockColor.CLAY_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
+
 }

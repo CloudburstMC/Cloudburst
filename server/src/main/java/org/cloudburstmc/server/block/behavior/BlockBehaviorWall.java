@@ -8,8 +8,6 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.trait.EnumBlockTrait;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
@@ -28,17 +26,6 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
         DIRECTION_MAP[Direction.SOUTH.ordinal()] = BlockTraits.WALL_CONNECTION_SOUTH;
         DIRECTION_MAP[Direction.WEST.ordinal()] = BlockTraits.WALL_CONNECTION_WEST;
         DIRECTION_MAP[Direction.EAST.ordinal()] = BlockTraits.WALL_CONNECTION_EAST;
-    }
-
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
-
-
-    @Override
-    public float getResistance() {
-        return 30;
     }
 
 //    @Override //TODO: bounding box
@@ -76,20 +63,6 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
 //        return (!(blockState.getId() != COBBLESTONE_WALL && blockState instanceof BlockBehaviorFence)) || blockState.isSolid() && !blockState.isTransparent();
 //    }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
-
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 
     public EnumBlockTrait<WallConnectionType> getConnectionTypeTrait(Direction direction) {
         return DIRECTION_MAP[direction.ordinal()];
@@ -148,7 +121,7 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val connections = findConnections(block);
 
-        BlockState newState = item.getBlock();
+        BlockState newState = item.getBehavior().getBlock(item);
 
         for (Direction direction : Plane.HORIZONTAL) {
             newState = newState.withTrait(

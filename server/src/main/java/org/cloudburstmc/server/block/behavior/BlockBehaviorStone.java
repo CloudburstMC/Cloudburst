@@ -7,25 +7,12 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.data.StoneType;
 
 import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE;
 
 public class BlockBehaviorStone extends BlockBehaviorSolid {
 
-
-
-    @Override
-    public float getResistance() {
-        return 10;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
@@ -42,13 +29,5 @@ public class BlockBehaviorStone extends BlockBehaviorSolid {
         }
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 }

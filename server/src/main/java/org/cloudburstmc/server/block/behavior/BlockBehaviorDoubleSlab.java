@@ -8,8 +8,6 @@ import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.StoneSlabType;
@@ -19,6 +17,7 @@ import static org.cloudburstmc.server.block.behavior.BlockBehaviorSlab.COLORS;
 public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
 
     protected BlockType slabType;
+    @SuppressWarnings("rawtypes")
     protected BlockTrait typeTrait;
 
     public BlockBehaviorDoubleSlab(BlockType slabType) {
@@ -30,21 +29,8 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
         this.typeTrait = typeTrait;
     }
 
-    @Override
-    public float getResistance() {
-        return 30;
-    }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
-
+    @SuppressWarnings("unchecked")
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         val behavior = hand.getBehavior();

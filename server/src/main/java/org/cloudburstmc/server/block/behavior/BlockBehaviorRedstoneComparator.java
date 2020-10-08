@@ -61,14 +61,15 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
         int power = super.calculateInputStrength(block);
         Direction face = getFacing(block.getState());
         Block b = block.getSide(face);
-        val behavior = b.getState().getBehavior();
+        val state = b.getState();
+        val behavior = state.getBehavior();
 
-        if (behavior.hasComparatorInputOverride()) {
+        if (behavior.hasComparatorInputOverride(state)) {
             power = behavior.getComparatorInputOverride(b);
         } else if (power < 15 && behavior.isNormalBlock(b)) {
             b = b.getSide(face);
 
-            if (behavior.hasComparatorInputOverride()) {
+            if (behavior.hasComparatorInputOverride(state)) {
                 power = behavior.getComparatorInputOverride(b);
             }
         }

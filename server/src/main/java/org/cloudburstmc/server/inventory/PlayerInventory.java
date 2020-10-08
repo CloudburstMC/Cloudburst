@@ -285,7 +285,7 @@ public class PlayerInventory extends BaseInventory {
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            ItemStack item = ItemStack.get(AIR, 0, 0);
+            ItemStack item = ItemStack.get(AIR);
             ItemStack old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
@@ -451,7 +451,7 @@ public class PlayerInventory extends BaseInventory {
 
         for (int i = 0; i < 4; ++i) {
             if (items[i] == null) {
-                items[i] = ItemStack.get(AIR, 0, 0);
+                items[i] = ItemStack.get(AIR);
             }
 
             if (items[i].isNull()) {

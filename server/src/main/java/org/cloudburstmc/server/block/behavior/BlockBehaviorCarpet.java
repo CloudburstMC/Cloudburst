@@ -14,22 +14,6 @@ import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 public class BlockBehaviorCarpet extends FloodableBlockBehavior {
 
-
-    @Override
-    public float getResistance() {
-        return 0.5f;
-    }
-
-    @Override
-    public boolean isSolid() {
-        return true;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return false;
-    }
-
 //    @Override
 //    public float getMaxY() {
 //        return this.getY() + 0.0625f;
@@ -67,8 +51,5 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
         return block.getState().ensureTrait(BlockTraits.COLOR);
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

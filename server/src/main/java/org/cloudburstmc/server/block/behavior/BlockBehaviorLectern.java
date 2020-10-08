@@ -13,8 +13,6 @@ import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.LecternDropBookEvent;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -30,25 +28,12 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
 
-    @Override
-    public float getResistance() {
-        return 12.5f;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_AXE;
-    }
-
 //    @Override //TODO: bounding box
 //    public float getMaxY() {
 //        return this.getY() + 0.89999f;
 //    }
 
-    @Override
-    public boolean hasComparatorInputOverride() {
-        return true;
-    }
+
 
     @Override
     public int getComparatorInputOverride(Block block) {
@@ -93,15 +78,13 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
             }
 
             ItemStack currentBook = lectern.getBook();
-            if (currentBook != null && currentBook.getId() == BlockTypes.AIR) {
-                if (item.getId() == ItemTypes.WRITTEN_BOOK || item.getId() == ItemTypes.WRITABLE_BOOK) {
-                    ItemStack newBook = item.clone();
+            if (currentBook != null && currentBook.isNull()) {
+                if (item.getType() == ItemTypes.WRITTEN_BOOK || item.getType() == ItemTypes.WRITABLE_BOOK) {
                     if (player.isSurvival()) {
-                        newBook.setCount(newBook.getCount() - 1);
-                        player.getInventory().setItemInHand(newBook);
+                        player.getInventory().decrementHandCount();
                     }
-                    newBook.setCount(1);
-                    lectern.setBook(newBook);
+
+                    lectern.setBook(item.withAmount(1));
                     lectern.spawnToAll();
                     block.getLevel().addSound(block.getPosition(), Sound.ITEM_BOOK_PUT);
                 }
@@ -111,10 +94,6 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
 
     public boolean isActivated(BlockState state) {
         return state.ensureTrait(BlockTraits.IS_POWERED);
@@ -173,7 +152,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         if (blockEntity instanceof Lectern) {
             Lectern lectern = (Lectern) blockEntity;
             ItemStack book = lectern.getBook();
-            if (book != null && book.getId() != BlockTypes.AIR) {
+            if (book != null && !book.isNull()) {
                 LecternDropBookEvent dropBookEvent = new LecternDropBookEvent(player, lectern, book);
                 block.getLevel().getServer().getEventManager().fire(dropBookEvent);
                 if (!dropBookEvent.isCancelled()) {

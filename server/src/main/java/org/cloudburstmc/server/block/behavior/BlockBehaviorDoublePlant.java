@@ -1,7 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.*;
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockCategory;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
@@ -11,6 +14,7 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DoublePlantType;
+import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -20,10 +24,6 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
     @Override
     public boolean canBeReplaced(Block block) {
-        if (block == null) {
-            return true;
-        }
-
         DoublePlantType type = block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE);
         return type == DoublePlantType.GRASS || type == DoublePlantType.FERN;
     }
@@ -55,7 +55,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
         if (up.getState().getType() == AIR && (down.getType() == GRASS || down.getType() == DIRT)) {
             placeBlock(block, item, false); // If we update the bottom half, it will drop the item because there isn't a flower block above
-            placeBlock(up, item.getBlock().withTrait(BlockTraits.IS_UPPER_BLOCK, true));
+            placeBlock(up, item.getBehavior().getBlock(item).withTrait(BlockTraits.IS_UPPER_BLOCK, true));
             return true;
         }
 
@@ -83,10 +83,10 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
             switch (type) {
                 case GRASS:
                 case FERN:
-                    if (hand.isShears()) {
+                    if (hand.getBehavior().isShears()) {
                         //todo enchantment
                         return new ItemStack[]{
-                                ItemStack.get(BlockTypes.TALL_GRASS, type == DoublePlantType.GRASS ? 1 : 2, 2)
+                                ItemStack.get(block.getState(), 2)
                         };
                     }
 
@@ -117,14 +117,14 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == ItemTypes.DYE && item.getMeta() == 0x0f) { //Bone meal
+        if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bone meal
             switch (block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE)) {
                 case SUNFLOWER:
                 case SYRINGA:
                 case ROSE:
                 case PAEONIA:
                     if (player != null && player.getGamemode().isSurvival()) {
-                        item.decrementCount();
+                        player.getInventory().decrementHandCount();
                     }
                     block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
                     block.getLevel().dropItem(block.getPosition(), CloudItemRegistry.get().getItem(block.getState()));

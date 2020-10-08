@@ -2,11 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Axis;
 import org.cloudburstmc.server.player.Player;
@@ -16,18 +13,8 @@ public class BlockBehaviorPurpur extends BlockBehaviorSolid {
 
 
     @Override
-    public float getResistance() {
-        return 30;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
-
-    @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return placeBlock(block, item.getBlock().withTrait(
+        return placeBlock(block, item.getBehavior().getBlock(item).withTrait(
                 BlockTraits.AXIS,
                 player != null ? player.getDirection().getAxis() : Axis.Y
         ));
@@ -35,7 +22,7 @@ public class BlockBehaviorPurpur extends BlockBehaviorSolid {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
+        if (checkTool(block.getState(), hand)) {
             return new ItemStack[]{
                     toItem(block)
             };

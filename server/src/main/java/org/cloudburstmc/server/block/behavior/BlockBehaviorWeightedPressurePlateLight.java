@@ -1,10 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -13,28 +9,6 @@ public class BlockBehaviorWeightedPressurePlateLight extends BlockBehaviorPressu
     public BlockBehaviorWeightedPressurePlateLight() {
         this.onPitch = 0.90000004f;
         this.offPitch = 0.75f;
-    }
-
-
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
-
-    @Override
-    public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
-            return new ItemStack[]{
-                    toItem(block)
-            };
-        } else {
-            return new ItemStack[0];
-        }
     }
 
     @Override

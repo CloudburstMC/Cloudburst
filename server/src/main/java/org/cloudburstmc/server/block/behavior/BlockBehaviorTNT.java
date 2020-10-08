@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityTypes;
@@ -22,24 +21,10 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
 
 
     @Override
-    public float getResistance() {
-        return 0;
-    }
-
-    @Override
     public boolean canBeActivated(Block block) {
         return true;
     }
 
-    @Override
-    public int getBurnChance(BlockState state) {
-        return 15;
-    }
-
-    @Override
-    public int getBurnAbility(BlockState state) {
-        return 100;
-    }
 
     public void prime(Block block) {
         this.prime(block, 80);
@@ -81,7 +66,7 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
             return true;
         }
         if (item.getType() == ItemTypes.FIREBALL) {
-            if (!player.isCreative()) player.getInventory().removeItem(ItemStack.get(ItemTypes.FIREBALL, 0, 1));
+            if (!player.isCreative()) player.getInventory().removeItem(ItemStack.get(ItemTypes.FIREBALL));
             block.getLevel().addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
             this.prime(block, 80, player);
             return true;

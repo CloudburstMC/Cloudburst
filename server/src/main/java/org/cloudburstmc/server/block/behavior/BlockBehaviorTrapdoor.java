@@ -8,8 +8,6 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.AxisAlignedBB;
@@ -109,15 +107,6 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_AXE;
-    }
-
-    @Override
-    public float getResistance() {
-        return 15;
-    }
 
 //    private AxisAlignedBB getRelativeBoundingBox() { //TODO: bounding box
 //        return boundingBoxDamage[this.getMeta()];
@@ -201,7 +190,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
             top = face != Direction.UP;
         }
 
-        return placeBlock(block, item.getBlock()
+        return placeBlock(block, item.getBehavior().getBlock(item)
                 .withTrait(BlockTraits.DIRECTION, facing)
                 .withTrait(BlockTraits.IS_UPSIDE_DOWN, top)
         );
@@ -231,8 +220,5 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
         return this.blockColor;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

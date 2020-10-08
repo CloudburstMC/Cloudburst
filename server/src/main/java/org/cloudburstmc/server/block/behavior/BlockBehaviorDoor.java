@@ -22,10 +22,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
+
 
 //    @Override
 //    public AxisAlignedBB getBoundingBox(Block block) {
@@ -211,7 +208,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
             Block blockDown = block.down();
             BlockBehavior downBehavior = blockDown.getState().getBehavior();
 
-            if (!upBehavior.canBeReplaced(blockUp) || downBehavior.isTransparent()) {
+            if (!upBehavior.canBeReplaced(blockUp) || downBehavior.isTransparent(blockDown.getState())) {
                 return false;
             }
 
@@ -220,11 +217,11 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
             BlockState left = block.getSide(direction.rotateYCCW()).getState();
             BlockState right = block.getSide(direction.rotateY()).getState();
 
-            BlockState door = item.getBlock().withTrait(BlockTraits.DIRECTION, direction);
+            BlockState door = item.getBehavior().getBlock(item).withTrait(BlockTraits.DIRECTION, direction);
             placeBlock(block, door);
 
             door = door.withTrait(BlockTraits.IS_UPPER_BLOCK, true);
-            if (left.getType() == block.getState().getType() || (!right.getBehavior().isTransparent() && left.getBehavior().isTransparent())) { //Door hinge
+            if (left.getType() == block.getState().getType() || (!right.getBehavior().isTransparent(right) && left.getBehavior().isTransparent(left))) { //Door hinge
                 door = door.withTrait(BlockTraits.IS_DOOR_HINGE, false);
             }
 
@@ -308,8 +305,5 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
         return state.ensureTrait(BlockTraits.IS_DOOR_HINGE);
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

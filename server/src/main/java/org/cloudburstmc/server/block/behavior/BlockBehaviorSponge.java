@@ -7,7 +7,6 @@ import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
@@ -26,11 +25,6 @@ import static org.cloudburstmc.server.utils.data.SpongeType.WET;
 
 public class BlockBehaviorSponge extends BlockBehaviorSolid {
 
-
-    @Override
-    public float getResistance() {
-        return 3;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
@@ -62,7 +56,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
                     LevelEventPacket packet = new LevelEventPacket();
                     packet.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
                     packet.setPosition(block.getPosition().toFloat().add(0.5, 0.5, 0.5));
-                    packet.setData(BlockRegistry.get().getRuntimeId(BlockTypes.FLOWING_WATER, 0));
+                    packet.setData(BlockRegistry.get().getRuntimeId(BlockStates.FLOWING_WATER));
                     level.addChunkPacket(block.getPosition(), packet);
                 }
             }

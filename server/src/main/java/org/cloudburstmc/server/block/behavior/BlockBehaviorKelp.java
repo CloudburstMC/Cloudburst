@@ -14,7 +14,7 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -128,13 +128,13 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == ItemTypes.DYE && item.getMeta() == 0x0f) { //Bone Meal
+        if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bone Meal
             val level = block.getLevel();
             int x = block.getX();
             int z = block.getZ();
             for (int y = block.getY() + 1; y < 255; y++) {
                 val above = level.getBlockAt(x, y, z);
-                Identifier blockAbove = above.getType();
+                val blockAbove = above.getType();
                 if (blockAbove == KELP) {
                     continue;
                 }
@@ -147,7 +147,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
                             level.addParticle(new BoneMealParticle(block.getPosition()));
 
                             if (player != null && !player.isCreative()) {
-                                item.decrementCount(1);
+                                player.getInventory().decrementHandCount();
                             }
                             return false;
                         }
@@ -168,15 +168,6 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
         return ItemStack.get(ItemTypes.KELP);
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
-
-    @Override
-    public boolean canWaterlogFlowing() {
-        return true;
-    }
 
     @Override
     public boolean canBeActivated(Block block) {

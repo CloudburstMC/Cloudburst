@@ -8,10 +8,9 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Skull;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -20,15 +19,7 @@ import org.cloudburstmc.server.utils.BlockColor;
 public class BlockBehaviorSkull extends BlockBehaviorTransparent {
 
 
-    @Override
-    public float getResistance() {
-        return 5;
-    }
 
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
@@ -39,8 +30,8 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
         placeBlock(block, BlockState.get(BlockTypes.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
 
         Skull skull = BlockEntityRegistry.get().newEntity(BlockEntityTypes.SKULL, block);
-        skull.loadAdditionalData(item.getTag());
-        skull.setSkullType(item.getMeta());
+        skull.loadAdditionalData(((CloudItemStack) item).getDataTag());
+//        skull.setSkullType(item.getMeta()); //TODO: skull type
         skull.setRotation((player.getYaw() * 16 / 360) + 0.5f);
 
         // TODO: 2016/2/3 SPAWN WITHER
@@ -57,21 +48,14 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
             meta = ((Skull) be).getSkullType();
         }
 
-        return ItemStack.get(ItemTypes.SKULL, meta);
+        return ItemStack.get(ItemTypes.SKULL); //TODO: skull type
     }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

@@ -66,7 +66,7 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.PUMPKIN_SEEDS, 0, ThreadLocalRandom.current().nextInt(0, 4))
+                ItemStack.get(ItemTypes.PUMPKIN_SEEDS, ThreadLocalRandom.current().nextInt(0, 4))
         };
     }
 }

@@ -26,11 +26,6 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public float getResistance() {
-        return 1;
-    }
-
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
@@ -162,8 +157,5 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         return DyeColor.WHITE;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

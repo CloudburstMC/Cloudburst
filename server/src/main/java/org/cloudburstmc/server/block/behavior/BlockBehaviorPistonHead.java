@@ -6,11 +6,6 @@ import org.cloudburstmc.server.item.ItemStack;
 
 public class BlockBehaviorPistonHead extends BlockBehaviorTransparent {
 
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
@@ -24,11 +19,8 @@ public class BlockBehaviorPistonHead extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(BlockTypes.AIR, 0, 0);
+        return ItemStack.get(BlockTypes.AIR);
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

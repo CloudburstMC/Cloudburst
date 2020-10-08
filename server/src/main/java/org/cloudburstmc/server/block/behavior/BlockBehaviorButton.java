@@ -11,22 +11,8 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorButton extends FloodableBlockBehavior {
-
-    protected final Identifier type;
-
-    public BlockBehaviorButton(Identifier type) {
-        this.type = type;
-    }
-
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
@@ -34,7 +20,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
             return false;
         }
 
-        BlockState btn = BlockRegistry.get().getBlock(this.type).withTrait(BlockTraits.FACING_DIRECTION, face);
+        BlockState btn = item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, face);
         placeBlock(block, btn);
         return true;
     }
@@ -93,10 +79,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
         return block.getState().ensureTrait(BlockTraits.IS_BUTTON_PRESSED);
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
+
 
     public int getWeakPower(Block block, Direction side) {
         return isActivated(block) ? 15 : 0;
@@ -121,11 +104,8 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().getType());
+        return ItemStack.get(block.getState().resetTrait(BlockTraits.FACING_DIRECTION).resetTrait(BlockTraits.IS_BUTTON_PRESSED));
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

@@ -19,10 +19,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
         canBePowered = true;
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
+
 
     @Override
     public int getWeakPower(Block block, Direction side) {
@@ -85,7 +82,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(DETECTOR_RAIL, 0, 1)
+                ItemStack.get(DETECTOR_RAIL)
         };
     }
 }
