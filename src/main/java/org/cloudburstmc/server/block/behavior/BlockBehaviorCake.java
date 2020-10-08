@@ -20,11 +20,6 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
     }
 
 
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
 //    @Override
 //    public float getMinX() {
 //        return this.getX() + (1 + getMeta() * 2) / 16f;
@@ -100,7 +95,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
             if (counter >= 6) {
                 removeBlock(block, true);
             } else {
-                Food.getByRelative(block.getState(), counter).eatenBy(player);
+                Food.getByRelative(ItemStack.get(block.getState())).eatenBy(player);
                 block.set(block.getState().withTrait(BlockTraits.BITE_COUNTER, counter), true);
             }
 
@@ -118,12 +113,5 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
         return (7 - block.getState().ensureTrait(BlockTraits.BITE_COUNTER)) << 1;
     }
 
-    public boolean hasComparatorInputOverride() {
-        return true;
-    }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 }

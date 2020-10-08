@@ -17,11 +17,6 @@ import java.util.Random;
 public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
 
     @Override
-    public boolean canBeReplaced(Block block) {
-        return true;
-    }
-
-    @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val down = block.down().getState().getType();
         if (down == BlockTypes.SAND || down == BlockTypes.HARDENED_CLAY || down == BlockTypes.STAINED_HARDENED_CLAY ||
@@ -46,13 +41,13 @@ public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isShears()) {
+        if (hand.getBehavior().isShears()) {
             return new ItemStack[]{
                     toItem(block)
             };
         } else {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.STICK, 0, new Random().nextInt(3))
+                    ItemStack.get(ItemTypes.STICK, new Random().nextInt(3))
             };
         }
     }
@@ -61,8 +56,5 @@ public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

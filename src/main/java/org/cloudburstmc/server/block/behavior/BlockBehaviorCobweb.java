@@ -1,27 +1,14 @@
 package org.cloudburstmc.server.block.behavior;
 
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorCobweb extends FloodableBlockBehavior {
 
-
-
-    @Override
-    public float getResistance() {
-        return 20;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_SWORD;
-    }
 
     @Override
     public void onEntityCollide(Block block, Entity entity) {
@@ -30,7 +17,8 @@ public class BlockBehaviorCobweb extends FloodableBlockBehavior {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isShears() || hand.isSword()) {
+        val behavior = hand.getBehavior();
+        if (behavior.isShears() || behavior.isSword()) {
             return new ItemStack[]{
                     ItemStack.get(ItemTypes.STRING)
             };
@@ -44,13 +32,5 @@ public class BlockBehaviorCobweb extends FloodableBlockBehavior {
         return BlockColor.CLOTH_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 }

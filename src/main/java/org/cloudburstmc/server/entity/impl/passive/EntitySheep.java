@@ -88,14 +88,14 @@ public class EntitySheep extends Animal implements Sheep {
         this.setSheared(true);
         this.data.setFlag(SHEARED, true);
 
-        this.level.dropItem(this.getPosition(), ItemStack.get(WOOL, getColor(), ThreadLocalRandom.current().nextInt(2) + 1));
+        this.level.dropItem(this.getPosition(), ItemStack.get(WOOL, ThreadLocalRandom.current().nextInt(2) + 1, DyeColor.getByWoolData(getColor())));
         return true;
     }
 
     @Override
     public ItemStack[] getDrops() {
         if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
-            return new ItemStack[]{ItemStack.get(WOOL, getColor(), 1)};
+            return new ItemStack[]{ItemStack.get(WOOL, DyeColor.getByWoolData(getColor()))};
         }
         return new ItemStack[0];
     }

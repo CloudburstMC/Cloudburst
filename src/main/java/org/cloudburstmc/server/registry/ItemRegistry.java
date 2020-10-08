@@ -12,9 +12,17 @@ public interface ItemRegistry extends Registry {
 
     void register(ItemType type, ItemSerializer serializer, ItemBehavior behavior, Identifier... identifiers) throws RegistryException;
 
-    ItemStack getItem(BlockState state) throws RegistryException;
+    default ItemStack getItem(BlockState state) throws RegistryException {
+        return getItem(state, 1);
+    }
 
-    ItemStack getItem(ItemType type, Object... metadata) throws RegistryException;
+    ItemStack getItem(BlockState state, int amount) throws RegistryException;
+
+    default ItemStack getItem(ItemType type, Object... metadata) throws RegistryException {
+        return getItem(type, 1, metadata);
+    }
+
+    ItemStack getItem(ItemType type, int amount, Object... metadata) throws RegistryException;
 
     Identifier getIdentifier(int runtimeId) throws RegistryException;
 

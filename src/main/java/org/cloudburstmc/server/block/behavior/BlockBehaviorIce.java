@@ -7,8 +7,6 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.Player;
@@ -16,21 +14,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorIce extends BlockBehaviorTransparent {
 
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
-
-    @Override
-    public float getFrictionFactor() {
-        return 0.98f;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ToolTypes.PICKAXE;
-    }
 
     @Override
     public boolean onBreak(Block block, ItemStack item, Player player) {
@@ -73,8 +56,5 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
         return BlockColor.ICE_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
+
 }

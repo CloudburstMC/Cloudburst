@@ -3,12 +3,10 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 
 import java.util.Random;
@@ -16,30 +14,18 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
 
-
-
-    @Override
-    public float getResistance() {
-        return 15;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
-
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_IRON) {
+        if (checkTool(block.getState(), hand)) {
             int count = new Random().nextInt(2) + 4;
 
-            EnchantmentInstance fortune = hand.getEnchantment(CloudEnchantmentInstance.ID_FORTUNE_DIGGING);
+            EnchantmentInstance fortune = hand.getEnchantment(EnchantmentTypes.FORTUNE);
             if (fortune != null && fortune.getLevel() >= 1) {
                 count += new Random().nextInt(fortune.getLevel() + 1);
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.REDSTONE, 0, count)
+                    ItemStack.get(ItemTypes.REDSTONE, count)
             };
         } else {
             return new ItemStack[0];
@@ -62,13 +48,5 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
         return ThreadLocalRandom.current().nextInt(1, 6);
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 }

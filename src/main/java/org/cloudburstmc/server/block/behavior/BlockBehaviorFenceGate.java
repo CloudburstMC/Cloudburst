@@ -4,12 +4,9 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -26,10 +23,6 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_AXE;
-    }
 
     private static final float[] offMaxX = new float[2];
     private static final float[] offMaxZ = new float[2];
@@ -46,11 +39,6 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
         offMaxZ[1] = 1;
     }
 
-
-    @Override
-    public float getResistance() {
-        return 15;
-    }
 
 //    private int getOffsetIndex() {
 //        switch (this.getMeta() & 0x03) {
@@ -148,8 +136,5 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
         return 0;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

@@ -30,21 +30,6 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     @Override
-    public int getLightLevel(Block block) {
-        return 15;
-    }
-
-    @Override
-    public boolean isBreakable(ItemStack item) {
-        return false;
-    }
-
-    @Override
-    public boolean canBeReplaced(Block block) {
-        return true;
-    }
-
-    @Override
     public void onEntityCollide(Block block, Entity entity) {
         if (!entity.hasEffect(Effect.FIRE_RESISTANCE)) {
             entity.attack(new EntityDamageByBlockEvent(block, entity, EntityDamageEvent.DamageCause.FIRE, 1));
@@ -127,7 +112,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                             level.setBlock(position, event.getNewState(), true);
                         }
                     }
-                } else if (!forever && !(down.getBehavior().getBurnAbility() > 0) && age == 15 && random.nextInt(4) == 0) {
+                } else if (!forever && !(down.getBehavior().getBurnAbility(down) > 0) && age == 15 && random.nextInt(4) == 0) {
                     BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
                     level.getServer().getEventManager().fire(event);
                     if (!event.isCancelled()) {
@@ -195,7 +180,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         val state = block.getState();
         val behavior = state.getBehavior();
 
-        int burnAbility = behavior.getBurnAbility();
+        int burnAbility = behavior.getBurnAbility(state);
 
         Random random = ThreadLocalRandom.current();
 
@@ -238,7 +223,8 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
             int chance = 0;
 
             for (Direction direction : Direction.values()) {
-                chance = Math.max(chance, block.getSide(direction).getState().getBehavior().getBurnChance());
+                val sideState = block.getSide(direction).getState();
+                chance = Math.max(chance, sideState.getBehavior().getBurnChance(sideState));
             }
 
             return chance;
@@ -247,7 +233,8 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
     public static boolean canNeighborBurn(Block block) {
         for (Direction face : Direction.values()) {
-            if (block.getSide(face).getState().getBehavior().getBurnChance() > 0) {
+            val sideState = block.getSide(face).getState();
+            if (sideState.getBehavior().getBurnChance(sideState) > 0) {
                 return true;
             }
         }

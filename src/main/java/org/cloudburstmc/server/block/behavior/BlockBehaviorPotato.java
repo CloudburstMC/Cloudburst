@@ -18,7 +18,7 @@ public class BlockBehaviorPotato extends BlockBehaviorCrops {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.GROWTH) == 7) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.POTATO, 0, new Random().nextInt(3) + 1)
+                    ItemStack.get(ItemTypes.POTATO, new Random().nextInt(3) + 1)
             };
         } else {
             return new ItemStack[]{

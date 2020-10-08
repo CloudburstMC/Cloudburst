@@ -7,9 +7,8 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.inventory.ContainerInventory;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Axis;
 import org.cloudburstmc.server.math.Direction.Plane;
@@ -22,27 +21,13 @@ import org.cloudburstmc.server.utils.BlockColor;
 @Log4j2
 public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 
     @Override
     public boolean canBeActivated(Block block) {
         return true;
     }
 
-
-
-    @Override
-    public float getResistance() {
-        return 12.5f;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_AXE;
-    }
 
 //    @Override
 //    public float getMinX() {
@@ -102,9 +87,9 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
         placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace));
 
         Chest chest1 = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, block.getChunk(), block.getPosition());
-        chest1.loadAdditionalData(item.getTag());
-        if (item.hasCustomName()) {
-            chest1.setCustomName(item.getCustomName());
+        chest1.loadAdditionalData(((CloudItemStack) item).getDataTag());
+        if (item.hasName()) {
+            chest1.setCustomName(item.getName());
         }
 
         if (chest != null) {
@@ -150,9 +135,6 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
-    public boolean hasComparatorInputOverride() {
-        return true;
-    }
 
     public int getComparatorInputOverride(Block block) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());

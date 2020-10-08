@@ -1,29 +1,19 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentTypes;
-import org.cloudburstmc.server.item.*;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorOreEmerald extends BlockBehaviorSolid {
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ToolTypes.PICKAXE;
-    }
-
-
-    @Override
-    public float getResistance() {
-        return 15;
-    }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.getBehavior().isPickaxe() && hand.getBehavior().getTier(hand).compareTo(TierTypes.IRON) >= 0) {
+        if (checkTool(block.getState(), hand)) {
             int count = 1;
             EnchantmentInstance fortune = hand.getEnchantment(EnchantmentTypes.FORTUNE);
             if (fortune != null && fortune.getLevel() >= 1) {
@@ -37,7 +27,7 @@ public class BlockBehaviorOreEmerald extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.EMERALD, 0, count)
+                    ItemStack.get(ItemTypes.EMERALD, count)
             };
         } else {
             return new ItemStack[0];
@@ -49,13 +39,5 @@ public class BlockBehaviorOreEmerald extends BlockBehaviorSolid {
         return ThreadLocalRandom.current().nextInt(3, 8);
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 }

@@ -65,7 +65,7 @@ public class BlockBehaviorNetherWart extends FloodableBlockBehavior {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.AGE) == 3) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.NETHER_WART, 0, 2 + (int) (Math.random() * ((4 - 2) + 1)))
+                    ItemStack.get(ItemTypes.NETHER_WART, 2 + (int) (Math.random() * ((4 - 2) + 1)))
             };
         } else {
             return new ItemStack[]{

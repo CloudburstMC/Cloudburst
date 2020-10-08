@@ -16,7 +16,7 @@ public class BlockBehaviorStrippedLog extends BlockBehaviorLog {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return placeBlock(block, item.getBlock().withTrait(BlockTraits.AXIS, face.getAxis()));
+        return placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.AXIS, face.getAxis()));
     }
 
     @Override

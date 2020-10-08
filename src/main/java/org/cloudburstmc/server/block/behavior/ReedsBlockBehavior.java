@@ -13,7 +13,7 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.data.DyeColor;
 
 public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
@@ -29,12 +29,12 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == ItemTypes.DYE && item.getMeta() == 0x0F) { //Bonemeal
+        if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bonemeal
             int count = 1;
             val level = block.getLevel();
 
             for (int i = 1; i <= 2; i++) {
-                Identifier id = level.getBlockAt(block.getX(), block.getY() - i, block.getZ()).getType();
+                val id = level.getBlockAt(block.getX(), block.getY() - i, block.getZ()).getType();
 
                 if (id == BlockTypes.REEDS) {
                     count++;
@@ -62,7 +62,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
                 if (success) {
                     if (player != null && player.getGamemode().isSurvival()) {
-                        item.decrementCount();
+                        player.getInventory().decrementHandCount();
                     }
 
                     level.addParticle(new BoneMealParticle(block.getPosition()));

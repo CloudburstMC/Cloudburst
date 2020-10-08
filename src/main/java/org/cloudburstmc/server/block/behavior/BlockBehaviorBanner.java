@@ -28,24 +28,10 @@ import static org.cloudburstmc.server.blockentity.BlockEntityTypes.BANNER;
 
 public class BlockBehaviorBanner extends BlockBehaviorTransparent {
 
-    @Override
-    public float getResistance() {
-        return 5;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ToolTypes.AXE;
-    }
 
     @Override
     public AxisAlignedBB getBoundingBox() {
         return null;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return true;
     }
 
     @Override
@@ -118,8 +104,5 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
         return DyeColor.WHITE;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

@@ -49,7 +49,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
 
     @Override
     public ItemStack onRelease(ItemStack item, int ticksUsed, Player player) {
-        ItemStack itemArrow = ItemStack.get(ARROW, 0, 1);
+        ItemStack itemArrow = ItemStack.get(ARROW);
 
         if (player.isSurvival() && !player.getInventory().contains(itemArrow)) {
             player.getInventory().sendContents(player);

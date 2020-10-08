@@ -8,8 +8,6 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.LeavesDecayEvent;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
@@ -27,21 +25,6 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
 
     @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_SHEARS;
-    }
-
-    @Override
-    public int getBurnChance(BlockState state) {
-        return 30;
-    }
-
-    @Override
-    public int getBurnAbility(BlockState state) {
-        return 60;
-    }
-
-    @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         return placeBlock(block, BlockState.get(LEAVES).withTrait(BlockTraits.IS_PERSISTENT, true));
     }
@@ -54,7 +37,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         val state = block.getState();
-        if (hand.isShears()) {
+        if (hand.getBehavior().isShears()) {
             return new ItemStack[]{
                     toItem(block)
             };
@@ -67,7 +50,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
             if (ThreadLocalRandom.current().nextInt(20) == 0) {
                 if (ThreadLocalRandom.current().nextBoolean()) {
                     return new ItemStack[]{
-                            ItemStack.get(STICK, 0, ThreadLocalRandom.current().nextInt(1, 2))
+                            ItemStack.get(STICK, ThreadLocalRandom.current().nextInt(1, 2))
                     };
                 } else if (state.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
                     return new ItemStack[]{
@@ -105,7 +88,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
             val state = collisionBlock.getState().getType();
 
-            if (state == LOG || state == LOG2) {
+            if (state == LOG) {
                 return true;
             }
         }
@@ -125,10 +108,6 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 
     protected boolean canDropApple(BlockState state) {
         val type = state.ensureTrait(BlockTraits.TREE_SPECIES);
@@ -139,8 +118,5 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
         return ItemStack.get(BlockState.get(SAPLING).copyTrait(BlockTraits.TREE_SPECIES, state));
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

@@ -31,10 +31,6 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
         super(FLOWING_LAVA, LAVA);
     }
 
-    @Override
-    public int getLightLevel(Block block) {
-        return 15;
-    }
 
     @Override
     public void onEntityCollide(Block block, Entity entity) {

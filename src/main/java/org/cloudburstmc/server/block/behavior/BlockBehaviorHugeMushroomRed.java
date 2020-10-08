@@ -1,10 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -26,16 +23,6 @@ public class BlockBehaviorHugeMushroomRed extends BlockBehaviorSolid {
     public static final int ALL = 14;
     public static final int STEM_ALL = 15;
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_AXE;
-    }
-
-
-    @Override
-    public float getResistance() {
-        return 1;
-    }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
@@ -48,10 +35,6 @@ public class BlockBehaviorHugeMushroomRed extends BlockBehaviorSolid {
         }
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 
     @Override
     public BlockColor getColor(Block block) {

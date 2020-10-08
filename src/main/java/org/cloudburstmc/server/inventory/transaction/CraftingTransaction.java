@@ -36,7 +36,7 @@ public class CraftingTransaction extends InventoryTransaction {
         super(source, actions, false);
 
         this.gridSize = (source.getCraftingGrid() instanceof BigCraftingGrid) ? 3 : 2;
-        ItemStack air = ItemStack.get(AIR, 0, 1);
+        ItemStack air = ItemStack.get(AIR);
         this.inputs = new ItemStack[gridSize][gridSize];
         for (ItemStack[] a : this.inputs) {
             Arrays.fill(a, air);

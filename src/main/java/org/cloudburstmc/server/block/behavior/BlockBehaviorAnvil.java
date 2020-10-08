@@ -8,8 +8,6 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.inventory.AnvilInventory;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
@@ -27,24 +25,9 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean isTransparent() {
-        return true;
-    }
-
-    @Override
-    public float getResistance() {
-        return 6000;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ToolTypes.PICKAXE;
-    }
-
-    @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val state = block.getState();
-        if (!target.getState().getBehavior().isTransparent() || state.getType() == SNOW_LAYER) {
+        if (!target.getState().getBehavior().isTransparent(state) || state.getType() == SNOW_LAYER) {
             BlockState anvil = item.getBehavior().getBlock(item)
                     .withTrait(BlockTraits.DIRECTION, player.getDirection().getOpposite());
 
@@ -87,13 +70,5 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
         return BlockColor.IRON_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 }

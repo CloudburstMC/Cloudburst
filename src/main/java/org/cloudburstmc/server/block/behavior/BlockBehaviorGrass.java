@@ -28,11 +28,6 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
 
 
     @Override
-    public float getResistance() {
-        return 3;
-    }
-
-    @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
         val behavior = item.getBehavior();
@@ -109,8 +104,5 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
         return BlockColor.GRASS_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
+
 }

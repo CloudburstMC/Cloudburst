@@ -11,20 +11,9 @@ import java.util.concurrent.ThreadLocalRandom;
 public class BlockBehaviorSeaLantern extends BlockBehaviorTransparent {
 
     @Override
-    public float getResistance() {
-        return 1.5f;
-    }
-
-
-    @Override
-    public int getLightLevel(Block block) {
-        return 15;
-    }
-
-    @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.PRISMARINE_CRYSTALS, 0, ThreadLocalRandom.current().nextInt(2, 4))
+                ItemStack.get(ItemTypes.PRISMARINE_CRYSTALS, ThreadLocalRandom.current().nextInt(2, 4))
         };
     }
 
@@ -33,8 +22,4 @@ public class BlockBehaviorSeaLantern extends BlockBehaviorTransparent {
         return BlockColor.QUARTZ_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 }

@@ -19,17 +19,6 @@ import static org.cloudburstmc.server.block.BlockTypes.TRIPWIRE;
 public class BlockBehaviorTripWire extends FloodableBlockBehavior {
 
     @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
-    @Override
-    public float getResistance() {
-        return 0;
-    }
-
-
-    @Override
     public AxisAlignedBB getBoundingBox() {
         return null;
     }
@@ -157,13 +146,5 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
 //        return this;
 //    }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 
-    @Override
-    public boolean canWaterlogFlowing() {
-        return true;
-    }
 }

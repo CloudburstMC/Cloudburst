@@ -54,8 +54,5 @@ public abstract class BlockBehaviorFence extends BlockBehaviorTransparent {
         return ItemStack.get(block.getState().defaultState());
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

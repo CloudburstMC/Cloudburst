@@ -4,7 +4,6 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
@@ -13,8 +12,6 @@ import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.TierTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -22,11 +19,6 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
-
-    @Override
-    public float getResistance() {
-        return 24;
-    }
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
@@ -61,9 +53,6 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
         return true;
     }
 
-    public boolean hasComparatorInputOverride() {
-        return true;
-    }
 
     @Override
     public int getComparatorInputOverride(Block block) {
@@ -92,10 +81,6 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
         return 0;
     }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
@@ -111,13 +96,5 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
         return ItemStack.get(ItemTypes.HOPPER);
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 }

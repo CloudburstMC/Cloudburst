@@ -16,10 +16,6 @@ public class BlockBehaviorDaylightDetector extends BlockBehaviorTransparent {
         return false;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 
     //todo redstone
 

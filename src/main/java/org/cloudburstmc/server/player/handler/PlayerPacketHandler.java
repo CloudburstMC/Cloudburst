@@ -800,7 +800,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!itemFrameDropItemEvent.isCancelled()) {
             if (itemDrop.getType() != AIR) {
                 player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
-                itemFrame.setItem(ItemStack.get(AIR, 0, 0));
+                itemFrame.setItem(ItemStack.get(AIR));
                 itemFrame.setItemRotation(0);
                 player.getLevel().addSound(player.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
             }

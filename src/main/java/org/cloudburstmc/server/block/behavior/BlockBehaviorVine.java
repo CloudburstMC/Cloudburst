@@ -6,8 +6,6 @@ import lombok.var;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
@@ -16,24 +14,8 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorVine extends BlockBehaviorTransparent {
 
-
-    @Override
-    public float getResistance() {
-        return 1;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
     @Override
     public boolean hasEntityCollision() {
-        return true;
-    }
-
-    @Override
-    public boolean canBeReplaced(Block block) {
         return true;
     }
 
@@ -48,10 +30,6 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
         entity.setOnGround(true);
     }
 
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
 
 //    @Override
 //    protected AxisAlignedBB recalculateBoundingBox() { //TODO: bounding box
@@ -172,18 +150,11 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
         return 0;
     }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_SHEARS;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

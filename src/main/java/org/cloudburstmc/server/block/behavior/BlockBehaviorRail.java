@@ -5,8 +5,6 @@ import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -34,22 +32,6 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     // 0x7: Reset the block to normal
     // If the rail can be powered. So its a complex rail!
     protected boolean canBePowered = false;
-
-
-    @Override
-    public float getResistance() {
-        return 3.5f;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ToolTypes.PICKAXE;
-    }
 
     @Override
     public int onUpdate(Block block, int type) {

@@ -7,11 +7,6 @@ public class BlockBehaviorSlime extends BlockBehaviorSolid {
 
 
     @Override
-    public float getResistance() {
-        return 0;
-    }
-
-    @Override
     public BlockColor getColor(Block block) {
         return BlockColor.GRASS_BLOCK_COLOR;
     }

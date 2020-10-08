@@ -5,10 +5,6 @@ import org.cloudburstmc.server.block.Block;
 
 public class BlockBehaviorDispenser extends BlockBehaviorSolid {
 
-    @Override
-    public boolean hasComparatorInputOverride() {
-        return true;
-    }
 
     @Override
     public int getComparatorInputOverride(Block block) {
@@ -21,10 +17,6 @@ public class BlockBehaviorDispenser extends BlockBehaviorSolid {
         return super.getComparatorInputOverride(block);
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
     public Vector3f getDispensePosition() {
         return Vector3f.ZERO; //redstone update

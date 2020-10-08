@@ -7,10 +7,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorPodzol extends BlockBehaviorDirt {
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 
     @Override
     public boolean canBeActivated(Block block) {

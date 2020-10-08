@@ -4,8 +4,6 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -31,21 +29,6 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     protected Identifier identifier = BlockTypes.LOG;
 
-
-    @Override
-    public float getResistance() {
-        return 10;
-    }
-
-    @Override
-    public int getBurnChance(BlockState state) {
-        return 5;
-    }
-
-    @Override
-    public int getBurnAbility(BlockState state) {
-        return 10;
-    }
 
     public static void upgradeLegacyBlock(int[] blockState) {
         if ((blockState[1] & 0b1100) == 0b1100) { // old full bark texture
@@ -80,10 +63,6 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
         return true;
     }
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_AXE;
-    }
 
     @Override
     public BlockColor getColor(Block block) {

@@ -111,15 +111,27 @@ public interface ItemStack /*extends ItemBehavior*/ {
         return toBuilder().amount(GenericMath.clamp(getAmount() + amount, 0, getBehavior().getMaxStackSize(this))).build();
     }
 
+    default ItemStack withAmount(int amount) {
+        return toBuilder().amount(GenericMath.clamp(amount, 0, getBehavior().getMaxStackSize(this))).build();
+    }
+
     ItemStack withData(Object data);
 
     ItemStack withData(Class<?> metadataClass, Object data);
 
     static ItemStack get(BlockState state) {
-        return registry.getItem(state);
+        return get(state, 1);
+    }
+
+    static ItemStack get(BlockState state, int amount) {
+        return registry.getItem(state, amount);
     }
 
     static ItemStack get(ItemType type, Object... metadata) {
-        return registry.getItem(type, metadata);
+        return get(type, 1, metadata);
+    }
+
+    static ItemStack get(ItemType type, int amount, Object... metadata) {
+        return registry.getItem(type, amount, metadata);
     }
 }

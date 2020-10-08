@@ -1396,8 +1396,9 @@ public class Level implements ChunkManager, Metadatable {
             int z = Hash.hashBlockZ(node);
 
             Block block = this.getBlock(x, y, z);
+            BlockState state = block.getState();
 
-            int lightLevel = this.getBlockLightAt(x, y, z) - block.getState().getBehavior().getFilterLevel();
+            int lightLevel = this.getBlockLightAt(x, y, z) - state.getBehavior().getFilterLevel(state);
 
             if (lightLevel >= 1) {
                 this.computeSpreadBlockLight(x - 1, y, z, lightLevel, lightPropagationQueue, visited);
@@ -1508,7 +1509,7 @@ public class Level implements ChunkManager, Metadatable {
         if (update) {
             BlockBehavior behavior = state.getBehavior();
             BlockBehavior previousBehavior = previousState.getBehavior();
-            if (previousBehavior.isTransparent() != behavior.isTransparent() ||
+            if (previousBehavior.isTransparent(previousState) != behavior.isTransparent(state) ||
                     previousBehavior.getLightLevel(block) != behavior.getLightLevel(block)) {
                 addLightUpdate(x, y, z);
             }
@@ -1671,7 +1672,7 @@ public class Level implements ChunkManager, Metadatable {
             BlockBreakEvent ev = new BlockBreakEvent(player, target, face, item, eventDrops, dropExp, player.isCreative(),
                     (player.lastBreak + breakTime * 1000) > System.currentTimeMillis());
 
-            if (player.isSurvival() && !targetBehavior.isBreakable(item)) {
+            if (player.isSurvival() && !targetBehavior.isBreakable(target.getState(), item)) {
                 ev.setCancelled();
             } else if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
                 ev.setCancelled();
@@ -1690,7 +1691,7 @@ public class Level implements ChunkManager, Metadatable {
 
             drops = ev.getDrops();
             dropExp = ev.getDropExp();
-        } else if (!targetBehavior.isBreakable(item)) {
+        } else if (!targetBehavior.isBreakable(target.getState(), item)) {
             return null;
         } else if (item.getEnchantment(EnchantmentTypes.SILK_TOUCH) != null) {
             drops = new ItemStack[]{targetBehavior.toItem(target)};
@@ -1944,7 +1945,7 @@ public class Level implements ChunkManager, Metadatable {
         }
 
         if (item.getCount() <= 0) {
-            item = ItemStack.get(BlockTypes.AIR, 0, 0);
+            item = ItemStack.get(BlockTypes.AIR);
         }
         return item;
     }

@@ -35,6 +35,8 @@ public interface BlockType extends ItemType {
 
     float getFriction();
 
+    float getTranslucency();
+
     boolean pushesOutItems();
 
     boolean isFallable();
@@ -42,6 +44,26 @@ public interface BlockType extends ItemType {
     boolean isExperimental();
 
     boolean isReplaceable();
+
+    boolean isPowerSource();
+
+    boolean breaksFalling();
+
+    boolean blocksWater();
+
+    boolean canBeSilkTouched();
+
+    boolean blocksSolid();
+
+    boolean blocksMotion();
+
+    boolean hasComparatorSignal();
+
+    boolean pushesUpFalling();
+
+    boolean breaksFlowing();
+
+    boolean waterlogsSource();
 
     ToolType getTargetToolType();
 

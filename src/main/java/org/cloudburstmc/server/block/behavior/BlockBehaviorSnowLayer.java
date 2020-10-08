@@ -5,31 +5,12 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
-
-
-
-    @Override
-    public float getResistance() {
-        return 0.5f;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_SHOVEL;
-    }
-
-    @Override
-    public boolean canBeReplaced(Block block) {
-        return true;
-    }
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
@@ -63,44 +44,8 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     }
 
     @Override
-    public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isShovel() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
-            return new ItemStack[]{
-                    this.toItem(block)
-            };
-        } else {
-            return new ItemStack[0];
-        }
-    }
-
-    @Override
     public BlockColor getColor(Block block) {
         return BlockColor.SNOW_BLOCK_COLOR;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
-
-    @Override
-    public boolean isTransparent() {
-        return true;
-    }
-
-    @Override
-    public boolean canBeFlooded() {
-        return true;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
-    @Override
-    public boolean isSolid() {
-        return false;
     }
 
 //    @Override //TODO: bounding box

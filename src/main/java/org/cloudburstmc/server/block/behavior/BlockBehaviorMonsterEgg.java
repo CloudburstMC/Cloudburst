@@ -13,11 +13,6 @@ public class BlockBehaviorMonsterEgg extends BlockBehaviorSolid {
 
 
     @Override
-    public float getResistance() {
-        return 3.75f;
-    }
-
-    @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[0];
     }

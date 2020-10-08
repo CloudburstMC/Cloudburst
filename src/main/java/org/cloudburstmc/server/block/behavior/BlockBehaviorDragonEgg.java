@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
@@ -15,22 +16,12 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
 
 
     @Override
-    public float getResistance() {
-        return 45;
-    }
-
-    @Override
-    public int getLightLevel(Block block) {
-        return 1;
-    }
-
-    @Override
     public BlockColor getColor(Block block) {
         return BlockColor.OBSIDIAN_BLOCK_COLOR;
     }
 
     @Override
-    public boolean isTransparent() {
+    public boolean isTransparent(BlockState state) {
         return true;
     }
 
@@ -77,8 +68,5 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
         return true;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

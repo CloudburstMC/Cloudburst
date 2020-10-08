@@ -2,14 +2,11 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.Beacon;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.inventory.BeaconInventory;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
@@ -18,21 +15,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
 
-
-    @Override
-    public float getResistance() {
-        return 15;
-    }
-
-    @Override
-    public int getLightLevel(Block block) {
-        return 15;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
 
     @Override
     public boolean canBeActivated(Block block) {
@@ -74,8 +56,5 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
         return BlockColor.DIAMOND_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

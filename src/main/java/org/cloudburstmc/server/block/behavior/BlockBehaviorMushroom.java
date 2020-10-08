@@ -49,9 +49,9 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == ItemTypes.DYE && item.getMeta() == DyeColor.WHITE.getDyeData()) {
+        if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (player != null && player.getGamemode().isSurvival()) {
-                item.decrementCount();
+                player.getInventory().decrementHandCount();
             }
 
             if (ThreadLocalRandom.current().nextFloat() < 0.4) {
@@ -89,10 +89,6 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 
     protected abstract int getType();
 }

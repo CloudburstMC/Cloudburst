@@ -26,8 +26,5 @@ public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
         return side == Direction.UP ? this.getWeakPower(block, side) : 0;
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
+
 }

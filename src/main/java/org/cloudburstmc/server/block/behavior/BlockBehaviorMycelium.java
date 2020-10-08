@@ -9,8 +9,6 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockSpreadEvent;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DirtType;
@@ -22,16 +20,6 @@ import static org.cloudburstmc.server.block.BlockTypes.MYCELIUM;
 
 public class BlockBehaviorMycelium extends BlockBehaviorSolid {
 
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_SHOVEL;
-    }
-
-
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
@@ -69,8 +57,5 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
         return BlockColor.PURPLE_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
+
 }

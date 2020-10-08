@@ -54,7 +54,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
             return false;
         }
 
-        placeBlock(block, item.getBlock());
+        placeBlock(block, item.getBehavior().getBlock(item));
 
         this.updateSurroundingRedstone(block.refresh(), true);
         val level = block.getLevel();

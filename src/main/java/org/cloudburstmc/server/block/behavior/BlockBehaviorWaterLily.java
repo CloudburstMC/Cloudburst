@@ -79,9 +79,4 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
     public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
-
-    @Override
-    public boolean canPassThrough() {
-        return false;
-    }
 }

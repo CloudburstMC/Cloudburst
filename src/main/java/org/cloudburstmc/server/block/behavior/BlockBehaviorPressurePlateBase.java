@@ -27,16 +27,6 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     protected float onPitch;
     protected float offPitch;
 
-    @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
-
 //    @Override //TODO: bounding box
 //    public float getMinX() {
 //        return this.getX() + 0.625f;
@@ -67,10 +57,6 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
 //        return isActivated() ? this.getY() + 0.03125f : this.getY() + 0.0625f;
 //    }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
 
     @Override
     public int onUpdate(Block block, int type) {
@@ -192,8 +178,5 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
         return ItemStack.get(block.getState().defaultState());
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

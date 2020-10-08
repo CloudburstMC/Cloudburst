@@ -14,6 +14,7 @@ import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -39,9 +40,9 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     }
 
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getId() == DYE && item.getMeta() == 0x0F) { //BoneMeal
+        if (item.getType() == DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //BoneMeal
             if (player != null && player.getGamemode().isSurvival()) {
-                item.decrementCount();
+                player.getInventory().decrementHandCount();
             }
 
             block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));

@@ -69,7 +69,7 @@ public abstract class ItemToolBehavior extends CloudItemBehavior {
 
         if (damage != null) {
             val itemBehavior = item.getBehavior();
-            if (behavior.getToolType() == itemBehavior.getToolType(item)) {
+            if (behavior.getToolType(state) == itemBehavior.getToolType(item)) {
                 return item.withData(damage.damage());
             }
 

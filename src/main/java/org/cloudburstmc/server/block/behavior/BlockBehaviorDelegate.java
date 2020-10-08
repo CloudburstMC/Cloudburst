@@ -28,13 +28,13 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean canHarvestWithHand() {
-        return parent.canHarvestWithHand();
+    public boolean canHarvestWithHand(BlockState state) {
+        return parent.canHarvestWithHand(state);
     }
 
     @Override
-    public boolean isBreakable(ItemStack item) {
-        return parent.isBreakable(item);
+    public boolean isBreakable(BlockState state, ItemStack item) {
+        return parent.isBreakable(state, item);
     }
 
     @Override
@@ -59,17 +59,17 @@ public class BlockBehaviorDelegate extends BlockBehavior {
 
     @Override
     public int getBurnChance(BlockState state) {
-        return parent.getBurnChance();
+        return parent.getBurnChance(state);
     }
 
     @Override
     public int getBurnAbility(BlockState state) {
-        return parent.getBurnAbility();
+        return parent.getBurnAbility(state);
     }
 
     @Override
     public ToolType getToolType(BlockState state) {
-        return parent.getToolType();
+        return parent.getToolType(state);
     }
 
     @Override
@@ -88,13 +88,13 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean isTransparent() {
-        return parent.isTransparent();
+    public boolean isTransparent(BlockState state) {
+        return parent.isTransparent(state);
     }
 
     @Override
-    public boolean isSolid() {
-        return parent.isSolid();
+    public boolean isSolid(BlockState state) {
+        return parent.isSolid(state);
     }
 
     @Override
@@ -103,8 +103,8 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public int getFilterLevel() {
-        return parent.getFilterLevel();
+    public int getFilterLevel(BlockState state) {
+        return parent.getFilterLevel(state);
     }
 
     @Override
@@ -118,8 +118,8 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean canPassThrough() {
-        return parent.canPassThrough();
+    public boolean canPassThrough(BlockState state) {
+        return parent.canPassThrough(state);
     }
 
     @Override
@@ -128,8 +128,8 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean hasComparatorInputOverride() {
-        return parent.hasComparatorInputOverride();
+    public boolean hasComparatorInputOverride(BlockState state) {
+        return parent.hasComparatorInputOverride(state);
     }
 
     @Override
@@ -148,8 +148,8 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean canBeFlooded() {
-        return parent.canBeFlooded();
+    public boolean canBeFlooded(BlockState state) {
+        return parent.canBeFlooded(state);
     }
 
     @Override
@@ -189,7 +189,7 @@ public class BlockBehaviorDelegate extends BlockBehavior {
 
     @Override
     public float getHardness(BlockState blockState) {
-        return parent.getHardness();
+        return parent.getHardness(blockState);
     }
 
     @Override
@@ -198,13 +198,13 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public float getResistance() {
-        return parent.getResistance();
+    public float getResistance(BlockState blockState) {
+        return parent.getResistance(blockState);
     }
 
     @Override
-    public float getFrictionFactor() {
-        return parent.getFrictionFactor();
+    public float getFrictionFactor(BlockState blockState) {
+        return parent.getFrictionFactor(blockState);
     }
 
     @Override
@@ -224,13 +224,13 @@ public class BlockBehaviorDelegate extends BlockBehavior {
 
     @Override
     public boolean canBeBrokenWith(BlockState state, ItemStack item) {
-        return parent.canBeBrokenWith(, item);
+        return parent.canBeBrokenWith(state, item);
     }
 
     @Override
     @Deprecated
     public float getBreakTime(BlockState blockState, ItemStack item) {
-        return parent.getBreakTime(, item);
+        return parent.getBreakTime(blockState, item);
     }
 
     @Override
@@ -299,17 +299,17 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean canSilkTouch() {
-        return parent.canSilkTouch();
+    public boolean canSilkTouch(BlockState state) {
+        return parent.canSilkTouch(state);
     }
 
     @Override
-    public boolean canWaterlogSource() {
-        return parent.canWaterlogSource();
+    public boolean canWaterlogSource(BlockState state) {
+        return parent.canWaterlogSource(state);
     }
 
     @Override
-    public boolean canWaterlogFlowing() {
-        return parent.canWaterlogFlowing();
+    public boolean canWaterlogFlowing(BlockState state) {
+        return parent.canWaterlogFlowing(state);
     }
 }

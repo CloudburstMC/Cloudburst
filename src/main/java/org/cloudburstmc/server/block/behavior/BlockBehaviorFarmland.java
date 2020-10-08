@@ -3,24 +3,11 @@ package org.cloudburstmc.server.block.behavior;
 import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
 
-    @Override
-    public float getResistance() {
-        return 3;
-    }
-
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_SHOVEL;
-    }
 
 //    @Override
 //    public float getMaxY() {
@@ -52,7 +39,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
                                 continue;
                             }
 
-                            Identifier b = block.getLevel().getBlockAt(x, y, z).getType();
+                            val b = block.getLevel().getBlockAt(x, y, z).getType();
 
                             if (b == BlockTypes.FLOWING_WATER || b == BlockTypes.WATER) {
                                 found = true;

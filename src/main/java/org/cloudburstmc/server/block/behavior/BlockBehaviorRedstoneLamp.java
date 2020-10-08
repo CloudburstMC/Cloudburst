@@ -2,13 +2,13 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
+import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -16,25 +16,15 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
 
-
-    @Override
-    public float getResistance() {
-        return 1.5f;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
-    }
-
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val level = block.getLevel();
+        var state = BlockState.get(BlockTypes.REDSTONE_LAMP);
         if (level.isBlockPowered(block.getPosition())) {
-            block.set(BlockState.get(BlockTypes.LIT_REDSTONE_LAMP));
-        } else {
-            block.set(BlockState.get(BlockTypes.REDSTONE_LAMP));
+            state = state.withTrait(BlockTraits.IS_POWERED, true);
         }
+
+        block.set(state.withTrait(BlockTraits.IS_EXTINGUISHED, true));
         return true;
     }
 
@@ -49,15 +39,10 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
             }
 
             boolean powered = block.getLevel().isBlockPowered(block.getPosition());
-            val blockType = block.getState().getType();
+            val state = block.getState();
 
-            if (powered && blockType == BlockTypes.REDSTONE_LAMP) {
-                block.set(BlockState.get(BlockTypes.LIT_REDSTONE_LAMP), false, false);
-                return 1;
-            }
-
-            if (!powered && blockType == BlockTypes.LIT_REDSTONE_LAMP) {
-                block.set(BlockState.get(BlockTypes.REDSTONE_LAMP), false, false);
+            if (state.ensureTrait(BlockTraits.IS_POWERED) != powered) {
+                block.set(state.toggleTrait(BlockTraits.IS_POWERED), false, false);
                 return 1;
             }
         }
@@ -75,5 +60,10 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.AIR_BLOCK_COLOR;
+    }
+
+    @Override
+    public int getLightLevel(Block block) {
+        return block.getState().ensureTrait(BlockTraits.IS_POWERED) ? 15 : 0;
     }
 }

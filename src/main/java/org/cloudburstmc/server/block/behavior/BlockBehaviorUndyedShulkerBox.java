@@ -11,13 +11,11 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ShulkerBox;
 import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.CloudItemStackBuilder;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -27,21 +25,9 @@ import static org.cloudburstmc.server.blockentity.BlockEntityTypes.SHULKER_BOX;
 
 public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
 
-
-
-    @Override
-    public float getResistance() {
-        return 10;
-    }
-
     @Override
     public boolean canBeActivated(Block block) {
         return true;
-    }
-
-    @Override
-    public ToolType getToolType(BlockState state) {
-        return ItemToolBehavior.TYPE_PICKAXE;
     }
 
     @Override
@@ -57,7 +43,9 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
             tag = tagBuilder.build();
         }
 
-        return ItemStack.get(block.getState().getType(), 0, 1, tag);
+        return new CloudItemStackBuilder(ItemStack.get(block.getState()))
+                .dataTag(tag)
+                .build();
     }
 
     @Override
@@ -72,10 +60,6 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
@@ -100,8 +84,5 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
         return BlockColor.PURPLE_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }
