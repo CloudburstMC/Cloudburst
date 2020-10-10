@@ -2,7 +2,9 @@ package org.cloudburstmc.server.level.gamerule;
 
 import com.google.common.base.Preconditions;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.api.level.gamerule.GameRule;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -48,7 +50,7 @@ public class GameRuleMap implements Iterable<Map.Entry<GameRule<?>, Object>> {
         return oldValue;
     }
 
-    public void forEach(BiConsumer<GameRule, Object> consumer) {
+    public void forEach(BiConsumer<GameRule<?>, Object> consumer) {
         this.gameRules.forEach(consumer);
     }
 
@@ -64,6 +66,7 @@ public class GameRuleMap implements Iterable<Map.Entry<GameRule<?>, Object>> {
         this.dirty = false;
     }
 
+    @Nonnull
     @Override
     public Iterator<Map.Entry<GameRule<?>, Object>> iterator() {
         return this.gameRules.entrySet().iterator();

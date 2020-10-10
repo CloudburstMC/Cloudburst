@@ -6,7 +6,7 @@ import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.player.PlayerAsyncPreLoginEvent;
 import org.cloudburstmc.server.event.player.PlayerPreLoginEvent;
 import org.cloudburstmc.server.network.BedrockInterface;
@@ -30,11 +30,11 @@ public class LoginPacketHandler implements BedrockPacketHandler {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[aA-zZ\\s\\d_]{3,16}+$");
 
     private final BedrockServerSession session;
-    private final Server server;
+    private final CloudServer server;
 
     private final PlayerLoginData loginData;
 
-    public LoginPacketHandler(BedrockServerSession session, Server server, BedrockInterface interfaz) {
+    public LoginPacketHandler(BedrockServerSession session, CloudServer server, BedrockInterface interfaz) {
         this.session = session;
         this.server = server;
         this.loginData = new PlayerLoginData(session, server, interfaz);
@@ -99,7 +99,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
             }
 
             @Override
-            public void onCompletion(Server server) {
+            public void onCompletion(CloudServer server) {
                 if (!loginDataInstance.getSession().isClosed()) {
                     if (e.getLoginResult() == PlayerAsyncPreLoginEvent.LoginResult.KICK) {
                         loginDataInstance.getSession().disconnect(e.getKickMessage());

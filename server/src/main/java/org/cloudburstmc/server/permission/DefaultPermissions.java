@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.permission;
 
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 
 /**
  * author: MagicDroidX
@@ -19,10 +19,10 @@ public abstract class DefaultPermissions {
             parent.getChildren().put(perm.getName(), true);
         }
 
-        Server.getInstance().getPermissionManager().addPermission(perm);
+        CloudServer.getInstance().getPermissionManager().addPermission(perm);
 
         //noinspection OptionalGetWithoutIsPresent
-        return Server.getInstance().getPermissionManager().getPermission(perm.getName()).get();
+        return CloudServer.getInstance().getPermissionManager().getPermission(perm.getName()).get();
     }
 
     public static void registerCorePermissions() {

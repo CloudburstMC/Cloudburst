@@ -16,6 +16,8 @@ import io.netty.buffer.ByteBuf;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import net.daporkchop.ldbjni.LevelDB;
+import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.config.CloudburstYaml;
@@ -55,7 +57,6 @@ import org.cloudburstmc.server.player.IPlayer;
 import org.cloudburstmc.server.player.OfflinePlayer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
-import org.cloudburstmc.server.plugin.PluginManager;
 import org.cloudburstmc.server.plugin.loader.JavaPluginLoader;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.potion.Potion;
@@ -88,12 +89,12 @@ import java.util.stream.Collectors;
  * @author Box
  */
 @Log4j2
-public class Server {
+public class CloudServer implements Server {
 
     public static final String BROADCAST_CHANNEL_ADMINISTRATIVE = "cloudburst.broadcast.admin";
     public static final String BROADCAST_CHANNEL_USERS = "cloudburst.broadcast.user";
 
-    private static Server instance = null;
+    private static CloudServer instance = null;
 
     private BanList banByName;
 
@@ -188,7 +189,7 @@ public class Server {
 
     private final LocaleManager localeManager = LocaleManager.from("locale/cloudburst/languages.json",
             "locale/cloudburst/texts", "locale/vanilla");
-    private final GameRuleRegistry gameRuleRegistry = GameRuleRegistry.get();
+    private final CloudGameRuleRegistry gameRuleRegistry = CloudGameRuleRegistry.get();
     private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
     private final StorageRegistry storageRegistry = StorageRegistry.get();
     private final BlockRegistry blockRegistry = BlockRegistry.get();
@@ -221,7 +222,7 @@ public class Server {
 
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.dat$", Pattern.CASE_INSENSITIVE);
 
-    public Server(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
+    public CloudServer(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
@@ -252,11 +253,11 @@ public class Server {
     }
 
     public static void broadcastPackets(Player[] players, BedrockPacket[] packets) {
-        Server.getInstance().batchPackets(players, packets);
+        CloudServer.getInstance().batchPackets(players, packets);
     }
 
     public static void broadcastPacket(Player[] players, BedrockPacket packet) {
-        Server.getInstance().batchPackets(players, new BedrockPacket[]{packet});
+        CloudServer.getInstance().batchPackets(players, new BedrockPacket[]{packet});
     }
 
     public int broadcastMessage(String message) {
@@ -461,7 +462,7 @@ public class Server {
             ExceptionHandler.registerExceptionHandler();
         }
 
-        log.info(this.getLanguage().translate("cloudburst.server.info", this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + TextFormat.WHITE, TextFormat.AQUA + "" + TextFormat.WHITE, this.getApiVersion()));
+        log.info(this.getLanguage().translate("cloudburst.server.info", this.getName(), TextFormat.YELLOW + this.getImplementationVersion() + TextFormat.WHITE, TextFormat.AQUA + "" + TextFormat.WHITE, this.getApiVersion()));
         log.info(this.getLanguage().translate("cloudburst.server.license", this.getName()));
 
         // Convert legacy data before plugins get the chance to mess with it.
@@ -477,7 +478,7 @@ public class Server {
 
         this.convertLegacyPlayerData();
 
-        this.permissionManager.subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this.consoleSender);
+        this.permissionManager.subscribeToPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE, this.consoleSender);
 
         this.pluginManager.registerLoader(JavaPluginLoader.class, JavaPluginLoader.builder().build());
 
@@ -794,7 +795,7 @@ public class Server {
             packet.setAction(PlayerListPacket.Action.REMOVE);
             packet.getEntries().add(new PlayerListPacket.Entry(player.getServerId()));
 
-            Server.broadcastPacket(this.playerList.values(), packet);
+            CloudServer.broadcastPacket(this.playerList.values(), packet);
         }
     }
 
@@ -820,7 +821,7 @@ public class Server {
         entry.setXuid(xboxUserId);
         entry.setPlatformChatId("");
         packet.getEntries().add(entry);
-        Server.broadcastPacket(players, packet);
+        CloudServer.broadcastPacket(players, packet);
     }
 
     public void updatePlayerListData(UUID uuid, long entityId, String name, SerializedSkin skin, String xboxUserId, Collection<Player> players) {
@@ -838,7 +839,7 @@ public class Server {
         PlayerListPacket packet = new PlayerListPacket();
         packet.setAction(PlayerListPacket.Action.REMOVE);
         packet.getEntries().add(new PlayerListPacket.Entry(uuid));
-        Server.broadcastPacket(players, packet);
+        CloudServer.broadcastPacket(players, packet);
     }
 
     public void removePlayerListData(UUID uuid, Collection<Player> players) {
@@ -1008,7 +1009,7 @@ public class Server {
         double max = NukkitMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
         String usage = Math.round(used / max * 100) + "%";
         String title = (char) 0x1b + "]0;" + this.getName() + " "
-                + this.getNukkitVersion()
+                + this.getImplementationVersion()
                 + " | Online " + this.players.size() + "/" + this.getMaxPlayers()
                 + " | Memory " + usage;
         if (!Bootstrap.shortTitle) {
@@ -1033,7 +1034,7 @@ public class Server {
         return isRunning.get();
     }
 
-    public String getNukkitVersion() {
+    public String getImplementationVersion() {
         return Bootstrap.VERSION;
     }
 
@@ -1165,7 +1166,7 @@ public class Server {
         return eventManager;
     }
 
-    public PluginManager getPluginManager() {
+    public CloudPluginManager getPluginManager() {
         return this.pluginManager;
     }
 
@@ -1791,7 +1792,7 @@ public class Server {
         return storageRegistry;
     }
 
-    public GameRuleRegistry getGameRuleRegistry() {
+    public CloudGameRuleRegistry getGameRuleRegistry() {
         return gameRuleRegistry;
     }
 
@@ -1819,7 +1820,7 @@ public class Server {
         return autoTickRate;
     }
 
-    public static Server getInstance() {
+    public static CloudServer getInstance() {
         return instance;
     }
 

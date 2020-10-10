@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.command.defaults;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.network.ProtocolInfo;
-import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.scheduler.AsyncTask;
 import org.cloudburstmc.server.utils.HastebinUtility;
@@ -31,7 +31,7 @@ public class DebugPasteCommand extends Command {
         if (!this.testPermission(sender)) {
             return true;
         }
-        Server server = Server.getInstance();
+        CloudServer server = CloudServer.getInstance();
         server.getScheduler().scheduleAsyncTask(null, new AsyncTask() {
             @Override
             public void onRun() {
@@ -52,7 +52,7 @@ public class DebugPasteCommand extends Command {
                     b.append("\n# Server Information\n");
 
                     b.append("version.api: ").append(server.getApiVersion()).append('\n');
-                    b.append("version.cloudburst: ").append(server.getNukkitVersion()).append('\n');
+                    b.append("version.cloudburst: ").append(server.getImplementationVersion()).append('\n');
                     b.append("version.minecraft: ").append(server.getVersion()).append('\n');
                     b.append("version.protocol: ").append(ProtocolInfo.getDefaultProtocolVersion()).append('\n');
                     b.append("plugins:");

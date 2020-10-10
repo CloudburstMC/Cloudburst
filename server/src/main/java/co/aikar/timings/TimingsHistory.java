@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.val;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.level.Level;
@@ -96,7 +96,7 @@ public class TimingsHistory {
         final Map<Identifier, AtomicInteger> entityCounts = new HashMap<>();
         final Map<Identifier, AtomicInteger> blockEntityCounts = new HashMap<>();
         // Information about all loaded entities/block entities
-        for (Level level : Server.getInstance().getLevels()) {
+        for (Level level : CloudServer.getInstance().getLevels()) {
             ArrayNode jsonLevel = Bootstrap.JSON_MAPPER.createArrayNode();
             for (Chunk chunk : level.getChunks()) {
                 entityCounts.clear();
@@ -214,7 +214,7 @@ public class TimingsHistory {
         final double avg;
 
         PingRecord() {
-            final Collection<Player> onlinePlayers = Server.getInstance().getOnlinePlayers().values();
+            final Collection<Player> onlinePlayers = CloudServer.getInstance().getOnlinePlayers().values();
             int totalPing = 0;
             for (Player player : onlinePlayers) {
                 totalPing += player.getPing();

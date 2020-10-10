@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.console;
 
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
 import org.jline.reader.LineReader;
@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 @RequiredArgsConstructor
 public class NukkitConsoleCompleter implements Completer {
-    private final Server server;
+    private final CloudServer server;
 
     @Override
     public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> candidates) {

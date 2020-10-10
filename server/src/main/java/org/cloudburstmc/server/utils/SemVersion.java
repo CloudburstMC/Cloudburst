@@ -11,14 +11,15 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @JsonSerialize(using = SemVersion.Serializer.class)
 @JsonDeserialize(using = SemVersion.Deserializer.class)
 public final class SemVersion {
     private final int[] version;
 
-    public SemVersion(int major, int minor, int patch) {
-        this.version = new int[]{major, minor, patch};
+    public SemVersion(int... version) {
+        this.version = Arrays.copyOf(version, 3);
     }
 
     public int getMajor() {

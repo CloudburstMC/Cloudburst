@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.command;
 
 import com.google.common.base.Preconditions;
+import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.registry.CommandRegistry;
 
 import javax.annotation.Nonnull;

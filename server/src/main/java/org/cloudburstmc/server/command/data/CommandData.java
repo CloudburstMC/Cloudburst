@@ -4,7 +4,7 @@ import com.nukkitx.protocol.bedrock.data.command.CommandParamData;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import lombok.NonNull;
 import lombok.ToString;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.PluginCommand;
 import org.cloudburstmc.server.locale.LocaleManager;
@@ -71,7 +71,7 @@ public class CommandData {
     }
 
     public com.nukkitx.protocol.bedrock.data.command.CommandData toNetwork() {
-        String description = Server.getInstance().getLanguage().translate(this.description);
+        String description = CloudServer.getInstance().getLanguage().translate(this.description);
 
         CommandParamData[][] overloadData = new CommandParamData[this.overloads.size()][];
 

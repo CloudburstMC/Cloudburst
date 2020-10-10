@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.plugin.loader.java;
 
+import org.cloudburstmc.api.plugin.PluginDependency;
+import org.cloudburstmc.api.plugin.PluginLoader;
 import org.cloudburstmc.server.plugin.CloudPluginDescription;
-import org.cloudburstmc.server.plugin.PluginDependency;
-import org.cloudburstmc.server.plugin.PluginLoader;
 
 import java.nio.file.Path;
 import java.util.Collection;

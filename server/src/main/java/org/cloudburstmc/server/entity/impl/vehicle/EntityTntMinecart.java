@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.impl.vehicle;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
@@ -14,7 +15,6 @@ import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.MinecartType;
 

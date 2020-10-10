@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.permission;
 
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 
 import java.util.*;
 
@@ -100,13 +100,13 @@ public class Permission {
     }
 
     public Set<Permissible> getPermissibles() {
-        return Server.getInstance().getPermissionManager().getPermissionSubscriptions(this.name);
+        return CloudServer.getInstance().getPermissionManager().getPermissionSubscriptions(this.name);
     }
 
     public void recalculatePermissibles() {
         Set<Permissible> perms = this.getPermissibles();
 
-        Server.getInstance().getPermissionManager().recalculatePermissionDefaults(this);
+        CloudServer.getInstance().getPermissionManager().recalculatePermissionDefaults(this);
 
         for (Permissible p : perms) {
             p.recalculatePermissions();
@@ -119,9 +119,9 @@ public class Permission {
     }
 
     public Permission addParent(String name, boolean value) {
-        Permission perm = Server.getInstance().getPermissionManager().getPermission(name).orElseGet(() -> {
+        Permission perm = CloudServer.getInstance().getPermissionManager().getPermission(name).orElseGet(() -> {
             Permission p = new Permission(name);
-            Server.getInstance().getPermissionManager().addPermission(p);
+            CloudServer.getInstance().getPermissionManager().addPermission(p);
 
             return p;
         });

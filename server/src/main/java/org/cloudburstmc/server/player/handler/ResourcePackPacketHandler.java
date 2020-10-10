@@ -7,7 +7,7 @@ import com.nukkitx.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackClientResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackDataInfoPacket;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.pack.Pack;
 import org.cloudburstmc.server.player.PlayerLoginData;
 
@@ -17,11 +17,11 @@ import org.cloudburstmc.server.player.PlayerLoginData;
 @Log4j2
 public class ResourcePackPacketHandler implements BedrockPacketHandler {
     private final BedrockServerSession session;
-    private final Server server;
+    private final CloudServer server;
 
     private PlayerLoginData loginData;
 
-    public ResourcePackPacketHandler(BedrockServerSession session, Server server, PlayerLoginData loginData) {
+    public ResourcePackPacketHandler(BedrockServerSession session, CloudServer server, PlayerLoginData loginData) {
         this.session = session;
         this.server = server;
         this.loginData = loginData;

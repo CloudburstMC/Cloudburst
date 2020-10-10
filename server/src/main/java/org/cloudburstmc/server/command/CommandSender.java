@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.command;
 
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.locale.TextContainer;
 import org.cloudburstmc.server.permission.Permissible;
 
@@ -28,7 +28,7 @@ public interface CommandSender extends Permissible {
      *
      * @return The server instance
      */
-    Server getServer();
+    CloudServer getServer();
 
     /**
      * Returns the name of the command sender.

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 
 @Log4j2
 public enum EnumLevel {
@@ -18,11 +18,11 @@ public enum EnumLevel {
     }
 
     public static void initLevels() {
-        OVERWORLD.level = Server.getInstance().getDefaultLevel();
+        OVERWORLD.level = CloudServer.getInstance().getDefaultLevel();
 
-        Level netherLevel = Server.getInstance().getLevelByName("nether");
+        Level netherLevel = CloudServer.getInstance().getLevelByName("nether");
         // attempt to load the nether world if it is allowed in server properties
-        if (netherLevel != null && Server.getInstance().isNetherAllowed()) {
+        if (netherLevel != null && CloudServer.getInstance().isNetherAllowed()) {
             NETHER.level = netherLevel;
         } else {
             // Nether is not found or disabled

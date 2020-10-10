@@ -21,8 +21,9 @@ import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.AdventureSettings;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockStates;
@@ -55,7 +56,6 @@ import org.cloudburstmc.server.item.behavior.ItemMap;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.Direction;
@@ -645,7 +645,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         AnimatePacket animatePacket = new AnimatePacket();
         animatePacket.setRuntimeEntityId(player.getRuntimeId());
         animatePacket.setAction(animationEvent.getAnimationType());
-        Server.broadcastPacket(player.getViewers(), animatePacket);
+        CloudServer.broadcastPacket(player.getViewers(), animatePacket);
         return true;
     }
 
@@ -671,7 +671,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             packet.setRuntimeEntityId(player.getRuntimeId());
 
             player.sendPacket(packet);
-            Server.broadcastPacket(player.getViewers(), packet);
+            CloudServer.broadcastPacket(player.getViewers(), packet);
         }
         return true;
     }

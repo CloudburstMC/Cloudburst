@@ -5,13 +5,13 @@ import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.ItemRegistry;
-import org.cloudburstmc.server.registry.RegistryException;
 import org.cloudburstmc.server.utils.Config;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Utils;
@@ -48,7 +48,7 @@ public class CraftingManager {
     private CraftingDataPacket packet = null;
 
     public CraftingManager() {
-        InputStream recipesStream = Server.class.getClassLoader().getResourceAsStream("recipes.json");
+        InputStream recipesStream = CloudServer.class.getClassLoader().getResourceAsStream("recipes.json");
         if (recipesStream == null) {
             throw new AssertionError("Unable to find recipes.json");
         }
@@ -57,7 +57,7 @@ public class CraftingManager {
         recipesConfig.load(recipesStream);
         this.loadRecipes(recipesConfig);
 
-        String path = Server.getInstance().getDataPath() + "custom_recipes.json";
+        String path = CloudServer.getInstance().getDataPath() + "custom_recipes.json";
         File filePath = new File(path);
 
         if (filePath.exists()) {

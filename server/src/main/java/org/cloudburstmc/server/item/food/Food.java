@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.item.food;
 
+import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.player.PlayerEatFoodEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.Identifier;
 

@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.NonNull;
+import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.biome.BiomeBuilder;
 import org.cloudburstmc.server.utils.Identifier;

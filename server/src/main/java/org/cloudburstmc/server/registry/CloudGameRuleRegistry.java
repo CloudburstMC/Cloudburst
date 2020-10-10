@@ -3,7 +3,9 @@ package org.cloudburstmc.server.registry;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.cloudburstmc.server.level.gamerule.*;
+import org.cloudburstmc.api.level.gamerule.*;
+import org.cloudburstmc.api.registry.GameRuleRegistry;
+import org.cloudburstmc.server.level.gamerule.GameRuleMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -12,20 +14,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class GameRuleRegistry implements Registry {
-    private static final GameRuleRegistry INSTANCE = new GameRuleRegistry();
+public class CloudGameRuleRegistry implements GameRuleRegistry, Registry {
+    private static final CloudGameRuleRegistry INSTANCE = new CloudGameRuleRegistry();
 
     private final Map<String, GameRule<?>> registered = new HashMap<>();
     private volatile boolean closed;
 
-    private GameRuleRegistry() {
+    private CloudGameRuleRegistry() {
         this.registerVanilla();
     }
 
-    public static GameRuleRegistry get() {
+    public static CloudGameRuleRegistry get() {
         return INSTANCE;
     }
 
+    @Override
     public <T extends Comparable<T>> void register(GameRule<T> gameRule) {
         Preconditions.checkState(!closed, "Registry has closed");
         Preconditions.checkNotNull(gameRule, "gameRule");
@@ -37,13 +40,14 @@ public class GameRuleRegistry implements Registry {
     }
 
     @Nullable
+    @Override
     public GameRule<? extends Comparable<?>> fromString(String name) {
         name = name.trim().toLowerCase();
         return this.registered.get(name);
     }
 
     @Nonnull
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public GameRuleMap getDefaultRules() {
         GameRuleMap gameRules = new GameRuleMap();
         for (GameRule gameRule : this.registered.values()) {
@@ -52,10 +56,14 @@ public class GameRuleRegistry implements Registry {
         return gameRules;
     }
 
+    @Nonnull
+    @Override
     public List<GameRule<?>> getRules() {
         return ImmutableList.copyOf(this.registered.values());
     }
 
+    @Nonnull
+    @Override
     public Set<String> getRuleNames() {
         return ImmutableSet.copyOf(this.registered.keySet());
     }

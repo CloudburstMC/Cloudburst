@@ -3,7 +3,7 @@ package org.cloudburstmc.server.entity.impl.projectile;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.EntityTypes;
@@ -155,17 +155,17 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
         EntityEventPacket hookPacket = new EntityEventPacket();
         hookPacket.setRuntimeEntityId(this.getRuntimeId());
         hookPacket.setType(EntityEventType.FISH_HOOK_TIME);
-        Server.broadcastPacket(this.getViewers(), hookPacket);
+        CloudServer.broadcastPacket(this.getViewers(), hookPacket);
 
         EntityEventPacket bubblePacket = new EntityEventPacket();
         bubblePacket.setRuntimeEntityId(this.getRuntimeId());
         bubblePacket.setType(EntityEventType.FISH_HOOK_BUBBLE);
-        Server.broadcastPacket(this.getViewers(), bubblePacket);
+        CloudServer.broadcastPacket(this.getViewers(), bubblePacket);
 
         EntityEventPacket teasePacket = new EntityEventPacket();
         teasePacket.setRuntimeEntityId(this.getRuntimeId());
         teasePacket.setType(EntityEventType.FISH_HOOK_TEASE);
-        Server.broadcastPacket(this.getViewers(), teasePacket);
+        CloudServer.broadcastPacket(this.getViewers(), teasePacket);
 
         Random random = ThreadLocalRandom.current();
         for (int i = 0; i < 5; i++) {
@@ -227,7 +227,7 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
             EntityEventPacket packet = new EntityEventPacket();
             packet.setRuntimeEntityId(this.getRuntimeId());
             packet.setType(EntityEventType.FISH_HOOK_TEASE);
-            Server.broadcastPacket(this.getViewers(), packet);
+            CloudServer.broadcastPacket(this.getViewers(), packet);
         }
         if (!this.closed) {
             this.kill();

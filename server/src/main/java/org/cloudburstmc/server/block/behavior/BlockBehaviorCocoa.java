@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
@@ -165,7 +165,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
             BlockState cocoa = block.getState().incrementTrait(BlockTraits.AGE);
 
             BlockGrowEvent ev = new BlockGrowEvent(block, cocoa);
-            Server.getInstance().getEventManager().fire(ev);
+            CloudServer.getInstance().getEventManager().fire(ev);
 
             if (!ev.isCancelled()) {
                 block.set(ev.getNewState(), true, true);

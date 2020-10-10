@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.impl.projectile.EntityArrow;
@@ -89,7 +89,7 @@ public class ItemBow extends ItemTool {
             entityShootBowEvent.setCancelled();
         }
 
-        Server.getInstance().getEventManager().fire(entityShootBowEvent);
+        CloudServer.getInstance().getEventManager().fire(entityShootBowEvent);
         if (entityShootBowEvent.isCancelled()) {
             entityShootBowEvent.getProjectile().kill();
             player.getInventory().sendContents(player);
@@ -118,7 +118,7 @@ public class ItemBow extends ItemTool {
             }
             if (entityShootBowEvent.getProjectile() != null) {
                 ProjectileLaunchEvent projectev = new ProjectileLaunchEvent(entityShootBowEvent.getProjectile());
-                Server.getInstance().getEventManager().fire(projectev);
+                CloudServer.getInstance().getEventManager().fire(projectev);
                 if (projectev.isCancelled()) {
                     entityShootBowEvent.getProjectile().kill();
                 } else {
