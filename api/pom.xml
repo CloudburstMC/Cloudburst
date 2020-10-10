@@ -120,6 +120,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.cloudburstmc</groupId>
+            <artifactId>math</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <version>4.2.3</version>
