@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.metadata;
 
+import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.util.List;
 

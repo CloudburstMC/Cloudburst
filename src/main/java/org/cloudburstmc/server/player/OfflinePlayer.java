@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.player;
 
 import com.nukkitx.nbt.NbtMap;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.metadata.MetadataValue;
-import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.util.List;
 import java.util.OptionalLong;
@@ -13,7 +13,7 @@ import java.util.UUID;
  * Represents a player that is currently offline.
  */
 public class OfflinePlayer implements IPlayer {
-    private final Server server;
+    private final CloudServer server;
     private final NbtMap namedTag;
 
     /**
@@ -26,15 +26,15 @@ public class OfflinePlayer implements IPlayer {
      *               UUID of this player.
      * @since Nukkit 1.0 | Nukkit API 1.0.0
      */
-    public OfflinePlayer(Server server, UUID uuid) {
+    public OfflinePlayer(CloudServer server, UUID uuid) {
         this(server, uuid, null);
     }
 
-    public OfflinePlayer(Server server, String name) {
+    public OfflinePlayer(CloudServer server, String name) {
         this(server, null, name);
     }
 
-    public OfflinePlayer(Server server, UUID uuid, String name) {
+    public OfflinePlayer(CloudServer server, UUID uuid, String name) {
         this.server = server;
 
         NbtMap nbt;
@@ -86,7 +86,7 @@ public class OfflinePlayer implements IPlayer {
         return null;
     }
 
-    public Server getServer() {
+    public CloudServer getServer() {
         return server;
     }
 

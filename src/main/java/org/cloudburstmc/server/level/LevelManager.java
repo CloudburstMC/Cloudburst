@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.level.LevelLoadEvent;
 import org.cloudburstmc.server.event.level.LevelUnloadEvent;
 import org.cloudburstmc.server.math.NukkitMath;
@@ -24,13 +24,13 @@ import java.util.concurrent.Executors;
 @Singleton
 public class LevelManager implements Closeable {
     private final ExecutorService chunkExecutor = Executors.newWorkStealingPool();
-    private final Server server;
+    private final CloudServer server;
     private final Set<Level> levels = new HashSet<>();
     private final Map<String, Level> levelIds = new HashMap<>();
     private volatile Level defaultLevel;
 
     @Inject
-    public LevelManager(Server server) {
+    public LevelManager(CloudServer server) {
         this.server = server;
     }
 

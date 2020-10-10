@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;

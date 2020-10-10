@@ -4,7 +4,7 @@ import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import lombok.RequiredArgsConstructor;
 import net.minecrell.terminalconsole.SimpleTerminalConsole;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.server.ServerCommandEvent;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @RequiredArgsConstructor
 public class NukkitConsole extends SimpleTerminalConsole {
-    private final Server server;
+    private final CloudServer server;
     private final BlockingQueue<String> consoleQueue = new LinkedBlockingQueue<>();
     private final AtomicBoolean executingCommands = new AtomicBoolean(false);
 
@@ -33,7 +33,7 @@ public class NukkitConsole extends SimpleTerminalConsole {
                     server.getEventManager().fire(event);
                 }
                 if (!event.isCancelled()) {
-                    Server.getInstance().getScheduler().scheduleTask(null, () -> server.dispatchCommand(event.getSender(), event.getCommand()));
+                    CloudServer.getInstance().getScheduler().scheduleTask(null, () -> server.dispatchCommand(event.getSender(), event.getCommand()));
                 }
             }
         } else {

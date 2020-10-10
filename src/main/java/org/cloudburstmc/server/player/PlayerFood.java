@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.player;
 
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.Attribute;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
@@ -138,7 +138,7 @@ public class PlayerFood {
     public void update(int tickDiff) {
         if (!this.getPlayer().isFoodEnabled()) return;
         if (this.getPlayer().isAlive()) {
-            Difficulty diff = Server.getInstance().getDifficulty();
+            Difficulty diff = CloudServer.getInstance().getDifficulty();
             if (this.getLevel() > 17) {
                 this.foodTickTimer += tickDiff;
                 if (this.foodTickTimer >= 80) {
@@ -173,7 +173,7 @@ public class PlayerFood {
 
     public void updateFoodExpLevel(double use) {
         if (!this.getPlayer().isFoodEnabled()) return;
-        if (Server.getInstance().getDifficulty() == Difficulty.PEACEFUL) return;
+        if (CloudServer.getInstance().getDifficulty() == Difficulty.PEACEFUL) return;
         if (this.getPlayer().hasEffect(Effect.SATURATION)) return;
         this.foodExpLevel += use;
         if (this.foodExpLevel > 4) {

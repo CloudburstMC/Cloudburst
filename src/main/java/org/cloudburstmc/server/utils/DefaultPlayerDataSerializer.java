@@ -2,7 +2,7 @@ package org.cloudburstmc.server.utils;
 
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 public class DefaultPlayerDataSerializer implements PlayerDataSerializer {
-    private final Server server;
+    private final CloudServer server;
 
     @Override
     public Optional<InputStream> read(String name, UUID uuid) throws IOException {

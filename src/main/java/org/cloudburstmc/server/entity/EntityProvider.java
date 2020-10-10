@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.entity;
 
-import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginContainer;
 
 import java.util.ArrayList;
 import java.util.List;

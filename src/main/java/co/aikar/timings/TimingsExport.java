@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.locale.TranslationContainer;
@@ -66,16 +66,16 @@ public class TimingsExport extends Thread {
      */
     public static void reportTimings(CommandSender sender) {
         ObjectNode out = Bootstrap.JSON_MAPPER.createObjectNode();
-        out.put("version", Server.getInstance().getVersion());
-        out.put("maxplayers", Server.getInstance().getMaxPlayers());
+        out.put("version", CloudServer.getInstance().getVersion());
+        out.put("maxplayers", CloudServer.getInstance().getMaxPlayers());
         out.put("start", TimingsManager.timingStart / 1000);
         out.put("end", System.currentTimeMillis() / 1000);
         out.put("sampletime", (System.currentTimeMillis() - TimingsManager.timingStart) / 1000);
 
         if (!Timings.isPrivacy()) {
-            out.put("server", Server.getInstance().getName());
-            out.put("motd", Server.getInstance().getMotd());
-            out.put("online-mode", Server.getInstance().getConfig().isXboxAuth());
+            out.put("server", CloudServer.getInstance().getName());
+            out.put("motd", CloudServer.getInstance().getMotd());
+            out.put("online-mode", CloudServer.getInstance().getConfig().isXboxAuth());
             out.put("icon", ""); //"data:image/png;base64,"
         }
 
@@ -123,7 +123,7 @@ public class TimingsExport extends Thread {
         out.set("idmap", idmap);
 
         //Information about loaded plugins
-        out.set("plugins", JsonUtil.mapToObject(Server.getInstance().getPluginManager().getAllPlugins(), (plugin) -> {
+        out.set("plugins", JsonUtil.mapToObject(CloudServer.getInstance().getPluginManager().getAllPlugins(), (plugin) -> {
             ObjectNode jsonPlugin = Bootstrap.JSON_MAPPER.createObjectNode();
             jsonPlugin.put("version", plugin.getDescription().getVersion());
 
@@ -136,7 +136,7 @@ public class TimingsExport extends Thread {
         //Information on the users Config
         ObjectNode config = Bootstrap.JSON_MAPPER.createObjectNode();
         if (!Timings.getIgnoredConfigSections().contains("all")) {
-            final ObjectNode rootNode = Server.getInstance().getConfig().getCloudburstYaml().getRootNode();
+            final ObjectNode rootNode = CloudServer.getInstance().getConfig().getCloudburstYaml().getRootNode();
             Timings.getIgnoredConfigSections().forEach(rootNode::remove);
             config.set("cloudburst", rootNode);
         } else {
@@ -193,7 +193,7 @@ public class TimingsExport extends Thread {
         try {
             HttpURLConnection con = (HttpURLConnection) new URL("http://timings.aikar.co/post").openConnection();
             con.setDoOutput(true);
-            con.setRequestProperty("User-Agent", "Cloudburst/" + Server.getInstance().getName() + "/" + InetAddress.getLocalHost().getHostName());
+            con.setRequestProperty("User-Agent", "Cloudburst/" + CloudServer.getInstance().getName() + "/" + InetAddress.getLocalHost().getHostName());
             con.setRequestMethod("POST");
             con.setInstanceFollowRedirects(false);
 
@@ -214,23 +214,23 @@ public class TimingsExport extends Thread {
             String location = con.getHeaderField("Location");
             this.sender.sendMessage(new TranslationContainer("cloudburst.command.timings.timingsLocation", location));
             if (!(this.sender instanceof ConsoleCommandSender)) {
-                log.info(Server.getInstance().getLanguage().translate("cloudburst.command.timings.timingsLocation", location));
+                log.info(CloudServer.getInstance().getLanguage().translate("cloudburst.command.timings.timingsLocation", location));
             }
 
             if (response != null && !response.isEmpty()) {
-                log.info(Server.getInstance().getLanguage().translate("cloudburst.command.timings.timingsResponse", response));
+                log.info(CloudServer.getInstance().getLanguage().translate("cloudburst.command.timings.timingsResponse", response));
             }
 
-            File timingFolder = new File(Server.getInstance().getDataPath() + File.separator + "timings");
+            File timingFolder = new File(CloudServer.getInstance().getDataPath() + File.separator + "timings");
             timingFolder.mkdirs();
             String fileName = timingFolder + File.separator + new SimpleDateFormat("'timings-'yyyy-MM-dd-hh-mm'.txt'").format(new Date());
 
             FileWriter writer = new FileWriter(fileName);
-            writer.write(Server.getInstance().getLanguage().translate("cloudburst.command.timings.timingsLocation", location) + "\n\n");
+            writer.write(CloudServer.getInstance().getLanguage().translate("cloudburst.command.timings.timingsLocation", location) + "\n\n");
             writer.write(Bootstrap.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this.out));
             writer.close();
 
-            log.info(Server.getInstance().getLanguage().translate("cloudburst.command.timings.timingsWrite", fileName));
+            log.info(CloudServer.getInstance().getLanguage().translate("cloudburst.command.timings.timingsWrite", fileName));
         } catch (IOException exception) {
             this.sender.sendMessage(TextFormat.RED + "" + new TranslationContainer("cloudburst.command.timings.reportError"));
             if (response != null) {

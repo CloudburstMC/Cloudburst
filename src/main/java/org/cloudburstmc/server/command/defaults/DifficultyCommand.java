@@ -2,7 +2,7 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import com.nukkitx.protocol.bedrock.packet.SetDifficultyPacket;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
@@ -54,7 +54,7 @@ public class DifficultyCommand extends Command {
 
             SetDifficultyPacket packet = new SetDifficultyPacket();
             packet.setDifficulty(sender.getServer().getDifficulty().ordinal());
-            Server.broadcastPacket(new ArrayList<>(sender.getServer().getOnlinePlayers().values()), packet);
+            CloudServer.broadcastPacket(new ArrayList<>(sender.getServer().getOnlinePlayers().values()), packet);
 
             CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.difficulty.success", String.valueOf(difficulty)));
         } else {

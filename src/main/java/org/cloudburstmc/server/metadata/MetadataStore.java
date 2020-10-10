@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.metadata;
 
-import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.utils.PluginException;
 import org.cloudburstmc.server.utils.ServerException;
 

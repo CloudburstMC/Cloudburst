@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.plugin.loader.java;
 
 import lombok.Getter;
-import org.cloudburstmc.server.plugin.Dependency;
+import org.cloudburstmc.api.plugin.Dependency;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 

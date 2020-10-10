@@ -6,7 +6,8 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
@@ -19,7 +20,6 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.ItemRegistry;
-import org.cloudburstmc.server.registry.RegistryException;
 import org.cloudburstmc.server.utils.Config;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Utils;
@@ -63,7 +63,7 @@ public abstract class Item implements Cloneable {
         clearCreativeItems();
 
         Config config = new Config(Config.JSON);
-        config.load(Server.class.getClassLoader().getResourceAsStream("data/creative_items.json"));
+        config.load(CloudServer.class.getClassLoader().getResourceAsStream("data/creative_items.json"));
         List<Map> list = config.getMapList("items");
 
         for (Map map : list) {
@@ -145,7 +145,7 @@ public abstract class Item implements Cloneable {
     }
 
     public static Item get(Identifier id, int meta, int count, NbtMap tag) {
-        Item item = Server.getInstance().getItemRegistry().getItem(id, meta);
+        Item item = CloudServer.getInstance().getItemRegistry().getItem(id, meta);
         item.setMeta(meta);
         item.setCount(count);
         item.loadAdditionalData(tag);
@@ -170,7 +170,7 @@ public abstract class Item implements Cloneable {
 
     @Deprecated
     public static Item get(int id, int meta, int count, NbtMap tags) {
-        ItemRegistry registry = Server.getInstance().getItemRegistry();
+        ItemRegistry registry = CloudServer.getInstance().getItemRegistry();
         Identifier identifier = registry.fromLegacy(id);
         return get(identifier, meta, count, tags);
     }
@@ -446,7 +446,7 @@ public abstract class Item implements Cloneable {
     final public String getName() {
         if (this.hasCustomName())
             return this.getCustomName();
-        return Server.getInstance().getLanguage().translate("item." + getId().getName() + ".name");
+        return CloudServer.getInstance().getLanguage().translate("item." + getId().getName() + ".name");
     }
 
     public final boolean canBePlaced() {

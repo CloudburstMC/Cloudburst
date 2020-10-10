@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.command;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.locale.TextContainer;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.permission.PermissibleBase;
 import org.cloudburstmc.server.permission.Permission;
 import org.cloudburstmc.server.permission.PermissionAttachment;
 import org.cloudburstmc.server.permission.PermissionAttachmentInfo;
-import org.cloudburstmc.server.plugin.PluginContainer;
 
 import javax.inject.Singleton;
 import java.util.Map;
@@ -82,8 +82,8 @@ public class ConsoleCommandSender implements CommandSender {
     }
 
     @Override
-    public Server getServer() {
-        return Server.getInstance();
+    public CloudServer getServer() {
+        return CloudServer.getInstance();
     }
 
     @Override

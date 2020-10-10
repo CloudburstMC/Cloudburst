@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.registry;
 
-import org.cloudburstmc.server.plugin.PluginContainer;
-
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -11,7 +9,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 class RegistryServiceProvider<T> {
     private final List<RegistryProvider<T>> providers = new ArrayList<>();
-    private final Map<PluginContainer, RegistryProvider<T>> pluginProviders = new IdentityHashMap<>();
+    private final Map<Object, RegistryProvider<T>> pluginProviders = new IdentityHashMap<>();
 
     RegistryServiceProvider(RegistryProvider<T> initalValue) {
         this.add(initalValue);
@@ -27,7 +25,7 @@ class RegistryServiceProvider<T> {
         return providers.get(0);
     }
 
-    RegistryProvider<T> getProvider(PluginContainer plugin) {
+    RegistryProvider<T> getProvider(Object plugin) {
         return pluginProviders.get(plugin);
     }
 

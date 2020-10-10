@@ -25,12 +25,12 @@ package co.aikar.timings;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.scheduler.PluginTask;
 import org.cloudburstmc.server.scheduler.TaskHandler;
 
@@ -86,13 +86,13 @@ public final class Timings {
     public static final Timing permissionDefaultTimer;
 
     static {
-        setTimingsEnabled(Server.getInstance().getConfig().getTimings().isEnabled());
-        setVerboseEnabled(Server.getInstance().getConfig().getTimings().isVerbose());
-        setHistoryInterval(Server.getInstance().getConfig().getTimings().getHistoryInterval());
-        setHistoryLength(Server.getInstance().getConfig().getTimings().getHistoryLength());
+        setTimingsEnabled(CloudServer.getInstance().getConfig().getTimings().isEnabled());
+        setVerboseEnabled(CloudServer.getInstance().getConfig().getTimings().isVerbose());
+        setHistoryInterval(CloudServer.getInstance().getConfig().getTimings().getHistoryInterval());
+        setHistoryLength(CloudServer.getInstance().getConfig().getTimings().getHistoryLength());
 
-        privacy = Server.getInstance().getConfig().getTimings().isPrivacy();
-        ignoredConfigSections.addAll(Server.getInstance().getConfig().getTimings().getIgnore());
+        privacy = CloudServer.getInstance().getConfig().getTimings().isPrivacy();
+        ignoredConfigSections.addAll(CloudServer.getInstance().getConfig().getTimings().getIgnore());
 
         log.debug("Timings: \n" +
                 "Enabled - " + isTimingsEnabled() + "\n" +
@@ -182,7 +182,7 @@ public final class Timings {
         //For special cases of servers with special permission to bypass the max.
         //This max helps keep data file sizes reasonable for processing on Aikar's Timing parser side.
         //Setting this will not help you bypass the max unless Aikar has added an exception on the API side.
-        if (Server.getInstance().getConfig().getTimings().isBypassMax()) {
+        if (CloudServer.getInstance().getConfig().getTimings().isBypassMax()) {
             maxLength = Integer.MAX_VALUE;
         }
 

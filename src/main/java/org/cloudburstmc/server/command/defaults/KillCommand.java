@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
@@ -59,7 +59,7 @@ public class KillCommand extends Command {
                 CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.kill.successful", player.getName()));
             } else if (args[0].equals("@e")) {
                 StringJoiner joiner = new StringJoiner(", ");
-                for (Level level : Server.getInstance().getLevels()) {
+                for (Level level : CloudServer.getInstance().getLevels()) {
                     for (Entity entity : level.getEntities()) {
                         if (!(entity instanceof Player)) {
                             joiner.add(entity.getName());
@@ -87,7 +87,7 @@ public class KillCommand extends Command {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                     return true;
                 }
-                for (Level level : Server.getInstance().getLevels()) {
+                for (Level level : CloudServer.getInstance().getLevels()) {
                     for (Entity entity : level.getEntities()) {
                         if (entity instanceof Player) {
                             entity.setHealth(0);

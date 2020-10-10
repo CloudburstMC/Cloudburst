@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
@@ -88,7 +88,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
                 if (b.up() instanceof BlockBehaviorAir) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(GRASS));
-                    Server.getInstance().getEventManager().fire(ev);
+                    CloudServer.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.getLevel().setBlock(b.getPosition(), ev.getNewState());
                     }
@@ -96,7 +96,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
             } else if (state.getType() == GRASS) {
                 if (b.up() instanceof BlockBehaviorSolid) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(DIRT));
-                    Server.getInstance().getEventManager().fire(ev);
+                    CloudServer.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.getLevel().setBlock(b.getPosition(), ev.getNewState());
                     }

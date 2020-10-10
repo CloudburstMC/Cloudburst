@@ -2,10 +2,10 @@ package org.cloudburstmc.server.level.generator.standard.registry;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.registry.Registry;
-import org.cloudburstmc.server.registry.RegistryException;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.IdentityHashMap;
@@ -29,9 +29,9 @@ public abstract class AbstractGeneratorRegistry<V> implements Registry {
         this.registerDefault();
 
         Event event = this.constructionEvent();
-        if (Server.getInstance() != null) {
+        if (CloudServer.getInstance() != null) {
             //i was debugging stuff
-            Server.getInstance().getEventManager().fire(event);
+            CloudServer.getInstance().getEventManager().fire(event);
         }
         this.close();
     }

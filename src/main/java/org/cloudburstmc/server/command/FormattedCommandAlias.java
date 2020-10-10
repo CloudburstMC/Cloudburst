@@ -2,7 +2,7 @@ package org.cloudburstmc.server.command;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.utils.TextFormat;
@@ -43,7 +43,7 @@ public class FormattedCommandAlias extends Command {
         }
 
         for (String command : commands) {
-            result |= Server.getInstance().dispatchCommand(sender, command);
+            result |= CloudServer.getInstance().dispatchCommand(sender, command);
         }
 
         return result;
