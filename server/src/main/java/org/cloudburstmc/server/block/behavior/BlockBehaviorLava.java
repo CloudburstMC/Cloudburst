@@ -104,7 +104,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                     val b = level.getBlock(v);
                     val state = b.getState();
 
-                    if (b.up().getState().getType() == BlockTypes.AIR && state.getBehavior().getBurnChance() > 0) {
+                    if (b.up().getState().getType() == BlockTypes.AIR && state.getBehavior().getBurnChance(state) > 0) {
                         BlockIgniteEvent e = new BlockIgniteEvent(b, block, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
                         level.getServer().getEventManager().fire(e);
 
@@ -123,7 +123,8 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
     protected boolean isSurroundingBlockFlammable(Block block) {
         for (Direction face : Direction.values()) {
-            if (block.getSide(face).getState().getBehavior().getBurnChance() > 0) {
+            val sideState = block.getSide(face).getState();
+            if (sideState.getBehavior().getBurnChance(sideState) > 0) {
                 return true;
             }
         }

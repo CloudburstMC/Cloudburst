@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.trait;
 
+import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import org.cloudburstmc.server.block.BlockTraits;
 
@@ -17,16 +18,18 @@ public abstract class BlockTrait<E extends Comparable<E>> {
     protected final String name;
     protected final String vanillaName;
     protected final Class<E> valueClass;
-    protected final List<E> possibleValues;
+    protected final boolean onlySerialize;
+    protected final ImmutableList<E> possibleValues;
 
-    public BlockTrait(String name, @Nullable String vanillaName, Class<E> valueClass, List<E> possibleValues) {
+    public BlockTrait(String name, @Nullable String vanillaName, Class<E> valueClass, List<E> possibleValues, boolean onlySerialize) {
         checkNotNull(name);
         checkNotNull(valueClass);
         checkNotNull(possibleValues);
         this.name = name;
         this.vanillaName = vanillaName;
         this.valueClass = valueClass;
-        this.possibleValues = possibleValues;
+        this.onlySerialize = onlySerialize;
+        this.possibleValues = ImmutableList.copyOf(possibleValues);
 
         BlockTraits.register(this);
     }
@@ -43,6 +46,19 @@ public abstract class BlockTrait<E extends Comparable<E>> {
 
     Predicate<E> getValidator() {
         return e -> this.getPossibleValues().contains(e);
+    }
+
+    @SuppressWarnings("unchecked")
+    public boolean testValue(Object value) {
+        return getValidator().test((E) value);
+    }
+
+    public boolean isOnlySerialize() {
+        return onlySerialize;
+    }
+
+    public ImmutableList<E> getPossibleValues() {
+        return possibleValues;
     }
 
     public abstract int getIndex(Object value);

@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.impl.misc;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import lombok.val;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
@@ -160,7 +161,8 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
             double friction = 1d - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                friction = this.getLevel().getBlockAt(this.getPosition().add(0, -1, -1).toInt()).getBehavior().getFrictionFactor() * friction;
+                val b = this.getLevel().getBlockAt(this.getPosition().add(0, -1, -1).toInt());
+                friction = b.getBehavior().getFrictionFactor(b) * friction;
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);

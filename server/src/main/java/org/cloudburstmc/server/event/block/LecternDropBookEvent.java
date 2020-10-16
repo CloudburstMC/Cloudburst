@@ -28,7 +28,7 @@ public class LecternDropBookEvent extends BlockEvent implements Cancellable {
     }
 
     public ItemStack getBook() {
-        return book.clone();
+        return book;
     }
 
     public void setBook(ItemStack book) {

@@ -88,7 +88,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
             }
 
             if (liquid.inCategory(BlockCategory.LIQUID) && liquid.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
-                ItemStack result = ItemStack.get(ItemTypes.BUCKET, this.getDamageFromIdentifier(liquid.getType()), 1);
+                ItemStack result = ItemStack.get(ItemTypes.BUCKET, 1, this.getDamageFromIdentifier(liquid.getType()));
                 PlayerBucketFillEvent ev;
                 player.getServer().getEventManager().fire(ev = new PlayerBucketFillEvent(player, block, face, itemStack, result));
                 if (!ev.isCancelled()) {
@@ -128,15 +128,14 @@ public class ItemBucketBehavior extends CloudItemBehavior {
             val targetState = target.getState();
             val behavior = targetState.getBehavior();
 
-            if (behavior.canWaterlogSource() && bucketContents.getType() == FLOWING_WATER) {
+            if (behavior.canWaterlogSource(targetState) && bucketContents.getType() == FLOWING_WATER) {
                 emptyTarget = target;
             }
 
             val blockBehavior = emptyTarget.getState().getBehavior();
 
             PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, emptyTarget, face, itemStack, result);
-            if (!blockBehavior.canBeFlooded() && !blockBehavior.canWaterlogSource()) {
-                System.out.println("cancel");
+            if (!blockBehavior.canBeFlooded(emptyTarget.getState()) && !blockBehavior.canWaterlogSource(emptyTarget.getState())) {
                 ev.setCancelled(true);
             }
 
@@ -147,7 +146,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
             player.getServer().getEventManager().fire(ev);
 
             if (!ev.isCancelled()) {
-                int layer = behavior.canWaterlogSource() ? 1 : 0;
+                int layer = behavior.canWaterlogSource(targetState) ? 1 : 0;
                 if (target.getLevel().setBlock(emptyTarget.getPosition(), layer, bucketContents, true, true)) {
                     target.getLevel().scheduleUpdate(emptyTarget.getPosition(), bucketContents.getBehavior().tickRate());
                 }
@@ -199,7 +198,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public int getFuelTime(ItemStack item) {
+    public short getFuelTime(ItemStack item) {
         if (item.getMetadata(Bucket.class) == Bucket.LAVA) {
             return 20000;
         }

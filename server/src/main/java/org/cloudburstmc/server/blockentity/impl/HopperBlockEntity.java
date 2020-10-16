@@ -4,8 +4,8 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
@@ -74,7 +74,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockIds.HOPPER;
+        return getBlockState().getType() == BlockTypes.HOPPER;
     }
 
     public boolean isOnTransferCooldown() {
@@ -143,8 +143,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                     continue;
                 }
 
-                item = item.clone();
-                item.setCount(1);
+                item = item.withAmount(1);
 
                 if (!this.inventory.canAddItem(item)) {
                     continue;
@@ -210,7 +209,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
 
             if (items[0].getCount() != originalCount) {
                 pickedUpItem = true;
-                item.setCount(items[0].getCount());
+                itemEntity.setItem(item.withAmount(items[0].getAmount()));
             }
         }
 
@@ -266,11 +265,11 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 for (int slot : slots) {
                     ItemStack target = inv.getItem(slot);
 
-                    if (!target.isNull() && (!target.equals(item) || target.getCount() >= item.getMaxStackSize())) {
+                    if (!target.isNull() && (!target.equals(item) || target.getCount() >= item.getBehavior().getMaxStackSize(item))) {
                         continue;
                     }
 
-                    item.setCount(1);
+                    item = item.withAmount(1);
 
                     InventoryMoveItemEvent event = new InventoryMoveItemEvent(this.inventory, inv, this, item, InventoryMoveItemEvent.Action.SLOT_CHANGE);
                     this.server.getEventManager().fire(event);

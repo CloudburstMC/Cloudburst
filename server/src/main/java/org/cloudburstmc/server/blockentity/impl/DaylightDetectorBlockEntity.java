@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.blockentity.impl;
 
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.DaylightDetector;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.utils.Identifier;
 
 public class DaylightDetectorBlockEntity extends BaseBlockEntity implements DaylightDetector {
 
@@ -16,8 +16,8 @@ public class DaylightDetectorBlockEntity extends BaseBlockEntity implements Dayl
 
     @Override
     public boolean isValid() {
-        Identifier blockId = getBlockState().getType();
-        return blockId == BlockIds.DAYLIGHT_DETECTOR || blockId == BlockIds.DAYLIGHT_DETECTOR_INVERTED;
+        BlockType blockId = getBlockState().getType();
+        return blockId == BlockTypes.DAYLIGHT_DETECTOR || blockId == BlockTypes.DAYLIGHT_DETECTOR_INVERTED;
     }
 
 }

@@ -3,7 +3,9 @@ package org.cloudburstmc.server.entity.impl.projectile;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import lombok.val;
 import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.EntityTypes;
@@ -21,13 +23,10 @@ import org.cloudburstmc.server.level.particle.BubbleParticle;
 import org.cloudburstmc.server.level.particle.WaterParticle;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nullable;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
-
-import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 
 /**
@@ -143,8 +142,8 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
 
     public int getWaterHeight() {
         for (int y = this.getPosition().getFloorY(); y < 256; y++) {
-            Identifier id = this.getLevel().getBlockAt(getPosition().getFloorX(), y, getPosition().getFloorZ()).getType();
-            if (id == AIR) {
+            val id = this.getLevel().getBlockAt(getPosition().getFloorX(), y, getPosition().getFloorZ()).getType();
+            if (id == BlockTypes.AIR) {
                 return y;
             }
         }

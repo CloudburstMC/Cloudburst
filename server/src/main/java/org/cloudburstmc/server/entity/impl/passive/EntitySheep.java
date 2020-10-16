@@ -95,7 +95,7 @@ public class EntitySheep extends Animal implements Sheep {
     @Override
     public ItemStack[] getDrops() {
         if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
-            return new ItemStack[]{ItemStack.get(WOOL, DyeColor.getByWoolData(getColor()))};
+            return new ItemStack[]{ItemStack.get(WOOL, 1, DyeColor.getByWoolData(getColor()))};
         }
         return new ItemStack[0];
     }

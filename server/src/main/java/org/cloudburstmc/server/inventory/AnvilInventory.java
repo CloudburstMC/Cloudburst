@@ -1,17 +1,9 @@
 package org.cloudburstmc.server.inventory;
 
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.player.Player.CraftingType;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * author: MagicDroidX
@@ -28,98 +20,98 @@ public class AnvilInventory extends FakeBlockUIComponent {
     }
 
     public boolean onRename(Player player, ItemStack resultItem) {
-        ItemStack local = getItem(TARGET);
-        ItemStack second = getItem(SACRIFICE);
-
-        if (!resultItem.equals(local, true, false) || resultItem.getCount() != local.getCount()) {
-            //Item does not match target item. Everything must match except the tags.
-            return false;
-        }
-
-        if (local.equals(resultItem)) {
-            //just item transaction
-            return true;
-        }
-
-        if (local.getId() != AIR && second.getId() == AIR) { //only rename
-            local.setCustomName(resultItem.getCustomName());
-            setItem(RESULT, local);
-            player.getInventory().addItem(local);
-            clearAll();
-            player.getInventory().sendContents(player);
-            sendContents(player);
-
-            player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.RANDOM_ANVIL_USE);
-            return true;
-        } else if (local.getId() != AIR && second.getId() != AIR) { //enchants combining
-            if (!local.equals(second, true, false)) {
-                return false;
-            }
-
-            if (local.getId() != AIR && second.getId() != AIR) {
-                ItemStack result = local.clone();
-                int enchants = 0;
-
-                ArrayList<EnchantmentInstance> enchantments = new ArrayList<>(Arrays.asList(second.getEnchantments()));
-
-                ArrayList<EnchantmentInstance> baseEnchants = new ArrayList<>();
-
-                for (CloudEnchantmentInstance ench : local.getEnchantments()) {
-                    if (ench.isMajor()) {
-                        baseEnchants.add(ench);
-                    }
-                }
-
-                for (CloudEnchantmentInstance enchantment : enchantments) {
-                    if (enchantment.getLevel() < 0 || enchantment.getId() < 0) {
-                        continue;
-                    }
-
-                    if (enchantment.isMajor()) {
-                        boolean same = false;
-                        boolean another = false;
-
-                        for (EnchantmentInstance baseEnchant : baseEnchants) {
-                            if (baseEnchant.getId() == enchantment.getId())
-                                same = true;
-                            else {
-                                another = true;
-                            }
-                        }
-
-                        if (!same && another) {
-                            continue;
-                        }
-                    }
-
-                    EnchantmentInstance localEnchantment = local.getEnchantment(enchantment.getId());
-
-                    if (localEnchantment != null) {
-                        int level = Math.max(localEnchantment.getLevel(), enchantment.getLevel());
-
-                        if (localEnchantment.getLevel() == enchantment.getLevel())
-                            level++;
-
-                        enchantment.setLevel(level);
-                        result.addEnchantment(enchantment);
-                        continue;
-                    }
-
-                    result.addEnchantment(enchantment);
-                    enchants++;
-                }
-
-                result.setCustomName(resultItem.getCustomName());
-
-                player.getInventory().addItem(result);
-                player.getInventory().sendContents(player);
-                clearAll();
-                sendContents(player);
-
-                player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.RANDOM_ANVIL_USE);
-                return true;
-            }
-        }
+//        ItemStack local = getItem(TARGET); //TODO: anvil
+//        ItemStack second = getItem(SACRIFICE);
+//
+//        if (!resultItem.equals(local, true, false) || resultItem.getCount() != local.getCount()) {
+//            //Item does not match target item. Everything must match except the tags.
+//            return false;
+//        }
+//
+//        if (local.equals(resultItem)) {
+//            //just item transaction
+//            return true;
+//        }
+//
+//        if (!local.isNull() && second.isNull()) { //only rename
+//            local.setCustomName(resultItem.getCustomName());
+//            setItem(RESULT, local);
+//            player.getInventory().addItem(local);
+//            clearAll();
+//            player.getInventory().sendContents(player);
+//            sendContents(player);
+//
+//            player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.RANDOM_ANVIL_USE);
+//            return true;
+//        } else if (!local.isNull() && !second.isNull()) { //enchants combining
+//            if (!local.equals(second, true, false)) {
+//                return false;
+//            }
+//
+//            if (!local.isNull() && !second.isNull()) {
+//                ItemStack result = local.clone();
+//                int enchants = 0;
+//
+//                ArrayList<EnchantmentInstance> enchantments = new ArrayList<>(Arrays.asList(second.getEnchantments()));
+//
+//                ArrayList<EnchantmentInstance> baseEnchants = new ArrayList<>();
+//
+//                for (CloudEnchantmentInstance ench : local.getEnchantments()) {
+//                    if (ench.getType().isMajor()) {
+//                        baseEnchants.add(ench);
+//                    }
+//                }
+//
+//                for (CloudEnchantmentInstance enchantment : enchantments) {
+//                    if (enchantment.getLevel() < 0 || enchantment.getId() < 0) {
+//                        continue;
+//                    }
+//
+//                    if (enchantment.isMajor()) {
+//                        boolean same = false;
+//                        boolean another = false;
+//
+//                        for (EnchantmentInstance baseEnchant : baseEnchants) {
+//                            if (baseEnchant.getId() == enchantment.getId())
+//                                same = true;
+//                            else {
+//                                another = true;
+//                            }
+//                        }
+//
+//                        if (!same && another) {
+//                            continue;
+//                        }
+//                    }
+//
+//                    EnchantmentInstance localEnchantment = local.getEnchantment(enchantment.getId());
+//
+//                    if (localEnchantment != null) {
+//                        int level = Math.max(localEnchantment.getLevel(), enchantment.getLevel());
+//
+//                        if (localEnchantment.getLevel() == enchantment.getLevel())
+//                            level++;
+//
+//                        enchantment.setLevel(level);
+//                        result.addEnchantment(enchantment);
+//                        continue;
+//                    }
+//
+//                    result.addEnchantment(enchantment);
+//                    enchants++;
+//                }
+//
+//                result.setCustomName(resultItem.getCustomName());
+//
+//                player.getInventory().addItem(result);
+//                player.getInventory().sendContents(player);
+//                clearAll();
+//                sendContents(player);
+//
+//                player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.RANDOM_ANVIL_USE);
+//                return true;
+//            }
+//        }
 
         return false;
     }

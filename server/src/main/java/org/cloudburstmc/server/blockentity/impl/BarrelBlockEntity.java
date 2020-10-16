@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Barrel;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.inventory.BarrelInventory;
@@ -70,7 +70,7 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockIds.BARREL;
+        return getBlockState().getType() == BlockTypes.BARREL;
     }
 
     @Override

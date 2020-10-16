@@ -40,7 +40,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
         Block down = block.getSide(DOWN);
         BlockState downState = down.getState();
-        if ((downState.getType() != KELP && !downState.getBehavior().isSolid())
+        if ((downState.getType() != KELP && !downState.getBehavior().isSolid(downState))
                 || downState.getType() == MAGMA || downState.getType() == ICE || downState.getType() == SOUL_SAND) {
             return false;
         }

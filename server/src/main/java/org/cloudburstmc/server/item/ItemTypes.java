@@ -25,17 +25,17 @@ public class ItemTypes {
     public static final ItemType IRON_AXE = IntItem.builder().id(ItemIds.IRON_AXE).maxStackSize(1).data(Damageable.class).toolType(AXE).tierType(IRON).attackDamage(6).build();
     public static final ItemType FLINT_AND_STEEL = IntItem.builder().id(ItemIds.FLINT_AND_STEEL).maxStackSize(1).build();
     public static final ItemType APPLE = IntItem.builder().id(ItemIds.APPLE).maxStackSize(64).build();
-    public static final ItemType BOW = IntItem.builder().id(ItemIds.BOW).maxStackSize(1).fuelTime(200).build();
+    public static final ItemType BOW = IntItem.builder().id(ItemIds.BOW).maxStackSize(1).fuelTime((short) 200).build();
     public static final ItemType ARROW = IntItem.builder().id(ItemIds.ARROW).maxStackSize(64).build();
-    public static final ItemType COAL = IntItem.builder().id(ItemIds.COAL).maxStackSize(64).data(Coal.class).fuelTime(1600).build();
+    public static final ItemType COAL = IntItem.builder().id(ItemIds.COAL).maxStackSize(64).data(Coal.class).fuelTime((short) 1600).build();
     public static final ItemType DIAMOND = IntItem.builder().id(ItemIds.DIAMOND).maxStackSize(64).build();
     public static final ItemType IRON_INGOT = IntItem.builder().id(ItemIds.IRON_INGOT).maxStackSize(64).build();
     public static final ItemType GOLD_INGOT = IntItem.builder().id(ItemIds.GOLD_INGOT).maxStackSize(64).build();
     public static final ItemType IRON_SWORD = IntItem.builder().id(ItemIds.IRON_SWORD).maxStackSize(1).data(Damageable.class).toolType(SWORD).tierType(IRON).attackDamage(7).build();
-    public static final ItemType WOODEN_SWORD = IntItem.builder().id(ItemIds.WOODEN_SWORD).maxStackSize(1).data(Damageable.class).toolType(SWORD).tierType(WOOD).attackDamage(5).fuelTime(200).build();
-    public static final ItemType WOODEN_SHOVEL = IntItem.builder().id(ItemIds.WOODEN_SHOVEL).maxStackSize(1).data(Damageable.class).toolType(SHOVEL).tierType(WOOD).attackDamage(2).fuelTime(200).build();
-    public static final ItemType WOODEN_PICKAXE = IntItem.builder().id(ItemIds.WOODEN_PICKAXE).maxStackSize(1).data(Damageable.class).toolType(PICKAXE).tierType(WOOD).attackDamage(2).fuelTime(200).build();
-    public static final ItemType WOODEN_AXE = IntItem.builder().id(ItemIds.WOODEN_AXE).maxStackSize(1).data(Damageable.class).toolType(AXE).tierType(WOOD).attackDamage(4).fuelTime(200).build();
+    public static final ItemType WOODEN_SWORD = IntItem.builder().id(ItemIds.WOODEN_SWORD).maxStackSize(1).data(Damageable.class).toolType(SWORD).tierType(WOOD).attackDamage(5).fuelTime((short) 200).build();
+    public static final ItemType WOODEN_SHOVEL = IntItem.builder().id(ItemIds.WOODEN_SHOVEL).maxStackSize(1).data(Damageable.class).toolType(SHOVEL).tierType(WOOD).attackDamage(2).fuelTime((short) 200).build();
+    public static final ItemType WOODEN_PICKAXE = IntItem.builder().id(ItemIds.WOODEN_PICKAXE).maxStackSize(1).data(Damageable.class).toolType(PICKAXE).tierType(WOOD).attackDamage(2).fuelTime((short) 200).build();
+    public static final ItemType WOODEN_AXE = IntItem.builder().id(ItemIds.WOODEN_AXE).maxStackSize(1).data(Damageable.class).toolType(AXE).tierType(WOOD).attackDamage(4).fuelTime((short) 200).build();
     public static final ItemType STONE_SWORD = IntItem.builder().id(ItemIds.STONE_SWORD).maxStackSize(1).data(Damageable.class).toolType(SWORD).tierType(STONE).attackDamage(6).build();
     public static final ItemType STONE_SHOVEL = IntItem.builder().id(ItemIds.STONE_SHOVEL).maxStackSize(1).data(Damageable.class).toolType(SHOVEL).tierType(STONE).attackDamage(3).build();
     public static final ItemType STONE_PICKAXE = IntItem.builder().id(ItemIds.STONE_PICKAXE).maxStackSize(1).data(Damageable.class).toolType(PICKAXE).tierType(STONE).attackDamage(3).build();
@@ -44,8 +44,8 @@ public class ItemTypes {
     public static final ItemType DIAMOND_SHOVEL = IntItem.builder().id(ItemIds.DIAMOND_SHOVEL).maxStackSize(1).data(Damageable.class).toolType(SHOVEL).tierType(TierTypes.DIAMOND).attackDamage(5).build();
     public static final ItemType DIAMOND_PICKAXE = IntItem.builder().id(ItemIds.DIAMOND_PICKAXE).maxStackSize(1).data(Damageable.class).toolType(PICKAXE).tierType(TierTypes.DIAMOND).attackDamage(5).build();
     public static final ItemType DIAMOND_AXE = IntItem.builder().id(ItemIds.DIAMOND_AXE).maxStackSize(1).data(Damageable.class).toolType(AXE).tierType(TierTypes.DIAMOND).attackDamage(7).build();
-    public static final ItemType STICK = IntItem.builder().id(ItemIds.STICK).maxStackSize(64).fuelTime(100).build();
-    public static final ItemType BOWL = IntItem.builder().id(ItemIds.BOWL).maxStackSize(64).fuelTime(200).build();
+    public static final ItemType STICK = IntItem.builder().id(ItemIds.STICK).maxStackSize(64).fuelTime((short) 100).build();
+    public static final ItemType BOWL = IntItem.builder().id(ItemIds.BOWL).maxStackSize(64).fuelTime((short) 200).build();
     public static final ItemType MUSHROOM_STEW = IntItem.builder().id(ItemIds.MUSHROOM_STEW).maxStackSize(1).build();
     public static final ItemType GOLDEN_SWORD = IntItem.builder().id(ItemIds.GOLDEN_SWORD).maxStackSize(1).data(Damageable.class).toolType(SWORD).tierType(GOLD).attackDamage(5).build();
     public static final ItemType GOLDEN_SHOVEL = IntItem.builder().id(ItemIds.GOLDEN_SHOVEL).maxStackSize(1).data(Damageable.class).toolType(SHOVEL).tierType(GOLD).attackDamage(2).build();
@@ -54,7 +54,7 @@ public class ItemTypes {
     public static final ItemType STRING = IntItem.builder().id(ItemIds.STRING).maxStackSize(64).blockType(BlockTypes.TRIPWIRE).build();
     public static final ItemType FEATHER = IntItem.builder().id(ItemIds.FEATHER).maxStackSize(64).build();
     public static final ItemType GUNPOWDER = IntItem.builder().id(ItemIds.GUNPOWDER).maxStackSize(64).build();
-    public static final ItemType WOODEN_HOE = IntItem.builder().id(ItemIds.WOODEN_HOE).maxStackSize(1).data(Damageable.class).toolType(HOE).tierType(WOOD).attackDamage(2).fuelTime(200).build();
+    public static final ItemType WOODEN_HOE = IntItem.builder().id(ItemIds.WOODEN_HOE).maxStackSize(1).data(Damageable.class).toolType(HOE).tierType(WOOD).attackDamage(2).fuelTime((short) 200).build();
     public static final ItemType STONE_HOE = IntItem.builder().id(ItemIds.STONE_HOE).maxStackSize(1).data(Damageable.class).toolType(HOE).tierType(STONE).attackDamage(3).build();
     public static final ItemType IRON_HOE = IntItem.builder().id(ItemIds.IRON_HOE).maxStackSize(1).data(Damageable.class).toolType(HOE).tierType(IRON).attackDamage(4).build();
     public static final ItemType DIAMOND_HOE = IntItem.builder().id(ItemIds.DIAMOND_HOE).maxStackSize(1).data(Damageable.class).toolType(HOE).tierType(TierTypes.DIAMOND).attackDamage(5).build();
@@ -95,7 +95,7 @@ public class ItemTypes {
     public static final ItemType IRON_DOOR = IntItem.builder().id(ItemIds.IRON_DOOR).maxStackSize(64).blockType(BlockTypes.IRON_DOOR).build();
     public static final ItemType REDSTONE = IntItem.builder().id(ItemIds.REDSTONE).maxStackSize(64).blockType(BlockTypes.REDSTONE_WIRE).build();
     public static final ItemType SNOWBALL = IntItem.builder().id(ItemIds.SNOWBALL).maxStackSize(16).build();
-    public static final ItemType BOAT = IntItem.builder().id(ItemIds.BOAT).maxStackSize(1).fuelTime(1200).build();
+    public static final ItemType BOAT = IntItem.builder().id(ItemIds.BOAT).maxStackSize(1).fuelTime((short) 1200).build();
     public static final ItemType LEATHER = IntItem.builder().id(ItemIds.LEATHER).maxStackSize(64).build();
     public static final ItemType KELP = IntItem.builder().id(ItemIds.KELP).maxStackSize(64).blockType(BlockTypes.KELP).build();
     public static final ItemType BRICK = IntItem.builder().id(ItemIds.BRICK).maxStackSize(64).build();
@@ -107,7 +107,7 @@ public class ItemTypes {
     public static final ItemType CHEST_MINECART = IntItem.builder().id(ItemIds.CHEST_MINECART).maxStackSize(1).build();
     public static final ItemType EGG = IntItem.builder().id(ItemIds.EGG).maxStackSize(16).build();
     public static final ItemType COMPASS = IntItem.builder().id(ItemIds.COMPASS).maxStackSize(64).build();
-    public static final ItemType FISHING_ROD = IntItem.builder().id(ItemIds.FISHING_ROD).maxStackSize(1).fuelTime(300).build();
+    public static final ItemType FISHING_ROD = IntItem.builder().id(ItemIds.FISHING_ROD).maxStackSize(1).fuelTime((short) 300).build();
     public static final ItemType CLOCK = IntItem.builder().id(ItemIds.CLOCK).maxStackSize(64).build();
     public static final ItemType GLOWSTONE_DUST = IntItem.builder().id(ItemIds.GLOWSTONE_DUST).maxStackSize(64).build();
     public static final ItemType FISH = IntItem.builder().id(ItemIds.FISH).maxStackSize(64).build();
@@ -130,7 +130,7 @@ public class ItemTypes {
     public static final ItemType COOKED_CHICKEN = IntItem.builder().id(ItemIds.COOKED_CHICKEN).maxStackSize(64).build();
     public static final ItemType ROTTEN_FLESH = IntItem.builder().id(ItemIds.ROTTEN_FLESH).maxStackSize(64).build();
     public static final ItemType ENDER_PEARL = IntItem.builder().id(ItemIds.ENDER_PEARL).maxStackSize(64).build();
-    public static final ItemType BLAZE_ROD = IntItem.builder().id(ItemIds.BLAZE_ROD).maxStackSize(64).fuelTime(2400).build();
+    public static final ItemType BLAZE_ROD = IntItem.builder().id(ItemIds.BLAZE_ROD).maxStackSize(64).fuelTime((short) 2400).build();
     public static final ItemType GHAST_TEAR = IntItem.builder().id(ItemIds.GHAST_TEAR).maxStackSize(64).build();
     public static final ItemType GOLD_NUGGET = IntItem.builder().id(ItemIds.GOLD_NUGGET).maxStackSize(64).build();
     public static final ItemType NETHER_WART = IntItem.builder().id(ItemIds.NETHER_WART).maxStackSize(64).blockType(BlockTypes.NETHER_WART).build();
@@ -196,7 +196,7 @@ public class ItemTypes {
     public static final ItemType COMMAND_BLOCK_MINECART = IntItem.builder().id(ItemIds.COMMAND_BLOCK_MINECART).maxStackSize(1).build();
     public static final ItemType ELYTRA = IntItem.builder().id(ItemIds.ELYTRA).maxStackSize(1).build();
     public static final ItemType SHULKER_SHELL = IntItem.builder().id(ItemIds.SHULKER_SHELL).maxStackSize(64).build();
-    public static final ItemType BANNER = IntItem.builder().id(ItemIds.BANNER).maxStackSize(16).fuelTime(300).build();
+    public static final ItemType BANNER = IntItem.builder().id(ItemIds.BANNER).maxStackSize(16).fuelTime((short) 300).build();
     public static final ItemType TOTEM = IntItem.builder().id(ItemIds.TOTEM).maxStackSize(1).build();
     public static final ItemType IRON_NUGGET = IntItem.builder().id(ItemIds.IRON_NUGGET).maxStackSize(64).build();
     public static final ItemType BOARD = IntItem.builder().id(ItemIds.BOARD).maxStackSize(16).build();
@@ -209,9 +209,14 @@ public class ItemTypes {
     public static final ItemType CLOWNFISH = IntItem.builder().id(ItemIds.CLOWNFISH).maxStackSize(64).build();
     public static final ItemType PUFFERFISH = IntItem.builder().id(ItemIds.PUFFERFISH).maxStackSize(64).build();
     public static final ItemType COOKED_SALMON = IntItem.builder().id(ItemIds.COOKED_SALMON).maxStackSize(64).build();
+    public static final ItemType NAUTILUS_SHELL = IntItem.builder().id(ItemIds.NAUTILUS_SHELL).maxStackSize(64).build();
     public static final ItemType DRIED_KELP = IntItem.builder().id(ItemIds.DRIED_KELP).maxStackSize(64).build();
     public static final ItemType APPLE_ENCHANTED = IntItem.builder().id(ItemIds.APPLE_ENCHANTED).maxStackSize(64).build();
+    public static final ItemType HEART_OF_THE_SEA = IntItem.builder().id(ItemIds.HEART_OF_THE_SEA).maxStackSize(64).build();
+    public static final ItemType TURTLE_SHELL_PIECE = IntItem.builder().id(ItemIds.TURTLE_SHELL_PIECE).maxStackSize(64).build();
     public static final ItemType TURTLE_HELMET = IntItem.builder().id(ItemIds.TURTLE_HELMET).maxStackSize(1).build();
+    public static final ItemType PHANTOM_MEMBRANE = IntItem.builder().id(ItemIds.PHANTOM_MEMBRANE).maxStackSize(64).build();
+    public static final ItemType CROSSBOW = IntItem.builder().id(ItemIds.CROSSBOW).maxStackSize(1).build();
     public static final ItemType SWEET_BERRIES = IntItem.builder().id(ItemIds.SWEET_BERRIES).maxStackSize(64).build();
     public static final ItemType CAMERA = IntItem.builder().id(ItemIds.CAMERA).maxStackSize(64).build();
     public static final ItemType RECORD = IntItem.builder().id(ItemIds.RECORD_13).maxStackSize(1).build(); //TODO: record types
@@ -237,7 +242,7 @@ public class ItemTypes {
         private final int armorPoints;
         private final int toughness;
         private final int durability;
-        private final int fuelTime;
+        private final short fuelTime;
         private final int enchantAbility;
         private final BlockType blockType;
         private final Class<?> data;
@@ -251,7 +256,7 @@ public class ItemTypes {
                 int armorPoints,
                 int toughness,
                 int durability,
-                int fuelTime,
+                short fuelTime,
                 int enchantAbility,
                 Class<?> data,
                 BlockType blockType,
@@ -319,7 +324,7 @@ public class ItemTypes {
         }
 
         @Override
-        public int getFuelTime() {
+        public short getFuelTime() {
             return fuelTime;
         }
 
@@ -377,7 +382,7 @@ public class ItemTypes {
             private int armorPoints;
             private int toughness;
             private int durability = -1;
-            private int fuelTime;
+            private short fuelTime;
             private int enchantAbility;
             private BlockType blockType;
             private Class<?> data;
@@ -414,7 +419,7 @@ public class ItemTypes {
                 return this;
             }
 
-            private Builder fuelTime(int duration) {
+            private Builder fuelTime(short duration) {
                 this.fuelTime = duration;
                 return this;
             }

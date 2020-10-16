@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.blockentity.impl;
 
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.EnchantingTable;
 import org.cloudburstmc.server.level.chunk.Chunk;
@@ -18,7 +18,7 @@ public class EnchantingTableBlockEntity extends BaseBlockEntity implements Encha
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockIds.ENCHANTING_TABLE;
+        return getBlockState().getType() == BlockTypes.ENCHANTING_TABLE;
     }
 
 }

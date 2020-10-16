@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Squid;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -36,6 +36,6 @@ public class EntitySquid extends EntityWaterAnimal implements Squid {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemIds.DYE, DyeColor.BLACK.getDyeData())};
+        return new ItemStack[]{ItemStack.get(ItemTypes.DYE, DyeColor.BLACK.getDyeData())};
     }
 }

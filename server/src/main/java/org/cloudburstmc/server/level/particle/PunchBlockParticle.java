@@ -15,7 +15,7 @@ public class PunchBlockParticle extends Particle {
     protected final int data;
 
     public PunchBlockParticle(Vector3f pos, BlockState state, Direction face) {
-        this(pos, state.getType(), BlockStateMetaMappings.getMetaFromState(state), face);
+        this(pos, state.getId(), BlockStateMetaMappings.getMetaFromState(state), face);
     }
 
     public PunchBlockParticle(Vector3f pos, Identifier blockId, int blockDamage, Direction face) {

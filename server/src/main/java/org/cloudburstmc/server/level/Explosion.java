@@ -7,9 +7,9 @@ import it.unimi.dsi.fastutil.longs.LongArraySet;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorTNT;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.misc.DroppedItem;
@@ -106,7 +106,7 @@ public class Explosion {
                             if (block != null && block.getState() != BlockStates.AIR) {
                                 val state = block.getState();
                                 BlockState layer1 = block.getExtra();
-                                double resistance = Math.max(state.getBehavior().getResistance(), layer1.getBehavior().getResistance());
+                                double resistance = Math.max(state.getBehavior().getResistance(state), layer1.getBehavior().getResistance(layer1));
                                 blastForce -= (resistance / 5 + 0.3d) * this.stepLen;
                                 if (blastForce > 0) {
                                     if (!this.affectedBlockStates.contains(block)) {
@@ -178,14 +178,14 @@ public class Explosion {
             }
         }
 
-        ItemStack air = ItemStack.get(BlockIds.AIR, 0, 0);
+        ItemStack air = ItemStack.get(BlockTypes.AIR);
 
         //Iterator iter = this.affectedBlocks.entrySet().iterator();
         for (Block block : this.affectedBlockStates) {
             val state = block.getState();
             val behavior = state.getBehavior();
             //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
-            if (state.getType() == BlockIds.TNT) {
+            if (state.getType() == BlockTypes.TNT) {
                 ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
             } else if (Math.random() * 100 < yield) {
                 for (ItemStack drop : behavior.getDrops(block, air)) {

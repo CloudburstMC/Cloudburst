@@ -7,8 +7,8 @@ import com.nukkitx.nbt.NbtType;
 import lombok.val;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.data.Banner;
-import org.cloudburstmc.server.utils.BannerPattern;
 import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.data.BannerPattern;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.ArrayList;
@@ -17,9 +17,9 @@ import java.util.List;
 public class BannerSerializer implements ItemDataSerializer<Banner> {
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder itemTag, Banner value) {
-        itemTag.putInt("Base", value.getBase().getDyeData());
-        itemTag.putInt("Type", value.getType());
+    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, Banner value) {
+        dataTag.putInt("Base", value.getBase().getDyeData());
+        dataTag.putInt("Type", value.getType());
 
         if (!value.getPatterns().isEmpty()) {
             List<NbtMap> patternsTag = new ArrayList<>();
@@ -29,16 +29,16 @@ public class BannerSerializer implements ItemDataSerializer<Banner> {
                         putString("Pattern", pattern.getType().getName())
                         .build());
             }
-            itemTag.putList("Patterns", NbtType.COMPOUND, patternsTag);
+            dataTag.putList("Patterns", NbtType.COMPOUND, patternsTag);
         }
     }
 
     @Override
-    public Banner deserialize(Identifier id, NbtMap tag) {
-        val base = DyeColor.getByDyeData(tag.getInt("Base", 0));
-        val bannerType = tag.getInt("Type", 0);
+    public Banner deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
+        val base = DyeColor.getByDyeData(dataTag.getInt("Base", 0));
+        val bannerType = dataTag.getInt("Type", 0);
 
-        val patternTags = tag.getList("Patterns", NbtType.COMPOUND);
+        val patternTags = dataTag.getList("Patterns", NbtType.COMPOUND);
         List<BannerPattern> patterns;
 
         if (patternTags != null) {

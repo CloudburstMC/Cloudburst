@@ -4,9 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.math.Direction;
@@ -132,14 +130,14 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
 //    }
 
 
-    @Override
-    public float getHardness(BlockState blockState) {
-        val type = blockState.getState().getType();
-
-        if (type == BlockTypes.STAIRS)
-
-            return super.getHardness(blockState);
-    }
+//    @Override
+//    public float getHardness(BlockState blockState) { //TODO: stairs hardness
+//        val type = blockState.getType();
+//
+//        if (type == BlockTypes.STAIRS)
+//
+//            return super.getHardness(blockState);
+//    }
 
 
 }

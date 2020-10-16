@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
+import lombok.val;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -39,7 +41,7 @@ public class FurnaceRecipe implements Recipe {
 
     @Override
     public RecipeType getType() {
-        return this.ingredient.hasMeta() ? RecipeType.FURNACE_DATA : RecipeType.FURNACE;
+        return ((CloudItemStack) ingredient).getNetworkData().getDamage() >= 0 ? RecipeType.FURNACE_DATA : RecipeType.FURNACE;
     }
 
     @Override
@@ -49,10 +51,13 @@ public class FurnaceRecipe implements Recipe {
 
     @Override
     public CraftingData toNetwork(int netId) {
-        if (this.ingredient.hasMeta()) {
-            return CraftingData.fromFurnaceData(ingredient.getNetworkId(), ingredient.getMeta(), output.toNetwork(), block.getName(), netId);
+        val ingredientData = ((CloudItemStack) ingredient).getNetworkData();
+        val outputData = ((CloudItemStack) output).getNetworkData();
+
+        if (ingredientData.getDamage() >= 0) {
+            return CraftingData.fromFurnaceData(ingredientData.getId(), ingredientData.getDamage(), outputData, block.getName(), netId);
         } else {
-            return CraftingData.fromFurnace(ingredient.getNetworkId(), output.toNetwork(), block.getName(), netId);
+            return CraftingData.fromFurnace(ingredientData.getId(), outputData, block.getName(), netId);
         }
     }
 }

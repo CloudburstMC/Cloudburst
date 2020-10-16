@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
@@ -12,15 +13,13 @@ import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
-
 /**
  * Created by CreeperFace on 11.4.2017.
  */
 public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
 
-    private BlockState blockState = BlockState.get(AIR);
-    private BlockState extraBlockState = BlockState.get(AIR);
+    private BlockState blockState = BlockStates.AIR;
+    private BlockState extraBlockState = BlockStates.AIR;
     private BlockEntity blockEntity;
     private Vector3i piston;
 
@@ -88,7 +87,7 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     }
 
     public void setBlock(BlockState blockState) {
-        this.blockState = blockState == null ? BlockState.get(AIR) : blockState;
+        this.blockState = blockState == null ? BlockStates.AIR : blockState;
     }
 
     public BlockState getExtraBlock() {
@@ -96,7 +95,7 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     }
 
     public void setExtraBlock(BlockState extraBlockState) {
-        this.extraBlockState = extraBlockState == null ? BlockState.get(AIR) : extraBlockState;
+        this.extraBlockState = extraBlockState == null ? BlockStates.AIR : extraBlockState;
     }
 
     public BlockEntity getBlockEntity() {

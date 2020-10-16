@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.entity.impl.passive;
 
+import lombok.val;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Pig;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * Author: BeYkeRYkt Nukkit Project
@@ -47,13 +47,13 @@ public class EntityPig extends Animal implements Pig {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemIds.PORKCHOP)};
+        return new ItemStack[]{ItemStack.get(ItemTypes.PORKCHOP)};
     }
 
     @Override
     public boolean isBreedingItem(ItemStack item) {
-        Identifier id = item.getId();
+        val id = item.getType();
 
-        return id == ItemIds.CARROT || id == ItemIds.POTATO || id == ItemIds.BEETROOT;
+        return id == ItemTypes.CARROT || id == ItemTypes.POTATO || id == ItemTypes.BEETROOT;
     }
 }

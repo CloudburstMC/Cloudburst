@@ -3,6 +3,7 @@ package org.cloudburstmc.server.item.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
+import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.event.entity.CreatureSpawnEvent;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
@@ -35,7 +36,7 @@ public class ItemSpawnEggBehavior extends CloudItemBehavior {
 
         Location location = Location.from(block.getPosition().toFloat().add(0.5, 0, 0.5),
                 ThreadLocalRandom.current().nextFloat() * 360, 0, level);
-        CreatureSpawnEvent ev = new CreatureSpawnEvent(EntityRegistry.get().getEntityType(this.getMeta()), // FIXME: 04/01/2020 Use string identifier in NBT
+        CreatureSpawnEvent ev = new CreatureSpawnEvent(itemStack.getMetadata(EntityType.class), // FIXME: 04/01/2020 Use string identifier in NBT
                 location, CreatureSpawnEvent.SpawnReason.SPAWN_EGG);
         level.getServer().getEventManager().fire(ev);
 

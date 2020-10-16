@@ -55,7 +55,7 @@ public abstract class CloudItemBehavior implements ItemBehavior {
     }
 
     @Override
-    public int getFuelTime(ItemStack item) {
+    public short getFuelTime(ItemStack item) {
         return item.getType().getFuelTime();
     }
 

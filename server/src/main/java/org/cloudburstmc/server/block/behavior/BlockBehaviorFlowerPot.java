@@ -17,8 +17,8 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
     protected static boolean canPlaceIntoFlowerPot(ItemType id) {
-        return id == BlockTypes.SAPLING || id == BlockTypes.WEB || id == BlockTypes.TALL_GRASS || id == BlockTypes.DEADBUSH || id == BlockTypes.YELLOW_FLOWER ||
-                id == BlockTypes.RED_FLOWER || id == BlockTypes.RED_MUSHROOM || id == BlockTypes.BROWN_MUSHROOM || id == BlockTypes.CACTUS || id == BlockTypes.REEDS;
+        return id == BlockTypes.SAPLING || id == BlockTypes.WEB || id == BlockTypes.TALL_GRASS || id == BlockTypes.DEADBUSH ||
+                id == BlockTypes.FLOWER || id == BlockTypes.RED_MUSHROOM || id == BlockTypes.BROWN_MUSHROOM || id == BlockTypes.CACTUS || id == BlockTypes.REEDS;
         // TODO: 2016/2/4 case NETHER_WART:
     }
 

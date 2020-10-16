@@ -39,7 +39,7 @@ public class BlockRegistryTest {
         System.out.printf("Latest block state version: %d.%d.%d.%d%n", major, minor, patch, build);
 
         BlockRegistry.get(); // init
-        Collection<NbtMap> serverPalette = BlockPalette.INSTANCE.getSerializedPalette().values();
+        Collection<NbtMap> serverPalette = BlockPalette.INSTANCE.getSerializedPalette().keySet();
 
         List<String> invalidStates = new ArrayList<>();
         int invalid = 0;

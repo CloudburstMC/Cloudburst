@@ -77,7 +77,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
             } else {
                 for (Direction direction : Plane.HORIZONTAL) {
                     Block side = block.getSide(direction);
-                    if (!side.getState().getBehavior().canBeFlooded()) {
+                    if (!side.getState().getBehavior().canBeFlooded(side.getState())) {
                         block.getLevel().useBreakOn(block.getPosition());
                     }
                 }
@@ -115,7 +115,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
             for (Direction direction : Plane.HORIZONTAL) {
                 BlockState state = block.getSide(direction).getState();
 
-                if (!state.getBehavior().canBeFlooded()) {
+                if (!state.getBehavior().canBeFlooded(state)) {
                     return false;
                 }
             }

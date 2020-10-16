@@ -25,7 +25,7 @@ public class ItemFireworkBehavior extends CloudItemBehavior {
 
     @Override
     public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
-        if (block.getState().getBehavior().canPassThrough()) {
+        if (block.getState().getBehavior().canPassThrough(block.getState())) {
             this.spawnFirework(itemStack, level, block.getPosition().toFloat().add(0.5, 0.5, 0.5));
 
             if (player.isSurvival()) {

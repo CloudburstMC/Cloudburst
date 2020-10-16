@@ -51,7 +51,7 @@ public class EnchantmentTypes {
     @RequiredArgsConstructor
     @Getter
     @Builder
-    public class CloudEnchantmentType implements EnchantmentType {
+    public static class CloudEnchantmentType implements EnchantmentType {
 
         private final short id;
         private final Identifier type;

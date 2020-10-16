@@ -228,7 +228,7 @@ public class InventoryTransactionUtils {
                                 // Outputs should only be in slot 0.
                                 return null;
                             }
-                            if (ItemStack.get(ItemTypes.DYE, DyeColor.BLUE).equals(newItem, true, false)) {
+                            if (ItemStack.get(ItemTypes.DYE, 1, DyeColor.BLUE).equals(newItem, true, false)) {
                                 slot = 2; // Fake slot to store used material
                                 if (newItem.getCount() < 1 || newItem.getCount() > 3) {
                                     // Invalid material

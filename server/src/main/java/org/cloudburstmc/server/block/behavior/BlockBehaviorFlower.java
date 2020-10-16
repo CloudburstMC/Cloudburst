@@ -3,9 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
@@ -13,6 +11,7 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
+import org.cloudburstmc.server.utils.data.FlowerType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -25,7 +24,7 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val down = block.down().getState().getType();
         if (down == GRASS || down == DIRT || down == FARMLAND || down == PODZOL) {
-            placeBlock(block, getUncommonFlower());
+            placeBlock(block, item.getBehavior().getBlock(item));
             return true;
         }
         return false;
@@ -70,11 +69,11 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
                         ThreadLocalRandom.current().nextInt(-1, 2),
                         ThreadLocalRandom.current().nextInt(-3, 4));
 
-                if (level.getBlock(vec).getState().getType() == AIR && level.getBlock(vec.down()).getState().getType() == GRASS && vec.getY() >= 0 && vec.getY() < 256) {
+                if (level.getBlock(vec).getState() == BlockStates.AIR && level.getBlock(vec.down()).getState().getType() == GRASS && vec.getY() >= 0 && vec.getY() < 256) {
                     if (ThreadLocalRandom.current().nextInt(10) == 0) {
-                        level.setBlock(vec, this.getUncommonFlower(), true);
+                        level.setBlock(vec, this.getUncommonFlower(block.getState()), true);
                     } else {
-                        level.setBlock(vec, BlockState.get(block.getState().getType()), true);
+                        level.setBlock(vec, block.getState(), true);
                     }
                 }
             }
@@ -85,7 +84,15 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
         return false;
     }
 
-    protected BlockState getUncommonFlower() {
-        return BlockState.get(YELLOW_FLOWER);
+    protected BlockState getUncommonFlower(BlockState state) {
+        if (state.ensureTrait(BlockTraits.FLOWER_TYPE) == FlowerType.DANDELION) {
+            return state.withTrait(BlockTraits.FLOWER_TYPE, FlowerType.POPPY);
+        }
+
+        if (state.ensureTrait(BlockTraits.FLOWER_TYPE) == FlowerType.POPPY) {
+            return state.withTrait(BlockTraits.FLOWER_TYPE, FlowerType.DANDELION);
+        }
+
+        return state;
     }
 }

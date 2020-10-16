@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerMixData;
+import lombok.val;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
 
 public class ContainerRecipe extends MixRecipe {
@@ -14,6 +16,9 @@ public class ContainerRecipe extends MixRecipe {
     }
 
     public ContainerMixData toData() {
-        return new ContainerMixData(getInput().getNetworkId(), getIngredient().getNetworkId(), getResult().getNetworkId());
+        val inputData = ((CloudItemStack) getInput()).getNetworkData();
+        val ingredientData = ((CloudItemStack) getIngredient()).getNetworkData();
+        val resultData = ((CloudItemStack) getResult()).getNetworkData();
+        return new ContainerMixData(inputData.getId(), ingredientData.getId(), resultData.getId());
     }
 }

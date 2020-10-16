@@ -39,7 +39,6 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         INSTRUMENTS.put(BlockTypes.GLOWSTONE, Instrument.ELECTRIC_PIANO);
         INSTRUMENTS.put(BlockTypes.LOG, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.PLANKS, Instrument.BASS);
-        INSTRUMENTS.put(BlockTypes.DOUBLE_WOODEN_SLAB, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.WOODEN_SLAB, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.WOODEN_STAIRS, Instrument.BASS);
         INSTRUMENTS.put(BlockTypes.WOODEN_FENCE, Instrument.BASS);
@@ -77,19 +76,10 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         INSTRUMENTS.put(BlockTypes.BRICK_BLOCK, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.STONEBRICK, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.NETHER_BRICK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.RED_NETHER_BRICK, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.QUARTZ_BLOCK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.DOUBLE_STONE_SLAB, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.STONE_SLAB, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.STONE_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.BRICK_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.STONE_BRICK_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.NETHER_BRICK_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.SANDSTONE_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.QUARTZ_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.RED_SANDSTONE_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.PURPUR_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockTypes.COBBLESTONE_WALL, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.STONE_WALL, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.NETHER_BRICK_FENCE, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.BEDROCK, Instrument.BASS_DRUM);
         INSTRUMENTS.put(BlockTypes.GOLD_ORE, Instrument.BASS_DRUM);

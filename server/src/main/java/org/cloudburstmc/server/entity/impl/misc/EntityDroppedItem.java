@@ -16,8 +16,9 @@ import org.cloudburstmc.server.entity.misc.DroppedItem;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.server.event.entity.ItemSpawnEvent;
-import org.cloudburstmc.server.item.ItemIds;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
@@ -27,8 +28,8 @@ import javax.annotation.Nonnull;
 import static com.nukkitx.network.util.Preconditions.checkArgument;
 import static com.nukkitx.network.util.Preconditions.checkNotNull;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.OWNER_EID;
-import static org.cloudburstmc.server.block.BlockIds.FLOWING_WATER;
-import static org.cloudburstmc.server.block.BlockIds.WATER;
+import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
+import static org.cloudburstmc.server.block.BlockTypes.WATER;
 
 /**
  * @author MagicDroidX
@@ -116,7 +117,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                 (source.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION ||
                         source.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) &&
                         !this.isInsideOfWater() && (this.item == null ||
-                        this.item.getId() != ItemIds.NETHER_STAR)) && super.attack(source);
+                        this.item.getType() != ItemTypes.NETHER_STAR)) && super.attack(source);
     }
 
     @Override
@@ -136,7 +137,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         this.timing.startTiming();
 
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
-            if (this.getItem().getCount() < this.getItem().getMaxStackSize()) {
+            if (this.getItem().getCount() < this.getItem().getBehavior().getMaxStackSize(getItem())) {
                 for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
                     if (entity instanceof EntityDroppedItem) {
                         if (!entity.isAlive()) {
@@ -150,11 +151,11 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                             continue;
                         }
                         int newAmount = this.getItem().getCount() + closeItem.getCount();
-                        if (newAmount > this.getItem().getMaxStackSize()) {
+                        if (newAmount > this.getItem().getBehavior().getMaxStackSize(getItem())) {
                             continue;
                         }
                         entity.close();
-                        this.getItem().setCount(newAmount);
+                        this.setItem(getItem().withAmount(newAmount));
                         EntityEventPacket packet = new EntityEventPacket();
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);
@@ -207,7 +208,8 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                friction *= this.getLevel().getBlockAt(pos.add(0, -1, -1).toInt()).getBehavior().getFrictionFactor();
+                val block = this.getLevel().getBlockAt(pos.add(0, -1, -1).toInt());
+                friction *= block.getBehavior().getFrictionFactor(block);
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);
@@ -237,7 +239,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
     @Override
     public String getName() {
-        return this.hasNameTag() ? this.getNameTag() : (this.item.hasCustomName() ? this.item.getCustomName() : this.item.getName());
+        return this.hasNameTag() ? this.getNameTag() : (this.item.hasName() ? this.item.getName() : this.item.getName());
     }
 
     public ItemStack getItem() {
@@ -272,7 +274,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         addEntity.setPosition(this.getPosition());
         addEntity.setMotion(this.getMotion());
         this.data.putAllIn(addEntity.getMetadata());
-        addEntity.setItemInHand(this.getItem().toNetwork());
+        addEntity.setItemInHand(((CloudItemStack) this.getItem()).getNetworkData());
         return addEntity;
     }
 

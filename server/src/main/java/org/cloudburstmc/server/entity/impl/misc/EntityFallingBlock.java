@@ -20,8 +20,8 @@ import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.VARIANT;
-import static org.cloudburstmc.server.block.BlockIds.AIR;
-import static org.cloudburstmc.server.block.BlockIds.ANVIL;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.ANVIL;
 
 /**
  * @author MagicDroidX

@@ -119,7 +119,7 @@ public class LakePopulator extends ChancePopulator.Column {
                             BlockState state = level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0);
 
                             if (y < 4) {
-                                if (state != block && !state.getBehavior().isSolid()) {
+                                if (state != block && !state.getBehavior().isSolid(state)) {
                                     return;
                                 }
                             } else {
@@ -194,7 +194,7 @@ public class LakePopulator extends ChancePopulator.Column {
                                     || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
                                     || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
                                     || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1))))
-                                    && level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0).getBehavior().isSolid()) {
+                                    && level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0).getType().isSolid()) {
                                 level.setBlockAt(blockX + x, blockY + y, blockZ + z, 0, border);
                             }
                         }

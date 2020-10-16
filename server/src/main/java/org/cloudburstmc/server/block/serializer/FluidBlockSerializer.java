@@ -19,8 +19,8 @@ public class FluidBlockSerializer implements BlockSerializer {
     @Override
     public void serialize(NbtMapBuilder builder, BlockType blockType, Map<BlockTrait<?>, Comparable<?>> traits) {
         NbtMapBuilder statesBuilder = NbtMap.builder();
-        int fluidLevel = (int) traits.get(BlockTraits.FLUID_LEVEL);
-        boolean flowing = (boolean) traits.get(BlockTraits.IS_FLOWING);
+        int fluidLevel = (Integer) traits.get(BlockTraits.FLUID_LEVEL);
+        boolean flowing = (Boolean) traits.get(BlockTraits.IS_FLOWING);
         if (flowing) {
             fluidLevel |= 8;
         }

@@ -37,7 +37,7 @@ public interface ItemType {
         return 0;
     }
 
-    default int getFuelTime() {
+    default short getFuelTime() {
         return 0;
     }
 

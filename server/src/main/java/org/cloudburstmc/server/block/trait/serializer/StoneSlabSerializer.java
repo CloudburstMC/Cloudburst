@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.trait.serializer;
 
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
 import org.cloudburstmc.server.utils.data.StoneSlabType;
@@ -23,8 +24,19 @@ public class StoneSlabSerializer implements TraitSerializer<StoneSlabType> {
 
     @Override
     public String getName(BlockType blockType, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
-        StoneSlabType type = (StoneSlabType) traits.get(BlockTraits.STONE_SLAB_TYPE);
+        StoneSlabType type = (StoneSlabType) traits.getOrDefault(BlockTraits.STONE_SLAB_TYPE, traits.get(BlockTraits.STONE_STAIRS_TYPE));
+
         int index = blockTrait.getIndex(type);
+
+        if (blockType != BlockTypes.STONE_SLAB) {
+            if (index >= 2) { //skip wood type
+                index++;
+            }
+        }
+
+        if (index > 28) {
+            return null;
+        }
 
         return BEDROCK_TRAITS[index >> 3];
     }

@@ -12,7 +12,7 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE_WALL;
+import static org.cloudburstmc.server.block.BlockTypes.STONE_WALL;
 
 public class BlockBehaviorTorch extends FloodableBlockBehavior {
 
@@ -24,7 +24,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
 
             val direction = block.getState().ensureTrait(BlockTraits.TORCH_DIRECTION);
             if (block.getSide(direction.getOpposite()).getState().inCategory(BlockCategory.TRANSPARENT)
-                    && !(direction == Direction.UP && (below.inCategory(BlockCategory.FENCE) || below.getType() == COBBLESTONE_WALL))) {
+                    && !(direction == Direction.UP && (below.inCategory(BlockCategory.FENCE) || below.getType() == STONE_WALL))) {
                 block.getLevel().useBreakOn(block.getPosition());
 
                 return Level.BLOCK_UPDATE_NORMAL;
@@ -44,7 +44,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
 
         if (!target.getState().inCategory(BlockCategory.TRANSPARENT) && face != Direction.DOWN) {
             return placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.TORCH_DIRECTION, face.getOpposite()));
-        } else if (!below.inCategory(BlockCategory.TRANSPARENT) || below.inCategory(BlockCategory.FENCE) || below.getType() == COBBLESTONE_WALL) {
+        } else if (!below.inCategory(BlockCategory.TRANSPARENT) || below.inCategory(BlockCategory.FENCE) || below.getType() == STONE_WALL) {
             return placeBlock(block, item.getBehavior().getBlock(item));
         }
         return false;

@@ -65,7 +65,7 @@ public class ItemPotionBehavior extends CloudItemBehavior {
         if (consumeEvent.isCancelled()) {
             return null;
         }
-        Potion potion = Potion.getPotion(this.getMeta()).setSplash(false);
+        Potion potion = item.getMetadata(Potion.class).setSplash(false);
 
         if (potion != null) {
             potion.applyPotion(player);

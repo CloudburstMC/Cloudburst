@@ -2,13 +2,16 @@ package org.cloudburstmc.server.block.serializer;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 
 import java.util.Map;
 
-public class DefaultBlockSerializer implements BlockSerializer {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class DefaultBlockSerializer implements BlockSerializer {
 
     public static final DefaultBlockSerializer INSTANCE = new DefaultBlockSerializer();
 
