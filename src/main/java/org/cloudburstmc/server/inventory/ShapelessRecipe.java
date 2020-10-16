@@ -98,9 +98,10 @@ public class ShapelessRecipe implements CraftingRecipe {
         return this.priority;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public boolean matchItems(ItemStack[][] input, ItemStack[][] output) {
-        List<ItemStack> haveInputs = new ArrayList<>();
+        List haveInputs = new ArrayList<>();
         for (ItemStack[] items : input) {
             haveInputs.addAll(Arrays.asList(items));
         }
@@ -112,7 +113,7 @@ public class ShapelessRecipe implements CraftingRecipe {
             return false;
         }
 
-        List<ItemStack> haveOutputs = new ArrayList<>();
+        List haveOutputs = new ArrayList<>();
         for (ItemStack[] items : output) {
             haveOutputs.addAll(Arrays.asList(items));
         }

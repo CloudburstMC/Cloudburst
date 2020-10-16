@@ -17,6 +17,6 @@ public class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
     }
 
     public ItemStack getItem() {
-        return this.item.clone();
+        return this.item;
     }
 }

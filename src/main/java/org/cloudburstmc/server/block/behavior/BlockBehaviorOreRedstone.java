@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.item.ItemStack;
@@ -35,7 +35,7 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == Level.BLOCK_UPDATE_TOUCH) { //type == Level.BLOCK_UPDATE_NORMAL ||
-            block.set(BlockState.get(BlockTypes.LIT_REDSTONE_ORE), false, false);
+            block.set(BlockStates.REDSTONE_ORE.withTrait(BlockTraits.IS_EXTINGUISHED, false), false, false);
 
             return Level.BLOCK_UPDATE_WEAK;
         }

@@ -7,8 +7,8 @@ import org.cloudburstmc.server.entity.hostile.Creeper;
 import org.cloudburstmc.server.entity.misc.LightningBolt;
 import org.cloudburstmc.server.event.entity.CreeperPowerEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -90,7 +90,7 @@ public class EntityCreeper extends EntityHostile implements Creeper {
     @Override
     public ItemStack[] getDrops() {
         if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
-            return new ItemStack[]{ItemStack.get(ItemIds.GUNPOWDER, ThreadLocalRandom.current().nextInt(2) + 1)};
+            return new ItemStack[]{ItemStack.get(ItemTypes.GUNPOWDER, ThreadLocalRandom.current().nextInt(2) + 1)};
         }
         return new ItemStack[0];
     }

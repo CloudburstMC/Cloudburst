@@ -4,6 +4,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.blockentity.impl.ChestBlockEntity;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
@@ -156,7 +157,7 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
             }
             InventorySlotPacket packet = new InventorySlotPacket();
             packet.setSlot(inv == this.right ? this.left.getSize() + index : index);
-            packet.setItem(inv.getItem(index).toNetwork());
+            packet.setItem(((CloudItemStack) inv.getItem(index)).getNetworkData());
             packet.setContainerId(id);
             player.sendPacket(packet);
         }

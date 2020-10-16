@@ -17,6 +17,7 @@ import lombok.val;
 import org.cloudburstmc.server.Nukkit;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.item.behavior.*;
@@ -25,6 +26,7 @@ import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.ItemSerializer;
 import org.cloudburstmc.server.item.serializer.RecordSerializer;
 import org.cloudburstmc.server.item.serializer.TreeSpeciesSerializer;
+import org.cloudburstmc.server.potion.Potion;
 import org.cloudburstmc.server.utils.Config;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -55,7 +57,7 @@ public class CloudItemRegistry implements ItemRegistry {
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
-    private final Reference2ObjectMap<ItemType, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
+    private final Reference2ObjectMap<Class<?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemBehavior> behaviorMap = new Reference2ObjectOpenHashMap<>();
     private final List<ItemStack> creativeItems = new ArrayList<>();
     private final BiMap<Integer, Identifier> runtimeIdMap = HashBiMap.create();
@@ -99,6 +101,7 @@ public class CloudItemRegistry implements ItemRegistry {
     public synchronized <T> void registerDataSerializer(Class<T> metadataClass, ItemDataSerializer<T> serializer) {
         Preconditions.checkNotNull(metadataClass, "metadataClass");
         Preconditions.checkNotNull(serializer, "serializer");
+        this.dataSerializers.put(metadataClass, serializer);
     }
 
     @Override
@@ -554,7 +557,6 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.CRIMSON_DOOR, 755);
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.WARPED_DOOR, 756);
 
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_13, 501);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_BLOCKS, 502);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_CHIRP, 503);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_FAR, 504);
@@ -573,6 +575,8 @@ public class CloudItemRegistry implements ItemRegistry {
         this.registerDataSerializer(Firework.class, new FireworkSerializer());
         this.registerDataSerializer(MapItem.class, new MapSerializer());
         this.registerDataSerializer(WrittenBook.class, new WrittenBookSerializer());
+        this.registerDataSerializer(EntityType.class, new EntityTypeSerializer());
+        this.registerDataSerializer(Potion.class, new PotionSerializer());
     }
 
     public void registerCreativeItem(ItemStack item) {
@@ -613,8 +617,8 @@ public class CloudItemRegistry implements ItemRegistry {
 
         for (Map map : list) {
             try {
-                registerCreativeItem();
-                addCreativeItem(fromJson(map));
+//                registerCreativeItem(); //TODO: creative items
+//                addCreativeItem(fromJson(map));
             } catch (RegistryException e) {
                 // ignore
             } catch (Exception e) {

@@ -5,6 +5,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Campfire;
 import org.cloudburstmc.server.item.ItemStack;
@@ -65,7 +66,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockIds.CAMPFIRE;
+        return getBlockState().getType() == BlockTypes.CAMPFIRE;
     }
 
     @Override
@@ -119,9 +120,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         if (this.getLevel().getServer().getCraftingManager().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
             for (int i = 0; i < items.length; i++) {
                 if (items[i] == null) {
-                    ItemStack food = item.clone();
-                    if (food.getCount() != 1) food.setCount(1);
-                    items[i] = food;
+                    items[i] = item.withAmount(1);
                     itemTimes[i] = 0;
                     this.spawnToAll();
                     this.scheduleUpdate();
@@ -137,15 +136,14 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         if (index < 0 || index >= items.length) return false;
         if (!(item instanceof ItemEdibleBehavior)) return false;
 
-        ItemStack food = item.clone();
-        if (food.getCount() != 1) food.setCount(1);
+        item = item.withAmount(1);
 
         boolean addedFood = false;
         if (items[index] == null) {
-            items[index] = food;
+            items[index] = item;
             addedFood = true;
         } else if (overwrite) {
-            items[index] = food;
+            items[index] = item;
             itemTimes[index] = 0;
             addedFood = true;
         }

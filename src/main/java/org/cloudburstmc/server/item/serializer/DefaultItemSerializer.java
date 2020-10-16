@@ -43,7 +43,7 @@ public class DefaultItemSerializer implements ItemSerializer {
                     return;
                 }
 
-                serializer.serialize(item, dataTag, value);
+                serializer.serialize(item, itemTag, dataTag, value);
             });
 
             if (!dataTag.isEmpty()) {

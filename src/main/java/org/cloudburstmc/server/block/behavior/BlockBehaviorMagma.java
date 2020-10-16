@@ -4,25 +4,11 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.behavior.ItemToolBehavior;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorMagma extends BlockBehaviorSolid {
-
-
-    @Override
-    public ItemStack[] getDrops(Block block, ItemStack hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemToolBehavior.TIER_WOODEN) {
-            return new ItemStack[]{
-                    toItem(block)
-            };
-        } else {
-            return new ItemStack[0];
-        }
-    }
 
     @Override
     public void onEntityCollide(Block block, Entity entity) {

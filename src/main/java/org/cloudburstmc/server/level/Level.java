@@ -1156,7 +1156,7 @@ public class Level implements ChunkManager, Metadatable {
                 for (int y = minY; y <= maxY; ++y) {
                     Block block = this.getBlock(x, y, z); //TODO: check loaded block
                     BlockBehavior behavior = block.getState().getBehavior();
-                    if (!behavior.canPassThrough() && behavior.collidesWithBB(block, bb)) {
+                    if (!behavior.canPassThrough(block.getState()) && behavior.collidesWithBB(block, bb)) {
                         collides.add(behavior.getBoundingBox());
                     }
                 }
@@ -1176,7 +1176,7 @@ public class Level implements ChunkManager, Metadatable {
 
     public boolean isFullBlock(BlockState state) {
         BlockBehavior behavior = state.getBehavior();
-        if (behavior.isSolid()) {
+        if (behavior.isSolid(state)) {
             return true;
         }
         AxisAlignedBB bb = behavior.getBoundingBox();
@@ -1198,7 +1198,7 @@ public class Level implements ChunkManager, Metadatable {
                     Block block = this.getLoadedBlock(Vector3i.from(x, y, z));
                     if (block == null) return true; // Shouldn't walk into unloaded chunks.
                     BlockBehavior behavior = block.getState().getBehavior();
-                    if (!behavior.canPassThrough() && behavior.collidesWithBB(block, bb)) {
+                    if (!behavior.canPassThrough(block.getState()) && behavior.collidesWithBB(block, bb)) {
                         return true;
                     }
                 }
@@ -1663,7 +1663,7 @@ public class Level implements ChunkManager, Metadatable {
             ItemStack[] eventDrops;
             if (!player.isSurvival()) {
                 eventDrops = new ItemStack[0];
-            } else if (isSilkTouch && targetBehavior.canSilkTouch()) {
+            } else if (isSilkTouch && targetBehavior.canSilkTouch(target.getState())) {
                 eventDrops = new ItemStack[]{targetBehavior.toItem(target)};
             } else {
                 eventDrops = targetBehavior.getDrops(target, item);
@@ -1860,9 +1860,10 @@ public class Level implements ChunkManager, Metadatable {
             behavior = targetBehavior;
         }
 
-        BlockBehavior handBehavior = BlockRegistry.get().getBehavior(hand.getType());
+        BlockState handState = BlockRegistry.get().getBlock(hand.getType());
+        BlockBehavior handBehavior = handState.getBehavior();
 
-        if (!handBehavior.canPassThrough() && handBehavior.getBoundingBox() != null) {
+        if (!handBehavior.canPassThrough(handState) && handBehavior.getBoundingBox() != null) {
             Vector3f blockPosF = block.getPosition().toFloat();
             AxisAlignedBB aabb = handBehavior.getBoundingBox().offset(blockPosF);
             Set<Entity> entities = this.getCollidingEntities(aabb);

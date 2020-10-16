@@ -12,7 +12,7 @@ import org.cloudburstmc.server.utils.ServerException;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class Potion implements Cloneable {
+public class Potion implements Cloneable { //TODO: make immutable for item data
 
     public static final int NO_EFFECTS = 0;
     public static final int WATER = 0;

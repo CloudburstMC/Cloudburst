@@ -18,12 +18,12 @@ public class BlockBehaviorBeetroot extends BlockBehaviorCrops {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.GROWTH) >= 0x07) {
             return new ItemStack[]{
-                    ItemStack.get(BEETROOT, 1),
+                    ItemStack.get(BEETROOT),
                     ItemStack.get(BEETROOT_SEEDS, (int) (4f * Math.random()))
             };
         } else {
             return new ItemStack[]{
-                    ItemStack.get(BEETROOT_SEEDS, 1)
+                    ItemStack.get(BEETROOT_SEEDS)
             };
         }
     }

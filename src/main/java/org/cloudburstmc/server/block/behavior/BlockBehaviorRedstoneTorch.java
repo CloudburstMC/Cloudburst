@@ -44,12 +44,12 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
     @Override
     public int getWeakPower(Block block, Direction side) {
-        return block.getState().ensureTrait(BlockTraits.IS_POWERED) && getBlockFace(block.getState()) != side ? 15 : 0;
+        return !block.getState().ensureTrait(BlockTraits.IS_POWERED) && getBlockFace(block.getState()) != side ? 15 : 0;
     }
 
     @Override
     public int getStrongPower(Block block, Direction side) {
-        return block.getState().ensureTrait(BlockTraits.IS_POWERED) && side == Direction.DOWN ? this.getWeakPower(block, side) : 0;
+        return !block.getState().ensureTrait(BlockTraits.IS_POWERED) && side == Direction.DOWN ? this.getWeakPower(block, side) : 0;
     }
 
     @Override

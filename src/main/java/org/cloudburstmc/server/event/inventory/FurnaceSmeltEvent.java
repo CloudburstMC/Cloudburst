@@ -17,8 +17,7 @@ public class FurnaceSmeltEvent extends BlockEvent implements Cancellable {
 
     public FurnaceSmeltEvent(FurnaceBlockEntity furnace, ItemStack source, ItemStack result) {
         super(furnace.getBlock());
-        this.source = source.clone();
-        this.source.setCount(1);
+        this.source = source.withAmount(1);
         this.result = result;
         this.furnace = furnace;
     }

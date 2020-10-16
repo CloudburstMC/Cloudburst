@@ -26,6 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Immutable
 public class CloudItemStack implements ItemStack {
 
+    private static final Object NONE_VALUE = new Object();
+
     private volatile Identifier id;
     private final ItemType type;
     private final int amount;
@@ -101,7 +103,26 @@ public class CloudItemStack implements ItemStack {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getMetadata(Class<T> metadataClass, T defaultValue) {
-        return (T) this.data.getOrDefault(metadataClass, defaultValue);
+        T value = (T) this.data.get(metadataClass);
+
+        if (value == null) {
+            val serializer = CloudItemRegistry.get().getSerializer(metadataClass);
+            if (serializer != null) {
+                value = (T) serializer.deserialize(this.id, getNbt(), getDataTag());
+            }
+
+            if (value == null) {
+                value = (T) NONE_VALUE;
+            }
+
+            this.data.put(metadataClass, value);
+        }
+
+        if (value == NONE_VALUE) {
+            return defaultValue;
+        }
+
+        return value;
     }
 
     public ImmutableMap<Class<?>, Object> getData() {

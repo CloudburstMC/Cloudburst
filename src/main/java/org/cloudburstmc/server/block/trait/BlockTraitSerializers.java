@@ -68,7 +68,6 @@ public class BlockTraitSerializers {
     @SuppressWarnings("rawtypes")
     public TraitSerializer getSerializerFor(BlockTrait<?> trait) {
         TraitSerializer serializer = traitSerializers.get(trait);
-        ;
 
         if (serializer == null) {
             serializer = serializers.get(trait.getValueClass());
@@ -91,6 +90,8 @@ public class BlockTraitSerializers {
         register(BlockTraits.TORCH_DIRECTION, new TorchDirectionSerializer());
         register(BlockTraits.IS_POWERED, new PoweredSerializer());
         register(BlockTraits.IS_TRIGGERED, new TriggeredSerializer());
+        register(BlockTraits.STONE_BUTTON_TYPE, NoopTraitSerializer.INSTANCE);
+        register(BlockTraits.STONE_PRESSURE_PLATE_TYPE, NoopTraitSerializer.INSTANCE);
     }
 
     public interface TraitSerializer<T extends Comparable<T>> {

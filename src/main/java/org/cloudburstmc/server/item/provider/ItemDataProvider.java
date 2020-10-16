@@ -3,9 +3,9 @@ package org.cloudburstmc.server.item.provider;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
 import lombok.val;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.registry.EnchantmentRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.HashSet;
@@ -44,12 +44,13 @@ public abstract class ItemDataProvider {
 
     public Set<EnchantmentInstance> getEnchantments() {
         Set<EnchantmentInstance> enchantments = new HashSet<>();
+        val registry = EnchantmentRegistry.get();
 
         tag.listenForList("ench", NbtType.COMPOUND, tags -> {
             for (NbtMap entry : tags) {
                 short id = entry.getShort("id");
                 int level = entry.getShort("lvl");
-                enchantments.add(CloudEnchantmentInstance.getEnchantment(id).setLevel(level, false));
+                enchantments.add(registry.getEnchantment(registry.getType(id), level));
             }
         });
 

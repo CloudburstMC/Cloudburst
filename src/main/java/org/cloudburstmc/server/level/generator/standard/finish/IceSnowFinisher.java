@@ -36,9 +36,9 @@ public class IceSnowFinisher implements Finisher {
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
         if (this.height.contains(y) && biome.canSnowAt(level, blockX, y + 1, blockZ)) {
             BlockState state = level.getBlockAt(blockX, y, blockZ, 0);
-            if (state.getType() == BlockIds.WATER) {
+            if (state.getId() == BlockIds.WATER) {
                 level.setBlockAt(blockX, y, blockZ, 0, BlockStates.ICE);
-            } else if (y < 255 && state.getBehavior().isSolid()) {
+            } else if (y < 255 && state.getBehavior().isSolid(state)) {
                 level.setBlockAt(blockX, y + 1, blockZ, 0, BlockStates.SNOW_LAYER);
             }
         }

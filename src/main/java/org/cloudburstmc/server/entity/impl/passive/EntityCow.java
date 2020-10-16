@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Cow;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -38,7 +38,7 @@ public class EntityCow extends Animal implements Cow {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemIds.LEATHER), ItemStack.get(ItemIds.BEEF)};
+        return new ItemStack[]{ItemStack.get(ItemTypes.LEATHER), ItemStack.get(ItemTypes.BEEF)};
     }
 
     @Override

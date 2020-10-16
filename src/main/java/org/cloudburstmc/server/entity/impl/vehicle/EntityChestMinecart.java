@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.entity.impl.vehicle;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.vehicle.ChestMinecart;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.MinecartType;
@@ -26,7 +26,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
     public void initEntity() {
         super.initEntity();
 
-        this.setDisplayBlock(BlockState.get(BlockIds.CHEST));
+        this.setDisplayBlock(BlockState.get(BlockTypes.CHEST));
         this.setDisplay(true);
     }
 
@@ -44,7 +44,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemIds.CHEST_MINECART));
+        this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemTypes.CHEST_MINECART));
     }
 
     @Override

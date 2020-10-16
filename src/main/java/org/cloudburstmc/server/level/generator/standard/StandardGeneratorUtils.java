@@ -13,6 +13,7 @@ import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.trait.BlockTrait;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.*;
@@ -87,7 +88,7 @@ public class StandardGeneratorUtils {
         checkArgument(matcher.find(), "unable to parse block state: \"%s\"", input);
 
         String idText = matcher.group(1);
-        BlockState state = BlockState.get(Identifier.fromString(idText));
+        BlockState state = BlockRegistry.get().getBlock(Identifier.fromString(idText));
         checkArgument(state != null, "unknown block: \"%s\"", idText);
 
         String traitsTxt = matcher.group(2);
@@ -118,7 +119,7 @@ public class StandardGeneratorUtils {
         checkArgument(matcher.find(), "unable to parse block state: \"%s\"", input);
 
         String idText = matcher.group(1);
-        BlockState defaultState = BlockState.get(Identifier.fromString(idText));
+        BlockState defaultState = BlockRegistry.get().getBlock(Identifier.fromString(idText));
         checkArgument(defaultState != null, "unknown block: \"%s\"", idText);
         Stream<BlockState> stream = Stream.of(defaultState);
 

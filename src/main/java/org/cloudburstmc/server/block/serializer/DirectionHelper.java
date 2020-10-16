@@ -62,13 +62,11 @@ public class DirectionHelper {
                 WOODEN_FENCE_GATE,
                 NETHER_BRICK_FENCE,
                 REPEATER,
-                UNPOWERED_REPEATER,
                 PUMPKIN,
                 CARVED_PUMPKIN,
                 LIT_PUMPKIN,
                 TRIPWIRE_HOOK,
-                POWERED_COMPARATOR,
-                UNPOWERED_COMPARATOR
+                COMPARATOR
         );
 
         register(TYPE_3,
@@ -77,16 +75,7 @@ public class DirectionHelper {
         );
 
         register(TYPE_4,
-                BRICK_STAIRS,
-                DARK_PRISMARINE_STAIRS,
-                NETHER_BRICK_STAIRS,
-                PRISMARINE_BRICKS_STAIRS,
-                PRISMARINE_STAIRS,
-                PURPUR_STAIRS,
-                QUARTZ_STAIRS,
-                RED_SANDSTONE_STAIRS,
-                SANDSTONE_STAIRS,
-                STONE_BRICK_STAIRS,
+                WOODEN_STAIRS,
                 STONE_STAIRS,
                 WOODEN_TRAPDOOR,
                 IRON_TRAPDOOR
@@ -102,7 +91,6 @@ public class DirectionHelper {
                 DISPENSER,
                 END_ROD,
                 PISTON,
-                STICKY_PISTON,
                 PISTON_ARM_COLLISION,
                 LADDER,
                 WALL_SIGN,
@@ -111,7 +99,6 @@ public class DirectionHelper {
                 ENDER_CHEST,
                 TRAPPED_CHEST,
                 FURNACE,
-                LIT_FURNACE,
                 BLAST_FURNACE
         );
 

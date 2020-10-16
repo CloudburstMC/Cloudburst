@@ -1148,7 +1148,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                         Block block = this.getLevel().getBlock(x, y, z);
                         val behavior = block.getState().getBehavior();
 
-                        if (!behavior.canPassThrough() && behavior.collidesWithBB(block, realBB)) {
+                        if (!behavior.canPassThrough(block.getState()) && behavior.collidesWithBB(block, realBB)) {
                             onGround = true;
                             break;
                         }

@@ -28,7 +28,7 @@ public class FireworkSerializer implements ItemDataSerializer<Firework> {
     private static final String TAG_FLICKER = "FireworkFlicker";
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder itemTag, Firework value) {
+    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, Firework value) {
         List<NbtMap> explosionTags = new ArrayList<>();
         for (FireworkExplosion explosion : value.getExplosions()) {
             byte[] clrs = new byte[explosion.getColors().size()];
@@ -50,15 +50,15 @@ public class FireworkSerializer implements ItemDataSerializer<Firework> {
                     .build());
         }
 
-        itemTag.putCompound(TAG_FIREWORKS, NbtMap.builder()
+        dataTag.putCompound(TAG_FIREWORKS, NbtMap.builder()
                 .putList(TAG_EXPLOSIONS, NbtType.COMPOUND, explosionTags)
                 .putBoolean(TAG_FLIGHT, value.isFlight())
                 .build());
     }
 
     @Override
-    public Firework deserialize(Identifier id, NbtMap tag) {
-        val compound = tag.getCompound(TAG_FIREWORKS);
+    public Firework deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
+        val compound = dataTag.getCompound(TAG_FIREWORKS);
 
         if (compound != null) {
             boolean flight = compound.getBoolean(TAG_FLIGHT, true);

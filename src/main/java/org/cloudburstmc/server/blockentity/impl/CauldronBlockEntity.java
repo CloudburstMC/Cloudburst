@@ -3,7 +3,7 @@ package org.cloudburstmc.server.blockentity.impl;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Cauldron;
 import org.cloudburstmc.server.level.chunk.Chunk;
@@ -98,7 +98,7 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockIds.CAULDRON;
+        return getBlockState().getType() == BlockTypes.CAULDRON;
     }
 
     @Override

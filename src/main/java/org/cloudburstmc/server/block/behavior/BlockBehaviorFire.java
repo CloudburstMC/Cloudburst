@@ -18,6 +18,7 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.SlabSlot;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -249,7 +250,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
             if (state.inCategory(BlockCategory.STAIRS)) {
                 return state.ensureTrait(BlockTraits.IS_UPSIDE_DOWN);
             } else if (state.inCategory(BlockCategory.SLAB)) {
-                return state.ensureTrait(BlockTraits.IS_TOP_SLOT);
+                return state.ensureTrait(BlockTraits.SLAB_SLOT) != SlabSlot.BOTTOM;
             } else if (state.getType() == BlockTypes.SNOW_LAYER) {
                 return state.ensureTrait(BlockTraits.HEIGHT) == 7;
             }

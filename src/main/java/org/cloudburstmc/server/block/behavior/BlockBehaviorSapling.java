@@ -87,7 +87,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
 
         val state = block.getState();
         val level = block.getLevel();
-        GenerationTreeSpecies species = GenerationTreeSpecies.fromItem(state.getType(), BlockStateMetaMappings.getMetaFromState(state));
+        GenerationTreeSpecies species = GenerationTreeSpecies.fromItem(state.getId(), BlockStateMetaMappings.getMetaFromState(state));
         WorldFeature feature = species.getHugeGenerator();
         BIG_TREE:
         if (bigTree = feature != null) {

@@ -1,8 +1,7 @@
-package org.cloudburstmc.server.utils;
+package org.cloudburstmc.server.utils.data;
 
 import com.nukkitx.nbt.NbtMap;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.HashMap;
 import java.util.Map;

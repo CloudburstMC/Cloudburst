@@ -4,13 +4,13 @@ import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Lectern;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.data.WrittenBook;
 import org.cloudburstmc.server.level.chunk.Chunk;
 
 import javax.annotation.Nonnegative;
@@ -33,7 +33,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockIds.LECTERN;
+        return getBlockState().getType() == BlockTypes.LECTERN;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     public void setBook(ItemStack item) {
-        if (item != null && (item.getId() == ItemIds.WRITTEN_BOOK || item.getId() == ItemIds.WRITABLE_BOOK)) {
+        if (item != null && (item.getType() == ItemTypes.WRITTEN_BOOK || item.getType() == ItemTypes.WRITABLE_BOOK)) {
             this.book = item;
         } else {
             this.book = null;
@@ -124,7 +124,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     private void updateTotalPages(boolean updateRedstone) {
         if (hasBook()) {
-            this.totalPages = this.book.getTag().getList("pages", NbtType.COMPOUND).size();
+            this.totalPages = this.book.getMetadata(WrittenBook.class).getPages().size();
         } else {
             this.totalPages = 0;
         }

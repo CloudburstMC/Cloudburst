@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.server.utils.BannerPattern;
+import org.cloudburstmc.server.utils.data.BannerPattern;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import javax.annotation.ParametersAreNonnullByDefault;

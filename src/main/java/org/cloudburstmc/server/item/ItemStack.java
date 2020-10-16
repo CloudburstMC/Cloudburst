@@ -100,7 +100,7 @@ public interface ItemStack /*extends ItemBehavior*/ {
     }
 
     default ItemStack decrementAmount(int amount) {
-        return toBuilder().amount(GenericMath.clamp(getAmount() - amount, 0, getBehavior().getMaxStackSize(this))).build();
+        return withAmount(GenericMath.clamp(getAmount() - amount, 0, getBehavior().getMaxStackSize(this)));
     }
 
     default ItemStack incrementAmount() {
@@ -108,11 +108,18 @@ public interface ItemStack /*extends ItemBehavior*/ {
     }
 
     default ItemStack incrementAmount(int amount) {
-        return toBuilder().amount(GenericMath.clamp(getAmount() + amount, 0, getBehavior().getMaxStackSize(this))).build();
+        return withAmount(GenericMath.clamp(getAmount() + amount, 0, getBehavior().getMaxStackSize(this)));
     }
 
     default ItemStack withAmount(int amount) {
+        if (this.getAmount() == amount) {
+            return this;
+        }
         return toBuilder().amount(GenericMath.clamp(amount, 0, getBehavior().getMaxStackSize(this))).build();
+    }
+
+    default ItemStack withEnchantment(EnchantmentInstance enchantment) {
+        return toBuilder().addEnchantment(enchantment).build();
     }
 
     ItemStack withData(Object data);
@@ -127,8 +134,8 @@ public interface ItemStack /*extends ItemBehavior*/ {
         return registry.getItem(state, amount);
     }
 
-    static ItemStack get(ItemType type, Object... metadata) {
-        return get(type, 1, metadata);
+    static ItemStack get(ItemType type) {
+        return get(type, 1);
     }
 
     static ItemStack get(ItemType type, int amount, Object... metadata) {

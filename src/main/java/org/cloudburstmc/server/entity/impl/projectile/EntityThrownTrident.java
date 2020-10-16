@@ -18,7 +18,7 @@ import org.cloudburstmc.server.level.MovingObjectPosition;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 /**
  * Created by PetteriM1
@@ -83,12 +83,12 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
 
     @Override
     public ItemStack getTrident() {
-        return this.trident != null ? this.trident.clone() : ItemStack.get(0);
+        return this.trident != null ? this.trident : ItemStack.get(AIR);
     }
 
     @Override
     public void setTrident(ItemStack item) {
-        this.trident = item.clone();
+        this.trident = item;
     }
 
     public void setCritical() {

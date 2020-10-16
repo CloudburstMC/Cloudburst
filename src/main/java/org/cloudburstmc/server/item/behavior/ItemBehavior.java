@@ -25,7 +25,7 @@ public interface ItemBehavior {
 
     int getMaxStackSize(ItemStack item);
 
-    int getFuelTime(ItemStack item);
+    short getFuelTime(ItemStack item);
 
     ItemStack useOn(ItemStack item, Entity entity);
 

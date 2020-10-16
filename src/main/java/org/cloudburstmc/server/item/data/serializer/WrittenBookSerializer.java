@@ -27,25 +27,25 @@ public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
     private static final String TAG_ID = "id";
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder itemTag, WrittenBook value) {
-        itemTag.putInt(TAG_GENERATION, value.getGeneration());
-        itemTag.putString(TAG_TITLE, value.getTitle());
-        itemTag.putString(TAG_AUTHOR, value.getAuthor());
-        itemTag.putString(TAG_XUID, value.getXuid());
-        itemTag.putLong(TAG_ID, value.getId());
-        itemTag.putBoolean(TAG_RESOLVED, value.isResolved());
+    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, WrittenBook value) {
+        dataTag.putInt(TAG_GENERATION, value.getGeneration());
+        dataTag.putString(TAG_TITLE, value.getTitle());
+        dataTag.putString(TAG_AUTHOR, value.getAuthor());
+        dataTag.putString(TAG_XUID, value.getXuid());
+        dataTag.putLong(TAG_ID, value.getId());
+        dataTag.putBoolean(TAG_RESOLVED, value.isResolved());
 
         List<NbtMap> pages = new ArrayList<>();
         for (PageContent page : value.getPages()) {
             pages.add(page.createTag());
         }
-        itemTag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
+        dataTag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
     }
 
     @Override
-    public WrittenBook deserialize(Identifier id, NbtMap tag) {
+    public WrittenBook deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
         List<PageContent> pages;
-        List<NbtMap> pageTags = tag.getList(TAG_PAGES, NbtType.COMPOUND);
+        List<NbtMap> pageTags = dataTag.getList(TAG_PAGES, NbtType.COMPOUND);
 
         if (pageTags == null) {
             pages = ImmutableList.of();
@@ -58,12 +58,12 @@ public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
         }
 
         return WrittenBook.of(
-                tag.getInt(TAG_GENERATION),
-                tag.getString(TAG_TITLE),
-                tag.getString(TAG_AUTHOR),
-                tag.getString(TAG_XUID),
-                tag.getLong(TAG_ID),
-                tag.getBoolean(TAG_RESOLVED),
+                dataTag.getInt(TAG_GENERATION),
+                dataTag.getString(TAG_TITLE),
+                dataTag.getString(TAG_AUTHOR),
+                dataTag.getString(TAG_XUID),
+                dataTag.getLong(TAG_ID),
+                dataTag.getBoolean(TAG_RESOLVED),
                 pages
         );
     }

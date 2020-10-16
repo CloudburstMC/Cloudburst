@@ -1,10 +1,13 @@
 package org.cloudburstmc.server.utils;
 
 import com.google.common.base.FinalizableReferenceQueue;
+import com.google.common.collect.Sets;
+import lombok.val;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
+import java.lang.reflect.Array;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -292,5 +295,14 @@ public class Utils {
 
     public static <T> T TODO() {
         throw new UnsupportedOperationException("This method is not implemented");
+    }
+
+    @SuppressWarnings({"unchecked", "ConstantConditions"})
+    public static <T extends Enum<T>> T[] getEnumValues(Class<T> value, T... except) {
+        val set = Sets.newHashSet(except);
+        val values = value.getEnumConstants();
+        val stream = Arrays.stream(values).filter(v -> !set.contains(v));
+
+        return stream.toArray((s) -> (T[]) Array.newInstance(value, s));
     }
 }

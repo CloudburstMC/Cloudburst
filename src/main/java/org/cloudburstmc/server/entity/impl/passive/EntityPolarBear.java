@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.PolarBear;
-import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -39,6 +39,6 @@ public class EntityPolarBear extends Animal implements PolarBear {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemIds.FISH), ItemStack.get(ItemIds.SALMON)};
+        return new ItemStack[]{ItemStack.get(ItemTypes.FISH), ItemStack.get(ItemTypes.SALMON)};
     }
 }

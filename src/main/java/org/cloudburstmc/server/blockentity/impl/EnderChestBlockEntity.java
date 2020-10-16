@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.blockentity.impl;
 
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.EnderChest;
 import org.cloudburstmc.server.level.chunk.Chunk;
@@ -14,7 +14,7 @@ public class EnderChestBlockEntity extends ChestBlockEntity implements EnderChes
 
     @Override
     public boolean isValid() {
-        return this.getBlockState().getType() == BlockIds.ENDER_CHEST;
+        return this.getBlockState().getType() == BlockTypes.ENDER_CHEST;
     }
 
     @Override

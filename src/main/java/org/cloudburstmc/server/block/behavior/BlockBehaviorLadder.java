@@ -95,7 +95,7 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!target.getState().inCategory(BlockCategory.TRANSPARENT)) {
             if (face.getHorizontalIndex() != -1) {
-                placeBlock(block, item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, face));
+                placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, face));
                 return true;
             }
         }

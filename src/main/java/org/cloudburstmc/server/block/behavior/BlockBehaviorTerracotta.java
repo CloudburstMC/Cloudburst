@@ -9,10 +9,10 @@ public class BlockBehaviorTerracotta extends BlockBehaviorSolid {
 
     @Override
     public BlockColor getColor(Block block) {
-        return TerracottaColor.getBlockColor(block.getState().getType());
+        return TerracottaColor.getBlockColor(block.getState().getId()); //TODO: replace with color?
     }
 
     public DyeColor getDyeColor(Block block) {
-        return TerracottaColor.getDyeColor(block.getState().getType());
+        return TerracottaColor.getDyeColor(block.getState().getId());
     }
 }

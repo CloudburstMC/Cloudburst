@@ -3,7 +3,7 @@ package org.cloudburstmc.server.blockentity.impl;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Skull;
 import org.cloudburstmc.server.level.chunk.Chunk;
@@ -44,7 +44,7 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockIds.SKULL;
+        return getBlockState().getType() == BlockTypes.SKULL;
     }
 
     public float getRotation() {

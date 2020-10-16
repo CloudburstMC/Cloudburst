@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static org.cloudburstmc.server.block.serializer.util.BedrockStateTags.TAG_CORAL_HANG_TYPE_BIT;
 
-public class CoralHangBlockSerializer extends DefaultBlockSerializer {
+public class CoralHangBlockSerializer implements BlockSerializer {
 
     private static final String[] BEDROCK_NAMES = {
             "minecraft:coral_fan_hang",
@@ -21,7 +21,7 @@ public class CoralHangBlockSerializer extends DefaultBlockSerializer {
 
     @Override
     public void serialize(NbtMapBuilder builder, BlockType blockType, Map<BlockTrait<?>, Comparable<?>> traits) {
-        super.serialize(builder, blockType, traits);
+        DefaultBlockSerializer.INSTANCE.serialize(builder, blockType, traits);
 
         NbtMap states = (NbtMap) builder.get(TAG_STATES);
 

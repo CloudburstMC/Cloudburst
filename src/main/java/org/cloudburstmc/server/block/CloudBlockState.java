@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.nukkitx.nbt.NbtMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.trait.BlockTrait;
@@ -27,19 +26,19 @@ public final class CloudBlockState implements BlockState {
     private final BlockType type;
     private final ImmutableMap<BlockTrait<?>, Comparable<?>> traits;
     private final Reference2IntMap<BlockTrait<?>> traitPalette;
-    private final NbtMap tag;
+//    private final ImmutableList<NbtMap> tags;
     private CloudBlockState[][] table = null;
     private BlockState defaultState;
 
     CloudBlockState(Identifier id, BlockType type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
-                    Reference2IntMap<BlockTrait<?>> traitPalette, NbtMap tag) {
+                    Reference2IntMap<BlockTrait<?>> traitPalette/*, ImmutableList<NbtMap> tags*/) {
         Preconditions.checkNotNull(id, "id");
         Preconditions.checkNotNull(type, "type");
         this.id = id;
         this.type = type;
         this.traits = traits;
         this.traitPalette = traitPalette;
-        this.tag = tag;
+//        this.tags = tags;
     }
 
     @Nonnull
@@ -53,6 +52,10 @@ public final class CloudBlockState implements BlockState {
     public BlockType getType() {
         return type;
     }
+
+//    public ImmutableCollection<NbtMap> getVanillaTags() {
+//        return tags;
+//    }
 
     @Nullable
     @Override
@@ -122,11 +125,11 @@ public final class CloudBlockState implements BlockState {
         return defaultState;
     }
 
-    public NbtMap getTag() {
-        return tag;
+    public boolean isInitialized() {
+        return this.table != null;
     }
 
-    public void buildStateTable(BlockState defaultState, Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map) {
+    public void initialize(BlockState defaultState, Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map) {
         checkState(this.table == null, "BlockTrait table has already been built");
         this.defaultState = defaultState;
         this.table = new CloudBlockState[this.traitPalette.size()][];
