@@ -5,13 +5,13 @@ import com.google.inject.binder.AnnotatedBindingBuilder;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
+import org.cloudburstmc.server.event.CloudEventManager;
 import org.cloudburstmc.server.event.EventManager;
 import org.cloudburstmc.server.pack.PackManager;
 import org.cloudburstmc.server.permission.CloudPermissionManager;
 import org.cloudburstmc.server.permission.PermissionManager;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
 import org.cloudburstmc.server.plugin.PluginManager;
-import org.cloudburstmc.server.plugin.event.CloudEventManager;
 import org.cloudburstmc.server.registry.*;
 import org.cloudburstmc.server.scheduler.ServerScheduler;
 

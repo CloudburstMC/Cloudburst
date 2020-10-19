@@ -12,12 +12,12 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.message.ParameterizedMessage;
+import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.event.level.ChunkUnloadEvent;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.provider.LevelProvider;
-import org.cloudburstmc.server.utils.Config;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -256,7 +256,7 @@ public final class LevelChunkManager {
         final int spawnZ = this.level.getSafeSpawn().getChunkZ();
         final int spawnRadius = 4;//server.getConfiguration().getAdvanced().getSpawnChunkRadius();
 
-        Config config = this.level.getServer().getConfig();
+        ServerConfig serverConfig = this.level.getServer().getConfig();
 
         // Do chunk garbage collection
         try (Timing ignored = this.level.timings.doChunkGC.startTiming()) {
@@ -276,14 +276,12 @@ public final class LevelChunkManager {
                 }
 
                 long loadedTime = this.chunkLoadedTimes.get(chunkKey);
-                if ((time - loadedTime) <= TimeUnit.SECONDS.toMillis(
-                        config.getInt("level-settings.chunk-timeout-after-load", 30))) {
+                if ((time - loadedTime) <= TimeUnit.SECONDS.toMillis(serverConfig.getLevelSettings().getChunkTimeoutAfterLoad())) {
                     continue;
                 }
 
                 long lastAccessTime = this.chunkLastAccessTimes.get(chunkKey);
-                if ((time - lastAccessTime) <= TimeUnit.SECONDS.toMillis(
-                        config.getInt("level-settings.chunk-timeout-after-last-access", 120))) {
+                if ((time - lastAccessTime) <= TimeUnit.SECONDS.toMillis(serverConfig.getLevelSettings().getChunkTimeoutAfterLastAccess())) {
                     continue;
                 }
 

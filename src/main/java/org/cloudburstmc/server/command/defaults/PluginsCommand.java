@@ -41,7 +41,7 @@ public class PluginsCommand extends Command {
                 list.append(TextFormat.WHITE);
                 list.append(", ");
             }
-            list.append(plugin.getName());
+            list.append(plugin.getDescription().getName());
         }
 
         sender.sendMessage(new TranslationContainer("cloudburst.command.plugins.success", String.valueOf(plugins.size()), list.toString()));

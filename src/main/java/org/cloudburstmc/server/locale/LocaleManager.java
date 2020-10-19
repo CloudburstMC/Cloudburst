@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -87,7 +87,7 @@ public class LocaleManager {
         log.debug(path.toAbsolutePath());
         ImmutableSet.Builder<Locale> builder = ImmutableSet.builder();
         try (InputStream stream = Files.newInputStream(path)) {
-            JsonNode array = Nukkit.JSON_MAPPER.readTree(stream);
+            JsonNode array = Bootstrap.JSON_MAPPER.readTree(stream);
             for (JsonNode element : array) {
                 builder.add(getLocaleFromString(element.textValue()));
             }

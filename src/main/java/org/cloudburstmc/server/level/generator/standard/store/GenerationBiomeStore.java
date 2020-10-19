@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
 import org.cloudburstmc.server.level.generator.standard.biome.BiomeElevation;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
@@ -43,7 +43,7 @@ public final class GenerationBiomeStore extends AbstractGeneratorStore<Generatio
     @Override
     protected GenerationBiome compute(@NonNull Identifier id) throws IOException {
         try (InputStream in = StandardGeneratorUtils.read("biome", id)) {
-            return Nukkit.YAML_MAPPER.readValue(in, TempBiome.class).build(id, this.idToValues.size());
+            return Bootstrap.YAML_MAPPER.readValue(in, TempBiome.class).build(id, this.idToValues.size());
         } catch (Exception e) {
             throw new RuntimeException("While decoding biome " + id, e);
         }

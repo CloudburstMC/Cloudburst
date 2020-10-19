@@ -76,6 +76,10 @@ public class ItemBucketBehavior extends CloudItemBehavior {
 
     @Override
     public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+        if (player.isAdventure()) {
+            return false;
+        }
+
         BlockState bucketContents = BlockState.get(getBlockIdFromDamage(itemStack.getMetadata(Bucket.class)));
 
         if (bucketContents == BlockStates.AIR) {
@@ -180,6 +184,10 @@ public class ItemBucketBehavior extends CloudItemBehavior {
 
     @Override
     public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
+        if (player.isSpectator()) {
+            return false;
+        }
+
         PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, item);
 
         player.getServer().getEventManager().fire(consumeEvent);
@@ -188,7 +196,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
             return null;
         }
 
-        if (player.isSurvival()) {
+        if (!player.isCreative()) {
             player.getInventory().decrementHandCount();
             player.getInventory().addItem(ItemStack.get(ItemTypes.BUCKET));
         }

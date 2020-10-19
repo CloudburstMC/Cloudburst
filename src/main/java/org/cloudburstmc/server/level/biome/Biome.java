@@ -7,7 +7,7 @@ import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.utils.Identifier;
@@ -24,7 +24,7 @@ public class Biome {
     public static final NoiseSource TEMPERATURE_NOISE = new PerlinNoiseEngine(new FastPRandom(123456789L));
 
     static {
-        InputStream inputStream = Nukkit.class.getClassLoader().getResourceAsStream("data/biome_definitions.dat");
+        InputStream inputStream = Bootstrap.class.getClassLoader().getResourceAsStream("data/biome_definitions.dat");
         if (inputStream == null) {
             throw new AssertionError("Could not find biome_definitions.dat");
         }

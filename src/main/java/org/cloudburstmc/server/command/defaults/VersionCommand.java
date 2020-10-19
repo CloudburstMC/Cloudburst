@@ -7,8 +7,10 @@ import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.network.ProtocolInfo;
 import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.server.plugin.PluginDescription;
 import org.cloudburstmc.server.utils.TextFormat;
 
+import java.util.List;
 import java.util.StringJoiner;
 
 /**
@@ -43,7 +45,7 @@ public class VersionCommand extends Command {
             val exactPlugin = sender.getServer().getPluginManager().getPlugin(pluginName.toString()).orElseGet(() -> {
                 final String finalPluginName = pluginName.toString().toLowerCase();
                 for (PluginContainer container : sender.getServer().getPluginManager().getAllPlugins()) {
-                    if (container.getName().toLowerCase().contains(finalPluginName)) {
+                    if (container.getDescription().getName().toLowerCase().contains(finalPluginName)) {
                         return container;
                     }
                 }
@@ -52,22 +54,18 @@ public class VersionCommand extends Command {
             });
 
             if (exactPlugin != null) {
-                sender.sendMessage(TextFormat.DARK_GREEN + exactPlugin.getName() + TextFormat.WHITE + " version " + TextFormat.DARK_GREEN + exactPlugin.getVersion());
-                exactPlugin.getDescription().ifPresent((desc) -> {
-                    sender.sendMessage(desc);
-                });
+                PluginDescription description = exactPlugin.getDescription();
+                sender.sendMessage(TextFormat.DARK_GREEN + description.getName() + TextFormat.WHITE + " version " + TextFormat.DARK_GREEN + description.getVersion());
+                description.getDescription().ifPresent(sender::sendMessage);
 
-                exactPlugin.getUrl().ifPresent(url -> {
-                    sender.sendMessage("Website: " + url);
-                });
+                description.getUrl().ifPresent(url -> sender.sendMessage("Website: " + url));
 
-                val authors = exactPlugin.getAuthors();
-                final String[] authorsString = {""};
-                authors.forEach((s) -> authorsString[0] += s);
+                List<String> authors = description.getAuthors();
+
                 if (authors.size() == 1) {
-                    sender.sendMessage("Author: " + authorsString[0]);
+                    sender.sendMessage("Author: " + authors.get(0));
                 } else if (authors.size() >= 2) {
-                    sender.sendMessage("Authors: " + authorsString[0]);
+                    sender.sendMessage("Authors: " + String.join(", ", authors));
                 }
             } else {
                 sender.sendMessage(new TranslationContainer("cloudburst.command.version.noSuchPlugin"));

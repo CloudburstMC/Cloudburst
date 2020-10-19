@@ -151,7 +151,7 @@ public class CraftingManager {
     }
 
 //    @SuppressWarnings("unchecked")
-//    private void loadRecipes(Config config) { //TODO: load recipes
+//    private void loadRecipes(Config config) {
 //        List<Map> recipes = config.getMapList("recipes");
 //        log.info("Loading recipes...");
 //        for (Map<String, Object> recipe : recipes) {
@@ -166,9 +166,9 @@ public class CraftingManager {
 //                            continue;
 //                        }
 //                        Map<String, Object> first = outputs.get(0);
-//                        List<ItemStack> sorted = new ArrayList<>();
+//                        List<Item> sorted = new ArrayList<>();
 //                        for (Map<String, Object> ingredient : ((List<Map>) recipe.get("input"))) {
-//                            sorted.add(ItemStack.fromJson(ingredient));
+//                            sorted.add(Item.fromJson(ingredient));
 //                        }
 //                        // Bake sorted list
 //                        sorted.sort(recipeComparator);
@@ -176,7 +176,7 @@ public class CraftingManager {
 //                        String recipeId = (String) recipe.get("id");
 //                        int priority = Utils.toInt(recipe.get("priority"));
 //
-//                        ShapelessRecipe result = new ShapelessRecipe(recipeId, priority, ItemStack.fromJson(first), sorted, block);
+//                        ShapelessRecipe result = new ShapelessRecipe(recipeId, priority, Item.fromJson(first), sorted, block);
 //
 //                        this.registerRecipe(result);
 //                        break;
@@ -185,33 +185,33 @@ public class CraftingManager {
 //
 //                        first = outputs.remove(0);
 //                        String[] shape = ((List<String>) recipe.get("shape")).toArray(new String[0]);
-//                        CharObjectMap<ItemStack> ingredients = new CharObjectHashMap<>();
-//                        List<ItemStack> extraResults = new ArrayList<>();
+//                        CharObjectMap<Item> ingredients = new CharObjectHashMap<>();
+//                        List<Item> extraResults = new ArrayList<>();
 //
 //                        Map<String, Map<String, Object>> input = (Map) recipe.get("input");
 //                        for (Map.Entry<String, Map<String, Object>> ingredientEntry : input.entrySet()) {
 //                            char ingredientChar = ingredientEntry.getKey().charAt(0);
-//                            ItemStack ingredient = ItemStack.fromJson(ingredientEntry.getValue());
+//                            Item ingredient = Item.fromJson(ingredientEntry.getValue());
 //
 //                            ingredients.put(ingredientChar, ingredient);
 //                        }
 //
 //                        for (Map<String, Object> data : outputs) {
-//                            extraResults.add(ItemStack.fromJson(data));
+//                            extraResults.add(Item.fromJson(data));
 //                        }
 //
 //                        recipeId = (String) recipe.get("id");
 //                        priority = Utils.toInt(recipe.get("priority"));
 //
-//                        this.registerRecipe(new ShapedRecipe(recipeId, priority, ItemStack.fromJson(first), shape, ingredients, extraResults, block));
+//                        this.registerRecipe(new ShapedRecipe(recipeId, priority, Item.fromJson(first), shape, ingredients, extraResults, block));
 //                        break;
 //                    case 2:
 //                    case 3:
 //                        Map<String, Object> resultMap = (Map) recipe.get("output");
-//                        ItemStack resultItem = ItemStack.fromJson(resultMap);
-//                        ItemStack inputItem;
+//                        Item resultItem = Item.fromJson(resultMap);
+//                        Item inputItem;
 //                        Map<String, Object> inputMap = (Map) recipe.get("input");
-//                        inputItem = ItemStack.fromJson(inputMap);
+//                        inputItem = Item.fromJson(inputMap);
 //
 //                        this.registerRecipe(new FurnaceRecipe(resultItem, inputItem, block));
 //                        break;
@@ -219,7 +219,7 @@ public class CraftingManager {
 //                        break;
 //                }
 //            } catch (RegistryException e) {
-//                // ignore non-implemented items
+//                log.warn("Skipping recipe due to unimplemented item/block: " + recipe);
 //            } catch (Exception e) {
 //                log.error("Exception during registering recipe: " + recipe, e);
 //            }
@@ -237,7 +237,7 @@ public class CraftingManager {
 //            int toPotionMeta = ((Number) potionMix.get("outputMeta")).intValue();
 //
 //            try {
-//                registerBrewingRecipe(new BrewingRecipe(ItemStack.get(fromPotionId, fromPotionMeta), ItemStack.get(ingredient, ingredientMeta), ItemStack.get(toPotionId, toPotionMeta)));
+//                registerBrewingRecipe(new BrewingRecipe(Item.get(fromPotionId, fromPotionMeta), Item.get(ingredient, ingredientMeta), Item.get(toPotionId, toPotionMeta)));
 //            } catch (RegistryException e) {
 //                // ignore
 //            }
@@ -251,7 +251,7 @@ public class CraftingManager {
 //            int toItemId = ((Number) containerMix.get("outputId")).intValue();
 //
 //            try {
-//                registerContainerRecipe(new ContainerRecipe(ItemStack.get(fromItemId), ItemStack.get(ingredient), ItemStack.get(toItemId)));
+//                registerContainerRecipe(new ContainerRecipe(Item.get(fromItemId), Item.get(ingredient), Item.get(toItemId)));
 //            } catch (RegistryException e) {
 //                // ignore
 //            }
