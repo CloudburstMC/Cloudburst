@@ -75,12 +75,12 @@ public class BlockStateMetaMappings {
         Int2ReferenceMap<BlockState> states = meta2state.get(type);
 
         if (states == null) {
-            return BlockPalette.INSTANCE.getDefaultState(type);
+            return BlockPalette.INSTANCE.getState(type);
         }
 
         BlockState state = states.get(meta);
         if (state == null) {
-            state = BlockPalette.INSTANCE.getDefaultState(type);
+            state = BlockPalette.INSTANCE.getState(type);
         }
 
         return state;
