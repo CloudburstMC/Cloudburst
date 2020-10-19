@@ -43,10 +43,13 @@ public class BlockPalette {
     });
     private final Reference2ObjectMap<BlockState, NbtMap> stateSerializedMap = new Reference2ObjectLinkedOpenHashMap<>();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
-    private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<BlockType, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<Identifier, BlockState> stateMap = new Reference2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<Identifier, Object2ReferenceMap<NbtMap, BlockState>> stateTraitMap = new Reference2ReferenceOpenHashMap<>();
+    private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
 
     public void addBlock(BlockType type, BlockSerializer serializer, BlockTrait<?>[] traits) {
-        if (this.defaultStateMap.containsKey(type.getId())) {
+        if (this.defaultStateMap.containsKey(type)) {
             log.warn("Duplicate block type: {}", type);
         }
 
@@ -57,8 +60,8 @@ public class BlockPalette {
             map.put(state.getTraits(), state);
         }
 
-        BlockState defaultState = map.get(Arrays.stream(traits).collect(Collectors.toMap(t -> t, BlockTrait::getDefaultValue)));
-        this.defaultStateMap.put(type.getId(), defaultState);
+        BlockState defaultState = map.get(Arrays.stream(traits).filter(t -> !t.isOnlySerialize()).collect(Collectors.toMap(t -> t, BlockTrait::getDefaultValue)));
+        this.defaultStateMap.put(type, defaultState);
 
         states.forEach((nbt, state) -> {
             if (!state.isInitialized()) {
@@ -67,19 +70,42 @@ public class BlockPalette {
                 int runtimeId = this.runtimeIdAllocator.getAndIncrement();
                 this.stateRuntimeMap.put(state, runtimeId);
                 this.runtimeStateMap.put(runtimeId, state);
+                this.stateMap.putIfAbsent(state.getId(), state.defaultState());
             }
+
+            val stateMap = nbt.getCompound("states");
+
+            val traitMap = stateTraitMap.computeIfAbsent(state.getId(), (v) -> new Object2ReferenceOpenHashMap<>());
+            traitMap.put(stateMap, state);
+
+            stateMap.forEach((traitName, traitValue) -> {
+                val traitValues = vanillaTraitMap.computeIfAbsent(traitName, (k) -> new LinkedHashSet<>());
+                traitValues.add(traitValue);
+            });
 
             this.stateSerializedMap.put(state, nbt);
             this.serializedStateMap.put(nbt, state);
         });
     }
 
-    public BlockState getDefaultState(Identifier id) {
-        return this.defaultStateMap.get(id);
+    public Map<String, Set<Object>> getVanillaTraitMap() {
+        return vanillaTraitMap;
+    }
+
+    public BlockState getState(Identifier id) {
+        return this.stateMap.get(id);
+    }
+
+    public BlockState getState(Identifier id, Map<String, Object> traits) {
+        return Optional.ofNullable(this.stateTraitMap.get(id)).map(s -> s.get(traits)).orElse(null);
+    }
+
+    public Set<String> getTraits(Identifier blockId) {
+        return Optional.ofNullable(this.stateTraitMap.get(blockId)).map(m -> Iterables.getLast(m.keySet()).keySet()).orElse(null);
     }
 
     public BlockState getDefaultState(BlockType blockType) {
-        return this.defaultStateMap.get(blockType.getId());
+        return this.defaultStateMap.get(blockType);
     }
 
     public BlockState getBlockState(int runtimeId) {
@@ -152,7 +178,7 @@ public class BlockPalette {
         }
 
         Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> duplicated = new Object2ReferenceOpenHashMap<>();
-        Map<NbtMap, CloudBlockState> permutations = new Object2ReferenceOpenHashMap<>();
+        Map<NbtMap, CloudBlockState> permutations = new Object2ReferenceLinkedOpenHashMap<>();
         int n = traits.length;
 
         // To keep track of next element in each of the n arrays
