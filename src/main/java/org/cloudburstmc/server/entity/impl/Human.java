@@ -8,6 +8,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
+import com.nukkitx.protocol.bedrock.data.skin.AnimatedTextureType;
 import com.nukkitx.protocol.bedrock.data.skin.AnimationData;
 import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
@@ -161,7 +162,7 @@ public class Human extends EntityCreature implements InventoryHolder {
                     List<AnimationData> animations = new ArrayList<>();
                     for (NbtMap animationTag : list) {
                         float frames = animationTag.getFloat("Frames");
-                        int type = animationTag.getInt("Type");
+                        AnimatedTextureType type = AnimatedTextureType.values()[animationTag.getInt("Type")];
                         byte[] image = animationTag.getByteArray("Image");
                         int width = animationTag.getInt("ImageWidth");
                         int height = animationTag.getInt("ImageHeight");
@@ -249,7 +250,7 @@ public class Human extends EntityCreature implements InventoryHolder {
                 for (AnimationData animation : animations) {
                     animationsTag.add(NbtMap.builder()
                             .putFloat("Frames", animation.getFrames())
-                            .putInt("Type", animation.getType())
+                            .putInt("Type", animation.getTextureType().ordinal())
                             .putInt("ImageWidth", animation.getImage().getWidth())
                             .putInt("ImageHeight", animation.getImage().getHeight())
                             .putByteArray("Image", animation.getImage().getImage())
