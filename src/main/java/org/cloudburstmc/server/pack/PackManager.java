@@ -204,7 +204,7 @@ public class PackManager implements Closeable {
         packsInfos.getResourcePackInfos().clear();
         packStack.getBehaviorPacks().clear();
         packStack.getResourcePacks().clear();
-        packStack.setExperimental(true); // Needed for custom blocks, items and entities
+//        packStack.setExperimental(true); // Needed for custom blocks, items and entities
         packStack.setGameVersion("*");
         for (Pack pack : packs.values()) {
             if (pack.getType() != ResourcePackType.BEHAVIOR) {
