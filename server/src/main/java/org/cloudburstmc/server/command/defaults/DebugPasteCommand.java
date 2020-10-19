@@ -57,12 +57,12 @@ public class DebugPasteCommand extends Command {
                     b.append("version.protocol: ").append(ProtocolInfo.getDefaultProtocolVersion()).append('\n');
                     b.append("plugins:");
                     for (PluginContainer plugin : server.getPluginManager().getAllPlugins()) {
-                        String name = plugin.getName();
+                        String name = plugin.getDescription().getName();
                         b.append("\n  ")
                                 .append(name)
                                 .append(":\n    ")
                                 .append("version: '")
-                                .append(plugin.getVersion())
+                                .append(plugin.getDescription().getVersion())
                                 .append('\'');
                     }
                     b.append("\n\n# Java Details\n");

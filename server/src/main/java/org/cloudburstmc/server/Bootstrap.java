@@ -2,6 +2,7 @@ package org.cloudburstmc.server;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -42,7 +43,7 @@ import java.util.Properties;
  * The entry point of Cloudburst Server.
  */
 @Log4j2
-public class Nukkit {
+public class Bootstrap {
     public final static Properties GIT_INFO = getGitInfo();
     public final static String VERSION = getVersion();
     public final static String API_VERSION = "2.0.0";
@@ -50,7 +51,10 @@ public class Nukkit {
     public final static Path PATH = Paths.get(System.getProperty("user.dir"));
     public static final JsonMapper JSON_MAPPER = new JsonMapper();
     public static final YAMLMapper YAML_MAPPER = new YAMLMapper();
-    public static final JavaPropsMapper JAVA_PROPS_MAPPER = new JavaPropsMapper();
+    public static final YAMLMapper KEBAB_CASE_YAML_MAPPER = (YAMLMapper) new YAMLMapper()
+            .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+    public static final JavaPropsMapper JAVA_PROPS_MAPPER = (JavaPropsMapper) new JavaPropsMapper()
+            .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
     public static final long START_TIME = System.currentTimeMillis();
     public static boolean ANSI = true;
     public static boolean TITLE = false;
@@ -198,7 +202,7 @@ public class Nukkit {
      * @return The git information as a {@link Properties} object
      */
     private static Properties getGitInfo() {
-        InputStream gitFileStream = Nukkit.class.getClassLoader().getResourceAsStream("git.properties");
+        InputStream gitFileStream = Bootstrap.class.getClassLoader().getResourceAsStream("git.properties");
         if (gitFileStream == null) {
             return null;
         }

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.generator.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
@@ -29,7 +29,7 @@ public final class FlatGenerator implements Generator {
         }
 
         try {
-            this.layers = Nukkit.YAML_MAPPER.readValue(options, BlockSelector.class).entries().toArray(Entry[]::new);
+            this.layers = Bootstrap.YAML_MAPPER.readValue(options, BlockSelector.class).entries().toArray(Entry[]::new);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(options, e);
         }

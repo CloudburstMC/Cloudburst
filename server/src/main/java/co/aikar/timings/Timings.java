@@ -86,13 +86,13 @@ public final class Timings {
     public static final Timing permissionDefaultTimer;
 
     static {
-        setTimingsEnabled(Server.getInstance().getConfig("timings.enabled", false));
-        setVerboseEnabled(Server.getInstance().getConfig("timings.verbose", false));
-        setHistoryInterval(Server.getInstance().getConfig("timings.history-interval", 6000));
-        setHistoryLength(Server.getInstance().getConfig("timings.history-length", 72000));
+        setTimingsEnabled(Server.getInstance().getConfig().getTimings().isEnabled());
+        setVerboseEnabled(Server.getInstance().getConfig().getTimings().isVerbose());
+        setHistoryInterval(Server.getInstance().getConfig().getTimings().getHistoryInterval());
+        setHistoryLength(Server.getInstance().getConfig().getTimings().getHistoryLength());
 
-        privacy = Server.getInstance().getConfig("timings.privacy", false);
-        ignoredConfigSections.addAll(Server.getInstance().getConfig().getStringList("timings.ignore"));
+        privacy = Server.getInstance().getConfig().getTimings().isPrivacy();
+        ignoredConfigSections.addAll(Server.getInstance().getConfig().getTimings().getIgnore());
 
         log.debug("Timings: \n" +
                 "Enabled - " + isTimingsEnabled() + "\n" +
@@ -182,7 +182,7 @@ public final class Timings {
         //For special cases of servers with special permission to bypass the max.
         //This max helps keep data file sizes reasonable for processing on Aikar's Timing parser side.
         //Setting this will not help you bypass the max unless Aikar has added an exception on the API side.
-        if (Server.getInstance().getConfig().getBoolean("timings.bypass-max", false)) {
+        if (Server.getInstance().getConfig().getTimings().isBypassMax()) {
             maxLength = Integer.MAX_VALUE;
         }
 
@@ -219,7 +219,7 @@ public final class Timings {
         }
 
         if (handler.getTask() instanceof PluginTask) {
-            String owner = ((PluginTask<?>) handler.getTask()).getContainer().getName();
+            String owner = ((PluginTask<?>) handler.getTask()).getContainer().getDescription().getName();
             return TimingsManager.getTiming(owner, "PluginTask: " + handler.getTaskId() + repeating, schedulerSyncTimer);
         } else if (!handler.isAsynchronous()) {
             return TimingsManager.getTiming(DEFAULT_GROUP.name, "Task: " + handler.getTaskId() + repeating, schedulerSyncTimer);
@@ -229,9 +229,9 @@ public final class Timings {
     }
 
     public static Timing getPluginEventTiming(Class<? extends Event> event, Object listener, Method method, PluginContainer plugin) {
-        Timing group = TimingsManager.getTiming(plugin.getName(), "Combined Total", pluginEventTimer);
+        Timing group = TimingsManager.getTiming(plugin.getDescription().getName(), "Combined Total", pluginEventTimer);
 
-        return TimingsManager.getTiming(plugin.getName(), "Event: " + listener.getClass().getName() + "."
+        return TimingsManager.getTiming(plugin.getDescription().getName(), "Event: " + listener.getClass().getName() + "."
                 + (method.getName())
                 + " (" + event.getSimpleName() + ")", group);
     }

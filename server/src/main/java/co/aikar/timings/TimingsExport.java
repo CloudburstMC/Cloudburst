@@ -23,11 +23,10 @@
  */
 package co.aikar.timings;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
@@ -43,8 +42,6 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 import static co.aikar.timings.TimingsManager.HISTORY;
@@ -68,7 +65,7 @@ public class TimingsExport extends Thread {
      * @param sender Sender that issued the command
      */
     public static void reportTimings(CommandSender sender) {
-        ObjectNode out = Nukkit.JSON_MAPPER.createObjectNode();
+        ObjectNode out = Bootstrap.JSON_MAPPER.createObjectNode();
         out.put("version", Server.getInstance().getVersion());
         out.put("maxplayers", Server.getInstance().getMaxPlayers());
         out.put("start", TimingsManager.timingStart / 1000);
@@ -78,14 +75,14 @@ public class TimingsExport extends Thread {
         if (!Timings.isPrivacy()) {
             out.put("server", Server.getInstance().getName());
             out.put("motd", Server.getInstance().getMotd());
-            out.put("online-mode", Server.getInstance().getPropertyBoolean("xbox-auth", true));
+            out.put("online-mode", Server.getInstance().getConfig().isXboxAuth());
             out.put("icon", ""); //"data:image/png;base64,"
         }
 
         final Runtime runtime = Runtime.getRuntime();
         RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
 
-        ObjectNode system = Nukkit.JSON_MAPPER.createObjectNode();
+        ObjectNode system = Bootstrap.JSON_MAPPER.createObjectNode();
         system.put("timingcost", getCost());
         system.put("name", System.getProperty("os.name"));
         system.put("version", System.getProperty("os.version"));
@@ -102,7 +99,7 @@ public class TimingsExport extends Thread {
         TimingsHistory[] history = HISTORY.toArray(new TimingsHistory[HISTORY.size() + 1]);
         history[HISTORY.size()] = new TimingsHistory(); //Current snapshot
 
-        ObjectNode timings = Nukkit.JSON_MAPPER.createObjectNode();
+        ObjectNode timings = Bootstrap.JSON_MAPPER.createObjectNode();
         for (TimingIdentifier.TimingGroup group : TimingIdentifier.GROUP_MAP.values()) {
             for (Timing id : group.timings) {
                 if (!id.timed && !id.isSpecial()) {
@@ -113,7 +110,7 @@ public class TimingsExport extends Thread {
             }
         }
 
-        ObjectNode idmap = Nukkit.JSON_MAPPER.createObjectNode();
+        ObjectNode idmap = Bootstrap.JSON_MAPPER.createObjectNode();
         idmap.set("groups", JsonUtil.mapToObject(TimingIdentifier.GROUP_MAP.values(), (group) ->
                 new JsonUtil.JSONPair(group.id, group.name)));
         idmap.set("handlers", timings);
@@ -127,22 +124,21 @@ public class TimingsExport extends Thread {
 
         //Information about loaded plugins
         out.set("plugins", JsonUtil.mapToObject(Server.getInstance().getPluginManager().getAllPlugins(), (plugin) -> {
-            ObjectNode jsonPlugin = Nukkit.JSON_MAPPER.createObjectNode();
-            jsonPlugin.put("version", plugin.getVersion());
+            ObjectNode jsonPlugin = Bootstrap.JSON_MAPPER.createObjectNode();
+            jsonPlugin.put("version", plugin.getDescription().getVersion());
 
-            plugin.getDescription().ifPresent((desc) -> jsonPlugin.put("description", desc));
-            plugin.getUrl().ifPresent((url) -> jsonPlugin.put("website", url));
-            jsonPlugin.putPOJO("authors", String.join(", ", plugin.getAuthors()));
-            return new JsonUtil.JSONPair(plugin.getName(), jsonPlugin);
+            plugin.getDescription().getDescription().ifPresent((desc) -> jsonPlugin.put("description", desc));
+            plugin.getDescription().getUrl().ifPresent((url) -> jsonPlugin.put("website", url));
+            jsonPlugin.putPOJO("authors", String.join(", ", plugin.getDescription().getAuthors()));
+            return new JsonUtil.JSONPair(plugin.getDescription().getName(), jsonPlugin);
         }));
 
         //Information on the users Config
-        ObjectNode config = Nukkit.JSON_MAPPER.createObjectNode();
+        ObjectNode config = Bootstrap.JSON_MAPPER.createObjectNode();
         if (!Timings.getIgnoredConfigSections().contains("all")) {
-            Map<String, Object> section = new LinkedHashMap<>(Server.getInstance().getConfig().getRootSection());
-            Timings.getIgnoredConfigSections().forEach(section::remove);
-            JsonNode cloudburst = JsonUtil.toObject(section);
-            config.set("cloudburst", cloudburst);
+            final ObjectNode rootNode = Server.getInstance().getConfig().getCloudburstYaml().getRootNode();
+            Timings.getIgnoredConfigSections().forEach(rootNode::remove);
+            config.set("cloudburst", rootNode);
         } else {
             config.set("cloudburst", null);
         }
@@ -202,7 +198,7 @@ public class TimingsExport extends Thread {
             con.setInstanceFollowRedirects(false);
 
             try (GZIPOutputStream outputStream = new GZIPOutputStream(con.getOutputStream())) {
-                outputStream.write(Nukkit.JSON_MAPPER.writeValueAsBytes(this.out));
+                outputStream.write(Bootstrap.JSON_MAPPER.writeValueAsBytes(this.out));
             }
 
             response = getResponse(con);
@@ -231,7 +227,7 @@ public class TimingsExport extends Thread {
 
             FileWriter writer = new FileWriter(fileName);
             writer.write(Server.getInstance().getLanguage().translate("cloudburst.command.timings.timingsLocation", location) + "\n\n");
-            writer.write(Nukkit.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this.out));
+            writer.write(Bootstrap.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this.out));
             writer.close();
 
             log.info(Server.getInstance().getLanguage().translate("cloudburst.command.timings.timingsWrite", fileName));

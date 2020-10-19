@@ -14,7 +14,7 @@ import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minidev.json.JSONObject;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -266,7 +266,7 @@ public final class ClientChainData implements LoginChainData {
         String json = new String(Base64.getDecoder().decode(base[1]), StandardCharsets.UTF_8);
         //Server.getInstance().getLogger().debug(json);
         try {
-            return Nukkit.JSON_MAPPER.readTree(json);
+            return Bootstrap.JSON_MAPPER.readTree(json);
         } catch (IOException e) {
             throw new IllegalArgumentException("Invalid token JSON", e);
         }
@@ -275,7 +275,7 @@ public final class ClientChainData implements LoginChainData {
     private void decodeChainData(String chainData) {
         Map<String, List<String>> map;
         try {
-            map = Nukkit.JSON_MAPPER.readValue(chainData, MAP_TYPE_REFERENCE);
+            map = Bootstrap.JSON_MAPPER.readValue(chainData, MAP_TYPE_REFERENCE);
         } catch (IOException e) {
             throw new IllegalArgumentException("Invalid JSON", e);
         }

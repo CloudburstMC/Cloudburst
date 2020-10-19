@@ -2,10 +2,11 @@ package org.cloudburstmc.server.plugin;
 
 import javax.annotation.Nonnull;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface PluginDescription {
+
     /**
      * The ID for this plugin. This should be an alphanumeric name. Slashes are also allowed.
      *
@@ -34,7 +35,7 @@ public interface PluginDescription {
      * @return the plugin's author
      */
     @Nonnull
-    Collection<String> getAuthors();
+    List<String> getAuthors();
 
     /**
      * The version of this plugin.
@@ -50,7 +51,7 @@ public interface PluginDescription {
      * @return the dependencies
      */
     @Nonnull
-    Collection<PluginDependency> getDependencies();
+    List<PluginDependency> getDependencies();
 
     /**
      * Plugin's website specified in the plugin.yml.

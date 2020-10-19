@@ -2,6 +2,7 @@ package org.cloudburstmc.server;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import com.dosse.upnp.UPnP;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
@@ -17,8 +18,12 @@ import lombok.val;
 import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
+import org.cloudburstmc.server.config.CloudburstYaml;
+import org.cloudburstmc.server.config.ServerConfig;
+import org.cloudburstmc.server.config.ServerProperties;
 import org.cloudburstmc.server.console.NukkitConsole;
 import org.cloudburstmc.server.entity.Attribute;
+import org.cloudburstmc.server.event.CloudEventManager;
 import org.cloudburstmc.server.event.server.*;
 import org.cloudburstmc.server.inject.CloudburstModule;
 import org.cloudburstmc.server.inject.CloudburstPrivateModule;
@@ -49,7 +54,6 @@ import org.cloudburstmc.server.player.OfflinePlayer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
 import org.cloudburstmc.server.plugin.PluginManager;
-import org.cloudburstmc.server.plugin.event.CloudEventManager;
 import org.cloudburstmc.server.plugin.loader.JavaPluginLoader;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.potion.Potion;
@@ -69,7 +73,6 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -152,6 +155,7 @@ public class Server {
     private boolean networkCompressionAsync = true;
     public int networkCompressionLevel = 7;
 
+    private boolean upnpEnabled = false;
     private boolean autoTickRate = true;
     private int autoTickRateLimit = 20;
     private boolean alwaysTickPlayers = false;
@@ -178,7 +182,7 @@ public class Server {
     private QueryHandler queryHandler;
 
     private QueryRegenerateEvent queryRegenerateEvent;
-    private Config config;
+    private CloudburstYaml cloudburstYaml;
 
     private final LocaleManager localeManager = LocaleManager.from("locale/cloudburst/languages.json",
             "locale/cloudburst/texts", "locale/vanilla");
@@ -208,26 +212,22 @@ public class Server {
     private DB nameLookup;
 
     private PlayerDataSerializer playerDataSerializer = new DefaultPlayerDataSerializer(this);
-    private Properties properties;
+    private ServerProperties serverProperties;
+
     private volatile Identifier defaultStorageId;
 
     private final Set<String> ignoredPackets = new HashSet<>();
 
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.dat$", Pattern.CASE_INSENSITIVE);
 
-    public Server(
-            final Path dataPath,
-            final Path pluginPath,
-            final Path levelPath,
-            final String predefinedLanguage
-    ) {
+    public Server(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
 
         val injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
 
-        this.filePath = Nukkit.PATH;
+        this.filePath = Bootstrap.PATH;
         this.dataPath = dataPath;
         this.pluginPath = pluginPath;
         this.predefinedLanguage = predefinedLanguage;
@@ -238,7 +238,7 @@ public class Server {
         this.levelManager = injector.getInstance(LevelManager.class);
         this.craftingManager = injector.getInstance(CraftingManager.class);
         this.packManager = injector.getInstance(PackManager.class);
-//        this.scheduler = injector.getInstance(ServerScheduler.class);
+        this.scheduler = injector.getInstance(ServerScheduler.class);
 
         this.playerMetadata = injector.getInstance(PlayerMetadataStore.class);
         this.levelMetadata = injector.getInstance(LevelMetadataStore.class);
@@ -366,7 +366,7 @@ public class Server {
             configLocaleManager.setLocale(locale);
 
             File configFile = configPath.toFile();
-            InputStream stream = Nukkit.class.getClassLoader().getResourceAsStream("cloudburst.yml");
+            InputStream stream = Bootstrap.class.getClassLoader().getResourceAsStream("cloudburst.yml");
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
                  BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile)))) {
                 String line;
@@ -382,17 +382,17 @@ public class Server {
         this.console.setExecutingCommands(true);
 
         log.info("Loading {} ...", TextFormat.GREEN + "cloudburst.yml" + TextFormat.WHITE);
-        this.config = new Config(configPath.toString(), Config.YAML);
+        this.cloudburstYaml = CloudburstYaml.fromFile(configPath);
 
-        ignoredPackets.addAll(getConfig().getStringList("debug.ignored-packets"));
+        ignoredPackets.addAll(getConfig().getDebug().getIgnoredPackets());
 
-        Nukkit.DEBUG = Math.max(this.getConfig("debug.level", 1), 1);
+        Bootstrap.DEBUG = Math.max(getConfig().getDebug().getLevel(), 1);
 
-        int logLevel = (Nukkit.DEBUG + 3) * 100;
+        int logLevel = (Bootstrap.DEBUG + 3) * 100;
         for (org.apache.logging.log4j.Level level : org.apache.logging.log4j.Level.values()) {
             if (level.intLevel() == logLevel) {
-                if (level.intLevel() > Nukkit.getLogLevel().intLevel()) {
-                    Nukkit.setLogLevel(level);
+                if (level.intLevel() > Bootstrap.getLogLevel().intLevel()) {
+                    Bootstrap.setLogLevel(level);
                 }
                 break;
             }
@@ -400,44 +400,25 @@ public class Server {
         log.debug("DataPath Directory: {}", this.dataPath);
 
         log.info("Loading {} ...", TextFormat.GREEN + "server.properties" + TextFormat.WHITE);
-        this.properties = new Properties();
-        this.properties.setProperty("motd", "A Cloudburst Powered Server");
-        this.properties.setProperty("sub-motd", "https://cloudburstmc.org");
-        this.properties.setProperty("server-port", "19132");
-        this.properties.setProperty("server-ip", "0.0.0.0");
-        this.properties.setProperty("view-distance", "10");
-        this.properties.setProperty("white-list", "false");
-        this.properties.setProperty("achievements", "true");
-        this.properties.setProperty("announce-player-achievements", "true");
-        this.properties.setProperty("spawn-protection", "16");
-        this.properties.setProperty("max-players", "20");
-        this.properties.setProperty("allow-flight", "false");
-        this.properties.setProperty("spawn-animals", "true");
-        this.properties.setProperty("spawn-mobs", "true");
-        this.properties.setProperty("gamemode", "0");
-        this.properties.setProperty("force-gamemode", "false");
-        this.properties.setProperty("hardcore", "false");
-        this.properties.setProperty("pvp", "true");
-        this.properties.setProperty("difficulty", "1");
-        this.properties.setProperty("default-level", "world");
-        this.properties.setProperty("allow-nether", "true");
-        this.properties.setProperty("enable-query", "true");
-        this.properties.setProperty("auto-save", "true");
-        this.properties.setProperty("force-resources", "false");
-        this.properties.setProperty("bug-report", "true");
-        this.properties.setProperty("xbox-auth", "true");
-        this.loadProperties();
+        Path serverPropPath = this.dataPath.resolve("server.properties");
+        if (!Files.exists(serverPropPath)) {
+            serverProperties = new ServerProperties();
+            serverProperties.setPath(serverPropPath);
+            serverProperties.save();
+        } else {
+            serverProperties = ServerProperties.fromFile(serverPropPath);
+        }
 
         // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
-        this.allowNether = this.getPropertyBoolean("allow-nether", true);
+        this.allowNether = this.serverProperties.isAllowNether();
 
-        this.forceLanguage = this.getConfig("settings.force-language", false);
-        this.localeManager.setLocaleOrFallback(this.getConfig("settings.language"));
+        this.forceLanguage = getConfig().getSettings().isForceLanguage();
+        this.localeManager.setLocaleOrFallback(getConfig().getSettings().getLanguage());
         Locale locale = this.getLanguage().getLocale();
         log.info(this.getLanguage().translate("cloudburst.language.selected", locale.getDisplayCountry(locale), locale));
         log.info(this.getLanguage().translate("cloudburst.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.RESET));
 
-        Object poolSize = this.getConfig("settings.async-workers", (Object) (-1));
+        Object poolSize = getConfig().getSettings().getAsyncWorkers();
         if (!(poolSize instanceof Integer)) {
             try {
                 poolSize = Integer.valueOf((String) poolSize);
@@ -450,18 +431,16 @@ public class Server {
         System.setProperty("java.util.concurrent.ForkJoinPool.common.exceptionHandler", "cn.cloudburst.scheduler.ServerScheduler.ExceptionHandler");
         log.debug("Async pool parallelism: {}", parallelism == -1 ? "auto" : parallelism);
 
-        this.scheduler = new ServerScheduler();
-
 //        this.networkZlibProvider = this.getConfig("network.zlib-provider", 2);
 //        Zlib.setProvider(this.networkZlibProvider);
 
-        this.networkCompressionLevel = this.getConfig("network.compression-level", 7);
-        this.networkCompressionAsync = this.getConfig("network.async-compression", true);
+        this.networkCompressionLevel = getConfig().getNetwork().getCompressionLevel();
+        this.networkCompressionAsync = getConfig().getNetwork().isAsyncCompression();
 
-        this.autoTickRate = this.getConfig("level-settings.auto-tick-rate", true);
-        this.autoTickRateLimit = this.getConfig("level-settings.auto-tick-rate-limit", 20);
-        this.alwaysTickPlayers = this.getConfig("level-settings.always-tick-players", false);
-        this.baseTickRate = this.getConfig("level-settings.base-tick-rate", 1);
+        this.autoTickRate = getConfig().getLevelSettings().isAutoTickRate();
+        this.autoTickRateLimit = getConfig().getLevelSettings().getAutoTickRateLimit();
+        this.alwaysTickPlayers = getConfig().getLevelSettings().isAlwaysTickPlayers();
+        this.baseTickRate = getConfig().getLevelSettings().getBaseTickRate();
 
         this.operators = new Config(this.dataPath.resolve("ops.txt").toFile(), Config.ENUM);
         this.whitelist = new Config(this.dataPath.resolve("white-list.txt").toFile(), Config.ENUM);
@@ -470,14 +449,14 @@ public class Server {
         this.banByIP = new BanList(this.dataPath.resolve("banned-ips.json").toString());
         this.banByIP.load();
 
-        this.maxPlayers = this.getPropertyInt("max-players", 20);
-        this.setAutoSave(this.getPropertyBoolean("auto-save", true));
+        this.maxPlayers = this.serverProperties.getMaxPlayers();
+        this.setAutoSave(this.serverProperties.isAutoSave());
 
-        if (this.getPropertyBoolean("hardcore", false) && this.getDifficulty() != Difficulty.HARD) {
-            this.setPropertyInt("difficulty", 3);
+        if (this.serverProperties.isHardcore() && this.getDifficulty() != Difficulty.HARD) {
+            this.serverProperties.modifyDifficulty(Difficulty.HARD);
         }
 
-        if (this.getConfig().getBoolean("bug-report", true)) {
+        if (this.getConfig().getDebug().isBugReport()) {
             ExceptionHandler.registerExceptionHandler();
         }
 
@@ -531,8 +510,7 @@ public class Server {
 
         this.registerVanillaComponents();
 
-        Identifier defaultStorageId = Identifier.fromString(this.getConfig().get(
-                "level-settings.default-format", "minecraft:leveldb"));
+        Identifier defaultStorageId = Identifier.fromString(getConfig().getLevelSettings().getDefaultFormat());
         if (storageRegistry.isRegistered(defaultStorageId)) {
             this.defaultStorageId = defaultStorageId;
         } else {
@@ -542,7 +520,7 @@ public class Server {
 
         this.loadLevels();
 
-        this.saveProperties();
+        this.serverProperties.save();
 
         if (this.getDefaultLevel() == null) {
             log.fatal(this.getLanguage().translate("cloudburst.level.defaultError"));
@@ -553,8 +531,8 @@ public class Server {
 
         EnumLevel.initLevels();
 
-        if (this.getConfig("ticks-per.autosave", 6000) > 0) {
-            this.autoSaveTicks = this.getConfig("ticks-per.autosave", 6000);
+        if (this.getConfig().getTicksPer().getAutosave() > 0) {
+            this.autoSaveTicks = this.getConfig().getTicksPer().getAutosave();
         }
 
         //TODO: event
@@ -574,9 +552,28 @@ public class Server {
             this.forceShutdown();
         }
 
-        if (Nukkit.DEBUG < 2) {
+        if (Bootstrap.DEBUG < 2) {
             this.watchdog = new Watchdog(this, 60000);
             this.watchdog.start();
+        }
+
+        if (this.getConfig().getSettings().isUpnp()) {
+            if (UPnP.isUPnPAvailable()) {
+                log.debug(this.getLanguage().translate("cloudburst.server.upnp.enabled"));
+                if (UPnP.openPortUDP(getPort(), "Cloudburst")) {
+                    this.upnpEnabled = true; // Saved to disable the port-forwarding on shutdown
+                    log.info(this.getLanguage().translate("cloudburst.server.upnp.success", getPort()));
+                } else {
+                    this.upnpEnabled = false;
+                    log.warn("cloudburst.server.upnp.fail");
+                }
+            } else {
+                this.upnpEnabled = false;
+                log.warn(this.getLanguage().translate("cloudburst.server.upnp.unavailable"));
+            }
+        } else {
+            this.upnpEnabled = false;
+            log.debug(this.getLanguage().translate("cloudburst.server.upnp.disabled"));
         }
 
         this.eventManager.fire(ServerStartEvent.INSTANCE);
@@ -651,7 +648,7 @@ public class Server {
             this.hasStopped = true;
 
             for (Player player : new ArrayList<>(this.players.values())) {
-                player.close(player.getLeaveMessage(), this.getConfig("settings.shutdown-message", "Server closed"));
+                player.close(player.getLeaveMessage(), this.getConfig().getSettings().getShutdownMessage());
             }
 
             this.eventManager.fire(ServerShutdownEvent.INSTANCE);
@@ -667,6 +664,13 @@ public class Server {
 
             log.debug("Closing console");
             this.consoleThread.interrupt();
+
+            if (this.upnpEnabled) {
+                log.debug("Closing UPnP port");
+                if (UPnP.closePortUDP(this.getPort())) {
+                    log.info(this.getLanguage().translate("cloudburst.server.upnp.closed"));
+                }
+            }
 
             log.debug("Stopping network interfaces");
             for (SourceInterface interfaz : this.network.getInterfaces()) {
@@ -690,7 +694,7 @@ public class Server {
     }
 
     public void start() {
-        if (this.getPropertyBoolean("enable-query", true)) {
+        if (this.serverProperties.isEnableQuery()) {
             this.queryHandler = new QueryHandler();
         }
 
@@ -707,7 +711,7 @@ public class Server {
 
         log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", this.getGamemode().getTranslation()));
 
-        log.info(this.getLanguage().translate("cloudburst.server.startFinished", (System.currentTimeMillis() - Nukkit.START_TIME) / 1000d));
+        log.info(this.getLanguage().translate("cloudburst.server.startFinished", (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d));
 
         this.tickProcessor();
         this.forceShutdown();
@@ -995,7 +999,7 @@ public class Server {
 
     // TODO: Fix title tick
     public void titleTick() {
-        if (!Nukkit.ANSI || !Nukkit.TITLE) {
+        if (!Bootstrap.ANSI || !Bootstrap.TITLE) {
             return;
         }
 
@@ -1007,7 +1011,7 @@ public class Server {
                 + this.getNukkitVersion()
                 + " | Online " + this.players.size() + "/" + this.getMaxPlayers()
                 + " | Memory " + usage;
-        if (!Nukkit.shortTitle) {
+        if (!Bootstrap.shortTitle) {
             title += " | U " + NukkitMath.round((this.network.getUpload() / 1024 * 1000), 2)
                     + " D " + NukkitMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
         }
@@ -1030,7 +1034,7 @@ public class Server {
     }
 
     public String getNukkitVersion() {
-        return Nukkit.VERSION;
+        return Bootstrap.VERSION;
     }
 
     public String getVersion() {
@@ -1038,7 +1042,7 @@ public class Server {
     }
 
     public String getApiVersion() {
-        return Nukkit.API_VERSION;
+        return Bootstrap.API_VERSION;
     }
 
     public Path getFilePath() {
@@ -1062,15 +1066,15 @@ public class Server {
     }
 
     public int getPort() {
-        return this.getPropertyInt("server-port", 19132);
+        return this.serverProperties.getServerPort();
     }
 
     public int getViewDistance() {
-        return this.getPropertyInt("view-distance", 10);
+        return this.serverProperties.getViewDistance();
     }
 
     public String getIp() {
-        return this.getProperty("server-ip", "0.0.0.0");
+        return this.serverProperties.getServerIp();
     }
 
     public UUID getServerUniqueId() {
@@ -1089,65 +1093,60 @@ public class Server {
     }
 
     public boolean getGenerateStructures() {
-        return this.getPropertyBoolean("generate-structures", true);
+        return this.serverProperties.isGenerateStructures();
     }
 
     public GameMode getGamemode() {
-        try {
-            return GameMode.from(this.getPropertyInt("gamemode", 0));
-        } catch (NumberFormatException exception) {
-            return GameMode.from(this.getProperty("gamemode"));
-        }
+        return GameMode.from(this.serverProperties.getGamemode());
     }
 
     public boolean getForceGamemode() {
-        return this.getPropertyBoolean("force-gamemode", false);
+        return this.serverProperties.isForceGamemode();
     }
 
     public Difficulty getDifficulty() {
         if (this.difficulty == null) {
-            this.difficulty = Difficulty.values()[this.getPropertyInt("difficulty", 1) & 0x03];
+            this.difficulty = Difficulty.values()[this.serverProperties.getDifficulty()];
         }
         return this.difficulty;
     }
 
     public boolean hasWhitelist() {
-        return this.getPropertyBoolean("white-list", false);
+        return this.serverProperties.isWhiteList();
     }
 
     public int getSpawnRadius() {
-        return this.getPropertyInt("spawn-protection", 16);
+        return this.serverProperties.getSpawnProtection();
     }
 
     public boolean getAllowFlight() {
         if (getAllowFlight == null) {
-            getAllowFlight = this.getPropertyBoolean("allow-flight", false);
+            getAllowFlight = this.serverProperties.isAllowFlight();
         }
         return getAllowFlight;
     }
 
     public boolean isHardcore() {
-        return this.getPropertyBoolean("hardcore", false);
+        return this.serverProperties.isHardcore();
     }
 
     public GameMode getDefaultGamemode() {
         if (this.defaultGamemode == null) {
             this.defaultGamemode = this.getGamemode();
         }
-
         return this.defaultGamemode;
     }
 
     public String getMotd() {
-        return this.getProperty("motd", "A Cloudburst Powered Server");
+        return this.serverProperties.getMotd();
     }
 
     public String getSubMotd() {
-        return this.getProperty("sub-motd", "https://cloudburstmc.org");
+        return this.serverProperties.getSubMotd();
     }
 
     public boolean getForceResources() {
-        return this.getPropertyBoolean("force-resources", false);
+        return this.serverProperties.isForceResources();
     }
 
     public EntityMetadataStore getEntityMetadata() {
@@ -1570,97 +1569,8 @@ public class Server {
         return network;
     }
 
-    //Revising later...
-    public Config getConfig() {
-        return this.config;
-    }
-
-    public <T> T getConfig(String variable) {
-        return this.getConfig(variable, null);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T getConfig(String variable, T defaultValue) {
-        Object value = this.config.get(variable);
-        return value == null ? defaultValue : (T) value;
-    }
-
-    public Properties getProperties() {
-        return this.properties;
-    }
-
-    public String getProperty(String property) {
-        return this.getProperty(property, null);
-    }
-
-    public String getProperty(String property, String defaultValue) {
-        return this.properties.getProperty(property, defaultValue);
-    }
-
-    public void setProperty(String property, String value) {
-        this.properties.setProperty(property, value);
-        this.saveProperties();
-    }
-
-    public int getPropertyInt(String property) {
-        return this.getPropertyInt(property, 0);
-    }
-
-    public int getPropertyInt(String property, int defaultValue) {
-        String value = this.properties.getProperty(property, Integer.toString(0));
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-
-    public void setPropertyInt(String property, int value) {
-        this.properties.setProperty(property, Integer.toString(value));
-        this.saveProperties();
-    }
-
-    public boolean getPropertyBoolean(String variable) {
-        return this.getPropertyBoolean(variable, false);
-    }
-
-    public boolean getPropertyBoolean(String property, boolean defaultValue) {
-        if (!this.properties.containsKey(property)) {
-            return defaultValue;
-        }
-        String value = this.properties.getProperty(property);
-
-        switch (value) {
-            case "on":
-            case "true":
-            case "1":
-            case "yes":
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public void setPropertyBoolean(String property, boolean value) {
-        this.properties.setProperty(property, Boolean.toString(value));
-    }
-
-    private void loadProperties() {
-        try (InputStream stream = Files.newInputStream(this.dataPath.resolve("server.properties"))) {
-            this.properties.load(stream);
-        } catch (FileNotFoundException | NoSuchFileException e) {
-            this.saveProperties();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void saveProperties() {
-        try (OutputStream stream = Files.newOutputStream(this.dataPath.resolve("server.properties"))) {
-            this.properties.store(stream, "");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public ServerConfig getConfig() {
+        return new ServerConfig(serverProperties, cloudburstYaml);
     }
 
     public BanList getNameBans() {
@@ -1720,33 +1630,15 @@ public class Server {
     }
 
     public Map<String, List<String>> getCommandAliases() {
-        Object section = this.getConfig("aliases");
-        Map<String, List<String>> result = new LinkedHashMap<>();
-        if (section instanceof Map) {
-            for (Map.Entry entry : (Set<Map.Entry>) ((Map) section).entrySet()) {
-                List<String> commands = new ArrayList<>();
-                String key = (String) entry.getKey();
-                Object value = entry.getValue();
-                if (value instanceof List) {
-                    commands.addAll((List<String>) value);
-                } else {
-                    commands.add((String) value);
-                }
-
-                result.put(key, commands);
-            }
-        }
-
-        return result;
-
+        return getConfig().getCommandAliases();
     }
 
     public boolean shouldSavePlayerData() {
-        return this.getConfig("player.save-player-data", true);
+        return this.getConfig().getPlayer().isSavePlayerData();
     }
 
     public int getPlayerSkinChangeCooldown() {
-        return this.getConfig("player.skin-change-cooldown", 30);
+        return this.getConfig().getPlayer().getSkinChangeCooldown();
     }
 
     /**
@@ -1816,15 +1708,16 @@ public class Server {
             throw new RuntimeException("Worlds location " + levelPath + " is not a directory.");
         }
 
-        Map<String, Object> worldNames = this.getConfig("worlds", Collections.emptyMap());
-        if (worldNames.isEmpty()) {
+        Map<String, ServerConfig.World> worldConfigs = getConfig().getWorlds();
+        if (worldConfigs.isEmpty()) {
             throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }
-        List<CompletableFuture<Level>> levelFutures = new ArrayList<>(worldNames.size());
+        List<CompletableFuture<Level>> levelFutures = new ArrayList<>(worldConfigs.size());
 
-        for (String name : worldNames.keySet()) {
+        for (String name : worldConfigs.keySet()) {
+            final ServerConfig.World config = worldConfigs.get(name);
             //fallback to level name if no seed is set
-            Object seedObj = this.getConfig("worlds." + name + ".seed", name);
+            Object seedObj = config.getSeed();
             long seed;
             if (seedObj instanceof Number) {
                 seed = ((Number) seedObj).longValue();
@@ -1840,8 +1733,8 @@ public class Server {
                 throw new IllegalStateException("Seed for world \"" + name + "\" is invalid: " + (seedObj == null ? "null" : seedObj.getClass().getCanonicalName()));
             }
 
-            Identifier generator = Identifier.fromString(this.getConfig("worlds." + name + ".generator"));
-            String options = this.getConfig("worlds." + name + ".options", "");
+            Identifier generator = Identifier.fromString(config.getGenerator());
+            String options = config.getOptions();
 
             levelFutures.add(this.loadLevel().id(name)
                     .seed(seed)
@@ -1855,9 +1748,9 @@ public class Server {
 
         //set default level
         if (this.getDefaultLevel() == null) {
-            String defaultName = this.getProperty("default-level");
+            String defaultName = this.serverProperties.getDefaultLevel();
             if (defaultName == null || defaultName.trim().isEmpty()) {
-                this.setProperty("default-level", defaultName = worldNames.keySet().iterator().next());
+                this.serverProperties.modifyDefaultLevel(worldConfigs.keySet().iterator().next());
                 log.warn("default-level is unset or empty, falling back to \"" + defaultName + '"');
             }
 

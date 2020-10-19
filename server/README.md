@@ -41,7 +41,7 @@ Simply run `java -jar Cloudburst.jar`.
 
 Plugin API
 -------------
-Information on Cloudburst's API can be found at the [wiki](https://cloudburstmc.org/wiki/nukkit/).
+Information on Cloudburst's API can be found at the [wiki](https://cloudburstmc.org/wiki/cloudburst/).
 
 Docker
 -------------

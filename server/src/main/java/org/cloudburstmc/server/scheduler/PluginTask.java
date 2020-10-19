@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
  *     }
  * </pre>
  *
- * If you want Cloudburst to execute this task with delay or repeat, use {@link ServerScheduler}.</p>
+ * <p>If you want Cloudburst to execute this task with delay or repeat, use {@link ServerScheduler}.</p>
  */
 public abstract class PluginTask<T> extends Task {
 

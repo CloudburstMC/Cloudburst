@@ -2,7 +2,7 @@ package org.cloudburstmc.server.utils.bugreport;
 
 import com.sun.management.OperatingSystemMXBean;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.locale.LocaleManager;
 import org.cloudburstmc.server.utils.Utils;
@@ -85,7 +85,7 @@ public class BugReportGenerator extends Thread {
 
         String cpuType = System.getenv("PROCESSOR_IDENTIFIER");
         OperatingSystemMXBean osMXBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        content = content.replace("${CLOUDBURST_VERSION}", Nukkit.VERSION);
+        content = content.replace("${CLOUDBURST_VERSION}", Bootstrap.VERSION);
         content = content.replace("${JAVA_VERSION}", System.getProperty("java.vm.name") + " (" + System.getProperty("java.runtime.version") + ")");
         content = content.replace("${HOSTOS}", osMXBean.getName() + "-" + osMXBean.getArch() + " [" + osMXBean.getVersion() + "]");
         content = content.replace("${MEMORY}", getCount(osMXBean.getTotalPhysicalMemorySize(), true));

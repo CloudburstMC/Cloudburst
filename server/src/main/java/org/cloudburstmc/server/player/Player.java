@@ -233,8 +233,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.perm = new PermissibleBase(this);
         this.server = Server.getInstance();
         this.lastBreak = -1;
-        this.chunksPerTick = this.server.getConfig("chunk-sending.per-tick", 4);
-        this.spawnThreshold = this.server.getConfig("chunk-sending.spawn-threshold", 56);
+        this.chunksPerTick = this.server.getConfig().getChunkSending().getPerTick();
+        this.spawnThreshold = this.server.getConfig().getChunkSending().getSpawnThreshold();
         this.spawnLocation = null;
         this.playerData.setGamemode(this.server.getGamemode());
         this.viewDistance = this.server.getViewDistance();
@@ -870,7 +870,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     public boolean awardAchievement(String achievementId) {
-        if (!Server.getInstance().getPropertyBoolean("achievements", true)) {
+        if (!Server.getInstance().getConfig().isAchievements()) {
             return false;
         }
 
@@ -1649,7 +1649,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return;
         }
 
-        if (loginChainData.isXboxAuthed() && server.getPropertyBoolean("xbox-auth") || !server.getPropertyBoolean("xbox-auth")) {
+        if (loginChainData.isXboxAuthed() && server.getConfig().isXboxAuth() || !server.getConfig().isXboxAuth()) {
             server.updateName(this.identity, this.username);
         }
 
@@ -3149,7 +3149,6 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         if (!(blockEntity instanceof Sign)) {
             return;
         }
-
         NbtMap tag = blockEntity.getChunkTag().toBuilder().putString("Text", String.join("\n", lines)).build();
         BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
         blockEntityDataPacket.setBlockPosition(position);
@@ -3364,4 +3363,5 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         ENCHANT,
         BEACON
     }
+
 }

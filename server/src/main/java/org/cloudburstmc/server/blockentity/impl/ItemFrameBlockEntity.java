@@ -18,7 +18,7 @@ import java.util.Objects;
 public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     private ItemStack item;
-    private byte itemRotation;
+    private float itemRotation;
     private float itemDropChance = 1.0f;
 
     public ItemFrameBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
@@ -32,7 +32,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
         tag.listenForCompound("Item", itemTag -> {
             this.item = ItemUtils.deserializeItem(itemTag);
         });
-        tag.listenForByte("ItemRotation", value -> this.itemRotation = value);
+        tag.listenForFloat("ItemRotation", value -> this.itemRotation = value);
         tag.listenForFloat("ItemDropChance", value -> this.itemDropChance = value);
     }
 
@@ -42,7 +42,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
         if (this.item != null && !this.item.isNull()) {
             tag.putCompound("Item", ItemUtils.serializeItem(this.item));
-            tag.putByte("ItemRotation", this.itemRotation);
+            tag.putFloat("ItemRotation", this.itemRotation);
             tag.putFloat("ItemDropChance", this.itemDropChance);
         }
     }
@@ -54,7 +54,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public int getItemRotation() {
-        return this.itemRotation;
+        return (int) this.itemRotation;
     }
 
     @Override
