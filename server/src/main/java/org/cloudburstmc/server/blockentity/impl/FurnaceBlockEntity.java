@@ -163,10 +163,10 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         BlockState state = getBlockState();
         BlockType blockType = state.getType();
         FurnaceRecipe smelt = this.server.getCraftingManager().matchFurnaceRecipe(raw, state.getId());
-        boolean canSmelt = (smelt != null && raw.getCount() > 0 && ((smelt.getResult().equals(product)
-                && product.getCount() < product.getBehavior().getMaxStackSize(product)) || product.isNull()));
+        boolean canSmelt = (smelt != null && raw.getAmount() > 0 && ((smelt.getResult().equals(product)
+                && product.getAmount() < product.getBehavior().getMaxStackSize(product)) || product.isNull()));
 
-        if (burnTime <= 0 && canSmelt && fuel.getBehavior().getFuelTime(fuel) != 0 && fuel.getCount() > 0) {
+        if (burnTime <= 0 && canSmelt && fuel.getBehavior().getFuelTime(fuel) != 0 && fuel.getAmount() > 0) {
             this.checkFuel(fuel);
         }
 
@@ -182,7 +182,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                     this.server.getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         this.inventory.setResult(ev.getResult());
-                        if (raw.getCount() <= 1) {
+                        if (raw.getAmount() <= 1) {
                             raw = ItemStack.get(AIR);
                         } else {
                             raw = raw.decrementAmount();

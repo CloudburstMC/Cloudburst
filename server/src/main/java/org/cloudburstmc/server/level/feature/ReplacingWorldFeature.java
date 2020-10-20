@@ -18,12 +18,12 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
     @Override
     public boolean test(BlockState state) {
         Identifier id = state.getId();
-        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || (!state.getBehavior().isLiquid() && state.getBehavior().canBeReplaced(null));
+        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || (!state.getBehavior().isLiquid() && state.getType().isReplaceable());
     }
 
     public boolean testOrLiquid(BlockState state) {
         Identifier id = state.getId();
-        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || state.getBehavior().canBeReplaced(null);
+        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || state.getType().isReplaceable();
     }
 
     public boolean testOrLiquid(int runtimeId) {

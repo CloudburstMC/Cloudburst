@@ -7,6 +7,7 @@ import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.item.data.Coal;
 import org.cloudburstmc.server.item.data.Damageable;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.DyeColor;
 import org.cloudburstmc.server.utils.data.TreeSpecies;
@@ -286,6 +287,11 @@ public class ItemTypes {
             }
 
             BY_ID.put(id, this);
+        }
+
+        @Override
+        public ItemStack createItem(int amount, Object... metadata) {
+            return CloudItemRegistry.get().getItem(this, amount, metadata);
         }
 
         @Override

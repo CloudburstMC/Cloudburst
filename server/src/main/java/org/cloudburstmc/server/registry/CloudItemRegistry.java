@@ -14,7 +14,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.EntityType;
@@ -23,6 +23,7 @@ import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.item.behavior.*;
 import org.cloudburstmc.server.item.data.*;
 import org.cloudburstmc.server.item.data.serializer.*;
+import org.cloudburstmc.server.item.serializer.DefaultItemSerializer;
 import org.cloudburstmc.server.item.serializer.ItemSerializer;
 import org.cloudburstmc.server.item.serializer.RecordSerializer;
 import org.cloudburstmc.server.item.serializer.TreeSpeciesSerializer;
@@ -46,7 +47,7 @@ public class CloudItemRegistry implements ItemRegistry {
         InputStream stream = RegistryUtils.getOrAssertResource("data/runtime_item_states.json"); //TODO: use legacy_item_ids.json instead
 
         try {
-            VANILLA_ITEMS = Nukkit.JSON_MAPPER.readValue(stream, new TypeReference<List<ItemData>>() {
+            VANILLA_ITEMS = Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<List<ItemData>>() {
             });
         } catch (IOException e) {
             throw new AssertionError("Unable to load vanilla items", e);
@@ -162,7 +163,7 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     public ItemSerializer getSerializer(ItemType type) {
-        return serializers.get(type);
+        return serializers.getOrDefault(type, DefaultItemSerializer.INSTANCE);
     }
 
     public ItemDataSerializer<?> getSerializer(Class<?> metaClass) {
@@ -170,7 +171,7 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     public ItemType getType(Identifier id) {
-        return typeMap.get(id);
+        return ItemTypes.byId(id);
     }
 
     public ItemType getType(int legacyId) {
@@ -181,7 +182,12 @@ public class CloudItemRegistry implements ItemRegistry {
     public ItemStack getItem(BlockState state, int amount) throws RegistryException {
         Preconditions.checkNotNull(state);
         Preconditions.checkArgument(amount > 0, "amount must be positive");
-        return getItem(state.getType());
+
+        val builder = new CloudItemStackBuilder()
+                .blockState(state)
+                .amount(amount);
+
+        return builder.build();
     }
 
     @Override
@@ -201,7 +207,7 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     public ItemBehavior getBehavior(ItemType type) {
-        return behaviorMap.get(type);
+        return behaviorMap.getOrDefault(type, NoopItemBehavior.INSTANCE);
     }
 
     public Identifier fromLegacy(int legacyId) throws RegistryException {

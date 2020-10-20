@@ -77,7 +77,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
     @Override
     public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         if (player.isAdventure()) {
-            return false;
+            return null;
         }
 
         BlockState bucketContents = BlockState.get(getBlockIdFromDamage(itemStack.getMetadata(Bucket.class)));
@@ -185,7 +185,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
     @Override
     public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
         if (player.isSpectator()) {
-            return false;
+            return null;
         }
 
         PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, item);

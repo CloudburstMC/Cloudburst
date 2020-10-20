@@ -188,7 +188,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 continue;
             }
 
-            int originalCount = item.getCount();
+            int originalCount = item.getAmount();
 
             if (!this.inventory.canAddItem(item)) {
                 continue;
@@ -209,7 +209,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 continue;
             }
 
-            if (items[0].getCount() != originalCount) {
+            if (items[0].getAmount() != originalCount) {
                 pickedUpItem = true;
                 itemEntity.setItem(item.withAmount(items[0].getAmount()));
             }
@@ -267,7 +267,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 for (int slot : slots) {
                     ItemStack target = inv.getItem(slot);
 
-                    if (!target.isNull() && (!target.equals(item) || target.getCount() >= item.getBehavior().getMaxStackSize(item))) {
+                    if (!target.isNull() && (!target.equals(item) || target.getAmount() >= item.getBehavior().getMaxStackSize(item))) {
                         continue;
                     }
 

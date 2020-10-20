@@ -230,15 +230,15 @@ public class InventoryTransactionUtils {
                             }
                             if (ItemStack.get(ItemTypes.DYE, 1, DyeColor.BLUE).equals(newItem, true, false)) {
                                 slot = 2; // Fake slot to store used material
-                                if (newItem.getCount() < 1 || newItem.getCount() > 3) {
+                                if (newItem.getAmount() < 1 || newItem.getAmount() > 3) {
                                     // Invalid material
                                     return null;
                                 }
                                 ItemStack material = enchant.getItem(1);
                                 // Material to take away.
-                                int toRemove = newItem.getCount();
+                                int toRemove = newItem.getAmount();
                                 if (material.getType() != ItemTypes.DYE && material.getMetadata(DyeColor.class) != DyeColor.BLUE &&
-                                        material.getCount() < toRemove) {
+                                        material.getAmount() < toRemove) {
                                     // Invalid material or not enough
                                     return null;
                                 }

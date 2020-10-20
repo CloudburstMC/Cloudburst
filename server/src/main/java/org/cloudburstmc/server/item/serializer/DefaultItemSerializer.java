@@ -5,9 +5,12 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentTypes.CloudEnchantmentType;
+import org.cloudburstmc.server.item.BlockItemStack;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
 import org.cloudburstmc.server.item.ItemType;
@@ -25,8 +28,6 @@ public class DefaultItemSerializer implements ItemSerializer {
 
     public static final DefaultItemSerializer INSTANCE = new DefaultItemSerializer();
 
-    protected static final CloudItemRegistry registry = CloudItemRegistry.get();
-
     @Override
     public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
         itemTag.putString("Name", item.getType().getId().toString())
@@ -34,6 +35,7 @@ public class DefaultItemSerializer implements ItemSerializer {
                 .putShort("Damage", (short) 0);
 
         if (!item.getData().isEmpty()) {
+            val registry = CloudItemRegistry.get();
             NbtMapBuilder dataTag = NbtMap.builder();
 
             item.getData().forEach((clazz, value) -> {
@@ -49,6 +51,10 @@ public class DefaultItemSerializer implements ItemSerializer {
             if (!dataTag.isEmpty()) {
                 itemTag.putCompound("tag", dataTag.build());
             }
+        }
+
+        if (item instanceof BlockItemStack) {
+            itemTag.putShort("Damage", (short) BlockStateMetaMappings.getMetaFromState(item.getBlockState()));
         }
 
         NbtMapBuilder dataTag = NbtMap.builder();
@@ -104,8 +110,14 @@ public class DefaultItemSerializer implements ItemSerializer {
 
     @Override
     public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
-        ItemType type = registry.getType(id);
+        if (amount <= 0) {
+            builder.itemType(BlockTypes.AIR);
+            return;
+        }
+
+        ItemType type = CloudItemRegistry.get().getType(id);
         builder.itemType(type);
+        builder.id(id);
         builder.amount(amount);
 
         if (tag.isEmpty()) {

@@ -8,7 +8,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.ToString;
-import lombok.experimental.Delegate;
 import lombok.val;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentType;
@@ -26,21 +25,21 @@ import java.util.concurrent.ConcurrentHashMap;
 @Immutable
 public class CloudItemStack implements ItemStack {
 
-    private static final Object NONE_VALUE = new Object();
+    protected static final Object NONE_VALUE = new Object();
 
-    private volatile Identifier id;
-    private final ItemType type;
-    private final int amount;
-    private final String itemName;
-    private final List<String> itemLore;
-    private final ImmutableMap<EnchantmentType, EnchantmentInstance> enchantments;
-    private final Set<Identifier> canDestroy;
-    private final Set<Identifier> canPlaceOn;
-    private final Map<Class<?>, Object> data;
+    protected volatile Identifier id;
+    protected final ItemType type;
+    protected final int amount;
+    protected final String itemName;
+    protected final List<String> itemLore;
+    protected final ImmutableMap<EnchantmentType, EnchantmentInstance> enchantments;
+    protected final Set<Identifier> canDestroy;
+    protected final Set<Identifier> canPlaceOn;
+    protected final Map<Class<?>, Object> data;
 
-    private volatile NbtMap nbt;
-    private volatile NbtMap dataTag;
-    private volatile ItemData networkData;
+    protected volatile NbtMap nbt;
+    protected volatile NbtMap dataTag;
+    protected volatile ItemData networkData;
 
     public CloudItemStack(Identifier id, ItemType type) {
         this(id, type, 1, null, null, null, null, null, null, null, null, null);
@@ -166,7 +165,7 @@ public class CloudItemStack implements ItemStack {
 
     public NbtMap getNbt() {
         if (nbt == null) {
-            synchronized (itemName) {
+            synchronized (itemLore) {
                 if (nbt == null) {
                     NbtMapBuilder builder = NbtMap.builder();
                     CloudItemRegistry.get().getSerializer(this.type).serialize(this, builder);
@@ -180,15 +179,11 @@ public class CloudItemStack implements ItemStack {
 
     public NbtMap getDataTag() {
         if (dataTag == null) {
-            synchronized (itemLore) {
-                if (dataTag == null) {
-                    getNbt();
-                    if (nbt.containsKey("tag")) {
-                        dataTag = nbt.getCompound("tag");
-                    } else {
-                        dataTag = NbtMap.EMPTY;
-                    }
-                }
+            getNbt();
+            if (nbt.containsKey("tag")) {
+                dataTag = nbt.getCompound("tag");
+            } else {
+                dataTag = NbtMap.EMPTY;
             }
         }
 
@@ -229,19 +224,18 @@ public class CloudItemStack implements ItemStack {
     }
 
     @Override
-    @Delegate
     public ItemBehavior getBehavior() {
         return CloudItemRegistry.get().getBehavior(this.type);
     }
 
     @Override
     public boolean isMergeable(@Nonnull ItemStack other) {
-        return equals(other, false, true);
+        return equals(other);
     }
 
     @Override
     public boolean equals(@Nullable ItemStack item) {
-        return equals(item, true, hasTag());
+        return equals(item, false, hasTag());
     }
 
     @Override
@@ -251,7 +245,7 @@ public class CloudItemStack implements ItemStack {
         CloudItemStack that = (CloudItemStack) other;
 
         return this.type == that.type && (!checkAmount || this.amount == that.amount) &&
-                (!checkData || Objects.equals(this.getNbt(), that.getNbt()));
+                (!checkData || Objects.equals(this.getDataTag(), that.getDataTag())); //TODO: damage
     }
 
     @Override

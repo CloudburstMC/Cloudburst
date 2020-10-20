@@ -149,7 +149,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         boolean canBrew = false;
 
         ItemStack fuel = this.getInventory().getFuel();
-        if (this.fuelAmount <= 0 && fuel.getType() == ItemTypes.BLAZE_POWDER && fuel.getCount() > 0) {
+        if (this.fuelAmount <= 0 && fuel.getType() == ItemTypes.BLAZE_POWDER && fuel.getAmount() > 0) {
             this.fuelAmount = 20;
             this.fuelTotal = 20;
 
@@ -164,7 +164,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
                 }
             }
 
-            if (this.cookTime <= MAX_COOK_TIME && canBrew && ingredient.getCount() > 0) {
+            if (this.cookTime <= MAX_COOK_TIME && canBrew && ingredient.getAmount() > 0) {
                 if (!this.checkIngredient(ingredient)) {
                     canBrew = false;
                 }
@@ -276,7 +276,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             ItemStack potion = this.inventory.getItem(i);
 
             val id = potion.getType();
-            if ((id == ItemTypes.POTION || id == ItemTypes.SPLASH_POTION || id == ItemTypes.LINGERING_POTION) && potion.getCount() > 0) {
+            if ((id == ItemTypes.POTION || id == ItemTypes.SPLASH_POTION || id == ItemTypes.LINGERING_POTION) && potion.getAmount() > 0) {
                 switch (i) {
                     case 1:
                         state = state.withTrait(BlockTraits.IS_BREWING_A, true);

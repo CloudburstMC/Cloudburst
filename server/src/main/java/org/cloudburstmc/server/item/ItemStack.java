@@ -2,10 +2,10 @@ package org.cloudburstmc.server.item;
 
 import com.nukkitx.math.GenericMath;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentType;
 import org.cloudburstmc.server.item.behavior.ItemBehavior;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.ItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -19,7 +19,7 @@ import java.util.Map;
 
 @Nonnull
 @Immutable
-public interface ItemStack /*extends ItemBehavior*/ {
+public interface ItemStack {
 
     @Inject
     ItemRegistry registry = null; //does that work?
@@ -28,13 +28,8 @@ public interface ItemStack /*extends ItemBehavior*/ {
 
     int getAmount();
 
-    @Deprecated
-    default int getCount() {
-        return getAmount();
-    }
-
     default boolean isNull() {
-        return this.getType() == BlockTypes.AIR || this.getAmount() <= 0;
+        return this == ItemStacks.AIR;
     }
 
     String getName();
@@ -93,6 +88,10 @@ public interface ItemStack /*extends ItemBehavior*/ {
         return getAmount() >= getType().getMaximumStackSize();
     }
 
+    default boolean equals(@Nullable ItemStack other, boolean checkAmount) {
+        return equals(other, checkAmount, true);
+    }
+
     boolean equals(@Nullable ItemStack other, boolean checkAmount, boolean checkData);
 
     default ItemStack decrementAmount() {
@@ -100,7 +99,7 @@ public interface ItemStack /*extends ItemBehavior*/ {
     }
 
     default ItemStack decrementAmount(int amount) {
-        return withAmount(GenericMath.clamp(getAmount() - amount, 0, getBehavior().getMaxStackSize(this)));
+        return withAmount(getAmount() - amount);
     }
 
     default ItemStack incrementAmount() {
@@ -108,7 +107,7 @@ public interface ItemStack /*extends ItemBehavior*/ {
     }
 
     default ItemStack incrementAmount(int amount) {
-        return withAmount(GenericMath.clamp(getAmount() + amount, 0, getBehavior().getMaxStackSize(this)));
+        return withAmount(getAmount() + amount);
     }
 
     default ItemStack withAmount(int amount) {
@@ -126,12 +125,16 @@ public interface ItemStack /*extends ItemBehavior*/ {
 
     ItemStack withData(Class<?> metadataClass, Object data);
 
+    default BlockState getBlockState() {
+        throw new UnsupportedOperationException("Item " + this.getType() + " cannot be converted to a block state");
+    }
+
     static ItemStack get(BlockState state) {
         return get(state, 1);
     }
 
     static ItemStack get(BlockState state, int amount) {
-        return registry.getItem(state, amount);
+        return CloudItemRegistry.get().getItem(state, amount);
     }
 
     static ItemStack get(ItemType type) {
@@ -139,6 +142,6 @@ public interface ItemStack /*extends ItemBehavior*/ {
     }
 
     static ItemStack get(ItemType type, int amount, Object... metadata) {
-        return registry.getItem(type, amount, metadata);
+        return CloudItemRegistry.get().getItem(type, amount, metadata);
     }
 }

@@ -137,25 +137,25 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         this.timing.startTiming();
 
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
-            if (this.getItem().getCount() < this.getItem().getBehavior().getMaxStackSize(getItem())) {
+            if (this.getItem().getAmount() < this.getItem().getBehavior().getMaxStackSize(getItem())) {
                 for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
                     if (entity instanceof EntityDroppedItem) {
                         if (!entity.isAlive()) {
                             continue;
                         }
                         ItemStack closeItem = ((EntityDroppedItem) entity).getItem();
-                        if (!closeItem.equals(getItem(), true, true)) {
+                        if (!closeItem.equals(getItem(), true)) {
                             continue;
                         }
                         if (!entity.isOnGround()) {
                             continue;
                         }
-                        int newAmount = this.getItem().getCount() + closeItem.getCount();
+                        int newAmount = this.getItem().getAmount() + closeItem.getAmount();
                         if (newAmount > this.getItem().getBehavior().getMaxStackSize(getItem())) {
                             continue;
                         }
                         entity.close();
-                        this.setItem(getItem().withAmount(newAmount));
+                        this.item = getItem().withAmount(newAmount);
                         EntityEventPacket packet = new EntityEventPacket();
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);

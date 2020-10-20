@@ -23,7 +23,6 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
 
-
 //    @Override
 //    public AxisAlignedBB getBoundingBox(Block block) {
 
@@ -281,11 +280,12 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
         } else {
             down = block;
         }
+
         if (down.up().getState().getType() != down.getState().getType()) {
             return false;
         }
 
-        down.set(down.getState().withTrait(BlockTraits.IS_OPEN, true), true);
+        down.set(down.getState().toggleTrait(BlockTraits.IS_OPEN), true);
         return true;
     }
 

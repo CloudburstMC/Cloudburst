@@ -69,6 +69,8 @@ public interface BlockType extends ItemType {
 
     TierType getToolTier();
 
+    BlockState createBlockState();
+
     @Override
     default boolean isPlaceable() {
         return false;

@@ -31,7 +31,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(BlockState.get(LEAVES).copyTrait(BlockTraits.TREE_SPECIES, block.getState()));
+        return ItemStack.get(BlockState.get(LEAVES).copyTrait(BlockTraits.TREE_SPECIES_OVERWORLD, block.getState()));
     }
 
     @Override
@@ -52,7 +52,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
                     return new ItemStack[]{
                             ItemStack.get(STICK, ThreadLocalRandom.current().nextInt(1, 2))
                     };
-                } else if (state.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
+                } else if (state.ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD) != TreeSpecies.JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
                     return new ItemStack[]{
                             this.getSapling(state)
                     };
@@ -110,12 +110,12 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
 
     protected boolean canDropApple(BlockState state) {
-        val type = state.ensureTrait(BlockTraits.TREE_SPECIES);
+        val type = state.ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD);
         return type == TreeSpecies.OAK || type == TreeSpecies.DARK_OAK;
     }
 
     protected ItemStack getSapling(BlockState state) {
-        return ItemStack.get(BlockState.get(SAPLING).copyTrait(BlockTraits.TREE_SPECIES, state));
+        return ItemStack.get(BlockState.get(SAPLING).copyTrait(BlockTraits.TREE_SPECIES_OVERWORLD, state));
     }
 
 

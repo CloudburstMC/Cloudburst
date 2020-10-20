@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.block;
 
+import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Builder;
-import org.cloudburstmc.server.item.TierType;
-import org.cloudburstmc.server.item.TierTypes;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.item.ToolTypes;
+import lombok.var;
+import org.cloudburstmc.server.item.*;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nullable;
@@ -568,6 +569,19 @@ public class BlockTypes {
         @Override
         public TierType getToolTier() {
             return toolTier;
+        }
+
+        @Override
+        public ItemStack createItem(int amount, Object... metadata) {
+            return CloudItemRegistry.get().getItem(this, amount, metadata);
+        }
+
+        @Override
+        public BlockState createBlockState() {
+            var state = BlockRegistry.get().getBlock(this);
+            Preconditions.checkNotNull(state, "Could not create block state for %s", this);
+
+            return state;
         }
 
         @Override

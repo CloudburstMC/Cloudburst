@@ -108,9 +108,9 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 return true;
             }
 
-            if (item.getCount() == 1) {
+            if (item.getAmount() == 1) {
                 player.getInventory().clear(player.getInventory().getHeldItemIndex());
-            } else if (item.getCount() > 1) {
+            } else if (item.getAmount() > 1) {
                 player.getInventory().decrementHandCount();
 
                 ItemStack bottle = ItemStack.get(ItemTypes.GLASS_BOTTLE);
@@ -128,9 +128,9 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 return true;
             }
 
-            if (item.getCount() == 1) {
+            if (item.getAmount() == 1) {
                 player.getInventory().setItemInHand(ItemStack.get(ItemTypes.POTION));
-            } else if (item.getCount() > 1) {
+            } else if (item.getAmount() > 1) {
                 player.getInventory().decrementHandCount();
 
                 ItemStack potion = ItemStack.get(ItemTypes.POTION);
@@ -153,7 +153,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
     protected void replaceBucket(ItemStack oldBucket, Player player, ItemStack newBucket) {
         if (player.isSurvival() || player.isAdventure()) {
-            if (oldBucket.getCount() == 1) {
+            if (oldBucket.getAmount() == 1) {
                 player.getInventory().setItemInHand(newBucket);
             } else {
                 player.getInventory().decrementHandCount();

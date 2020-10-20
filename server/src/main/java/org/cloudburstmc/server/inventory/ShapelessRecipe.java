@@ -33,8 +33,8 @@ public class ShapelessRecipe implements CraftingRecipe {
         this.ingredients = new ArrayList<>();
 
         for (ItemStack item : ingredients) {
-            if (item.getCount() < 1) {
-                throw new IllegalArgumentException("Recipe '" + recipeId + "' Ingredient amount was not 1 (value: " + item.getCount() + ")");
+            if (item.getAmount() < 1) {
+                throw new IllegalArgumentException("Recipe '" + recipeId + "' Ingredient amount was not 1 (value: " + item.getAmount() + ")");
             }
             this.ingredients.add(item);
         }

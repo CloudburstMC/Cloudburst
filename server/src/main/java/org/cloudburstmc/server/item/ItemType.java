@@ -21,6 +21,12 @@ public interface ItemType {
 
     int getMaximumStackSize();
 
+    default ItemStack createItem() {
+        return createItem(0);
+    }
+
+    ItemStack createItem(int amount, Object... metadata);
+
     default int getAttackDamage() {
         return 2;
     }
@@ -39,6 +45,10 @@ public interface ItemType {
 
     default short getFuelTime() {
         return 0;
+    }
+
+    default BlockType getBlockType() {
+        return null;
     }
 
     default boolean isStackable() {
