@@ -1157,7 +1157,7 @@ public class Level implements ChunkManager, Metadatable {
                     Block block = this.getBlock(x, y, z); //TODO: check loaded block
                     BlockBehavior behavior = block.getState().getBehavior();
                     if (!behavior.canPassThrough(block.getState()) && behavior.collidesWithBB(block, bb)) {
-                        collides.add(behavior.getBoundingBox(block));
+                        collides.add(behavior.getBoundingBox(block.getPosition()));
                     }
                 }
             }
@@ -1737,7 +1737,7 @@ public class Level implements ChunkManager, Metadatable {
 
             if (player == null || player.isSurvival()) {
                 for (ItemStack drop : drops) {
-                    if (drop.getCount() > 0) {
+                    if (drop.getAmount() > 0) {
                         this.dropItem(pos.add(0.5, 0.5, 0.5), drop);
                     }
                 }
@@ -1825,7 +1825,7 @@ public class Level implements ChunkManager, Metadatable {
                     val result = itemBehavior.onActivate(item, player, block, target, face, clickPos, this);
                     if (result != null) {
                         item = result;
-                        if (item.getCount() <= 0) {
+                        if (item.getAmount() <= 0) {
                             item = ItemStack.get(BlockTypes.AIR);
                             return item;
                         }
@@ -1857,7 +1857,6 @@ public class Level implements ChunkManager, Metadatable {
 
         if (targetBehavior.canBeReplaced(target)) {
             block = target;
-            behavior = targetBehavior;
         }
 
         BlockState handState = BlockRegistry.get().getBlock(hand.getType());
@@ -1945,7 +1944,7 @@ public class Level implements ChunkManager, Metadatable {
             this.addLevelSoundEvent(block.getPosition().toFloat(), SoundEvent.PLACE, BlockRegistry.get().getRuntimeId(hand));
         }
 
-        if (item.getCount() <= 0) {
+        if (item.getAmount() <= 0) {
             item = ItemStack.get(BlockTypes.AIR);
         }
         return item;

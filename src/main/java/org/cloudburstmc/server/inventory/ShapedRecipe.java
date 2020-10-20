@@ -219,7 +219,7 @@ public class ShapedRecipe implements CraftingRecipe {
             }
 
             for (ItemStack needItem : new ArrayList<>(needItems)) {
-                if (needItem.equals(haveItem) && needItem.getCount() == haveItem.getCount()) {
+                if (needItem.equals(haveItem) && needItem.getAmount() == haveItem.getAmount()) {
                     haveItems.remove(haveItem);
                     needItems.remove(needItem);
                     break;
@@ -239,7 +239,7 @@ public class ShapedRecipe implements CraftingRecipe {
                 ItemStack given = input[y][x];
                 ItemStack required = map.get(y).get(x);
 
-                if (given == null || !required.equals(given) || required.getCount() != given.getCount()) {
+                if (given == null || !required.equals(given) || required.getAmount() != given.getAmount()) {
                     return false;
                 }
 

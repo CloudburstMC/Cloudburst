@@ -2,6 +2,7 @@ package org.cloudburstmc.server.inventory.transaction;
 
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import lombok.var;
 import org.cloudburstmc.server.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.server.event.inventory.InventoryTransactionEvent;
 import org.cloudburstmc.server.inventory.Inventory;
@@ -90,6 +91,7 @@ public class InventoryTransaction {
             }
 
             if (!action.isValid(this.source)) {
+                System.out.println(action);
                 return false;
             }
 
@@ -101,26 +103,27 @@ public class InventoryTransaction {
         val needIterator = needItems.listIterator();
 
         while (needIterator.hasNext()) {
-            val needItem = needIterator.next();
+            var needItem = needIterator.next();
             val haveIterator = haveItems.listIterator();
 
             while (haveIterator.hasNext()) {
                 val haveItem = haveIterator.next();
 
                 if (needItem.equals(haveItem)) {
-                    int amount = Math.min(haveItem.getCount(), needItem.getCount());
+                    int amount = Math.min(haveItem.getAmount(), needItem.getAmount());
 
-                    if (haveItem.getCount() - amount <= 0) {
+                    if (haveItem.getAmount() - amount <= 0) {
                         haveIterator.remove();
                     } else {
                         haveIterator.set(haveItem.decrementAmount(amount));
                     }
 
-                    if (needItem.getCount() - amount <= 0) {
+                    if (needItem.getAmount() - amount <= 0) {
                         needIterator.remove();
                         break;
                     } else {
-                        needIterator.set(needItem.decrementAmount(amount));
+                        needItem = needItem.decrementAmount(amount);
+                        needIterator.set(needItem);
                     }
                 }
             }
@@ -206,14 +209,14 @@ public class InventoryTransaction {
                     SlotChangeAction action = list.get(i);
 
                     ItemStack actionSource = action.getSourceItem();
-                    if (actionSource.equals(lastTargetItem)) {
+                    if (actionSource.equals(lastTargetItem, true)) {
                         lastTargetItem = action.getTargetItem();
                         list.remove(i);
                         sortedThisLoop++;
                     } else if (actionSource.equals(lastTargetItem)) {
-                        lastTargetItem = lastTargetItem.decrementAmount(actionSource.getCount());
+                        lastTargetItem = lastTargetItem.decrementAmount(actionSource.getAmount());
                         list.remove(i);
-                        if (lastTargetItem.getCount() == 0) sortedThisLoop++;
+                        if (lastTargetItem.getAmount() == 0) sortedThisLoop++;
                     }
                 }
             } while (sortedThisLoop > 0);
@@ -240,7 +243,7 @@ public class InventoryTransaction {
 
         List<ItemStack> haveItems = new ArrayList<>();
         List<ItemStack> needItems = new ArrayList<>();
-        return matchItems(needItems, haveItems) && this.actions.size() > 0 && haveItems.size() == 0 && needItems.size() == 0;
+        return matchItems(needItems, haveItems) && this.actions.size() > 0;
     }
 
     protected boolean callExecuteEvent() {
@@ -269,7 +272,7 @@ public class InventoryTransaction {
         }
 
         if (who != null && to != null) {
-            if (from.getTargetItem().getCount() > from.getSourceItem().getCount()) {
+            if (from.getTargetItem().getAmount() > from.getSourceItem().getAmount()) {
                 from = to;
             }
 
@@ -287,6 +290,7 @@ public class InventoryTransaction {
     public boolean execute() {
         if (this.hasExecuted() || !this.canExecute()) {
             this.sendInventories();
+            System.out.println("r 0");
             return false;
         }
 

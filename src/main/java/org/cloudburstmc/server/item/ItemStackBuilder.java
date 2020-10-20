@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.item;
 
+import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentType;
 import org.cloudburstmc.server.utils.Identifier;
@@ -11,6 +12,8 @@ import java.util.List;
 public interface ItemStackBuilder {
 
     ItemStackBuilder itemType(@Nonnull ItemType itemType);
+
+    CloudItemStackBuilder blockState(BlockState blockState);
 
     ItemStackBuilder amount(int amount);
 

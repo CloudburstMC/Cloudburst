@@ -7,8 +7,12 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.ToString;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentType;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -23,8 +27,9 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
 
     private Identifier id;
     private ItemType itemType;
+    private BlockState blockState;
     private int amount = 1;
-    private Reference2ObjectMap<Class<?>, Object> data = new Reference2ObjectOpenHashMap<>();
+    private final Reference2ObjectMap<Class<?>, Object> data = new Reference2ObjectOpenHashMap<>();
     private String itemName;
     private List<String> itemLore;
     private final Map<EnchantmentType, EnchantmentInstance> enchantments = new Reference2ObjectOpenHashMap<>();
@@ -44,10 +49,14 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
         enchantments.putAll(item.getEnchantments());
         canDestroy.addAll(item.getCanDestroy());
         canPlaceOn.addAll(item.getCanPlaceOn());
+
+        if (item instanceof BlockItemStack) {
+            this.blockState = item.getBlockState();
+        }
     }
 
     public CloudItemStackBuilder id(Identifier id) {
-        Preconditions.checkNotNull(id, "id");
+        Preconditions.checkState(this.blockState == null || id == this.blockState.getId(), "Cannot change item id when block state is set");
         this.id = id;
         return this;
     }
@@ -55,8 +64,21 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     @Override
     public CloudItemStackBuilder itemType(ItemType itemType) {
         Preconditions.checkNotNull(itemType, "itemType");
+        Preconditions.checkState(this.blockState == null || itemType == this.blockState.getType(), "Cannot change item id when block state is set");
         this.itemType = itemType;
-//        this.data = new Reference2ObjectOpenHashMap<>(); // If ItemType changed, we can't use the same data.
+        if (itemType instanceof BlockType) {
+            this.blockState = BlockRegistry.get().getBlock((BlockType) itemType);
+        } else {
+            this.blockState = null;
+        }
+        return this;
+    }
+
+    @Override
+    public CloudItemStackBuilder blockState(BlockState blockState) {
+        Preconditions.checkNotNull(blockState, "blockState");
+        this.blockState = blockState;
+        this.itemType = blockState.getType();
         return this;
     }
 
@@ -232,7 +254,20 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     @Override
     public CloudItemStack build() {
         Preconditions.checkArgument(itemType != null, "ItemType has not been set");
-        return new CloudItemStack(id, itemType, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData);
+
+        if (amount <= 0) {
+            return (CloudItemStack) ItemStacks.AIR;
+        }
+
+        if (blockState != null) {
+            if (blockState == BlockStates.AIR) {
+                return (CloudItemStack) ItemStacks.AIR;
+            }
+
+            return new BlockItemStack(this.blockState, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData);
+        } else {
+            return new CloudItemStack(id, itemType, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData);
+        }
     }
 
     private void addEnchantment0(EnchantmentInstance enchantment) {

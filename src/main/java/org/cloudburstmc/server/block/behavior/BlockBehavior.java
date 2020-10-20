@@ -2,10 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
 import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
@@ -129,7 +125,9 @@ public abstract class BlockBehavior {
     }
 
     public boolean canBeReplaced(Block block) {
-        return block.getState().getType().isReplaceable();
+        return block.getState()
+                .getType()
+                .isReplaceable();
     }
 
     public boolean isTransparent(BlockState state) {

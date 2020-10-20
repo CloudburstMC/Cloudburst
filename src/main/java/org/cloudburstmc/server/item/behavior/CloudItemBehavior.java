@@ -2,17 +2,20 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.entity.Entity;
+import org.cloudburstmc.server.item.BlockItemStack;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 /**
@@ -40,18 +43,28 @@ public abstract class CloudItemBehavior implements ItemBehavior {
     @Override
     public final boolean canBePlaced(ItemStack item) {
         BlockState state = this.getBlock(item);
+
+        if (state == null) {
+            return false;
+        }
+
         BlockBehavior behavior = state.getBehavior();
         return behavior.canBePlaced();
     }
 
     @Override
     public BlockState getBlock(ItemStack item) {
-        return BlockStates.AIR;
+        if (item instanceof BlockItemStack) {
+            return item.getBlockState();
+        }
+
+        val b = item.getType().getBlockType();
+        return b != null ? BlockRegistry.get().getBlock(b) : BlockStates.AIR;
     }
 
     @Override
     public int getMaxStackSize(ItemStack item) {
-        return 64;
+        return item.getType().getMaximumStackSize();
     }
 
     @Override

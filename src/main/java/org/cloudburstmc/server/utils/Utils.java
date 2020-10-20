@@ -8,6 +8,8 @@ import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -304,5 +306,20 @@ public class Utils {
         val stream = Arrays.stream(values).filter(v -> !set.contains(v));
 
         return stream.toArray((s) -> (T[]) Array.newInstance(value, s));
+    }
+
+    public static void finalAccess(Field field) {
+        try {
+            if (Integer.parseInt(System.getProperty("java.version").split("\\.")[0]) <= 9) {
+                val modifiers = Field.class.getDeclaredField("modifiers");
+                modifiers.setAccessible(true);
+
+                modifiers.set(field, field.getModifiers() & (~Modifier.FINAL));
+            } else {
+//                val lookup = MethodHandles.privateLookupIn();
+            }
+        } catch (NoSuchFieldException | IllegalAccessException ignore) {
+
+        }
     }
 }

@@ -64,10 +64,11 @@ public class BlockPalette {
         this.defaultStateMap.put(type, defaultState);
 
         states.forEach((nbt, state) -> {
+            int runtimeId = this.runtimeIdAllocator.getAndIncrement();
+
             if (!state.isInitialized()) {
                 state.initialize(defaultState, map);
 
-                int runtimeId = this.runtimeIdAllocator.getAndIncrement();
                 this.stateRuntimeMap.put(state, runtimeId);
                 this.runtimeStateMap.put(runtimeId, state);
                 this.stateMap.putIfAbsent(state.getId(), state.defaultState());

@@ -250,7 +250,7 @@ public class PlayerInventory extends BaseInventory {
     private boolean setItem(int index, ItemStack item, boolean send, boolean ignoreArmorEvents) {
         if (index < 0 || index >= this.size) {
             return false;
-        } else if (item.getType() == AIR || item.getCount() <= 0) {
+        } else if (item.getType() == AIR || item.getAmount() <= 0) {
             return this.clear(index);
         }
 

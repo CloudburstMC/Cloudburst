@@ -111,4 +111,8 @@ public class ItemUtils {
 
         return builder.build();
     }
+
+    public static boolean isNull(ItemStack item) {
+        return item == null || item.isNull();
+    }
 }

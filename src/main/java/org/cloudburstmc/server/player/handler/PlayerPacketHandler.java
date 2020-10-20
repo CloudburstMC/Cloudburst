@@ -966,7 +966,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 if ((serverHand = player.getLevel().useItemOn(blockVector, serverHand, face,
                                         packet.getClickPosition(), player)) != null) {
                                     if (!serverHand.equals(oldItem) ||
-                                            serverHand.getCount() != oldItem.getCount()) {
+                                            serverHand.getAmount() != oldItem.getAmount()) {
                                         player.getInventory().setItemInHand(serverHand);
                                         player.getInventory().sendHeldItem(player.getViewers());
                                     }
@@ -1001,7 +1001,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 (i = player.getLevel().useBreakOn(blockVector, face, i, player, true)) != null) {
                             if (player.isSurvival()) {
                                 player.getFoodData().updateFoodExpLevel(0.025);
-                                if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+                                if (!i.equals(oldItem) || i.getAmount() != oldItem.getAmount()) {
                                     player.getInventory().setItemInHand(i);
                                     player.getInventory().sendHeldItem(player.getViewers());
                                 }
@@ -1083,7 +1083,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                 ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
 
-                if (!clientHand.equals(player.getInventory().getItemInHand())) {
+                if (!clientHand.equals(player.getInventory().getItemInHand(), true)) {
                     player.getInventory().sendHeldItem(player);
                 }
 
@@ -1102,7 +1102,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             val behavior = serverItem.getBehavior();
                             val result = behavior.useOn(serverItem, target);
                             if (result == null) {
-                                if (serverItem.getCount() > 1) {
+                                if (serverItem.getAmount() > 1) {
                                     serverItem = serverItem.decrementAmount();
                                 } else {
                                     serverItem = ItemStack.get(AIR);

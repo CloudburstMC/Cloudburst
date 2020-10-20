@@ -71,7 +71,7 @@ public abstract class ContainerInventory extends BaseInventory {
                 ItemStack item = inv.getItem(slot);
 
                 if (item.getType() != AIR) {
-                    averageCount += (float) item.getCount() / (float) Math.min(inv.getMaxStackSize(), item.getBehavior().getMaxStackSize(item));
+                    averageCount += (float) item.getAmount() / (float) Math.min(inv.getMaxStackSize(), item.getBehavior().getMaxStackSize(item));
                     ++itemCount;
                 }
             }

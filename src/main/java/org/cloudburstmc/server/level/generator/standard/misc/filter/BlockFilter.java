@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 public interface BlockFilter extends Predicate<BlockState> {
     BlockFilter AIR = state -> state == BlockStates.AIR;
 
-    BlockFilter REPLACEABLE = state -> state.getBehavior().canBeReplaced(null);
+    BlockFilter REPLACEABLE = state -> state.getType().isReplaceable();
 
     @Override
     boolean test(BlockState state);

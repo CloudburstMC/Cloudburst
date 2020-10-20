@@ -68,7 +68,7 @@ public class CraftingManager {
     }
 
     private static int getFullItemHash(CloudItemStack item) {
-        return Objects.hash(System.identityHashCode(item.getId()), item.getNetworkData().getDamage(), item.getCount());
+        return Objects.hash(System.identityHashCode(item.getId()), item.getNetworkData().getDamage(), item.getAmount());
     }
 
     private static UUID getMultiItemHash(Collection<CloudItemStack> items) {

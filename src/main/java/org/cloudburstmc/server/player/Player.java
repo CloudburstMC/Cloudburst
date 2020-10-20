@@ -2896,10 +2896,13 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 }
             }
 
-            drops = this.getInventory().addItem(this.getCursorInventory().getItem(0));
-            if (drops.length > 0) {
-                for (ItemStack drop : drops) {
-                    this.dropItem(drop);
+            val cursorItem = this.getCursorInventory().getItem(0);
+            if (!cursorItem.isNull()) {
+                drops = this.getInventory().addItem();
+                if (drops.length > 0) {
+                    for (ItemStack drop : drops) {
+                        this.dropItem(drop);
+                    }
                 }
             }
 
