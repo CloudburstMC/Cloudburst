@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorEndPortal extends FloodableBlockBehavior {
@@ -25,6 +25,6 @@ public class BlockBehaviorEndPortal extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(BlockTypes.AIR);
+        return ItemStacks.AIR;
     }
 }

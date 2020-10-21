@@ -17,6 +17,7 @@ import org.cloudburstmc.server.inventory.FurnaceInventory;
 import org.cloudburstmc.server.inventory.FurnaceRecipe;
 import org.cloudburstmc.server.inventory.InventoryType;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.Bucket;
@@ -29,7 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
 import static org.cloudburstmc.server.block.BlockTypes.FURNACE;
 
 /**
@@ -139,7 +139,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                 if (fuel.getType() == ItemTypes.BUCKET && fuel.getMetadata(Bucket.class) == Bucket.LAVA) {
                     fuel = fuel.toBuilder().amount(1).itemData(Bucket.EMPTY).build();
                 } else {
-                    fuel = ItemStack.get(AIR);
+                    fuel = ItemStacks.AIR;
                 }
             } else {
                 fuel = fuel.decrementAmount();
@@ -183,7 +183,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                     if (!ev.isCancelled()) {
                         this.inventory.setResult(ev.getResult());
                         if (raw.getAmount() <= 1) {
-                            raw = ItemStack.get(AIR);
+                            raw = ItemStacks.AIR;
                         } else {
                             raw = raw.decrementAmount();
                         }

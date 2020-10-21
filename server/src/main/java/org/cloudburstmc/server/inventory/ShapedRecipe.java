@@ -5,13 +5,12 @@ import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
-
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 /**
  * author: MagicDroidX
@@ -154,7 +153,7 @@ public class ShapedRecipe implements CraftingRecipe {
     public ItemStack getIngredient(int x, int y) {
         ItemStack item = this.ingredients.get(this.shape[y].charAt(x));
 
-        return item != null ? item : ItemStack.get(AIR);
+        return item != null ? item : ItemStacks.AIR;
     }
 
     public String[] getShape() {

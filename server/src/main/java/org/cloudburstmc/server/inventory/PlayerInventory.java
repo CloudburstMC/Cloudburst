@@ -12,6 +12,7 @@ import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.server.event.player.PlayerItemHeldEvent;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -131,7 +132,7 @@ public class PlayerInventory extends BaseInventory {
         if (item != null) {
             return item;
         } else {
-            return ItemStack.get(AIR);
+            return ItemStacks.AIR;
         }
     }
 
@@ -285,7 +286,7 @@ public class PlayerInventory extends BaseInventory {
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            ItemStack item = ItemStack.get(AIR);
+            ItemStack item = ItemStacks.AIR;
             ItemStack old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
@@ -348,7 +349,7 @@ public class PlayerInventory extends BaseInventory {
 
     public void setOffHandContents(ItemStack offhand) {
         if (offhand == null) {
-            offhand = ItemStack.get(AIR);
+            offhand = ItemStacks.AIR;
         }
         this.setItem(offHandIndex, offhand);
     }
@@ -365,7 +366,7 @@ public class PlayerInventory extends BaseInventory {
         ItemStack offHand = this.getOffHand();
 
         if (offHand == null) {
-            offHand = ItemStack.get(AIR);
+            offHand = ItemStacks.AIR;
         }
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
@@ -451,7 +452,7 @@ public class PlayerInventory extends BaseInventory {
 
         for (int i = 0; i < 4; ++i) {
             if (items[i] == null) {
-                items[i] = ItemStack.get(AIR);
+                items[i] = ItemStacks.AIR;
             }
 
             if (items[i].isNull()) {

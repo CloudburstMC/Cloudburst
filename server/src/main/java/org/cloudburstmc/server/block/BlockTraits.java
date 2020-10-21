@@ -80,7 +80,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<StoneType> STONE_TYPE = EnumBlockTrait.of("stone_type", StoneType.class);
     public static final EnumBlockTrait<StoneBrickType> STONE_BRICK_TYPE = EnumBlockTrait.of("stone_brick_type", StoneBrickType.class);
     public static final EnumBlockTrait<StoneSlabType> STONE_SLAB_TYPE = EnumBlockTrait.of("stone_slab_type", StoneSlabType.class);
-    public static final EnumBlockTrait<StoneSlabType> STONE_STAIRS_TYPE = EnumBlockTrait.of("stone_slab_type", StoneSlabType.class, Utils.getEnumValues(StoneSlabType.class, StoneSlabType.WOOD));
+    public static final EnumBlockTrait<StoneSlabType> STONE_STAIRS_TYPE = EnumBlockTrait.of("stone_slab_type", StoneSlabType.class, Utils.getEnumValues(StoneSlabType.class, StoneSlabType.WOOD, StoneSlabType.SMOOTH_STONE, StoneSlabType.CUT_SANDSTONE));
     public static final EnumBlockTrait<StoneSlabType> STONE_BUTTON_TYPE = EnumBlockTrait.of("stone_type", StoneSlabType.class, StoneSlabType.STONE, StoneSlabType.POLISHED_BLACKSTONE);
     public static final EnumBlockTrait<StoneSlabType> STONE_PRESSURE_PLATE_TYPE = EnumBlockTrait.of("stone_type", StoneSlabType.class, StoneSlabType.STONE, StoneSlabType.POLISHED_BLACKSTONE);
     public static final EnumBlockTrait<StructureBlockType> STRUCTURE_BLOCK_TYPE = EnumBlockTrait.of("structure_block_type", StructureBlockType.class);

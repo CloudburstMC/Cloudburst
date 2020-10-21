@@ -11,6 +11,7 @@ import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.MovingObjectPosition;
@@ -18,7 +19,6 @@ import org.cloudburstmc.server.level.MovingObjectPosition;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 /**
  * Created by PetteriM1
@@ -63,7 +63,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
         super.initEntity();
 
         this.damage = 8;
-        this.trident = ItemStack.get(AIR);
+        this.trident = ItemStacks.AIR;
         closeOnCollide = false;
     }
 
@@ -83,7 +83,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
 
     @Override
     public ItemStack getTrident() {
-        return this.trident != null ? this.trident : ItemStack.get(AIR);
+        return this.trident != null ? this.trident : ItemStacks.AIR;
     }
 
     @Override
