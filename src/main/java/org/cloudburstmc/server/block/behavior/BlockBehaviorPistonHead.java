@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
 
 public class BlockBehaviorPistonHead extends BlockBehaviorTransparent {
 
@@ -19,7 +19,7 @@ public class BlockBehaviorPistonHead extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(BlockTypes.AIR);
+        return ItemStacks.AIR;
     }
 
 

@@ -53,6 +53,7 @@ import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.Damageable;
@@ -800,7 +801,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!itemFrameDropItemEvent.isCancelled()) {
             if (itemDrop.getType() != AIR) {
                 player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
-                itemFrame.setItem(ItemStack.get(AIR));
+                itemFrame.setItem(ItemStacks.AIR);
                 itemFrame.setItemRotation(0);
                 player.getLevel().addSound(player.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
             }
@@ -1105,7 +1106,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 if (serverItem.getAmount() > 1) {
                                     serverItem = serverItem.decrementAmount();
                                 } else {
-                                    serverItem = ItemStack.get(AIR);
+                                    serverItem = ItemStacks.AIR;
                                 }
                             } else {
                                 serverItem = result;
@@ -1173,7 +1174,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         if (behavior.isTool(serverItem) && player.isSurvival()) {
                             val result = behavior.useOn(serverItem, target);
                             if (result == null && serverItem.getMetadata(Damageable.class).getDurability() >= behavior.getMaxDurability()) {
-                                player.getInventory().setItemInHand(ItemStack.get(AIR));
+                                player.getInventory().setItemInHand(ItemStacks.AIR);
                             } else {
                                 player.getInventory().setItemInHand(result);
                             }

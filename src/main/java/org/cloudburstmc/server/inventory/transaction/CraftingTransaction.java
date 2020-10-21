@@ -7,6 +7,7 @@ import org.cloudburstmc.server.inventory.BigCraftingGrid;
 import org.cloudburstmc.server.inventory.CraftingRecipe;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.player.Player;
@@ -15,7 +16,8 @@ import org.cloudburstmc.server.scheduler.Task;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.block.BlockTypes.CRAFTING_TABLE;
+import static org.cloudburstmc.server.block.BlockTypes.FURNACE;
 
 /**
  * @author CreeperFace
@@ -36,7 +38,7 @@ public class CraftingTransaction extends InventoryTransaction {
         super(source, actions, false);
 
         this.gridSize = (source.getCraftingGrid() instanceof BigCraftingGrid) ? 3 : 2;
-        ItemStack air = ItemStack.get(AIR);
+        ItemStack air = ItemStacks.AIR;
         this.inputs = new ItemStack[gridSize][gridSize];
         for (ItemStack[] a : this.inputs) {
             Arrays.fill(a, air);

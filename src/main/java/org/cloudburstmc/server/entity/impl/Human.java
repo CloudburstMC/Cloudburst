@@ -27,6 +27,7 @@ import org.cloudburstmc.server.inventory.PlayerEnderChestInventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.level.Location;
@@ -42,7 +43,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 /**
  * author: MagicDroidX
@@ -404,7 +404,7 @@ public class Human extends EntityCreature implements InventoryHolder {
                     armor = armor.withData(damageable.damage());
 
                     if (damageable.getDurability() + 1 >= armor.getBehavior().getMaxDurability()) {
-                        inventory.setArmorItem(slot, ItemStack.get(AIR));
+                        inventory.setArmorItem(slot, ItemStacks.AIR);
                     } else {
                         inventory.setArmorItem(slot, armor, true);
                     }

@@ -49,6 +49,7 @@ import org.cloudburstmc.server.event.level.*;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent;
 import org.cloudburstmc.server.event.weather.LightningStrikeEvent;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.item.data.Damageable;
@@ -1625,7 +1626,7 @@ public class Level implements ChunkManager, Metadatable {
         int dropExp = targetBehavior.getDropExp();
 
         if (item == null) {
-            item = ItemStack.get(BlockTypes.AIR);
+            item = ItemStacks.AIR;
         }
 
         boolean isSilkTouch = item.getEnchantment(EnchantmentTypes.SILK_TOUCH) != null;
@@ -1727,7 +1728,7 @@ public class Level implements ChunkManager, Metadatable {
         val itemBehavior = item.getBehavior();
         itemBehavior.useOn(item, target);
         if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-            item = ItemStack.get(BlockTypes.AIR);
+            item = ItemStacks.AIR;
         }
 
         if (this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
@@ -1816,7 +1817,7 @@ public class Level implements ChunkManager, Metadatable {
                 targetBehavior.onUpdate(target, BLOCK_UPDATE_TOUCH);
                 if ((!player.isSneaking() || player.getInventory().getItemInHand().isNull()) && targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item, player)) {
                     if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-                        item = ItemStack.get(BlockTypes.AIR);
+                        item = ItemStacks.AIR;
                     }
                     return item;
                 }
@@ -1826,7 +1827,7 @@ public class Level implements ChunkManager, Metadatable {
                     if (result != null) {
                         item = result;
                         if (item.getAmount() <= 0) {
-                            item = ItemStack.get(BlockTypes.AIR);
+                            item = ItemStacks.AIR;
                             return item;
                         }
                     }
@@ -1839,7 +1840,7 @@ public class Level implements ChunkManager, Metadatable {
             }
         } else if (targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item)) {
             if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-                item = ItemStack.get(BlockTypes.AIR);
+                item = ItemStacks.AIR;
             }
             return item;
         }
@@ -1945,7 +1946,7 @@ public class Level implements ChunkManager, Metadatable {
         }
 
         if (item.getAmount() <= 0) {
-            item = ItemStack.get(BlockTypes.AIR);
+            item = ItemStacks.AIR;
         }
         return item;
     }
