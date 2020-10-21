@@ -93,7 +93,7 @@ public class Bootstrap {
         OptionSpec<Path> pluginPathSpec = parser.accepts("plugin-path", "path to your plugins directory")
                 .withRequiredArg()
                 .withValuesConvertedBy(new PathConverter());
-        OptionSpec<Path> levelPathSpec = parser.accepts("level-path", "path to your plugins directory")
+        OptionSpec<Path> levelPathSpec = parser.accepts("level-path", "path to your worlds directory")
                 .withRequiredArg()
                 .withValuesConvertedBy(new PathConverter());
 
