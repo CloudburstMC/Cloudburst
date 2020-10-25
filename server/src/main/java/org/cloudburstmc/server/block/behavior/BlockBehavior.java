@@ -189,7 +189,8 @@ public abstract class BlockBehavior {
     }
 
     public boolean canBeFlooded(BlockState state) {
-        return !state.getType().blocksWater();
+        val type = state.getType();
+        return type.isFloodable() || !type.blocksWater();
     }
 
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
