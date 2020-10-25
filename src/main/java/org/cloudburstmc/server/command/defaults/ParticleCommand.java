@@ -13,7 +13,6 @@ import org.cloudburstmc.server.level.particle.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Random;
@@ -198,7 +197,7 @@ public class ParticleCommand extends Command {
         if (name.startsWith("iconcrack_")) {
             String[] d = name.split("_");
             if (d.length == 3) {
-                return new ItemBreakParticle(pos, ItemStack.get(CloudItemRegistry.get().getType(Identifier.fromString(d[1])), Integer.parseInt(d[2])));
+                return new ItemBreakParticle(pos, ItemStack.get(ItemTypes.byId(Identifier.fromString(d[1])), Integer.parseInt(d[2])));
             }
         } else if (name.startsWith("blockcrack_")) {
             String[] d = name.split("_");

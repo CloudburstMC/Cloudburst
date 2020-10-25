@@ -479,7 +479,7 @@ public class ItemTypes {
     }
 
     public static ItemType byId(Identifier id, boolean itemsOnly) {
-        ItemType type = BY_ID.get(id);
+        ItemType type = CloudItemRegistry.get().getType(id);
         if (type == null) {
             if (itemsOnly) {
                 throw new IllegalArgumentException("ID " + id + " is not valid.");

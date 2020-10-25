@@ -171,7 +171,7 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     public ItemType getType(Identifier id) {
-        return ItemTypes.byId(id);
+        return this.typeMap.get(id);
     }
 
     public ItemType getType(int legacyId) {
@@ -583,6 +583,8 @@ public class CloudItemRegistry implements ItemRegistry {
         this.registerDataSerializer(WrittenBook.class, new WrittenBookSerializer());
         this.registerDataSerializer(EntityType.class, new EntityTypeSerializer());
         this.registerDataSerializer(Potion.class, new PotionSerializer());
+        this.registerDataSerializer(Bucket.class, BucketSerializer.INSTANCE);
+        this.registerDataSerializer(Coal.class, EnumSerializer.COAL);
     }
 
     public void registerCreativeItem(ItemStack item) {

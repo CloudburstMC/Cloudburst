@@ -419,6 +419,6 @@ public abstract class BlockBehavior {
 
     public boolean canWaterlogFlowing(BlockState state) {
         val type = state.getType();
-        return !type.breaksFlowing() && type.blocksWater();
+        return !type.breaksFlowing() && !type.blocksWater();
     }
 }

@@ -84,8 +84,12 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
 
     @Override
     public CloudItemStackBuilder amount(int amount) {
+        return amount(amount, true);
+    }
+
+    public CloudItemStackBuilder amount(int amount, boolean safe) {
         Preconditions.checkState(itemType != null, "ItemType has not been set");
-        Preconditions.checkArgument(amount >= 0 && amount <= itemType.getMaximumStackSize(), "Amount %s is not between 0 and %s", amount, itemType.getMaximumStackSize());
+        Preconditions.checkArgument(!safe || (amount >= 0 && amount <= itemType.getMaximumStackSize()), "Amount %s is not between 0 and %s", amount, itemType.getMaximumStackSize());
         this.amount = amount;
         return this;
     }

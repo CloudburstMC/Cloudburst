@@ -10,6 +10,7 @@ import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -62,7 +63,7 @@ public class GiveCommand extends Command {
 
         try {
             val registry = CloudItemRegistry.get();
-            item = registry.getItem(registry.getType(Identifier.fromString(args[1])));
+            item = registry.getItem(ItemTypes.byId(Identifier.fromString(args[1])));
         } catch (Exception e) {
             log.throwing(e);
             return false;

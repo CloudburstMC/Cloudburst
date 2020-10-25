@@ -22,7 +22,7 @@ public interface ItemType {
     int getMaximumStackSize();
 
     default ItemStack createItem() {
-        return createItem(0);
+        return createItem(1);
     }
 
     ItemStack createItem(int amount, Object... metadata);
