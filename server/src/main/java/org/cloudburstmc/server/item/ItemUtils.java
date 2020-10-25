@@ -51,7 +51,7 @@ public class ItemUtils {
     public static ItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag) {
         CloudItemStackBuilder builder = new CloudItemStackBuilder();
 
-        registry.getSerializer(registry.getType(id)).deserialize(id, damage, amount, builder, tag);
+        registry.getSerializer(ItemTypes.byId(id)).deserialize(id, damage, amount, builder, tag);
 
         return builder.build();
     }
@@ -80,7 +80,7 @@ public class ItemUtils {
 
     public static ItemStack fromNetwork(ItemData data) {
         Identifier id = registry.getIdentifier(data.getId());
-        ItemType type = registry.getType(id);
+        ItemType type = ItemTypes.byId(id);
 
         String[] canBreak = data.getCanBreak();
         String[] canPlace = data.getCanPlace();

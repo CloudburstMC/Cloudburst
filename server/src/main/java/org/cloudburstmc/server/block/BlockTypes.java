@@ -292,11 +292,11 @@ public class BlockTypes {
     public static final BlockType QUARTZ_BRICKS = IntBlock.builder().id(BlockIds.QUARTZ_BRICKS).maxStackSize(64).diggable(true).hardness(0.8f).resistance(4).solid(true).pushesOutItems(true).canBeSilkTouched(true).breakFlowing(true).targetTool(ToolTypes.PICKAXE).build();
 
     public static BlockType byId(Identifier id) {
-        BlockType type = BY_ID.get(id);
-        if (type == null) {
+        BlockState state = BlockRegistry.get().getBlock(id);
+        if (state == null) {
             throw new IllegalArgumentException("ID " + id + " is not valid.");
         }
-        return type;
+        return state.getType();
     }
 
     @Builder(builderClassName = "IntBlockBuilder")

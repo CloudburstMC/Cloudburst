@@ -10,10 +10,7 @@ import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentTypes.CloudEnchantmentType;
-import org.cloudburstmc.server.item.BlockItemStack;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.CloudItemStackBuilder;
-import org.cloudburstmc.server.item.ItemType;
+import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
@@ -115,10 +112,10 @@ public class DefaultItemSerializer implements ItemSerializer {
             return;
         }
 
-        ItemType type = CloudItemRegistry.get().getType(id);
-        builder.itemType(type);
+        ItemType type = ItemTypes.byId(id);
         builder.id(id);
-        builder.amount(amount);
+        builder.itemType(type);
+        builder.amount(amount, false);
 
         if (tag.isEmpty()) {
             return;

@@ -33,7 +33,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     protected final BlockType stationaryId;
     public int adjacentSources = 0;
     protected Vector3f flowVector = null;
-    private Long2ByteMap flowCostVisited = new Long2ByteOpenHashMap();
+    private final Long2ByteMap flowCostVisited = new Long2ByteOpenHashMap();
 
     public BlockBehaviorLiquid(BlockType flowingId, BlockType stationaryId) {
         this.flowingId = flowingId;
@@ -200,11 +200,11 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 if (topFlowDecay >= 0) {
                     newDecay = topFlowDecay | 0x08;
                 }
-                if (adjacentSources >= 2 && block instanceof BlockBehaviorWater) {
+                if (adjacentSources >= 2 && isWater(block.getState().getType())) {
                     BlockState bottomBlockState = getLiquidBlock(level, block.getX(), block.getY() - 1, block.getZ());
                     if (bottomBlockState.inCategory(BlockCategory.SOLID)) {
                         newDecay = 0;
-                    } else if (bottomBlockState instanceof BlockBehaviorWater && bottomBlockState.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
+                    } else if (isWater(bottomBlockState.getType()) && bottomBlockState.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
                         newDecay = 0;
                     }
                 }
@@ -500,5 +500,9 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
             throw new IllegalArgumentException("Y coordinate y is out of range!");
         }
         return (((long) x & (long) 0xFFFFFFF) << 36) | (((long) y & (long) 0xFF) << 28) | ((long) z & (long) 0xFFFFFFF);
+    }
+
+    protected boolean isWater(BlockType type) {
+        return type == BlockTypes.WATER || type == BlockTypes.FLOWING_WATER;
     }
 }
