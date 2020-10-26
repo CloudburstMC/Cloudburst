@@ -1019,7 +1019,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
 
                         if (serverItem.onClickAir(player, directionVector)) {
-                            if (player.isSurvival()) {
+                            if (player.isAdventure() || player.isSurvival()) {
                                 player.getInventory().setItemInHand(serverItem);
                             }
 
