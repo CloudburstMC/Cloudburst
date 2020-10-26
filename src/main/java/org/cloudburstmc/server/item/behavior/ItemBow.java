@@ -48,7 +48,7 @@ public class ItemBow extends ItemTool {
     public boolean onRelease(Player player, int ticksUsed) {
         Item itemArrow = Item.get(ARROW, 0, 1);
 
-        if (player.isSurvival() && !player.getInventory().contains(itemArrow)) {
+        if ((player.isAdventure() || player.isSurvival()) && !player.getInventory().contains(itemArrow)) {
             player.getInventory().sendContents(player);
             return false;
         }
@@ -101,7 +101,7 @@ public class ItemBow extends ItemTool {
             if (infinity && (projectile = entityShootBowEvent.getProjectile()) instanceof Arrow) {
                 ((EntityArrow) projectile).setPickupMode(EntityArrow.PICKUP_CREATIVE);
             }
-            if (player.isSurvival()) {
+            if (player.isAdventure() || player.isSurvival()) {
                 if (!infinity) {
                     player.getInventory().removeItem(itemArrow);
                 }
