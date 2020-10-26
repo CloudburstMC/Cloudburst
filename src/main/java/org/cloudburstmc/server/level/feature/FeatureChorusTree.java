@@ -28,8 +28,8 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
 
     public FeatureChorusTree(@NonNull IntRange branchHeight, int maxRecursion, int maxOverhang) {
         this.branchHeight = branchHeight;
-        this.maxRecursion = PValidation.ensurePositive(maxRecursion);
-        this.maxOverhang = PValidation.ensurePositive(maxOverhang);
+        this.maxRecursion = PValidation.positive(maxRecursion);
+        this.maxOverhang = PValidation.positive(maxOverhang);
     }
 
     @Override

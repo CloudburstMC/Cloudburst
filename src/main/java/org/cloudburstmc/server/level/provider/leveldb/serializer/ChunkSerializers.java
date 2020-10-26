@@ -2,10 +2,10 @@ package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
+import net.daporkchop.ldbjni.direct.DirectDB;
+import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
-import org.iq80.leveldb.DB;
-import org.iq80.leveldb.WriteBatch;
 
 public class ChunkSerializers {
 
@@ -40,11 +40,11 @@ public class ChunkSerializers {
         return chunkSerializer;
     }
 
-    public static void serializeChunk(WriteBatch db, Chunk chunk, int version) {
+    public static void serializeChunk(DirectWriteBatch db, Chunk chunk, int version) {
         getChunkSerializer(version).serialize(db, chunk);
     }
 
-    public static void deserializeChunk(DB db, ChunkBuilder chunkBuilder, int version) {
+    public static void deserializeChunk(DirectDB db, ChunkBuilder chunkBuilder, int version) {
         getChunkSerializer(version).deserialize(db, chunkBuilder);
     }
 }

@@ -286,7 +286,7 @@
         <dependency>
             <groupId>net.daporkchop</groupId>
             <artifactId>leveldb-mcpe-jni</artifactId>
-            <version>0.0.7-SNAPSHOT</version>
+            <version>0.0.10-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.guava</groupId>
@@ -301,7 +301,7 @@
         <dependency>
             <groupId>net.daporkchop.lib</groupId>
             <artifactId>noise</artifactId>
-            <version>0.5.4-SNAPSHOT</version>
+            <version>0.5.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>net.sf.jopt-simple</groupId>

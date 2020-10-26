@@ -13,8 +13,8 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Objects;
 
-import static java.lang.Math.abs;
-import static net.daporkchop.lib.math.primitive.PMath.ceilI;
+import static java.lang.Math.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * Places large spikes in the world.
@@ -79,7 +79,7 @@ public class SpikesPopulator extends ChancePopulator.Column {
                     double fx = abs(dx) - 0.25d;
                     double fz = abs(dz) - 0.25d;
                     if (((dx == 0 && dz == 0) || fx * fx + fz * fz < rf)
-                            && ((abs(dx) != radius && abs(dz) != radius) || random.nextInt(4) == 0)) {
+                        && ((abs(dx) != radius && abs(dz) != radius) || random.nextInt(4) == 0)) {
                         if (y + dy < 255 && replace.test(level.getBlockAt(x + dx, y + dy, z + dz, 0))) {
                             level.setBlockAt(x + dx, y + dy, z + dz, 0, block);
                         }

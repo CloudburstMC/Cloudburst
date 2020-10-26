@@ -2,12 +2,12 @@ package org.cloudburstmc.server.level.generator.standard.misc;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
+import net.daporkchop.lib.common.math.BinMath;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.PorkUtil;
-import net.daporkchop.lib.math.primitive.BinMath;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -26,7 +26,7 @@ public class IntArrayAllocator {
     protected final int maxArenaSize;
 
     public IntArrayAllocator(int maxArenaSize) {
-        this.maxArenaSize = PValidation.ensurePositive(maxArenaSize);
+        this.maxArenaSize = PValidation.positive(maxArenaSize, "maxArenaSize");
         this.arenas = PorkUtil.uncheckedCast(PArrays.filled(32, Deque[]::new, () -> new ArrayDeque(maxArenaSize)));
     }
 

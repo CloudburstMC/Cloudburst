@@ -10,9 +10,8 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 import org.cloudburstmc.server.math.Direction;
 
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static java.lang.Math.*;
+import static net.daporkchop.lib.common.math.PMath.*;
 
 /**
  * Generates a huge jungle tree.
