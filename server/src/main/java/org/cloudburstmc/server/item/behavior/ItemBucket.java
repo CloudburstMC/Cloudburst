@@ -122,7 +122,13 @@ public class ItemBucket extends Item {
                         Item clone = this.clone();
                         clone.setCount(this.getCount() - 1);
                         player.getInventory().setItemInHand(clone);
-                        player.getInventory().addItem(ev.getItem());
+                        if (this.getCount() == 1) {
+                            player.getInventory().setItemInHand(ev.getItem());
+                        } else if (player.getInventory().canAddItem(ev.getItem())) {
+                            player.getInventory().addItem(ev.getItem());
+                        } else {
+                            player.dropItem(ev.getItem());
+                        }
                     }
 
                     if (liquid.getType() == LAVA) {
@@ -169,7 +175,7 @@ public class ItemBucket extends Item {
                     Item clone = this.clone();
                     clone.setCount(this.getCount() - 1);
                     player.getInventory().setItemInHand(clone);
-                    player.getInventory().addItem(ev.getItem());
+                    player.getInventory().setItemInHand(ev.getItem());
                 }
 
                 if (this.getMeta() == 10) {
