@@ -22,11 +22,9 @@ import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.item.behavior.*;
 import org.cloudburstmc.server.item.data.*;
+import org.cloudburstmc.server.item.data.serializer.BannerSerializer;
 import org.cloudburstmc.server.item.data.serializer.*;
-import org.cloudburstmc.server.item.serializer.DefaultItemSerializer;
-import org.cloudburstmc.server.item.serializer.ItemSerializer;
-import org.cloudburstmc.server.item.serializer.RecordSerializer;
-import org.cloudburstmc.server.item.serializer.TreeSpeciesSerializer;
+import org.cloudburstmc.server.item.serializer.*;
 import org.cloudburstmc.server.potion.Potion;
 import org.cloudburstmc.server.utils.Config;
 import org.cloudburstmc.server.utils.Identifier;
@@ -54,6 +52,7 @@ public class CloudItemRegistry implements ItemRegistry {
         }
 
         INSTANCE = new CloudItemRegistry(BlockRegistry.get()); // Needs to be initialized afterwards
+        INSTANCE.registerVanillaCreativeItems();
     }
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
@@ -76,8 +75,6 @@ public class CloudItemRegistry implements ItemRegistry {
             this.registerVanillaItems();
             this.registerVanillaIdentifiers();
             this.registerVanillaDataSerializers();
-
-            this.registerVanillaCreativeItems();
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
@@ -391,7 +388,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.BONE, 352);
         registerVanilla(ItemTypes.SUGAR, 353);
         registerVanilla(ItemTypes.CAKE, 354);
-        registerVanilla(ItemTypes.BED, 355);
+        registerVanilla(ItemTypes.BED, EnumDamageSerializer.DYE_COLOR, 355);
         registerVanilla(ItemTypes.REPEATER, 356);
         registerVanilla(ItemTypes.COOKIE, 357);
         registerVanilla(ItemTypes.MAP, new ItemMapBehavior(), 358);
@@ -617,7 +614,7 @@ public class CloudItemRegistry implements ItemRegistry {
         return creativeContent;
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void registerVanillaCreativeItems() {
         Config config = new Config(Config.JSON);
         config.load(Server.class.getClassLoader().getResourceAsStream("data/creative_items.json"));
@@ -625,8 +622,7 @@ public class CloudItemRegistry implements ItemRegistry {
 
         for (Map map : list) {
             try {
-//                registerCreativeItem(); //TODO: creative items
-//                addCreativeItem(fromJson(map));
+                registerCreativeItem(ItemUtils.fromJson(map));
             } catch (RegistryException e) {
                 // ignore
             } catch (Exception e) {

@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.utils.data;
 
-public enum TreeSpecies {
+import org.cloudburstmc.server.utils.NonSerializable;
+
+public enum TreeSpecies implements NonSerializable {
     OAK,
     SPRUCE,
     BIRCH,

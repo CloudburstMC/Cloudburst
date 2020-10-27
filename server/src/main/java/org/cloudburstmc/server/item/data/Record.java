@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.item.data;
 
-public enum Record {
+import org.cloudburstmc.server.utils.NonSerializable;
+
+public enum Record implements NonSerializable {
     THIRTEEN,
     CAT,
     BLOCKS,

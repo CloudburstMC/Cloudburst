@@ -91,7 +91,6 @@ public class InventoryTransaction {
             }
 
             if (!action.isValid(this.source)) {
-                System.out.println(action);
                 return false;
             }
 
@@ -290,7 +289,6 @@ public class InventoryTransaction {
     public boolean execute() {
         if (this.hasExecuted() || !this.canExecute()) {
             this.sendInventories();
-            System.out.println("r 0");
             return false;
         }
 

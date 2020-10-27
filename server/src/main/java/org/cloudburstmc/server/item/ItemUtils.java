@@ -1,18 +1,16 @@
 package org.cloudburstmc.server.item;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
+import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.*;
 
 @UtilityClass
 public class ItemUtils {
@@ -114,5 +112,36 @@ public class ItemUtils {
 
     public static boolean isNull(ItemStack item) {
         return item == null || item.isNull();
+    }
+
+    public static ItemStack fromJson(Map<String, Object> data) {
+        String nbt = (String) data.get("nbt_b64");
+
+        byte[] nbtBytes = null;
+        if (nbt != null) {
+            nbtBytes = Base64.getDecoder().decode(nbt);
+        } else if ((nbt = (String) data.getOrDefault("nbt_hex", null)) != null) { // Support old format for backwards compat
+            nbtBytes = Utils.parseHexBinary(nbt);
+        }
+
+        NbtMap tag;
+        if (nbtBytes != null) {
+            try (NBTInputStream stream = NbtUtils.createReaderLE(new ByteArrayInputStream(Base64.getDecoder().decode(nbt)))) {
+                tag = (NbtMap) stream.readTag();
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to decode tag", e);
+            }
+        } else {
+            tag = NbtMap.EMPTY;
+        }
+
+        Identifier id;
+        if (data.containsKey("id")) {
+            id = registry.fromLegacy(Utils.toInt(data.get("id")));
+        } else {
+            id = Identifier.fromString("Name");
+        }
+
+        return deserializeItem(id, (short) Utils.toInt(data.getOrDefault("damage", 0)), Utils.toInt(data.getOrDefault("count", 1)), tag);
     }
 }
