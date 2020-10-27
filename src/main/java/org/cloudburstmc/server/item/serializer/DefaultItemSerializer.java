@@ -5,6 +5,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
@@ -116,6 +117,20 @@ public class DefaultItemSerializer implements ItemSerializer {
         builder.id(id);
         builder.itemType(type);
         builder.amount(amount, false);
+
+        val tagBuilder = NbtMap.builder();
+        tagBuilder.putString("Name", id.toString());
+        tagBuilder.putShort("Damage", meta);
+        tagBuilder.putByte("Count", (byte) amount);
+        builder.nbt(tagBuilder.build());
+
+        if (type instanceof BlockType) {
+            val blockState = BlockStateMetaMappings.getStateFromMeta(id, meta);
+
+            if (blockState != null) {
+                builder.blockState(blockState);
+            }
+        }
 
         if (tag.isEmpty()) {
             return;
