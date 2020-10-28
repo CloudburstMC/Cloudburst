@@ -51,7 +51,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
     public ItemStack onRelease(ItemStack item, int ticksUsed, Player player) {
         ItemStack itemArrow = ItemStack.get(ARROW);
 
-        if (player.isSurvival() && !player.getInventory().contains(itemArrow)) {
+        if ((player.isAdventure() || player.isSurvival()) && !player.getInventory().contains(itemArrow)) {
             player.getInventory().sendContents(player);
             return null;
         }
@@ -104,7 +104,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
             if (infinity && (projectile = entityShootBowEvent.getProjectile()) instanceof Arrow) {
                 ((EntityArrow) projectile).setPickupMode(EntityArrow.PICKUP_CREATIVE);
             }
-            if (player.isSurvival()) {
+            if (player.isAdventure() || player.isSurvival()) {
                 if (!infinity) {
                     player.getInventory().removeItem(itemArrow);
                 }
