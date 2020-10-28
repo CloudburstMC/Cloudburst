@@ -11,6 +11,7 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
 import java.util.Collection;
@@ -19,6 +20,7 @@ import java.util.Map;
 
 @Nonnull
 @Immutable
+@ParametersAreNonnullByDefault
 public interface ItemStack {
 
     @Inject
@@ -73,6 +75,8 @@ public interface ItemStack {
     }
 
     <T> T getMetadata(Class<T> metadataClass, T defaultValue);
+
+    boolean hasTag();
 
     ItemStackBuilder toBuilder();
 

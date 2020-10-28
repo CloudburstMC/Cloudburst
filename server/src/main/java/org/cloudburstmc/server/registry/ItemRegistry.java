@@ -18,8 +18,8 @@ public interface ItemRegistry extends Registry {
 
     ItemStack getItem(BlockState state, int amount) throws RegistryException;
 
-    default ItemStack getItem(ItemType type, Object... metadata) throws RegistryException {
-        return getItem(type, 1, metadata);
+    default ItemStack getItem(ItemType type) throws RegistryException {
+        return getItem(type, 1);
     }
 
     ItemStack getItem(ItemType type, int amount, Object... metadata) throws RegistryException;

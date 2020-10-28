@@ -17,12 +17,15 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.ParametersAreNullableByDefault;
 import javax.annotation.concurrent.Immutable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ToString
 @Immutable
+@ParametersAreNonnullByDefault
 public class CloudItemStack implements ItemStack {
 
     protected static final Object NONE_VALUE = new Object();
@@ -49,6 +52,7 @@ public class CloudItemStack implements ItemStack {
         this(id, type, amount, null, null, null, null, null, null, null, null, null);
     }
 
+    @ParametersAreNullableByDefault
     public CloudItemStack(
             Identifier id,
             ItemType type,
@@ -201,6 +205,7 @@ public class CloudItemStack implements ItemStack {
         return networkData;
     }
 
+    @Override
     public boolean hasTag() {
         if (this.nbt != null) {
             val tag = this.nbt.getCompound("tag");
