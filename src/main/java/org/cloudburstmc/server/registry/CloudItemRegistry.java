@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
@@ -173,6 +174,18 @@ public class CloudItemRegistry implements ItemRegistry {
 
     public ItemType getType(int legacyId) {
         return getType(getIdentifier(legacyId));
+    }
+
+    public ItemStack getItemLegacy(int legacyId) {
+        return getItem(getType(legacyId), 1);
+    }
+
+    public ItemStack getItemLegacy(int legacyId, short damage) {
+        return getItemLegacy(legacyId, damage, 1);
+    }
+
+    public ItemStack getItemLegacy(int legacyId, short damage, int amount) {
+        return ItemUtils.deserializeItem(getIdentifier(legacyId), damage, amount, NbtMap.EMPTY);
     }
 
     @Override
@@ -629,6 +642,16 @@ public class CloudItemRegistry implements ItemRegistry {
                 log.error("Error whilst adding creative item", e);
             }
         }
+    }
+
+    public int getCreativeItemIndex(ItemStack item) {
+        for (int i = 0; i < creativeItems.size(); i++) {
+            if (item.equals(creativeItems.get(i))) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     @Getter
