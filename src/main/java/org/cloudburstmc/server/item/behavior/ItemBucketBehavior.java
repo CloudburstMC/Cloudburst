@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.item.behavior;
 
+import com.google.common.collect.Iterables;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -111,8 +112,15 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                     }
 
                     if (player.isSurvival()) {
-                        player.getInventory().decrementHandCount();
-                        player.getInventory().addItem(ev.getItem());
+                        if(itemStack.getAmount() == 1) {
+                            player.getInventory().setItemInHand(ev.getItem());
+                        } else {
+                            player.getInventory().decrementHandCount();
+                            ItemStack[] drops = player.getInventory().addItem(ev.getItem());
+                            if(drops.length > 0) {
+                                player.dropItem(drops[0]);
+                            }
+                        }
                     }
 
                     if (liquid.getType() == LAVA) {
@@ -155,8 +163,15 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                     target.getLevel().scheduleUpdate(emptyTarget.getPosition(), bucketContents.getBehavior().tickRate());
                 }
                 if (player.isSurvival()) {
-                    player.getInventory().decrementHandCount();
-                    player.getInventory().addItem(ev.getItem());
+                    if(itemStack.getAmount() == 1) {
+                        player.getInventory().setItemInHand(ev.getItem());
+                    } else {
+                        player.getInventory().decrementHandCount();
+                        ItemStack[] drops = player.getInventory().addItem(ev.getItem());
+                        if(drops.length > 0) {
+                            player.dropItem(drops[0]);
+                        }
+                    }
                 }
 
                 if (itemStack.getMetadata(Bucket.class) == Bucket.LAVA) {
