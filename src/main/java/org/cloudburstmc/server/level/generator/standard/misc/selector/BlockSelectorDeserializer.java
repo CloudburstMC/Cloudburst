@@ -52,7 +52,7 @@ final class BlockSelectorDeserializer extends JsonDeserializer<BlockSelector> {
             Preconditions.checkArgument(matcher.find(), "invalid input: \"%s\"", value);
 
             this.states = BlockUtils.parseStateWildcard(matcher.group(2)).toArray(BlockState[]::new);
-            this.weight = matcher.group(1) == null ? 1 : PValidation.ensurePositive(Integer.parseUnsignedInt(matcher.group(1)));
+            this.weight = matcher.group(1) == null ? 1 : PValidation.positive(Integer.parseUnsignedInt(matcher.group(1)));
         }
 
         public Stream<BlockSelector.Entry> flatten() {
