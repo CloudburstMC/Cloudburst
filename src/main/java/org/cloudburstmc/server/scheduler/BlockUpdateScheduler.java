@@ -3,14 +3,17 @@ package org.cloudburstmc.server.scheduler;
 import com.google.common.collect.Maps;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector4i;
+import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
 import java.util.*;
 
+@Log4j2
 public class BlockUpdateScheduler {
     private final Level level;
     private long lastTick;
@@ -54,9 +57,14 @@ public class BlockUpdateScheduler {
                     if (level.isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) {
                         Block block = level.getBlock(entry.pos);
                         val state = block.getState();
+                        val extra = block.getExtra();
 
-                        if (entry.block.getState().getType() == state.getType()) {
+                        if (entry.block.getState() == state) {
                             state.getBehavior().onUpdate(block, Level.BLOCK_UPDATE_SCHEDULED);
+                        }
+
+                        if (entry.block.getExtra() == extra && extra != BlockStates.AIR) {
+                            extra.getBehavior().onUpdate(block, Level.BLOCK_UPDATE_SCHEDULED);
                         }
                     } else {
                         level.scheduleUpdate(entry.block, entry.pos, 0);

@@ -201,13 +201,16 @@ public abstract class BlockBehavior {
     }
 
     protected boolean placeBlock(Block block, BlockState newState, boolean update) {
-        val state = block.getState();
+        val state = block.getLiquid();
         BlockBehavior behavior = state.getBehavior();
         if (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging()) {
             boolean flowing = state.ensureTrait(BlockTraits.IS_FLOWING) || state.ensureTrait(BlockTraits.FLUID_LEVEL) != 0;
 
-            if (!flowing && canWaterlogSource(newState) || flowing && canWaterlogFlowing(newState)) {
+            val newBehavior = newState.getBehavior();
+            if (!flowing && newBehavior.canWaterlogSource(newState) || flowing && newBehavior.canWaterlogFlowing(newState)) {
                 block.set(state, 1, true, false);
+            } else {
+                block.setExtra(BlockStates.AIR, true, false);
             }
         }
 
