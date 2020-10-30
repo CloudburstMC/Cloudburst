@@ -178,12 +178,12 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     }
 
     @Override
-    protected void flowIntoBlock(Block block, int newFlowDecay) {
+    protected void flowIntoBlock(Block block, int newFlowDecay, boolean falling) {
         val behavior = block.getState().getBehavior();
         if (behavior instanceof BlockBehaviorWater) {
             ((BlockBehaviorLiquid) behavior).liquidCollide(block, BlockState.get(BlockTypes.STONE));
         } else {
-            super.flowIntoBlock(block, newFlowDecay);
+            super.flowIntoBlock(block, newFlowDecay, falling);
         }
     }
 

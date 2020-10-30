@@ -629,8 +629,6 @@ public class Level implements ChunkManager, Metadatable {
 
             this.levelData.tick();
 
-            int polled = 0;
-
             try (Timing ignored2 = timings.doTickPending.startTiming()) {
                 this.updateQueue.tick(this.getCurrentTick());
             }

@@ -16,6 +16,7 @@ import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
 import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.NonSerializable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,9 @@ public class DefaultItemSerializer implements ItemSerializer {
             item.getData().forEach((clazz, value) -> {
                 ItemDataSerializer serializer = registry.getSerializer(clazz);
                 if (serializer == null) {
-                    log.debug("Unregistered item metadata class {}", clazz);
+                    if (!(value instanceof NonSerializable)) {
+                        log.debug("Unregistered item metadata class {}", clazz);
+                    }
                     return;
                 }
 
