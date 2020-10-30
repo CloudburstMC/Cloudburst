@@ -37,7 +37,7 @@ public enum EnchantmentTarget {
             return true;
         }
 
-        if (item instanceof ItemArmorBehavior) {
+        if (behavior instanceof ItemArmorBehavior) {
             if (this == ARMOR) {
                 return true;
             }

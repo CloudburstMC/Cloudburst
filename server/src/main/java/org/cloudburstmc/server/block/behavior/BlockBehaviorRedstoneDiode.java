@@ -198,7 +198,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     public boolean isFacingTowardsRepeater(Block block) {
         Direction side = getFacing(block.getState()).getOpposite();
         BlockState blockState = block.getSide(side).getState();
-        return blockState instanceof BlockBehaviorRedstoneDiode && ((BlockBehaviorRedstoneDiode) blockState).getFacing(blockState) != side;
+        return isDiode(blockState.getBehavior()) && blockState.ensureTrait(BlockTraits.DIRECTION) != side;
     }
 
     @Override

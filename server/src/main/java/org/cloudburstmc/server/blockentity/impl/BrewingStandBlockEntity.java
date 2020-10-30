@@ -13,7 +13,6 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockTypes;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorBrewingStand;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.BrewingStand;
 import org.cloudburstmc.server.event.inventory.BrewEvent;
@@ -266,7 +265,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     public void updateBlock() {
         BlockState blockState = this.getBlockState();
 
-        if (!(blockState instanceof BlockBehaviorBrewingStand)) {
+        if (blockState.getType() != BlockTypes.BREWING_STAND) {
             return;
         }
 

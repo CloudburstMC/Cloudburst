@@ -144,16 +144,7 @@ public abstract class BlockBehavior {
     }
 
     public int getFilterLevel(BlockState state) {
-        if (isSolid(state)) {
-            if (isTransparent(state)) {
-                if (this instanceof BlockBehaviorLiquid || this instanceof BlockBehaviorIce) {
-                    return 2;
-                }
-            } else {
-                return 15;
-            }
-        }
-        return 1;
+        return state.getType().filtersLight();
     }
 
     public boolean canBeActivated(Block block) {
@@ -215,7 +206,7 @@ public abstract class BlockBehavior {
         if (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging()) {
             boolean flowing = state.ensureTrait(BlockTraits.IS_FLOWING) || state.ensureTrait(BlockTraits.FLUID_LEVEL) != 0;
 
-            if (!flowing && canWaterlogSource(state) || flowing && canWaterlogFlowing(state)) {
+            if (!flowing && canWaterlogSource(newState) || flowing && canWaterlogFlowing(newState)) {
                 block.set(state, 1, true, false);
             }
         }

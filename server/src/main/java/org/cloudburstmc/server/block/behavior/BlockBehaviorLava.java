@@ -161,8 +161,8 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
             val side = block.getSide(direction);
 
-            if (side.getState().getBehavior() instanceof BlockBehaviorWater
-                    || side.getExtra().getBehavior() instanceof BlockBehaviorWater) {
+            if (side.getState().getType() == BlockTypes.WATER
+                    || side.getExtra().getType() == BlockTypes.WATER) {
                 colliding = side;
             }
         }

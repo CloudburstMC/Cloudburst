@@ -99,7 +99,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
                 this.toggleFire(block);
             }
             return true;
-        } else if (item instanceof ItemEdibleBehavior) {
+        } else if (item.getBehavior() instanceof ItemEdibleBehavior) { //TODO: edible items
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
             if (blockEntity instanceof Campfire) {

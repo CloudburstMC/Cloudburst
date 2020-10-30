@@ -28,7 +28,6 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorNetherPortal;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
 import org.cloudburstmc.server.entity.Attribute;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
@@ -1270,8 +1269,12 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
             if (fallDistance > 0) {
                 // check if we fell into at least 1 block of water
-                if (this instanceof EntityLiving && !(this.level.getBlock(this.position) instanceof BlockBehaviorWater)) {
-                    this.fall(fallDistance);
+                if (this instanceof EntityLiving) {
+                    val liquid = this.level.getBlock(this.position.toInt()).getLiquid().getType();
+
+                    if (liquid != WATER && liquid != FLOWING_WATER) {
+                        this.fall(fallDistance);
+                    }
                 }
                 this.resetFallDistance();
             }

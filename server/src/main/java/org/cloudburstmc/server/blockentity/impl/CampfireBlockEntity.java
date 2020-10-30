@@ -124,7 +124,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     public boolean putItemInFire(ItemStack item) {
-        if (!(item instanceof ItemEdibleBehavior)) return false;
+        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
 
         if (this.getLevel().getServer().getCraftingManager().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
             for (int i = 0; i < items.length; i++) {
@@ -143,7 +143,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     @Override
     public boolean putItemInFire(ItemStack item, int index, boolean overwrite) {
         if (index < 0 || index >= items.length) return false;
-        if (!(item instanceof ItemEdibleBehavior)) return false;
+        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
 
         item = item.withAmount(1);
 
