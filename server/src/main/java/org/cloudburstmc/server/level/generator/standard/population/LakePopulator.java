@@ -18,7 +18,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.BitSet;
 import java.util.Objects;
 
-import static net.daporkchop.lib.math.primitive.PMath.min;
+import static java.lang.Integer.min;
 
 /**
  * @author DaPorkchop_
