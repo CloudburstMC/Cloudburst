@@ -17,7 +17,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static net.daporkchop.lib.math.primitive.PMath.roundI;
+import static net.daporkchop.lib.common.math.PMath.roundI;
 
 /**
  * @author DaPorkchop_
