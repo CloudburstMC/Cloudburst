@@ -3,13 +3,12 @@ package org.cloudburstmc.server.item.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLeaves;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorSolid;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
@@ -43,7 +42,8 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
 
     @Override
     public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
-        if (block.getState() == BlockStates.AIR && target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves) {
+        val targetState = target.getState();
+        if (block.getState() == BlockStates.AIR && targetState.getBehavior().isSolid(targetState) || targetState.getType() == BlockTypes.LEAVES) {
             PORTAL:
             if (target.getState().getType() == OBSIDIAN) {
                 final Vector3i pos = target.getPosition();

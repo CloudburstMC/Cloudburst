@@ -502,7 +502,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         return (((long) x & (long) 0xFFFFFFF) << 36) | (((long) y & (long) 0xFF) << 28) | ((long) z & (long) 0xFFFFFFF);
     }
 
-    protected boolean isWater(BlockType type) {
+    public static boolean isWater(BlockType type) {
         return type == BlockTypes.WATER || type == BlockTypes.FLOWING_WATER;
     }
 }

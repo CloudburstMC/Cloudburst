@@ -74,7 +74,7 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
         boolean result = super.onBreak(block, item);
         for (Direction face : Direction.values()) {
             Block b = block.getSide(face);
-            if (b instanceof BlockBehaviorNetherPortal) {
+            if (b.getState().getType() == BlockTypes.PORTAL) {
                 result &= b.getState().getBehavior().onBreak(b, item);
             }
         }

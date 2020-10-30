@@ -3,7 +3,7 @@ package org.cloudburstmc.server.blockentity.impl;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorRedstoneComparator;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Comparator;
 import org.cloudburstmc.server.level.chunk.Chunk;
@@ -35,7 +35,7 @@ public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator
 
     @Override
     public boolean isValid() {
-        return this.getBlock() instanceof BlockBehaviorRedstoneComparator;
+        return this.getBlockState().getType() == BlockTypes.COMPARATOR;
     }
 
     public int getOutputSignal() {

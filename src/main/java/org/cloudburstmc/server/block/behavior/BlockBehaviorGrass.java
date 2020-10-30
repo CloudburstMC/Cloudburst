@@ -5,10 +5,7 @@ import lombok.val;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockSpreadEvent;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
@@ -79,7 +76,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
             val state = b.getState();
 
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
-                if (b.up() instanceof BlockBehaviorAir) {
+                if (b.upState() == BlockStates.AIR) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(GRASS));
                     Server.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
@@ -87,7 +84,8 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
                     }
                 }
             } else if (state.getType() == GRASS) {
-                if (b.up() instanceof BlockBehaviorSolid) {
+                val up = b.upState();
+                if (up.getBehavior().isSolid(up)) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(DIRT));
                     Server.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {

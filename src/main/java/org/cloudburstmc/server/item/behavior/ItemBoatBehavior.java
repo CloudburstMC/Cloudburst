@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
+import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.vehicle.Boat;
 import org.cloudburstmc.server.item.ItemStack;
@@ -27,7 +27,7 @@ public class ItemBoatBehavior extends CloudItemBehavior {
     public ItemStack onActivate(ItemStack item, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         if (face != Direction.UP) return null;
         Vector3f spawnPos = Vector3f.from(block.getX() + 0.5,
-                block.getY() - (target instanceof BlockBehaviorWater ? 0.0625 : 0), block.getZ());
+                block.getY() - (BlockBehaviorLiquid.isWater(target.getLiquid().getType()) ? 0.0625 : 0), block.getZ());
         Boat boat = EntityRegistry.get().newEntity(EntityTypes.BOAT, Location.from(spawnPos, level));
         boat.setRotation((player.getYaw() + 90f) % 360, 0);
         boat.setWoodType(item.getMetadata(TreeSpecies.class));
