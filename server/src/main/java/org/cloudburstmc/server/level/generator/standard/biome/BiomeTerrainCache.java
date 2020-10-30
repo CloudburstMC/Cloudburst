@@ -36,8 +36,8 @@ public final class BiomeTerrainCache {
             @JsonProperty(value = "heightOffset", required = true) double heightOffset,
             @JsonProperty(value = "heightVariationFactor", required = true) double heightVariationFactor,
             @JsonProperty(value = "heightVariationOffset", required = true) double heightVariationOffset) {
-        this.radius = PValidation.ensureNonNegative(radius);
-        this.scale = PValidation.ensureNonNegative(scale);
+        this.radius = (int) PValidation.notNegative(radius);
+        this.scale = (int) PValidation.notNegative(scale);
         this.diameter = radius * 2 + 1;
 
         this.weights = new double[this.diameter * this.diameter];

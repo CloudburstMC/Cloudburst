@@ -12,7 +12,7 @@ import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 
-import static net.daporkchop.lib.math.primitive.PMath.roundI;
+import static net.daporkchop.lib.common.math.PMath.roundI;
 
 /**
  * @author DaPorkchop_
