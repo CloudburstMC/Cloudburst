@@ -26,6 +26,8 @@ import static org.cloudburstmc.server.block.BlockTypes.WOOL;
 
 public abstract class BlockBehavior {
 
+    public static final AxisAlignedBB DEFAULT_AABB = new SimpleAxisAlignedBB(0, 0, 0, 1, 1, 1);
+
     //http://minecraft.gamepedia.com/Breaking
     private static float breakTime0(float blockHardness, boolean correctTool, boolean canHarvestWithHand,
                                     BlockType id, ToolType toolType, TierType toolTier, int efficiencyLoreLevel, int hasteEffectLevel,
@@ -144,7 +146,7 @@ public abstract class BlockBehavior {
     }
 
     public int getFilterLevel(BlockState state) {
-        return state.getType().filtersLight();
+        return state.getType().getLightFilter();
     }
 
     public boolean canBeActivated(Block block) {
@@ -338,7 +340,7 @@ public abstract class BlockBehavior {
     }
 
     public boolean collidesWithBB(Block block, AxisAlignedBB bb, boolean collisionBB) {
-        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block) : this.getBoundingBox(block.getPosition());
+        AxisAlignedBB bb1 = collisionBB ? this.getCollisionBoxes(block.getPosition(), block.getState()) : this.getBoundingBox(block);
         return bb1 != null && bb.intersectsWith(bb1);
     }
 
@@ -346,24 +348,32 @@ public abstract class BlockBehavior {
 
     }
 
-    public AxisAlignedBB getBoundingBox(Vector3i pos) {
-        AxisAlignedBB bb = getBoundingBox();
+    public AxisAlignedBB getBoundingBox(BlockState state) {
+        return getBoundingBox(null, state);
+    }
 
-        if (bb != null) {
+    public final AxisAlignedBB getBoundingBox(Block block) {
+        return getBoundingBox(block.getPosition(), block.getState());
+    }
+
+    public AxisAlignedBB getBoundingBox(Vector3i pos, BlockState state) {
+        val type = state.getType();
+
+        AxisAlignedBB bb = type.getBoundingBox();
+
+        if (bb != null && pos != null) {
             bb = bb.offset(pos);
         }
 
         return bb;
     }
 
-    public AxisAlignedBB getBoundingBox() {
-//        Vector3i pos = block.getPosition();
-//        return new SimpleAxisAlignedBB(pos, pos.add(1, 1, 1));
-        return new SimpleAxisAlignedBB(0, 0, 0, 1, 1, 1);
+    public final AxisAlignedBB getCollisionBoxes(Block block) {
+        return getCollisionBoxes(block.getPosition(), block.getState());
     }
 
-    public AxisAlignedBB getCollisionBoxes(Block block) {
-        return getBoundingBox(block.getPosition());
+    public AxisAlignedBB getCollisionBoxes(Vector3i pos, BlockState state) {
+        return getBoundingBox(pos, state);
     }
 
     public String getSaveId() {

@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block;
 import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.item.ToolType;
+import org.cloudburstmc.server.math.AxisAlignedBB;
 
 public interface BlockType extends ItemType {
 
@@ -19,7 +20,7 @@ public interface BlockType extends ItemType {
 
     int emitsLight();
 
-    int filtersLight();
+    int getLightFilter();
 
     float getHardness();
 
@@ -70,6 +71,8 @@ public interface BlockType extends ItemType {
     TierType getToolTier();
 
     BlockState createBlockState();
+
+    AxisAlignedBB getBoundingBox();
 
     @Override
     default boolean isPlaceable() {

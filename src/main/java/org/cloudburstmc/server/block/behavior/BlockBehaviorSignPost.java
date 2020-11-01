@@ -11,7 +11,6 @@ import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -22,11 +21,6 @@ import org.cloudburstmc.server.utils.data.TreeSpecies;
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
-
-    @Override
-    public AxisAlignedBB getBoundingBox() {
-        return null;
-    }
 
     @Override
     public int onUpdate(Block block, int type) {

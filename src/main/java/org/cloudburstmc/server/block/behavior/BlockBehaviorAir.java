@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorAir extends BlockBehaviorTransparent {
@@ -12,11 +11,6 @@ public class BlockBehaviorAir extends BlockBehaviorTransparent {
     @Override
     public boolean canBePlaced() {
         return false;
-    }
-
-    @Override
-    public AxisAlignedBB getBoundingBox() {
-        return null;
     }
 
     @Override
