@@ -1436,7 +1436,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             return true;
         }
 
-        AxisAlignedBB bb = state.getBehavior().getBoundingBox(pos);
+        AxisAlignedBB bb = state.getBehavior().getBoundingBox(pos, state);
 
         return bb != null && state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT) && bb.intersectsWith(this.getBoundingBox());
 

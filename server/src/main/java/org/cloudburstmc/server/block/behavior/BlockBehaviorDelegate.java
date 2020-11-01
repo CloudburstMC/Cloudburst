@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
@@ -249,13 +250,8 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox() {
-        return parent.getBoundingBox();
-    }
-
-    @Override
-    public AxisAlignedBB getCollisionBoxes(Block block) {
-        return parent.getCollisionBoxes(block);
+    public AxisAlignedBB getCollisionBoxes(Vector3i pos, BlockState state) {
+        return parent.getCollisionBoxes(pos, state);
     }
 
     @Override

@@ -1156,7 +1156,7 @@ public class Level implements ChunkManager, Metadatable {
                     Block block = this.getBlock(x, y, z); //TODO: check loaded block
                     BlockBehavior behavior = block.getState().getBehavior();
                     if (!behavior.canPassThrough(block.getState()) && behavior.collidesWithBB(block, bb)) {
-                        collides.add(behavior.getBoundingBox(block.getPosition()));
+                        collides.add(behavior.getBoundingBox(block));
                     }
                 }
             }
@@ -1178,7 +1178,7 @@ public class Level implements ChunkManager, Metadatable {
         if (behavior.isSolid(state)) {
             return true;
         }
-        AxisAlignedBB bb = behavior.getBoundingBox(pos);
+        AxisAlignedBB bb = behavior.getBoundingBox(pos, state);
 
         return bb != null && bb.getAverageEdgeLength() >= 1;
     }
@@ -1861,10 +1861,10 @@ public class Level implements ChunkManager, Metadatable {
         BlockState handState = BlockRegistry.get().getBlock(hand.getType());
         BlockBehavior handBehavior = handState.getBehavior();
 
-        if (!handBehavior.canPassThrough(handState) && handBehavior.getBoundingBox() != null) {
+        AxisAlignedBB handBB = handBehavior.getBoundingBox(block.getPosition(), hand);
+        if (!handBehavior.canPassThrough(handState) && handBB != null) {
             Vector3f blockPosF = block.getPosition().toFloat();
-            AxisAlignedBB aabb = handBehavior.getBoundingBox().offset(blockPosF);
-            Set<Entity> entities = this.getCollidingEntities(aabb);
+            Set<Entity> entities = this.getCollidingEntities(handBB);
             int realCount = 0;
             for (Entity e : entities) {
                 if (e instanceof EntityArrow || e instanceof DroppedItem || (e instanceof Player && ((Player) e).isSpectator())) {
@@ -1877,7 +1877,7 @@ public class Level implements ChunkManager, Metadatable {
                 Vector3f diff = player.getNextPosition().sub(player.getPosition());
                 if (diff.lengthSquared() > 0.00001) {
                     AxisAlignedBB bb = player.getBoundingBox().getOffsetBoundingBox(diff);
-                    if (handBehavior.getBoundingBox().addCoord(blockPosF).intersectsWith(bb)) {
+                    if (handBB.addCoord(blockPosF).intersectsWith(bb)) {
                         ++realCount;
                     }
                 }

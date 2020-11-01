@@ -12,7 +12,6 @@ import org.cloudburstmc.server.blockentity.Banner;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
@@ -27,12 +26,6 @@ import static org.cloudburstmc.server.block.BlockTypes.WALL_BANNER;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.BANNER;
 
 public class BlockBehaviorBanner extends BlockBehaviorTransparent {
-
-
-    @Override
-    public AxisAlignedBB getBoundingBox() {
-        return null;
-    }
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
