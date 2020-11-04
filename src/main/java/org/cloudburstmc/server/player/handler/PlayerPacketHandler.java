@@ -917,7 +917,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         boolean spamBug = (lastRightClickPos != null && System.currentTimeMillis() - lastRightClickTime < 100.0 && blockVector.distanceSquared(lastRightClickPos) < 0.00001);
                         lastRightClickPos = blockVector;
                         lastRightClickTime = System.currentTimeMillis();
-                        if (spamBug) {
+                        if (spamBug && player.getInventory().getItemInHand().isNull()) {
                             return true;
                         }
 
