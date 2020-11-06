@@ -15,8 +15,9 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.EntityTypes;
@@ -630,7 +631,7 @@ public class CloudItemRegistry implements ItemRegistry {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private void registerVanillaCreativeItems() {
         Config config = new Config(Config.JSON);
-        config.load(Server.class.getClassLoader().getResourceAsStream("data/creative_items.json"));
+        config.load(CloudServer.class.getClassLoader().getResourceAsStream("data/creative_items.json"));
         List<Map> list = config.getMapList("items");
 
         for (Map map : list) {
