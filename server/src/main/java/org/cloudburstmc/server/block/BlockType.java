@@ -3,8 +3,7 @@ package org.cloudburstmc.server.block;
 import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.item.ToolType;
-
-import java.util.Optional;
+import org.cloudburstmc.server.math.AxisAlignedBB;
 
 public interface BlockType extends ItemType {
 
@@ -21,27 +20,77 @@ public interface BlockType extends ItemType {
 
     int emitsLight();
 
-    int filtersLight();
+    int getLightFilter();
 
-    float hardness();
+    float getHardness();
 
     boolean isFloodable();
 
     boolean isSolid();
 
-    int burnChance();
+    int getBurnChance();
 
-    int burnability();
+    int getBurnAbility();
 
-    float resistance();
+    float getResistance();
+
+    float getFriction();
+
+    float getTranslucency();
+
+    boolean pushesOutItems();
+
+    boolean isFallable();
+
+    boolean isExperimental();
+
+    boolean isReplaceable();
+
+    boolean isPowerSource();
+
+    boolean breaksFalling();
+
+    boolean blocksWater();
+
+    boolean canBeSilkTouched();
+
+    boolean blocksSolid();
+
+    boolean blocksMotion();
+
+    boolean hasComparatorSignal();
+
+    boolean pushesUpFalling();
+
+    boolean breaksFlowing();
+
+    boolean waterlogsSource();
+
+    ToolType getTargetToolType();
+
+    TierType getToolTier();
+
+    BlockState createBlockState();
+
+    AxisAlignedBB getBoundingBox();
 
     @Override
-    default Optional<ToolType> getToolType() {
-        return Optional.empty();
+    default boolean isPlaceable() {
+        return false;
     }
 
     @Override
-    default Optional<TierType> getTierType() {
-        return Optional.empty();
+    default BlockType getBlock() {
+        return this;
+    }
+
+    @Override
+    default ToolType getToolType() {
+        return null;
+    }
+
+    @Override
+    default TierType getTierType() {
+        return null;
     }
 }

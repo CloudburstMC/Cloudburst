@@ -13,8 +13,8 @@ public final class IntegerBlockTrait extends BlockTrait<Integer> {
     private final IntRange range;
     private final int defaultValue;
 
-    private IntegerBlockTrait(String name, @Nullable String vanillaName, IntRange range, int defaultValue) {
-        super(name, vanillaName, Integer.class, range);
+    private IntegerBlockTrait(String name, @Nullable String vanillaName, IntRange range, int defaultValue, boolean onlySerialize) {
+        super(name, vanillaName, Integer.class, range, onlySerialize);
         this.range = range;
         this.defaultValue = defaultValue;
     }
@@ -36,9 +36,13 @@ public final class IntegerBlockTrait extends BlockTrait<Integer> {
     }
 
     public static IntegerBlockTrait from(String name, @Nullable String vanillaName, int start, int end, int defaultValue) {
+        return from(name, vanillaName, start, end, defaultValue, false);
+    }
+
+    public static IntegerBlockTrait from(String name, @Nullable String vanillaName, int start, int end, int defaultValue, boolean onlySerialize) {
         checkNotNull(name, "name");
         checkArgument(defaultValue >= start && defaultValue <= end, "defaultValue is not in range");
-        return new IntegerBlockTrait(name, vanillaName, new IntRange(start, end), defaultValue);
+        return new IntegerBlockTrait(name, vanillaName, new IntRange(start, end), defaultValue, onlySerialize);
     }
 
     @Override

@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.hostile;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.hostile.Vindicator;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -37,7 +37,7 @@ public class EntityVindicator extends EntityHostile implements Vindicator {
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.IRON_AXE)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemTypes.IRON_AXE)};
     }
 }

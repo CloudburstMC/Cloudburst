@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Map;
@@ -27,7 +27,7 @@ public abstract class Fuel {
         duration.put(ItemIds.WOODEN_HOE, (short) 200);
         duration.put(ItemIds.STICK, (short) 100);
         duration.put(BlockIds.FENCE, (short) 300);
-        duration.put(BlockIds.FENCE_GATE, (short) 300);
+        duration.put(BlockIds.OAK_FENCE_GATE, (short) 300);
         duration.put(BlockIds.SPRUCE_FENCE_GATE, (short) 300);
         duration.put(BlockIds.BIRCH_FENCE_GATE, (short) 300);
         duration.put(BlockIds.JUNGLE_FENCE_GATE, (short) 300);
@@ -37,7 +37,7 @@ public abstract class Fuel {
         duration.put(BlockIds.SPRUCE_STAIRS, (short) 300);
         duration.put(BlockIds.BIRCH_STAIRS, (short) 300);
         duration.put(BlockIds.JUNGLE_STAIRS, (short) 300);
-        duration.put(BlockIds.TRAPDOOR, (short) 300);
+        duration.put(BlockIds.OAK_TRAPDOOR, (short) 300);
         duration.put(BlockIds.CRAFTING_TABLE, (short) 300);
         duration.put(BlockIds.BOOKSHELF, (short) 300);
         duration.put(BlockIds.CHEST, (short) 300);
@@ -47,7 +47,7 @@ public abstract class Fuel {
         duration.put(ItemIds.BOWL, (short) 200);
         duration.put(BlockIds.LOG2, (short) 300);
         duration.put(BlockIds.DRIED_KELP_BLOCK, (short) 4000);
-        duration.put(BlockIds.WOODEN_PRESSURE_PLATE, (short) 300);
+        duration.put(BlockIds.OAK_PRESSURE_PLATE, (short) 300);
         duration.put(BlockIds.ACACIA_STAIRS, (short) 300);
         duration.put(BlockIds.DARK_OAK_STAIRS, (short) 300);
         duration.put(BlockIds.TRAPPED_CHEST, (short) 300);
@@ -62,7 +62,7 @@ public abstract class Fuel {
         duration.put(BlockIds.BROWN_MUSHROOM_BLOCK, (short) 300);
         duration.put(BlockIds.RED_MUSHROOM_BLOCK, (short) 300);
         duration.put(ItemIds.FISHING_ROD, (short) 300);
-        duration.put(BlockIds.WOODEN_BUTTON, (short) 100);
+        duration.put(BlockIds.OAK_BUTTON, (short) 100);
         duration.put(ItemIds.WOODEN_DOOR, (short) 200);
         duration.put(ItemIds.SPRUCE_DOOR, (short) 200);
         duration.put(ItemIds.BIRCH_DOOR, (short) 200);

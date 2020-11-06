@@ -6,13 +6,13 @@ import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.Map;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 /**
  * author: MagicDroidX
@@ -23,15 +23,15 @@ public abstract class ContainerInventory extends BaseInventory {
         super(holder, type);
     }
 
-    public ContainerInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items) {
+    public ContainerInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items) {
         super(holder, type, items);
     }
 
-    public ContainerInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items, Integer overrideSize) {
+    public ContainerInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize) {
         super(holder, type, items, overrideSize);
     }
 
-    public ContainerInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items, Integer overrideSize, String overrideTitle) {
+    public ContainerInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize, String overrideTitle) {
         super(holder, type, items, overrideSize, overrideTitle);
     }
 
@@ -68,10 +68,10 @@ public abstract class ContainerInventory extends BaseInventory {
             float averageCount = 0;
 
             for (int slot = 0; slot < inv.getSize(); ++slot) {
-                Item item = inv.getItem(slot);
+                ItemStack item = inv.getItem(slot);
 
-                if (item.getId() != AIR) {
-                    averageCount += (float) item.getCount() / (float) Math.min(inv.getMaxStackSize(), item.getMaxStackSize());
+                if (item.getType() != AIR) {
+                    averageCount += (float) item.getAmount() / (float) Math.min(inv.getMaxStackSize(), item.getBehavior().getMaxStackSize(item));
                     ++itemCount;
                 }
             }

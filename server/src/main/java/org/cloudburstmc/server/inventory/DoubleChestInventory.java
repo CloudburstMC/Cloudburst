@@ -4,7 +4,8 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.blockentity.impl.ChestBlockEntity;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
 
@@ -30,7 +31,7 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
         this.right = right.getRealInventory();
         this.right.setDoubleInventory(this);
 
-        Map<Integer, Item> items = new HashMap<>();
+        Map<Integer, ItemStack> items = new HashMap<>();
         // First we add the items from the left chest
         for (int idx = 0; idx < this.left.getSize(); idx++) {
             if (this.left.getContents().containsKey(idx)) { // Don't forget to skip empty slots!
@@ -58,12 +59,12 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
     }
 
     @Override
-    public Item getItem(int index) {
+    public ItemStack getItem(int index) {
         return index < this.left.getSize() ? this.left.getItem(index) : this.right.getItem(index - this.right.getSize());
     }
 
     @Override
-    public boolean setItem(int index, Item item, boolean send) {
+    public boolean setItem(int index, ItemStack item, boolean send) {
         return index < this.left.getSize() ? this.left.setItem(index, item, send) : this.right.setItem(index - this.right.getSize(), item, send);
     }
 
@@ -73,8 +74,8 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
     }
 
     @Override
-    public Map<Integer, Item> getContents() {
-        Map<Integer, Item> contents = new HashMap<>();
+    public Map<Integer, ItemStack> getContents() {
+        Map<Integer, ItemStack> contents = new HashMap<>();
 
         for (int i = 0; i < this.getSize(); ++i) {
             contents.put(i, this.getItem(i));
@@ -84,9 +85,9 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
     }
 
     @Override
-    public void setContents(Map<Integer, Item> items) {
+    public void setContents(Map<Integer, ItemStack> items) {
         if (items.size() > this.size) {
-            Map<Integer, Item> newItems = new HashMap<>();
+            Map<Integer, ItemStack> newItems = new HashMap<>();
             for (int i = 0; i < this.size; i++) {
                 newItems.put(i, items.get(i));
             }
@@ -156,7 +157,7 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
             }
             InventorySlotPacket packet = new InventorySlotPacket();
             packet.setSlot(inv == this.right ? this.left.getSize() + index : index);
-            packet.setItem(inv.getItem(index).toNetwork());
+            packet.setItem(((CloudItemStack) inv.getItem(index)).getNetworkData());
             packet.setContainerId(id);
             player.sendPacket(packet);
         }

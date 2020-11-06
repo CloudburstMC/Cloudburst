@@ -2,40 +2,25 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Cauldron;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemBucket;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.CAULDRON;
 
 public class BlockBehaviorCauldron extends BlockBehaviorSolid {
-
-    @Override
-    public float getResistance() {
-        return 10;
-    }
-
-    @Override
-    public float getHardness() {
-        return 2;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
 
     @Override
     public boolean canBeActivated(Block block) {
@@ -55,7 +40,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         BlockEntity be = block.getLevel().getBlockEntity(block.getPosition());
 
         if (!(be instanceof Cauldron)) {
@@ -64,19 +49,20 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
         Cauldron cauldron = (Cauldron) be;
 
-        Identifier itemType = item.getId();
+        val itemType = item.getType();
 
-        if (itemType == ItemIds.BUCKET) {
-            if (item.getMeta() == 0) {//empty bucket
+        if (itemType == ItemTypes.BUCKET) {
+            val bucket = item.getMetadata(Bucket.class);
+
+            if (bucket == Bucket.EMPTY) {//empty bucket
                 if (!isFull(block) || cauldron.hasCustomColor() || cauldron.getPotionId() != 0) {
                     return true;
                 }
 
-                ItemBucket bucket = (ItemBucket) item.clone();
-                bucket.setCount(1);
-                bucket.setMeta(8);//water bucket
+                ItemStack bucketItem = item.toBuilder()
+                        .amount(1).itemData(Bucket.WATER).build();
 
-                PlayerBucketFillEvent ev = new PlayerBucketFillEvent(player, block, null, item, bucket);
+                PlayerBucketFillEvent ev = new PlayerBucketFillEvent(player, block, null, item, bucketItem);
                 block.getLevel().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     replaceBucket(item, player, ev.getItem());
@@ -85,22 +71,20 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                     cauldron.setCustomColor(null);
                     block.getLevel().addSound(block.getPosition().toFloat().add(0.5, 1, 0.5), Sound.CAULDRON_TAKEWATER);
                 }
-            } else if (item.getMeta() == 8) {//water bucket
-
+            } else if (bucket == Bucket.WATER || bucket == Bucket.LAVA) {//water bucket
                 if (isFull(block) && !cauldron.hasCustomColor() && cauldron.getPotionId() == 0) {
                     return true;
                 }
 
-                ItemBucket bucket = (ItemBucket) item.clone();
-                bucket.setCount(1);
-                bucket.setMeta(0);//empty bucket
+                ItemStack bucketItem = item.toBuilder()
+                        .amount(1).itemData(Bucket.EMPTY).build();
 
-                PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, block, null, item, bucket);
+                PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, block, null, item, bucketItem);
                 block.getLevel().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     replaceBucket(item, player, ev.getItem());
 
-                    if (cauldron.getPotionId() != 0) {//if has potion
+                    if (cauldron.getPotionId() != 0 || block.getState().ensureTrait(BlockTraits.CAULDRON_TYPE) != bucket) { //if has potion
                         cauldron.setPotionId(0xffff);//reset potion
                         cauldron.setSplash(false);
                         cauldron.setCustomColor(null);
@@ -114,23 +98,22 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                     //this.update();
                 }
             }
-        } else if (itemType == ItemIds.DYE) {
+        } else if (itemType == ItemTypes.DYE) {
             // todo
-        } else if (itemType == ItemIds.LEATHER_HELMET || itemType == ItemIds.LEATHER_CHESTPLATE ||
-                itemType == ItemIds.LEATHER_LEGGINGS || itemType == ItemIds.LEATHER_BOOTS) {
+        } else if (itemType == ItemTypes.LEATHER_HELMET || itemType == ItemTypes.LEATHER_CHESTPLATE ||
+                itemType == ItemTypes.LEATHER_LEGGINGS || itemType == ItemTypes.LEATHER_BOOTS) {
             // todo
-        } else if (itemType == ItemIds.POTION) {
+        } else if (itemType == ItemTypes.POTION) {
             if (isFull(block)) {
                 return true;
             }
 
-            if (item.getCount() == 1) {
+            if (item.getAmount() == 1) {
                 player.getInventory().clear(player.getInventory().getHeldItemIndex());
-            } else if (item.getCount() > 1) {
-                item.setCount(item.getCount() - 1);
-                player.getInventory().setItemInHand(item);
+            } else if (item.getAmount() > 1) {
+                player.getInventory().decrementHandCount();
 
-                Item bottle = Item.get(ItemIds.GLASS_BOTTLE);
+                ItemStack bottle = ItemStack.get(ItemTypes.GLASS_BOTTLE);
                 if (player.getInventory().canAddItem(bottle)) {
                     player.getInventory().addItem(bottle);
                 } else {
@@ -140,18 +123,17 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
             block.set(block.getState().incrementTrait(BlockTraits.FILL_LEVEL));
             block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_FILLPOTION);
-        } else if (itemType == ItemIds.GLASS_BOTTLE) {
+        } else if (itemType == ItemTypes.GLASS_BOTTLE) {
             if (isEmpty(block)) {
                 return true;
             }
 
-            if (item.getCount() == 1) {
-                player.getInventory().setItemInHand(Item.get(ItemIds.POTION));
-            } else if (item.getCount() > 1) {
-                item.setCount(item.getCount() - 1);
-                player.getInventory().setItemInHand(item);
+            if (item.getAmount() == 1) {
+                player.getInventory().setItemInHand(ItemStack.get(ItemTypes.POTION));
+            } else if (item.getAmount() > 1) {
+                player.getInventory().decrementHandCount();
 
-                Item potion = Item.get(ItemIds.POTION);
+                ItemStack potion = ItemStack.get(ItemTypes.POTION);
                 if (player.getInventory().canAddItem(potion)) {
                     player.getInventory().addItem(potion);
                 } else {
@@ -169,12 +151,12 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
         return true;
     }
 
-    protected void replaceBucket(Item oldBucket, Player player, Item newBucket) {
+    protected void replaceBucket(ItemStack oldBucket, Player player, ItemStack newBucket) {
         if (player.isSurvival() || player.isAdventure()) {
-            if (oldBucket.getCount() == 1) {
+            if (oldBucket.getAmount() == 1) {
                 player.getInventory().setItemInHand(newBucket);
             } else {
-                oldBucket.setCount(oldBucket.getCount() - 1);
+                player.getInventory().decrementHandCount();
                 if (player.getInventory().canAddItem(newBucket)) {
                     player.getInventory().addItem(newBucket);
                 } else {
@@ -185,38 +167,29 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Cauldron cauldron = BlockEntityRegistry.get().newEntity(CAULDRON, block.getChunk(), block.getPosition());
-        cauldron.loadAdditionalData(item.getTag());
+        cauldron.loadAdditionalData(((CloudItemStack) item).getDataTag());
         cauldron.setPotionId(0xffff);
 
         return placeBlock(block, item);
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{Item.get(ItemIds.CAULDRON)};
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (checkTool(block.getState(), hand)) {
+            return new ItemStack[]{ItemStack.get(ItemTypes.CAULDRON)};
         }
 
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.CAULDRON);
-    }
-
-    public boolean hasComparatorInputOverride() {
-        return true;
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemTypes.CAULDRON);
     }
 
     public int getComparatorInputOverride(Block block) {
         return block.getState().ensureTrait(BlockTraits.FILL_LEVEL);
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
     }
 }

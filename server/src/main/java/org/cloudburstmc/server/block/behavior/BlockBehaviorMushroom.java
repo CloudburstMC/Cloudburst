@@ -5,10 +5,11 @@ import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
@@ -34,7 +35,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (canStay(block)) {
             placeBlock(block, item);
             return true;
@@ -48,10 +49,10 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
-        if (item.getId() == ItemIds.DYE && item.getMeta() == DyeColor.WHITE.getDyeData()) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (player != null && player.getGamemode().isSurvival()) {
-                item.decrementCount();
+                player.getInventory().decrementHandCount();
             }
 
             if (ThreadLocalRandom.current().nextFloat() < 0.4) {
@@ -67,8 +68,8 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     public boolean grow(Block block) {
         block.set(BlockStates.AIR, true, false);
 
-        val item = Item.get(block.getState());
-        WorldFeature feature = GenerationTreeSpecies.fromItem(item.getId(), item.getMeta()).getDefaultGenerator();
+        val item = (CloudItemStack) ItemStack.get(block.getState());
+        WorldFeature feature = GenerationTreeSpecies.fromItem(item.getId(), item.getNetworkData().getDamage()).getDefaultGenerator();
 
         if (feature.place(block.getLevel(), ThreadLocalPRandom.current(), block.getX(), block.getY(), block.getZ())) {
             return true;
@@ -80,7 +81,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
 
     public boolean canStay(Block block) {
         val state = block.down().getState();
-        return state.getType() == BlockIds.MYCELIUM || state.getType() == BlockIds.PODZOL ||
+        return state.getType() == BlockTypes.MYCELIUM || state.getType() == BlockTypes.PODZOL ||
                 (!state.inCategory(BlockCategory.TRANSPARENT) && block.getLevel().getFullLight(block.getPosition()) < 13);
     }
 
@@ -89,10 +90,6 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 
     protected abstract int getType();
 }

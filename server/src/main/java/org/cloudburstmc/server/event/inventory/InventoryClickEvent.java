@@ -2,7 +2,7 @@ package org.cloudburstmc.server.event.inventory;
 
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.inventory.Inventory;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -12,11 +12,11 @@ import org.cloudburstmc.server.player.Player;
 public class InventoryClickEvent extends InventoryEvent implements Cancellable {
 
     private final int slot;
-    private final Item sourceItem;
-    private final Item heldItem;
+    private final ItemStack sourceItem;
+    private final ItemStack heldItem;
     private final Player player;
 
-    public InventoryClickEvent(Player who, Inventory inventory, int slot, Item sourceItem, Item heldItem) {
+    public InventoryClickEvent(Player who, Inventory inventory, int slot, ItemStack sourceItem, ItemStack heldItem) {
         super(inventory);
         this.slot = slot;
         this.sourceItem = sourceItem;
@@ -28,11 +28,11 @@ public class InventoryClickEvent extends InventoryEvent implements Cancellable {
         return slot;
     }
 
-    public Item getSourceItem() {
+    public ItemStack getSourceItem() {
         return sourceItem;
     }
 
-    public Item getHeldItem() {
+    public ItemStack getHeldItem() {
         return heldItem;
     }
 

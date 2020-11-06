@@ -2,43 +2,29 @@ package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockIds.PORTAL;
+import static org.cloudburstmc.server.block.BlockTypes.PORTAL;
 
 public class BlockBehaviorObsidian extends BlockBehaviorSolid {
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
 
     @Override
-    public float getHardness() {
-        return 35; //50 in PC
-    }
-
-    @Override
-    public float getResistance() {
-        return 6000;
-    }
-
-    @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_DIAMOND) {
-            return new Item[]{
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.getBehavior().isPickaxe() && hand.getBehavior().getTier(hand).compareTo(TierTypes.DIAMOND) >= 0) {
+            return new ItemStack[]{
                     toItem(block)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         //destroy the nether portal
         for (Direction direction : Direction.values()) {
             val b = block.getSide(direction);
@@ -61,8 +47,5 @@ public class BlockBehaviorObsidian extends BlockBehaviorSolid {
         return false;
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
+
 }

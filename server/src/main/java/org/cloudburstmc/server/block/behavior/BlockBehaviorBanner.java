@@ -3,17 +3,15 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Banner;
 import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
@@ -23,48 +21,22 @@ import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.CardinalDirection;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
-import static org.cloudburstmc.server.block.BlockIds.WALL_BANNER;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.WALL_BANNER;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.BANNER;
 
 public class BlockBehaviorBanner extends BlockBehaviorTransparent {
 
     @Override
-    public float getHardness() {
-        return 1;
-    }
-
-    @Override
-    public float getResistance() {
-        return 5;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
-
-    @Override
-    public AxisAlignedBB getBoundingBox() {
-        return null;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
-    @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.DOWN) {
             BlockState banner;
             if (face == Direction.UP) {
-                banner = BlockRegistry.get().getBlock(BlockIds.STANDING_BANNER)
+                banner = BlockRegistry.get().getBlock(BlockTypes.STANDING_BANNER)
                         .withTrait(
                                 BlockTraits.CARDINAL_DIRECTION,
                                 CardinalDirection.values()[NukkitMath.floorDouble(((player.getYaw() + 180) * 16 / 360) + 0.5) & 0x0f]
                         );
-
             } else {
                 banner = BlockRegistry.get().getBlock(WALL_BANNER)
                         .withTrait(BlockTraits.FACING_DIRECTION, face);
@@ -72,11 +44,8 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
 
             block.set(banner, true);
 
-            NbtMapBuilder tag = NbtMap.builder();
-            item.saveAdditionalData(tag);
-            tag.putInt("Base", item.getMeta());
-
-            BlockEntityRegistry.get().newEntity(BANNER, block.getChunk(), block.getPosition()).loadAdditionalData(tag.build());
+            NbtMap tag = ((CloudItemStack) item).getDataTag();
+            BlockEntityRegistry.get().newEntity(BANNER, block.getChunk(), block.getPosition()).loadAdditionalData(tag);
 
             return true;
         }
@@ -97,20 +66,20 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
+    public ItemStack toItem(Block block) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
-        Item item = Item.get(ItemIds.BANNER);
+        val builder = new CloudItemStackBuilder();
+        builder.itemType(ItemTypes.BANNER);
         if (blockEntity instanceof Banner) {
             Banner banner = (Banner) blockEntity;
-            item.setMeta(banner.getBase().getDyeData());
 
             NbtMapBuilder tag = NbtMap.builder();
             banner.saveAdditionalData(tag);
-            tag.remove("Base");
 
-            item.loadAdditionalData(tag.build());
+            return ItemUtils.deserializeItem(ItemIds.BANNER, (short) banner.getBase().getDyeData(), 1, tag.build());
+        } else {
+            return ItemStack.get(ItemTypes.BANNER);
         }
-        return item;
     }
 
     @Override
@@ -128,8 +97,5 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
         return DyeColor.WHITE;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

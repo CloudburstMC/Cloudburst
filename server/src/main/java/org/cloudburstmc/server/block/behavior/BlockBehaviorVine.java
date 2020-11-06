@@ -5,8 +5,7 @@ import lombok.val;
 import lombok.var;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
@@ -15,29 +14,8 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorVine extends BlockBehaviorTransparent {
 
-
-    @Override
-    public float getHardness() {
-        return 0.2f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 1;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
     @Override
     public boolean hasEntityCollision() {
-        return true;
-    }
-
-    @Override
-    public boolean canBeReplaced(Block block) {
         return true;
     }
 
@@ -52,10 +30,6 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
         entity.setOnGround(true);
     }
 
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
 
 //    @Override
 //    protected AxisAlignedBB recalculateBoundingBox() { //TODO: bounding box
@@ -112,9 +86,9 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().inCategory(BlockCategory.SOLID) && face.getAxis().isHorizontal()) {
-            var state = BlockState.get(BlockIds.VINE)
+            var state = BlockState.get(BlockTypes.VINE)
                     .withTrait(BlockTraits.VINE_DIRECTION_BITS, 1 << face.getOpposite().getHorizontalIndex());
 
             placeBlock(block, state);
@@ -125,19 +99,19 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isShears()) {
-            return new Item[]{
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.getBehavior().isShears()) {
+            return new ItemStack[]{
                     toItem(block)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().defaultState());
     }
 
     @Override
@@ -164,7 +138,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
 
             if (bits == 0) {
                 val upState = block.up().getState();
-                if (upState.getType() != BlockIds.VINE || (upState.ensureTrait(BlockTraits.VINE_DIRECTION_BITS) & current) == 0) {
+                if (upState.getType() != BlockTypes.VINE || (upState.ensureTrait(BlockTraits.VINE_DIRECTION_BITS) & current) == 0) {
                     block.getLevel().useBreakOn(block.getPosition(), null, null, true);
                     return Level.BLOCK_UPDATE_NORMAL;
                 }
@@ -176,18 +150,11 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
         return 0;
     }
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_SHEARS;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

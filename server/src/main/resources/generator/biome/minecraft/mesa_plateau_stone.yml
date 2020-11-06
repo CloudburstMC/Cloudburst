@@ -20,7 +20,7 @@ decorators:
           - "stained_hardened_clay{color=white}"
           - "stained_hardened_clay{color=orange}"
           - "stained_hardened_clay{color=yellow}"
-          - "stained_hardened_clay{color=light_gray}"
+          - "stained_hardened_clay{color=silver}"
           - "stained_hardened_clay{color=brown}"
           - "stained_hardened_clay{color=red}"
         block: "hardened_clay"

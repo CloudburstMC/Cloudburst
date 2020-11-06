@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.hostile;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.hostile.Slime;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -37,7 +37,7 @@ public class EntitySlime extends EntityHostile implements Slime {
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.SLIME_BALL)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemTypes.SLIME_BALL)};
     }
 }

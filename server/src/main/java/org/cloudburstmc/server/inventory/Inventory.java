@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.Collection;
@@ -26,23 +26,23 @@ public interface Inventory {
 
     String getTitle();
 
-    Item getItem(int index);
+    ItemStack getItem(int index);
 
-    default boolean setItem(int index, Item item) {
+    default boolean setItem(int index, ItemStack item) {
         return setItem(index, item, true);
     }
 
-    boolean setItem(int index, Item item, boolean send);
+    boolean setItem(int index, ItemStack item, boolean send);
 
-    Item[] addItem(Item... slots);
+    ItemStack[] addItem(ItemStack... slots);
 
-    boolean canAddItem(Item item);
+    boolean canAddItem(ItemStack item);
 
-    Item[] removeItem(Item... slots);
+    ItemStack[] removeItem(ItemStack... slots);
 
-    Map<Integer, Item> getContents();
+    Map<Integer, ItemStack> getContents();
 
-    void setContents(Map<Integer, Item> items);
+    void setContents(Map<Integer, ItemStack> items);
 
     void sendContents(Player player);
 
@@ -56,11 +56,11 @@ public interface Inventory {
 
     void sendSlot(int index, Collection<Player> players);
 
-    boolean contains(Item item);
+    boolean contains(ItemStack item);
 
-    Map<Integer, Item> all(Item item);
+    Map<Integer, ItemStack> all(ItemStack item);
 
-    default int first(Item item) {
+    default int first(ItemStack item) {
         return first(item, false);
     }
 
@@ -71,9 +71,9 @@ public interface Inventory {
      * @param exact if true the item count will be must match
      * @return the first index containing the item
      */
-    int first(Item item, boolean exact);
+    int first(ItemStack item, boolean exact);
 
-    default int firstFit(Item item) {
+    default int firstFit(ItemStack item) {
         return firstFit(item, false);
     }
 
@@ -84,7 +84,7 @@ public interface Inventory {
      * @param single if false the item count will be used. Otherwise it'll be 1
      * @return the first slot index that item fits to
      */
-    int firstFit(Item item, boolean single);
+    int firstFit(ItemStack item, boolean single);
 
     /**
      * Search for the first empty slot
@@ -106,23 +106,23 @@ public interface Inventory {
      * @param item target item
      * @return amount if free space
      */
-    int getFreeSpace(Item item);
+    int getFreeSpace(ItemStack item);
 
     /**
      * Decrease item count in the given slot
      *
      * @param slot target slot index
      */
-    void decreaseCount(int slot);
+    void decrementCount(int slot);
 
     /**
      * Increase item count in the given slot
      *
      * @param slot target slot index
      */
-    void increaseCount(int slot);
+    void incrementCount(int slot);
 
-    void remove(Item item);
+    void remove(ItemStack item);
 
     default boolean clear(int index) {
         return clear(index, true);
@@ -150,5 +150,5 @@ public interface Inventory {
 
     void onClose(Player who);
 
-    void onSlotChange(int index, Item before, boolean send);
+    void onSlotChange(int index, ItemStack before, boolean send);
 }

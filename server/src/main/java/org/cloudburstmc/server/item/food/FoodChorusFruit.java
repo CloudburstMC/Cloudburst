@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemIds;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.player.Player;
@@ -18,7 +18,7 @@ public class FoodChorusFruit extends FoodNormal {
 
     public FoodChorusFruit() {
         super(4, 2.4F);
-        addRelative(ItemIds.CHORUS_FRUIT);
+        setMetadata(ItemIds.CHORUS_FRUIT);
     }
 
     @Override

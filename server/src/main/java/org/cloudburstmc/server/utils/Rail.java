@@ -1,10 +1,11 @@
 package org.cloudburstmc.server.utils;
 
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockType;
 
 import java.util.Objects;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 /**
  * INTERNAL helper class of railway
@@ -19,7 +20,7 @@ public final class Rail {
         return isRailBlock(blockState.getType());
     }
 
-    public static boolean isRailBlock(Identifier id) {
+    public static boolean isRailBlock(BlockType id) {
         return id == RAIL || id == GOLDEN_RAIL || id == ACTIVATOR_RAIL || id == DETECTOR_RAIL;
     }
 

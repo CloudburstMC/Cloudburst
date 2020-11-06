@@ -2,13 +2,16 @@ package org.cloudburstmc.server.block.serializer;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.utils.data.DyeColor;
+
+import java.util.Map;
 
 import static org.cloudburstmc.server.block.serializer.util.BedrockStateTags.TAG_CORAL_HANG_TYPE_BIT;
 
-public class CoralHangBlockSerializer extends DefaultBlockSerializer {
+public class CoralHangBlockSerializer implements BlockSerializer {
 
     private static final String[] BEDROCK_NAMES = {
             "minecraft:coral_fan_hang",
@@ -17,12 +20,12 @@ public class CoralHangBlockSerializer extends DefaultBlockSerializer {
     };
 
     @Override
-    public void serialize(NbtMapBuilder builder, BlockState state) {
-        super.serialize(builder, state);
+    public void serialize(NbtMapBuilder builder, BlockType blockType, Map<BlockTrait<?>, Comparable<?>> traits) {
+        DefaultBlockSerializer.INSTANCE.serialize(builder, blockType, traits);
 
         NbtMap states = (NbtMap) builder.get(TAG_STATES);
 
-        DyeColor color = state.ensureTrait(BlockTraits.CORAL_HANG_COLOR);
+        DyeColor color = (DyeColor) traits.get(BlockTraits.CORAL_HANG_COLOR);
         int index = BlockTraits.CORAL_HANG_COLOR.getIndex(color);
         boolean bit = (index & 0b1) != 0;
 

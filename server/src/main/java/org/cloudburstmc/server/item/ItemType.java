@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.item;
 
+import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.utils.Identifier;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
 
 public interface ItemType {
 
@@ -10,9 +11,21 @@ public interface ItemType {
 
     boolean isBlock();
 
+    boolean isPlaceable();
+
+    @Nullable
+    BlockType getBlock();
+
+    @Nullable
     Class<?> getMetadataClass();
 
     int getMaximumStackSize();
+
+    default ItemStack createItem() {
+        return createItem(1);
+    }
+
+    ItemStack createItem(int amount, Object... metadata);
 
     default int getAttackDamage() {
         return 2;
@@ -30,15 +43,21 @@ public interface ItemType {
         return 0;
     }
 
-    default int getFuelTime() {
+    default short getFuelTime() {
         return 0;
+    }
+
+    default BlockType getBlockType() {
+        return null;
     }
 
     default boolean isStackable() {
         return getMaximumStackSize() > 1;
     }
 
-    Optional<ToolType> getToolType();
+    @Nullable
+    ToolType getToolType();
 
-    Optional<TierType> getTierType();
+    @Nullable
+    TierType getTierType();
 }

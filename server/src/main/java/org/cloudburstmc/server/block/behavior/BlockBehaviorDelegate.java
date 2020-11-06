@@ -1,10 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -27,13 +29,13 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean canHarvestWithHand() {
-        return parent.canHarvestWithHand();
+    public boolean canHarvestWithHand(BlockState state) {
+        return parent.canHarvestWithHand(state);
     }
 
     @Override
-    public boolean isBreakable(Item item) {
-        return parent.isBreakable(item);
+    public boolean isBreakable(BlockState state, ItemStack item) {
+        return parent.isBreakable(state, item);
     }
 
     @Override
@@ -47,28 +49,28 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item) {
+    public boolean onActivate(Block block, ItemStack item) {
         return parent.onActivate(block, item);
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         return parent.onActivate(block, item, player);
     }
 
     @Override
-    public int getBurnChance() {
-        return parent.getBurnChance();
+    public int getBurnChance(BlockState state) {
+        return parent.getBurnChance(state);
     }
 
     @Override
-    public int getBurnAbility() {
-        return parent.getBurnAbility();
+    public int getBurnAbility(BlockState state) {
+        return parent.getBurnAbility(state);
     }
 
     @Override
-    public int getToolType() {
-        return parent.getToolType();
+    public ToolType getToolType(BlockState state) {
+        return parent.getToolType(state);
     }
 
     @Override
@@ -87,13 +89,13 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean isTransparent() {
-        return parent.isTransparent();
+    public boolean isTransparent(BlockState state) {
+        return parent.isTransparent(state);
     }
 
     @Override
-    public boolean isSolid() {
-        return parent.isSolid();
+    public boolean isSolid(BlockState state) {
+        return parent.isSolid(state);
     }
 
     @Override
@@ -102,8 +104,8 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public int getFilterLevel() {
-        return parent.getFilterLevel();
+    public int getFilterLevel(BlockState state) {
+        return parent.getFilterLevel(state);
     }
 
     @Override
@@ -117,8 +119,8 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean canPassThrough() {
-        return parent.canPassThrough();
+    public boolean canPassThrough(BlockState state) {
+        return parent.canPassThrough(state);
     }
 
     @Override
@@ -127,8 +129,8 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean hasComparatorInputOverride() {
-        return parent.hasComparatorInputOverride();
+    public boolean hasComparatorInputOverride(BlockState state) {
+        return parent.hasComparatorInputOverride(state);
     }
 
     @Override
@@ -147,22 +149,22 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean canBeFlooded() {
-        return parent.canBeFlooded();
+    public boolean canBeFlooded(BlockState state) {
+        return parent.canBeFlooded(state);
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         return parent.place(item, block, target, face, clickPos, player);
     }
 
     @Override
-    public boolean placeBlock(Block block, Item item) {
+    public boolean placeBlock(Block block, ItemStack item) {
         return parent.placeBlock(block, item);
     }
 
     @Override
-    public boolean placeBlock(Block block, Item item, boolean update) {
+    public boolean placeBlock(Block block, ItemStack item, boolean update) {
         return parent.placeBlock(block, item, update);
     }
 
@@ -177,18 +179,18 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         return parent.onBreak(block, item);
     }
 
     @Override
-    public boolean onBreak(Block block, Item item, Player player) {
+    public boolean onBreak(Block block, ItemStack item, Player player) {
         return parent.onBreak(block, item, player);
     }
 
     @Override
-    public float getHardness() {
-        return parent.getHardness();
+    public float getHardness(BlockState blockState) {
+        return parent.getHardness(blockState);
     }
 
     @Override
@@ -197,13 +199,13 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public float getResistance() {
-        return parent.getResistance();
+    public float getResistance(BlockState blockState) {
+        return parent.getResistance(blockState);
     }
 
     @Override
-    public float getFrictionFactor() {
-        return parent.getFrictionFactor();
+    public float getFrictionFactor(BlockState blockState) {
+        return parent.getFrictionFactor(blockState);
     }
 
     @Override
@@ -212,24 +214,24 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         return parent.getDrops(block, hand);
     }
 
     @Override
-    public float getBreakTime(BlockState state, Item item, Player player) {
+    public float getBreakTime(BlockState state, ItemStack item, Player player) {
         return parent.getBreakTime(state, item, player);
     }
 
     @Override
-    public boolean canBeBrokenWith(Item item) {
-        return parent.canBeBrokenWith(item);
+    public boolean canBeBrokenWith(BlockState state, ItemStack item) {
+        return parent.canBeBrokenWith(state, item);
     }
 
     @Override
     @Deprecated
-    public float getBreakTime(Item item) {
-        return parent.getBreakTime(item);
+    public float getBreakTime(BlockState blockState, ItemStack item) {
+        return parent.getBreakTime(blockState, item);
     }
 
     @Override
@@ -248,13 +250,8 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public AxisAlignedBB getBoundingBox() {
-        return parent.getBoundingBox();
-    }
-
-    @Override
-    public AxisAlignedBB getCollisionBoxes(Block block) {
-        return parent.getCollisionBoxes(block);
+    public AxisAlignedBB getCollisionBoxes(Vector3i pos, BlockState state) {
+        return parent.getCollisionBoxes(pos, state);
     }
 
     @Override
@@ -293,22 +290,22 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
+    public ItemStack toItem(Block block) {
         return parent.toItem(block);
     }
 
     @Override
-    public boolean canSilkTouch() {
-        return parent.canSilkTouch();
+    public boolean canSilkTouch(BlockState state) {
+        return parent.canSilkTouch(state);
     }
 
     @Override
-    public boolean canWaterlogSource() {
-        return parent.canWaterlogSource();
+    public boolean canWaterlogSource(BlockState state) {
+        return parent.canWaterlogSource(state);
     }
 
     @Override
-    public boolean canWaterlogFlowing() {
-        return parent.canWaterlogFlowing();
+    public boolean canWaterlogFlowing(BlockState state) {
+        return parent.canWaterlogFlowing(state);
     }
 }

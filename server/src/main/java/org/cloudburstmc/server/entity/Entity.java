@@ -13,7 +13,7 @@ import org.cloudburstmc.server.entity.passive.Bat;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.math.AxisAlignedBB;
@@ -197,7 +197,7 @@ public interface Entity extends Metadatable {
 
     void onStruckByLightning(LightningBolt lightningBolt);
 
-    boolean onInteract(Player player, Item item, Vector3f clickedPos);
+    boolean onInteract(Player player, ItemStack item, Vector3f clickedPos);
 
     float getX();
 

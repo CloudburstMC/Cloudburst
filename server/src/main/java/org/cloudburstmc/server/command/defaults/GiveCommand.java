@@ -2,17 +2,20 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.TextFormat;
-
-import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * Created on 2015/12/9 by xtypr.
@@ -56,27 +59,28 @@ public class GiveCommand extends Command {
         }
 
         Player player = sender.getServer().getPlayer(args[0]);
-        Item item;
+        ItemStack item;
 
         try {
-            item = Item.fromString(args[1]);
+            val registry = CloudItemRegistry.get();
+            item = registry.getItem(ItemTypes.byId(Identifier.fromString(args[1])));
         } catch (Exception e) {
             log.throwing(e);
             return false;
         }
 
         try {
-            item.setCount(Integer.parseInt(args[2]));
+            item = item.withAmount(Integer.parseInt(args[2]));
         } catch (Exception e) {
-            item.setCount(item.getMaxStackSize());
+            item = item.withAmount(item.getBehavior().getMaxStackSize(item));
         }
 
         if (player != null) {
-            if (item.getId() == AIR) {
+            if (item.isNull()) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.give.item.invalid", args[1]));
                 return true;
             }
-            player.getInventory().addItem(item.clone());
+            player.getInventory().addItem(item);
         } else {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
 
@@ -84,8 +88,8 @@ public class GiveCommand extends Command {
         }
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer(
                 "%commands.give.success",
-                item.getName() + " (" + item.getId() + ":" + item.getMeta() + ")",
-                item.getCount(),
+                item.getName() + " (" + item.getType() + ":" + ((CloudItemStack) item).getData() + ")",
+                item.getAmount(),
                 player.getName()));
         return true;
     }

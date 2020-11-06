@@ -4,13 +4,13 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
-
-import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * author: MagicDroidX
@@ -19,9 +19,9 @@ import static org.cloudburstmc.server.block.BlockIds.AIR;
 public class ShapedRecipe implements CraftingRecipe {
 
     private final String recipeId;
-    private final Item primaryResult;
-    private final ImmutableList<Item> extraResults;
-    private final CharObjectHashMap<Item> ingredients = new CharObjectHashMap<>();
+    private final ItemStack primaryResult;
+    private final ImmutableList<ItemStack> extraResults;
+    private final CharObjectHashMap<ItemStack> ingredients = new CharObjectHashMap<>();
     private final String[] shape;
     private final int priority;
     private final Identifier block;
@@ -43,8 +43,8 @@ public class ShapedRecipe implements CraftingRecipe {
      *                         <p>
      *                         Note: Recipes **do not** need to be square. Do NOT add padding for empty rows/columns.
      */
-    public ShapedRecipe(String recipeId, int priority, Item primaryResult, String[] shape,
-                        CharObjectMap<Item> ingredients, List<Item> extraResults, Identifier block) {
+    public ShapedRecipe(String recipeId, int priority, ItemStack primaryResult, String[] shape,
+                        CharObjectMap<ItemStack> ingredients, List<ItemStack> extraResults, Identifier block) {
         this.recipeId = recipeId;
         this.priority = priority;
         int rowCount = shape.length;
@@ -73,12 +73,12 @@ public class ShapedRecipe implements CraftingRecipe {
             }
         }
 
-        this.primaryResult = primaryResult.clone();
+        this.primaryResult = primaryResult;
         this.extraResults = ImmutableList.copyOf(extraResults);
         this.block = block;
         this.shape = shape;
 
-        for (Map.Entry<Character, Item> entry : ingredients.entrySet()) {
+        for (Map.Entry<Character, ItemStack> entry : ingredients.entrySet()) {
             this.setIngredient(entry.getKey(), entry.getValue());
         }
     }
@@ -92,7 +92,7 @@ public class ShapedRecipe implements CraftingRecipe {
     }
 
     @Override
-    public Item getResult() {
+    public ItemStack getResult() {
         return this.primaryResult;
     }
 
@@ -111,11 +111,11 @@ public class ShapedRecipe implements CraftingRecipe {
         this.id = id;
     }
 
-    public ShapedRecipe setIngredient(String key, Item item) {
+    public ShapedRecipe setIngredient(String key, ItemStack item) {
         return this.setIngredient(key.charAt(0), item);
     }
 
-    public ShapedRecipe setIngredient(char key, Item item) {
+    public ShapedRecipe setIngredient(char key, ItemStack item) {
         if (String.join("", this.shape).indexOf(key) < 0) {
             throw new RuntimeException("Symbol does not appear in the shape: " + key);
         }
@@ -124,8 +124,8 @@ public class ShapedRecipe implements CraftingRecipe {
         return this;
     }
 
-    public List<Item> getIngredientList() {
-        List<Item> items = new ArrayList<>();
+    public List<ItemStack> getIngredientList() {
+        List<ItemStack> items = new ArrayList<>();
         for (int y = 0, y2 = getHeight(); y < y2; ++y) {
             for (int x = 0, x2 = getWidth(); x < x2; ++x) {
                 items.add(getIngredient(x, y));
@@ -134,11 +134,11 @@ public class ShapedRecipe implements CraftingRecipe {
         return items;
     }
 
-    public Map<Integer, Map<Integer, Item>> getIngredientMap() {
-        Map<Integer, Map<Integer, Item>> ingredients = new LinkedHashMap<>();
+    public Map<Integer, Map<Integer, ItemStack>> getIngredientMap() {
+        Map<Integer, Map<Integer, ItemStack>> ingredients = new LinkedHashMap<>();
 
         for (int y = 0, y2 = getHeight(); y < y2; ++y) {
-            Map<Integer, Item> m = new LinkedHashMap<>();
+            Map<Integer, ItemStack> m = new LinkedHashMap<>();
 
             for (int x = 0, x2 = getWidth(); x < x2; ++x) {
                 m.put(x, getIngredient(x, y));
@@ -150,10 +150,10 @@ public class ShapedRecipe implements CraftingRecipe {
         return ingredients;
     }
 
-    public Item getIngredient(int x, int y) {
-        Item item = this.ingredients.get(this.shape[y].charAt(x));
+    public ItemStack getIngredient(int x, int y) {
+        ItemStack item = this.ingredients.get(this.shape[y].charAt(x));
 
-        return item != null ? item.clone() : Item.get(AIR);
+        return item != null ? item : ItemStacks.AIR;
     }
 
     public String[] getShape() {
@@ -171,13 +171,13 @@ public class ShapedRecipe implements CraftingRecipe {
     }
 
     @Override
-    public List<Item> getExtraResults() {
+    public List<ItemStack> getExtraResults() {
         return extraResults;
     }
 
     @Override
-    public List<Item> getAllResults() {
-        List<Item> list = new ArrayList<>(this.extraResults);
+    public List<ItemStack> getAllResults() {
+        List<ItemStack> list = new ArrayList<>(this.extraResults);
         list.add(primaryResult);
 
         return list;
@@ -189,10 +189,10 @@ public class ShapedRecipe implements CraftingRecipe {
     }
 
     @Override
-    public boolean matchItems(Item[][] input, Item[][] output) {
+    public boolean matchItems(ItemStack[][] input, ItemStack[][] output) {
         if (!matchInputMap(Utils.clone2dArray(input))) {
 
-            Item[][] reverse = Utils.clone2dArray(input);
+            ItemStack[][] reverse = Utils.clone2dArray(input);
 
             for (int y = 0; y < reverse.length; y++) {
                 reverse[y] = Utils.reverseArray(reverse[y], false);
@@ -204,21 +204,21 @@ public class ShapedRecipe implements CraftingRecipe {
         }
 
         //and then, finally, check that the output items are good:
-        List<Item> haveItems = new ArrayList<>();
-        for (Item[] items : output) {
+        List<ItemStack> haveItems = new ArrayList<>();
+        for (ItemStack[] items : output) {
             haveItems.addAll(Arrays.asList(items));
         }
 
-        List<Item> needItems = this.getExtraResults();
+        List<ItemStack> needItems = this.getExtraResults();
 
-        for (Item haveItem : new ArrayList<>(haveItems)) {
+        for (ItemStack haveItem : new ArrayList<>(haveItems)) {
             if (haveItem.isNull()) {
                 haveItems.remove(haveItem);
                 continue;
             }
 
-            for (Item needItem : new ArrayList<>(needItems)) {
-                if (needItem.equals(haveItem, needItem.hasMeta(), needItem.hasNbtMap()) && needItem.getCount() == haveItem.getCount()) {
+            for (ItemStack needItem : new ArrayList<>(needItems)) {
+                if (needItem.equals(haveItem) && needItem.getAmount() == haveItem.getAmount()) {
                     haveItems.remove(haveItem);
                     needItems.remove(needItem);
                     break;
@@ -229,16 +229,16 @@ public class ShapedRecipe implements CraftingRecipe {
         return haveItems.isEmpty() && needItems.isEmpty();
     }
 
-    private boolean matchInputMap(Item[][] input) {
-        Map<Integer, Map<Integer, Item>> map = this.getIngredientMap();
+    private boolean matchInputMap(ItemStack[][] input) {
+        Map<Integer, Map<Integer, ItemStack>> map = this.getIngredientMap();
 
         //match the given items to the requested items
         for (int y = 0, y2 = this.getHeight(); y < y2; ++y) {
             for (int x = 0, x2 = this.getWidth(); x < x2; ++x) {
-                Item given = input[y][x];
-                Item required = map.get(y).get(x);
+                ItemStack given = input[y][x];
+                ItemStack required = map.get(y).get(x);
 
-                if (given == null || !required.equals(given, required.hasMeta(), required.hasNbtMap()) || required.getCount() != given.getCount()) {
+                if (given == null || !required.equals(given) || required.getAmount() != given.getAmount()) {
                     return false;
                 }
 
@@ -247,8 +247,8 @@ public class ShapedRecipe implements CraftingRecipe {
         }
 
         //check if there are any items left in the grid outside of the recipe
-        for (Item[] items : input) {
-            for (Item item : items) {
+        for (ItemStack[] items : input) {
+            for (ItemStack item : items) {
                 if (item != null && !item.isNull()) {
                     return false;
                 }
@@ -267,7 +267,7 @@ public class ShapedRecipe implements CraftingRecipe {
     public String toString() {
         StringJoiner joiner = new StringJoiner(", ");
 
-        ingredients.forEach((character, item) -> joiner.add(item.getName() + ":" + item.getMeta()));
+        ingredients.forEach((character, item) -> joiner.add(item.toString()));
         return joiner.toString();
     }
 
@@ -279,7 +279,7 @@ public class ShapedRecipe implements CraftingRecipe {
     @Override
     public CraftingData toNetwork(int netId) {
         return CraftingData.fromShaped(this.recipeId, this.getWidth(), this.getHeight(),
-                Item.toNetwork(this.getIngredientList()), Item.toNetwork(this.getAllResults()), this.getId(),
+                ItemUtils.toNetwork(this.getIngredientList()), ItemUtils.toNetwork(this.getAllResults()), this.getId(),
                 this.block.getName(), this.priority, netId);
     }
 }

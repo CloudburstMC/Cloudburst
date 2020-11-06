@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 public interface Campfire extends BlockEntity {
 
-    boolean putItemInFire(Item item);
+    boolean putItemInFire(ItemStack item);
 
-    default boolean putItemInFire(Item item, int index) {
+    default boolean putItemInFire(ItemStack item, int index) {
         return putItemInFire(item, index, false);
     }
 
-    boolean putItemInFire(Item item, int index, boolean overwrite);
+    boolean putItemInFire(ItemStack item, int index, boolean overwrite);
 }

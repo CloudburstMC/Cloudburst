@@ -46,7 +46,7 @@ public interface DensitySource extends GenerationPass {
      * @return the density at the given coordinates
      */
     default double[] get(double[] arr, int startIndex, @NonNull BiomeMap biomes, int x, int y, int z, int sizeX, int sizeY, int sizeZ, int stepX, int stepY, int stepZ) {
-        int totalSize = PValidation.ensurePositive(sizeX) * PValidation.ensurePositive(sizeY) * PValidation.ensurePositive(sizeZ) + PValidation.ensureNonNegative(startIndex);
+        int totalSize = PValidation.positive(sizeX) * PValidation.positive(sizeY) * PValidation.positive(sizeZ) + (int) PValidation.notNegative(startIndex);
         if (arr == null || arr.length < totalSize) {
             double[] newArr = new double[totalSize];
             if (arr != null && startIndex != 0) {

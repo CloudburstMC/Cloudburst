@@ -242,7 +242,7 @@ public class ServerScheduler {
     }
 
     private TaskHandler addTask(Object plugin, Runnable task, int delay, int period, boolean asynchronous) {
-        PluginContainer container = ensurePlugin(plugin);
+        PluginContainer container = plugin != null ? ensurePlugin(plugin) : null;
         if (delay < 0 || period < 0) {
             throw new PluginException("Attempted to register a task with negative delay or period.");
         }

@@ -5,160 +5,115 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Noteblock;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
 
-    private static final Map<Identifier, Instrument> INSTRUMENTS = new IdentityHashMap<>();
+    private static final Map<BlockType, Instrument> INSTRUMENTS = new IdentityHashMap<>();
 
     static {
-        INSTRUMENTS.put(BlockIds.GOLD_BLOCK, Instrument.GLOCKENSPIEL);
-        INSTRUMENTS.put(BlockIds.CLAY, Instrument.FLUTE);
-        INSTRUMENTS.put(BlockIds.PACKED_ICE, Instrument.CHIME);
-        INSTRUMENTS.put(BlockIds.WOOL, Instrument.GUITAR);
-        INSTRUMENTS.put(BlockIds.BONE_BLOCK, Instrument.XYLOPHONE);
-        INSTRUMENTS.put(BlockIds.IRON_BLOCK, Instrument.VIBRAPHONE);
-        INSTRUMENTS.put(BlockIds.SOUL_SAND, Instrument.COW_BELL);
-        INSTRUMENTS.put(BlockIds.PUMPKIN, Instrument.DIDGERIDOO);
-        INSTRUMENTS.put(BlockIds.EMERALD_BLOCK, Instrument.SQUARE_WAVE);
-        INSTRUMENTS.put(BlockIds.HAY_BLOCK, Instrument.BANJO);
-        INSTRUMENTS.put(BlockIds.GLOWSTONE, Instrument.ELECTRIC_PIANO);
-        INSTRUMENTS.put(BlockIds.LOG, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.LOG2, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.PLANKS, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.DOUBLE_WOODEN_SLAB, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.WOODEN_SLAB, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.OAK_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.SPRUCE_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.BIRCH_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.JUNGLE_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.ACACIA_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.DARK_OAK_STAIRS, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.FENCE, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.SPRUCE_FENCE_GATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.BIRCH_FENCE_GATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.JUNGLE_FENCE_GATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.DARK_OAK_FENCE_GATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.ACACIA_FENCE_GATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.WOODEN_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.SPRUCE_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.BIRCH_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.JUNGLE_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.ACACIA_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.DARK_OAK_DOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.WOODEN_PRESSURE_PLATE, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.TRAPDOOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.STANDING_SIGN, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.WALL_SIGN, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.NOTEBLOCK, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.BOOKSHELF, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.CHEST, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.TRAPPED_CHEST, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.CRAFTING_TABLE, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.JUKEBOX, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.BROWN_MUSHROOM_BLOCK, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.RED_MUSHROOM_BLOCK, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.DAYLIGHT_DETECTOR, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.DAYLIGHT_DETECTOR_INVERTED, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.STANDING_BANNER, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.WALL_BANNER, Instrument.BASS);
-        INSTRUMENTS.put(BlockIds.SAND, Instrument.DRUM);
-        INSTRUMENTS.put(BlockIds.GRAVEL, Instrument.DRUM);
-        INSTRUMENTS.put(BlockIds.CONCRETE_POWDER, Instrument.DRUM);
-        INSTRUMENTS.put(BlockIds.GLASS, Instrument.STICKS);
-        INSTRUMENTS.put(BlockIds.GLASS_PANE, Instrument.STICKS);
-        INSTRUMENTS.put(BlockIds.STAINED_GLASS_PANE, Instrument.STICKS);
-        INSTRUMENTS.put(BlockIds.STAINED_GLASS, Instrument.STICKS);
-        INSTRUMENTS.put(BlockIds.BEACON, Instrument.STICKS);
-        INSTRUMENTS.put(BlockIds.SEA_LANTERN, Instrument.STICKS);
-        INSTRUMENTS.put(BlockIds.STONE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.SANDSTONE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.RED_SANDSTONE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.COBBLESTONE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.MOSSY_COBBLESTONE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.BRICK_BLOCK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.STONEBRICK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.NETHER_BRICK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.RED_NETHER_BRICK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.QUARTZ_BLOCK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.DOUBLE_STONE_SLAB, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.STONE_SLAB, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.DOUBLE_STONE_SLAB2, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.STONE_SLAB2, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.STONE_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.BRICK_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.STONE_BRICK_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.NETHER_BRICK_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.SANDSTONE_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.QUARTZ_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.RED_SANDSTONE_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.PURPUR_STAIRS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.COBBLESTONE_WALL, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.NETHER_BRICK_FENCE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.BEDROCK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.GOLD_ORE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.IRON_ORE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.COAL_ORE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.LAPIS_ORE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.DIAMOND_ORE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.REDSTONE_ORE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.LIT_REDSTONE_ORE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.EMERALD_ORE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.DROPPER, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.DISPENSER, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.FURNACE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.LIT_FURNACE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.OBSIDIAN, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.GLOWING_OBSIDIAN, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.MOB_SPAWNER, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.STONE_PRESSURE_PLATE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.NETHERRACK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.QUARTZ_ORE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.ENCHANTING_TABLE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.END_PORTAL_FRAME, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.END_STONE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.END_BRICKS, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.ENDER_CHEST, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.STAINED_HARDENED_CLAY, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.HARDENED_CLAY, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.PRISMARINE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.COAL_BLOCK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.PURPUR_BLOCK, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.MAGMA, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.CONCRETE, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.STONECUTTER, Instrument.BASS_DRUM);
-        INSTRUMENTS.put(BlockIds.OBSERVER, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.GOLD_BLOCK, Instrument.GLOCKENSPIEL);
+        INSTRUMENTS.put(BlockTypes.CLAY, Instrument.FLUTE);
+        INSTRUMENTS.put(BlockTypes.PACKED_ICE, Instrument.CHIME);
+        INSTRUMENTS.put(BlockTypes.WOOL, Instrument.GUITAR);
+        INSTRUMENTS.put(BlockTypes.BONE_BLOCK, Instrument.XYLOPHONE);
+        INSTRUMENTS.put(BlockTypes.IRON_BLOCK, Instrument.VIBRAPHONE);
+        INSTRUMENTS.put(BlockTypes.SOUL_SAND, Instrument.COW_BELL);
+        INSTRUMENTS.put(BlockTypes.PUMPKIN, Instrument.DIDGERIDOO);
+        INSTRUMENTS.put(BlockTypes.EMERALD_BLOCK, Instrument.SQUARE_WAVE);
+        INSTRUMENTS.put(BlockTypes.HAY_BLOCK, Instrument.BANJO);
+        INSTRUMENTS.put(BlockTypes.GLOWSTONE, Instrument.ELECTRIC_PIANO);
+        INSTRUMENTS.put(BlockTypes.LOG, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.PLANKS, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WOODEN_SLAB, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WOODEN_STAIRS, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WOODEN_FENCE, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WOODEN_DOOR, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WOODEN_PRESSURE_PLATE, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WOODEN_TRAPDOOR, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.STANDING_SIGN, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WALL_SIGN, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.NOTEBLOCK, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.BOOKSHELF, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.CHEST, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.TRAPPED_CHEST, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.CRAFTING_TABLE, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.JUKEBOX, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.BROWN_MUSHROOM_BLOCK, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.RED_MUSHROOM_BLOCK, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.DAYLIGHT_DETECTOR, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.DAYLIGHT_DETECTOR_INVERTED, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.STANDING_BANNER, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.WALL_BANNER, Instrument.BASS);
+        INSTRUMENTS.put(BlockTypes.SAND, Instrument.DRUM);
+        INSTRUMENTS.put(BlockTypes.GRAVEL, Instrument.DRUM);
+        INSTRUMENTS.put(BlockTypes.CONCRETE_POWDER, Instrument.DRUM);
+        INSTRUMENTS.put(BlockTypes.GLASS, Instrument.STICKS);
+        INSTRUMENTS.put(BlockTypes.GLASS_PANE, Instrument.STICKS);
+        INSTRUMENTS.put(BlockTypes.STAINED_GLASS_PANE, Instrument.STICKS);
+        INSTRUMENTS.put(BlockTypes.STAINED_GLASS, Instrument.STICKS);
+        INSTRUMENTS.put(BlockTypes.BEACON, Instrument.STICKS);
+        INSTRUMENTS.put(BlockTypes.SEA_LANTERN, Instrument.STICKS);
+        INSTRUMENTS.put(BlockTypes.STONE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.SANDSTONE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.RED_SANDSTONE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.COBBLESTONE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.MOSSY_COBBLESTONE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.BRICK_BLOCK, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.STONEBRICK, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.NETHER_BRICK, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.QUARTZ_BLOCK, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.STONE_SLAB, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.STONE_STAIRS, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.STONE_WALL, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.NETHER_BRICK_FENCE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.BEDROCK, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.GOLD_ORE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.IRON_ORE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.COAL_ORE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.LAPIS_ORE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.DIAMOND_ORE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.REDSTONE_ORE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.EMERALD_ORE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.DROPPER, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.DISPENSER, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.FURNACE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.OBSIDIAN, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.GLOWING_OBSIDIAN, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.MOB_SPAWNER, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.STONE_PRESSURE_PLATE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.NETHERRACK, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.QUARTZ_ORE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.ENCHANTING_TABLE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.END_PORTAL_FRAME, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.END_STONE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.END_BRICKS, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.ENDER_CHEST, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.STAINED_HARDENED_CLAY, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.HARDENED_CLAY, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.PRISMARINE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.COAL_BLOCK, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.PURPUR_BLOCK, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.MAGMA, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.CONCRETE, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.STONECUTTER, Instrument.BASS_DRUM);
+        INSTRUMENTS.put(BlockTypes.OBSERVER, Instrument.BASS_DRUM);
     }
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
-
-    @Override
-    public float getHardness() {
-        return 0.8f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 4f;
-    }
 
     @Override
     public boolean canBeActivated(Block block) {
@@ -166,7 +121,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         return placeBlock(block, item) && this.createBlockEntity(block) != null;
     }
 
@@ -187,7 +142,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     public void emitSound(Block block) {
-        if (block.up().getState().getType() != BlockIds.AIR) return;
+        if (block.up().getState().getType() != BlockTypes.AIR) return;
 
         Instrument instrument = this.getInstrument(block);
 
@@ -202,7 +157,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         this.increaseStrength(block);
         this.emitSound(block);
         return true;

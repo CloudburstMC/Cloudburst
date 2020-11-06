@@ -9,9 +9,9 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Hopper;
 import org.cloudburstmc.server.inventory.ContainerInventory;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -19,25 +19,16 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
-    @Override
-    public float getHardness() {
-        return 3;
-    }
 
     @Override
-    public float getResistance() {
-        return 24;
-    }
-
-    @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Direction facing = face.getOpposite();
 
         if (facing == Direction.UP) {
             facing = Direction.DOWN;
         }
 
-        var hopper = item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, facing)
+        var hopper = item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, facing)
                 .withTrait(BlockTraits.IS_TOGGLED, block.getLevel().isBlockPowered(block.getPosition()));
 
         placeBlock(block, hopper);
@@ -47,7 +38,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Hopper) {
@@ -62,9 +53,6 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
         return true;
     }
 
-    public boolean hasComparatorInputOverride() {
-        return true;
-    }
 
     @Override
     public int getComparatorInputOverride(Block block) {
@@ -93,32 +81,20 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
         return 0;
     }
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{toItem(block)};
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.getBehavior().getTier(hand).compareTo(TierTypes.WOOD) >= 0) {
+            return new ItemStack[]{toItem(block)};
         }
 
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.HOPPER);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemTypes.HOPPER);
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 }

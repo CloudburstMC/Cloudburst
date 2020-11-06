@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Rabbit;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -37,8 +37,8 @@ public class EntityRabbit extends Animal implements Rabbit {
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.RABBIT), Item.get(ItemIds.RABBIT_HIDE), Item.get(ItemIds.RABBIT_FOOT)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemTypes.RABBIT), ItemStack.get(ItemTypes.RABBIT_HIDE), ItemStack.get(ItemTypes.RABBIT_FOOT)};
     }
 
     @Override

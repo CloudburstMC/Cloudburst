@@ -33,7 +33,7 @@ public class ReflectionEventFireHandler implements EventFireHandler {
         for (ListenerMethod method : methods) {
             try {
                 method.run(event);
-            } catch (InvocationTargetException | IllegalAccessException e) {
+            } catch (Throwable e) {
                 log.error("Exception occurred while executing method " + method + " for " + event, e);
             }
         }

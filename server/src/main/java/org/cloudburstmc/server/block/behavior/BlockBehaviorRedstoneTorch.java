@@ -4,27 +4,23 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockIds.REDSTONE_TORCH;
-import static org.cloudburstmc.server.block.BlockIds.UNLIT_REDSTONE_TORCH;
-
 public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
     @Override
     public int getLightLevel(Block block) {
-        return block.getState().getType() == REDSTONE_TORCH ? 7 : 0;
+        return block.getState().ensureTrait(BlockTraits.IS_POWERED) ? 7 : 0;
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!super.place(item, block, target, face, clickPos, player)) {
             return false;
         }
@@ -48,16 +44,16 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
     @Override
     public int getWeakPower(Block block, Direction side) {
-        return block.getState().getType() == REDSTONE_TORCH && getBlockFace(block.getState()) != side ? 15 : 0;
+        return !block.getState().ensureTrait(BlockTraits.IS_POWERED) && getBlockFace(block.getState()) != side ? 15 : 0;
     }
 
     @Override
     public int getStrongPower(Block block, Direction side) {
-        return block.getState().getType() == REDSTONE_TORCH && side == Direction.DOWN ? this.getWeakPower(block, side) : 0;
+        return !block.getState().ensureTrait(BlockTraits.IS_POWERED) && side == Direction.DOWN ? this.getWeakPower(block, side) : 0;
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         super.onBreak(block, item);
 
         Vector3i pos = block.getPosition();
@@ -97,14 +93,14 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     protected boolean checkState(Block block) {
-        val type = block.getState().getType();
+        val state = block.getState();
         boolean powered = isPoweredFromSide(block);
 
-        if (powered && type == REDSTONE_TORCH || !powered && type == UNLIT_REDSTONE_TORCH) {
-            Direction face = getBlockFace(block.getState()).getOpposite();
+        if (powered != state.ensureTrait(BlockTraits.IS_POWERED)) {
+            Direction face = getBlockFace(state).getOpposite();
             Vector3i pos = block.getPosition();
 
-            block.set(BlockState.get(type == REDSTONE_TORCH ? UNLIT_REDSTONE_TORCH : REDSTONE_TORCH).copyTrait(BlockTraits.TORCH_DIRECTION, block.getState()));
+            block.set(state.toggleTrait(BlockTraits.IS_POWERED));
 
             for (Direction side : Direction.values()) {
                 if (side == face) {
@@ -130,10 +126,6 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
         return 2;
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
 
     @Override
     public BlockColor getColor(Block block) {

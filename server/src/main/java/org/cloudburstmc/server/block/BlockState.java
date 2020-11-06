@@ -19,7 +19,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public interface BlockState {
 
     @Nonnull
-    Identifier getType();
+    Identifier getId();
+
+    @Nonnull
+    BlockType getType();
 
     @Nullable
     <T extends Comparable<T>> T getTrait(BlockTrait<T> trait);
@@ -78,7 +81,7 @@ public interface BlockState {
         return BlockCategories.inCategory(this.getType(), category);
     }
 
-    static BlockState get(@Nonnull Identifier blockType) {
+    static BlockState get(@Nonnull BlockType blockType) {
         return BlockPalette.INSTANCE.getDefaultState(blockType);
     }
 }

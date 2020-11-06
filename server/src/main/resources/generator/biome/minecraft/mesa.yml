@@ -40,8 +40,8 @@ decorators:
             block: "stained_hardened_clay{color=red}"
           - count: "3-5"
             block: "stained_hardened_clay{color=white}"
-            above: "stained_hardened_clay{color=light_gray}"
-            below: "stained_hardened_clay{color=light_gray}"
+            above: "stained_hardened_clay{color=silver}"
+            below: "stained_hardened_clay{color=silver}"
 
 populators:
     # Dead bushes
@@ -54,7 +54,7 @@ populators:
       - "stained_hardened_clay{color=white}"
       - "stained_hardened_clay{color=orange}"
       - "stained_hardened_clay{color=yellow}"
-      - "stained_hardened_clay{color=light_gray}"
+      - "stained_hardened_clay{color=silver}"
       - "stained_hardened_clay{color=brown}"
       - "stained_hardened_clay{color=red}"
     block: "deadbush"

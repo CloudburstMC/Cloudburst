@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.player;
 
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -10,10 +10,10 @@ import org.cloudburstmc.server.player.Player;
  */
 public class PlayerItemHeldEvent extends PlayerEvent implements Cancellable {
 
-    private final Item item;
+    private final ItemStack item;
     private final int hotbarSlot;
 
-    public PlayerItemHeldEvent(Player player, Item item, int hotbarSlot) {
+    public PlayerItemHeldEvent(Player player, ItemStack item, int hotbarSlot) {
         super(player);
         this.item = item;
         this.hotbarSlot = hotbarSlot;
@@ -28,7 +28,7 @@ public class PlayerItemHeldEvent extends PlayerEvent implements Cancellable {
         return hotbarSlot;
     }
 
-    public Item getItem() {
+    public ItemStack getItem() {
         return item;
     }
 

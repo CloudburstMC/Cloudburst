@@ -6,8 +6,7 @@ import lombok.var;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -24,10 +23,6 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
 
     private static final float[] offMaxX = new float[2];
     private static final float[] offMaxZ = new float[2];
@@ -44,15 +39,6 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
         offMaxZ[1] = 1;
     }
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
-
-    @Override
-    public float getResistance() {
-        return 15;
-    }
 
 //    private int getOffsetIndex() {
 //        switch (this.getMeta() & 0x03) {
@@ -85,12 +71,12 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return placeBlock(block, item.getBlock().withTrait(BlockTraits.DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        return placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player == null) {
             return false;
         }
@@ -150,8 +136,5 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
         return 0;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

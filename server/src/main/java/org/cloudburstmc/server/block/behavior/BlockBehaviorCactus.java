@@ -9,26 +9,17 @@ import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorCactus extends BlockBehaviorTransparent {
 
-    @Override
-    public float getHardness() {
-        return 0.4f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 2;
-    }
 
     @Override
     public boolean hasEntityCollision() {
@@ -86,7 +77,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
             } else {
                 for (Direction direction : Plane.HORIZONTAL) {
                     Block side = block.getSide(direction);
-                    if (!side.getState().getBehavior().canBeFlooded()) {
+                    if (!side.getState().getBehavior().canBeFlooded(side.getState())) {
                         block.getLevel().useBreakOn(block.getPosition());
                     }
                 }
@@ -118,13 +109,13 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Block down = block.down();
         if (!block.isWaterlogged() && (down.getState().getType() == SAND || down.getState().getType() == CACTUS)) {
             for (Direction direction : Plane.HORIZONTAL) {
                 BlockState state = block.getSide(direction).getState();
 
-                if (!state.getBehavior().canBeFlooded()) {
+                if (!state.getBehavior().canBeFlooded(state)) {
                     return false;
                 }
             }
@@ -141,14 +132,11 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(CACTUS, 0, 1)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                ItemStack.get(CACTUS, 1)
         };
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

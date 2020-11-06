@@ -3,36 +3,16 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
 public class BlockBehaviorCarpet extends FloodableBlockBehavior {
-
-    @Override
-    public float getHardness() {
-        return 0.1f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 0.5f;
-    }
-
-    @Override
-    public boolean isSolid() {
-        return true;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return false;
-    }
 
 //    @Override
 //    public float getMaxY() {
@@ -40,7 +20,7 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
 //    }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Block down = block.down();
         if (down.getState().getType() != AIR) {
             placeBlock(block, item);
@@ -71,8 +51,5 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
         return block.getState().ensureTrait(BlockTraits.COLOR);
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

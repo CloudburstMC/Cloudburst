@@ -5,8 +5,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
@@ -14,24 +13,10 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
-import static org.cloudburstmc.server.block.BlockIds.CONCRETE;
+import static org.cloudburstmc.server.block.BlockTypes.CONCRETE;
 
 public class BlockBehaviorConcretePowder extends BlockBehaviorFallable {
 
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_SHOVEL;
-    }
 
     @Override
     public int onUpdate(Block block, int type) {
@@ -48,9 +33,9 @@ public class BlockBehaviorConcretePowder extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (checkLiquid(block)) {
-            placeBlock(block, BlockState.get(CONCRETE).withTrait(BlockTraits.COLOR, item.getBlock().ensureTrait(BlockTraits.COLOR)));
+            placeBlock(block, BlockState.get(CONCRETE).withTrait(BlockTraits.COLOR, item.getBehavior().getBlock(item).ensureTrait(BlockTraits.COLOR)));
         } else {
             placeBlock(block, item);
         }

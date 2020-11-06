@@ -3,8 +3,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.Smiteable;
 import org.cloudburstmc.server.entity.passive.ZombieHorse;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -33,8 +33,8 @@ public class EntityZombieHorse extends Animal implements ZombieHorse, Smiteable 
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.ROTTEN_FLESH, 1, 1)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemTypes.ROTTEN_FLESH)};
     }
 
     @Override

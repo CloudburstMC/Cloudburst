@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
@@ -21,24 +22,40 @@ import static com.google.common.base.Preconditions.checkState;
 @ParametersAreNonnullByDefault
 public final class CloudBlockState implements BlockState {
 
-    private final Identifier type;
+    private final Identifier id;
+    private final BlockType type;
     private final ImmutableMap<BlockTrait<?>, Comparable<?>> traits;
     private final Reference2IntMap<BlockTrait<?>> traitPalette;
+//    private final ImmutableList<NbtMap> tags;
     private CloudBlockState[][] table = null;
     private BlockState defaultState;
 
-    CloudBlockState(Identifier type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
-                    Reference2IntMap<BlockTrait<?>> traitPalette) {
+    CloudBlockState(Identifier id, BlockType type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
+                    Reference2IntMap<BlockTrait<?>> traitPalette/*, ImmutableList<NbtMap> tags*/) {
+        Preconditions.checkNotNull(id, "id");
+        Preconditions.checkNotNull(type, "type");
+        this.id = id;
         this.type = type;
         this.traits = traits;
         this.traitPalette = traitPalette;
+//        this.tags = tags;
     }
 
     @Nonnull
     @Override
-    public Identifier getType() {
+    public Identifier getId() {
+        return id;
+    }
+
+    @Nonnull
+    @Override
+    public BlockType getType() {
         return type;
     }
+
+//    public ImmutableCollection<NbtMap> getVanillaTags() {
+//        return tags;
+//    }
 
     @Nullable
     @Override
@@ -108,7 +125,11 @@ public final class CloudBlockState implements BlockState {
         return defaultState;
     }
 
-    public void buildStateTable(BlockState defaultState, Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map) {
+    public boolean isInitialized() {
+        return this.table != null;
+    }
+
+    public void initialize(BlockState defaultState, Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map) {
         checkState(this.table == null, "BlockTrait table has already been built");
         this.defaultState = defaultState;
         this.table = new CloudBlockState[this.traitPalette.size()][];

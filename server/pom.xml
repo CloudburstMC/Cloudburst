@@ -20,8 +20,8 @@
 
     <repositories>
         <repository>
-            <id>nukkitx-repo-release</id>
-            <url>https://repo.nukkitx.com/maven-releases/</url>
+            <id>opencollab-repo-release</id>
+            <url>https://repo.opencollab.dev/maven-releases/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -30,8 +30,8 @@
             </snapshots>
         </repository>
         <repository>
-            <id>nukkitx-repo-snapshot</id>
-            <url>https://repo.nukkitx.com/maven-snapshots/</url>
+            <id>opencollab-repo-snapshot</id>
+            <url>https://repo.opencollab.dev/maven-snapshots/</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -44,13 +44,13 @@
     <distributionManagement>
         <repository>
             <id>releases</id>
-            <name>nukkitx-releases</name>
-            <url>https://repo.nukkitx.com/release</url>
+            <name>opencollab-releases</name>
+            <url>https://repo.opencollab.dev/maven-releases</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
-            <name>nukkitx-snapshots</name>
-            <url>https://repo.nukkitx.com/snapshot</url>
+            <name>opencollab-snapshots</name>
+            <url>https://repo.opencollab.dev/maven-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -266,7 +266,7 @@
         <dependency>
             <groupId>com.nukkitx</groupId>
             <artifactId>block-state-updater</artifactId>
-            <version>1.16.20.1</version>
+            <version>1.16.20.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.nukkitx</groupId>

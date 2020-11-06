@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.Collections;
@@ -41,18 +41,18 @@ public class PlayerUIComponent extends BaseInventory {
     }
 
     @Override
-    public Item getItem(int index) {
+    public ItemStack getItem(int index) {
         return this.playerUI.getItem(index + this.offset);
     }
 
     @Override
-    public boolean setItem(int index, Item item, boolean send) {
+    public boolean setItem(int index, ItemStack item, boolean send) {
         return this.playerUI.setItem(index + this.offset, item, send);
     }
 
     @Override
-    public Map<Integer, Item> getContents() {
-        Map<Integer, Item> contents = playerUI.getContents();
+    public Map<Integer, ItemStack> getContents() {
+        Map<Integer, ItemStack> contents = playerUI.getContents();
         contents.keySet().removeIf(slot -> slot < offset || slot > offset + size);
         return contents;
     }
@@ -99,7 +99,7 @@ public class PlayerUIComponent extends BaseInventory {
     }
 
     @Override
-    public void onSlotChange(int index, Item before, boolean send) {
+    public void onSlotChange(int index, ItemStack before, boolean send) {
         this.playerUI.onSlotChange(index + this.offset, before, send);
     }
 }

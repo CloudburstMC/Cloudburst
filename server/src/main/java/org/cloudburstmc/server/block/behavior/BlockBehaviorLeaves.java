@@ -7,8 +7,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.LeavesDecayEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
@@ -18,68 +17,49 @@ import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
-import static org.cloudburstmc.server.item.behavior.ItemIds.APPLE;
-import static org.cloudburstmc.server.item.behavior.ItemIds.STICK;
+import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.server.item.ItemTypes.APPLE;
+import static org.cloudburstmc.server.item.ItemTypes.STICK;
 
 public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
-    @Override
-    public float getHardness() {
-        return 0.2f;
-    }
 
     @Override
-    public int getToolType() {
-        return ItemTool.TYPE_SHEARS;
-    }
-
-    @Override
-    public int getBurnChance() {
-        return 30;
-    }
-
-    @Override
-    public int getBurnAbility() {
-        return 60;
-    }
-
-    @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         return placeBlock(block, BlockState.get(LEAVES).withTrait(BlockTraits.IS_PERSISTENT, true));
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(BlockState.get(LEAVES).copyTrait(BlockTraits.TREE_SPECIES, block.getState()));
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(BlockState.get(LEAVES).copyTrait(BlockTraits.TREE_SPECIES_OVERWORLD, block.getState()));
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         val state = block.getState();
-        if (hand.isShears()) {
-            return new Item[]{
+        if (hand.getBehavior().isShears()) {
+            return new ItemStack[]{
                     toItem(block)
             };
         } else {
             if (this.canDropApple(state) && ThreadLocalRandom.current().nextInt(200) == 0) {
-                return new Item[]{
-                        Item.get(APPLE)
+                return new ItemStack[]{
+                        ItemStack.get(APPLE)
                 };
             }
             if (ThreadLocalRandom.current().nextInt(20) == 0) {
                 if (ThreadLocalRandom.current().nextBoolean()) {
-                    return new Item[]{
-                            Item.get(STICK, 0, ThreadLocalRandom.current().nextInt(1, 2))
+                    return new ItemStack[]{
+                            ItemStack.get(STICK, ThreadLocalRandom.current().nextInt(1, 2))
                     };
-                } else if (state.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
-                    return new Item[]{
+                } else if (state.ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD) != TreeSpecies.JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
+                    return new ItemStack[]{
                             this.getSapling(state)
                     };
                 }
             }
         }
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     @Override
@@ -108,7 +88,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
             val state = collisionBlock.getState().getType();
 
-            if (state == LOG || state == LOG2) {
+            if (state == LOG) {
                 return true;
             }
         }
@@ -128,22 +108,15 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 
     protected boolean canDropApple(BlockState state) {
-        val type = state.ensureTrait(BlockTraits.TREE_SPECIES);
+        val type = state.ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD);
         return type == TreeSpecies.OAK || type == TreeSpecies.DARK_OAK;
     }
 
-    protected Item getSapling(BlockState state) {
-        return Item.get(BlockState.get(SAPLING).copyTrait(BlockTraits.TREE_SPECIES, state));
+    protected ItemStack getSapling(BlockState state) {
+        return ItemStack.get(BlockState.get(SAPLING).copyTrait(BlockTraits.TREE_SPECIES_OVERWORLD, state));
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

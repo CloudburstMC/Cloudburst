@@ -8,20 +8,20 @@ import org.cloudburstmc.server.blockentity.Barrel;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.inventory.ContainerInventory;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.ItemRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockIds.BARREL;
+import static org.cloudburstmc.server.block.BlockTypes.BARREL;
 
 public class BlockBehaviorBarrel extends BlockBehaviorSolid {
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState newState = BlockState.get(BARREL);
         Direction facing;
 
@@ -43,13 +43,13 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
         block.set(newState, true, false);
 
         Barrel barrel = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, block.getChunk(), block.getPosition());
-        barrel.loadAdditionalData(item.getTag());
+        barrel.loadAdditionalData(((CloudItemStack) item).getDataTag());
 
         return true;
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player == null) {
             return false;
         }
@@ -72,20 +72,6 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 2.5f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 12.5f;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
@@ -93,14 +79,10 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return ItemRegistry.get().getItem(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState().defaultState());
     }
 
-    @Override
-    public boolean hasComparatorInputOverride() {
-        return true;
-    }
 
     @Override
     public int getComparatorInputOverride(Block block) {
