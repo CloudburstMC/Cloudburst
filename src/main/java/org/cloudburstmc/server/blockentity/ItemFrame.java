@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 public interface ItemFrame extends BlockEntity {
 
@@ -8,9 +8,9 @@ public interface ItemFrame extends BlockEntity {
 
     void setItemRotation(int itemRotation);
 
-    Item getItem();
+    ItemStack getItem();
 
-    void setItem(Item item);
+    void setItem(ItemStack item);
 
     float getItemDropChance();
 

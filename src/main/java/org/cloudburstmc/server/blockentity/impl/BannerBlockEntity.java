@@ -6,11 +6,11 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import lombok.val;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Banner;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.utils.BannerPattern;
+import org.cloudburstmc.server.utils.data.BannerPattern;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
     @Override
     public boolean isValid() {
         val b = getBlockState().getType();
-        return b == BlockIds.WALL_BANNER || b == BlockIds.STANDING_BANNER;
+        return b == BlockTypes.WALL_BANNER || b == BlockTypes.STANDING_BANNER;
     }
 
     @Override

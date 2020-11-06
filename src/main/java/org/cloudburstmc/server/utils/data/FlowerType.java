@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.utils.data;
 
 public enum FlowerType {
+    DANDELION,
     POPPY,
     ORCHID,
     ALLIUM,

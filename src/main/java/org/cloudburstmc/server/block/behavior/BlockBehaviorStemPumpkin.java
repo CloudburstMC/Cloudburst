@@ -6,14 +6,14 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
 
@@ -59,14 +59,14 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.PUMPKIN_SEEDS);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemTypes.PUMPKIN_SEEDS);
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(ItemIds.PUMPKIN_SEEDS, 0, ThreadLocalRandom.current().nextInt(0, 4))
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                ItemStack.get(ItemTypes.PUMPKIN_SEEDS, ThreadLocalRandom.current().nextInt(0, 4))
         };
     }
 }

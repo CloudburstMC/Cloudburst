@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.utils.data;
 
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.NonSerializable;
 
-public enum DyeColor {
+public enum DyeColor implements NonSerializable {
 
 
     BLACK(0, 15, "Black", "Ink Sack", BlockColor.BLACK_BLOCK_COLOR),

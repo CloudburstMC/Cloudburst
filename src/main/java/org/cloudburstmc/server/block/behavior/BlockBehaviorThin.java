@@ -2,10 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 public abstract class BlockBehaviorThin extends BlockBehaviorTransparent {
 
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
 
 //    protected AxisAlignedBB recalculateBoundingBox() { //TODO: bounding box
 //        float f = 0.4375f;

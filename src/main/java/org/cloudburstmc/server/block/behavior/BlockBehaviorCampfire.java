@@ -2,21 +2,20 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Campfire;
+import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemEdible;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.item.behavior.ItemEdibleBehavior;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -31,20 +30,6 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     private static final int CAMPFIRE_LIT_MASK = 0x04; // Bit is 1 when fire is extinguished
     private static final int CAMPFIRE_FACING_MASK = 0x03;
 
-    @Override
-    public float getHardness() {
-        return 2.0f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 10.0f;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
 
     public boolean isLit(Block block) {
         return !block.getState().ensureTrait(BlockTraits.IS_EXTINGUISHED);
@@ -59,14 +44,14 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
         if (!state.getBehavior().canBeReplaced(block)) return false;
-        if (block.down().getState().getType() == BlockIds.CAMPFIRE) {
+        if (block.down().getState().getType() == BlockTypes.CAMPFIRE) {
             return false;
         }
 
-        BlockState campfire = BlockRegistry.get().getBlock(BlockIds.CAMPFIRE)
+        BlockState campfire = BlockRegistry.get().getBlock(BlockTypes.CAMPFIRE)
                 .withTrait(BlockTraits.DIRECTION, player.getHorizontalDirection().getOpposite());
 
         if (placeBlock(block, campfire)) {
@@ -88,48 +73,33 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
-
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
-
-    @Override
-    public boolean canBeFlooded() {
-        return false;
-    }
-
-    @Override
-    public boolean onActivate(Block block, Item item) {
+    public boolean onActivate(Block block, ItemStack item) {
         return this.onActivate(block, item, null);
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.getEnchantment(Enchantment.ID_SILK_TOUCH) != null) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (hand.getEnchantment(EnchantmentTypes.SILK_TOUCH) != null) {
             return super.getDrops(block, hand);
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
-        if (item.getId() == ItemIds.FLINT_AND_STEEL
-                || item.getEnchantment(Enchantment.ID_FIRE_ASPECT) != null) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        if (item.getType() == ItemTypes.FLINT_AND_STEEL
+                || item.getEnchantment(EnchantmentTypes.FIRE_ASPECT) != null) {
             if (!(this.isLit(block))) {
                 this.toggleFire(block);
             }
             return true;
-        } else if (item.isShovel()) {
+        } else if (item.getBehavior().isShovel()) {
             if (this.isLit(block)) {
                 this.toggleFire(block);
             }
             return true;
-        } else if (item instanceof ItemEdible) {
+        } else if (item.getBehavior() instanceof ItemEdibleBehavior) { //TODO: edible items
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
             if (blockEntity instanceof Campfire) {
@@ -137,11 +107,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
 
                 if (fire.putItemInFire(item)) {
                     if (player != null && player.isSurvival()) {
-                        item.decrementCount();
-                        if (item.getCount() <= 0) {
-                            item = Item.get(BlockIds.AIR);
-                        }
-                        player.getInventory().setItemInHand(item);
+                        player.getInventory().decrementHandCount();
                     }
                 }
             }
@@ -169,7 +135,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
                 }
 
                 Block up = block.up();
-                if (up.getState().getType() == BlockIds.WATER || up.getState().getType() == BlockIds.FLOWING_WATER) {
+                if (up.getState().getType() == BlockTypes.WATER || up.getState().getType() == BlockTypes.FLOWING_WATER) {
                     this.toggleFire(block);
                     return type;
                 }

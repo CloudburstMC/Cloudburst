@@ -4,12 +4,12 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Barrel;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.inventory.BarrelInventory;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 
@@ -32,7 +32,7 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
 
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
-                Item item = ItemUtils.deserializeItem(itemTag);
+                ItemStack item = ItemUtils.deserializeItem(itemTag);
                 this.inventory.setItem(itemTag.getByte("Slot"), item);
             }
         });
@@ -43,7 +43,7 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
         }
         tag.putList("Items", NbtType.COMPOUND, items);
@@ -61,7 +61,7 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
 
     @Override
     public void onBreak() {
-        for (Item content : this.inventory.getContents().values()) {
+        for (ItemStack content : this.inventory.getContents().values()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
         this.inventory.clearAll(); // Stop items from being moved around by another player in the inventory
@@ -70,7 +70,7 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockIds.BARREL;
+        return getBlockState().getType() == BlockTypes.BARREL;
     }
 
     @Override

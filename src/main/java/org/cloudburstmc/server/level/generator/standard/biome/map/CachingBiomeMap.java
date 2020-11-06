@@ -25,7 +25,7 @@ public final class CachingBiomeMap implements BiomeMap {
     }
 
     public CachingBiomeMap(@NonNull BiomeMap delegate, int maxCacheSize) {
-        this.cache = new Long2ObjectLinkedOpenHashMap<>(PValidation.ensurePositive(maxCacheSize));
+        this.cache = new Long2ObjectLinkedOpenHashMap<>(PValidation.positive(maxCacheSize));
         this.delegate = delegate;
         this.maxCacheSize = maxCacheSize;
     }
@@ -71,7 +71,7 @@ public final class CachingBiomeMap implements BiomeMap {
 
     @Override
     public GenerationBiome[] getRegion(GenerationBiome[] arr, int x, int z, int sizeX, int sizeZ) {
-        int totalSize = PValidation.ensurePositive(sizeX) * PValidation.ensurePositive(sizeZ);
+        int totalSize = PValidation.positive(sizeX) * PValidation.positive(sizeZ);
         if (arr == null || arr.length < totalSize) {
             arr = new GenerationBiome[totalSize];
         }
@@ -94,7 +94,7 @@ public final class CachingBiomeMap implements BiomeMap {
 
     @Override
     public Identifier[] getRegionIds(Identifier[] arr, int x, int z, int sizeX, int sizeZ) {
-        int totalSize = PValidation.ensurePositive(sizeX) * PValidation.ensurePositive(sizeZ);
+        int totalSize = PValidation.positive(sizeX) * PValidation.positive(sizeZ);
         if (arr == null || arr.length < totalSize) {
             arr = new Identifier[totalSize];
         }

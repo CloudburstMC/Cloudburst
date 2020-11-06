@@ -14,7 +14,7 @@ import org.cloudburstmc.server.utils.Identifier;
 import java.util.Objects;
 
 import static java.lang.Math.abs;
-import static net.daporkchop.lib.math.primitive.PMath.ceilI;
+import static net.daporkchop.lib.common.math.PMath.ceilI;
 
 /**
  * Places large spikes in the world.

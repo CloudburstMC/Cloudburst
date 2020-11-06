@@ -4,7 +4,7 @@ import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.inventory.Recipe;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class CraftItemEvent extends Event implements Cancellable {
 
-    private Item[] input = new Item[0];
+    private ItemStack[] input = new ItemStack[0];
 
     private final Recipe recipe;
 
@@ -28,18 +28,18 @@ public class CraftItemEvent extends Event implements Cancellable {
     public CraftItemEvent(CraftingTransaction transaction) {
         this.transaction = transaction;
 
-        List<Item> merged = new ArrayList<>();
-        Item[][] input = transaction.getInputMap();
+        List<ItemStack> merged = new ArrayList<>();
+        ItemStack[][] input = transaction.getInputMap();
 
-        for (Item[] items : input) {
+        for (ItemStack[] items : input) {
             merged.addAll(Arrays.asList(items));
         }
         this.player = transaction.getSource();
-        this.input = merged.toArray(new Item[0]);
+        this.input = merged.toArray(new ItemStack[0]);
         this.recipe = transaction.getRecipe();
     }
 
-    public CraftItemEvent(Player player, Item[] input, Recipe recipe) {
+    public CraftItemEvent(Player player, ItemStack[] input, Recipe recipe) {
         this.player = player;
         this.input = input;
         this.recipe = recipe;
@@ -49,7 +49,7 @@ public class CraftItemEvent extends Event implements Cancellable {
         return transaction;
     }
 
-    public Item[] getInput() {
+    public ItemStack[] getInput() {
         return input;
     }
 

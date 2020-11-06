@@ -6,11 +6,12 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Campfire;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemEdible;
+import org.cloudburstmc.server.item.behavior.ItemEdibleBehavior;
 import org.cloudburstmc.server.level.chunk.Chunk;
 
 /**
@@ -21,7 +22,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     private static final String[] ITEM_TAGS = {"Item1", "Item2", "Item3", "Item4"};
     private static final String[] TIME_TAGS = {"ItemTime1", "ItemTime2", "ItemTime3", "ItemTime4"};
 
-    private final Item[] items = new Item[4];
+    private final ItemStack[] items = new ItemStack[4];
     private final int[] itemTimes = new int[4];
 
     public CampfireBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
@@ -35,7 +36,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         boolean hasItems = false;
         for (int i = 0; i < 4; i++) {
             if (tag.containsKey(ITEM_TAGS[i])) {
-                Item item = ItemUtils.deserializeItem(tag.getCompound(ITEM_TAGS[i]));
+                ItemStack item = ItemUtils.deserializeItem(tag.getCompound(ITEM_TAGS[i]));
                 items[i] = item;
                 hasItems = true;
             } else {
@@ -56,7 +57,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         super.saveClientData(tag);
 
         for (int i = 0; i < 4; i++) {
-            Item item = this.items[i];
+            ItemStack item = this.items[i];
             if (item != null && !item.isNull()) {
                 tag.putCompound(ITEM_TAGS[i], ItemUtils.serializeItem(item));
                 tag.putInt(TIME_TAGS[i], this.itemTimes[i]);
@@ -66,7 +67,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockIds.CAMPFIRE;
+        return getBlockState().getType() == BlockTypes.CAMPFIRE;
     }
 
     @Override
@@ -91,7 +92,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         for (int i = 0; i < items.length; i++) {
             if (items[i] != null) {
                 if (++itemTimes[i] >= 600) {
-                    Item output = getLevel().getServer().getCraftingManager().matchFurnaceRecipe(items[i], BlockIds.CAMPFIRE).getResult();
+                    ItemStack output = getLevel().getServer().getCraftingManager().matchFurnaceRecipe(items[i], BlockIds.CAMPFIRE).getResult();
                     this.getLevel().dropItem(this.getPosition(), output);
                     items[i] = null;
                     itemTimes[i] = 0;
@@ -108,29 +109,27 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     @Override
     public void onBreak() {
-        for (Item item : items) {
+        for (ItemStack item : items) {
             if (item != null) {
                 this.getLevel().dropItem(this.getPosition(), item);
             }
         }
     }
 
-    public Item getItemInFire(int index) {
+    public ItemStack getItemInFire(int index) {
         if (index < 0 || index >= items.length) {
             return null;
         }
         return items[index];
     }
 
-    public boolean putItemInFire(Item item) {
-        if (!(item instanceof ItemEdible)) return false;
+    public boolean putItemInFire(ItemStack item) {
+        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
 
         if (this.getLevel().getServer().getCraftingManager().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
             for (int i = 0; i < items.length; i++) {
                 if (items[i] == null) {
-                    Item food = item.clone();
-                    if (food.getCount() != 1) food.setCount(1);
-                    items[i] = food;
+                    items[i] = item.withAmount(1);
                     itemTimes[i] = 0;
                     this.spawnToAll();
                     this.scheduleUpdate();
@@ -142,19 +141,18 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     @Override
-    public boolean putItemInFire(Item item, int index, boolean overwrite) {
+    public boolean putItemInFire(ItemStack item, int index, boolean overwrite) {
         if (index < 0 || index >= items.length) return false;
-        if (!(item instanceof ItemEdible)) return false;
+        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
 
-        Item food = item.clone();
-        if (food.getCount() != 1) food.setCount(1);
+        item = item.withAmount(1);
 
         boolean addedFood = false;
         if (items[index] == null) {
-            items[index] = food;
+            items[index] = item;
             addedFood = true;
         } else if (overwrite) {
-            items[index] = food;
+            items[index] = item;
             itemTimes[index] = 0;
             addedFood = true;
         }

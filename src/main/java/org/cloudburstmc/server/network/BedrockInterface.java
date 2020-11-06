@@ -34,7 +34,7 @@ public class BedrockInterface implements AdvancedSourceInterface, BedrockServerE
 
     private final BedrockServer bedrock;
     private final BedrockPong advertisement = new BedrockPong();
-    private Queue<NukkitSessionListener> disconnectQueue = new ConcurrentLinkedQueue<>();
+    private final Queue<NukkitSessionListener> disconnectQueue = new ConcurrentLinkedQueue<>();
 
     public BedrockInterface(CloudServer server) throws Exception {
         this.server = server;

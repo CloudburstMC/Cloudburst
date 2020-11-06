@@ -3,8 +3,8 @@ package org.cloudburstmc.server.entity.impl.hostile;
 import org.cloudburstmc.server.entity.Arthropod;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.hostile.Spider;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -38,7 +38,7 @@ public class EntitySpider extends EntityHostile implements Spider, Arthropod {
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.STRING), Item.get(ItemIds.SPIDER_EYE)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemTypes.STRING), ItemStack.get(ItemTypes.SPIDER_EYE)};
     }
 }

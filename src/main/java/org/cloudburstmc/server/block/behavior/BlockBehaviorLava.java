@@ -12,7 +12,7 @@ import org.cloudburstmc.server.event.block.BlockIgniteEvent;
 import org.cloudburstmc.server.event.entity.EntityCombustByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -22,8 +22,8 @@ import org.cloudburstmc.server.utils.BlockColor;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.FLOWING_LAVA;
-import static org.cloudburstmc.server.block.BlockIds.LAVA;
+import static org.cloudburstmc.server.block.BlockTypes.FLOWING_LAVA;
+import static org.cloudburstmc.server.block.BlockTypes.LAVA;
 
 public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
@@ -31,10 +31,6 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
         super(FLOWING_LAVA, LAVA);
     }
 
-    @Override
-    public int getLightLevel(Block block) {
-        return 15;
-    }
 
     @Override
     public void onEntityCollide(Block block, Entity entity) {
@@ -59,8 +55,8 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        boolean ret = placeBlock(block, BlockState.get(BlockIds.FLOWING_LAVA));
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        boolean ret = placeBlock(block, BlockState.get(BlockTypes.FLOWING_LAVA));
 
         block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
         return ret;
@@ -84,13 +80,13 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                     val b = level.getBlock(v);
                     val state = b.getState();
 
-                    if (state.getType() == BlockIds.AIR) {
+                    if (state.getType() == BlockTypes.AIR) {
                         if (this.isSurroundingBlockFlammable(b)) {
                             BlockIgniteEvent e = new BlockIgniteEvent(b, block, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
                             level.getServer().getEventManager().fire(e);
 
                             if (!e.isCancelled()) {
-                                BlockState fire = BlockState.get(BlockIds.FIRE);
+                                BlockState fire = BlockState.get(BlockTypes.FIRE);
                                 b.set(fire, true);
                                 level.scheduleUpdate(v, fire.getBehavior().tickRate());
                                 return Level.BLOCK_UPDATE_RANDOM;
@@ -108,12 +104,12 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                     val b = level.getBlock(v);
                     val state = b.getState();
 
-                    if (b.up().getState().getType() == BlockIds.AIR && state.getBehavior().getBurnChance() > 0) {
+                    if (b.up().getState().getType() == BlockTypes.AIR && state.getBehavior().getBurnChance(state) > 0) {
                         BlockIgniteEvent e = new BlockIgniteEvent(b, block, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
                         level.getServer().getEventManager().fire(e);
 
                         if (!e.isCancelled()) {
-                            BlockState fire = BlockState.get(BlockIds.FIRE);
+                            BlockState fire = BlockState.get(BlockTypes.FIRE);
                             b.set(fire, true);
                             level.scheduleUpdate(v, fire.getBehavior().tickRate());
                         }
@@ -127,7 +123,8 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
     protected boolean isSurroundingBlockFlammable(Block block) {
         for (Direction face : Direction.values()) {
-            if (block.getSide(face).getState().getBehavior().getBurnChance() > 0) {
+            val sideState = block.getSide(face).getState();
+            if (sideState.getBehavior().getBurnChance(sideState) > 0) {
                 return true;
             }
         }
@@ -164,8 +161,8 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
             val side = block.getSide(direction);
 
-            if (side.getState().getBehavior() instanceof BlockBehaviorWater
-                    || side.getExtra().getBehavior() instanceof BlockBehaviorWater) {
+            if (side.getState().getType() == BlockTypes.WATER
+                    || side.getExtra().getType() == BlockTypes.WATER) {
                 colliding = side;
             }
         }
@@ -173,20 +170,20 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
         if (colliding != null) {
             int level = block.getState().ensureTrait(BlockTraits.FLUID_LEVEL);
             if (level == 0) {
-                this.liquidCollide(colliding, BlockState.get(BlockIds.OBSIDIAN));
+                this.liquidCollide(colliding, BlockState.get(BlockTypes.OBSIDIAN));
             } else if (level <= 4) {
-                this.liquidCollide(colliding, BlockState.get(BlockIds.COBBLESTONE));
+                this.liquidCollide(colliding, BlockState.get(BlockTypes.COBBLESTONE));
             }
         }
     }
 
     @Override
-    protected void flowIntoBlock(Block block, int newFlowDecay) {
+    protected void flowIntoBlock(Block block, int newFlowDecay, boolean falling) {
         val behavior = block.getState().getBehavior();
         if (behavior instanceof BlockBehaviorWater) {
-            ((BlockBehaviorLiquid) behavior).liquidCollide(block, BlockState.get(BlockIds.STONE));
+            ((BlockBehaviorLiquid) behavior).liquidCollide(block, BlockState.get(BlockTypes.STONE));
         } else {
-            super.flowIntoBlock(block, newFlowDecay);
+            super.flowIntoBlock(block, newFlowDecay, falling);
         }
     }
 

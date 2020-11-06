@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.block.trait.serializer;
 
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Map;
 
 import static org.cloudburstmc.server.block.serializer.util.BedrockStateTags.*;
 
@@ -26,28 +26,36 @@ public class TreeSpeciesSerializer implements TraitSerializer<TreeSpecies> {
     };
 
     @Override
-    public String getName(BlockState state, BlockTrait<?> blockTrait) {
-        Identifier type = state.getType();
-
-        if (type == BlockIds.PLANKS) {
+    public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
+        if (type == BlockTypes.PLANKS) {
             return "wood_type";
         }
 
-        if (type == BlockIds.SAPLING) {
+        if (type == BlockTypes.SAPLING) {
             return "sapling_type";
         }
 
-        if (type == BlockIds.BAMBOO_SAPLING) {
+        if (type == BlockTypes.BAMBOO_SAPLING) {
             return "sapling_type";
         }
 
-        int index = state.ensureTrait(BlockTraits.TREE_SPECIES).ordinal() >> 2;
+        TreeSpecies val = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES);
 
-        if (type == BlockIds.LOG) {
+        if (val == null) {
+            val = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES_OVERWORLD);
+        }
+
+        if (val == null) {
+            val = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES_NETHER);
+        }
+
+        int index = val.ordinal() >> 2;
+
+        if (type == BlockTypes.LOG) {
             return BEDROCK_LOG_TRAITS[index];
         }
 
-        if (type == BlockIds.LEAVES) {
+        if (type == BlockTypes.LEAVES) {
             return BEDROCK_LEAF_TRAITS[index];
         }
 

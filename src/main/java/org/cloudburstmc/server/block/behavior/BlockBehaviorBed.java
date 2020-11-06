@@ -5,8 +5,8 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.blockentity.Bed;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.locale.TranslationContainer;
@@ -26,18 +26,9 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public float getResistance() {
-        return 1;
-    }
 
     @Override
-    public float getHardness() {
-        return 0.2f;
-    }
-
-    @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         BlockState state = block.getState();
 
         BlockState head = null;
@@ -48,7 +39,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             for (Direction face : Plane.HORIZONTAL) {
                 BlockState side = block.getSide(face).getState();
 
-                if (side.getType() == BlockIds.BED && side.ensureTrait(BlockTraits.IS_HEAD_PIECE)) {
+                if (side.getType() == BlockTypes.BED && side.ensureTrait(BlockTraits.IS_HEAD_PIECE)) {
                     head = side;
                     break;
                 }
@@ -90,7 +81,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
         BlockRegistry registry = BlockRegistry.get();
 
@@ -101,14 +92,14 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             BlockState downNext = next.down().getState();
 
             if (nextBehavior.canBeReplaced(next) && !downNext.inCategory(BlockCategory.TRANSPARENT)) {
-                BlockState bed = registry.getBlock(BlockIds.BED)
+                BlockState bed = registry.getBlock(BlockTypes.BED)
                         .withTrait(BlockTraits.DIRECTION, player.getDirection());
 
                 placeBlock(block, bed);
                 placeBlock(next, bed.withTrait(BlockTraits.IS_HEAD_PIECE, true));
 
-                createBlockEntity(block, item.getMeta());
-                createBlockEntity(next, item.getMeta());
+                createBlockEntity(block, item.getMetadata(DyeColor.class));
+                createBlockEntity(next, item.getMetadata(DyeColor.class));
                 return true;
             }
         }
@@ -117,7 +108,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         BlockState state = block.getState();
         boolean head = state.ensureTrait(BlockTraits.IS_HEAD_PIECE);
         Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
@@ -127,7 +118,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             Block side = block.getSide(direction);
             BlockState face = side.getState();
 
-            if (face.getType() == BlockIds.BED && face.ensureTrait(BlockTraits.IS_HEAD_PIECE) != head && face.ensureTrait(BlockTraits.DIRECTION) == facing) {
+            if (face.getType() == BlockTypes.BED && face.ensureTrait(BlockTraits.IS_HEAD_PIECE) != head && face.ensureTrait(BlockTraits.DIRECTION) == facing) {
                 otherPart = side;
                 break;
             }
@@ -141,14 +132,14 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         return true;
     }
 
-    private void createBlockEntity(Block block, int color) {
+    private void createBlockEntity(Block block, DyeColor color) {
         Bed bed = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BED, block.getChunk(), block.getPosition());
-        bed.setColor(DyeColor.getByDyeData(color));
+        bed.setColor(color);
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.BED, this.getDyeColor(block).getWoolData());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemTypes.BED, 1, this.getDyeColor(block));
     }
 
     @Override
@@ -166,8 +157,5 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         return DyeColor.WHITE;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

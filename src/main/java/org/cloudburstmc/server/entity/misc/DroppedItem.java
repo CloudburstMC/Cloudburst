@@ -1,16 +1,16 @@
 package org.cloudburstmc.server.entity.misc;
 
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
 public interface DroppedItem extends Entity {
 
-    Item getItem();
+    ItemStack getItem();
 
-    void setItem(@Nonnull Item item);
+    void setItem(@Nonnull ItemStack item);
 
     @Nonnegative
     int getPickupDelay();

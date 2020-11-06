@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import org.cloudburstmc.server.blockentity.Furnace;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 /**
  * author: MagicDroidX
@@ -22,32 +22,32 @@ public class FurnaceInventory extends ContainerInventory {
         return (Furnace) this.holder;
     }
 
-    public Item getResult() {
+    public ItemStack getResult() {
         return this.getItem(SLOT_RESULT);
     }
 
-    public Item getFuel() {
+    public ItemStack getFuel() {
         return this.getItem(SLOT_FUEL);
     }
 
-    public Item getSmelting() {
+    public ItemStack getSmelting() {
         return this.getItem(SLOT_SMELTING);
     }
 
-    public boolean setResult(Item item) {
+    public boolean setResult(ItemStack item) {
         return this.setItem(SLOT_RESULT, item);
     }
 
-    public boolean setFuel(Item item) {
+    public boolean setFuel(ItemStack item) {
         return this.setItem(SLOT_FUEL, item);
     }
 
-    public boolean setSmelting(Item item) {
+    public boolean setSmelting(ItemStack item) {
         return this.setItem(SLOT_SMELTING, item);
     }
 
     @Override
-    public void onSlotChange(int index, Item before, boolean send) {
+    public void onSlotChange(int index, ItemStack before, boolean send) {
         super.onSlotChange(index, before, send);
 
         this.getHolder().scheduleUpdate();

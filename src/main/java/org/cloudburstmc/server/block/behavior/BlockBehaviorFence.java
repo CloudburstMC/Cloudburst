@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public abstract class BlockBehaviorFence extends BlockBehaviorTransparent {
@@ -50,12 +50,9 @@ public abstract class BlockBehaviorFence extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().defaultState());
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

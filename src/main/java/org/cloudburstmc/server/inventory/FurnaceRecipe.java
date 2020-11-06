@@ -1,7 +1,9 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import org.cloudburstmc.server.item.behavior.Item;
+import lombok.val;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.concurrent.Immutable;
@@ -13,23 +15,23 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public class FurnaceRecipe implements Recipe {
 
-    private final Item output;
-    private final Item ingredient;
+    private final ItemStack output;
+    private final ItemStack ingredient;
     private final Identifier block;
 
-    public FurnaceRecipe(Item result, Item ingredient, Identifier block) {
-        this.output = result.clone();
-        this.ingredient = ingredient.clone();
+    public FurnaceRecipe(ItemStack result, ItemStack ingredient, Identifier block) {
+        this.output = result;
+        this.ingredient = ingredient;
         this.block = block;
     }
 
-    public Item getInput() {
-        return this.ingredient.clone();
+    public ItemStack getInput() {
+        return this.ingredient;
     }
 
     @Override
-    public Item getResult() {
-        return this.output.clone();
+    public ItemStack getResult() {
+        return this.output;
     }
 
     @Override
@@ -39,7 +41,7 @@ public class FurnaceRecipe implements Recipe {
 
     @Override
     public RecipeType getType() {
-        return this.ingredient.hasMeta() ? RecipeType.FURNACE_DATA : RecipeType.FURNACE;
+        return ((CloudItemStack) ingredient).getNetworkData().getDamage() >= 0 ? RecipeType.FURNACE_DATA : RecipeType.FURNACE;
     }
 
     @Override
@@ -49,10 +51,13 @@ public class FurnaceRecipe implements Recipe {
 
     @Override
     public CraftingData toNetwork(int netId) {
-        if (this.ingredient.hasMeta()) {
-            return CraftingData.fromFurnaceData(ingredient.getNetworkId(), ingredient.getMeta(), output.toNetwork(), block.getName(), netId);
+        val ingredientData = ((CloudItemStack) ingredient).getNetworkData();
+        val outputData = ((CloudItemStack) output).getNetworkData();
+
+        if (ingredientData.getDamage() >= 0) {
+            return CraftingData.fromFurnaceData(ingredientData.getId(), ingredientData.getDamage(), outputData, block.getName(), netId);
         } else {
-            return CraftingData.fromFurnace(ingredient.getNetworkId(), output.toNetwork(), block.getName(), netId);
+            return CraftingData.fromFurnace(ingredientData.getId(), outputData, block.getName(), netId);
         }
     }
 }

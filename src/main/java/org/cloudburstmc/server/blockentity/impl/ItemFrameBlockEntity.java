@@ -3,23 +3,21 @@ package org.cloudburstmc.server.blockentity.impl;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.ItemFrame;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.chunk.Chunk;
 
 import java.util.Objects;
-
-import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * Created by Pub4Game on 03.07.2016.
  */
 public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
-    private Item item;
+    private ItemStack item;
     private float itemRotation;
     private float itemDropChance = 1.0f;
 
@@ -51,7 +49,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public boolean isValid() {
-        return this.getBlockState().getType() == BlockIds.FRAME;
+        return this.getBlockState().getType() == BlockTypes.FRAME;
     }
 
     @Override
@@ -69,16 +67,14 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     }
 
     @Override
-    public Item getItem() {
-        return this.item.clone();
+    public ItemStack getItem() {
+        return this.item;
     }
 
     @Override
-    public void setItem(Item item) {
+    public void setItem(ItemStack item) {
         if (!Objects.equals(this.item, item)) {
-            this.item = item.clone();
             this.setDirty();
-
             this.getLevel().updateComparatorOutputLevel(this.getPosition());
         }
     }
@@ -103,7 +99,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public int getAnalogOutput() {
-        return this.getItem() == null || this.getItem().getId() == AIR ? 0 : this.getItemRotation() % 8 + 1;
+        return this.getItem() == null || this.getItem().isNull() ? 0 : this.getItemRotation() % 8 + 1;
     }
 
     @Override

@@ -17,13 +17,13 @@ import org.cloudburstmc.server.utils.Identifier;
 public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter {
     @Override
     public boolean test(BlockState state) {
-        Identifier id = state.getType();
-        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || (!state.getBehavior().isLiquid() && state.getBehavior().canBeReplaced(null));
+        Identifier id = state.getId();
+        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || (!state.getBehavior().isLiquid() && state.getType().isReplaceable());
     }
 
     public boolean testOrLiquid(BlockState state) {
-        Identifier id = state.getType();
-        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || state.getBehavior().canBeReplaced(null);
+        Identifier id = state.getId();
+        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || state.getType().isReplaceable();
     }
 
     public boolean testOrLiquid(int runtimeId) {
@@ -40,7 +40,7 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      */
     public void replaceGrassWithDirt(ChunkManager level, int x, int y, int z) {
         if (y >= 0 && y < 256) {
-            Identifier id = level.getBlockAt(x, y, z).getType();
+            Identifier id = level.getBlockAt(x, y, z).getId();
             if (id == BlockIds.GRASS || id == BlockIds.MYCELIUM || id == BlockIds.PODZOL) {
                 level.setBlockAt(x, y, z, BlockStates.DIRT);
             }

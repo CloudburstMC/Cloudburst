@@ -1,36 +1,22 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentTypes;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorOreCoal extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 3;
-    }
 
     @Override
-    public float getResistance() {
-        return 15;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
-
-    @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (checkTool(block.getState(), hand)) {
             int count = 1;
-            Enchantment fortune = hand.getEnchantment(Enchantment.ID_FORTUNE_DIGGING);
+            EnchantmentInstance fortune = hand.getEnchantment(EnchantmentTypes.FORTUNE);
             if (fortune != null && fortune.getLevel() >= 1) {
                 int i = ThreadLocalRandom.current().nextInt(fortune.getLevel() + 2) - 1;
 
@@ -41,11 +27,11 @@ public class BlockBehaviorOreCoal extends BlockBehaviorSolid {
                 count = i + 1;
             }
 
-            return new Item[]{
-                    Item.get(ItemIds.COAL, 0, count)
+            return new ItemStack[]{
+                    ItemStack.get(ItemTypes.COAL, count)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 
@@ -54,15 +40,6 @@ public class BlockBehaviorOreCoal extends BlockBehaviorSolid {
         return ThreadLocalRandom.current().nextInt(0, 2);
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
-
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 
     @Override
     public BlockColor getColor(Block block) {

@@ -35,9 +35,9 @@ public enum TextFormat {
      */
     DARK_PURPLE('5', 0x5),
     /**
-     * Represents orange.
+     * Represents gold.
      */
-    ORANGE('6', 0x6),
+    GOLD('6', 0x6),
     /**
      * Represents gray.
      */
@@ -75,9 +75,9 @@ public enum TextFormat {
      */
     WHITE('f', 0xF),
     /**
-     * Represents gold.
+     * Represents minecoin gold.
      */
-    GOLD('g', 0x16),
+    MINECOIN_GOLD('g', 0x16),
     /**
      * Makes the text obfuscated.
      */

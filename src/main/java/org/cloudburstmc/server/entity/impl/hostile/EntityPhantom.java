@@ -3,8 +3,8 @@ package org.cloudburstmc.server.entity.impl.hostile;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.Smiteable;
 import org.cloudburstmc.server.entity.hostile.Phantom;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 
 /**
@@ -38,8 +38,8 @@ public class EntityPhantom extends EntityHostile implements Phantom, Smiteable {
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.PHANTOM_MEMBRANE)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemTypes.PHANTOM_MEMBRANE)};
     }
 
     @Override

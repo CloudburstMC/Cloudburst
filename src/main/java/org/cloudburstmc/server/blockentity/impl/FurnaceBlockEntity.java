@@ -6,9 +6,9 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import lombok.val;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Furnace;
 import org.cloudburstmc.server.event.inventory.FurnaceBurnEvent;
@@ -16,20 +16,21 @@ import org.cloudburstmc.server.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.server.inventory.FurnaceInventory;
 import org.cloudburstmc.server.inventory.FurnaceRecipe;
 import org.cloudburstmc.server.inventory.InventoryType;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemStacks;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.FURNACE;
 
 /**
  * @author MagicDroidX
@@ -72,7 +73,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         tag.putShort("BurnTime", burnTime);
         tag.putShort("BurnDuration", burnDuration);
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, Item> entry : this.inventory.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
             items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
         }
         tag.putList("Items", NbtType.COMPOUND, items);
@@ -90,15 +91,14 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
     @Override
     public void onBreak() {
-        for (Item content : inventory.getContents().values()) {
+        for (ItemStack content : inventory.getContents().values()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
     }
 
     @Override
     public boolean isValid() {
-        Identifier blockId = getBlockState().getType();
-        return blockId == FURNACE || blockId == LIT_FURNACE;
+        return getBlockState().getType() == FURNACE;
     }
 
     @Override
@@ -110,8 +110,9 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         return 1.0f;
     }
 
-    protected void checkFuel(Item fuel) {
-        FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel, fuel.getFuelTime() == null ? 0 : fuel.getFuelTime());
+    protected void checkFuel(ItemStack fuel) {
+        val behavior = fuel.getBehavior();
+        FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel, behavior.getFuelTime(fuel));
         this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return;
@@ -120,10 +121,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         burnDuration = (short) (ev.getBurnTime() / getBurnRate());
         burnTime = (short) (ev.getBurnTime() / getBurnRate());
 
-        val type = getBlockState().getType();
-        if (type == BlockIds.FURNACE
-                || type == BlockIds.SMOKER
-                || type == BlockIds.BLAST_FURNACE) {
+        if (getBlockState().ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
             lightFurnace();
         }
 
@@ -136,14 +134,15 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
                 p.sendPacket(packet);
             }
-            fuel.setCount(fuel.getCount() - 1);
-            if (fuel.getCount() == 0) {
-                if (fuel.getId() == ItemIds.BUCKET && fuel.getMeta() == 10) {
-                    fuel.setMeta(0);
-                    fuel.setCount(1);
+
+            if (fuel.getAmount() <= 1) {
+                if (fuel.getType() == ItemTypes.BUCKET && fuel.getMetadata(Bucket.class) == Bucket.LAVA) {
+                    fuel = fuel.toBuilder().amount(1).itemData(Bucket.EMPTY).build();
                 } else {
-                    fuel = Item.get(AIR, 0, 0);
+                    fuel = ItemStacks.AIR;
                 }
+            } else {
+                fuel = fuel.decrementAmount();
             }
             this.inventory.setFuel(fuel);
         }
@@ -158,15 +157,16 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         this.timing.startTiming();
 
         boolean ret = false;
-        Item fuel = this.inventory.getFuel();
-        Item raw = this.inventory.getSmelting();
-        Item product = this.inventory.getResult();
-        Identifier blockId = getBlockState().getType();
-        FurnaceRecipe smelt = this.server.getCraftingManager().matchFurnaceRecipe(raw, blockId);
-        boolean canSmelt = (smelt != null && raw.getCount() > 0 && ((smelt.getResult().equals(product, true)
-                && product.getCount() < product.getMaxStackSize()) || product.getId() == AIR));
+        ItemStack fuel = this.inventory.getFuel();
+        ItemStack raw = this.inventory.getSmelting();
+        ItemStack product = this.inventory.getResult();
+        BlockState state = getBlockState();
+        BlockType blockType = state.getType();
+        FurnaceRecipe smelt = this.server.getCraftingManager().matchFurnaceRecipe(raw, state.getId());
+        boolean canSmelt = (smelt != null && raw.getAmount() > 0 && ((smelt.getResult().equals(product)
+                && product.getAmount() < product.getBehavior().getMaxStackSize(product)) || product.isNull()));
 
-        if (burnTime <= 0 && canSmelt && fuel.getFuelTime() != null && fuel.getCount() > 0) {
+        if (burnTime <= 0 && canSmelt && fuel.getBehavior().getFuelTime(fuel) != 0 && fuel.getAmount() > 0) {
             this.checkFuel(fuel);
         }
 
@@ -176,15 +176,16 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             if (smelt != null && canSmelt) {
                 cookTime++;
                 if (cookTime >= (200 / getBurnRate())) {
-                    product = Item.get(smelt.getResult().getId(), smelt.getResult().getMeta(), product.getCount() + 1);
+                    product = smelt.getResult().incrementAmount();
 
                     FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
                     this.server.getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         this.inventory.setResult(ev.getResult());
-                        raw.setCount(raw.getCount() - 1);
-                        if (raw.getCount() == 0) {
-                            raw = Item.get(AIR, 0, 0);
+                        if (raw.getAmount() <= 1) {
+                            raw = ItemStacks.AIR;
+                        } else {
+                            raw = raw.decrementAmount();
                         }
                         this.inventory.setSmelting(raw);
                     }
@@ -199,7 +200,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             }
             ret = true;
         } else {
-            if (blockId == BlockIds.LIT_FURNACE || blockId == LIT_BLAST_FURNACE || blockId == LIT_SMOKER) {
+            if (!state.ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
                 extinguishFurnace();
             }
             burnTime = 0;
@@ -231,11 +232,11 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     protected void extinguishFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
+        this.getLevel().setBlock(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, true), true);
     }
 
     protected void lightFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(LIT_FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
+        this.getLevel().setBlock(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, false), true);
     }
 
     public int getBurnTime() {
@@ -276,7 +277,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     @Override
-    public int[] getHopperPushSlots(Direction direction, Item item) {
+    public int[] getHopperPushSlots(Direction direction, ItemStack item) {
         return new int[]{direction == Direction.DOWN ? FurnaceInventory.SLOT_SMELTING : FurnaceInventory.SLOT_FUEL};
     }
 }

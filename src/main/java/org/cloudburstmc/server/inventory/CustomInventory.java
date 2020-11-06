@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 
 import java.util.Map;
 
@@ -13,15 +13,15 @@ public abstract class CustomInventory extends ContainerInventory {
         super(holder, type);
     }
 
-    public CustomInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items) {
+    public CustomInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items) {
         super(holder, type, items);
     }
 
-    public CustomInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items, Integer overrideSize) {
+    public CustomInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize) {
         super(holder, type, items, overrideSize);
     }
 
-    public CustomInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items, Integer overrideSize, String overrideTitle) {
+    public CustomInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize, String overrideTitle) {
         super(holder, type, items, overrideSize, overrideTitle);
     }
 }

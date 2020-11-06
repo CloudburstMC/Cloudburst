@@ -9,12 +9,12 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 
 public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
@@ -35,12 +35,12 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!_isNormalBlock(block.getSide(face.getOpposite())) || face.getAxis().isVertical()) {
             return false;
         }
 
-        placeBlock(block, item.getBlock().withTrait(BlockTraits.DIRECTION, face));
+        placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.DIRECTION, face));
 
         if (player != null) {
             this.calculateState(block, false, false, -1, null);
@@ -49,7 +49,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         super.onBreak(block, item);
         val state = block.getState();
         boolean attached = isAttached(state);
@@ -179,10 +179,6 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         return state.ensureTrait(BlockTraits.IS_POWERED);
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
 
     @Override
     public int getWeakPower(Block block, Direction face) {
@@ -196,19 +192,10 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().defaultState());
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
-
-    @Override
-    public boolean canWaterlogFlowing() {
-        return true;
-    }
 
     private boolean _isNormalBlock(Block block) {
         return block.getState().getBehavior().isNormalBlock(block);

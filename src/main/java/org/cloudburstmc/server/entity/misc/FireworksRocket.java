@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.nbt.NbtMap;
 import org.cloudburstmc.server.entity.Entity;
+import org.cloudburstmc.server.item.data.Firework;
 
 public interface FireworksRocket extends Entity {
 
@@ -13,7 +13,7 @@ public interface FireworksRocket extends Entity {
 
     void setLifetime(int lifetime);
 
-    NbtMap getFireworkData();
+    Firework getFireworkData();
 
-    void setFireworkData(NbtMap tag);
+    void setFireworkData(Firework tag);
 }

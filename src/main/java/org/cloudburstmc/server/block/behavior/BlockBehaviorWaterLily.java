@@ -3,10 +3,10 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -45,12 +45,12 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 //    }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val targetType = target.getState().getType();
-        if (targetType == BlockIds.WATER || targetType == BlockIds.FLOWING_WATER) {
+        if (targetType == BlockTypes.WATER || targetType == BlockTypes.FLOWING_WATER) {
             Block up = target.up();
             if (up.getState() == BlockStates.AIR) {
-                placeBlock(block, BlockState.get(BlockIds.WATERLILY));
+                placeBlock(block, BlockState.get(BlockTypes.WATERLILY));
                 return true;
             }
         }
@@ -62,7 +62,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             val down = block.down().getState().getType();
 
-            if (down != BlockIds.WATER && down != BlockIds.FLOWING_WATER) {
+            if (down != BlockTypes.WATER && down != BlockTypes.FLOWING_WATER) {
                 block.getLevel().useBreakOn(block.getPosition());
                 return Level.BLOCK_UPDATE_NORMAL;
             }
@@ -71,17 +71,12 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState());
     }
 
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return false;
     }
 }

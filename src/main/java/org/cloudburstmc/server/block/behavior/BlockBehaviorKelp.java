@@ -8,25 +8,25 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
 import static org.cloudburstmc.server.block.BlockTraits.FLUID_LEVEL;
 import static org.cloudburstmc.server.block.BlockTraits.KELP_AGE;
+import static org.cloudburstmc.server.block.BlockTypes.*;
 import static org.cloudburstmc.server.math.Direction.DOWN;
 
 public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val state = block.getState();
 
         if (state.getType() != WATER && state.getType() != FLOWING_WATER) {
@@ -40,7 +40,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
         Block down = block.getSide(DOWN);
         BlockState downState = down.getState();
-        if ((downState.getType() != KELP && !downState.getBehavior().isSolid())
+        if ((downState.getType() != KELP && !downState.getBehavior().isSolid(downState))
                 || downState.getType() == MAGMA || downState.getType() == ICE || downState.getType() == SOUL_SAND) {
             return false;
         }
@@ -116,7 +116,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         Block down = block.down();
 
         if (down.getState().getType() == KELP) {
@@ -127,14 +127,14 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
-        if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) { //Bone Meal
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bone Meal
             val level = block.getLevel();
             int x = block.getX();
             int z = block.getZ();
             for (int y = block.getY() + 1; y < 255; y++) {
                 val above = level.getBlockAt(x, y, z);
-                Identifier blockAbove = above.getType();
+                val blockAbove = above.getType();
                 if (blockAbove == KELP) {
                     continue;
                 }
@@ -147,7 +147,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
                             level.addParticle(new BoneMealParticle(block.getPosition()));
 
                             if (player != null && !player.isCreative()) {
-                                item.decrementCount(1);
+                                player.getInventory().decrementHandCount();
                             }
                             return false;
                         }
@@ -164,19 +164,10 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.KELP);
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(ItemTypes.KELP);
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
-
-    @Override
-    public boolean canWaterlogFlowing() {
-        return true;
-    }
 
     @Override
     public boolean canBeActivated(Block block) {

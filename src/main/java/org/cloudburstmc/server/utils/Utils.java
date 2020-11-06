@@ -1,10 +1,15 @@
 package org.cloudburstmc.server.utils;
 
 import com.google.common.base.FinalizableReferenceQueue;
+import com.google.common.collect.Sets;
+import lombok.val;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -269,7 +274,7 @@ public class Utils {
         if (len % 2 != 0)
             throw new IllegalArgumentException("hexBinary needs to be even-length: " + s);
 
-        byte[] out = new byte[len / 2];
+        byte[] out = new byte[len >> 1];
 
         for (int i = 0; i < len; i += 2) {
             int h = hexToBin(s.charAt(i));
@@ -277,7 +282,7 @@ public class Utils {
             if (h == -1 || l == -1)
                 throw new IllegalArgumentException("contains illegal character for hexBinary: " + s);
 
-            out[i / 2] = (byte) (h * 16 + l);
+            out[i >> 1] = (byte) ((h << 4) + l);
         }
 
         return out;
@@ -288,5 +293,33 @@ public class Utils {
         if ('A' <= ch && ch <= 'F') return ch - 'A' + 10;
         if ('a' <= ch && ch <= 'f') return ch - 'a' + 10;
         return -1;
+    }
+
+    public static <T> T TODO() {
+        throw new UnsupportedOperationException("This method is not implemented");
+    }
+
+    @SuppressWarnings({"unchecked", "ConstantConditions"})
+    public static <T extends Enum<T>> T[] getEnumValues(Class<T> value, T... except) {
+        val set = Sets.newHashSet(except);
+        val values = value.getEnumConstants();
+        val stream = Arrays.stream(values).filter(v -> !set.contains(v));
+
+        return stream.toArray((s) -> (T[]) Array.newInstance(value, s));
+    }
+
+    public static void finalAccess(Field field) {
+        try {
+            if (Integer.parseInt(System.getProperty("java.version").split("\\.")[0]) <= 9) {
+                val modifiers = Field.class.getDeclaredField("modifiers");
+                modifiers.setAccessible(true);
+
+                modifiers.set(field, field.getModifiers() & (~Modifier.FINAL));
+            } else {
+//                val lookup = MethodHandles.privateLookupIn();
+            }
+        } catch (NoSuchFieldException | IllegalAccessException ignore) {
+
+        }
     }
 }

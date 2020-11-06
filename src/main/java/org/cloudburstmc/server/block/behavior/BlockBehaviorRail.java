@@ -2,18 +2,13 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Rail;
 import org.cloudburstmc.server.utils.data.RailDirection;
 
@@ -21,14 +16,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.cloudburstmc.server.block.BlockIds.RAIL;
+import static org.cloudburstmc.server.block.BlockTypes.RAIL;
 
 public class BlockBehaviorRail extends FloodableBlockBehavior {
 
-    protected final Identifier type;
+    protected final BlockType type;
     protected final BlockTrait<RailDirection> directionTrait;
 
-    public BlockBehaviorRail(Identifier type, BlockTrait<RailDirection> directionTrait) {
+    public BlockBehaviorRail(BlockType type, BlockTrait<RailDirection> directionTrait) {
         this.type = type;
         this.directionTrait = directionTrait;
     }
@@ -37,26 +32,6 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     // 0x7: Reset the block to normal
     // If the rail can be powered. So its a complex rail!
     protected boolean canBePowered = false;
-
-    @Override
-    public float getHardness() {
-        return 0.7f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 3.5f;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
 
     @Override
     public int onUpdate(Block block, int type) {
@@ -87,7 +62,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
 
     //Information from http://minecraft.gamepedia.com/Rail
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val down = block.down().getState();
         if (down.inCategory(BlockCategory.TRANSPARENT)) {
             return false;
@@ -243,14 +218,14 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return ItemStack.get(block.getState().defaultState());
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(RAIL)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                ItemStack.get(RAIL)
         };
     }
 }

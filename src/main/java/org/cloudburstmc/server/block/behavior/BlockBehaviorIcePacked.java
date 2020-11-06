@@ -1,33 +1,21 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
 
 public class BlockBehaviorIcePacked extends BlockBehaviorIce {
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
 
     @Override
     public int onUpdate(Block block, int type) {
         return 0; //not being melted
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         return removeBlock(block);
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
+
 }

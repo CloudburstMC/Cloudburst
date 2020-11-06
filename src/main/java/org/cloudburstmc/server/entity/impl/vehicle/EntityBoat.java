@@ -8,6 +8,7 @@ import lombok.val;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
@@ -17,13 +18,14 @@ import org.cloudburstmc.server.entity.vehicle.Boat;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleUpdateEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.ArrayList;
 
@@ -63,8 +65,8 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public void setWoodType(int woodType) {
-        this.data.setInt(VARIANT, woodType);
+    public void setWoodType(TreeSpecies woodType) {
+        this.data.setInt(VARIANT, woodType.ordinal());
     }
 
     @Override
@@ -175,7 +177,8 @@ public class EntityBoat extends EntityVehicle implements Boat {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                friction *= this.getLevel().getBlockAt(this.getPosition().down().toInt()).getBehavior().getFrictionFactor();
+                val b = this.getLevel().getBlockAt(this.getPosition().down().toInt());
+                friction *= b.getBehavior().getFrictionFactor(b);
             }
 
             this.motion = motion.mul(friction, 1, friction);
@@ -289,7 +292,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
                 val block = getLevel().getBlock(x, y, z);
                 BlockState state = block.getState();
 
-                if (state.getType() == BlockIds.WATER || state.getType() == BlockIds.FLOWING_WATER) {
+                if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {
                     double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
 
                     diffY = Math.min(maxY - level, diffY);
@@ -348,7 +351,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public boolean onInteract(Player player, Item item, Vector3f clickedPos) {
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         if (this.passengers.size() >= 2) {
             return false;
         }
@@ -412,7 +415,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         super.kill();
 
         if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-            this.getLevel().dropItem(this.getPosition(), Item.get(ItemIds.BOAT));
+            this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemTypes.BOAT));
         }
     }
 

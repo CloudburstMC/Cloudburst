@@ -1,13 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.RED_MUSHROOM;
+import static org.cloudburstmc.server.block.BlockTypes.RED_MUSHROOM;
 
 public class BlockBehaviorHugeMushroomRed extends BlockBehaviorSolid {
     public static final int NONE = 0;
@@ -24,36 +23,18 @@ public class BlockBehaviorHugeMushroomRed extends BlockBehaviorSolid {
     public static final int ALL = 14;
     public static final int STEM_ALL = 15;
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
 
     @Override
-    public float getHardness() {
-        return 0.2f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 1;
-    }
-
-    @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (ThreadLocalRandom.current().nextInt(0, 20) == 0) {
-            return new Item[]{
-                    Item.get(RED_MUSHROOM)
+            return new ItemStack[]{
+                    ItemStack.get(RED_MUSHROOM)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 
     @Override
     public BlockColor getColor(Block block) {

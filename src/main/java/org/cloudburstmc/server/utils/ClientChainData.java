@@ -6,6 +6,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nukkitx.protocol.bedrock.data.skin.AnimatedTextureType;
 import com.nukkitx.protocol.bedrock.data.skin.AnimationData;
 import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
@@ -336,7 +337,7 @@ public final class ClientChainData implements LoginChainData {
 
     private static AnimationData getAnimation(JsonNode element) {
         float frames = element.get("Frames").floatValue();
-        int type = element.get("Type").intValue();
+        AnimatedTextureType type = AnimatedTextureType.values()[element.get("Type").intValue()];
         byte[] data = Base64.getDecoder().decode(element.get("Image").textValue());
         int width = element.get("ImageWidth").intValue();
         int height = element.get("ImageHeight").intValue();

@@ -31,8 +31,6 @@ import org.cloudburstmc.server.inject.CloudburstModule;
 import org.cloudburstmc.server.inject.CloudburstPrivateModule;
 import org.cloudburstmc.server.inventory.CraftingManager;
 import org.cloudburstmc.server.inventory.Recipe;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.storage.StorageIds;
 import org.cloudburstmc.server.locale.LocaleManager;
@@ -192,9 +190,10 @@ public class CloudServer implements Server {
     private final CloudGameRuleRegistry gameRuleRegistry = CloudGameRuleRegistry.get();
     private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
     private final StorageRegistry storageRegistry = StorageRegistry.get();
+    private final EnchantmentRegistry enchantmentRegistry = EnchantmentRegistry.get();
     private final BlockRegistry blockRegistry = BlockRegistry.get();
     private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
-    private final ItemRegistry itemRegistry = ItemRegistry.get();
+    private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
     private final EntityRegistry entityRegistry = EntityRegistry.get();
     private final BiomeRegistry biomeRegistry = BiomeRegistry.get();
     private final CommandRegistry commandRegistry = CommandRegistry.get();
@@ -495,6 +494,7 @@ public class CloudServer implements Server {
         try {
             this.blockEntityRegistry.close();
             this.blockRegistry.close();
+            this.enchantmentRegistry.close();
             this.itemRegistry.close();
             this.entityRegistry.close();
             this.biomeRegistry.close();
@@ -1694,8 +1694,7 @@ public class CloudServer implements Server {
     }
 
     private void registerVanillaComponents() {
-        Enchantment.init();
-        Item.initCreativeItems();
+//        ItemStack.initCreativeItems(); //TODO: creative items
         Effect.init();
         Potion.init();
         Attribute.init();

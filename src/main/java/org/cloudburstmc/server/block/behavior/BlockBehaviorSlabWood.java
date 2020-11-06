@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
+import lombok.var;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.utils.data.SlabSlot;
 
 public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
 
@@ -18,37 +18,13 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
             BlockColor.BROWN_BLOCK_COLOR
     };
 
-    public BlockBehaviorSlabWood() {
-        super(BlockIds.WOODEN_SLAB, BlockIds.DOUBLE_WOODEN_SLAB);
-    }
-
     @Override
-    public int getBurnChance() {
-        return 5;
-    }
+    public ItemStack toItem(Block block) {
+        var state = block.getState();
+        if (block.getState().ensureTrait(BlockTraits.SLAB_SLOT) == SlabSlot.TOP) {
+            state = state.resetTrait(BlockTraits.SLAB_SLOT);
+        }
 
-    @Override
-    public int getBurnAbility() {
-        return 20;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
-
-    @Override
-    public float getResistance() {
-        return 15;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return true;
-    }
-
-    @Override
-    public Item toItem(Block state) {
-        return Item.get(state.getState().resetTrait(BlockTraits.IS_TOP_SLOT));
+        return ItemStack.get(state);
     }
 }

@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.entity.impl.passive;
 
+import lombok.val;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Chicken;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * Author: BeYkeRYkt Nukkit Project
@@ -38,8 +38,8 @@ public class EntityChicken extends Animal implements Chicken {
     }
 
     @Override
-    public Item[] getDrops() {
-        return new Item[]{Item.get(ItemIds.CHICKEN), Item.get(ItemIds.FEATHER)};
+    public ItemStack[] getDrops() {
+        return new ItemStack[]{ItemStack.get(ItemTypes.CHICKEN), ItemStack.get(ItemTypes.FEATHER)};
     }
 
     @Override
@@ -49,10 +49,10 @@ public class EntityChicken extends Animal implements Chicken {
     }
 
     @Override
-    public boolean isBreedingItem(Item item) {
-        Identifier id = item.getId();
+    public boolean isBreedingItem(ItemStack item) {
+        val id = item.getType();
 
-        return id == ItemIds.WHEAT_SEEDS || id == ItemIds.MELON_SEEDS || id == ItemIds.PUMPKIN_SEEDS ||
-                id == ItemIds.BEETROOT_SEEDS;
+        return id == ItemTypes.WHEAT_SEEDS || id == ItemTypes.MELON_SEEDS || id == ItemTypes.PUMPKIN_SEEDS ||
+                id == ItemTypes.BEETROOT_SEEDS;
     }
 }

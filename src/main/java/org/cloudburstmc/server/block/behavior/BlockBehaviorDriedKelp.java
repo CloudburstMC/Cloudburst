@@ -5,15 +5,6 @@ import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorDriedKelp extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
 
     @Override
     public BlockColor getColor(Block state) {

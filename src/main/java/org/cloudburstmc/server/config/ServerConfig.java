@@ -181,7 +181,7 @@ public class ServerConfig {
         private boolean deprecatedVerbose = true;
 
         @Builder.Default
-        private boolean upnp = true;
+        private boolean upnp = false;
 
     }
 

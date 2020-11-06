@@ -3,8 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -13,20 +14,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
 
-    @Override
-    public float getHardness() {
-        return 3;
-    }
-
-    @Override
-    public float getResistance() {
-        return 45;
-    }
-
-    @Override
-    public int getLightLevel(Block block) {
-        return 1;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
@@ -34,7 +21,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean isTransparent() {
+    public boolean isTransparent(BlockState state) {
         return true;
     }
 
@@ -52,7 +39,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
             Block t = block.getLevel().getBlock(block.getPosition().add(random.nextInt(-16, 16),
                     random.nextInt(-16, 16), random.nextInt(-16, 16)));
             BlockBehavior behavior = t.getState().getBehavior();
-            if (t.getState().getType() == BlockIds.AIR || (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging())) {
+            if (t.getState().getType() == BlockTypes.AIR || (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging())) {
                 int diffX = block.getX() - t.getX();
                 int diffY = block.getY() - t.getY();
                 int diffZ = block.getZ() - t.getZ();
@@ -76,13 +63,10 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         teleport(block);
         return true;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

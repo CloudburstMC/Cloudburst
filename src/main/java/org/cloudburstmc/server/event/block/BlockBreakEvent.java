@@ -2,7 +2,7 @@ package org.cloudburstmc.server.event.block;
 
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
@@ -14,29 +14,29 @@ public class BlockBreakEvent extends BlockEvent implements Cancellable {
 
     protected final Player player;
 
-    protected final Item item;
+    protected final ItemStack item;
     protected final Direction face;
 
     protected boolean instaBreak = false;
-    protected Item[] blockDrops = new Item[0];
+    protected ItemStack[] blockDrops = new ItemStack[0];
     protected int blockXP = 0;
 
     protected boolean fastBreak = false;
 
-    public BlockBreakEvent(Player player, Block block, Item item, Item[] drops) {
+    public BlockBreakEvent(Player player, Block block, ItemStack item, ItemStack[] drops) {
         this(player, block, item, drops, false, false);
     }
 
-    public BlockBreakEvent(Player player, Block block, Item item, Item[] drops, boolean instaBreak) {
+    public BlockBreakEvent(Player player, Block block, ItemStack item, ItemStack[] drops, boolean instaBreak) {
         this(player, block, item, drops, instaBreak, false);
     }
 
-    public BlockBreakEvent(Player player, Block block, Item item, Item[] drops, boolean instaBreak, boolean fastBreak) {
+    public BlockBreakEvent(Player player, Block block, ItemStack item, ItemStack[] drops, boolean instaBreak, boolean fastBreak) {
         this(player, block, null, item, drops,
                 block.getState().getBehavior().getDropExp(), instaBreak, fastBreak);
     }
 
-    public BlockBreakEvent(Player player, Block block, Direction face, Item item, Item[] drops, int dropExp, boolean instaBreak, boolean fastBreak) {
+    public BlockBreakEvent(Player player, Block block, Direction face, ItemStack item, ItemStack[] drops, int dropExp, boolean instaBreak, boolean fastBreak) {
         super(block);
         this.face = face;
         this.item = item;
@@ -55,7 +55,7 @@ public class BlockBreakEvent extends BlockEvent implements Cancellable {
         return face;
     }
 
-    public Item getItem() {
+    public ItemStack getItem() {
         return item;
     }
 
@@ -63,11 +63,11 @@ public class BlockBreakEvent extends BlockEvent implements Cancellable {
         return this.instaBreak;
     }
 
-    public Item[] getDrops() {
+    public ItemStack[] getDrops() {
         return blockDrops;
     }
 
-    public void setDrops(Item[] drops) {
+    public void setDrops(ItemStack[] drops) {
         this.blockDrops = drops;
     }
 

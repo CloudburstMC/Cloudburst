@@ -1,6 +1,9 @@
 package org.cloudburstmc.server.item;
 
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.enchantment.EnchantmentInstance;
+import org.cloudburstmc.server.enchantment.EnchantmentType;
+import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -9,6 +12,8 @@ import java.util.List;
 public interface ItemStackBuilder {
 
     ItemStackBuilder itemType(@Nonnull ItemType itemType);
+
+    CloudItemStackBuilder blockState(BlockState blockState);
 
     ItemStackBuilder amount(int amount);
 
@@ -22,15 +27,37 @@ public interface ItemStackBuilder {
 
     ItemStackBuilder itemData(Object data);
 
-    ItemStackBuilder addEnchantment(Enchantment enchantment);
+    ItemStackBuilder itemData(Class<?> metadataClass, Object data);
 
-    ItemStackBuilder addEnchantments(Collection<Enchantment> enchantmentInstanceCollection);
+    ItemStackBuilder clearData();
+
+    ItemStackBuilder clearData(Class<?> metadataClass);
+
+    ItemStackBuilder addEnchantment(EnchantmentInstance enchantment);
+
+    ItemStackBuilder addEnchantments(Collection<EnchantmentInstance> enchantmentInstanceCollection);
 
     ItemStackBuilder clearEnchantments();
 
-    ItemStackBuilder removeEnchantment(Enchantment enchantment);
+    ItemStackBuilder removeEnchantment(EnchantmentType enchantment);
 
-    ItemStackBuilder removeEnchantments(Collection<Enchantment> enchantments);
+    ItemStackBuilder removeEnchantments(Collection<EnchantmentType> enchantments);
+
+    ItemStackBuilder addCanPlaceOn(Identifier id);
+
+    ItemStackBuilder addCanPlaceOn(ItemType type);
+
+    ItemStackBuilder removeCanPlaceOn(Identifier id);
+
+    ItemStackBuilder clearCanPlaceOn();
+
+    ItemStackBuilder addCanDestroy(Identifier id);
+
+    ItemStackBuilder addCanDestroy(ItemType type);
+
+    ItemStackBuilder removeCanDestroy(Identifier id);
+
+    ItemStackBuilder clearCanDestroy();
 
     ItemStack build();
 }

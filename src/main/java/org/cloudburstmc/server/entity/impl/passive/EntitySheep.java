@@ -5,9 +5,8 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Sheep;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemDye;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.DyeColor;
@@ -16,7 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.COLOR;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.SHEARED;
-import static org.cloudburstmc.server.block.BlockIds.WOOL;
+import static org.cloudburstmc.server.block.BlockTypes.WOOL;
 
 /**
  * Author: BeYkeRYkt Nukkit Project
@@ -72,13 +71,13 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    public boolean onInteract(Player player, Item item) {
-        if (item.getId() == ItemIds.DYE) {
-            this.setColor(((ItemDye) item).getDyeColor().getWoolData());
+    public boolean onInteract(Player player, ItemStack item) {
+        if (item.getType() == ItemTypes.DYE) {
+            this.setColor(item.getMetadata(DyeColor.class).getWoolData());
             return true;
         }
 
-        return item.getId() == ItemIds.SHEARS && shear();
+        return item.getType() == ItemTypes.SHEARS && shear();
     }
 
     public boolean shear() {
@@ -89,16 +88,16 @@ public class EntitySheep extends Animal implements Sheep {
         this.setSheared(true);
         this.data.setFlag(SHEARED, true);
 
-        this.level.dropItem(this.getPosition(), Item.get(WOOL, getColor(), ThreadLocalRandom.current().nextInt(2) + 1));
+        this.level.dropItem(this.getPosition(), ItemStack.get(WOOL, ThreadLocalRandom.current().nextInt(2) + 1, DyeColor.getByWoolData(getColor())));
         return true;
     }
 
     @Override
-    public Item[] getDrops() {
+    public ItemStack[] getDrops() {
         if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
-            return new Item[]{Item.get(WOOL, getColor(), 1)};
+            return new ItemStack[]{ItemStack.get(WOOL, 1, DyeColor.getByWoolData(getColor()))};
         }
-        return new Item[0];
+        return new ItemStack[0];
     }
 
     public boolean isSheared() {
