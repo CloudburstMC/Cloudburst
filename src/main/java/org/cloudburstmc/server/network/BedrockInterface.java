@@ -10,7 +10,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.server.QueryRegenerateEvent;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.player.handler.LoginPacketHandler;
@@ -30,13 +30,13 @@ import java.util.function.Consumer;
 @ParametersAreNonnullByDefault
 public class BedrockInterface implements AdvancedSourceInterface, BedrockServerEventHandler {
 
-    private final Server server;
+    private final CloudServer server;
 
     private final BedrockServer bedrock;
     private final BedrockPong advertisement = new BedrockPong();
     private final Queue<NukkitSessionListener> disconnectQueue = new ConcurrentLinkedQueue<>();
 
-    public BedrockInterface(Server server) throws Exception {
+    public BedrockInterface(CloudServer server) throws Exception {
         this.server = server;
 
         InetSocketAddress bindAddress = new InetSocketAddress(this.server.getIp(), this.server.getPort());

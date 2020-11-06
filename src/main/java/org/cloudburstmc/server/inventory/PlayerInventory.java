@@ -5,7 +5,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.event.entity.EntityArmorChangeEvent;
 import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
@@ -258,7 +258,7 @@ public class PlayerInventory extends BaseInventory {
         //Armor change
         if (!ignoreArmorEvents && index >= this.getSize()) {
             EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), this.getItem(index), item, index);
-            Server.getInstance().getEventManager().fire(ev);
+            CloudServer.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled() && this.getHolder() != null) {
                 if (index == this.offHandIndex) {
                     this.sendOffHandSlot(this.getViewers());
@@ -270,7 +270,7 @@ public class PlayerInventory extends BaseInventory {
             item = ev.getNewItem();
         } else {
             EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent(this.getHolder(), this.getItem(index), item, index);
-            Server.getInstance().getEventManager().fire(ev);
+            CloudServer.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 this.sendSlot(index, this.getViewers());
                 return false;
@@ -290,7 +290,7 @@ public class PlayerInventory extends BaseInventory {
             ItemStack old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
-                Server.getInstance().getEventManager().fire(ev);
+                CloudServer.getInstance().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     if (index >= this.size) {
                         this.sendArmorSlot(index, this.getViewers());
@@ -302,7 +302,7 @@ public class PlayerInventory extends BaseInventory {
                 item = ev.getNewItem();
             } else {
                 EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent(this.getHolder(), old, item, index);
-                Server.getInstance().getEventManager().fire(ev);
+                CloudServer.getInstance().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     if (index >= this.size) {
                         this.sendArmorSlot(index, this.getViewers());

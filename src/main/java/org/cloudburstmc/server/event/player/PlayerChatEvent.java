@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.player;
 
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.permission.Permissible;
@@ -25,7 +25,7 @@ public class PlayerChatEvent extends PlayerMessageEvent implements Cancellable {
         this.format = format;
 
         if (recipients == null) {
-            for (Permissible permissible : Server.getInstance().getPermissionManager().getPermissionSubscriptions(Server.BROADCAST_CHANNEL_USERS)) {
+            for (Permissible permissible : CloudServer.getInstance().getPermissionManager().getPermissionSubscriptions(CloudServer.BROADCAST_CHANNEL_USERS)) {
                 if (permissible instanceof CommandSender) {
                     this.recipients.add((CommandSender) permissible);
                 }

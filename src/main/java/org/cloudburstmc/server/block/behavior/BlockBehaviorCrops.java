@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
@@ -41,7 +41,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (block.getState().ensureTrait(BlockTraits.GROWTH) < 7) {
                 BlockGrowEvent ev = new BlockGrowEvent(block, block.getState().incrementTrait(BlockTraits.GROWTH));
-                Server.getInstance().getEventManager().fire(ev);
+                CloudServer.getInstance().getEventManager().fire(ev);
 
                 if (ev.isCancelled()) {
                     return false;
@@ -73,7 +73,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 0x07) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
-                    Server.getInstance().getEventManager().fire(ev);
+                    CloudServer.getInstance().getEventManager().fire(ev);
 
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), false, true);

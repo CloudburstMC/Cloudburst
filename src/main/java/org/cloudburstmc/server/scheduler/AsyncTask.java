@@ -3,7 +3,7 @@ package org.cloudburstmc.server.scheduler;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.utils.ThreadStore;
 
 import java.util.Queue;
@@ -68,7 +68,7 @@ public abstract class AsyncTask implements Runnable {
 
     public abstract void onRun();
 
-    public void onCompletion(Server server) {
+    public void onCompletion(CloudServer server) {
 
     }
 
@@ -83,7 +83,7 @@ public abstract class AsyncTask implements Runnable {
             while (!FINISHED_LIST.isEmpty()) {
                 AsyncTask task = FINISHED_LIST.poll();
                 try {
-                    task.onCompletion(Server.getInstance());
+                    task.onCompletion(CloudServer.getInstance());
                 } catch (Exception e) {
                     log.error("Exception while async task " + task.getTaskId() + " invoking onCompletion", e);
                 }

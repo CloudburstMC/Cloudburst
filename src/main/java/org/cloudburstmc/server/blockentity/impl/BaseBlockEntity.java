@@ -9,7 +9,7 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
@@ -47,7 +47,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
     public boolean movable = true;
     public boolean closed = false;
     protected long lastUpdate;
-    protected Server server;
+    protected CloudServer server;
     protected Timing timing;
     private String customName;
     private boolean justCreated = true;

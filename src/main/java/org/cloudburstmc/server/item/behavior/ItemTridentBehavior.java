@@ -2,8 +2,8 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.CloudServer;
 import lombok.val;
-import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.impl.projectile.EntityProjectile;
 import org.cloudburstmc.server.entity.projectile.ThrownTrident;
@@ -70,14 +70,14 @@ public class ItemTridentBehavior extends ItemToolBehavior {
             entityShootBowEvent.setCancelled();
         }
 
-        Server.getInstance().getEventManager().fire(entityShootBowEvent);
+        CloudServer.getInstance().getEventManager().fire(entityShootBowEvent);
         if (entityShootBowEvent.isCancelled()) {
             entityShootBowEvent.getProjectile().kill();
         } else {
             entityShootBowEvent.getProjectile().setMotion(entityShootBowEvent.getProjectile().getMotion().mul(entityShootBowEvent.getForce()));
             if (entityShootBowEvent.getProjectile() instanceof EntityProjectile) {
                 ProjectileLaunchEvent ev = new ProjectileLaunchEvent(entityShootBowEvent.getProjectile());
-                Server.getInstance().getEventManager().fire(ev);
+                CloudServer.getInstance().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     entityShootBowEvent.getProjectile().kill();
                 } else {

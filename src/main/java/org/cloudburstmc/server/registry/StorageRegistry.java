@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.level.provider.LevelProviderFactory;
 import org.cloudburstmc.server.level.provider.anvil.AnvilProviderFactory;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBProviderFactory;

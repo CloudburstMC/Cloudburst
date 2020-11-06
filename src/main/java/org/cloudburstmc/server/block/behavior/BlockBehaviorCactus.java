@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -91,7 +91,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
                         Block b = block.getLevel().getBlock(block.getX(), block.getY() + y, block.getZ());
                         if (b.getState().getType() == AIR) {
                             BlockGrowEvent event = new BlockGrowEvent(b, BlockState.get(CACTUS));
-                            Server.getInstance().getEventManager().fire(event);
+                            CloudServer.getInstance().getEventManager().fire(event);
                             if (!event.isCancelled()) {
                                 block.set(event.getNewState(), true);
                             }

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -70,7 +70,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
         } else if (type == Level.BLOCK_UPDATE_RANDOM && isCheckDecay(state) && !isPersistent(state)) {
             LeavesDecayEvent ev = new LeavesDecayEvent(block);
 
-            Server.getInstance().getEventManager().fire(ev);
+            CloudServer.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled() || findLog(block, 7)) {
                 block.set(state.withTrait(BlockTraits.HAS_UPDATE, false), false, false);
             } else {

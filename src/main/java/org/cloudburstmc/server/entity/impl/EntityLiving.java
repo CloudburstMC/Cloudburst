@@ -12,8 +12,9 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.server.CloudServer;
 import lombok.val;
-import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.BlockTypes;
@@ -29,7 +30,6 @@ import org.cloudburstmc.server.event.entity.EntityDeathEvent;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
@@ -92,7 +92,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
             EntityEventPacket pk = new EntityEventPacket();
             pk.setRuntimeEntityId(this.getRuntimeId());
             pk.setType(EntityEventType.RESPAWN);
-            Server.broadcastPacket(this.hasSpawned, pk);
+            CloudServer.broadcastPacket(this.hasSpawned, pk);
         }
     }
 
@@ -145,7 +145,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
             EntityEventPacket pk = new EntityEventPacket();
             pk.setRuntimeEntityId(this.getRuntimeId());
             pk.setType(this.getHealth() <= 0 ? EntityEventType.DEATH : EntityEventType.HURT);
-            Server.broadcastPacket(this.hasSpawned, pk);
+            CloudServer.broadcastPacket(this.hasSpawned, pk);
 
             this.attackTime = source.getAttackCooldown();
 

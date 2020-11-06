@@ -6,7 +6,7 @@ import io.netty.util.collection.CharObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.player.Player;
@@ -48,7 +48,7 @@ public class CraftingManager {
     private CraftingDataPacket packet = null;
 
     public CraftingManager() {
-        InputStream recipesStream = Server.class.getClassLoader().getResourceAsStream("recipes.json");
+        InputStream recipesStream = CloudServer.class.getClassLoader().getResourceAsStream("recipes.json");
         if (recipesStream == null) {
             throw new AssertionError("Unable to find recipes.json");
         }
@@ -57,7 +57,7 @@ public class CraftingManager {
         recipesConfig.load(recipesStream);
         this.loadRecipes(recipesConfig); //TODO: load recipes
 
-        String path = Server.getInstance().getDataPath() + "custom_recipes.json";
+        String path = CloudServer.getInstance().getDataPath() + "custom_recipes.json";
         File filePath = new File(path);
 
         if (filePath.exists()) {

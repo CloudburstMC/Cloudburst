@@ -3,7 +3,7 @@ package org.cloudburstmc.server.player;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.player.PlayerCreationEvent;
 import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.scheduler.AsyncTask;
@@ -18,7 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 @Log4j2
 public class PlayerLoginData {
     private final BedrockServerSession session;
-    private final Server server;
+    private final CloudServer server;
     private final BedrockInterface interfaz;
 
     private AsyncTask preLoginEventTask;
@@ -26,7 +26,7 @@ public class PlayerLoginData {
     private ClientChainData chainData;
     private boolean shouldLogin;
 
-    public PlayerLoginData(BedrockServerSession session, Server server, BedrockInterface interfaz) {
+    public PlayerLoginData(BedrockServerSession session, CloudServer server, BedrockInterface interfaz) {
         this.session = session;
         this.server = server;
         this.interfaz = interfaz;

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.scheduler.FileWriteTask;
 
 import java.io.File;
@@ -261,7 +261,7 @@ public class Config {
                 }
             }
             if (async) {
-                Server.getInstance().getScheduler().scheduleAsyncTask(new FileWriteTask(this.file, content));
+                CloudServer.getInstance().getScheduler().scheduleAsyncTask(new FileWriteTask(this.file, content));
 
             } else {
                 try {

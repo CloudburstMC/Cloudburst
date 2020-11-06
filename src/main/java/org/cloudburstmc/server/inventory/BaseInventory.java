@@ -4,10 +4,10 @@ import com.google.common.base.Preconditions;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
+import org.cloudburstmc.server.CloudServer;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.val;
-import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
@@ -158,7 +158,7 @@ public abstract class BaseInventory implements Inventory {
         InventoryHolder holder = this.getHolder();
         if (holder instanceof BaseEntity) {
             EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent((BaseEntity) holder, this.getItem(index), item, index);
-            Server.getInstance().getEventManager().fire(ev);
+            CloudServer.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 this.sendSlot(index, this.getViewers());
                 return false;
@@ -462,7 +462,7 @@ public abstract class BaseInventory implements Inventory {
             InventoryHolder holder = this.getHolder();
             if (holder instanceof BaseEntity) {
                 EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent((BaseEntity) holder, old, item, index);
-                Server.getInstance().getEventManager().fire(ev);
+                CloudServer.getInstance().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     this.sendSlot(index, this.getViewers());
                     return false;

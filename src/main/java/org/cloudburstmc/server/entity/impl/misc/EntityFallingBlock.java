@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.impl.misc;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
@@ -16,7 +17,6 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.VARIANT;

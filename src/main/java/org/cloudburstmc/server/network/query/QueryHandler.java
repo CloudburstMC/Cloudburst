@@ -3,7 +3,7 @@ package org.cloudburstmc.server.network.query;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.server.QueryRegenerateEvent;
 
 import java.net.InetAddress;
@@ -26,7 +26,7 @@ public class QueryHandler {
     public static final byte HANDSHAKE = 0x09;
     public static final byte STATISTICS = 0x00;
 
-    private final Server server;
+    private final CloudServer server;
     private byte[] lastToken;
     private byte[] token;
     private byte[] longData;
@@ -34,7 +34,7 @@ public class QueryHandler {
     private long timeout;
 
     public QueryHandler() {
-        this.server = Server.getInstance();
+        this.server = CloudServer.getInstance();
         log.info(this.server.getLanguage().translate("cloudburst.server.query.start"));
         String ip = this.server.getIp();
         String addr = (!ip.isEmpty()) ? ip : "0.0.0.0";

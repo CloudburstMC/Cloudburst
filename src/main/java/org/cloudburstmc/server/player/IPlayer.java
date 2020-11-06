@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.player;
 
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.metadata.Metadatable;
 import org.cloudburstmc.server.permission.ServerOperator;
 
@@ -67,11 +67,11 @@ public interface IPlayer extends ServerOperator, Metadatable {
     Player getPlayer();
 
     /**
-     * Returns the {@link Server} object carrying this player.
+     * Returns the {@link CloudServer} object carrying this player.
      *
      * @return The server instance
      */
-    Server getServer();
+    CloudServer getServer();
 
     /**
      * Returns the time this player first played on this server.

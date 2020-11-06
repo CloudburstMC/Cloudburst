@@ -1,5 +1,8 @@
 package org.cloudburstmc.server.item.food;
 
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockState;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.val;

@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.command.defaults;
 
 import lombok.val;
+import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 /**

@@ -24,7 +24,10 @@ import it.unimi.dsi.fastutil.shorts.ShortSet;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
@@ -56,7 +59,6 @@ import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkSection;
 import org.cloudburstmc.server.level.gamerule.GameRuleMap;
-import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -68,12 +70,10 @@ import org.cloudburstmc.server.metadata.MetadataValue;
 import org.cloudburstmc.server.metadata.Metadatable;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.registry.GeneratorRegistry;
-import org.cloudburstmc.server.registry.RegistryException;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.timings.LevelTimings;
 import org.cloudburstmc.server.utils.*;
@@ -160,7 +160,7 @@ public class Level implements ChunkManager, Metadatable {
 
     private final ConcurrentLinkedQueue<BlockEntity> updateBlockEntities = new ConcurrentLinkedQueue<>();
 
-    private final Server server;
+    private final CloudServer server;
     public final LevelTimings timings;
 
     private LevelProvider provider;
@@ -224,7 +224,7 @@ public class Level implements ChunkManager, Metadatable {
 
     private Generator generator;
 
-    Level(Server server, String id, LevelProvider levelProvider, LevelData levelData) {
+    Level(CloudServer server, String id, LevelProvider levelProvider, LevelData levelData) {
         this.id = id;
         this.blockMetadata = new BlockMetadataStore(this);
         this.server = server;
@@ -311,7 +311,7 @@ public class Level implements ChunkManager, Metadatable {
         return this.blockMetadata;
     }
 
-    public Server getServer() {
+    public CloudServer getServer() {
         return server;
     }
 
@@ -372,7 +372,7 @@ public class Level implements ChunkManager, Metadatable {
         if (players == null || players.length == 0) {
             addChunkPacket(pos, packet);
         } else {
-            Server.broadcastPacket(players, packet);
+            CloudServer.broadcastPacket(players, packet);
         }
     }
 
@@ -427,7 +427,7 @@ public class Level implements ChunkManager, Metadatable {
             }
         } else {
             if (packets != null) {
-                Server.broadcastPackets(players, packets);
+                CloudServer.broadcastPackets(players, packets);
             }
         }
     }
@@ -462,7 +462,7 @@ public class Level implements ChunkManager, Metadatable {
         if (players == null || players.length == 0) {
             addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, packet);
         } else {
-            Server.broadcastPacket(players, packet);
+            CloudServer.broadcastPacket(players, packet);
         }
     }
 
@@ -556,7 +556,7 @@ public class Level implements ChunkManager, Metadatable {
         SetTimePacket pk = new SetTimePacket();
         pk.setTime(this.getTime());
 
-        Server.broadcastPacket(players, pk);
+        CloudServer.broadcastPacket(players, pk);
     }
 
     public void sendTime() {
@@ -709,7 +709,7 @@ public class Level implements ChunkManager, Metadatable {
                         }
 
                         for (BedrockPacket packet : this.chunkPackets.get(index)) {
-                            Server.broadcastPacket(playerLoaders, packet);
+                            CloudServer.broadcastPacket(playerLoaders, packet);
                         }
                     }
                     this.chunkPackets.clear();
@@ -718,7 +718,7 @@ public class Level implements ChunkManager, Metadatable {
                 if (this.levelData.getGameRules().isDirty()) {
                     GameRulesChangedPacket packet = new GameRulesChangedPacket();
                     this.levelData.getGameRules().toNetwork(packet.getGameRules());
-                    Server.broadcastPacket(players.values().toArray(new Player[0]), packet);
+                    CloudServer.broadcastPacket(players.values().toArray(new Player[0]), packet);
                     this.levelData.getGameRules().refresh();
                 }
             }
@@ -851,7 +851,7 @@ public class Level implements ChunkManager, Metadatable {
             packets[i] = updateBlockPacket;
             packets[i + 1] = updateBlockPacket2;
         }
-        Server.broadcastPackets(target, packets);
+        CloudServer.broadcastPackets(target, packets);
     }
 
     public boolean save() {
@@ -2234,7 +2234,7 @@ public class Level implements ChunkManager, Metadatable {
         SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
         packet.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
         packet.setBlockPosition(blockPos);
-        Server.broadcastPacket(this.players.values(), packet);
+        CloudServer.broadcastPacket(this.players.values(), packet);
     }
 
     public void scheduleEntityUpdate(Entity entity) {
@@ -2417,7 +2417,7 @@ public class Level implements ChunkManager, Metadatable {
         packet.setPosition(Vector3f.from(x, y, z));
         packet.setRotation(Vector3f.from(pitch, yaw, headYaw));
 
-        Server.broadcastPacket(entity.getViewers(), packet);
+        CloudServer.broadcastPacket(entity.getViewers(), packet);
     }
 
     public boolean isRaining() {
@@ -2447,7 +2447,7 @@ public class Level implements ChunkManager, Metadatable {
         }
         packet.setPosition(Vector3f.ZERO);
 
-        Server.broadcastPacket(this.getPlayers().values(), packet);
+        CloudServer.broadcastPacket(this.getPlayers().values(), packet);
 
         return true;
     }
@@ -2490,7 +2490,7 @@ public class Level implements ChunkManager, Metadatable {
         }
         packet.setPosition(Vector3f.ZERO);
 
-        Server.broadcastPacket(this.getPlayers().values(), packet);
+        CloudServer.broadcastPacket(this.getPlayers().values(), packet);
 
         return true;
     }
@@ -2516,7 +2516,7 @@ public class Level implements ChunkManager, Metadatable {
             rainEvent.setType(LevelEventType.STOP_RAINING);
         }
         rainEvent.setPosition(Vector3f.ZERO);
-        Server.broadcastPacket(players, rainEvent);
+        CloudServer.broadcastPacket(players, rainEvent);
 
         LevelEventPacket thunderEvent = new LevelEventPacket();
         if (this.isThundering()) {
@@ -2526,7 +2526,7 @@ public class Level implements ChunkManager, Metadatable {
             thunderEvent.setType(LevelEventType.STOP_THUNDERSTORM);
         }
         thunderEvent.setPosition(Vector3f.ZERO);
-        Server.broadcastPacket(players, thunderEvent);
+        CloudServer.broadcastPacket(players, thunderEvent);
     }
 
     public void sendWeather(Player player) {

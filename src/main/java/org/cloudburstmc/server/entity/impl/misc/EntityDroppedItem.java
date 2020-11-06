@@ -8,7 +8,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.AddItemEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
@@ -160,7 +160,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);
                         packet.setData(newAmount);
-                        Server.broadcastPacket(this.getLevel().getPlayers().values(), packet);
+                        CloudServer.broadcastPacket(this.getLevel().getPlayers().values(), packet);
                     }
                 }
             }

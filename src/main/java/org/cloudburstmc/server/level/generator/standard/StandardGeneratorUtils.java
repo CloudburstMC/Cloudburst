@@ -9,7 +9,7 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PorkUtil;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.*;
@@ -39,7 +39,7 @@ public class StandardGeneratorUtils {
                 in = Bootstrap.class.getClassLoader().getResourceAsStream(name);
                 break;
             default:
-                val plugin = Server.getInstance().getPluginManager().getPlugin(id.getNamespace());
+                val plugin = CloudServer.getInstance().getPluginManager().getPlugin(id.getNamespace());
                 if (plugin.isPresent()) {
                     in = plugin.get().getPlugin().getClass().getClassLoader().getResourceAsStream(name);
                 }

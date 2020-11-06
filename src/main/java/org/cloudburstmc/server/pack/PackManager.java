@@ -5,7 +5,7 @@ import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackStackPacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.pack.loader.DirectoryPackLoader;
 import org.cloudburstmc.server.pack.loader.PackLoader;
 import org.cloudburstmc.server.pack.loader.ZipPackLoader;
@@ -150,7 +150,7 @@ public class PackManager implements Closeable {
             loader.getNetworkPreparedFile();
         }
 
-        log.info(Server.getInstance().getLanguage()
+        log.info(CloudServer.getInstance().getLanguage()
                 .translate("cloudburst.resources.success", String.valueOf(manifestMap.size())));
     }
 
@@ -190,7 +190,7 @@ public class PackManager implements Closeable {
             }
         }
         if (loader == null) {
-            log.warn(Server.getInstance().getLanguage().translate("cloudburst.resources.unknown-format", path));
+            log.warn(CloudServer.getInstance().getLanguage().translate("cloudburst.resources.unknown-format", path));
         }
         return loader;
     }
@@ -198,7 +198,7 @@ public class PackManager implements Closeable {
     public synchronized void closeRegistration() {
         checkRegistrationClosed();
 
-        boolean mustAccept = Server.getInstance().getForceResources();
+        boolean mustAccept = CloudServer.getInstance().getForceResources();
         packsInfos.setForcedToAccept(mustAccept);
         packStack.setForcedToAccept(mustAccept);
 

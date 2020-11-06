@@ -4,9 +4,9 @@ import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginManager;
 import org.cloudburstmc.server.event.firehandler.ReflectionEventFireHandler;
-import org.cloudburstmc.server.plugin.PluginContainer;
-import org.cloudburstmc.server.plugin.PluginManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;

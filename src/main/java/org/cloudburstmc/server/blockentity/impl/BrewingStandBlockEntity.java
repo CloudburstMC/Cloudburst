@@ -8,7 +8,7 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -193,13 +193,13 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
                     for (int i = 1; i <= 3; i++) {
                         ItemStack potion = this.inventory.getItem(i);
 
-                        ContainerRecipe containerRecipe = Server.getInstance().getCraftingManager().matchContainerRecipe(ingredient, potion);
+                        ContainerRecipe containerRecipe = CloudServer.getInstance().getCraftingManager().matchContainerRecipe(ingredient, potion);
                         if (containerRecipe != null) {
                             ItemStack result = containerRecipe.getResult();
 //                            result.setMeta(potion.getMeta()); //TODO: check
                             this.inventory.setItem(i, result);
                         } else {
-                            BrewingRecipe recipe = Server.getInstance().getCraftingManager().matchBrewingRecipe(ingredient, potion);
+                            BrewingRecipe recipe = CloudServer.getInstance().getCraftingManager().matchBrewingRecipe(ingredient, potion);
                             if (recipe != null) {
                                 this.inventory.setItem(i, recipe.getResult());
                             }

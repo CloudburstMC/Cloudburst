@@ -3,12 +3,12 @@ package org.cloudburstmc.server.level.provider.anvil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.*;
+import org.cloudburstmc.api.level.gamerule.GameRule;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.LevelData;
-import org.cloudburstmc.server.level.gamerule.GameRule;
 import org.cloudburstmc.server.level.gamerule.GameRuleMap;
 import org.cloudburstmc.server.level.provider.LevelDataSerializer;
-import org.cloudburstmc.server.registry.GameRuleRegistry;
+import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.LoadState;
 
@@ -125,7 +125,7 @@ public class AnvilDataSerializer implements LevelDataSerializer {
         tag.listenForBoolean("hardcore", data::setHardcore);
 
         NbtMap gameRulesTag = tag.getCompound("GameRules");
-        GameRuleRegistry.get().getRules().forEach(rule -> {
+        CloudGameRuleRegistry.get().getRules().forEach(rule -> {
             String value = gameRulesTag.getString(rule.getName());
             if (rule.getValueClass() == Boolean.class) {
                 data.getGameRules().put((GameRule<Boolean>) rule, Boolean.valueOf(value));

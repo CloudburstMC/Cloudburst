@@ -6,11 +6,11 @@ import com.nukkitx.nbt.*;
 import com.nukkitx.nbt.util.stream.LittleEndianDataInputStream;
 import com.nukkitx.nbt.util.stream.LittleEndianDataOutputStream;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.level.gamerule.GameRule;
 import org.cloudburstmc.server.level.LevelData;
-import org.cloudburstmc.server.level.gamerule.GameRule;
 import org.cloudburstmc.server.level.gamerule.GameRuleMap;
 import org.cloudburstmc.server.level.provider.LevelDataSerializer;
-import org.cloudburstmc.server.registry.GameRuleRegistry;
+import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 import org.cloudburstmc.server.utils.LoadState;
 
 import java.io.ByteArrayOutputStream;
@@ -156,7 +156,7 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
         tag.listenForFloat("lightningLevel", data::setLightningLevel);
         tag.listenForBoolean("Hardcore", data::setHardcore);
 
-        GameRuleRegistry.get().getRules().forEach(rule -> {
+        CloudGameRuleRegistry.get().getRules().forEach(rule -> {
             Object value = tag.get(rule.getName().toLowerCase());
 
             if (value instanceof Byte) {

@@ -4,6 +4,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.packet.AddPaintingPacket;
+import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.HangingEntity;
@@ -13,7 +14,6 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.player.Player;
 
 /**

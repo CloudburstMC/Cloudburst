@@ -3,8 +3,8 @@ package org.cloudburstmc.server.permission;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import lombok.val;
-import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.utils.ServerException;
 
 import java.util.HashMap;
@@ -64,7 +64,7 @@ public class PermissibleBase implements Permissible {
             return this.permissions.get(name).getValue();
         }
 
-        val perm = Server.getInstance().getPermissionManager().getPermission(name);
+        val perm = CloudServer.getInstance().getPermissionManager().getPermission(name);
 
         if (perm.isPresent()) {
             String permission = perm.get().getDefault();
@@ -118,13 +118,13 @@ public class PermissibleBase implements Permissible {
     public void recalculatePermissions() {
         try (Timing ignored = Timings.permissibleCalculationTimer.startTiming()) {
             this.clearPermissions();
-            Map<String, Permission> defaults = Server.getInstance().getPermissionManager().getDefaultPermissions(this.isOp());
-            Server.getInstance().getPermissionManager().subscribeToDefaultPerms(this.isOp(), this.parent != null ? this.parent : this);
+            Map<String, Permission> defaults = CloudServer.getInstance().getPermissionManager().getDefaultPermissions(this.isOp());
+            CloudServer.getInstance().getPermissionManager().subscribeToDefaultPerms(this.isOp(), this.parent != null ? this.parent : this);
 
             for (Permission perm : defaults.values()) {
                 String name = perm.getName();
                 this.permissions.put(name, new PermissionAttachmentInfo(this.parent != null ? this.parent : this, name, null, true));
-                Server.getInstance().getPermissionManager().subscribeToPermission(name, this.parent != null ? this.parent : this);
+                CloudServer.getInstance().getPermissionManager().subscribeToPermission(name, this.parent != null ? this.parent : this);
                 this.calculateChildPermissions(perm.getChildren(), false, null);
             }
 
@@ -136,12 +136,12 @@ public class PermissibleBase implements Permissible {
 
     public void clearPermissions() {
         for (String name : this.permissions.keySet()) {
-            Server.getInstance().getPermissionManager().unsubscribeFromPermission(name, this.parent != null ? this.parent : this);
+            CloudServer.getInstance().getPermissionManager().unsubscribeFromPermission(name, this.parent != null ? this.parent : this);
         }
 
 
-        Server.getInstance().getPermissionManager().unsubscribeFromDefaultPerms(false, this.parent != null ? this.parent : this);
-        Server.getInstance().getPermissionManager().unsubscribeFromDefaultPerms(true, this.parent != null ? this.parent : this);
+        CloudServer.getInstance().getPermissionManager().unsubscribeFromDefaultPerms(false, this.parent != null ? this.parent : this);
+        CloudServer.getInstance().getPermissionManager().unsubscribeFromDefaultPerms(true, this.parent != null ? this.parent : this);
 
         this.permissions.clear();
     }
@@ -153,9 +153,9 @@ public class PermissibleBase implements Permissible {
             boolean v = entry.getValue();
             boolean value = (v ^ invert);
             this.permissions.put(name, new PermissionAttachmentInfo(this.parent != null ? this.parent : this, name, attachment, value));
-            Server.getInstance().getPermissionManager().subscribeToPermission(name, this.parent != null ? this.parent : this);
+            CloudServer.getInstance().getPermissionManager().subscribeToPermission(name, this.parent != null ? this.parent : this);
 
-            Server.getInstance().getPermissionManager().getPermission(name).ifPresent((perm) -> {
+            CloudServer.getInstance().getPermissionManager().getPermission(name).ifPresent((perm) -> {
                 this.calculateChildPermissions(perm.getChildren(), !value, attachment);
             });
         }

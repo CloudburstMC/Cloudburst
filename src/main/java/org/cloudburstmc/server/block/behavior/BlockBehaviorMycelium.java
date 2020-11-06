@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
@@ -42,7 +42,7 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
                 if (b.up().getState().inCategory(BlockCategory.TRANSPARENT)) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(MYCELIUM));
-                    Server.getInstance().getEventManager().fire(ev);
+                    CloudServer.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         b.set(ev.getNewState());
                     }

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -35,7 +35,7 @@ public class StatusCommand extends Command {
             return true;
         }
 
-        Server server = sender.getServer();
+        CloudServer server = sender.getServer();
         sender.sendMessage(TextFormat.GREEN + "---- " + TextFormat.WHITE + "Server status" + TextFormat.GREEN + " ----");
 
         long time = System.currentTimeMillis() - Bootstrap.START_TIME;

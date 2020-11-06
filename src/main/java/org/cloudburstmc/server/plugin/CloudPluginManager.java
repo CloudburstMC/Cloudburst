@@ -2,6 +2,7 @@ package org.cloudburstmc.server.plugin;
 
 import com.google.inject.Injector;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.plugin.*;
 import org.cloudburstmc.server.event.EventManager;
 import org.cloudburstmc.server.plugin.util.DirectedAcyclicGraph;
 import org.cloudburstmc.server.plugin.util.GraphException;

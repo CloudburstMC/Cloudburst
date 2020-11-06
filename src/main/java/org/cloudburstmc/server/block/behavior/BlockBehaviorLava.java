@@ -3,7 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.misc.PrimedTnt;
@@ -13,7 +14,6 @@ import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
@@ -39,7 +39,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
         // Always setting the duration to 15 seconds? TODO
         EntityCombustByBlockEvent ev = new EntityCombustByBlockEvent(block, entity, 15);
-        Server.getInstance().getEventManager().fire(ev);
+        CloudServer.getInstance().getEventManager().fire(ev);
         if (!ev.isCancelled()
                 // Making sure the entity is actually alive and not invulnerable.
                 && entity.isAlive()
