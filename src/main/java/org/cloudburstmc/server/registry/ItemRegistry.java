@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.registry;
 
 import com.google.common.collect.ImmutableList;
+import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemType;

@@ -5,6 +5,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.NonNull;
+import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentType;
