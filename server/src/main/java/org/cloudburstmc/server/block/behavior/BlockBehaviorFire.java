@@ -1,7 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.projectile.EntityArrow;
@@ -14,7 +15,6 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.potion.Effect;
@@ -41,7 +41,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         if (entity instanceof EntityArrow) {
             ev.setCancelled();
         }
-        Server.getInstance().getEventManager().fire(ev);
+        CloudServer.getInstance().getEventManager().fire(ev);
         if (!ev.isCancelled() && entity.isAlive() && entity.getNoDamageTicks() == 0) {
             entity.setOnFire(ev.getDuration());
         }

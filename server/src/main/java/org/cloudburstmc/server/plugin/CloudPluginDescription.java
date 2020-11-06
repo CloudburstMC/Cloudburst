@@ -2,6 +2,9 @@ package org.cloudburstmc.server.plugin;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import org.cloudburstmc.api.plugin.PluginDependency;
+import org.cloudburstmc.api.plugin.PluginDescription;
+import org.cloudburstmc.api.plugin.PluginLoader;
 
 import javax.annotation.Nonnull;
 import java.nio.file.Path;

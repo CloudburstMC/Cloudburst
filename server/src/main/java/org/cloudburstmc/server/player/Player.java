@@ -32,9 +32,11 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.AdventureSettings;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTypes;
@@ -74,7 +76,6 @@ import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.locale.TextContainer;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.AxisAlignedBB;
@@ -88,7 +89,6 @@ import org.cloudburstmc.server.permission.PermissionAttachment;
 import org.cloudburstmc.server.permission.PermissionAttachmentInfo;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
-import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CommandRegistry;
@@ -226,12 +226,12 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     public long lastSkinChange;
 
     public Player(BedrockServerSession session, ClientChainData chainData) {
-        super(EntityTypes.PLAYER, Location.from(Server.getInstance().getDefaultLevel()));
+        super(EntityTypes.PLAYER, Location.from(CloudServer.getInstance().getDefaultLevel()));
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
         session.setBatchHandler(new Handler());
         this.perm = new PermissibleBase(this);
-        this.server = Server.getInstance();
+        this.server = CloudServer.getInstance();
         this.lastBreak = -1;
         this.chunksPerTick = this.server.getConfig().getChunkSending().getPerTick();
         this.spawnThreshold = this.server.getConfig().getChunkSending().getSpawnThreshold();
@@ -427,7 +427,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public Server getServer() {
+    public CloudServer getServer() {
         return this.server;
     }
 
@@ -561,8 +561,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     @Override
     public void recalculatePermissions() {
-        this.server.getPermissionManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
-        this.server.getPermissionManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
+        this.server.getPermissionManager().unsubscribeFromPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
+        this.server.getPermissionManager().unsubscribeFromPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
 
         if (this.perm == null) {
             return;
@@ -570,12 +570,12 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         this.perm.recalculatePermissions();
 
-        if (this.hasPermission(Server.BROADCAST_CHANNEL_USERS)) {
-            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
+        if (this.hasPermission(CloudServer.BROADCAST_CHANNEL_USERS)) {
+            this.server.getPermissionManager().subscribeToPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
         }
 
-        if (this.hasPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
-            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
+        if (this.hasPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
+            this.server.getPermissionManager().subscribeToPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
         }
 
         if (this.isEnableClientCommand() && spawned) this.sendCommandData();
@@ -870,7 +870,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     public boolean awardAchievement(String achievementId) {
-        if (!Server.getInstance().getConfig().isAchievements()) {
+        if (!CloudServer.getInstance().getConfig().isAchievements()) {
             return false;
         }
 
@@ -1609,11 +1609,11 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return;
         }
 
-        if (this.hasPermission(Server.BROADCAST_CHANNEL_USERS)) {
-            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_USERS, this);
+        if (this.hasPermission(CloudServer.BROADCAST_CHANNEL_USERS)) {
+            this.server.getPermissionManager().subscribeToPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
         }
-        if (this.hasPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
-            this.server.getPermissionManager().subscribeToPermission(Server.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
+        if (this.hasPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
+            this.server.getPermissionManager().subscribeToPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
         }
 
         Player oldPlayer = null;
@@ -2046,7 +2046,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 this.server.broadcastMessage(ev.getQuitMessage());
             }
 
-            this.server.getPermissionManager().unsubscribeFromPermission(Server.BROADCAST_CHANNEL_USERS, this);
+            this.server.getPermissionManager().unsubscribeFromPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
             this.spawned = false;
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     TextFormat.AQUA + (this.getName() == null ? "" : this.getName()) + TextFormat.WHITE,
@@ -2291,7 +2291,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         if (targets != null) {
-            Server.broadcastPacket(targets, packet);
+            CloudServer.broadcastPacket(targets, packet);
         } else {
             this.sendPacket(packet);
         }
@@ -2522,7 +2522,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         if (showMessages && !ev.getDeathMessage().toString().isEmpty()) {
-            this.server.broadcast(ev.getDeathMessage(), Server.BROADCAST_CHANNEL_USERS);
+            this.server.broadcast(ev.getDeathMessage(), CloudServer.BROADCAST_CHANNEL_USERS);
         }
 
 
@@ -3242,7 +3242,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 TakeItemEntityPacket packet = new TakeItemEntityPacket();
                 packet.setRuntimeEntityId(this.getRuntimeId());
                 packet.setItemRuntimeEntityId(entity.getRuntimeId());
-                Server.broadcastPacket(entity.getViewers(), packet);
+                CloudServer.broadcastPacket(entity.getViewers(), packet);
                 this.sendPacket(packet);
 
                 if (!this.isCreative()) {
@@ -3259,7 +3259,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 TakeItemEntityPacket packet = new TakeItemEntityPacket();
                 packet.setRuntimeEntityId(this.getRuntimeId());
                 packet.setItemRuntimeEntityId(entity.getRuntimeId());
-                Server.broadcastPacket(entity.getViewers(), packet);
+                CloudServer.broadcastPacket(entity.getViewers(), packet);
                 this.sendPacket(packet);
 
                 if (!this.isCreative()) {
@@ -3291,7 +3291,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                         TakeItemEntityPacket packet = new TakeItemEntityPacket();
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setItemRuntimeEntityId(entity.getRuntimeId());
-                        Server.broadcastPacket(entity.getViewers(), packet);
+                        CloudServer.broadcastPacket(entity.getViewers(), packet);
                         this.sendPacket(packet);
 
                         entity.close();

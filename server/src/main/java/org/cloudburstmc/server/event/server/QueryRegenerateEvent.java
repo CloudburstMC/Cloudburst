@@ -2,9 +2,9 @@ package org.cloudburstmc.server.event.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,11 +44,11 @@ public class QueryRegenerateEvent extends ServerEvent {
 
     private Map<String, String> extraData = new HashMap<>();
 
-    public QueryRegenerateEvent(Server server) {
+    public QueryRegenerateEvent(CloudServer server) {
         this(server, 5);
     }
 
-    public QueryRegenerateEvent(Server server, int timeout) {
+    public QueryRegenerateEvent(CloudServer server, int timeout) {
         this.timeout = timeout;
         this.serverName = server.getMotd();
         this.listPlugins = server.getConfig().getSettings().isQueryPlugins();
@@ -56,7 +56,7 @@ public class QueryRegenerateEvent extends ServerEvent {
         this.players = server.getOnlinePlayers().values().toArray(new Player[0]);
         this.gameType = server.getGamemode().isSurvival() ? "SMP" : "CMP";
         this.version = server.getVersion();
-        this.server_engine = server.getName() + " " + server.getNukkitVersion();
+        this.server_engine = server.getName() + " " + server.getImplementationVersion();
         this.map = server.getDefaultLevel() == null ? "unknown" : server.getDefaultLevel().getName();
         this.numPlayers = this.players.length;
         this.maxPlayers = server.getMaxPlayers();

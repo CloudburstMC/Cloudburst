@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityFactory;
@@ -27,7 +28,6 @@ import org.cloudburstmc.server.entity.impl.passive.*;
 import org.cloudburstmc.server.entity.impl.projectile.*;
 import org.cloudburstmc.server.entity.impl.vehicle.*;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
@@ -95,7 +95,7 @@ public class EntityRegistry implements Registry {
         return INSTANCE;
     }
 
-    public synchronized <T extends Entity> void register(PluginContainer plugin, EntityType<T> type, EntityFactory<T> factory,
+    public synchronized <T extends Entity> void register(Object plugin, EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg) {
         this.registerInternal(plugin, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg);
     }
@@ -104,7 +104,7 @@ public class EntityRegistry implements Registry {
         this.registerInternal(null, type, factory, legacyId, 1000, false); // Vanilla NBT decides
     }
 
-    private synchronized <T extends Entity> void registerInternal(PluginContainer plugin, EntityType<T> type, EntityFactory<T> factory,
+    private synchronized <T extends Entity> void registerInternal(Object plugin, EntityType<T> type, EntityFactory<T> factory,
                                                                   int runtimeType, int priority, boolean hasSpawnEgg)
             throws RegistryException {
         checkClosed();
@@ -172,7 +172,7 @@ public class EntityRegistry implements Registry {
      * @param <T>      entity class type
      * @return new entity
      */
-    public <T extends Entity> T newEntity(EntityType<T> type, PluginContainer plugin, Location location) {
+    public <T extends Entity> T newEntity(EntityType<T> type, Object plugin, Location location) {
         checkState(closed, "Cannot create entity till registry is closed");
         checkNotNull(type, "type");
         checkNotNull(plugin, "plugin");

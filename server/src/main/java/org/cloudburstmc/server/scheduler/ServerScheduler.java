@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.scheduler;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.plugin.PluginContainer;
-import org.cloudburstmc.server.plugin.PluginManager;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginManager;
 import org.cloudburstmc.server.utils.PluginException;
 
 import javax.annotation.Nonnull;

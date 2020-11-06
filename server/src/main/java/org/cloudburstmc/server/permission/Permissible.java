@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.permission;
 
-import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginContainer;
 
 import java.util.Map;
 

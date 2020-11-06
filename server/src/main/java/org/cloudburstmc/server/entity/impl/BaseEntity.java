@@ -21,7 +21,8 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
@@ -49,7 +50,6 @@ import org.cloudburstmc.server.metadata.MetadataValue;
 import org.cloudburstmc.server.metadata.Metadatable;
 import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -126,7 +126,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     protected float absorption = 0;
     protected float ySize = 0;
     protected boolean isStatic = false;
-    protected Server server;
+    protected CloudServer server;
     protected Timing timing;
     protected boolean isPlayer = false;
     private int maxHealth = 20;
@@ -661,7 +661,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         packet.setRuntimeEntityId(this.getRuntimeId());
         packet.getMetadata().putAll(map);
 
-        Server.broadcastPacket(this.getViewers(), packet);
+        CloudServer.broadcastPacket(this.getViewers(), packet);
     }
 
     public void sendData(Player player, EntityData... data) {
@@ -1011,7 +1011,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         packet.setRuntimeEntityId(this.getRuntimeId());
         packet.setMotion(motion);
 
-        Server.broadcastPacket(this.hasSpawned, packet);
+        CloudServer.broadcastPacket(this.hasSpawned, packet);
     }
 
     public Vector3f getDirectionVector() {
@@ -1145,7 +1145,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         SetEntityLinkPacket packet = new SetEntityLinkPacket();
         packet.setEntityLink(new EntityLinkData(getUniqueId(), vehicle.getUniqueId(), type, false, false));
 
-        Server.broadcastPacket(vehicle.getViewers(), packet);
+        CloudServer.broadcastPacket(vehicle.getViewers(), packet);
     }
 
     public void updatePassengers() {
@@ -1931,7 +1931,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         this.server.getEntityMetadata().removeMetadata(this, metadataKey, owningPlugin);
     }
 
-    public Server getServer() {
+    public CloudServer getServer() {
         return server;
     }
 

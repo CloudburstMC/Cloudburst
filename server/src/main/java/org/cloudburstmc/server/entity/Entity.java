@@ -6,7 +6,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.entity.misc.LightningBolt;
 import org.cloudburstmc.server.entity.passive.Bat;
@@ -33,7 +33,7 @@ public interface Entity extends Metadatable {
 
     Level getLevel();
 
-    Server getServer();
+    CloudServer getServer();
 
     long getUniqueId();
 

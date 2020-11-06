@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.impl.misc;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityExplosive;
 import org.cloudburstmc.server.entity.EntityType;
@@ -12,7 +13,6 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityExplosionPrimeEvent;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.FUSE_LENGTH;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.IGNITED;

@@ -40,7 +40,7 @@ import java.util.Properties;
  */
 
 /**
- * The entry point of Cloudburst Server.
+ * The entry point of Cloudburst CloudServer.
  */
 @Log4j2
 public class Bootstrap {
@@ -141,7 +141,7 @@ public class Bootstrap {
 
         String language = options.valueOf(languageSpec);
 
-        Server server = new Server(dataPath, pluginPath, levelPath, language);
+        CloudServer server = new CloudServer(dataPath, pluginPath, levelPath, language);
 
         try {
             if (TITLE) {
@@ -153,7 +153,7 @@ public class Bootstrap {
         }
 
         if (TITLE) {
-            System.out.print((char) 0x1b + "]0;Stopping Server..." + (char) 0x07);
+            System.out.print((char) 0x1b + "]0;Stopping CloudServer..." + (char) 0x07);
         }
         log.info("Stopping other threads");
 

@@ -3,6 +3,7 @@ package org.cloudburstmc.server.registry;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityFactory;
@@ -10,7 +11,6 @@ import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.impl.*;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.plugin.PluginContainer;
 
 import javax.annotation.Nonnull;
 import java.util.IdentityHashMap;
@@ -44,7 +44,7 @@ public class BlockEntityRegistry implements Registry {
         this.providers.put(type, new RegistryServiceProvider<>(new RegistryProvider<>(factory, null, 1000)));
     }
 
-    public synchronized <T extends BlockEntity> void register(PluginContainer plugin, BlockEntityType<T> type,
+    public synchronized <T extends BlockEntity> void register(Object plugin, BlockEntityType<T> type,
                                                               BlockEntityFactory<T> factory, int priority) throws RegistryException {
         checkClosed();
         checkNotNull(type, "type");
@@ -97,7 +97,7 @@ public class BlockEntityRegistry implements Registry {
      * @param <T>      entity class type
      * @return new entity
      */
-    public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, PluginContainer plugin, Chunk chunk, Vector3i position) {
+    public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, Object plugin, Chunk chunk, Vector3i position) {
         checkState(closed, "Cannot create entity till registry is closed");
         checkNotNull(type, "type");
         checkNotNull(plugin, "plugin");

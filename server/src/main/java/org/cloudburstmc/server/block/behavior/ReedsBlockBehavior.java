@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.ItemStack;
@@ -49,7 +49,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
                     Block b = block.up(i);
                     if (b.getState() == BlockStates.AIR) {
                         BlockGrowEvent ev = new BlockGrowEvent(b, BlockState.get(BlockTypes.REEDS));
-                        Server.getInstance().getEventManager().fire(ev);
+                        CloudServer.getInstance().getEventManager().fire(ev);
 
                         if (!ev.isCancelled()) {
                             b.set(ev.getNewState(), true);

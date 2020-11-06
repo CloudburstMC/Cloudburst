@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.utils;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MonitorInfo;
@@ -10,12 +10,12 @@ import java.lang.management.ThreadInfo;
 @Log4j2
 public class Watchdog extends Thread {
 
-    private final Server server;
+    private final CloudServer server;
     private final long time;
     public boolean running;
     private boolean responding = true;
 
-    public Watchdog(Server server, long time) {
+    public Watchdog(CloudServer server, long time) {
         this.server = server;
         this.time = time;
         this.running = true;

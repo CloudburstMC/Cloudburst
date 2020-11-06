@@ -83,6 +83,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.cloudburstmc</groupId>
+            <artifactId>cloudburst-api</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
         <!-- Terminal -->
         <dependency>
             <groupId>net.minecrell</groupId>

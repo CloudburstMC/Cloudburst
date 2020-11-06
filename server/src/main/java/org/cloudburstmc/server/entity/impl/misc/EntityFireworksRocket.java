@@ -6,7 +6,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.FireworksRocket;
@@ -113,7 +113,7 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
 
                 this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.LARGE_BLAST, -1, getType());
 
-                Server.broadcastPacket(getViewers(), packet);
+                CloudServer.broadcastPacket(getViewers(), packet);
 
                 this.kill();
                 hasUpdate = true;

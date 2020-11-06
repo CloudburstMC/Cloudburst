@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -30,7 +30,7 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 7) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
-                    Server.getInstance().getEventManager().fire(ev);
+                    CloudServer.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), true);
                     }
@@ -46,7 +46,7 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
                     BlockState d = side.down().getState();
                     if (side.getState().getType() == AIR && (d.getType() == FARMLAND || d.getType() == GRASS || d.getType() == DIRT)) {
                         BlockGrowEvent ev = new BlockGrowEvent(side, BlockState.get(PUMPKIN));
-                        Server.getInstance().getEventManager().fire(ev);
+                        CloudServer.getInstance().getEventManager().fire(ev);
                         if (!ev.isCancelled()) {
                             side.set(ev.getNewState(), true);
                         }

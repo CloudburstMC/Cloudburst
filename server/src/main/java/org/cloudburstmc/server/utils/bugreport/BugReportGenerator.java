@@ -3,7 +3,7 @@ package org.cloudburstmc.server.utils.bugreport;
 import com.sun.management.OperatingSystemMXBean;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.locale.LocaleManager;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -33,7 +33,7 @@ public class BugReportGenerator extends Thread {
 
     @Override
     public void run() {
-        LocaleManager localeManager = Server.getInstance().getLanguage();
+        LocaleManager localeManager = CloudServer.getInstance().getLanguage();
         try {
             log.info("[BugReport] " + localeManager.translate("cloudburst.bugreport.create"));
             String path = generate();
@@ -46,7 +46,7 @@ public class BugReportGenerator extends Thread {
     }
 
     private String generate() throws IOException {
-        File reports = Server.getInstance().getDataPath().resolve("logs/bug_reports").toFile();
+        File reports = CloudServer.getInstance().getDataPath().resolve("logs/bug_reports").toFile();
         if (!reports.isDirectory()) {
             reports.mkdirs();
         }

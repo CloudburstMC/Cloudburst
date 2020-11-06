@@ -3,7 +3,7 @@ package org.cloudburstmc.server.scheduler;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginContainer;
 
 /**
  * @author MagicDroidX

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
@@ -103,7 +103,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
                 BlockState grown = block.getState().incrementTrait(KELP_AGE);
                 BlockGrowEvent ev = new BlockGrowEvent(block, grown);
-                Server.getInstance().getEventManager().fire(ev);
+                CloudServer.getInstance().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     block.set(block.getState().withTrait(KELP_AGE, 25), true);
 
