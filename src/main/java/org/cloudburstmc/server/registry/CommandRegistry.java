@@ -458,6 +458,7 @@ public class CommandRegistry implements Registry {
         this.registerInternal("particle", new ParticleCommand());
         this.registerInternal("say", new SayCommand());
         this.registerInternal("seed", new SeedCommand());
+        this.registerInternal("setblock", new SetBlockCommand());
         this.registerInternal("setworldspawn", new SetWorldSpawnCommand());
         this.registerInternal("spawnpoint", new SpawnpointCommand());
         this.registerInternal("tp", new TeleportCommand());
