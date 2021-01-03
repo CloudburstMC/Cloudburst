@@ -211,7 +211,7 @@ public class PackManager implements Closeable {
         for (Pack pack : packs.values()) {
             if (pack.getType() != ResourcePackType.BEHAVIOR) {
                 packsInfos.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(pack.getId().toString(),
-                        pack.getVersion().toString(), pack.getSize(), "", "", "", false));
+                        pack.getVersion().toString(), pack.getSize(), "", "", "", false, false));
                 packStack.getResourcePacks().add(new ResourcePackStackPacket.Entry(pack.getId().toString(),
                         pack.getVersion().toString(), ""));
             }
