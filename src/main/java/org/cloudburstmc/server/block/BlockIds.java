@@ -524,6 +524,7 @@ public final class BlockIds {
     public static final Identifier TWISTING_VINES = Identifier.fromString("twisting_vines");
     public static final Identifier UNDERWATER_TORCH = Identifier.fromString("underwater_torch");
     public static final Identifier UNDYED_SHULKER_BOX = Identifier.fromString("undyed_shulker_box");
+    public static final Identifier UNKNOWN = Identifier.fromString("unknown");
     public static final Identifier UNLIT_REDSTONE_TORCH = Identifier.fromString("unlit_redstone_torch");
     public static final Identifier UNPOWERED_COMPARATOR = Identifier.fromString("unpowered_comparator");
     public static final Identifier UNPOWERED_REPEATER = Identifier.fromString("unpowered_repeater");
