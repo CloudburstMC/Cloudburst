@@ -54,7 +54,7 @@ public class CloudItemRegistry implements ItemRegistry {
         }
 
         INSTANCE = new CloudItemRegistry(BlockRegistry.get()); // Needs to be initialized afterwards
-        INSTANCE.registerVanillaCreativeItems();
+        //INSTANCE.registerVanillaCreativeItems(); // TODO needs to be moved to using item Identifiers instead of legacy ids
     }
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
@@ -613,7 +613,7 @@ public class CloudItemRegistry implements ItemRegistry {
                 if (creativeContent == null) {
                     CreativeContentPacket pk = new CreativeContentPacket();
 
-                    val contents = ItemUtils.toNetwork(this.creativeItems);
+                    val contents = ItemUtils.toNetwork(this.creativeItems).toArray(new com.nukkitx.protocol.bedrock.data.inventory.ItemData[0]);
 
                     for (int i = 0; i < contents.length; i++) {
                         contents[i].setNetId(i + 1);

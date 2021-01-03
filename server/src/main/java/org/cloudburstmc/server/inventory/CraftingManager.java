@@ -55,16 +55,16 @@ public class CraftingManager {
 
         Config recipesConfig = new Config(Config.JSON);
         recipesConfig.load(recipesStream);
-        this.loadRecipes(recipesConfig); //TODO: load recipes
+       // this.loadRecipes(recipesConfig); //TODO: load recipes
 
         String path = CloudServer.getInstance().getDataPath() + "custom_recipes.json";
         File filePath = new File(path);
 
         if (filePath.exists()) {
             Config customRecipes = new Config(filePath, Config.JSON);
-            this.loadRecipes(customRecipes); //TODO: load recipes
+            //     this.loadRecipes(customRecipes); //TODO: load recipes
         }
-        this.rebuildPacket();
+        //  this.rebuildPacket();
 
         log.info("Loaded " + this.recipes.size() + " recipes.");
     }
