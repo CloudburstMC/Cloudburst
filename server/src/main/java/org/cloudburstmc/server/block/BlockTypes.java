@@ -19,6 +19,7 @@ public class BlockTypes {
 
     private static final Reference2ReferenceMap<Identifier, BlockType> BY_ID = new Reference2ReferenceOpenHashMap<>();
 
+    public static final BlockType UNKNOWN = IntBlock.builder().id(BlockIds.UNKNOWN).build();
     public static final BlockType AIR = IntBlock.builder().id(BlockIds.AIR).maxStackSize(0).floodable(true).friction(0.9f).hardness(-1).replaceable(true).translucency(1).aabb(null).build();
     public static final BlockType STONE = IntBlock.builder().id(BlockIds.STONE).maxStackSize(64).diggable(true).hardness(1.5f).pushesOutItems(true).resistance(30).solid(true).targetTool(ToolTypes.PICKAXE).canBeSilkTouched(true).breakFlowing(true).build();
     public static final BlockType GRASS = IntBlock.builder().id(BlockIds.GRASS).maxStackSize(64).diggable(true).hardness(0.6f).pushesOutItems(true).resistance(3).solid(true).canBeSilkTouched(true).build();

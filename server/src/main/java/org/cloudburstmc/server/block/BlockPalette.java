@@ -47,6 +47,7 @@ public class BlockPalette {
     private final Reference2ReferenceMap<Identifier, BlockState> stateMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, Object2ReferenceMap<NbtMap, BlockState>> stateTraitMap = new Reference2ReferenceOpenHashMap<>();
     private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
+    private final SortedMap<String, List<CloudBlockState>> sortedPalette = new Object2ReferenceRBTreeMap<>();
 
     public void addBlock(BlockType type, BlockSerializer serializer, BlockTrait<?>[] traits) {
         if (this.defaultStateMap.containsKey(type)) {
@@ -62,15 +63,19 @@ public class BlockPalette {
 
         BlockState defaultState = map.get(Arrays.stream(traits).filter(t -> !t.isOnlySerialize()).collect(Collectors.toMap(t -> t, BlockTrait::getDefaultValue)));
         this.defaultStateMap.put(type, defaultState);
-
         states.forEach((nbt, state) -> {
-            int runtimeId = this.runtimeIdAllocator.getAndIncrement();
+            // int runtimeId = this.runtimeIdAllocator.getAndIncrement();
+            String id = nbt.getString("name");
+            if (!sortedPalette.containsKey(id)) {
+                sortedPalette.put(id, new ArrayList<CloudBlockState>());
+            }
+            sortedPalette.get(id).add(state);
 
             if (!state.isInitialized()) {
                 state.initialize(defaultState, map);
 
-                this.stateRuntimeMap.put(state, runtimeId);
-                this.runtimeStateMap.put(runtimeId, state);
+                //   this.stateRuntimeMap.put(state, runtimeId);
+                // this.runtimeStateMap.put(runtimeId, state);
                 this.stateMap.putIfAbsent(state.getId(), state.defaultState());
             }
 
@@ -86,7 +91,25 @@ public class BlockPalette {
 
             this.stateSerializedMap.put(state, nbt);
             this.serializedStateMap.put(nbt, state);
+
         });
+    }
+
+    public void generateRuntimeIds() {
+        if (!this.runtimeStateMap.isEmpty() || !this.stateRuntimeMap.isEmpty()) {
+            log.warn("Palette runtime IDs have already been generated!");
+            return;
+        }
+        log.debug("generating runtime Ids for blocks");
+        sortedPalette.forEach((id, states) -> {
+            for (BlockState state : states) {
+                int runtimeId = runtimeIdAllocator.getAndIncrement();
+                this.runtimeStateMap.put(runtimeId, state);
+                this.stateRuntimeMap.put(state, runtimeId);
+                log.debug("Assigned runtime ID {} to BlockState: {}", runtimeId, state);
+            }
+        });
+
     }
 
     public Map<String, Set<Object>> getVanillaTraitMap() {

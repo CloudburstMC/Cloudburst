@@ -9,7 +9,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 @ParametersAreNonnullByDefault
 public class BooleanBlockTrait extends BlockTrait<Boolean> {
-    private static final ImmutableList<Boolean> VALUES = ImmutableList.of(Boolean.TRUE, Boolean.FALSE);
+    private static final ImmutableList<Boolean> VALUES = ImmutableList.of(Boolean.FALSE, Boolean.TRUE);
 
     private final boolean defaultValue;
 
