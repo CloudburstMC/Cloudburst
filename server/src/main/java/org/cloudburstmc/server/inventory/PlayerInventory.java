@@ -17,9 +17,7 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 import static org.cloudburstmc.server.block.BlockTypes.AIR;
 
@@ -510,9 +508,9 @@ public class PlayerInventory extends BaseInventory {
 
     @Override
     public void sendContents(Player[] players) {
-        ItemData[] itemData = new ItemData[this.getSize()];
+        List<ItemData> itemData = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
-            itemData[i] = ((CloudItemStack) this.getItem(i)).getNetworkData();
+            itemData.add(i, ((CloudItemStack) this.getItem(i)).getNetworkData());
         }
 
         for (Player player : players) {
@@ -523,10 +521,7 @@ public class PlayerInventory extends BaseInventory {
             }
 
             InventoryContentPacket pk = new InventoryContentPacket();
-            pk.setContents(new ItemData[itemData.length]);
-            for (int i = 0; i < this.getSize(); ++i) {
-                pk.getContents()[i] = itemData[i];
-            }
+            pk.setContents(itemData);
             pk.setContainerId(id);
 
             player.sendPacket(pk);

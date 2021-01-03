@@ -4,10 +4,10 @@ import com.google.common.base.Preconditions;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import org.cloudburstmc.server.CloudServer;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.val;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
@@ -549,10 +549,11 @@ public abstract class BaseInventory implements Inventory {
     @Override
     public void sendContents(Player... players) {
         InventoryContentPacket packet = new InventoryContentPacket();
-        packet.setContents(new ItemData[this.getSize()]);
+        List<ItemData> contents = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
-            packet.getContents()[i] = ((CloudItemStack) this.getItem(i)).getNetworkData();
+            contents.add(i, ((CloudItemStack) this.getItem(i)).getNetworkData());
         }
+        packet.setContents(contents);
 
         for (Player player : players) {
             int id = player.getWindowId(this);

@@ -54,8 +54,12 @@ public class ItemUtils {
         return builder.build();
     }
 
-    public static ItemData[] toNetwork(Collection<ItemStack> items) {
-        return items.stream().map(item -> ((CloudItemStack) item).getNetworkData()).toArray(ItemData[]::new);
+    public static List<ItemData> toNetwork(Collection<ItemStack> items) {
+        List<ItemData> data = new ArrayList<>();
+        for (ItemStack item : items) {
+            data.add(ItemUtils.toNetwork(item));
+        }
+        return data;
     }
 
     public static ItemData toNetwork(ItemStack item) {
