@@ -178,7 +178,7 @@ public enum GenerationTreeSpecies {
 
     GenerationTreeSpecies(@NonNull TreeSpecies species, boolean hasSapling) {
         this(BlockStates.LOG.withTrait(BlockTraits.TREE_SPECIES, species),
-                BlockStates.LEAVES.withTrait(BlockTraits.TREE_SPECIES, species),
+                BlockStates.LEAVES.withTrait(BlockTraits.TREE_SPECIES_OVERWORLD, species),
                 hasSapling ? BlockIds.SAPLING : null, hasSapling ? species.ordinal() : -1);
     }
 

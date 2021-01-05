@@ -89,7 +89,6 @@ import org.cloudburstmc.server.permission.PermissionAttachment;
 import org.cloudburstmc.server.permission.PermissionAttachmentInfo;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
-import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -1528,7 +1527,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(false);
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
-        startGamePacket.setBlockPalette(BlockRegistry.get().getPaletteTag());
+        //startGamePacket.setBlockPalette(BlockRegistry.get().getPaletteTag());
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
@@ -1539,9 +1538,9 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         availableEntityIdentifiersPacket.setIdentifiers(EntityRegistry.get().getEntityIdentifiersPalette());
         this.sendPacket(availableEntityIdentifiersPacket);
 
-        UpdateBlockPropertiesPacket updateBlockPropertiesPacket = new UpdateBlockPropertiesPacket();
-        updateBlockPropertiesPacket.setProperties(BlockRegistry.get().getPropertiesTag());
-        this.sendPacket(updateBlockPropertiesPacket);
+//        UpdateBlockPropertiesPacket updateBlockPropertiesPacket = new UpdateBlockPropertiesPacket();
+//        updateBlockPropertiesPacket.setProperties(BlockRegistry.get().getPropertiesTag());
+//        this.sendPacket(updateBlockPropertiesPacket);
 
         this.loggedIn = true;
 
