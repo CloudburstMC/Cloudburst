@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.function.IntConsumer;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.cloudburstmc.server.block.BlockStates.AIR;
 
 @Log4j2
 public class BlockStorage {
@@ -37,7 +38,7 @@ public class BlockStorage {
     public BlockStorage(BitArrayVersion version) {
         this.bitArray = version.createPalette(SIZE);
         this.palette = new IntArrayList(16);
-        this.palette.add(0); // Air is at the start of every palette.
+        this.palette.add(BlockRegistry.get().getRuntimeId(AIR)); // Air is at the start of every palette.
     }
 
     private BlockStorage(BitArray bitArray, IntList palette) {
