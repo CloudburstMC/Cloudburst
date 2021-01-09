@@ -1,0 +1,21 @@
+package org.cloudburstmc.api.util.data;
+
+public enum WallBlockType {
+    COBBLESTONE,
+    MOSSY_COBBLESTONE,
+    STONE_BRICK,
+    MOSSY_STONE_BRICK,
+    ANDESITE,
+    DIORITE,
+    GRANITE,
+    SANDSTONE,
+    RED_SANDSTONE,
+    BRICK,
+    PRISMARINE,
+    NETHER_BRICK,
+    RED_NETHER_BRICK,
+    END_BRICK,
+    BLACKSTONE,
+    POLISHED_BLACKSTONE,
+    POLISHED_BLACKSTONE_BRICK
+}
