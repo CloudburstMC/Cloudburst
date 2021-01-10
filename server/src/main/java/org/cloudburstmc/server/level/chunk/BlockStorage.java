@@ -1,24 +1,23 @@
 package org.cloudburstmc.server.level.chunk;
 
-import com.nukkitx.blockstateupdater.BlockStateUpdaters;
-import com.nukkitx.nbt.*;
+import com.nukkitx.nbt.NBTInputStream;
+import com.nukkitx.nbt.NBTOutputStream;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.network.VarInts;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
-import java.util.function.IntConsumer;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.cloudburstmc.server.block.BlockStates.AIR;
@@ -28,7 +27,7 @@ public class BlockStorage {
 
     private static final int SIZE = 4096;
 
-    private final IntList palette;
+    private final List<BlockState> palette;
     private BitArray bitArray;
 
     public BlockStorage() {
@@ -37,11 +36,11 @@ public class BlockStorage {
 
     public BlockStorage(BitArrayVersion version) {
         this.bitArray = version.createPalette(SIZE);
-        this.palette = new IntArrayList(16);
-        this.palette.add(BlockRegistry.get().getRuntimeId(AIR)); // Air is at the start of every palette.
+        this.palette = new ReferenceArrayList<>(16);
+        this.palette.add(AIR); // Air is at the start of every palette.
     }
 
-    private BlockStorage(BitArray bitArray, IntList palette) {
+    private BlockStorage(BitArray bitArray, List<BlockState> palette) {
         this.palette = palette;
         this.bitArray = bitArray;
     }
@@ -60,7 +59,7 @@ public class BlockStorage {
 
     public void setBlock(int index, BlockState blockState) {
         try {
-            int idx = this.idFor(BlockRegistry.get().getRuntimeId(blockState));
+            int idx = this.idFor(blockState);
             this.bitArray.set(index, idx);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Unable to set block: " + blockState + ", palette: " + palette, e);
@@ -75,7 +74,9 @@ public class BlockStorage {
         }
 
         VarInts.writeInt(buffer, palette.size());
-        palette.forEach((IntConsumer) id -> VarInts.writeInt(buffer, id));
+
+        BlockRegistry registry = BlockRegistry.get();
+        palette.forEach(state -> VarInts.writeInt(buffer, registry.getRuntimeId(state)));
     }
 
     public void writeToStorage(ByteBuf buffer) {
@@ -88,10 +89,8 @@ public class BlockStorage {
 
         try (ByteBufOutputStream stream = new ByteBufOutputStream(buffer);
              NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
-            for (int runtimeId : palette.toIntArray()) {
-                BlockState blockState = BlockRegistry.get().getBlock(runtimeId);
-
-                nbtOutputStream.writeTag(BlockPalette.INSTANCE.getSerialized(blockState));
+            for (BlockState state : this.palette) {
+                nbtOutputStream.writeTag(BlockPalette.INSTANCE.getSerialized(state));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -121,41 +120,14 @@ public class BlockStorage {
             for (int i = 0; i < paletteSize; i++) {
                 try {
                     NbtMap tag = (NbtMap) nbtInputStream.readTag();
-                    BlockState state;
 
-                    if (!tag.containsKey("states", NbtType.COMPOUND)) {
-                        tag = tag.toBuilder().putCompound("states", NbtMap.EMPTY).build();
-                    }
+                    BlockState state = BlockRegistry.get().getBlock(tag);
 
-                    state = BlockPalette.INSTANCE.getBlockState(tag);
-
-                    if (state == null) {
-                        tag = BlockStateUpdaters.updateBlockState(tag, tag.getInt("version"));
-                        state = BlockPalette.INSTANCE.getBlockState(tag);
-                    }
-
-                    if (state == null/* && tag.containsKey("states", NbtType.COMPOUND)*/) { //TODO: fix unknown states
-                        val defaultState = BlockRegistry.get().getBlock(Identifier.fromString(tag.getString("name")));
-                        val serialized = BlockPalette.INSTANCE.getSerialized(defaultState);
-
-                        if (serialized.containsKey("states", NbtType.COMPOUND)) {
-                            val builder = tag.toBuilder();
-
-                            val statesBuilder = ((NbtMap) builder.get("states")).toBuilder();
-                            serialized.getCompound("states").forEach(statesBuilder::putIfAbsent);
-                            builder.putCompound("states", statesBuilder.build());
-                            state = BlockPalette.INSTANCE.getBlockState(builder.build());
-                        }
-                    }
-
-                    if (state == null) throw new IllegalStateException("Invalid block state\n" + tag);
-
-                    int runtimeId = BlockRegistry.get().getRuntimeId(state);
-                    if (this.palette.contains(runtimeId)) {
+                    if (this.palette.contains(state)) {
                         log.warn("Palette contains block state ({}) twice! ({}) (palette: {})", state, tag, this.palette);
                     }
 
-                    this.palette.add(runtimeId);
+                    this.palette.add(state);
                 } catch (Exception e) {
                     log.throwing(e);
                 }
@@ -174,8 +146,8 @@ public class BlockStorage {
         this.bitArray = newBitArray;
     }
 
-    private int idFor(int runtimeId) {
-        int index = this.palette.indexOf(runtimeId);
+    private int idFor(BlockState blockState) {
+        int index = this.palette.indexOf(blockState);
         if (index != -1) {
             return index;
         }
@@ -188,13 +160,12 @@ public class BlockStorage {
                 this.onResize(next);
             }
         }
-        this.palette.add(runtimeId);
+        this.palette.add(blockState);
         return index;
     }
 
     private BlockState blockFor(int index) {
-        int runtimeId = this.palette.getInt(index);
-        return BlockRegistry.get().getBlock(runtimeId);
+        return this.palette.get(index);
     }
 
     public boolean isEmpty() {
@@ -210,6 +181,6 @@ public class BlockStorage {
     }
 
     public BlockStorage copy() {
-        return new BlockStorage(this.bitArray.copy(), new IntArrayList(this.palette));
+        return new BlockStorage(this.bitArray.copy(), new ReferenceArrayList<>(this.palette));
     }
 }

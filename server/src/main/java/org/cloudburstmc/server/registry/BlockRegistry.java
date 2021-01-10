@@ -10,6 +10,7 @@ import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockPalette;
@@ -202,6 +203,39 @@ public class BlockRegistry implements Registry {
             throw new RegistryException("No block for runtime ID " + runtimeId + " registered");
         }
         return blockBehavior;
+    }
+
+    public BlockState getBlock(NbtMap tag) {
+        BlockState state;
+
+        if (!tag.containsKey("states", NbtType.COMPOUND)) {
+            tag = tag.toBuilder().putCompound("states", NbtMap.EMPTY).build();
+        }
+
+        state = palette.getBlockState(tag);
+
+        if (state == null) {
+            tag = BlockStateUpdaters.updateBlockState(tag, tag.getInt("version"));
+            state = palette.getBlockState(tag);
+        }
+
+        if (state == null/* && tag.containsKey("states", NbtType.COMPOUND)*/) { //TODO: fix unknown states
+            val defaultState = getBlock(Identifier.fromString(tag.getString("name")));
+            val serialized = palette.getSerialized(defaultState);
+
+            if (serialized.containsKey("states", NbtType.COMPOUND)) {
+                val builder = tag.toBuilder();
+
+                val statesBuilder = ((NbtMap) builder.get("states")).toBuilder();
+                serialized.getCompound("states").forEach(statesBuilder::putIfAbsent);
+                builder.putCompound("states", statesBuilder.build());
+                state = palette.getBlockState(builder.build());
+            }
+        }
+
+        if (state == null) throw new IllegalStateException("Invalid block state\n" + tag);
+
+        return state;
     }
 
     public int getLegacyId(String name) {
