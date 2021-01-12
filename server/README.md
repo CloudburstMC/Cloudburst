@@ -14,7 +14,7 @@ It has a few key advantages over other server software:
 * Written in Java, Cloudburst is faster and more stable.
 * Having a friendly structure, it's easy to contribute to Cloudburst's development and rewrite plugins from other platforms into Cloudburst plugins.
 
-Cloudburst is **under improvement** yet, we welcome contributions. 
+Cloudburst is **under improvement**, yet we welcome contributions. 
 
 Links
 --------------------
