@@ -7,7 +7,7 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 
@@ -32,18 +32,18 @@ public class SetWorldSpawnCommand extends Command {
         if (!this.testPermission(sender)) {
             return true;
         }
-        Level level;
+        World world;
         Vector3f pos;
         if (args.length == 0) {
             if (sender instanceof Player) {
-                level = ((Player) sender).getLevel();
+                world = ((Player) sender).getWorld();
                 pos = ((Player) sender).getPosition();
             } else {
                 sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
                 return true;
             }
         } else if (args.length == 3) {
-            level = sender.getServer().getDefaultLevel();
+            world = sender.getServer().getDefaultWorld();
             try {
                 pos = Vector3f.from(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]));
             } catch (NumberFormatException e1) {
@@ -52,7 +52,7 @@ public class SetWorldSpawnCommand extends Command {
         } else {
             return false;
         }
-        level.setSpawnLocation(pos);
+        world.setSpawnLocation(pos);
 
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.setworldspawn.success", pos.getFloorX(),
                 pos.getFloorY(), pos.getFloorZ()));

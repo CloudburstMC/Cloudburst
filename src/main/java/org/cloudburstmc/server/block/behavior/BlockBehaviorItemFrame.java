@@ -8,8 +8,8 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.ItemFrame;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -23,9 +23,9 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.getSide(block.getState().ensureTrait(BlockTraits.FACING_DIRECTION)).getState().inCategory(BlockCategory.TRANSPARENT)) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
                 return type;
             }
         }
@@ -40,7 +40,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        val level = block.getLevel();
+        val level = block.getWorld();
         BlockEntity blockEntity = level.getBlockEntity(block.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         if (itemFrame.getItem() == null || itemFrame.getItem().getId() == AIR) {
@@ -67,7 +67,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
             ItemFrame frame = BlockEntityRegistry.get().newEntity(ITEM_FRAME, block);
             frame.loadAdditionalData(item.getTag());
 
-            block.getLevel().addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_PLACE);
+            block.getWorld().addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_PLACE);
             return true;
         }
         return false;
@@ -76,13 +76,13 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     @Override
     public boolean onBreak(Block block, Item item) {
         super.onBreak(block, item);
-        block.getLevel().addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
+        block.getWorld().addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
         return true;
     }
 
     @Override
     public Item[] getDrops(Block block, Item hand) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         int chance = new Random().nextInt(100) + 1;
         if (itemFrame != null && chance <= (itemFrame.getItemDropChance() * 100)) {
@@ -113,7 +113,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
 
     @Override
     public int getComparatorInputOverride(Block block) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof ItemFrame) {
             return ((ItemFrame) blockEntity).getAnalogOutput();

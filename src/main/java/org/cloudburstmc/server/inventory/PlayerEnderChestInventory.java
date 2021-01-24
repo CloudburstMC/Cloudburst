@@ -7,7 +7,7 @@ import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.server.blockentity.EnderChest;
 import org.cloudburstmc.server.entity.impl.Human;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.player.Player;
 
 public class PlayerEnderChestInventory extends BaseInventory {
@@ -42,10 +42,10 @@ public class PlayerEnderChestInventory extends BaseInventory {
         this.sendContents(who);
 
         if (chest != null && chest.getInventory().getViewers().size() == 1) {
-            Level level = this.getHolder().getLevel();
-            if (level != null) {
-                level.addLevelSoundEvent(this.getHolder().getPosition().add(0.5, 0.5, 0.5), SoundEvent.ENDERCHEST_OPEN);
-                ContainerInventory.sendBlockEventPacket(level.getBlockEntity(chest.getPosition()), 1);
+            World world = this.getHolder().getWorld();
+            if (world != null) {
+                world.addLevelSoundEvent(this.getHolder().getPosition().add(0.5, 0.5, 0.5), SoundEvent.ENDERCHEST_OPEN);
+                ContainerInventory.sendBlockEventPacket(world.getBlockEntity(chest.getPosition()), 1);
             }
         }
     }
@@ -59,10 +59,10 @@ public class PlayerEnderChestInventory extends BaseInventory {
 
         EnderChest chest = who.getViewingEnderChest();
         if (chest != null && chest.getInventory().getViewers().size() == 1) {
-            Level level = this.getHolder().getLevel();
-            if (level != null) {
-                level.addLevelSoundEvent(this.getHolder().getPosition().add(0.5, 0.5, 0.5), SoundEvent.ENDERCHEST_CLOSED);
-                ContainerInventory.sendBlockEventPacket(level.getBlockEntity(chest.getPosition()), 0);
+            World world = this.getHolder().getWorld();
+            if (world != null) {
+                world.addLevelSoundEvent(this.getHolder().getPosition().add(0.5, 0.5, 0.5), SoundEvent.ENDERCHEST_CLOSED);
+                ContainerInventory.sendBlockEventPacket(world.getBlockEntity(chest.getPosition()), 0);
             }
 
             who.setViewingEnderChest(null);

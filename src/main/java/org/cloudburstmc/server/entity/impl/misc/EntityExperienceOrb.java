@@ -8,7 +8,7 @@ import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.ExperienceOrb;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.EXPERIENCE_VALUE;
@@ -116,7 +116,7 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
                     this.pickupDelay = 0;
                 }
             } else {
-                for (Entity entity : this.level.getCollidingEntities(this.boundingBox, this)) {
+                for (Entity entity : this.world.getCollidingEntities(this.boundingBox, this)) {
                     if (entity instanceof Player) {
                         if (((Player) entity).pickupEntity(this, false)) {
                             return true;
@@ -132,7 +132,7 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
             }
 
             if (this.closestPlayer == null || this.closestPlayer.getPosition().distanceSquared(this.getPosition()) > 64.0D) {
-                for (Player p : level.getPlayers().values()) {
+                for (Player p : world.getPlayers().values()) {
                     if (!p.isSpectator() && p.getPosition().distance(this.getPosition()) <= 8) {
                         this.closestPlayer = p;
                         break;
@@ -160,7 +160,7 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
             double friction = 1d - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                friction = this.getLevel().getBlockAt(this.getPosition().add(0, -1, -1).toInt()).getBehavior().getFrictionFactor() * friction;
+                friction = this.getWorld().getBlockAt(this.getPosition().add(0, -1, -1).toInt()).getBehavior().getFrictionFactor() * friction;
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);

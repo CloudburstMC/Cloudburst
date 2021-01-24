@@ -9,7 +9,7 @@ import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleDamageEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleDestroyEvent;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;

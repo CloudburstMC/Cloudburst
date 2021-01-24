@@ -7,7 +7,7 @@ import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.entity.impl.projectile.EntityProjectile;
 import org.cloudburstmc.server.entity.impl.vehicle.EntityVehicle;
 import org.cloudburstmc.server.entity.misc.DroppedItem;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 
 /**
  * author: MagicDroidX

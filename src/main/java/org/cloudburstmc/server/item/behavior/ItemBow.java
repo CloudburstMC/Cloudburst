@@ -10,7 +10,7 @@ import org.cloudburstmc.server.entity.projectile.Arrow;
 import org.cloudburstmc.server.event.entity.EntityShootBowEvent;
 import org.cloudburstmc.server.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -74,7 +74,7 @@ public class ItemBow extends ItemTool {
         double p = (double) ticksUsed / 20;
         double f = Math.min((p * p + p * 2) / 3, 1) * 2;
 
-        Arrow arrow = EntityRegistry.get().newEntity(EntityTypes.ARROW, Location.from(position, player.getLevel()));
+        Arrow arrow = EntityRegistry.get().newEntity(EntityTypes.ARROW, Location.from(position, player.getWorld()));
         arrow.setPosition(position);
         arrow.setMotion(motion);
         arrow.setRotation((player.getYaw() > 180 ? 360 : 0) - player.getYaw(), -player.getPitch());
@@ -123,7 +123,7 @@ public class ItemBow extends ItemTool {
                     entityShootBowEvent.getProjectile().kill();
                 } else {
                     entityShootBowEvent.getProjectile().spawnToAll();
-                    player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.BOW);
+                    player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.BOW);
                 }
             }
         }

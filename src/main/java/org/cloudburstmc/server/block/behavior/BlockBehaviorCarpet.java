@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -51,11 +51,11 @@ public class BlockBehaviorCarpet extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() == AIR) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
 

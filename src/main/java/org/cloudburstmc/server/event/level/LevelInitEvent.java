@@ -1,16 +1,16 @@
 package org.cloudburstmc.server.event.level;
 
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
 @Deprecated()
-public class LevelInitEvent extends LevelEvent {
+public class LevelInitEvent extends WorldEvent {
 
-    public LevelInitEvent(Level level) {
-        super(level);
+    public LevelInitEvent(World world) {
+        super(world);
     }
 
 }

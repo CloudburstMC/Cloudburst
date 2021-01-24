@@ -13,7 +13,7 @@ import org.cloudburstmc.server.blockentity.Sign;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -71,11 +71,11 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() == AIR) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
 

@@ -9,7 +9,7 @@ import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.TextFormat;
@@ -59,8 +59,8 @@ public class KillCommand extends Command {
                 CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.kill.successful", player.getName()));
             } else if (args[0].equals("@e")) {
                 StringJoiner joiner = new StringJoiner(", ");
-                for (Level level : Server.getInstance().getLevels()) {
-                    for (Entity entity : level.getEntities()) {
+                for (World world : Server.getInstance().getWorlds()) {
+                    for (Entity entity : world.getEntities()) {
                         if (!(entity instanceof Player)) {
                             joiner.add(entity.getName());
                             entity.close();
@@ -87,8 +87,8 @@ public class KillCommand extends Command {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                     return true;
                 }
-                for (Level level : Server.getInstance().getLevels()) {
-                    for (Entity entity : level.getEntities()) {
+                for (World world : Server.getInstance().getWorlds()) {
+                    for (Entity entity : world.getEntities()) {
                         if (entity instanceof Player) {
                             entity.setHealth(0);
                             sender.sendMessage(new TranslationContainer(TextFormat.GOLD + "%commands.kill.successful", entity.getName()));

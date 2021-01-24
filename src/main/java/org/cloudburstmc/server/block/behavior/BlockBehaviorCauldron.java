@@ -12,7 +12,7 @@ import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemBucket;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -56,7 +56,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        BlockEntity be = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity be = block.getWorld().getBlockEntity(block.getPosition());
 
         if (!(be instanceof Cauldron)) {
             return false;
@@ -77,13 +77,13 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 bucket.setMeta(8);//water bucket
 
                 PlayerBucketFillEvent ev = new PlayerBucketFillEvent(player, block, null, item, bucket);
-                block.getLevel().getServer().getEventManager().fire(ev);
+                block.getWorld().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     replaceBucket(item, player, ev.getItem());
 
                     block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, 0), true);
                     cauldron.setCustomColor(null);
-                    block.getLevel().addSound(block.getPosition().toFloat().add(0.5, 1, 0.5), Sound.CAULDRON_TAKEWATER);
+                    block.getWorld().addSound(block.getPosition().toFloat().add(0.5, 1, 0.5), Sound.CAULDRON_TAKEWATER);
                 }
             } else if (item.getMeta() == 8) {//water bucket
 
@@ -96,7 +96,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 bucket.setMeta(0);//empty bucket
 
                 PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, block, null, item, bucket);
-                block.getLevel().getServer().getEventManager().fire(ev);
+                block.getWorld().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     replaceBucket(item, player, ev.getItem());
 
@@ -105,11 +105,11 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                         cauldron.setSplash(false);
                         cauldron.setCustomColor(null);
                         block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, 0), true);
-                        block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_EXPLODE);
+                        block.getWorld().addSound(block.getPosition(), Sound.CAULDRON_EXPLODE);
                     } else {
                         cauldron.setCustomColor(null);
                         block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, 6), true);
-                        block.getLevel().addLevelSoundEvent(block.getPosition().toFloat().add(0.5, 1, 0.5), SoundEvent.BUCKET_FILL_WATER);
+                        block.getWorld().addLevelSoundEvent(block.getPosition().toFloat().add(0.5, 1, 0.5), SoundEvent.BUCKET_FILL_WATER);
                     }
                     //this.update();
                 }
@@ -134,12 +134,12 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 if (player.getInventory().canAddItem(bottle)) {
                     player.getInventory().addItem(bottle);
                 } else {
-                    player.getLevel().dropItem(player.getPosition().toFloat().add(0, 1.3, 0), bottle, player.getDirectionVector().mul(0.4));
+                    player.getWorld().dropItem(player.getPosition().toFloat().add(0, 1.3, 0), bottle, player.getDirectionVector().mul(0.4));
                 }
             }
 
             block.set(block.getState().incrementTrait(BlockTraits.FILL_LEVEL));
-            block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_FILLPOTION);
+            block.getWorld().addSound(block.getPosition(), Sound.CAULDRON_FILLPOTION);
         } else if (itemType == ItemIds.GLASS_BOTTLE) {
             if (isEmpty(block)) {
                 return true;
@@ -155,17 +155,17 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 if (player.getInventory().canAddItem(potion)) {
                     player.getInventory().addItem(potion);
                 } else {
-                    player.getLevel().dropItem(player.getPosition().toFloat().add(0, 1.3, 0), potion, player.getDirectionVector().mul(0.4));
+                    player.getWorld().dropItem(player.getPosition().toFloat().add(0, 1.3, 0), potion, player.getDirectionVector().mul(0.4));
                 }
             }
 
             block.set(block.getState().decrementTrait(BlockTraits.FILL_LEVEL));
-            block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_TAKEPOTION);
+            block.getWorld().addSound(block.getPosition(), Sound.CAULDRON_TAKEPOTION);
         } else {
             return true;
         }
 
-        block.getLevel().updateComparatorOutputLevel(block.getPosition());
+        block.getWorld().updateComparatorOutputLevel(block.getPosition());
         return true;
     }
 
@@ -178,7 +178,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 if (player.getInventory().canAddItem(newBucket)) {
                     player.getInventory().addItem(newBucket);
                 } else {
-                    player.getLevel().dropItem(player.getPosition().add(0, 1.3, 0), newBucket, player.getDirectionVector().mul(0.4));
+                    player.getWorld().dropItem(player.getPosition().add(0, 1.3, 0), newBucket, player.getDirectionVector().mul(0.4));
                 }
             }
         }

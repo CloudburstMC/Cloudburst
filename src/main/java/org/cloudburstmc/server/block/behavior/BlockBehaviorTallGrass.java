@@ -9,8 +9,8 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -60,10 +60,10 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
-                block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                block.getWorld().useBreakOn(block.getPosition());
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
@@ -81,7 +81,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
                         item.decrementCount();
                     }
 
-                    block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+                    block.getWorld().addParticle(new BoneMealParticle(block.getPosition()));
 
                     val dp = BlockState.get(DOUBLE_PLANT).withTrait(BlockTraits.TALL_GRASS_TYPE, type);
                     block.set(dp, true);

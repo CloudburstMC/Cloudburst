@@ -5,7 +5,7 @@ import lombok.val;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.utils.Rail;
 import org.cloudburstmc.server.utils.data.RailDirection;
 
@@ -20,10 +20,10 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE || type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == World.BLOCK_UPDATE_NORMAL || type == World.BLOCK_UPDATE_REDSTONE || type == World.BLOCK_UPDATE_SCHEDULED) {
             super.onUpdate(block, type);
 
-            val level = block.getLevel();
+            val level = block.getWorld();
             boolean wasPowered = isActive(block.getState());
             boolean isPowered = level.isBlockPowered(block.getPosition())
                     || checkSurrounding(block, block.getPosition(), true, 0)
@@ -64,7 +64,7 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
         int dz = pos.getZ();
 
         BlockBehaviorRail behavior;
-        val state = block.getLevel().getBlock(dx, dy, dz).getState();
+        val state = block.getWorld().getBlock(dx, dy, dz).getState();
 
         if (Rail.isRailBlock(state)) {
             behavior = (BlockBehaviorRail) state.getBehavior();
@@ -139,7 +139,7 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
     }
 
     protected boolean canPowered(Block block, Vector3i pos, RailDirection direction, int power, boolean relative) {
-        val state = block.getLevel().getBlock(pos).getState();
+        val state = block.getWorld().getBlock(pos).getState();
 
         if (state.getType() != ACTIVATOR_RAIL) {
             return false;
@@ -155,7 +155,7 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
                 || base != RailDirection.EAST_WEST
                 && base != RailDirection.ASCENDING_EAST
                 && base != RailDirection.ASCENDING_WEST)
-                && (block.getLevel().isBlockPowered(pos) || checkSurrounding(block, pos, relative, power + 1));
+                && (block.getWorld().isBlockPowered(pos) || checkSurrounding(block, pos, relative, power + 1));
     }
 
     @Override

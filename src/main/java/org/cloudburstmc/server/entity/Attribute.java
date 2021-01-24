@@ -61,7 +61,7 @@ public class Attribute implements Cloneable {
         addAttribute(FOLLOW_RANGE, "minecraft:follow_range", 0.00f, 2048.00f, 16.00f, false);
         addAttribute(MAX_HUNGER, "minecraft:player.hunger", 0.00f, 20.00f, 20.00f);
         addAttribute(ATTACK_DAMAGE, "minecraft:attack_damage", 0.00f, 340282346638528859811704183484516925440.00f, 1.00f, false);
-        addAttribute(EXPERIENCE_LEVEL, "minecraft:player.level", 0.00f, 24791.00f, 0.00f);
+        addAttribute(EXPERIENCE_LEVEL, "minecraft:player.world", 0.00f, 24791.00f, 0.00f);
         addAttribute(EXPERIENCE, "minecraft:player.experience", 0.00f, 1.00f, 0.00f);
         addAttribute(LUCK, "minecraft:luck", -1024, 1024, 0);
     }

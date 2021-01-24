@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
@@ -142,15 +142,15 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
 //            val direction = block.getState().ensureTrait(BlockTraits.DIRECTION);
 //
 //            if (!block.getSideState(direction).inCategory(BlockCategory.SOLID)) {
 //                val up = block.upState();
 //
 //                if (up.getType() != BlockTypes.VINE || up.ensureTrait(BlockTraits.DIRECTION) != direction) {
-//                    block.getLevel().useBreakOn(block.getPosition());
-//                    return Level.BLOCK_UPDATE_NORMAL;
+//                    block.getWorld().useBreakOn(block.getPosition());
+//                    return World.BLOCK_UPDATE_NORMAL;
 //                }
 //            }
             int current = block.getState().ensureTrait(BlockTraits.VINE_DIRECTION_BITS);
@@ -165,12 +165,12 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
             if (bits == 0) {
                 val upState = block.up().getState();
                 if (upState.getType() != BlockIds.VINE || (upState.ensureTrait(BlockTraits.VINE_DIRECTION_BITS) & current) == 0) {
-                    block.getLevel().useBreakOn(block.getPosition(), null, null, true);
-                    return Level.BLOCK_UPDATE_NORMAL;
+                    block.getWorld().useBreakOn(block.getPosition(), null, null, true);
+                    return World.BLOCK_UPDATE_NORMAL;
                 }
             } else if (bits != current) {
                 block.set(block.getState().withTrait(BlockTraits.VINE_DIRECTION_BITS, bits));
-                return Level.BLOCK_UPDATE_NORMAL;
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;

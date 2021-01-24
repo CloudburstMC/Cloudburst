@@ -44,7 +44,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
+            BlockEntity t = block.getWorld().getBlockEntity(block.getPosition());
             if (!(t instanceof Beacon)) {
                 t.close();
                 BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, block.getChunk(), block.getPosition());

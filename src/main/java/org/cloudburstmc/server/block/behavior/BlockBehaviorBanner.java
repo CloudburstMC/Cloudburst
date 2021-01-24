@@ -12,7 +12,7 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
@@ -85,11 +85,11 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() == AIR) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
 
@@ -98,7 +98,7 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
         Item item = Item.get(ItemIds.BANNER);
         if (blockEntity instanceof Banner) {
             Banner banner = (Banner) blockEntity;
@@ -119,7 +119,7 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     }
 
     public DyeColor getDyeColor(Block block) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Banner) {
             return ((Banner) blockEntity).getBase();

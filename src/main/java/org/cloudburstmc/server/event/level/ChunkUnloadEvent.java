@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.level;
 
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 
 /**
  * author: MagicDroidX

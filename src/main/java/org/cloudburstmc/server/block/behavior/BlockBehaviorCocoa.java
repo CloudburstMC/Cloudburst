@@ -10,8 +10,8 @@ import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
@@ -117,20 +117,20 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             BlockState side = block.getSide(block.getState().ensureTrait(BlockTraits.DIRECTION)).getState();
 
             if (side.getType() != BlockIds.LOG || side.ensureTrait(BlockTraits.TREE_SPECIES) != TreeSpecies.JUNGLE) {
-                block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                block.getWorld().useBreakOn(block.getPosition());
+                return World.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == World.BLOCK_UPDATE_RANDOM) {
             if (ThreadLocalRandom.current().nextInt(2) == 1) {
                 if (!grow(block)) {
-                    return Level.BLOCK_UPDATE_RANDOM;
+                    return World.BLOCK_UPDATE_RANDOM;
                 }
             } else {
-                return Level.BLOCK_UPDATE_RANDOM;
+                return World.BLOCK_UPDATE_RANDOM;
             }
         }
 
@@ -146,7 +146,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) {
             if (grow(block)) {
-                block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+                block.getWorld().addParticle(new BoneMealParticle(block.getPosition()));
 
                 if (player != null && player.getGamemode().isSurvival()) {
                     item.decrementCount();

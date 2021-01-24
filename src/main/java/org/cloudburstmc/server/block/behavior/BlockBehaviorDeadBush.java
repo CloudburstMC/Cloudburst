@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -35,10 +35,10 @@ public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
                 removeBlock(block, true);
-                return Level.BLOCK_UPDATE_NORMAL;
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;

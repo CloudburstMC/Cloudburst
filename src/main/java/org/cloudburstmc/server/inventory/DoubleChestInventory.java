@@ -5,7 +5,7 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.server.blockentity.Chest;
 import org.cloudburstmc.server.blockentity.impl.ChestBlockEntity;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.HashMap;
@@ -115,10 +115,10 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
         this.right.viewers.add(who);
 
         if (this.getViewers().size() == 1) {
-            Level level = this.left.getHolder().getLevel();
-            if (level != null) {
+            World world = this.left.getHolder().getWorld();
+            if (world != null) {
                 ContainerInventory.sendBlockEventPacket(this.right.getHolder(), 1);
-                level.addLevelSoundEvent(this.left.getHolder().getPosition(), SoundEvent.CHEST_OPEN);
+                world.addLevelSoundEvent(this.left.getHolder().getPosition(), SoundEvent.CHEST_OPEN);
             }
         }
     }
@@ -126,10 +126,10 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
     @Override
     public void onClose(Player who) {
         if (this.getViewers().size() == 1) {
-            Level level = this.right.getHolder().getLevel();
-            if (level != null) {
+            World world = this.right.getHolder().getWorld();
+            if (world != null) {
                 ContainerInventory.sendBlockEventPacket(this.right.getHolder(), 0);
-                level.addLevelSoundEvent(this.right.getHolder().getPosition(), SoundEvent.CHEST_CLOSED);
+                world.addLevelSoundEvent(this.right.getHolder().getPosition(), SoundEvent.CHEST_CLOSED);
             }
         }
 

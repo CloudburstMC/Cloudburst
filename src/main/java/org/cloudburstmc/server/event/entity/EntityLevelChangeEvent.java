@@ -2,7 +2,7 @@ package org.cloudburstmc.server.event.entity;
 
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 
 /**
  * author: MagicDroidX
@@ -10,20 +10,20 @@ import org.cloudburstmc.server.level.Level;
  */
 public class EntityLevelChangeEvent extends EntityEvent implements Cancellable {
 
-    private final Level originLevel;
-    private final Level targetLevel;
+    private final World originWorld;
+    private final World targetWorld;
 
-    public EntityLevelChangeEvent(Entity entity, Level originLevel, Level targetLevel) {
+    public EntityLevelChangeEvent(Entity entity, World originWorld, World targetWorld) {
         this.entity = entity;
-        this.originLevel = originLevel;
-        this.targetLevel = targetLevel;
+        this.originWorld = originWorld;
+        this.targetWorld = targetWorld;
     }
 
-    public Level getOrigin() {
-        return originLevel;
+    public World getOrigin() {
+        return originWorld;
     }
 
-    public Level getTarget() {
-        return targetLevel;
+    public World getTarget() {
+        return targetWorld;
     }
 }

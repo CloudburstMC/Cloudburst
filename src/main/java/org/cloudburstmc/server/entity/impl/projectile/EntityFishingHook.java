@@ -15,10 +15,10 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.randomitem.Fishing;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.MovingObjectPosition;
-import org.cloudburstmc.server.level.particle.BubbleParticle;
-import org.cloudburstmc.server.level.particle.WaterParticle;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.MovingObjectPosition;
+import org.cloudburstmc.server.world.particle.BubbleParticle;
+import org.cloudburstmc.server.world.particle.WaterParticle;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -143,7 +143,7 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
 
     public int getWaterHeight() {
         for (int y = this.getPosition().getFloorY(); y < 256; y++) {
-            Identifier id = this.getLevel().getBlockAt(getPosition().getFloorX(), y, getPosition().getFloorZ()).getType();
+            Identifier id = this.getWorld().getBlockAt(getPosition().getFloorX(), y, getPosition().getFloorZ()).getType();
             if (id == AIR) {
                 return y;
             }
@@ -169,7 +169,7 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
 
         Random random = ThreadLocalRandom.current();
         for (int i = 0; i < 5; i++) {
-            this.getLevel().addParticle(new BubbleParticle(Vector3f.from(
+            this.getWorld().addParticle(new BubbleParticle(Vector3f.from(
                     this.getX() + random.nextDouble() * 0.5 - 0.25,
                     this.getWaterHeight(),
                     this.getZ() + random.nextDouble() * 0.5 - 0.25
@@ -194,7 +194,7 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
                 this.fish.getZ() + (this.getZ() - this.fish.getZ()) * multiply
         );
         if (new Random().nextInt(100) < 85) {
-            this.getLevel().addParticle(new WaterParticle(this.fish));
+            this.getWorld().addParticle(new WaterParticle(this.fish));
         }
         double dist = Math.abs(Math.sqrt(this.getX() * this.getX() + this.getZ() * this.getZ()) - Math.sqrt(this.fish.getX() * this.fish.getX() + this.fish.getZ() * this.fish.getZ()));
         return dist < 0.15;

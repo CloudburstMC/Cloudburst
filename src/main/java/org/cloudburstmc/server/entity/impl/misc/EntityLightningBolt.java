@@ -13,8 +13,8 @@ import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.LightningBolt;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.gamerule.GameRules;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -45,8 +45,8 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
         this.state = 2;
         this.liveTime = ThreadLocalRandom.current().nextInt(3) + 1;
 
-        if (isEffect && this.level.getGameRules().get(GameRules.DO_FIRE_TICK) && (this.server.getDifficulty().ordinal() >= 2)) {
-            Block block = this.getLevel().getBlock(this.getPosition());
+        if (isEffect && this.world.getGameRules().get(GameRules.DO_FIRE_TICK) && (this.server.getDifficulty().ordinal() >= 2)) {
+            Block block = this.getWorld().getBlock(this.getPosition());
             val state = block.getState();
 
             if (state.getType() == AIR || state.getType() == TALL_GRASS) {
@@ -60,7 +60,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                         val fire = BlockState.get(BlockIds.FIRE);
                         block.set(fire);
 
-                        level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
+                        world.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
                     }
                 }
             }
@@ -101,8 +101,8 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
         this.entityBaseTick(tickDiff);
 
         if (this.state == 2) {
-            this.level.addLevelSoundEvent(this.getPosition(), SoundEvent.THUNDER, -1, EntityTypes.LIGHTNING_BOLT);
-            this.level.addLevelSoundEvent(this.getPosition(), SoundEvent.EXPLODE, -1, EntityTypes.LIGHTNING_BOLT);
+            this.world.addLevelSoundEvent(this.getPosition(), SoundEvent.THUNDER, -1, EntityTypes.LIGHTNING_BOLT);
+            this.world.addLevelSoundEvent(this.getPosition(), SoundEvent.EXPLODE, -1, EntityTypes.LIGHTNING_BOLT);
         }
 
         this.state--;
@@ -115,8 +115,8 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                 this.liveTime--;
                 this.state = 1;
 
-                if (this.isEffect && this.level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
-                    Block block = this.getLevel().getBlock(this.getPosition());
+                if (this.isEffect && this.world.getGameRules().get(GameRules.DO_FIRE_TICK)) {
+                    Block block = this.getWorld().getBlock(this.getPosition());
                     val state = block.getState();
 
                     if (state.getType() == AIR || state.getType() == TALL_GRASS) {
@@ -127,7 +127,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                             BlockState fire = BlockState.get(BlockIds.FIRE);
                             block.set(fire);
 
-                            this.getLevel().scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate());
+                            this.getWorld().scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate());
                         }
                     }
                 }
@@ -139,7 +139,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                 AxisAlignedBB bb = getBoundingBox().grow(3, 3, 3);
                 bb.setMaxX(bb.getMaxX() + 6);
 
-                for (Entity entity : this.level.getCollidingEntities(bb, this)) {
+                for (Entity entity : this.world.getCollidingEntities(bb, this)) {
                     entity.onStruckByLightning(this);
                 }
             }

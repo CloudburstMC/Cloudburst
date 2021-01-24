@@ -1,0 +1,22 @@
+package org.cloudburstmc.server.world.feature;
+
+import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.server.world.ChunkManager;
+
+/**
+ * @author DaPorkchop_
+ */
+@FunctionalInterface
+public interface WorldFeature {
+    /**
+     * Tries to place this feature into the given world at the given position.
+     *
+     * @param level  the world to place the feature into
+     * @param random an instance of {@link PRandom} for generating random numbers
+     * @param x      the X coordinate to generate the feature at
+     * @param y      the Y coordinate to generate the feature at
+     * @param z      the Z coordinate to generate the feature at
+     * @return whether or not the feature could be placed
+     */
+    boolean place(ChunkManager level, PRandom random, int x, int y, int z);
+}

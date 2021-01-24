@@ -53,7 +53,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        val be = block.getLevel().getBlockEntity(block.getPosition());
+        val be = block.getWorld().getBlockEntity(block.getPosition());
 
         int meta = 0;
         if (be instanceof Skull) {

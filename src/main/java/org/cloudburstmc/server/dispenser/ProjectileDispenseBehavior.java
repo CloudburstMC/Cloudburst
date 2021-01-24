@@ -23,7 +23,7 @@ public class ProjectileDispenseBehavior implements DispenseBehavior {
 
     @Override
     public void dispense(Block source, Item item) {
-//        Location dispensePos = Location.from(source.getDispensePosition(), source.getLevel());
+//        Location dispensePos = Location.from(source.getDispensePosition(), source.getWorld());
 //
 //        Direction face = source.getFacing();
 //

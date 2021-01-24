@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -23,14 +23,14 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
         return false;
     }
 
-    public static void spawnPortal(Vector3f pos, Level level) {
+    public static void spawnPortal(Vector3f pos, World world) {
         int x = pos.getFloorX(), y = pos.getFloorY(), z = pos.getFloorZ();
 
         for (int xx = -1; xx < 4; xx++) {
             for (int yy = 1; yy < 4; yy++) {
                 for (int zz = -1; zz < 3; zz++) {
-                    level.setBlockAt(x + xx, y + yy, z + zz, BlockStates.AIR);
-                    level.setBlockAt(x + xx, y + yy, z + zz, 1, BlockStates.AIR);
+                    world.setBlockAt(x + xx, y + yy, z + zz, BlockStates.AIR);
+                    world.setBlockAt(x + xx, y + yy, z + zz, 1, BlockStates.AIR);
                 }
             }
         }
@@ -38,43 +38,43 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
         val obsidian = BlockState.get(BlockIds.OBSIDIAN);
         val portal = BlockState.get(BlockIds.PORTAL);
 
-        level.setBlockAt(x + 1, y, z, obsidian);
-        level.setBlockAt(x + 2, y, z, obsidian);
+        world.setBlockAt(x + 1, y, z, obsidian);
+        world.setBlockAt(x + 2, y, z, obsidian);
 
         z += 1;
-        level.setBlockAt(x, y, z, obsidian);
-        level.setBlockAt(x + 1, y, z, obsidian);
-        level.setBlockAt(x + 2, y, z, obsidian);
-        level.setBlockAt(x + 3, y, z, obsidian);
+        world.setBlockAt(x, y, z, obsidian);
+        world.setBlockAt(x + 1, y, z, obsidian);
+        world.setBlockAt(x + 2, y, z, obsidian);
+        world.setBlockAt(x + 3, y, z, obsidian);
 
         z += 1;
-        level.setBlockAt(x + 1, y, z, obsidian);
-        level.setBlockAt(x + 2, y, z, obsidian);
+        world.setBlockAt(x + 1, y, z, obsidian);
+        world.setBlockAt(x + 2, y, z, obsidian);
 
         z -= 1;
         y += 1;
-        level.setBlockAt(x, y, z, obsidian);
-        level.setBlockAt(x + 1, y, z, portal);
-        level.setBlockAt(x + 2, y, z, portal);
-        level.setBlockAt(x + 3, y, z, obsidian);
+        world.setBlockAt(x, y, z, obsidian);
+        world.setBlockAt(x + 1, y, z, portal);
+        world.setBlockAt(x + 2, y, z, portal);
+        world.setBlockAt(x + 3, y, z, obsidian);
 
         y += 1;
-        level.setBlockAt(x, y, z, obsidian);
-        level.setBlockAt(x + 1, y, z, portal);
-        level.setBlockAt(x + 2, y, z, portal);
-        level.setBlockAt(x + 3, y, z, obsidian);
+        world.setBlockAt(x, y, z, obsidian);
+        world.setBlockAt(x + 1, y, z, portal);
+        world.setBlockAt(x + 2, y, z, portal);
+        world.setBlockAt(x + 3, y, z, obsidian);
 
         y += 1;
-        level.setBlockAt(x, y, z, obsidian);
-        level.setBlockAt(x + 1, y, z, portal);
-        level.setBlockAt(x + 2, y, z, portal);
-        level.setBlockAt(x + 3, y, z, obsidian);
+        world.setBlockAt(x, y, z, obsidian);
+        world.setBlockAt(x + 1, y, z, portal);
+        world.setBlockAt(x + 2, y, z, portal);
+        world.setBlockAt(x + 3, y, z, obsidian);
 
         y += 1;
-        level.setBlockAt(x, y, z, obsidian);
-        level.setBlockAt(x + 1, y, z, obsidian);
-        level.setBlockAt(x + 2, y, z, obsidian);
-        level.setBlockAt(x + 3, y, z, obsidian);
+        world.setBlockAt(x, y, z, obsidian);
+        world.setBlockAt(x + 1, y, z, obsidian);
+        world.setBlockAt(x + 2, y, z, obsidian);
+        world.setBlockAt(x + 3, y, z, obsidian);
     }
 
     @Override

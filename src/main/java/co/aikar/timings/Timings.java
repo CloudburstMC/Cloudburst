@@ -110,7 +110,7 @@ public final class Timings {
         schedulerSyncTimer = TimingsManager.getTiming("## Scheduler - Sync Tasks");
         commandTimer = TimingsManager.getTiming("Commands");
         serverCommandTimer = TimingsManager.getTiming("Server Command");
-        levelSaveTimer = TimingsManager.getTiming("Level Save");
+        levelSaveTimer = TimingsManager.getTiming("World Save");
 
         playerNetworkSendTimer = TimingsManager.getTiming("Player Network Send");
         playerNetworkReceiveTimer = TimingsManager.getTiming("Player Network Receive");
@@ -126,9 +126,9 @@ public final class Timings {
         entityBaseTickTimer = TimingsManager.getTiming("## Entity Base Tick");
         livingEntityBaseTickTimer = TimingsManager.getTiming("## LivingEntity Base Tick");
 
-        generationTimer = TimingsManager.getTiming("Level Generation");
-        populationTimer = TimingsManager.getTiming("Level Population");
-        generationCallbackTimer = TimingsManager.getTiming("Level Generation Callback");
+        generationTimer = TimingsManager.getTiming("World Generation");
+        populationTimer = TimingsManager.getTiming("World Population");
+        generationCallbackTimer = TimingsManager.getTiming("World Generation Callback");
 
         permissibleCalculationTimer = TimingsManager.getTiming("Permissible Calculation");
         permissionDefaultTimer = TimingsManager.getTiming("Default Permission Calculation");

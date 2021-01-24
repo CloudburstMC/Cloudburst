@@ -2,7 +2,7 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Bat;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 
 /**
  * @author PikyCZ

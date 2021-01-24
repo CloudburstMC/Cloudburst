@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block;
 
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
 
 import static org.cloudburstmc.server.block.BlockIds.FLOWING_WATER;
@@ -12,18 +12,18 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     public static BlockState[] EMPTY = new BlockState[]{BlockStates.AIR, BlockStates.AIR};
 
-    private final Level level;
+    private final World world;
     private final Vector3i position;
 
-    public CloudBlock(Level level, Vector3i position, BlockState[] states) {
+    public CloudBlock(World world, Vector3i position, BlockState[] states) {
         super(states);
-        this.level = level;
+        this.world = world;
         this.position = position;
     }
 
     @Override
-    public Level getLevel() {
-        return level;
+    public World getWorld() {
+        return world;
     }
 
     @Override
@@ -33,22 +33,22 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public Chunk getChunk() {
-        return level.getChunk(position);
+        return world.getChunk(position);
     }
 
     @Override
     public Block getSide(Direction face, int step) {
-        return this.level.getBlock(face.getOffset(this.position, step));
+        return this.world.getBlock(face.getOffset(this.position, step));
     }
 
     @Override
     public BlockState getRelativeState(int x, int y, int z, int layer) {
-        return this.level.getBlockAt(getX() + x, getY() + y, getZ() + z, layer);
+        return this.world.getBlockAt(getX() + x, getY() + y, getZ() + z, layer);
     }
 
     @Override
     public BlockState getSideState(Direction face, int step, int layer) {
-        return this.level.getBlockAt(
+        return this.world.getBlockAt(
                 getX() + face.getXOffset() * step,
                 getY() + face.getYOffset() * step,
                 getZ() + face.getZOffset() * step,
@@ -58,7 +58,7 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public Block getRelative(int x, int y, int z) {
-        return this.level.getBlock(this.position.add(x, y, z));
+        return this.world.getBlock(this.position.add(x, y, z));
     }
 
     @Override
@@ -69,7 +69,7 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public void set(BlockState state, int layer, boolean direct, boolean update) {
-        this.level.setBlock(this.position, layer, state, direct, update);
+        this.world.setBlock(this.position, layer, state, direct, update);
     }
 
     @Override
@@ -79,6 +79,6 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public Block refresh() {
-        return level.getBlock(this.position);
+        return world.getBlock(this.position);
     }
 }

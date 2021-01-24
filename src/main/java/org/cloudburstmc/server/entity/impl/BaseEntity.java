@@ -40,11 +40,11 @@ import org.cloudburstmc.server.event.entity.*;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.EnumLevel;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.level.gamerule.GameRules;
+import org.cloudburstmc.server.world.EnumWorld;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.chunk.Chunk;
+import org.cloudburstmc.server.world.gamerule.GameRules;
 import org.cloudburstmc.server.math.*;
 import org.cloudburstmc.server.metadata.MetadataValue;
 import org.cloudburstmc.server.metadata.Metadatable;
@@ -119,7 +119,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     public boolean justCreated;
     public boolean fireProof;
     public boolean invulnerable;
-    protected Level level;
+    protected World world;
     public boolean closed = false;
     protected Entity vehicle;
     protected EntityDamageEvent lastDamageCause = null;
@@ -197,8 +197,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     @Override
-    public Level getLevel() {
-        return level;
+    public World getWorld() {
+        return world;
     }
 
     @Override
@@ -550,19 +550,19 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
         this.justCreated = true;
 
-        this.chunk = location.getLevel().getLoadedChunk(location.getPosition());
-        this.level = location.getLevel();
-        this.server = location.getLevel().getServer();
+        this.chunk = location.getWorld().getLoadedChunk(location.getPosition());
+        this.world = location.getWorld();
+        this.server = location.getWorld().getServer();
 
         this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
 
-        this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk1, throwable) -> {
+        this.world.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk1, throwable) -> {
             if (throwable == null) {
                 this.chunk = chunk1;
                 chunk1.addEntity(this);
             }
         });
-        this.level.addEntity(this);
+        this.world.addEntity(this);
 
         this.initEntity();
 
@@ -785,7 +785,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     protected boolean checkObstruction(float x, float y, float z) {
-        if (this.level.getCollisionCubes(this, this.getBoundingBox(), false).length == 0) {
+        if (this.world.getCollisionCubes(this, this.getBoundingBox(), false).length == 0) {
             return false;
         }
 
@@ -803,13 +803,13 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
         BlockRegistry registry = BlockRegistry.get();
 
-        if (!this.level.getBlockAt(i, j, k).inCategory(BlockCategory.TRANSPARENT)) {
-            boolean flag = this.level.getBlockAt(i - 1, j, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag1 = this.level.getBlockAt(i + 1, j, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag2 = this.level.getBlockAt(i, j - 1, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag3 = this.level.getBlockAt(i, j + 1, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag4 = this.level.getBlockAt(i, j, k - 1).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag5 = this.level.getBlockAt(i, j, k + 1).inCategory(BlockCategory.TRANSPARENT);
+        if (!this.world.getBlockAt(i, j, k).inCategory(BlockCategory.TRANSPARENT)) {
+            boolean flag = this.world.getBlockAt(i - 1, j, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag1 = this.world.getBlockAt(i + 1, j, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag2 = this.world.getBlockAt(i, j - 1, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag3 = this.world.getBlockAt(i, j + 1, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag4 = this.world.getBlockAt(i, j, k - 1).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag5 = this.world.getBlockAt(i, j, k + 1).inCategory(BlockCategory.TRANSPARENT);
 
             int direction = -1;
             float limit = 9999;
@@ -952,13 +952,13 @@ public abstract class BaseEntity implements Entity, Metadatable {
                 getServer().getEventManager().fire(ev);
 
                 if (!ev.isCancelled()) {
-                    Location newLoc = EnumLevel.moveToNether(this.getLocation());
+                    Location newLoc = EnumWorld.moveToNether(this.getLocation());
                     if (newLoc != null) {
                         List<CompletableFuture<Chunk>> chunksToLoad = new ArrayList<>();
                         for (int x = -1; x < 2; x++) {
                             for (int z = -1; z < 2; z++) {
                                 int chunkX = (newLoc.getChunkX()) + x, chunkZ = (newLoc.getChunkZ()) + z;
-                                chunksToLoad.add(newLoc.getLevel().getChunkFuture(chunkX, chunkZ));
+                                chunksToLoad.add(newLoc.getWorld().getChunkFuture(chunkX, chunkZ));
                             }
                         }
                         CompletableFutures.allAsList(chunksToLoad).whenComplete((chunks, throwable) -> {
@@ -967,7 +967,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
                             }
 
                             this.teleport(newLoc.add(1.5f, 1, 0.5f));
-                            BlockBehaviorNetherPortal.spawnPortal(newLoc.getPosition(), newLoc.getLevel());
+                            BlockBehaviorNetherPortal.spawnPortal(newLoc.getPosition(), newLoc.getWorld());
                         });
                     }
                 }
@@ -1005,7 +1005,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public void addMovement(double x, double y, double z, double yaw, double pitch, double headYaw) {
-        this.level.addEntityMovement(this, x, y, z, yaw, pitch, headYaw);
+        this.world.addEntityMovement(this, x, y, z, yaw, pitch, headYaw);
     }
 
     public void addMotion(Vector3f motion) {
@@ -1182,7 +1182,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public final void scheduleUpdate() {
-        this.level.scheduleEntityUpdate(this);
+        this.world.scheduleEntityUpdate(this);
     }
 
     @Override
@@ -1271,7 +1271,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
             if (fallDistance > 0) {
                 // check if we fell into at least 1 block of water
-                if (this instanceof EntityLiving && !(this.level.getBlock(this.position) instanceof BlockBehaviorWater)) {
+                if (this instanceof EntityLiving && !(this.world.getBlock(this.position) instanceof BlockBehaviorWater)) {
                     this.fall(fallDistance);
                 }
                 this.resetFallDistance();
@@ -1284,7 +1284,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public void fall(float fallDistance) {
-        if (this.isPlayer && !level.getGameRules().get(GameRules.FALL_DAMAGE)) {
+        if (this.isPlayer && !world.getGameRules().get(GameRules.FALL_DAMAGE)) {
             return;
         }
 
@@ -1295,7 +1295,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         }
 
         if (fallDistance > 0.75) {
-            Block down = this.level.getBlock(Direction.DOWN.getUnitVector().add(this.getPosition().toInt()));
+            Block down = this.world.getBlock(Direction.DOWN.getUnitVector().add(this.getPosition().toInt()));
 
             if (down.getState().getType() == FARMLAND) {
                 Event ev;
@@ -1310,7 +1310,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
                 if (ev.isCancelled()) {
                     return;
                 }
-                this.level.setBlock(down.getPosition(), BlockState.get(BlockIds.DIRT), false, true);
+                this.world.setBlock(down.getPosition(), BlockState.get(BlockIds.DIRT), false, true);
             }
         }
     }
@@ -1369,26 +1369,26 @@ public abstract class BaseEntity implements Entity, Metadatable {
         return false;
     }
 
-    protected boolean switchLevel(Level targetLevel) {
-        checkNotNull(targetLevel, "targetLevel");
+    protected boolean switchWorld(World targetWorld) {
+        checkNotNull(targetWorld, "targetWorld");
         if (this.closed) {
             return false;
         }
 
-        EntityLevelChangeEvent ev = new EntityLevelChangeEvent(this, this.level, targetLevel);
+        EntityLevelChangeEvent ev = new EntityLevelChangeEvent(this, this.world, targetWorld);
         this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return false;
         }
 
-        this.level.removeEntity(this);
+        this.world.removeEntity(this);
         if (this.chunk != null) {
             this.chunk.removeEntity(this);
         }
         this.despawnFromAll();
 
-        this.level = targetLevel;
-        this.level.addEntity(this);
+        this.world = targetWorld;
+        this.world.addEntity(this);
         this.chunk = null;
 
         return true;
@@ -1399,12 +1399,12 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public Location getLocation() {
-        return Location.from(this.position, this.yaw, this.pitch, this.level);
+        return Location.from(this.position, this.yaw, this.pitch, this.world);
     }
 
     public boolean isInsideOfWater() {
         float y = this.getY() + this.getEyeHeight();
-        Block block = this.level.getLoadedBlock(this.position.getFloorX(), NukkitMath.floorFloat(y), this.position.getFloorZ());
+        Block block = this.world.getLoadedBlock(this.position.getFloorX(), NukkitMath.floorFloat(y), this.position.getFloorZ());
 
         if (block == null) {
             return false;
@@ -1428,7 +1428,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     public boolean isInsideOfSolid() {
         double y = this.getY() + this.getEyeHeight();
         Vector3i pos = Vector3i.from(this.getX(), y, this.getZ());
-        BlockState state = this.level.getBlockAt(pos);
+        BlockState state = this.world.getBlockAt(pos);
 
         if (state == null) {
             return true;
@@ -1458,7 +1458,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         try (Timing ignored = Timings.entityMoveTimer.startTiming()) {
             AxisAlignedBB newBB = this.boundingBox.getOffsetBoundingBox(dx, dy, dz);
 
-            if (server.getAllowFlight() || !this.level.hasCollision(this, newBB, false)) {
+            if (server.getAllowFlight() || !this.world.hasCollision(this, newBB, false)) {
                 this.boundingBox = newBB;
             }
 
@@ -1474,7 +1474,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
                 AxisAlignedBB bb = this.boundingBox.clone();
                 bb.setMinY(bb.getMinY() - 0.75f);
 
-                this.onGround = this.level.getCollisionBlocks(bb).length > 0;
+                this.onGround = this.world.getCollisionBlocks(bb).length > 0;
             }
             this.isCollided = this.onGround;
             this.updateFallState(this.onGround);
@@ -1506,7 +1506,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
                 AxisAlignedBB axisalignedbb = this.boundingBox.clone();
 
-                AxisAlignedBB[] list = this.level.getCollisionCubes(this, this.level.getTickRate() > 1 ? this.boundingBox.getOffsetBoundingBox(dx, dy, dz) : this.boundingBox.addCoord(dx, dy, dz), false, true);
+                AxisAlignedBB[] list = this.world.getCollisionCubes(this, this.world.getTickRate() > 1 ? this.boundingBox.getOffsetBoundingBox(dx, dy, dz) : this.boundingBox.addCoord(dx, dy, dz), false, true);
 
                 for (AxisAlignedBB bb : list) {
                     dy = bb.calculateYOffset(this.boundingBox, dy);
@@ -1540,7 +1540,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
                     this.boundingBox.setBB(axisalignedbb);
 
-                    list = this.level.getCollisionCubes(this, this.boundingBox.addCoord(dx, dy, dz), false);
+                    list = this.world.getCollisionCubes(this, this.boundingBox.addCoord(dx, dy, dz), false);
 
                     for (AxisAlignedBB bb : list) {
                         dy = bb.calculateYOffset(this.boundingBox, dy);
@@ -1623,7 +1623,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
-                        this.blocksAround.add(this.level.getBlock(x, y, z));
+                        this.blocksAround.add(this.world.getBlock(x, y, z));
                     }
                 }
             }
@@ -1717,7 +1717,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             if (this.chunk != null) {
                 this.chunk.removeEntity(this);
             }
-            this.chunk = this.level.getLoadedChunk(pos);
+            this.chunk = this.world.getLoadedChunk(pos);
             if (chunk == null) {
                 return; // Converter will throw NPE otherwise.
             }
@@ -1805,7 +1805,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public boolean teleport(Vector3f pos, PlayerTeleportEvent.TeleportCause cause) {
-        return this.teleport(Location.from(pos, this.yaw, this.pitch, this.level), cause);
+        return this.teleport(Location.from(pos, this.yaw, this.pitch, this.world), cause);
     }
 
     public boolean teleport(Location location) {
@@ -1827,7 +1827,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             to = ev.getTo();
         }
 
-        if (from.getLevel() != to.getLevel() && !this.switchLevel(to.getLevel())) {
+        if (from.getWorld() != to.getWorld() && !this.switchWorld(to.getWorld())) {
             return false;
         }
 
@@ -1867,7 +1867,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             return;
         }
 
-        for (Player player : this.level.getChunkPlayers(this.chunk.getX(), this.chunk.getZ())) {
+        for (Player player : this.world.getChunkPlayers(this.chunk.getX(), this.chunk.getZ())) {
             if (player.isOnline()) {
                 this.spawnTo(player);
             }
@@ -1889,8 +1889,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
                 this.chunk.removeEntity(this);
             }
 
-            if (this.level != null) {
-                this.level.removeEntity(this);
+            if (this.world != null) {
+                this.world.removeEntity(this);
             }
         }
     }
@@ -1899,7 +1899,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     @Override
     public Entity getOwner() {
         if (this.data.contains(OWNER_EID)) {
-            return this.level.getEntity(this.data.getLong(OWNER_EID));
+            return this.world.getEntity(this.data.getLong(OWNER_EID));
         }
         return null;
     }

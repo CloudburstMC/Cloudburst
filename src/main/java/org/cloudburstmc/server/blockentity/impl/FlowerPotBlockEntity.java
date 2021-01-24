@@ -7,11 +7,10 @@ import org.cloudburstmc.server.block.BlockIds;
 import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.FlowerPot;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import static org.cloudburstmc.server.block.BlockIds.AIR;

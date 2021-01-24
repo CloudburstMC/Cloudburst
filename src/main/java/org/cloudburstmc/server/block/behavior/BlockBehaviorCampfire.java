@@ -17,7 +17,7 @@ import org.cloudburstmc.server.item.behavior.ItemEdible;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -54,8 +54,8 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
         if (!this.isLit(block) && block.isWaterlogged()) return;
 
         block.set(block.getState().toggleTrait(BlockTraits.IS_EXTINGUISHED));
-        Campfire cf = (Campfire) block.getLevel().getBlockEntity(block.getPosition());
-        if (cf != null) block.getLevel().getBlockEntity(block.getPosition()).scheduleUpdate();
+        Campfire cf = (Campfire) block.getWorld().getBlockEntity(block.getPosition());
+        if (cf != null) block.getWorld().getBlockEntity(block.getPosition()).scheduleUpdate();
     }
 
     @Override
@@ -130,7 +130,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
             }
             return true;
         } else if (item instanceof ItemEdible) {
-            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+            BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
             if (blockEntity instanceof Campfire) {
                 Campfire fire = (Campfire) blockEntity;
@@ -161,7 +161,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (this.isLit(block)) {
                 if (block.isWaterlogged()) {
                     this.toggleFire(block);

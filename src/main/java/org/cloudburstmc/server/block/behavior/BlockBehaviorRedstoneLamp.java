@@ -8,7 +8,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -32,7 +32,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        val level = block.getLevel();
+        val level = block.getWorld();
         if (level.isBlockPowered(block.getPosition())) {
             block.set(BlockState.get(BlockIds.LIT_REDSTONE_LAMP));
         } else {
@@ -43,15 +43,15 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
+        if (type == World.BLOCK_UPDATE_NORMAL || type == World.BLOCK_UPDATE_REDSTONE) {
             // Redstone event
             RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
-            block.getLevel().getServer().getEventManager().fire(ev);
+            block.getWorld().getServer().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return 0;
             }
 
-            boolean powered = block.getLevel().isBlockPowered(block.getPosition());
+            boolean powered = block.getWorld().isBlockPowered(block.getPosition());
             val blockType = block.getState().getType();
 
             if (powered && blockType == BlockIds.REDSTONE_LAMP) {

@@ -11,7 +11,7 @@ import org.cloudburstmc.server.blockentity.Lectern;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
@@ -67,7 +67,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     @Override
     public void onBreak() {
         if (this.book != null) {
-            this.getLevel().dropItem(this.getPosition(), book);
+            this.getWorld().dropItem(this.getPosition(), book);
         }
     }
 
@@ -114,7 +114,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     @Override
     public void setPage(@Nonnegative int page) {
         this.page = GenericMath.clamp(page, 0, this.totalPages);
-        this.getLevel().updateAround(this.getPosition());
+        this.getWorld().updateAround(this.getPosition());
     }
 
     @Override
@@ -130,7 +130,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
         }
 
         if (updateRedstone) {
-            this.getLevel().updateAroundRedstone(this.getPosition(), null);
+            this.getWorld().updateAroundRedstone(this.getPosition(), null);
         }
     }
 

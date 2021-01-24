@@ -12,7 +12,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
 
@@ -36,7 +36,7 @@ public class PlayerChunkManager {
         this.player = player;
         this.comparator = new AroundPlayerChunkComparator(player);
         this.removeChunkLoader = chunkKey -> {
-            Chunk chunk = this.player.getLevel().getLoadedChunk(chunkKey);
+            Chunk chunk = this.player.getWorld().getLoadedChunk(chunkKey);
             if (chunk != null) {
                 chunk.removeLoader(this.player);
                 for (Entity entity : chunk.getEntities()) {
@@ -60,7 +60,7 @@ public class PlayerChunkManager {
 //                }
                 sendQueueIterator.remove();
 
-                Chunk chunk = this.player.getLevel().getLoadedChunk(key);
+                Chunk chunk = this.player.getWorld().getLoadedChunk(key);
                 if (chunk != null) {
                     chunk.removeLoader(this.player);
                 }
@@ -89,7 +89,7 @@ public class PlayerChunkManager {
                 this.sendQueue.remove(key);
                 this.player.sendPacket(packet);
 
-                Chunk chunk = this.player.getLevel().getLoadedChunk(key);
+                Chunk chunk = this.player.getWorld().getLoadedChunk(key);
                 checkArgument(chunk != null, "Attempted to send unloaded chunk (%s, %s) to %s",
                         Chunk.fromKeyX(key), Chunk.fromKeyZ(key), this.player.getName());
 
@@ -159,7 +159,7 @@ public class PlayerChunkManager {
             final int cz = Chunk.fromKeyZ(key);
 
             if (this.sendQueue.putIfAbsent(key, null) == null) {
-                this.player.getLevel().getChunkFuture(cx, cz).thenApply(chunk -> {
+                this.player.getWorld().getChunkFuture(cx, cz).thenApply(chunk -> {
                     chunk.addLoader(this.player);
                     return chunk;
                 }).thenApplyAsync(Chunk::createChunkPacket, this.player.getServer().getScheduler().getAsyncPool())

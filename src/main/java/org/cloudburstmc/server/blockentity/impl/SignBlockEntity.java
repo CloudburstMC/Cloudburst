@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Sign;
 import org.cloudburstmc.server.event.block.SignChangeEvent;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.TextFormat;

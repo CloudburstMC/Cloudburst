@@ -8,8 +8,8 @@ import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.particle.*;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.particle.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -66,7 +66,7 @@ public class ParticleCommand extends Command {
         if (sender instanceof Player) {
             defaultLocation = ((Player) sender).getLocation();
         } else {
-            defaultLocation = Location.from(Vector3f.ZERO, sender.getServer().getDefaultLevel());
+            defaultLocation = Location.from(Vector3f.ZERO, sender.getServer().getDefaultWorld());
         }
 
         String name = args[0].toLowerCase();
@@ -82,7 +82,7 @@ public class ParticleCommand extends Command {
         } catch (Exception e) {
             return false;
         }
-        Location location = Location.from(Vector3f.from(x, y, z), defaultLocation.getLevel());
+        Location location = Location.from(Vector3f.from(x, y, z), defaultLocation.getWorld());
 
         int count = 1;
         if (args.length > 4) {
@@ -108,7 +108,7 @@ public class ParticleCommand extends Command {
         Particle particle = this.getParticle(name, location, data);
 
         if (particle == null) {
-            location.getLevel().addParticleEffect(location.getPosition(), Identifier.fromString(args[0]), -1, location.getLevel().getDimension());
+            location.getWorld().addParticleEffect(location.getPosition(), Identifier.fromString(args[0]), -1, location.getWorld().getDimension());
             return true;
         }
 
@@ -119,7 +119,7 @@ public class ParticleCommand extends Command {
         for (int i = 0; i < count; i++) {
             particle.setPosition(location.getPosition()
                     .add(random.nextFloat() * 2 - 1, random.nextFloat() * 2 - 1, random.nextFloat() * 2 - 1));
-            location.getLevel().addParticle(particle);
+            location.getWorld().addParticle(particle);
         }
 
         return true;

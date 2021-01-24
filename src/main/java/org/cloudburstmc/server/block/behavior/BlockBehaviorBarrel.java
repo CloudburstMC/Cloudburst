@@ -54,7 +54,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
             return false;
         }
 
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
         Barrel barrel;
         if (blockEntity instanceof Barrel) {
             barrel = (Barrel) blockEntity;
@@ -104,7 +104,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
 
     @Override
     public int getComparatorInputOverride(Block block) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Barrel) {
             return ContainerInventory.calculateRedstone(((Barrel) blockEntity).getInventory());

@@ -12,8 +12,8 @@ import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.gamerule.GameRules;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -68,8 +68,8 @@ public class EntityPainting extends HangingEntity implements Painting {
         if (super.attack(source)) {
             if (source instanceof EntityDamageByEntityEvent) {
                 Entity damager = ((EntityDamageByEntityEvent) source).getDamager();
-                if (damager instanceof Player && ((Player) damager).isSurvival() && this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-                    this.level.dropItem(this.getPosition(), Item.get(ItemIds.PAINTING));
+                if (damager instanceof Player && ((Player) damager).isSurvival() && this.world.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
+                    this.world.dropItem(this.getPosition(), Item.get(ItemIds.PAINTING));
                 }
             }
             this.close();

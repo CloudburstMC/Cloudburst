@@ -6,7 +6,7 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.TextFormat;
@@ -53,10 +53,10 @@ public class TimeCommand extends Command {
 
                 return true;
             }
-            for (Level level : sender.getServer().getLevels()) {
-                level.checkTime();
-                level.startTime();
-                level.checkTime();
+            for (World world : sender.getServer().getWorlds()) {
+                world.checkTime();
+                world.startTime();
+                world.checkTime();
             }
             CommandUtils.broadcastCommandMessage(sender, "Restarted the time");
             return true;
@@ -66,11 +66,11 @@ public class TimeCommand extends Command {
 
                 return true;
             }
-            for (Level level : sender.getServer().getLevels()) {
-                level.checkTime();
-                level.stopTime();
-                level.checkTime();
-                CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.time.stop", level.getTime()));
+            for (World world : sender.getServer().getWorlds()) {
+                world.checkTime();
+                world.stopTime();
+                world.checkTime();
+                CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.time.stop", world.getTime()));
             }
             return true;
         } else if ("query".equals(args[0])) {
@@ -79,13 +79,13 @@ public class TimeCommand extends Command {
 
                 return true;
             }
-            Level level;
+            World world;
             if (sender instanceof Player) {
-                level = ((Player) sender).getLevel();
+                world = ((Player) sender).getWorld();
             } else {
-                level = sender.getServer().getDefaultLevel();
+                world = sender.getServer().getDefaultWorld();
             }
-            sender.sendMessage(new TranslationContainer("commands.time.query.gametime", level.getTime()));
+            sender.sendMessage(new TranslationContainer("commands.time.query.gametime", world.getTime()));
             return true;
         }
 
@@ -103,17 +103,17 @@ public class TimeCommand extends Command {
 
             int value;
             if ("day".equals(args[1])) {
-                value = Level.TIME_DAY;
+                value = World.TIME_DAY;
             } else if ("night".equals(args[1])) {
-                value = Level.TIME_NIGHT;
+                value = World.TIME_NIGHT;
             } else if ("midnight".equals(args[1])) {
-                value = Level.TIME_MIDNIGHT;
+                value = World.TIME_MIDNIGHT;
             } else if ("noon".equals(args[1])) {
-                value = Level.TIME_NOON;
+                value = World.TIME_NOON;
             } else if ("sunrise".equals(args[1])) {
-                value = Level.TIME_SUNRISE;
+                value = World.TIME_SUNRISE;
             } else if ("sunset".equals(args[1])) {
-                value = Level.TIME_SUNSET;
+                value = World.TIME_SUNSET;
             } else {
                 try {
                     value = Math.max(0, Integer.parseInt(args[1]));
@@ -122,10 +122,10 @@ public class TimeCommand extends Command {
                 }
             }
 
-            for (Level level : sender.getServer().getLevels()) {
-                level.checkTime();
-                level.setTime(value);
-                level.checkTime();
+            for (World world : sender.getServer().getWorlds()) {
+                world.checkTime();
+                world.setTime(value);
+                world.checkTime();
             }
             CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.time.set", value));
         } else if ("add".equals(args[0])) {
@@ -142,10 +142,10 @@ public class TimeCommand extends Command {
                 return false;
             }
 
-            for (Level level : sender.getServer().getLevels()) {
-                level.checkTime();
-                level.setTime(level.getTime() + value);
-                level.checkTime();
+            for (World world : sender.getServer().getWorlds()) {
+                world.checkTime();
+                world.setTime(world.getTime() + value);
+                world.checkTime();
             }
             CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.time.added", value));
         } else {

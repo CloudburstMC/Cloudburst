@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.metadata;
 
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 
 import javax.inject.Singleton;
 
@@ -13,9 +13,9 @@ public class LevelMetadataStore extends MetadataStore {
 
     @Override
     protected String disambiguate(Metadatable level, String metadataKey) {
-        if (!(level instanceof Level)) {
-            throw new IllegalArgumentException("Argument must be a Level instance");
+        if (!(level instanceof World)) {
+            throw new IllegalArgumentException("Argument must be a World instance");
         }
-        return (((Level) level).getName() + ":" + metadataKey).toLowerCase();
+        return (((World) level).getName() + ":" + metadataKey).toLowerCase();
     }
 }

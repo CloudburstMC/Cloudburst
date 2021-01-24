@@ -26,8 +26,8 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityDeathEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTurtleShell;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.gamerule.GameRules;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
@@ -126,8 +126,8 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
                     animate.setAction(AnimatePacket.Action.CRITICAL_HIT);
                     animate.setRuntimeEntityId(this.getRuntimeId());
 
-                    this.getLevel().addChunkPacket(damager.getPosition(), animate);
-                    this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ATTACK_STRONG);
+                    this.getWorld().addChunkPacket(damager.getPosition(), animate);
+                    this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.ATTACK_STRONG);
 
                     source.setDamage(source.getDamage() * 1.5f);
                 }
@@ -179,9 +179,9 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
         EntityDeathEvent ev = new EntityDeathEvent(this, this.getDrops());
         this.server.getEventManager().fire(ev);
 
-        if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
+        if (this.getWorld().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
             for (Item item : ev.getDrops()) {
-                this.getLevel().dropItem(this.getPosition(), item);
+                this.getWorld().dropItem(this.getPosition(), item);
             }
         }
     }
@@ -221,7 +221,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
                     this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.SUFFOCATION, 1));
                 }
 
-                Identifier block = this.getLevel().getBlockAt(this.getPosition().toInt()).getType();
+                Identifier block = this.getWorld().getBlockAt(this.getPosition().toInt()).getType();
                 boolean ignore = block == BlockIds.LADDER || block == BlockIds.VINE || block == BlockIds.WEB;
                 if (ignore || this.hasEffect(Effect.LEVITATION)) {
                     this.resetFallDistance();
@@ -269,7 +269,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
             }
 
             if (this.vehicle == null) {
-                for (Entity entity : this.getLevel().getNearbyEntities(this.boundingBox.grow(0.2f, 0, 0.2f), this)) {
+                for (Entity entity : this.getWorld().getNearbyEntities(this.boundingBox.grow(0.2f, 0, 0.2f), this)) {
                     if (entity instanceof Rideable) {
                         this.collidingWith(entity);
                     }
@@ -277,7 +277,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
             }
 
             // Used to check collisions with magma blocks
-            Block block = this.getLevel().getBlock(this.getPosition().sub(0, 1, 0).toInt());
+            Block block = this.getWorld().getBlock(this.getPosition().sub(0, 1, 0).toInt());
             if (block.getState().getType() == MAGMA) block.getState().getBehavior().onEntityCollide(block, this);
             return hasUpdate;
         }
@@ -308,7 +308,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
 
         Vector3f position = getPosition().add(0, this.getEyeHeight(), 0);
         for (Vector3i pos : BlockRayTrace.of(position, getDirectionVector(), maxDistance)) {
-            Block block = this.getLevel().getLoadedBlock(pos);
+            Block block = this.getWorld().getLoadedBlock(pos);
             if (block == null) {
                 break;
             }

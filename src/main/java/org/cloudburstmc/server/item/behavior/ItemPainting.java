@@ -6,9 +6,9 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.impl.misc.EntityPainting;
 import org.cloudburstmc.server.entity.misc.Painting;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -37,8 +37,8 @@ public class ItemPainting extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
-        Chunk chunk = level.getLoadedChunk(block.getPosition());
+    public boolean onActivate(World world, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+        Chunk chunk = world.getLoadedChunk(block.getPosition());
 
         if (chunk == null || target.getState().inCategory(BlockCategory.TRANSPARENT)
                 || face.getHorizontalIndex() == -1 || block.getState().inCategory(BlockCategory.SOLID)) {
@@ -85,7 +85,7 @@ public class ItemPainting extends Item {
         }
         position = position.add(0, offset(motive.height), 0);
 
-        Painting entity = EntityRegistry.get().newEntity(EntityTypes.PAINTING, Location.from(position, level));
+        Painting entity = EntityRegistry.get().newEntity(EntityTypes.PAINTING, Location.from(position, world));
         entity.setRotation(direction * 90, 0);
         entity.setMotive(motive);
 

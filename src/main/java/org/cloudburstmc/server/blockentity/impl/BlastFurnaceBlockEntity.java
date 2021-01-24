@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlastFurnace;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.inventory.InventoryType;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.utils.Identifier;
 
 public class BlastFurnaceBlockEntity extends FurnaceBlockEntity implements BlastFurnace {
@@ -29,11 +29,11 @@ public class BlastFurnaceBlockEntity extends FurnaceBlockEntity implements Blast
 
     @Override
     protected void extinguishFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockIds.BLAST_FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
+        this.getWorld().setBlock(this.getPosition(), BlockState.get(BlockIds.BLAST_FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
     }
 
     @Override
     protected void lightFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(BlockIds.LIT_BLAST_FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
+        this.getWorld().setBlock(this.getPosition(), BlockState.get(BlockIds.LIT_BLAST_FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
     }
 }

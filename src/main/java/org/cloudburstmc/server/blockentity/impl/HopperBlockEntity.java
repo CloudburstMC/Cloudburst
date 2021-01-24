@@ -18,7 +18,7 @@ import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.InventoryHolder;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
@@ -101,7 +101,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
         }
 
         if (!this.isOnTransferCooldown()) {
-            BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition().add(UP));
+            BlockEntity blockEntity = this.getWorld().getBlockEntity(this.getPosition().add(UP));
 
             boolean changed = pushItems();
 
@@ -128,7 +128,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             return false;
         }
 
-        BlockEntity blockEntity = this.getLevel().getBlockEntity(this.getPosition().add(UP));
+        BlockEntity blockEntity = this.getWorld().getBlockEntity(this.getPosition().add(UP));
 
         if (blockEntity instanceof ContainerBlockEntity) {
             Inventory inv = ((ContainerBlockEntity) blockEntity).getInventory();
@@ -177,7 +177,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
 
         boolean pickedUpItem = false;
 
-        for (Entity entity : this.getLevel().getCollidingEntities(this.pickupArea)) {
+        for (Entity entity : this.getWorld().getCollidingEntities(this.pickupArea)) {
             if (entity.isClosed() || !(entity instanceof DroppedItem)) {
                 continue;
             }
@@ -234,7 +234,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
     public void onBreak() {
 
         for (Item content : inventory.getContents().values()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.getWorld().dropItem(this.getPosition(), content);
         }
     }
 
@@ -244,7 +244,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
         }
 
         Direction direction = getBlockState().ensureTrait(BlockTraits.FACING_DIRECTION);
-        BlockEntity be = this.getLevel().getBlockEntity(direction.getOffset(this.getPosition()));
+        BlockEntity be = this.getWorld().getBlockEntity(direction.getOffset(this.getPosition()));
 
         if (be instanceof Hopper && direction == Direction.DOWN || !(be instanceof InventoryHolder))
             return false;

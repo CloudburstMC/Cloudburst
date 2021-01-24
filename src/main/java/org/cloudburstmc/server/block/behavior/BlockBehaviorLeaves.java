@@ -9,7 +9,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.LeavesDecayEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
@@ -85,24 +85,24 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         val state = block.getState();
-        if (type == Level.BLOCK_UPDATE_RANDOM && !isPersistent(state) && !isCheckDecay(state)) {
+        if (type == World.BLOCK_UPDATE_RANDOM && !isPersistent(state) && !isCheckDecay(state)) {
             block.set(block.getState().withTrait(BlockTraits.HAS_UPDATE, true));
-        } else if (type == Level.BLOCK_UPDATE_RANDOM && isCheckDecay(state) && !isPersistent(state)) {
+        } else if (type == World.BLOCK_UPDATE_RANDOM && isCheckDecay(state) && !isPersistent(state)) {
             LeavesDecayEvent ev = new LeavesDecayEvent(block);
 
             Server.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled() || findLog(block, 7)) {
                 block.set(state.withTrait(BlockTraits.HAS_UPDATE, false), false, false);
             } else {
-                block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                block.getWorld().useBreakOn(block.getPosition());
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
     }
 
     private Boolean findLog(Block pos, Integer distance) {
-        for (Block collisionBlock : pos.getLevel().getCollisionBlocks(new SimpleAxisAlignedBB(
+        for (Block collisionBlock : pos.getWorld().getCollisionBlocks(new SimpleAxisAlignedBB(
                 pos.getX() - distance, pos.getY() - distance, pos.getZ() - distance,
                 pos.getX() + distance, pos.getY() + distance, pos.getZ() + distance))) {
 

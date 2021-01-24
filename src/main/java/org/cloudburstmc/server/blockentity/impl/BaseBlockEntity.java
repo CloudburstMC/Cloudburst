@@ -14,8 +14,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
@@ -42,7 +42,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
     private final BlockEntityType<?> type;
     private final Vector3i position;
     private final Chunk chunk;
-    private final Level level;
+    private final World world;
     private NbtMap tag;
     public boolean movable = true;
     public boolean closed = false;
@@ -59,15 +59,15 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
         this.type = type;
         this.timing = Timings.getBlockEntityTiming(this);
-        this.server = chunk.getLevel().getServer();
+        this.server = chunk.getWorld().getServer();
         this.position = position;
         this.chunk = chunk;
-        this.level = chunk.getLevel();
+        this.world = chunk.getWorld();
         this.lastUpdate = System.currentTimeMillis();
         this.id = ID_ALLOCATOR.getAndIncrement();
 
         this.chunk.addBlockEntity(this);
-        this.level.addBlockEntity(this);
+        this.world.addBlockEntity(this);
 
         this.init();
 
@@ -326,7 +326,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     public final void scheduleUpdate() {
-        this.level.scheduleBlockEntityUpdate(this);
+        this.world.scheduleBlockEntityUpdate(this);
     }
 
     public void close() {
@@ -335,8 +335,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
             if (this.chunk != null) {
                 this.chunk.removeBlockEntity(this);
             }
-            if (this.level != null) {
-                this.level.removeBlockEntity(this);
+            if (this.world != null) {
+                this.world.removeBlockEntity(this);
             }
         }
     }
@@ -447,8 +447,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     @Override
-    public Level getLevel() {
-        return level;
+    public World getWorld() {
+        return world;
     }
 
     public Chunk getChunk() {
@@ -456,11 +456,11 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     public Block getBlock() {
-        return this.level.getBlock(this.position);
+        return this.world.getBlock(this.position);
     }
 
     @Override
     public BlockState getBlockState() {
-        return this.level.getBlockAt(this.position);
+        return this.world.getBlockAt(this.position);
     }
 }

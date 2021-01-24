@@ -31,8 +31,8 @@ import org.cloudburstmc.server.inventory.CraftingManager;
 import org.cloudburstmc.server.inventory.Recipe;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
-import org.cloudburstmc.server.level.*;
-import org.cloudburstmc.server.level.storage.StorageIds;
+import org.cloudburstmc.server.world.*;
+import org.cloudburstmc.server.world.storage.StorageIds;
 import org.cloudburstmc.server.locale.LocaleManager;
 import org.cloudburstmc.server.locale.TextContainer;
 import org.cloudburstmc.server.locale.TranslationContainer;
@@ -173,7 +173,7 @@ public class Server {
 
     private UUID serverID;
 
-    private final LevelManager levelManager;
+    private final WorldManager worldManager;
 
     private final Path filePath;
     private final Path dataPath;
@@ -201,7 +201,7 @@ public class Server {
     private final Map<InetSocketAddress, Player> players = new HashMap<>();
 
     private final Map<UUID, Player> playerList = new HashMap<>();
-    private final LevelData defaultLevelData = new LevelData();
+    private final WorldData defaultWorldData = new WorldData();
     private String predefinedLanguage;
 
     private boolean allowNether;
@@ -221,12 +221,12 @@ public class Server {
 
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.dat$", Pattern.CASE_INSENSITIVE);
 
-    public Server(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
+    public Server(final Path dataPath, final Path pluginPath, final Path worldPath, final String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
 
-        val injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
+        val injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, worldPath));
 
         this.filePath = Bootstrap.PATH;
         this.dataPath = dataPath;
@@ -236,7 +236,7 @@ public class Server {
         this.pluginManager = injector.getInstance(CloudPluginManager.class);
         this.eventManager = injector.getInstance(CloudEventManager.class);
         this.permissionManager = injector.getInstance(CloudPermissionManager.class);
-        this.levelManager = injector.getInstance(LevelManager.class);
+        this.worldManager = injector.getInstance(WorldManager.class);
         this.craftingManager = injector.getInstance(CraftingManager.class);
         this.packManager = injector.getInstance(PackManager.class);
         this.scheduler = injector.getInstance(ServerScheduler.class);
@@ -518,18 +518,18 @@ public class Server {
             this.defaultStorageId = StorageIds.LEVELDB;
         }
 
-        this.loadLevels();
+        this.loadWorlds();
 
         this.serverProperties.save();
 
-        if (this.getDefaultLevel() == null) {
-            log.fatal(this.getLanguage().translate("cloudburst.level.defaultError"));
+        if (this.getDefaultWorld() == null) {
+            log.fatal(this.getLanguage().translate("cloudburst.world.defaultError"));
             this.forceShutdown();
 
             return;
         }
 
-        EnumLevel.initLevels();
+        EnumWorld.initWorlds();
 
         if (this.getConfig().getTicksPer().getAutosave() > 0) {
             this.autoSaveTicks = this.getConfig().getTicksPer().getAutosave();
@@ -660,7 +660,7 @@ public class Server {
             this.scheduler.mainThreadHeartbeat(Integer.MAX_VALUE);
 
             log.debug("Unloading all levels");
-            this.levelManager.close();
+            this.worldManager.close();
 
             log.debug("Closing console");
             this.consoleThread.interrupt();
@@ -889,7 +889,7 @@ public class Server {
                     }
                 }
 
-                this.levelManager.save();
+                this.worldManager.save();
             }
         }
     }
@@ -926,7 +926,7 @@ public class Server {
 
             this.checkTickUpdates(this.tickCounter, tickTime);
 
-            this.levelManager.tick(this.tickCounter);
+            this.worldManager.tick(this.tickCounter);
 
             for (Player player : new ArrayList<>(this.players.values())) {
                 player.checkNetwork();
@@ -1087,8 +1087,8 @@ public class Server {
 
     public void setAutoSave(boolean autoSave) {
         this.autoSave = autoSave;
-        for (Level level : this.levelManager.getLevels()) {
-            level.setAutoSave(this.autoSave);
+        for (World world : this.worldManager.getWorlds()) {
+            world.setAutoSave(this.autoSave);
         }
     }
 
@@ -1331,7 +1331,7 @@ public class Server {
         NbtMap nbt = null;
         if (create) {
             log.info(this.getLanguage().translate("cloudburst.data.playerNotFound", name));
-            Location spawn = this.getDefaultLevel().getSafeSpawn();
+            Location spawn = this.getDefaultWorld().getSafeSpawn();
             nbt = NbtMap.builder()
                     .putLong("firstPlayed", System.currentTimeMillis() / 1000)
                     .putLong("lastPlayed", System.currentTimeMillis() / 1000)
@@ -1340,7 +1340,7 @@ public class Server {
                             spawn.getPosition().getY(),
                             spawn.getPosition().getZ()
                     ))
-                    .putString("Level", this.getDefaultLevel().getName())
+                    .putString("World", this.getDefaultWorld().getName())
                     .putInt("playerGameType", this.getGamemode().getVanillaId())
                     .putList("Rotation", NbtType.FLOAT, Arrays.asList(
                             spawn.getYaw(),
@@ -1516,45 +1516,45 @@ public class Server {
         }
     }
 
-    public Set<Level> getLevels() {
-        return this.levelManager.getLevels();
+    public Set<World> getWorlds() {
+        return this.worldManager.getWorlds();
     }
 
-    public Level getDefaultLevel() {
-        return this.levelManager.getDefaultLevel();
+    public World getDefaultWorld() {
+        return this.worldManager.getDefaultWorld();
     }
 
-    public void setDefaultLevel(Level level) {
-        this.levelManager.setDefaultLevel(level);
+    public void setDefaultWorld(World world) {
+        this.worldManager.setDefaultWorld(world);
     }
 
-    public boolean isLevelLoaded(String name) {
-        return this.getLevelByName(name) != null;
+    public boolean isWorldLoaded(String name) {
+        return this.getWorldByName(name) != null;
     }
 
-    public Level getLevel(String id) {
-        return this.levelManager.getLevel(id);
+    public World getWorld(String id) {
+        return this.worldManager.getWorld(id);
     }
 
-    public Level getLevelByName(String name) {
-        return this.levelManager.getLevelByName(name);
+    public World getWorldByName(String name) {
+        return this.worldManager.getWorldByName(name);
     }
 
-    public boolean unloadLevel(Level level) {
-        return this.unloadLevel(level, false);
+    public boolean unloadWorld(World world) {
+        return this.unloadWorld(world, false);
     }
 
-    public boolean unloadLevel(Level level, boolean forceUnload) {
-        if (level == this.getDefaultLevel() && !forceUnload) {
-            throw new IllegalStateException("The default level cannot be unloaded while running, please switch levels.");
+    public boolean unloadWorld(World world, boolean forceUnload) {
+        if (world == this.getDefaultWorld() && !forceUnload) {
+            throw new IllegalStateException("The default world cannot be unloaded while running, please switch levels.");
         }
 
-        return level.unload(forceUnload);
+        return world.unload(forceUnload);
 
     }
 
-    public LevelBuilder loadLevel() {
-        return new LevelBuilder(this);
+    public WorldBuilder loadWorld() {
+        return new WorldBuilder(this);
     }
 
     public LocaleManager getLanguage() {
@@ -1698,26 +1698,26 @@ public class Server {
         Effect.init();
         Potion.init();
         Attribute.init();
-        this.defaultLevelData.getGameRules().putAll(this.gameRuleRegistry.getDefaultRules());
+        this.defaultWorldData.getGameRules().putAll(this.gameRuleRegistry.getDefaultRules());
     }
 
-    private void loadLevels() throws IOException {
-        Path levelPath = dataPath.resolve("worlds");
-        if (Files.notExists(levelPath)) {
-            Files.createDirectory(levelPath);
-        } else if (!Files.isDirectory(levelPath)) {
-            throw new RuntimeException("Worlds location " + levelPath + " is not a directory.");
+    private void loadWorlds() throws IOException {
+        Path worldPath = dataPath.resolve("worlds");
+        if (Files.notExists(worldPath)) {
+            Files.createDirectory(worldPath);
+        } else if (!Files.isDirectory(worldPath)) {
+            throw new RuntimeException("Worlds location " + worldPath + " is not a directory.");
         }
 
         Map<String, ServerConfig.World> worldConfigs = getConfig().getWorlds();
         if (worldConfigs.isEmpty()) {
             throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }
-        List<CompletableFuture<Level>> levelFutures = new ArrayList<>(worldConfigs.size());
+        List<CompletableFuture<World>> worldFutures = new ArrayList<>(worldConfigs.size());
 
         for (String name : worldConfigs.keySet()) {
             final ServerConfig.World config = worldConfigs.get(name);
-            //fallback to level name if no seed is set
+            //fallback to world name if no seed is set
             Object seedObj = config.getSeed();
             long seed;
             if (seedObj instanceof Number) {
@@ -1737,7 +1737,7 @@ public class Server {
             Identifier generator = Identifier.fromString(config.getGenerator());
             String options = config.getOptions();
 
-            levelFutures.add(this.loadLevel().id(name)
+            worldFutures.add(this.loadWorld().id(name)
                     .seed(seed)
                     .generator(generator == null ? this.generatorRegistry.getFallback() : generator)
                     .generatorOptions(options)
@@ -1745,21 +1745,21 @@ public class Server {
         }
 
         // Wait for levels to load.
-        CompletableFutures.allAsList(levelFutures).join();
+        CompletableFutures.allAsList(worldFutures).join();
 
-        //set default level
-        if (this.getDefaultLevel() == null) {
+        //set default world
+        if (this.getDefaultWorld() == null) {
             String defaultName = this.serverProperties.getDefaultLevel();
             if (defaultName == null || defaultName.trim().isEmpty()) {
                 this.serverProperties.modifyDefaultLevel(worldConfigs.keySet().iterator().next());
-                log.warn("default-level is unset or empty, falling back to \"" + defaultName + '"');
+                log.warn("default-world is unset or empty, falling back to \"" + defaultName + '"');
             }
 
-            Level defaultLevel = this.levelManager.getLevel(defaultName);
-            if (defaultLevel == null) {
-                throw new IllegalArgumentException("default-level refers to unknown level: \"" + defaultName + '"');
+            World defaultWorld = this.worldManager.getWorld(defaultName);
+            if (defaultWorld == null) {
+                throw new IllegalArgumentException("default-world refers to unknown world: \"" + defaultName + '"');
             }
-            this.levelManager.setDefaultLevel(defaultLevel);
+            this.worldManager.setDefaultWorld(defaultWorld);
         }
     }
 
@@ -1775,12 +1775,12 @@ public class Server {
         this.playerDataSerializer = Preconditions.checkNotNull(playerDataSerializer, "playerDataSerializer");
     }
 
-    public LevelManager getLevelManager() {
-        return levelManager;
+    public WorldManager getWorldManager() {
+        return worldManager;
     }
 
-    public LevelData getDefaultLevelData() {
-        return defaultLevelData;
+    public WorldData getDefaultWorldData() {
+        return defaultWorldData;
     }
 
     public Identifier getDefaultStorageId() {

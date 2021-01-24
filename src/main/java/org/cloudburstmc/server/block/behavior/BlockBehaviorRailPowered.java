@@ -5,7 +5,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.utils.Rail;
 import org.cloudburstmc.server.utils.data.RailDirection;
 
@@ -24,21 +24,21 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
         //          Network below 86Kb/s. This will became unresponsive to clients 
         //          When updating the block state. Espicially on the world with many rails. 
         //          Trust me, I tested this on my server.
-        if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE || type == Level.BLOCK_UPDATE_SCHEDULED) {
-            if (super.onUpdate(block, type) == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL || type == World.BLOCK_UPDATE_REDSTONE || type == World.BLOCK_UPDATE_SCHEDULED) {
+            if (super.onUpdate(block, type) == World.BLOCK_UPDATE_NORMAL) {
                 return 0; // Already broken
             }
             boolean wasPowered = isActive(block.getState());
-            boolean isPowered = block.getLevel().isBlockPowered(block.getPosition())
+            boolean isPowered = block.getWorld().isBlockPowered(block.getPosition())
                     || checkSurrounding(block, block.getPosition(), true, 0)
                     || checkSurrounding(block, block.getPosition(), false, 0);
 
             // Avoid Block minstake
             if (wasPowered != isPowered) {
                 setActive(block, isPowered);
-                block.getLevel().updateAround(block.getPosition().down());
+                block.getWorld().updateAround(block.getPosition().down());
                 if (getOrientation(block.getState()).isAscending()) {
-                    block.getLevel().updateAround(block.getPosition().up());
+                    block.getWorld().updateAround(block.getPosition().up());
                 }
             }
             return type;
@@ -65,7 +65,7 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
         int dz = pos.getZ();
         // First: get the base block
         BlockBehaviorRail behavior;
-        BlockState state = block.getLevel().getBlock(dx, dy, dz).getState();
+        BlockState state = block.getWorld().getBlock(dx, dy, dz).getState();
 
         // Second: check if the rail is Powered rail
         if (Rail.isRailBlock(state)) {
@@ -144,7 +144,7 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
     }
 
     protected boolean canPowered(Block block, Vector3i pos, RailDirection direction, int power, boolean relative) {
-        BlockState state = block.getLevel().getBlock(pos).getState();
+        BlockState state = block.getWorld().getBlock(pos).getState();
         // What! My block is air??!! Impossible! XD
         if (state.getType() != GOLDEN_RAIL) {
             return false;
@@ -163,7 +163,7 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
                 || base != RailDirection.EAST_WEST
                 && base != RailDirection.ASCENDING_EAST
                 && base != RailDirection.ASCENDING_WEST)
-                && (block.getLevel().isBlockPowered(pos) || checkSurrounding(block, pos, relative, power + 1));
+                && (block.getWorld().isBlockPowered(pos) || checkSurrounding(block, pos, relative, power + 1));
     }
 
     @Override

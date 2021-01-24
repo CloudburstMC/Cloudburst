@@ -22,17 +22,17 @@ public class EnchantCommand extends Command {
     public EnchantCommand() {
         super("enchant", CommandData.builder("enchant")
                 .setDescription("commands.enchant.description")
-                .setUsageMessage("/enchant <player> <enchant ID> [level]")
+                .setUsageMessage("/enchant <player> <enchant ID> [world]")
                 .setPermissions("cloudburst.command.enchant")
                 .setParameters(
                         new CommandParameter[]{
                                 new CommandParameter("player", CommandParamType.TARGET, false),
                                 new CommandParameter("enchantment ID", CommandParamType.INT, false),
-                                new CommandParameter("level", CommandParamType.INT, true)
+                                new CommandParameter("world", CommandParamType.INT, true)
                         }, new CommandParameter[]{
                                 new CommandParameter("player", CommandParamType.TARGET, false),
                                 new CommandParameter("id", false, CommandParameter.ENUM_TYPE_ENCHANTMENT_LIST),
-                                new CommandParameter("level", CommandParamType.INT, true)
+                                new CommandParameter("world", CommandParamType.INT, true)
                         })
                 .build());
     }

@@ -5,8 +5,8 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
@@ -177,23 +177,23 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() == BlockIds.AIR) {
                 Block up = block.up();
 
                 if (up.getState().inCategory(BlockCategory.DOOR)) {
                     removeBlock(up, true);
-                    block.getLevel().useBreakOn(block.getPosition());
+                    block.getWorld().useBreakOn(block.getPosition());
                 }
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
 
-        if (type == Level.BLOCK_UPDATE_REDSTONE) {
+        if (type == World.BLOCK_UPDATE_REDSTONE) {
             boolean open = isOpen(block);
-            if ((!open && block.getLevel().isBlockPowered(block.getPosition())) || (open && !block.getLevel().isBlockPowered(block.getPosition()))) {
-                block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
+            if ((!open && block.getWorld().isBlockPowered(block.getPosition())) || (open && !block.getWorld().isBlockPowered(block.getPosition()))) {
+                block.getWorld().getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
 
                 this.toggle(block, null);
             }
@@ -231,7 +231,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
             placeBlock(blockUp, door);
 
             Block newBlock = block.refresh();
-            if (!this.isOpen(newBlock) && block.getLevel().isBlockPowered(block.getPosition())) {
+            if (!this.isOpen(newBlock) && block.getWorld().isBlockPowered(block.getPosition())) {
                 this.toggle(newBlock, null);
             }
 
@@ -266,13 +266,13 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
             return false;
         }
 
-        block.getLevel().addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
+        block.getWorld().addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
         return true;
     }
 
     public boolean toggle(Block block, Player player) {
         DoorToggleEvent event = new DoorToggleEvent(block, player);
-        block.getLevel().getServer().getEventManager().fire(event);
+        block.getWorld().getServer().getEventManager().fire(event);
 
         if (event.isCancelled()) {
             return false;

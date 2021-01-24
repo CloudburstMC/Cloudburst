@@ -95,7 +95,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
                 continue;
             }
 
-            BlockEntity be = block.getLevel().getBlockEntity(b.getPosition());
+            BlockEntity be = block.getWorld().getBlockEntity(b.getPosition());
             if (be instanceof Chest) {
                 chest = (Chest) be;
             }
@@ -118,7 +118,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
     @Override
     public boolean onBreak(Block block, Item item) {
-        BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity t = block.getWorld().getBlockEntity(block.getPosition());
         if (t instanceof Chest) {
             ((Chest) t).unpair();
         }
@@ -133,7 +133,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
                 return true;
             }
 
-            BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
+            BlockEntity t = block.getWorld().getBlockEntity(block.getPosition());
             Chest chest;
             if (t instanceof Chest) {
                 chest = (Chest) t;
@@ -157,7 +157,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     public int getComparatorInputOverride(Block block) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Chest) {
             return ContainerInventory.calculateRedstone(((Chest) blockEntity).getInventory());

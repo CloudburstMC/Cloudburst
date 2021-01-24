@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
@@ -31,7 +31,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0F) { //Bonemeal
             int count = 1;
-            val level = block.getLevel();
+            val level = block.getWorld();
 
             for (int i = 1; i <= 2; i++) {
                 Identifier id = level.getBlockAt(block.getX(), block.getY() - i, block.getZ()).getType();
@@ -76,13 +76,13 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             BlockState down = block.downState();
             if (down.inCategory(BlockCategory.TRANSPARENT) && down.getType() != BlockIds.REEDS) {
-                block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                block.getWorld().useBreakOn(block.getPosition());
+                return World.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == World.BLOCK_UPDATE_RANDOM) {
             if (block.downState().getType() != BlockIds.REEDS) {
                 val state = block.getState();
 
@@ -99,7 +99,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
                 } else {
                     block.set(state.incrementTrait(BlockTraits.AGE));
                 }
-                return Level.BLOCK_UPDATE_RANDOM;
+                return World.BLOCK_UPDATE_RANDOM;
             }
         }
         return 0;

@@ -92,7 +92,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
                 return true;
             }
 
-            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+            BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
             if (!(blockEntity instanceof EnderChest)) {
                 BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, block.getChunk(), block.getPosition());
             }

@@ -4,7 +4,7 @@ import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.passive.Pig;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.utils.Identifier;
 
 /**

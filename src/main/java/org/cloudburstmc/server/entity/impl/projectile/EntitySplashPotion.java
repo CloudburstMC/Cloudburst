@@ -5,9 +5,9 @@ import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.projectile.SplashPotion;
 import org.cloudburstmc.server.event.potion.PotionCollideEvent;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.particle.Particle;
-import org.cloudburstmc.server.level.particle.SpellParticle;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.particle.Particle;
+import org.cloudburstmc.server.world.particle.SpellParticle;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.potion.Potion;
 
@@ -111,10 +111,10 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
         particle = new SpellParticle(this.getPosition(), r, g, b);
 
-        this.getLevel().addParticle(particle);
-        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.GLASS);
+        this.getWorld().addParticle(particle);
+        this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.GLASS);
 
-        Set<Entity> entities = this.getLevel().getNearbyEntities(this.getBoundingBox().grow(4.125f, 2.125f, 4.125f));
+        Set<Entity> entities = this.getWorld().getNearbyEntities(this.getBoundingBox().grow(4.125f, 2.125f, 4.125f));
         for (Entity anEntity : entities) {
             double distance = anEntity.getPosition().distanceSquared(this.getPosition());
             if (distance < 16) {

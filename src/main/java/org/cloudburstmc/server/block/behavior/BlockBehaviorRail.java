@@ -9,7 +9,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -60,11 +60,11 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             Optional<Direction> ascendingDirection = this.getOrientation(block.getState()).ascendingDirection();
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT) || (ascendingDirection.isPresent() && block.getSide(ascendingDirection.get()).getState().inCategory(BlockCategory.TRANSPARENT))) {
-                block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                block.getWorld().useBreakOn(block.getPosition());
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
@@ -135,7 +135,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
 
         placeBlock(block, BlockState.get(this.type).withTrait(directionTrait, direction));
         if (!isAbstract()) {
-            block.getLevel().scheduleUpdate(block.getPosition(), 0);
+            block.getWorld().scheduleUpdate(block.getPosition(), 0);
         }
         return true;
     }

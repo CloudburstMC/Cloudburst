@@ -93,7 +93,7 @@ public class Bootstrap {
         OptionSpec<Path> pluginPathSpec = parser.accepts("plugin-path", "path to your plugins directory")
                 .withRequiredArg()
                 .withValuesConvertedBy(new PathConverter());
-        OptionSpec<Path> levelPathSpec = parser.accepts("level-path", "path to your plugins directory")
+        OptionSpec<Path> levelPathSpec = parser.accepts("world-path", "path to your plugins directory")
                 .withRequiredArg()
                 .withValuesConvertedBy(new PathConverter());
 
@@ -238,7 +238,7 @@ public class Bootstrap {
     }
 
     public static void setLogLevel(Level level) {
-        Preconditions.checkNotNull(level, "level");
+        Preconditions.checkNotNull(level, "world");
         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         Configuration log4jConfig = ctx.getConfiguration();
         LoggerConfig loggerConfig = log4jConfig.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME);

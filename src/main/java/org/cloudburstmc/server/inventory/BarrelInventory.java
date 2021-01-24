@@ -6,7 +6,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.Barrel;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.player.Player;
 
 public class BarrelInventory extends ContainerInventory {
@@ -40,15 +40,15 @@ public class BarrelInventory extends ContainerInventory {
 
     protected void toggle(boolean open) {
         Barrel barrel = this.getHolder();
-        Level level = barrel.getLevel();
-        if (level != null) {
+        World world = barrel.getWorld();
+        if (world != null) {
             Block block = barrel.getBlock();
             val state = block.getState();
 
             if (state.getType() == BlockIds.BARREL) {
                 if (state.ensureTrait(BlockTraits.IS_OPEN) != open) {
                     block.set(state.withTrait(BlockTraits.IS_OPEN, open));
-                    level.addLevelSoundEvent(this.getHolder().getPosition(), open ? SoundEvent.BARREL_OPEN : SoundEvent.BARREL_CLOSE);
+                    world.addLevelSoundEvent(this.getHolder().getPosition(), open ? SoundEvent.BARREL_OPEN : SoundEvent.BARREL_CLOSE);
                     sendBlockEventPacket(this.getHolder(), open ? 1 : 0);
                 }
             }

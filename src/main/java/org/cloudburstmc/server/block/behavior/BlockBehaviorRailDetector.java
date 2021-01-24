@@ -6,7 +6,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 
@@ -36,7 +36,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == World.BLOCK_UPDATE_SCHEDULED) {
             updateState(block);
             return type;
         }
@@ -52,7 +52,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
         boolean wasPowered = isActive(block.getState());
         boolean isPowered = false;
 
-        for (Entity entity : block.getLevel().getNearbyEntities(new SimpleAxisAlignedBB(
+        for (Entity entity : block.getWorld().getNearbyEntities(new SimpleAxisAlignedBB(
                 block.getX() + 0.125f,
                 block.getY(),
                 block.getZ() + 0.125f,
@@ -65,7 +65,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
             }
         }
 
-        val level = block.getLevel();
+        val level = block.getWorld();
 
         if (isPowered && !wasPowered) {
             setActive(block, true);

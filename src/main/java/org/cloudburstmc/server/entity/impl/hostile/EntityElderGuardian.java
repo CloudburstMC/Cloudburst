@@ -2,7 +2,7 @@ package org.cloudburstmc.server.entity.impl.hostile;
 
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.hostile.ElderGuardian;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.ELDER;
 

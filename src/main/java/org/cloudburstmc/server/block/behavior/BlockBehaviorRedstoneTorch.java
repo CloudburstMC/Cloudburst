@@ -8,7 +8,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -38,7 +38,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 //                    continue;
 //                }
 //
-//                this.level.updateAround(pos.getSide(side));
+//                this.world.updateAround(pos.getSide(side));
 //            }
 //        }
 
@@ -69,7 +69,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
                 continue;
             }
 
-            block.getLevel().updateAroundRedstone(side.getOffset(pos), null);
+            block.getWorld().updateAroundRedstone(side.getOffset(pos), null);
         }
         return true;
     }
@@ -77,11 +77,11 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     @Override
     public int onUpdate(Block block, int type) {
         if (super.onUpdate(block, type) == 0) {
-            if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
-                block.getLevel().scheduleUpdate(block, tickRate());
-            } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+            if (type == World.BLOCK_UPDATE_NORMAL || type == World.BLOCK_UPDATE_REDSTONE) {
+                block.getWorld().scheduleUpdate(block, tickRate());
+            } else if (type == World.BLOCK_UPDATE_SCHEDULED) {
                 RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
-                block.getLevel().getServer().getEventManager().fire(ev);
+                block.getWorld().getServer().getEventManager().fire(ev);
 
                 if (ev.isCancelled()) {
                     return 0;
@@ -111,7 +111,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
                     continue;
                 }
 
-                block.getLevel().updateAroundRedstone(side.getOffset(pos), null);
+                block.getWorld().updateAroundRedstone(side.getOffset(pos), null);
             }
 
             return true;
@@ -122,7 +122,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
     protected boolean isPoweredFromSide(Block block) {
         Direction face = getBlockFace(block.getState()).getOpposite();
-        return block.getLevel().isSidePowered(face.getOffset(block.getPosition()), face);
+        return block.getWorld().isSidePowered(face.getOffset(block.getPosition()), face);
     }
 
     @Override

@@ -9,7 +9,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.inventory.AnvilInventory;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
@@ -62,7 +62,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
             }
 
             block.set(anvil, true);
-            block.getLevel().addSound(block.getPosition().toFloat(), Sound.RANDOM_ANVIL_LAND, 1, 0.8F);
+            block.getWorld().addSound(block.getPosition().toFloat(), Sound.RANDOM_ANVIL_LAND, 1, 0.8F);
             return true;
         }
         return false;

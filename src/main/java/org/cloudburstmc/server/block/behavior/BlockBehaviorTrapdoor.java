@@ -9,8 +9,8 @@ import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
@@ -162,8 +162,8 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_REDSTONE) {
-            val level = block.getLevel();
+        if (type == World.BLOCK_UPDATE_REDSTONE) {
+            val level = block.getWorld();
             val open = isOpen(block.getState());
             if ((!open && level.isBlockPowered(block.getPosition())) || (open && !level.isBlockPowered(block.getPosition()))) {
                 level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
@@ -185,7 +185,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (toggle(block, player)) {
-            block.getLevel().addSound(block.getPosition(), isOpen(block.getState()) ? Sound.RANDOM_DOOR_CLOSE : Sound.RANDOM_DOOR_OPEN);
+            block.getWorld().addSound(block.getPosition(), isOpen(block.getState()) ? Sound.RANDOM_DOOR_CLOSE : Sound.RANDOM_DOOR_OPEN);
             return true;
         }
         return false;
@@ -212,7 +212,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
 
     public boolean toggle(Block block, Player player) {
         DoorToggleEvent ev = new DoorToggleEvent(block, player);
-        block.getLevel().getServer().getEventManager().fire(ev);
+        block.getWorld().getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return false;
         }

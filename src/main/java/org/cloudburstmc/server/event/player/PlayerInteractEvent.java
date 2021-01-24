@@ -30,7 +30,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
     }
 
     public PlayerInteractEvent(Player player, Item item, Vector3f touchVector, Direction face, Action action) {
-        this(player, item, face, action, new CloudBlock(player.getLevel(), Vector3i.ZERO, CloudBlock.EMPTY), touchVector);
+        this(player, item, face, action, new CloudBlock(player.getWorld(), Vector3i.ZERO, CloudBlock.EMPTY), touchVector);
     }
 
     private PlayerInteractEvent(Player player, Item item, Direction face, Action action, Block block, Vector3f touchVector) {

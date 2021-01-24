@@ -8,7 +8,7 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
@@ -85,7 +85,7 @@ public class TeleportCommand extends Command {
                 origin.sendMessage(new TranslationContainer("commands.tp.successVictim", target.getName()));
             }
             return true;
-        } else if (((Player) target).getLevel() != null) {
+        } else if (((Player) target).getWorld() != null) {
             int pos;
             if (args.length == 4 || args.length == 6) {
                 pos = 1;
@@ -104,7 +104,7 @@ public class TeleportCommand extends Command {
                 yaw = Float.parseFloat(args[pos++]);
                 pitch = Float.parseFloat(args[pos++]);
             }
-            ((Player) target).teleport(Location.from(position, yaw, pitch, ((Player) target).getLevel()), PlayerTeleportEvent.TeleportCause.COMMAND);
+            ((Player) target).teleport(Location.from(position, yaw, pitch, ((Player) target).getWorld()), PlayerTeleportEvent.TeleportCause.COMMAND);
             CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.tp.success.coordinates",
                     target.getName(), String.valueOf(NukkitMath.round(position.getX(), 2)),
                     String.valueOf(NukkitMath.round(position.getY(), 2)),

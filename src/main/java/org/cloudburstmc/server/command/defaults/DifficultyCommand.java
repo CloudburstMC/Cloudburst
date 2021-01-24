@@ -8,7 +8,7 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Difficulty;
+import org.cloudburstmc.server.world.Difficulty;
 import org.cloudburstmc.server.locale.TranslationContainer;
 
 import java.util.ArrayList;

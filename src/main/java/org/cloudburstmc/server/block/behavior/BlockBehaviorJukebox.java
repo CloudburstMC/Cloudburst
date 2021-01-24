@@ -28,7 +28,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
         if (!(blockEntity instanceof Jukebox)) {
             blockEntity = this.createBlockEntity(block);
         }
@@ -58,7 +58,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
     @Override
     public boolean onBreak(Block block, Item item) {
         if (super.onBreak(block, item)) {
-            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+            BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
             if (blockEntity instanceof Jukebox) {
                 ((Jukebox) blockEntity).dropItem();

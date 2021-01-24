@@ -15,7 +15,7 @@ public class PlayerData {
     private static final String TAG_FIRST_PLAYED = "firstPlayed";
     private static final String TAG_LAST_PLAYED = "lastPlayed";
     private static final String TAG_LAST_ADDRESS = "lastIP";
-    private static final String TAG_LEVEL = "Level";
+    private static final String TAG_LEVEL = "World";
     private static final String TAG_SPAWN_LEVEL = "SpawnLevel";
     private static final String TAG_SPAWN_X = "SpawnX";
     private static final String TAG_SPAWN_Y = "SpawnY";

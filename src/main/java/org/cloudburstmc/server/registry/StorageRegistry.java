@@ -4,10 +4,10 @@ import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.level.provider.LevelProviderFactory;
-import org.cloudburstmc.server.level.provider.anvil.AnvilProviderFactory;
-import org.cloudburstmc.server.level.provider.leveldb.LevelDBProviderFactory;
-import org.cloudburstmc.server.level.storage.StorageIds;
+import org.cloudburstmc.server.world.provider.WorldProviderFactory;
+import org.cloudburstmc.server.world.provider.anvil.AnvilProviderFactory;
+import org.cloudburstmc.server.world.provider.leveldb.LevelDBProviderFactory;
+import org.cloudburstmc.server.world.storage.StorageIds;
 import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nullable;
@@ -17,7 +17,7 @@ import java.util.*;
 @Log4j2
 public class StorageRegistry implements Registry {
     private static final StorageRegistry INSTANCE = new StorageRegistry();
-    private final Map<Identifier, LevelProviderFactory> providers = new IdentityHashMap<>();
+    private final Map<Identifier, WorldProviderFactory> providers = new IdentityHashMap<>();
     private final List<WeightedProvider> detectProviders = new ArrayList<>();
     private volatile boolean closed;
 
@@ -29,18 +29,18 @@ public class StorageRegistry implements Registry {
         return INSTANCE;
     }
 
-    public synchronized void register(Identifier identifier, LevelProviderFactory levelProviderFactory, int weight)
+    public synchronized void register(Identifier identifier, WorldProviderFactory worldProviderFactory, int weight)
             throws RegistryException {
         Objects.requireNonNull(identifier, "type");
-        Objects.requireNonNull(levelProviderFactory, "levelProviderFactory");
+        Objects.requireNonNull(worldProviderFactory, "worldProviderFactory");
 
         Preconditions.checkArgument(!this.providers.containsKey(identifier));
-        this.providers.put(identifier, levelProviderFactory);
-        this.detectProviders.add(new WeightedProvider(identifier, levelProviderFactory, weight));
+        this.providers.put(identifier, worldProviderFactory);
+        this.detectProviders.add(new WeightedProvider(identifier, worldProviderFactory, weight));
         this.detectProviders.sort(Comparator.naturalOrder());
     }
 
-    public LevelProviderFactory getLevelProviderFactory(Identifier identifier) {
+    public WorldProviderFactory getLevelProviderFactory(Identifier identifier) {
         Objects.requireNonNull(identifier, "identifier");
 
         return this.providers.get(identifier);
@@ -75,7 +75,7 @@ public class StorageRegistry implements Registry {
     @RequiredArgsConstructor
     private static class WeightedProvider implements Comparable<WeightedProvider> {
         private final Identifier identifier;
-        private final LevelProviderFactory factory;
+        private final WorldProviderFactory factory;
         private final int weight;
 
         @Override

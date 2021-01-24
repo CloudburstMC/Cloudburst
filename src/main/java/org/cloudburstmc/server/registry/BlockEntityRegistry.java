@@ -9,7 +9,7 @@ import org.cloudburstmc.server.blockentity.BlockEntityFactory;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.impl.*;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.plugin.PluginContainer;
 
 import javax.annotation.Nonnull;

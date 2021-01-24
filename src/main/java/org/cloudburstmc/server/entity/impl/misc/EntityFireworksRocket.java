@@ -11,7 +11,7 @@ import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.FireworksRocket;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -94,7 +94,7 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
 
 
             if (this.life == 0) {
-                this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.LAUNCH);
+                this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.LAUNCH);
             }
 
             this.life++;
@@ -105,7 +105,7 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
                 packet.setType(EntityEventType.FIREWORK_EXPLODE);
                 packet.setRuntimeEntityId(this.getRuntimeId());
 
-                this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.LARGE_BLAST, -1, getType());
+                this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.LARGE_BLAST, -1, getType());
 
                 Server.broadcastPacket(getViewers(), packet);
 

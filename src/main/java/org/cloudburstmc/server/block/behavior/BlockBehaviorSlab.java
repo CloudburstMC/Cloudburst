@@ -208,6 +208,6 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
         pk.setRelativeVolumeDisabled(false);
 
 
-        block.getLevel().addChunkPacket(block.getPosition(), pk);
+        block.getWorld().addChunkPacket(block.getPosition(), pk);
     }
 }

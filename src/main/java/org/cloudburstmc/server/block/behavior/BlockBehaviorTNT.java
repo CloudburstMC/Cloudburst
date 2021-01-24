@@ -8,9 +8,9 @@ import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.misc.PrimedTnt;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -58,18 +58,18 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
         float mot = ThreadLocalRandom.current().nextFloat() * (float) Math.PI * 2f;
 
         PrimedTnt primedTnt = EntityRegistry.get().newEntity(EntityTypes.TNT,
-                Location.from(block.getPosition().toFloat().add(0.5, 0, 0.5), block.getLevel()));
+                Location.from(block.getPosition().toFloat().add(0.5, 0, 0.5), block.getWorld()));
         primedTnt.setMotion(Vector3f.from(-Math.sin(mot) * 0.02, 0.2, -Math.cos(mot) * 0.02));
         primedTnt.setFuse(fuse);
         primedTnt.setSource(source);
         primedTnt.spawnToAll();
 
-        block.getLevel().addSound(block.getPosition(), Sound.RANDOM_FUSE);
+        block.getWorld().addSound(block.getPosition(), Sound.RANDOM_FUSE);
     }
 
     @Override
     public int onUpdate(Block block, int type) {
-        if ((type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) && block.getLevel().isBlockPowered(block.getPosition())) {
+        if ((type == World.BLOCK_UPDATE_NORMAL || type == World.BLOCK_UPDATE_REDSTONE) && block.getWorld().isBlockPowered(block.getPosition())) {
             this.prime(block);
         }
 
@@ -85,7 +85,7 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
         }
         if (item.getId() == ItemIds.FIREBALL) {
             if (!player.isCreative()) player.getInventory().removeItem(Item.get(ItemIds.FIREBALL, 0, 1));
-            block.getLevel().addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
+            block.getWorld().addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
             this.prime(block, 80, player);
             return true;
         }

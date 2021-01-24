@@ -10,7 +10,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
@@ -20,13 +20,13 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (!_isNormalBlock(block.getSide(block.getState().ensureTrait(BlockTraits.DIRECTION).getOpposite()))) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
             }
 
             return type;
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == World.BLOCK_UPDATE_SCHEDULED) {
             this.calculateState(block, false, true, -1, null);
             return type;
         }
@@ -60,8 +60,8 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         }
 
         if (powered) {
-            block.getLevel().updateAroundRedstone(block.getPosition(), null);
-            block.getLevel().updateAroundRedstone(state.ensureTrait(BlockTraits.DIRECTION).getOpposite().getOffset(block.getPosition()), null);
+            block.getWorld().updateAroundRedstone(block.getPosition(), null);
+            block.getWorld().updateAroundRedstone(state.ensureTrait(BlockTraits.DIRECTION).getOpposite().getOffset(block.getPosition()), null);
         }
 
         return true;
@@ -71,7 +71,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         val state = block.getState();
         Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
         Vector3i v = block.getPosition();
-        val level = block.getLevel();
+        val level = block.getWorld();
 
         boolean attached = isAttached(state);
         boolean powered = isPowered(state);
@@ -157,7 +157,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     private void addSound(Block block, Vector3f pos, boolean canConnect, boolean nextPowered, boolean attached, boolean powered) {
-        val level = block.getLevel();
+        val level = block.getWorld();
         if (nextPowered && !powered) {
             level.addLevelSoundEvent(pos, SoundEvent.POWER_ON);
             level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));

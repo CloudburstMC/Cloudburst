@@ -2,7 +2,7 @@ package org.cloudburstmc.server.event.entity;
 
 import org.cloudburstmc.server.entity.impl.projectile.EntityProjectile;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.level.MovingObjectPosition;
+import org.cloudburstmc.server.world.MovingObjectPosition;
 
 /**
  * author: MagicDroidX

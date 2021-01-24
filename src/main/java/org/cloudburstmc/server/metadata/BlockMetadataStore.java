@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.metadata;
 
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.plugin.PluginContainer;
 
 import java.util.List;
@@ -11,10 +11,10 @@ import java.util.List;
  * Nukkit Project
  */
 public class BlockMetadataStore extends MetadataStore { //TODO: fix/remove
-    private final Level owningLevel;
+    private final World owningWorld;
 
-    public BlockMetadataStore(Level owningLevel) {
-        this.owningLevel = owningLevel;
+    public BlockMetadataStore(World owningWorld) {
+        this.owningWorld = owningWorld;
     }
 
     @Override
@@ -32,10 +32,10 @@ public class BlockMetadataStore extends MetadataStore { //TODO: fix/remove
         if (!(block instanceof BlockState)) {
             throw new IllegalArgumentException("Object must be a Block");
         }
-//        if (((BlockState) block).getLevel() == this.owningLevel) {
+//        if (((BlockState) block).getWorld() == this.owningWorld) {
 //            return super.getMetadata(block, metadataKey);
 //        } else {
-//            throw new IllegalStateException("Block does not belong to world " + this.owningLevel.getName());
+//            throw new IllegalStateException("Block does not belong to world " + this.owningWorld.getName());
 //        }
         return null;
     }
@@ -45,10 +45,10 @@ public class BlockMetadataStore extends MetadataStore { //TODO: fix/remove
         if (!(block instanceof BlockState)) {
             throw new IllegalArgumentException("Object must be a Block");
         }
-//        if (((BlockState) block).getLevel() == this.owningLevel) {
+//        if (((BlockState) block).getWorld() == this.owningWorld) {
 //            return super.hasMetadata(block, metadataKey);
 //        } else {
-//            throw new IllegalStateException("Block does not belong to world " + this.owningLevel.getName());
+//            throw new IllegalStateException("Block does not belong to world " + this.owningWorld.getName());
 //        }
         return false;
     }
@@ -58,10 +58,10 @@ public class BlockMetadataStore extends MetadataStore { //TODO: fix/remove
         if (!(block instanceof BlockState)) {
             throw new IllegalArgumentException("Object must be a Block");
         }
-//        if (((BlockState) block).getLevel() == this.owningLevel) {
+//        if (((BlockState) block).getWorld() == this.owningWorld) {
 //            super.removeMetadata(block, metadataKey, owningPlugin);
 //        } else {
-//            throw new IllegalStateException("Block does not belong to world " + this.owningLevel.getName());
+//            throw new IllegalStateException("Block does not belong to world " + this.owningWorld.getName());
 //        }
     }
 
@@ -70,10 +70,10 @@ public class BlockMetadataStore extends MetadataStore { //TODO: fix/remove
         if (!(block instanceof BlockState)) {
             throw new IllegalArgumentException("Object must be a Block");
         }
-//        if (((BlockState) block).getLevel() == this.owningLevel) {
+//        if (((BlockState) block).getWorld() == this.owningWorld) {
 //            super.setMetadata(block, metadataKey, newMetadataValue);
 //        } else {
-//            throw new IllegalStateException("Block does not belong to world " + this.owningLevel.getName());
+//            throw new IllegalStateException("Block does not belong to world " + this.owningWorld.getName());
 //        }
     }
 }

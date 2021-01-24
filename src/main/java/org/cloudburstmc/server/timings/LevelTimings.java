@@ -2,7 +2,7 @@ package org.cloudburstmc.server.timings;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.TimingsManager;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 
 /**
  * @author Pub4Game
@@ -25,8 +25,8 @@ public class LevelTimings {
     public final Timing syncChunkLoadEntitiesTimer;
     public final Timing syncChunkLoadBlockEntitiesTimer;
 
-    public LevelTimings(Level level) {
-        String name = level.getId() + " - ";
+    public LevelTimings(World world) {
+        String name = world.getId() + " - ";
 
         this.doChunkUnload = TimingsManager.getTiming(name + "doChunkUnload");
         this.doTickPending = TimingsManager.getTiming(name + "doTickPending");

@@ -1,17 +1,17 @@
 package org.cloudburstmc.server.event.level;
 
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class ChunkEvent extends LevelEvent {
+public abstract class ChunkEvent extends WorldEvent {
 
     private final Chunk chunk;
 
     public ChunkEvent(Chunk chunk) {
-        super(chunk.getLevel());
+        super(chunk.getWorld());
         this.chunk = chunk;
     }
 

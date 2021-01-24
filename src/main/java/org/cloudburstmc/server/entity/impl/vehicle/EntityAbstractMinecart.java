@@ -19,9 +19,9 @@ import org.cloudburstmc.server.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
-import org.cloudburstmc.server.level.particle.SmokeParticle;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.gamerule.GameRules;
+import org.cloudburstmc.server.world.particle.SmokeParticle;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -202,11 +202,11 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             int dz = this.position.getFloorZ();
 
             // Some hack to check rails
-            if (Rail.isRailBlock(this.getLevel().getBlockAt(dx, dy - 1, dz))) {
+            if (Rail.isRailBlock(this.getWorld().getBlockAt(dx, dy - 1, dz))) {
                 --dy;
             }
 
-            Block block = this.getLevel().getBlock(dx, dy, dz);
+            Block block = this.getWorld().getBlock(dx, dy, dz);
             val state = block.getState();
 
             // Ensure that the block is a rail
@@ -238,8 +238,8 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
             setRotation(yawToChange, this.getPitch());
 
-            Location from = Location.from(this.lastPosition, lastYaw, lastPitch, this.getLevel());
-            Location to = Location.from(this.position, this.yaw, this.pitch, this.getLevel());
+            Location from = Location.from(this.lastPosition, lastYaw, lastPitch, this.getWorld());
+            Location to = Location.from(this.position, this.yaw, this.pitch, this.getWorld());
 
             this.getServer().getEventManager().fire(new VehicleUpdateEvent(this));
 
@@ -248,7 +248,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             }
 
             // Collisions
-            for (Entity entity : this.getLevel().getNearbyEntities(boundingBox.grow(0.2f, 0, 0.2f), this)) {
+            for (Entity entity : this.getWorld().getNearbyEntities(boundingBox.grow(0.2f, 0, 0.2f), this)) {
                 if (!passengers.contains(entity) && entity instanceof EntityAbstractMinecart) {
                     entity.onEntityCollision(this);
                 }
@@ -293,14 +293,14 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), Item.get(ItemIds.MINECART));
+        this.getWorld().dropItem(this.getPosition(), Item.get(ItemIds.MINECART));
     }
 
     @Override
     public void kill() {
         super.kill();
 
-        if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
+        if (this.getWorld().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
             dropItem();
         }
     }
@@ -314,7 +314,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         }
 
         SmokeParticle particle = new SmokeParticle(this.getPosition());
-        this.getLevel().addParticle(particle);
+        this.getWorld().addParticle(particle);
     }
 
     @Override
@@ -613,15 +613,15 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
                 motionX += motionX / newMovie * nextMovie;
                 motionZ += motionZ / newMovie * nextMovie;
             } else if (railDirection == RailDirection.NORTH_SOUTH) {
-                if (_isNormalBlock(level.getBlock(dx - 1, dy, dz))) {
+                if (_isNormalBlock(world.getBlock(dx - 1, dy, dz))) {
                     motionX = 0.02f;
-                } else if (_isNormalBlock(level.getBlock(dx + 1, dy, dz))) {
+                } else if (_isNormalBlock(world.getBlock(dx + 1, dy, dz))) {
                     motionX = -0.02f;
                 }
             } else if (railDirection == RailDirection.EAST_WEST) {
-                if (_isNormalBlock(level.getBlock(dx, dy, dz - 1))) {
+                if (_isNormalBlock(world.getBlock(dx, dy, dz - 1))) {
                     motionZ = 0.02f;
-                } else if (_isNormalBlock(level.getBlock(dx, dy, dz + 1))) {
+                } else if (_isNormalBlock(world.getBlock(dx, dy, dz + 1))) {
                     motionZ = -0.02f;
                 }
             }
@@ -646,11 +646,11 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         int checkY = MathHelper.floor(dy);
         int checkZ = MathHelper.floor(dz);
 
-        if (Rail.isRailBlock(level.getBlockAt(checkX, checkY - 1, checkZ))) {
+        if (Rail.isRailBlock(world.getBlockAt(checkX, checkY - 1, checkZ))) {
             --checkY;
         }
 
-        BlockState blockState = level.getBlockAt(checkX, checkY, checkZ);
+        BlockState blockState = world.getBlockAt(checkX, checkY, checkZ);
 
         if (Rail.isRailBlock(blockState)) {
             int[][] facing = matrix[blockState.ensureTrait(BlockTraits.RAIL_DIRECTION).ordinal()]; //TODO:

@@ -11,7 +11,7 @@ import org.cloudburstmc.server.blockentity.Campfire;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemEdible;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 
 /**
  * @author Sleepybear
@@ -91,8 +91,8 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         for (int i = 0; i < items.length; i++) {
             if (items[i] != null) {
                 if (++itemTimes[i] >= 600) {
-                    Item output = getLevel().getServer().getCraftingManager().matchFurnaceRecipe(items[i], BlockIds.CAMPFIRE).getResult();
-                    this.getLevel().dropItem(this.getPosition(), output);
+                    Item output = getWorld().getServer().getCraftingManager().matchFurnaceRecipe(items[i], BlockIds.CAMPFIRE).getResult();
+                    this.getWorld().dropItem(this.getPosition(), output);
                     items[i] = null;
                     itemTimes[i] = 0;
                     itemChange = true;
@@ -110,7 +110,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     public void onBreak() {
         for (Item item : items) {
             if (item != null) {
-                this.getLevel().dropItem(this.getPosition(), item);
+                this.getWorld().dropItem(this.getPosition(), item);
             }
         }
     }
@@ -125,7 +125,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     public boolean putItemInFire(Item item) {
         if (!(item instanceof ItemEdible)) return false;
 
-        if (this.getLevel().getServer().getCraftingManager().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
+        if (this.getWorld().getServer().getCraftingManager().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
             for (int i = 0; i < items.length; i++) {
                 if (items[i] == null) {
                     Item food = item.clone();

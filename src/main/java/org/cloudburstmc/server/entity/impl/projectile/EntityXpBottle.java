@@ -3,10 +3,10 @@ package org.cloudburstmc.server.entity.impl.projectile;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.projectile.XpBottle;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.particle.EnchantParticle;
-import org.cloudburstmc.server.level.particle.Particle;
-import org.cloudburstmc.server.level.particle.SpellParticle;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.particle.EnchantParticle;
+import org.cloudburstmc.server.world.particle.Particle;
+import org.cloudburstmc.server.world.particle.SpellParticle;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -78,10 +78,10 @@ public class EntityXpBottle extends EntityProjectile implements XpBottle {
 
     public void dropXp() {
         Particle particle1 = new EnchantParticle(this.getPosition());
-        this.getLevel().addParticle(particle1);
+        this.getWorld().addParticle(particle1);
         Particle particle2 = new SpellParticle(this.getPosition(), 0x00385dc6);
-        this.getLevel().addParticle(particle2);
+        this.getWorld().addParticle(particle2);
 
-        this.getLevel().dropExpOrb(this.getPosition(), ThreadLocalRandom.current().nextInt(3, 12));
+        this.getWorld().dropExpOrb(this.getPosition(), ThreadLocalRandom.current().nextInt(3, 12));
     }
 }

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.player;
 
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 
 public class PlayerMoveEvent extends PlayerEvent implements Cancellable {

@@ -9,8 +9,8 @@ import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLeaves;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorSolid;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
@@ -34,18 +34,18 @@ public class ItemFireCharge extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+    public boolean onActivate(World world, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (block.getState() == BlockStates.AIR && (target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves)) {
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
-                block.getLevel().getServer().getEventManager().fire(e);
+                block.getWorld().getServer().getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
                     val fire = BlockState.get(FIRE);
                     block.set(fire);
 
-                    level.addSound(block.getPosition(), Sound.MOB_GHAST_FIREBALL);
-                    level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
+                    world.addSound(block.getPosition(), Sound.MOB_GHAST_FIREBALL);
+                    world.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
                 }
                 if (player.isSurvival()) {
                     Item item = player.getInventory().getItemInHand();

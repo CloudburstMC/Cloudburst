@@ -2,7 +2,7 @@ package org.cloudburstmc.server.event.entity;
 
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 
 /**
  * author: MagicDroidX

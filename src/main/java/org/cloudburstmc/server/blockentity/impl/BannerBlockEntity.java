@@ -9,7 +9,7 @@ import lombok.val;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.Banner;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.utils.BannerPattern;
 import org.cloudburstmc.server.utils.data.DyeColor;
 

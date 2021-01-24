@@ -25,7 +25,7 @@ import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Utils;

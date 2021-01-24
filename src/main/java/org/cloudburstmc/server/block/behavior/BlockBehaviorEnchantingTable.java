@@ -68,7 +68,7 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+            BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
             if (!(blockEntity instanceof EnchantingTable)) {
                 BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, block);
             }

@@ -6,7 +6,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.player.Player;
 
 import javax.annotation.Nullable;
@@ -17,7 +17,7 @@ public interface BlockEntity {
 
     Vector3i getPosition();
 
-    Level getLevel();
+    World getWorld();
 
     void loadAdditionalData(NbtMap tag);
 

@@ -21,7 +21,7 @@ import org.cloudburstmc.server.inventory.ContainerRecipe;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
@@ -96,7 +96,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     @Override
     public void onBreak() {
         for (Item content : inventory.getContents().values()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.getWorld().dropItem(this.getPosition(), content);
         }
     }
 
@@ -203,7 +203,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
                             }
                         }
                     }
-                    this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.POTION_BREWED);
+                    this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.POTION_BREWED);
 
                     ingredient.decrementCount();
                     this.inventory.setIngredient(ingredient);
@@ -291,7 +291,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         }
 
         if (blockState != state) {
-            this.getLevel().setBlock(this.getPosition(), state, false, false);
+            this.getWorld().setBlock(this.getPosition(), state, false, false);
         }
     }
 

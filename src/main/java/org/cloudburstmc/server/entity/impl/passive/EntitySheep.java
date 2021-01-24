@@ -8,7 +8,7 @@ import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemDye;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -89,7 +89,7 @@ public class EntitySheep extends Animal implements Sheep {
         this.setSheared(true);
         this.data.setFlag(SHEARED, true);
 
-        this.level.dropItem(this.getPosition(), Item.get(WOOL, getColor(), ThreadLocalRandom.current().nextInt(2) + 1));
+        this.world.dropItem(this.getPosition(), Item.get(WOOL, getColor(), ThreadLocalRandom.current().nextInt(2) + 1));
         return true;
     }
 

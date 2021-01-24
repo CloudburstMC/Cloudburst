@@ -10,7 +10,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierType;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -107,7 +107,7 @@ public abstract class ItemBehavior implements Cloneable {
         return false;
     }
 
-    public boolean onActivate(ItemStack item, Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+    public boolean onActivate(ItemStack item, World world, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         return false;
     }
 

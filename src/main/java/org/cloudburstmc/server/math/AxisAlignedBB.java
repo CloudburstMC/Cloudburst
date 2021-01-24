@@ -2,7 +2,7 @@ package org.cloudburstmc.server.math;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.level.MovingObjectPosition;
+import org.cloudburstmc.server.world.MovingObjectPosition;
 
 public interface AxisAlignedBB extends Cloneable {
 

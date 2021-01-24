@@ -14,7 +14,7 @@ import org.cloudburstmc.server.event.entity.EntityInteractEvent;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent;
 import org.cloudburstmc.server.event.player.PlayerInteractEvent.Action;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
@@ -74,11 +74,11 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
             }
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == World.BLOCK_UPDATE_SCHEDULED) {
             int power = this.getRedstonePower(block.getState());
 
             if (power > 0) {
@@ -116,7 +116,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
                 ev = new EntityInteractEvent(entity, block);
             }
 
-            block.getLevel().getServer().getEventManager().fire(ev);
+            block.getWorld().getServer().getEventManager().fire(ev);
 
             if (!ev.isCancelled()) {
                 updateState(block, power);
@@ -129,7 +129,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
         boolean wasPowered = oldStrength > 0;
         boolean isPowered = strength > 0;
 
-        val level = block.getLevel();
+        val level = block.getWorld();
 
         if (oldStrength != strength) {
             block.set(block.getState().withTrait(BlockTraits.REDSTONE_SIGNAL, strength), false, false);
@@ -156,8 +156,8 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
         super.onBreak(block, item);
 
         if (this.getRedstonePower(block.getState()) > 0) {
-            block.getLevel().updateAroundRedstone(block.getPosition(), null);
-            block.getLevel().updateAroundRedstone(block.getPosition().down(), null);
+            block.getWorld().updateAroundRedstone(block.getPosition(), null);
+            block.getWorld().updateAroundRedstone(block.getPosition().down(), null);
         }
 
         return true;
@@ -178,11 +178,11 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     protected void playOnSound(Block block) {
-        block.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_ON);
+        block.getWorld().addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_ON);
     }
 
     protected void playOffSound(Block block) {
-        block.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_OFF);
+        block.getWorld().addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_OFF);
     }
 
     protected abstract int computeRedstoneStrength(Block block);

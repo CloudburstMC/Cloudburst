@@ -13,7 +13,7 @@
         </RollingRandomAccessFile>
     </Appenders>
     <Loggers>
-        <Root level="INFO">
+        <Root world="INFO">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Root>

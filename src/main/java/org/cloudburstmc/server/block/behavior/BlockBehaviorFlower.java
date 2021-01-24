@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -32,11 +32,11 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
 
@@ -56,7 +56,7 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == DYE && item.getMeta() == 0x0f) { //Bone meal
-            val level = block.getLevel();
+            val level = block.getWorld();
             if (player != null && player.getGamemode().isSurvival()) {
                 item.decrementCount();
             }

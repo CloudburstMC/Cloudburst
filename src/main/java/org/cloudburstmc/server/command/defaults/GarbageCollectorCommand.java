@@ -3,7 +3,7 @@ package org.cloudburstmc.server.command.defaults;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.TextFormat;
 import org.cloudburstmc.server.utils.ThreadCache;
@@ -33,15 +33,15 @@ public class GarbageCollectorCommand extends Command {
         int tilesCollected = 0;
         long memory = Runtime.getRuntime().freeMemory();
 
-        for (Level level : sender.getServer().getLevels()) {
-            int chunksCount = level.getChunkCount();
-            int entitiesCount = level.getEntities().length;
-            int tilesCount = level.getBlockEntities().size();
-            level.doChunkGarbageCollection();
-            //level.unloadChunks(true);
-            chunksCollected += chunksCount - level.getChunkCount();
-            entitiesCollected += entitiesCount - level.getEntities().length;
-            tilesCollected += tilesCount - level.getBlockEntities().size();
+        for (World world : sender.getServer().getWorlds()) {
+            int chunksCount = world.getChunkCount();
+            int entitiesCount = world.getEntities().length;
+            int tilesCount = world.getBlockEntities().size();
+            world.doChunkGarbageCollection();
+            //world.unloadChunks(true);
+            chunksCollected += chunksCount - world.getChunkCount();
+            entitiesCollected += entitiesCount - world.getEntities().length;
+            tilesCollected += tilesCount - world.getBlockEntities().size();
         }
 
         ThreadCache.clean();

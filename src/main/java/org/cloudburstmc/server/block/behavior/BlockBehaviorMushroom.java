@@ -9,10 +9,10 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.feature.WorldFeature;
-import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
-import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.feature.WorldFeature;
+import org.cloudburstmc.server.world.feature.tree.GenerationTreeSpecies;
+import org.cloudburstmc.server.world.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -24,10 +24,10 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (!canStay(block)) {
-                block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                block.getWorld().useBreakOn(block.getPosition());
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
@@ -58,7 +58,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
                 this.grow(block);
             }
 
-            block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+            block.getWorld().addParticle(new BoneMealParticle(block.getPosition()));
             return true;
         }
         return false;
@@ -70,7 +70,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
         val item = Item.get(block.getState());
         WorldFeature feature = GenerationTreeSpecies.fromItem(item.getId(), item.getMeta()).getDefaultGenerator();
 
-        if (feature.place(block.getLevel(), ThreadLocalPRandom.current(), block.getX(), block.getY(), block.getZ())) {
+        if (feature.place(block.getWorld(), ThreadLocalPRandom.current(), block.getX(), block.getY(), block.getZ())) {
             return true;
         } else {
             block.set(block.getState(), true, false);
@@ -81,7 +81,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     public boolean canStay(Block block) {
         val state = block.down().getState();
         return state.getType() == BlockIds.MYCELIUM || state.getType() == BlockIds.PODZOL ||
-                (!state.inCategory(BlockCategory.TRANSPARENT) && block.getLevel().getFullLight(block.getPosition()) < 13);
+                (!state.inCategory(BlockCategory.TRANSPARENT) && block.getWorld().getFullLight(block.getPosition()) < 13);
     }
 
     @Override

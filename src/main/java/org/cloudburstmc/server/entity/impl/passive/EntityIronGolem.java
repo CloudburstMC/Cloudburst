@@ -3,7 +3,7 @@ package org.cloudburstmc.server.entity.impl.passive;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.passive.IronGolem;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 
 public class EntityIronGolem extends BaseEntity implements IronGolem {
 

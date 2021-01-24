@@ -6,7 +6,7 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 
@@ -37,7 +37,7 @@ public class WeatherCommand extends Command {
         }
 
         String weather = args[0];
-        Level level;
+        World world;
         int seconds;
         if (args.length > 1) {
             try {
@@ -50,30 +50,30 @@ public class WeatherCommand extends Command {
         }
 
         if (sender instanceof Player) {
-            level = ((Player) sender).getLevel();
+            world = ((Player) sender).getWorld();
         } else {
-            level = sender.getServer().getDefaultLevel();
+            world = sender.getServer().getDefaultWorld();
         }
 
         switch (weather) {
             case "clear":
-                level.setRaining(false);
-                level.setThundering(false);
-                level.setRainTime(seconds * 20);
-                level.setThunderTime(seconds * 20);
+                world.setRaining(false);
+                world.setThundering(false);
+                world.setRainTime(seconds * 20);
+                world.setThunderTime(seconds * 20);
                 CommandUtils.broadcastCommandMessage(sender,
                         new TranslationContainer("%commands.weather.clear"));
                 return true;
             case "rain":
-                level.setRaining(true);
-                level.setRainTime(seconds * 20);
+                world.setRaining(true);
+                world.setRainTime(seconds * 20);
                 CommandUtils.broadcastCommandMessage(sender,
                         new TranslationContainer("%commands.weather.rain"));
                 return true;
             case "thunder":
-                level.setThundering(true);
-                level.setRainTime(seconds * 20);
-                level.setThunderTime(seconds * 20);
+                world.setThundering(true);
+                world.setRainTime(seconds * 20);
+                world.setThunderTime(seconds * 20);
                 CommandUtils.broadcastCommandMessage(sender,
                         new TranslationContainer("%commands.weather.thunder"));
                 return true;

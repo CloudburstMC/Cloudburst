@@ -11,8 +11,8 @@ import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Noteblock;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -191,7 +191,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
 
         Instrument instrument = this.getInstrument(block);
 
-        val level = block.getLevel();
+        val level = block.getWorld();
         level.addLevelSoundEvent(block.getPosition(), SoundEvent.NOTE, instrument.ordinal() << 8 | this.getStrength(block));
 
         BlockEventPacket pk = new BlockEventPacket();
@@ -210,10 +210,10 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_REDSTONE) {
+        if (type == World.BLOCK_UPDATE_REDSTONE) {
             Noteblock blockEntity = this.getBlockEntity(block);
             if (blockEntity != null) {
-                if (block.getLevel().isBlockPowered(block.getPosition())) {
+                if (block.getWorld().isBlockPowered(block.getPosition())) {
                     if (!blockEntity.isPowered()) {
                         this.emitSound(block);
                     }
@@ -227,7 +227,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     private Noteblock getBlockEntity(Block block) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
         if (blockEntity instanceof Noteblock) {
             return (Noteblock) blockEntity;
         }

@@ -8,7 +8,7 @@ import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.ItemFrame;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 
 import java.util.Objects;
 
@@ -64,7 +64,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
         if (this.itemRotation != itemRotation) {
             this.itemRotation = (byte) itemRotation;
             this.setDirty();
-            this.getLevel().updateComparatorOutputLevel(this.getPosition());
+            this.getWorld().updateComparatorOutputLevel(this.getPosition());
         }
     }
 
@@ -79,7 +79,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
             this.item = item.clone();
             this.setDirty();
 
-            this.getLevel().updateComparatorOutputLevel(this.getPosition());
+            this.getWorld().updateComparatorOutputLevel(this.getPosition());
         }
     }
 

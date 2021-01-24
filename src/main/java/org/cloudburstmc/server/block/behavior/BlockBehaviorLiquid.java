@@ -12,9 +12,9 @@ import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.block.BlockFromToEvent;
 import org.cloudburstmc.server.event.block.LiquidFlowEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.particle.SmokeParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
+import org.cloudburstmc.server.world.particle.SmokeParticle;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.Identifier;
@@ -128,7 +128,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         }
         Vector3f vector = Vector3f.ZERO;
         val state = block.getState();
-        val level = block.getLevel();
+        val level = block.getWorld();
         int decay = this.getEffectiveFlowDecay(state);
         for (Direction face : Direction.Plane.HORIZONTAL) {
             val side = block.getSide(face);
@@ -179,7 +179,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             this.checkForHarden(block);
             // This check exists because if water is at layer1 with air at layer0, the water gets invisible
             if (usesWaterLogging() && block.getExtra() != BlockStates.AIR) {
@@ -196,9 +196,9 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 }
             }
 
-            block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
+            block.getWorld().scheduleUpdate(block.getPosition(), this.tickRate());
             return type;
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == World.BLOCK_UPDATE_SCHEDULED) {
             BlockState currentState;
 
             if (block.getExtra() != BlockStates.AIR) {
@@ -207,7 +207,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 currentState = block.getState();
             }
 
-            val level = block.getLevel();
+            val level = block.getWorld();
             int decay = this.getFlowDecay(currentState);
             int multiplier = this.getFlowDecayPerBlock(block);
             if (decay > 0) {
@@ -290,7 +290,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         var state = block.getState();
 
         if (this.canFlowInto(block) && !state.inCategory(BlockCategory.LIQUID)) {
-            val level = block.getLevel();
+            val level = block.getWorld();
             boolean waterlog = false;
 
             if (usesWaterLogging()) {
@@ -325,7 +325,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         }
     }
 
-    private int calculateFlowCost(Level level, int blockX, int blockY, int blockZ, int accumulatedCost, int maxCost, int originOpposite, int lastOpposite) {
+    private int calculateFlowCost(World world, int blockX, int blockY, int blockZ, int accumulatedCost, int maxCost, int originOpposite, int lastOpposite) {
         int cost = 1000;
         for (int j = 0; j < 4; ++j) {
             if (j == originOpposite || j == lastOpposite) {
@@ -346,10 +346,10 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
             long hash = blockHash(x, y, z);
             if (!this.flowCostVisited.containsKey(hash)) {
-                Block blockStateSide = level.getBlock(x, y, z);
+                Block blockStateSide = world.getBlock(x, y, z);
                 if (!this.canFlowInto(blockStateSide)) {
                     this.flowCostVisited.put(hash, BLOCKED);
-                } else if (canBlockBeFlooded(level.getBlockAt(x, y - 1, z))) {
+                } else if (canBlockBeFlooded(world.getBlockAt(x, y - 1, z))) {
                     this.flowCostVisited.put(hash, CAN_FLOW_DOWN);
                 } else {
                     this.flowCostVisited.put(hash, CAN_FLOW);
@@ -364,7 +364,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
             if (accumulatedCost >= maxCost) {
                 continue;
             }
-            int realCost = this.calculateFlowCost(level, x, y, z, accumulatedCost + 1, maxCost, originOpposite, j ^ 0x01);
+            int realCost = this.calculateFlowCost(world, x, y, z, accumulatedCost + 1, maxCost, originOpposite, j ^ 0x01);
             if (realCost < cost) {
                 cost = realCost;
             }
@@ -390,7 +390,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 1000
         };
         int maxCost = 4 / this.getFlowDecayPerBlock(block);
-        val level = block.getLevel();
+        val level = block.getWorld();
         for (int j = 0; j < 4; ++j) {
             int x = block.getX();
             int y = block.getY();
@@ -446,17 +446,17 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     protected void checkForHarden(Block block) {
     }
 
-    protected void triggerLavaMixEffects(Level level, Vector3f pos) {
-        level.addSound(pos.add(0.5, 0.5, 0.5), Sound.RANDOM_FIZZ, 1, 2.6F + (ThreadLocalRandom.current().nextFloat() - ThreadLocalRandom.current().nextFloat()) * 0.8F);
+    protected void triggerLavaMixEffects(World world, Vector3f pos) {
+        world.addSound(pos.add(0.5, 0.5, 0.5), Sound.RANDOM_FIZZ, 1, 2.6F + (ThreadLocalRandom.current().nextFloat() - ThreadLocalRandom.current().nextFloat()) * 0.8F);
 
         for (int i = 0; i < 8; ++i) {
-            level.addParticle(new SmokeParticle(pos.toFloat().add(Math.random(), 1.2, Math.random())));
+            world.addParticle(new SmokeParticle(pos.toFloat().add(Math.random(), 1.2, Math.random())));
         }
     }
 
     @Nonnull
-    public BlockState getLiquidBlock(Level level, int x, int y, int z) {
-        return getLiquidBlock(level.getBlock(x, y, z));
+    public BlockState getLiquidBlock(World world, int x, int y, int z) {
+        return getLiquidBlock(world.getBlock(x, y, z));
     }
 
     @Nonnull
@@ -480,13 +480,13 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     protected boolean liquidCollide(Block cause, BlockState result) {
         BlockFromToEvent event = new BlockFromToEvent(cause, result);
-        cause.getLevel().getServer().getEventManager().fire(event);
+        cause.getWorld().getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
         }
 
         cause.set(event.getTo(), true);
-        cause.getLevel().addLevelSoundEvent(cause.getPosition(), SoundEvent.FIZZ);
+        cause.getWorld().addLevelSoundEvent(cause.getPosition(), SoundEvent.FIZZ);
         return true;
     }
 

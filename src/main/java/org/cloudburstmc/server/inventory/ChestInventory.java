@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.blockentity.Chest;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -27,9 +27,9 @@ public class ChestInventory extends ContainerInventory {
         super.onOpen(who);
 
         if (this.getViewers().size() == 1) {
-            Level level = this.getHolder().getLevel();
-            if (level != null) {
-                level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.CHEST_OPEN);
+            World world = this.getHolder().getWorld();
+            if (world != null) {
+                world.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.CHEST_OPEN);
                 ContainerInventory.sendBlockEventPacket(this.getHolder(), 1);
             }
         }
@@ -38,9 +38,9 @@ public class ChestInventory extends ContainerInventory {
     @Override
     public void onClose(Player who) {
         if (this.getViewers().size() == 1) {
-            Level level = this.getHolder().getLevel();
-            if (level != null) {
-                level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.CHEST_CLOSED);
+            World world = this.getHolder().getWorld();
+            if (world != null) {
+                world.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.CHEST_CLOSED);
                 ContainerInventory.sendBlockEventPacket(this.getHolder(), 0);
             }
         }

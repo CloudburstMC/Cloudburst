@@ -12,7 +12,7 @@ public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
     public int getWeakPower(Block block, Direction face) {
         int playerCount = 0;
 
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Chest) {
             playerCount = ((Chest) blockEntity).getInventory().getViewers().size();

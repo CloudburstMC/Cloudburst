@@ -8,7 +8,7 @@ import org.cloudburstmc.server.entity.impl.projectile.EntityProjectile;
 import org.cloudburstmc.server.entity.projectile.ThrownTrident;
 import org.cloudburstmc.server.event.entity.EntityShootBowEvent;
 import org.cloudburstmc.server.event.entity.ProjectileLaunchEvent;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -56,7 +56,7 @@ public class ItemTrident extends ItemTool {
 
         double f = Math.min((p * p + p * 2) / 3, 1) * 2;
         Location location = Location.from(player.getPosition().add(0, player.getEyeHeight(), 0),
-                (player.getYaw() > 180 ? 360 : 0) - player.getYaw(), -player.getPitch(), player.getLevel());
+                (player.getYaw() > 180 ? 360 : 0) - player.getYaw(), -player.getPitch(), player.getWorld());
         ThrownTrident trident = EntityRegistry.get().newEntity(EntityTypes.THROWN_TRIDENT, location);
         trident.setShooter(player);
         trident.setCritical(f == 2);
@@ -81,7 +81,7 @@ public class ItemTrident extends ItemTool {
                     entityShootBowEvent.getProjectile().kill();
                 } else {
                     entityShootBowEvent.getProjectile().spawnToAll();
-                    player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.ITEM_TRIDENT_THROW);
+                    player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.ITEM_TRIDENT_THROW);
                     if (!player.isCreative()) {
                         this.decrementCount();
                         player.getInventory().setItemInHand(this);

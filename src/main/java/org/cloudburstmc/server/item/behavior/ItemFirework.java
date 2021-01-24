@@ -7,8 +7,8 @@ import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.misc.FireworksRocket;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -79,9 +79,9 @@ public class ItemFirework extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+    public boolean onActivate(World world, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (block.getState().getBehavior().canPassThrough()) {
-            this.spawnFirework(level, block.getPosition().toFloat().add(0.5, 0.5, 0.5));
+            this.spawnFirework(world, block.getPosition().toFloat().add(0.5, 0.5, 0.5));
 
             if (!player.isCreative()) {
                 player.getInventory().decreaseCount(player.getInventory().getHeldItemIndex());
@@ -96,7 +96,7 @@ public class ItemFirework extends Item {
     @Override
     public boolean onClickAir(Player player, Vector3f directionVector) {
         if (player.getInventory().getChestplate() instanceof ItemElytra && player.isGliding()) {
-            this.spawnFirework(player.getLevel(), player.getPosition());
+            this.spawnFirework(player.getWorld(), player.getPosition());
 
             player.setMotion(Vector3f.from(
                     -Math.sin(Math.toRadians(player.getYaw())) * Math.cos(Math.toRadians(player.getPitch())) * 2,
@@ -121,8 +121,8 @@ public class ItemFirework extends Item {
         this.explosions.clear();
     }
 
-    private void spawnFirework(Level level, Vector3f pos) {
-        FireworksRocket rocket = EntityRegistry.get().newEntity(EntityTypes.FIREWORKS_ROCKET, Location.from(pos, level));
+    private void spawnFirework(World world, Vector3f pos) {
+        FireworksRocket rocket = EntityRegistry.get().newEntity(EntityTypes.FIREWORKS_ROCKET, Location.from(pos, world));
         rocket.setFireworkData(this.createTag());
 
         rocket.spawnToAll();

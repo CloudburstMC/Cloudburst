@@ -2,7 +2,7 @@ package org.cloudburstmc.server.blockentity.impl;
 
 import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 
 public class UnknownBlockEntity extends BaseBlockEntity {
 

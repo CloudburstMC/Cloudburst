@@ -3,7 +3,7 @@ package org.cloudburstmc.server.entity.impl.passive;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.EntityCreature;
 import org.cloudburstmc.server.entity.passive.WanderingTrader;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 
 public class EntityWanderingTrader extends EntityCreature implements WanderingTrader {
 

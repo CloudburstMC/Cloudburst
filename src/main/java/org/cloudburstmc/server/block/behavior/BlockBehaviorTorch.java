@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.BlockCategory;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -23,15 +23,15 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             BlockState below = block.down().getState();
 
             val direction = block.getState().ensureTrait(BlockTraits.TORCH_DIRECTION);
             if (block.getSide(direction.getOpposite()).getState().inCategory(BlockCategory.TRANSPARENT)
                     && !(direction == Direction.UP && (below.inCategory(BlockCategory.FENCE) || below.getType() == COBBLESTONE_WALL))) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return World.BLOCK_UPDATE_NORMAL;
             }
         }
 

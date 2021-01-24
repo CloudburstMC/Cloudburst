@@ -11,7 +11,7 @@ import org.cloudburstmc.server.entity.misc.AreaEffectCloud;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.potion.InstantEffect;
 import org.cloudburstmc.server.potion.Potion;
@@ -201,7 +201,7 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
         this.data.setFlag(FIRE_IMMUNE, true);
         this.data.setFlag(NO_AI, true);
         this.data.setShort(AREA_EFFECT_CLOUD_PARTICLE_ID, 32);
-        this.data.setLong(AREA_EFFECT_CLOUD_SPAWN_TIME, this.level.getCurrentTick());
+        this.data.setLong(AREA_EFFECT_CLOUD_SPAWN_TIME, this.world.getCurrentTick());
         this.data.setInt(AREA_EFFECT_CLOUD_COUNT, 0);
         this.setDuration(600);
         this.initialRadius = 3f;
@@ -285,7 +285,7 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
             if ((nextApply -= tickDiff) <= 0) {
                 nextApply = reapplicationDelay + 10;
 
-                Set<Entity> collidingEntities = level.getCollidingEntities(getBoundingBox(), this);
+                Set<Entity> collidingEntities = world.getCollidingEntities(getBoundingBox(), this);
                 if (!collidingEntities.isEmpty()) {
                     radius += radiusOnUse;
                     radiusOnUse /= 2;

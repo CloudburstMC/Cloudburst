@@ -13,7 +13,7 @@ import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.inventory.DoubleChestInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 
@@ -109,7 +109,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
     @Override
     public void onBreak() {
         for (Item content : inventory.getContents().values()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.getWorld().dropItem(this.getPosition(), content);
         }
         inventory.clearAll(); // Stop items from being moved around by another player in the inventory
     }
@@ -154,7 +154,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
                 }
             }
         } else {
-            if (this.pairPosition != null && this.getLevel().isChunkLoaded(this.pairPosition)) {
+            if (this.pairPosition != null && this.getWorld().isChunkLoaded(this.pairPosition)) {
                 this.doubleInventory = null;
                 this.pairPosition = null;
                 this.pairlead = false;
@@ -168,7 +168,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
 
     public ChestBlockEntity getPair() {
         if (this.isPaired()) {
-            BlockEntity blockEntity = this.getLevel().getLoadedBlockEntity(this.pairPosition);
+            BlockEntity blockEntity = this.getWorld().getLoadedBlockEntity(this.pairPosition);
             if (blockEntity instanceof ChestBlockEntity) {
                 return (ChestBlockEntity) blockEntity;
             }

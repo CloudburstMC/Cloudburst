@@ -19,7 +19,7 @@ import org.cloudburstmc.server.inventory.InventoryType;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
@@ -91,7 +91,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     @Override
     public void onBreak() {
         for (Item content : inventory.getContents().values()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.getWorld().dropItem(this.getPosition(), content);
         }
     }
 
@@ -231,11 +231,11 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     protected void extinguishFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
+        this.getWorld().setBlock(this.getPosition(), BlockState.get(FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
     }
 
     protected void lightFurnace() {
-        this.getLevel().setBlock(this.getPosition(), BlockState.get(LIT_FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
+        this.getWorld().setBlock(this.getPosition(), BlockState.get(LIT_FURNACE).copyTrait(BlockTraits.FACING_DIRECTION, getBlockState()), true);
     }
 
     public int getBurnTime() {

@@ -10,7 +10,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockSpreadEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DirtType;
 
@@ -45,13 +45,13 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_RANDOM) {
+        if (type == World.BLOCK_UPDATE_RANDOM) {
             //TODO: light levels
             Vector3i pos = block.getPosition();
             int x = ThreadLocalRandom.current().nextInt(pos.getX() - 1, pos.getX() + 1);
             int y = ThreadLocalRandom.current().nextInt(pos.getY() - 1, pos.getY() + 1);
             int z = ThreadLocalRandom.current().nextInt(pos.getZ() - 1, pos.getZ() + 1);
-            Block b = block.getLevel().getBlock(x, y, z);
+            Block b = block.getWorld().getBlock(x, y, z);
             val state = b.getState();
 
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {

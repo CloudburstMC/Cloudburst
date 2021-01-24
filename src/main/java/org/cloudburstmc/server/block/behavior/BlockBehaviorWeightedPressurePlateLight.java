@@ -46,7 +46,7 @@ public class BlockBehaviorWeightedPressurePlateLight extends BlockBehaviorPressu
 
     @Override
     protected int computeRedstoneStrength(Block block) {
-        int count = Math.min(block.getLevel().getCollidingEntities(getCollisionBoxes(block)).size(), this.getMaxWeight());
+        int count = Math.min(block.getWorld().getCollidingEntities(getCollisionBoxes(block)).size(), this.getMaxWeight());
 
         if (count > 0) {
             float f = (float) Math.min(this.getMaxWeight(), count) / (float) this.getMaxWeight();

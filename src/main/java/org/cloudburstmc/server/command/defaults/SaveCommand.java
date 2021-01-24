@@ -4,7 +4,7 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 
@@ -33,8 +33,8 @@ public class SaveCommand extends Command {
             player.save();
         }
 
-        for (Level level : sender.getServer().getLevels()) {
-            level.save(true);
+        for (World world : sender.getServer().getWorlds()) {
+            world.save(true);
         }
 
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.save.success"));

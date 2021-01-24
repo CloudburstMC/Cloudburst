@@ -10,9 +10,9 @@ import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.PrimedTnt;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityExplosionPrimeEvent;
-import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
+import org.cloudburstmc.server.world.Explosion;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.gamerule.GameRules;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.FUSE_LENGTH;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.IGNITED;
@@ -74,7 +74,7 @@ public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, EntityExpl
         this.data.setFlag(IGNITED, true);
         this.data.setInt(FUSE_LENGTH, fuse);
 
-        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.FIZZ);
+        this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.FIZZ);
     }
 
     @Override
@@ -138,7 +138,7 @@ public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, EntityExpl
             fuse -= tickDiff;
 
             if (fuse <= 0) {
-                if (this.level.getGameRules().get(GameRules.TNT_EXPLODES))
+                if (this.world.getGameRules().get(GameRules.TNT_EXPLODES))
                     explode();
                 kill();
             }
@@ -156,7 +156,7 @@ public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, EntityExpl
         if (event.isCancelled()) {
             return;
         }
-        Explosion explosion = new Explosion(this.getLevel(), this.getPosition(), event.getForce(), this);
+        Explosion explosion = new Explosion(this.getWorld(), this.getPosition(), event.getForce(), this);
         if (event.isBlockBreaking()) {
             explosion.explodeA();
         }

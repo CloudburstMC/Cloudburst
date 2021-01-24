@@ -14,9 +14,9 @@ import org.cloudburstmc.server.entity.misc.FallingBlock;
 import org.cloudburstmc.server.event.entity.EntityBlockChangeEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.gamerule.GameRules;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.Sound;
+import org.cloudburstmc.server.world.gamerule.GameRules;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.VARIANT;
@@ -142,20 +142,20 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
 
             if (onGround) {
                 close();
-                Block b = level.getBlock(pos);
+                Block b = world.getBlock(pos);
                 BlockState blockState = b.getState();
                 if (blockState.getType() != AIR && blockState.inCategory(BlockCategory.TRANSPARENT) && !blockState.getBehavior().canBeReplaced(b)) {
-                    if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-                        getLevel().dropItem(this.getPosition(), Item.get(this.getBlock()));
+                    if (this.world.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
+                        getWorld().dropItem(this.getPosition(), Item.get(this.getBlock()));
                     }
                 } else {
                     EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, b, this.getBlock());
                     server.getEventManager().fire(event);
                     if (!event.isCancelled()) {
-                        getLevel().setBlock(pos, event.getTo(), true);
+                        getWorld().setBlock(pos, event.getTo(), true);
 
                         if (event.getTo().getType() == ANVIL) {
-                            getLevel().addSound(pos, Sound.RANDOM_ANVIL_LAND);
+                            getWorld().addSound(pos, Sound.RANDOM_ANVIL_LAND);
                         }
                     }
                 }

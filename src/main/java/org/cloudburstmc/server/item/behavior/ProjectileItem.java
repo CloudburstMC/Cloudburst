@@ -6,7 +6,7 @@ import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.Projectile;
 import org.cloudburstmc.server.entity.impl.projectile.EntityEnderPearl;
 import org.cloudburstmc.server.event.entity.ProjectileLaunchEvent;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Identifier;
@@ -26,7 +26,7 @@ public abstract class ProjectileItem extends Item {
 
     public boolean onClickAir(Player player, Vector3f directionVector) {
         Location location = Location.from(player.getPosition().add(0, player.getEyeHeight() - 0.3f, 0),
-                player.getYaw(), player.getPitch(), player.getLevel());
+                player.getYaw(), player.getPitch(), player.getWorld());
 
         Projectile projectile = EntityRegistry.get().newEntity(this.getProjectileEntityType(), location);
         projectile.setPosition(location.getPosition());
@@ -57,7 +57,7 @@ public abstract class ProjectileItem extends Item {
                 player.onThrowEnderPearl();
             }
             projectile.spawnToAll();
-            player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.BOW);
+            player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.BOW);
         }
         return true;
     }

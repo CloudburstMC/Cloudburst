@@ -7,8 +7,8 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -54,40 +54,40 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
             return false;
         }
 
-        Level level = block.getLevel();
-        level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
+        World world = block.getWorld();
+        world.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
 
         block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, true), true, false);
 
-        level.addSound(block.getPosition(), Sound.RANDOM_CLICK);
-        level.scheduleUpdate(block, 30);
+        world.addSound(block.getPosition(), Sound.RANDOM_CLICK);
+        world.scheduleUpdate(block, 30);
 
-        level.updateAroundRedstone(block.getPosition(), null);
-        level.updateAroundRedstone(this.getFacing(block).getOpposite().getOffset(block.getPosition()), null);
+        world.updateAroundRedstone(block.getPosition(), null);
+        world.updateAroundRedstone(this.getFacing(block).getOpposite().getOffset(block.getPosition()), null);
         return true;
     }
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.getSide(getFacing(block).getOpposite()).getState().inCategory(BlockCategory.TRANSPARENT)) {
-                block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                block.getWorld().useBreakOn(block.getPosition());
+                return World.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == World.BLOCK_UPDATE_SCHEDULED) {
             if (this.isActivated(block)) {
-                Level level = block.getLevel();
-                level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
+                World world = block.getWorld();
+                world.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
 
                 block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, false),
                         true, false);
-                level.addSound(block.getPosition(), Sound.RANDOM_CLICK);
+                world.addSound(block.getPosition(), Sound.RANDOM_CLICK);
 
-                level.updateAroundRedstone(block.getPosition(), null);
-                level.updateAroundRedstone(this.getFacing(block).getOpposite().getOffset(block.getPosition()), null);
+                world.updateAroundRedstone(block.getPosition(), null);
+                world.updateAroundRedstone(this.getFacing(block).getOpposite().getOffset(block.getPosition()), null);
             }
 
-            return Level.BLOCK_UPDATE_SCHEDULED;
+            return World.BLOCK_UPDATE_SCHEDULED;
         }
 
         return 0;
@@ -117,7 +117,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
     @Override
     public boolean onBreak(Block block, Item item) {
         if (isActivated(block)) {
-            block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
+            block.getWorld().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
         }
 
         return super.onBreak(block, item);

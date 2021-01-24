@@ -5,8 +5,8 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.gamerule.GameRule;
-import org.cloudburstmc.server.level.gamerule.GameRuleMap;
+import org.cloudburstmc.server.world.gamerule.GameRule;
+import org.cloudburstmc.server.world.gamerule.GameRuleMap;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.GameRuleRegistry;
@@ -39,7 +39,7 @@ public class GameruleCommand extends Command {
             sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
             return true;
         }
-        GameRuleMap rules = ((Player) sender).getLevel().getGameRules();
+        GameRuleMap rules = ((Player) sender).getWorld().getGameRules();
 
         switch (args.length) {
             case 0:

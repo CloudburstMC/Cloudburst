@@ -26,7 +26,7 @@ import org.cloudburstmc.server.entity.impl.misc.*;
 import org.cloudburstmc.server.entity.impl.passive.*;
 import org.cloudburstmc.server.entity.impl.projectile.*;
 import org.cloudburstmc.server.entity.impl.vehicle.*;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.plugin.PluginContainer;
 import org.cloudburstmc.server.utils.Identifier;
 

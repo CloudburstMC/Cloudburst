@@ -6,7 +6,7 @@ import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.EntityCreature;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.BABY;

@@ -88,11 +88,11 @@ public class SetBlockCommand extends Command {
         }
 
         if (setType != SetType.REPLACE) {
-            BlockState existing = p.getLevel().getBlockAt(pos);
+            BlockState existing = p.getWorld().getBlockAt(pos);
 
             if (existing != BlockStates.AIR) {
                 if (setType == SetType.DESTROY) {
-                    p.getLevel().useBreakOn(pos);
+                    p.getWorld().useBreakOn(pos);
                 } else {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.setblock.noChange"));
                     return true;
@@ -100,7 +100,7 @@ public class SetBlockCommand extends Command {
             }
         }
 
-        p.getLevel().setBlock(pos, state);
+        p.getWorld().setBlock(pos, state);
         sender.sendMessage(new TranslationContainer("%commands.setblock.success"));
 
         return true;

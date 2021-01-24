@@ -9,7 +9,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
@@ -69,7 +69,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
             block.set(bs, true, false);
             this.updateHook(block, bs, false);
 
-            block.getLevel().scheduleUpdate(block.refresh(), 10);
+            block.getWorld().scheduleUpdate(block.refresh(), 10);
         }
     }
 
@@ -85,7 +85,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
                     }
 
                     /*if(scheduleUpdate) {
-                        this.level.scheduleUpdate(hook, 10);
+                        this.world.scheduleUpdate(hook, 10);
                     }*/
                     break;
                 }
@@ -99,13 +99,13 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == World.BLOCK_UPDATE_SCHEDULED) {
             if (!isPowered(block.getState())) {
                 return type;
             }
 
             boolean found = false;
-            for (Entity entity : block.getLevel().getCollidingEntities(this.getCollisionBoxes(block))) {
+            for (Entity entity : block.getWorld().getCollidingEntities(this.getCollisionBoxes(block))) {
                 if (!entity.canTriggerPressurePlate()) {
                     continue;
                 }
@@ -114,7 +114,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
             }
 
             if (found) {
-                block.getLevel().scheduleUpdate(block, 10);
+                block.getWorld().scheduleUpdate(block, 10);
             } else {
                 val state = block.getState().withTrait(BlockTraits.IS_POWERED, false);
                 block.set(state, true, false);

@@ -6,7 +6,7 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.server.event.player.PlayerFoodLevelChangeEvent;
 import org.cloudburstmc.server.item.food.Food;
-import org.cloudburstmc.server.level.Difficulty;
+import org.cloudburstmc.server.world.Difficulty;
 import org.cloudburstmc.server.potion.Effect;
 
 /**
@@ -183,7 +183,7 @@ public class PlayerFood {
     }
 
     /**
-     * @param foodLevel level
+     * @param foodLevel world
      * @deprecated use {@link #setLevel(int)} instead
      **/
     @Deprecated
@@ -192,7 +192,7 @@ public class PlayerFood {
     }
 
     /**
-     * @param foodLevel       level
+     * @param foodLevel       world
      * @param saturationLevel saturation
      * @deprecated use {@link #setLevel(int, float)} instead
      **/

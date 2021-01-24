@@ -5,7 +5,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -40,7 +40,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_TOUCH) {
+        if (type == World.BLOCK_UPDATE_TOUCH) {
             this.teleport(block);
         }
         return super.onUpdate(block, type);
@@ -49,7 +49,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
     public void teleport(Block block) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < 1000; ++i) {
-            Block t = block.getLevel().getBlock(block.getPosition().add(random.nextInt(-16, 16),
+            Block t = block.getWorld().getBlock(block.getPosition().add(random.nextInt(-16, 16),
                     random.nextInt(-16, 16), random.nextInt(-16, 16)));
             BlockBehavior behavior = t.getState().getBehavior();
             if (t.getState().getType() == BlockIds.AIR || (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging())) {
@@ -61,7 +61,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
                 pk.setData((((((Math.abs(diffX) << 16) | (Math.abs(diffY) << 8)) | Math.abs(diffZ)) |
                         ((diffX < 0 ? 1 : 0) << 24)) | ((diffY < 0 ? 1 : 0) << 25)) | ((diffZ < 0 ? 1 : 0) << 26));
                 pk.setPosition(block.getPosition().toFloat().add(0.5f, 0.5f, 0.5f));
-                block.getLevel().addChunkPacket(block.getPosition(), pk);
+                block.getWorld().addChunkPacket(block.getPosition(), pk);
                 removeBlock(block, true);
 
                 placeBlock(t, block.getState());

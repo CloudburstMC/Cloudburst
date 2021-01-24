@@ -5,8 +5,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.vehicle.Boat;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -27,11 +27,11 @@ public class ItemBoat extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+    public boolean onActivate(World world, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (face != Direction.UP) return false;
         Vector3f spawnPos = Vector3f.from(block.getX() + 0.5,
                 block.getY() - (target instanceof BlockBehaviorWater ? 0.0625 : 0), block.getZ());
-        Boat boat = EntityRegistry.get().newEntity(EntityTypes.BOAT, Location.from(spawnPos, level));
+        Boat boat = EntityRegistry.get().newEntity(EntityTypes.BOAT, Location.from(spawnPos, world));
         boat.setRotation((player.getYaw() + 90f) % 360, 0);
         boat.setWoodType(this.getMeta());
 

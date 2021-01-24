@@ -60,7 +60,7 @@ public class BlockBehaviorEndPortalFrame extends BlockBehaviorTransparent {
         if (!block.getState().ensureTrait(BlockTraits.HAS_END_PORTAL_EYE) && player != null && item.getId() == ENDER_EYE) {
             block.set(block.getState().withTrait(BlockTraits.HAS_END_PORTAL_EYE, true), true);
 
-            block.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.BLOCK_END_PORTAL_FRAME_FILL);
+            block.getWorld().addLevelSoundEvent(block.getPosition(), SoundEvent.BLOCK_END_PORTAL_FRAME_FILL);
             //TODO: create portal
             return true;
         }

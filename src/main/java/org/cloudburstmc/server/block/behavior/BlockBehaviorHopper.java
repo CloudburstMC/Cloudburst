@@ -12,7 +12,7 @@ import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -38,7 +38,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
         }
 
         var hopper = item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, facing)
-                .withTrait(BlockTraits.IS_TOGGLED, block.getLevel().isBlockPowered(block.getPosition()));
+                .withTrait(BlockTraits.IS_TOGGLED, block.getWorld().isBlockPowered(block.getPosition()));
 
         placeBlock(block, hopper);
 
@@ -48,7 +48,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Hopper) {
             return player.addWindow(((Hopper) blockEntity).getInventory()) != -1;
@@ -68,7 +68,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
     @Override
     public int getComparatorInputOverride(Block block) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Hopper) {
             return ContainerInventory.calculateRedstone(((Hopper) blockEntity).getInventory());
@@ -79,9 +79,9 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             val state = block.getState();
-            boolean powered = block.getLevel().isBlockPowered(block.getPosition());
+            boolean powered = block.getWorld().isBlockPowered(block.getPosition());
 
             if (powered != state.ensureTrait(BlockTraits.IS_TOGGLED)) {
                 block.set(state.withTrait(BlockTraits.IS_TOGGLED, powered));

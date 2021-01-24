@@ -7,8 +7,8 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
@@ -64,7 +64,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         }
 
         if (player != null) {
-            Location spawn = Location.from(block.getPosition().toFloat().add(0.5, 0.5, 0.5), player.getYaw(), player.getPitch(), player.getLevel());
+            Location spawn = Location.from(block.getPosition().toFloat().add(0.5, 0.5, 0.5), player.getYaw(), player.getPitch(), player.getWorld());
 
             if (!player.getSpawn().equals(spawn)) {
                 player.setSpawn(spawn);
@@ -72,9 +72,9 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             }
         }
 
-        int time = block.getLevel().getTime() % Level.TIME_FULL;
+        int time = block.getWorld().getTime() % World.TIME_FULL;
 
-        boolean isNight = (time >= Level.TIME_NIGHT && time < Level.TIME_SUNRISE);
+        boolean isNight = (time >= World.TIME_NIGHT && time < World.TIME_SUNRISE);
 
         if (player != null && !isNight) {
             player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.noSleep"));
@@ -157,7 +157,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     public DyeColor getDyeColor(Block block) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Bed) {
             return ((Bed) blockEntity).getColor();

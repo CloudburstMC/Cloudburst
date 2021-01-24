@@ -10,7 +10,7 @@ import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.inventory.BarrelInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.ArrayList;
@@ -62,7 +62,7 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
     @Override
     public void onBreak() {
         for (Item content : this.inventory.getContents().values()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.getWorld().dropItem(this.getPosition(), content);
         }
         this.inventory.clearAll(); // Stop items from being moved around by another player in the inventory
     }

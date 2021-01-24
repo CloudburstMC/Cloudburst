@@ -30,8 +30,8 @@ import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.timings.JsonUtil;
 import org.cloudburstmc.server.utils.Identifier;
@@ -96,9 +96,9 @@ public class TimingsHistory {
         final Map<Identifier, AtomicInteger> entityCounts = new HashMap<>();
         final Map<Identifier, AtomicInteger> blockEntityCounts = new HashMap<>();
         // Information about all loaded entities/block entities
-        for (Level level : Server.getInstance().getLevels()) {
+        for (World world : Server.getInstance().getWorlds()) {
             ArrayNode jsonLevel = Bootstrap.JSON_MAPPER.createArrayNode();
-            for (Chunk chunk : level.getChunks()) {
+            for (Chunk chunk : world.getChunks()) {
                 entityCounts.clear();
                 blockEntityCounts.clear();
 
@@ -134,8 +134,8 @@ public class TimingsHistory {
                 jsonLevel.add(jsonChunk);
             }
 
-            if (!levelMap.containsKey(level.getName())) levelMap.put(level.getName(), levelIdPool++);
-            levels.set(String.valueOf(levelMap.get(level.getName())), jsonLevel);
+            if (!levelMap.containsKey(world.getName())) levelMap.put(world.getName(), levelIdPool++);
+            levels.set(String.valueOf(levelMap.get(world.getName())), jsonLevel);
         }
     }
 

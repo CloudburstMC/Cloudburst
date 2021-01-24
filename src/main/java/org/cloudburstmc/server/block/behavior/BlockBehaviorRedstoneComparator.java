@@ -9,8 +9,8 @@ import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.Comparator;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -48,7 +48,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     @Override
     protected int getRedstoneSignal(Block block) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
         return blockEntity instanceof Comparator ? ((Comparator) blockEntity).getOutputSignal() : 0;
     }
@@ -56,20 +56,20 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
     @Override
     public void updateState(Block block) {
         val state = block.getState();
-        if (!block.getLevel().isBlockTickPending(block.getPosition(), block)) {
+        if (!block.getWorld().isBlockTickPending(block.getPosition(), block)) {
             int output = this.calculateOutput(block);
-            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+            BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
             int power = blockEntity instanceof Comparator ? ((Comparator) blockEntity).getOutputSignal() : 0;
 
             if (output != power || this.isPowered(state) != this.shouldBePowered(block)) {
                 /*if(isFacingTowardsRepeater()) {
-                    this.level.scheduleUpdate(this, this, 2, -1);
+                    this.world.scheduleUpdate(this, this, 2, -1);
                 } else {
-                    this.level.scheduleUpdate(this, this, 2, 0);
+                    this.world.scheduleUpdate(this, this, 2, 0);
                 }*/
 
                 //System.out.println("schedule update 0");
-                block.getLevel().scheduleUpdate(block, block.getPosition(), 2);
+                block.getWorld().scheduleUpdate(block, block.getPosition(), 2);
             }
         }
     }
@@ -115,7 +115,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
         val state = block.getState();
         boolean subtract = state.ensureTrait(BlockTraits.IS_OUTPUT_SUBTRACT);
         block.set(state.withTrait(BlockTraits.IS_OUTPUT_SUBTRACT, !subtract), true);
-        block.getLevel().addSound(block.getPosition(), Sound.RANDOM_CLICK, 1, subtract ? 0.5f : 0.55F);
+        block.getWorld().addSound(block.getPosition(), Sound.RANDOM_CLICK, 1, subtract ? 0.5f : 0.55F);
         //bug?
 
         this.onChange(block.refresh());
@@ -124,7 +124,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == World.BLOCK_UPDATE_SCHEDULED) {
             this.onChange(block);
             return type;
         }
@@ -134,7 +134,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     private void onChange(Block block) {
         int output = this.calculateOutput(block);
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
         int currentOutput = 0;
 
         if (blockEntity instanceof Comparator) {
@@ -154,7 +154,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
                 block.set(getPowered(state), true, false);
             }
 
-            block.getLevel().updateAroundRedstone(block.getPosition(), null);
+            block.getWorld().updateAroundRedstone(block.getPosition(), null);
         }
     }
 
@@ -163,7 +163,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
         if (super.place(item, block, target, face, clickPos, player)) {
             BlockEntityRegistry.get().newEntity(COMPARATOR, block);
 
-            this.onUpdate(block.refresh(), Level.BLOCK_UPDATE_REDSTONE);
+            this.onUpdate(block.refresh(), World.BLOCK_UPDATE_REDSTONE);
             return true;
         }
 

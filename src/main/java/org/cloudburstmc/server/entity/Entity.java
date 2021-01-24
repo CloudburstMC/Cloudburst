@@ -14,8 +14,8 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.metadata.Metadatable;
@@ -31,7 +31,7 @@ public interface Entity extends Metadatable {
 
     EntityType<?> getType();
 
-    Level getLevel();
+    World getWorld();
 
     Server getServer();
 

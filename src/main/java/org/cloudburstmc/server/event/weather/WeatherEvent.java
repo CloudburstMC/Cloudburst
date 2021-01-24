@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.weather;
 
 import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 
 /**
  * author: funcraft
@@ -9,13 +9,13 @@ import org.cloudburstmc.server.level.Level;
  */
 public abstract class WeatherEvent extends Event {
 
-    private final Level level;
+    private final World world;
 
-    public WeatherEvent(Level level) {
-        this.level = level;
+    public WeatherEvent(World world) {
+        this.world = world;
     }
 
-    public Level getLevel() {
-        return level;
+    public World getWorld() {
+        return world;
     }
 }

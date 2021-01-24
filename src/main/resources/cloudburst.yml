@@ -23,13 +23,13 @@ network:
   # %network.batch-threshold.1
   # %network.batch-threshold.2
   batch-threshold: 256
-  # %network.compression-level
+  # %network.compression-world
   compression-level: 7
   # %network.async-compression
   async-compression: false
 
 debug:
-  # %debug.level
+  # %debug.world
   level: 1
   # %debug.commands
   commands: false
@@ -59,14 +59,14 @@ timings:
   ignore: []
 
 level-settings:
-  # %level-settings.default-format
+  # %world-settings.default-format
   default-format: leveldb
-  # %level-settings.auto-tick-rate
+  # %world-settings.auto-tick-rate
   auto-tick-rate: true
   auto-tick-rate-limit: 20
-  # %level-settings.base-tick-rate
+  # %world-settings.base-tick-rate
   base-tick-rate: 1
-  # %level-settings.always-tick-players
+  # %world-settings.always-tick-players
   always-tick-players: false
 
 chunk-sending:

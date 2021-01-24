@@ -5,7 +5,7 @@ import org.cloudburstmc.server.entity.Smiteable;
 import org.cloudburstmc.server.entity.hostile.Drowned;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 
 /**
  * Created by PetteriM1

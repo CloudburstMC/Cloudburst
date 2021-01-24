@@ -71,10 +71,10 @@ import org.cloudburstmc.server.item.behavior.ItemArmor;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.behavior.ItemTool;
 import org.cloudburstmc.server.item.enchantment.Enchantment;
-import org.cloudburstmc.server.level.*;
-import org.cloudburstmc.server.level.biome.Biome;
-import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.level.gamerule.GameRules;
+import org.cloudburstmc.server.world.*;
+import org.cloudburstmc.server.world.biome.Biome;
+import org.cloudburstmc.server.world.chunk.Chunk;
+import org.cloudburstmc.server.world.gamerule.GameRules;
 import org.cloudburstmc.server.locale.TextContainer;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.AxisAlignedBB;
@@ -226,7 +226,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     public long lastSkinChange;
 
     public Player(BedrockServerSession session, ClientChainData chainData) {
-        super(EntityTypes.PLAYER, Location.from(Server.getInstance().getDefaultLevel()));
+        super(EntityTypes.PLAYER, Location.from(Server.getInstance().getDefaultWorld()));
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
         session.setBatchHandler(new Handler());
@@ -468,7 +468,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     @Override
     public void spawnTo(Player player) {
         if (this.spawned && player.spawned && this.isAlive() && player.isAlive() &&
-                player.getLevel() == this.getLevel() && player.canSee(this) && !this.isSpectator()) {
+                player.getWorld() == this.getWorld() && player.canSee(this) && !this.isSpectator()) {
             super.spawnTo(player);
         }
     }
@@ -712,10 +712,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     public Location getSpawn() {
-        if (this.spawnLocation != null && this.spawnLocation.getLevel() != null) {
+        if (this.spawnLocation != null && this.spawnLocation.getWorld() != null) {
             return this.spawnLocation;
         } else {
-            return this.server.getDefaultLevel().getSafeSpawn();
+            return this.server.getDefaultWorld().getSafeSpawn();
         }
     }
 
@@ -748,10 +748,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.getInventory().sendOffHandContents(this);
 
         SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime(this.getLevel().getTime());
+        setTimePacket.setTime(this.getWorld().getTime());
         this.sendPacket(setTimePacket);
 
-        Location loc = this.getLevel().getSafeSpawn(this.getLocation());
+        Location loc = this.getWorld().getSafeSpawn(this.getLocation());
 
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this, loc, true);
 
@@ -778,7 +778,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.getChunkManager().getLoadedChunks().forEach((LongConsumer) chunkKey -> {
             int chunkX = Chunk.fromKeyX(chunkKey);
             int chunkZ = Chunk.fromKeyZ(chunkKey);
-            for (Entity entity : this.getLevel().getLoadedChunkEntities(chunkX, chunkZ)) {
+            for (Entity entity : this.getWorld().getLoadedChunkEntities(chunkX, chunkZ)) {
                 if (this != entity && !entity.isClosed() && entity.isAlive()) {
                     entity.spawnTo(this);
                 }
@@ -804,8 +804,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         //todo Updater
 
         //Weather
-        if (this.getLevel().isRaining() || this.getLevel().isThundering()) {
-            this.getLevel().sendWeather(this);
+        if (this.getWorld().isRaining() || this.getWorld().isThundering()) {
+            this.getWorld().sendWeather(this);
         }
 
         //FoodLevel
@@ -824,7 +824,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return false;
         }
 
-        for (Entity p : this.getLevel().getNearbyEntities(this.boundingBox.grow(2, 1, 2), this)) {
+        for (Entity p : this.getWorld().getNearbyEntities(this.boundingBox.grow(2, 1, 2), this)) {
             if (p instanceof Player) {
                 if (((Player) p).sleeping != null && pos.distance(((Player) p).sleeping) <= 0.1) {
                     return false;
@@ -833,34 +833,34 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         PlayerBedEnterEvent ev;
-        this.server.getEventManager().fire(ev = new PlayerBedEnterEvent(this, this.getLevel().getBlock(pos)));
+        this.server.getEventManager().fire(ev = new PlayerBedEnterEvent(this, this.getWorld().getBlock(pos)));
         if (ev.isCancelled()) {
             return false;
         }
 
         this.sleeping = pos.clone();
-        this.teleport(Location.from(pos.toFloat().add(0.5, 0.5, 0.5), this.getYaw(), this.getPitch(), this.getLevel()), null);
+        this.teleport(Location.from(pos.toFloat().add(0.5, 0.5, 0.5), this.getYaw(), this.getPitch(), this.getWorld()), null);
 
         this.data.setVector3i(BED_POSITION, pos);
         //this.data.setBoolean(CAN_START_SLEEP, true); todo what did this change to?
 
-        this.setSpawn(Location.from(pos.toFloat(), this.getLevel()));
+        this.setSpawn(Location.from(pos.toFloat(), this.getWorld()));
 
-        this.getLevel().sleepTicks = 60;
+        this.getWorld().sleepTicks = 60;
 
         return true;
     }
 
     public void stopSleep() {
         if (this.sleeping != null) {
-            this.server.getEventManager().fire(new PlayerBedLeaveEvent(this, this.getLevel().getBlock(this.sleeping)));
+            this.server.getEventManager().fire(new PlayerBedLeaveEvent(this, this.getWorld().getBlock(this.sleeping)));
 
             this.sleeping = null;
             this.data.setVector3i(BED_POSITION, Vector3i.ZERO);
             //this.data.setBoolean(CAN_START_SLEEP, false); // TODO what did this change to?
 
 
-            this.getLevel().sleepTicks = 0;
+            this.getWorld().sleepTicks = 0;
 
             AnimatePacket pk = new AnimatePacket();
             pk.setRuntimeEntityId(this.getRuntimeId());
@@ -1013,8 +1013,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     protected void checkNearEntities() {
-        for (Entity entity : this.getLevel().getNearbyEntities(this.boundingBox.grow(1, 0.5f, 1), this)) {
-            this.getLevel().scheduleEntityUpdate(entity);
+        for (Entity entity : this.getWorld().getNearbyEntities(this.boundingBox.grow(1, 0.5f, 1), this)) {
+            this.getWorld().scheduleEntityUpdate(entity);
 
             if (!entity.isAlive() || !this.isAlive()) {
                 continue;
@@ -1145,7 +1145,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
-                        Block block = this.getLevel().getBlock(x, y, z);
+                        Block block = this.getWorld().getBlock(x, y, z);
                         val behavior = block.getState().getBehavior();
 
                         if (!behavior.canPassThrough() && behavior.collidesWithBB(block, realBB)) {
@@ -1191,7 +1191,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             revert = true;
         } else {
             if (this.chunk == null) {
-                Chunk chunk = this.getLevel().getLoadedChunk(newPosition);
+                Chunk chunk = this.getWorld().getLoadedChunk(newPosition);
                 if (chunk == null) {
                     revert = true;
                 } else {
@@ -1231,7 +1231,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             }
         }
 
-        Location from = Location.from(this.lastPosition, this.lastYaw, this.lastPitch, this.getLevel());
+        Location from = Location.from(this.lastPosition, this.lastYaw, this.lastPitch, this.getWorld());
         Location to = this.getLocation();
 
         double delta = Math.pow(this.lastPosition.getX() - to.getX(), 2) + Math.pow(this.lastPosition.getY() - to.getY(), 2) + Math.pow(this.position.getZ() - to.getZ(), 2);
@@ -1365,7 +1365,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
                 this.entityBaseTick(tickDiff);
 
-                if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getLevel().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
+                if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getWorld().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
                     if (this.getHealth() < this.getMaxHealth() && this.ticksLived % 20 == 0) {
                         this.heal(1);
                     }
@@ -1380,8 +1380,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 if (this.isOnFire() && this.lastUpdate % 10 == 0) {
                     if (this.isCreative() && !this.isInsideOfFire()) {
                         this.extinguish();
-                    } else if (this.getLevel().isRaining()) {
-                        if (this.getLevel().canBlockSeeSky(this.getPosition())) {
+                    } else if (this.getWorld().isRaining()) {
+                        if (this.getWorld().canBlockSeeSky(this.getPosition())) {
                             this.extinguish();
                         }
                     }
@@ -1435,13 +1435,13 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         try (Timing ignored = Timings.playerEntityLookingAtTimer.startTiming()) {
             EntityInteractable entity = null;
 
-            Set<Entity> nearbyEntities = this.getLevel().getNearbyEntities(boundingBox.grow(maxDistance, maxDistance, maxDistance), this);
+            Set<Entity> nearbyEntities = this.getWorld().getNearbyEntities(boundingBox.grow(maxDistance, maxDistance, maxDistance), this);
 
             // get all blocks in looking direction until the max interact distance is reached (it's possible that startblock isn't found!)
 
             Vector3f position = this.getPosition().add(0, getEyeHeight(), 0);
             for (Vector3i pos : BlockRayTrace.of(position, getDirectionVector(), maxDistance)) {
-                Block block = this.getLevel().getLoadedBlock(pos);
+                Block block = this.getWorld().getLoadedBlock(pos);
                 if (block == null) {
                     break;
                 }
@@ -1508,15 +1508,15 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setDifficulty(this.server.getDifficulty().ordinal());
         startGamePacket.setDefaultSpawn(this.getSpawn().getPosition().toInt());
         startGamePacket.setAchievementsDisabled(true);
-        startGamePacket.setDayCycleStopTime(this.getLevel().getTime());
+        startGamePacket.setDayCycleStopTime(this.getWorld().getTime());
         startGamePacket.setRainLevel(0);
         startGamePacket.setLightningLevel(0);
         startGamePacket.setCommandsEnabled(this.isEnableClientCommand());
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        this.getLevel().getGameRules().toNetwork(startGamePacket.getGamerules());
+        this.getWorld().getGameRules().toNetwork(startGamePacket.getGamerules());
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
-        startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default level name
+        startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default world name
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
         startGamePacket.setItemEntries(ItemRegistry.get().getItemEntries());
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
@@ -1546,7 +1546,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         this.loggedIn = true;
 
-        this.getLevel().sendTime(this);
+        this.getWorld().sendTime(this);
 
         this.setMovementSpeed(DEFAULT_SPEED);
         this.sendAttributes();
@@ -1559,7 +1559,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 this.getAddress(),
                 this.getPort(),
                 this.getUniqueId(),
-                this.getLevel().getName(),
+                this.getWorld().getName(),
                 NukkitMath.round(pos.getX(), 4),
                 NukkitMath.round(pos.getY(), 4),
                 NukkitMath.round(pos.getZ(), 4)
@@ -1667,11 +1667,11 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 .set(AdventureSettings.Type.ALLOW_FLIGHT, isCreative())
                 .set(AdventureSettings.Type.NO_CLIP, isSpectator());
 
-        Level level;
-        if ((level = this.server.getLevelByName(this.playerData.getLevel())) == null || !isAlive()) {
-            this.level = this.server.getDefaultLevel();
+        World world;
+        if ((world = this.server.getWorldByName(this.playerData.getLevel())) == null || !isAlive()) {
+            this.world = this.server.getDefaultWorld();
         } else {
-            this.level = level;
+            this.world = world;
         }
 
         if (this.server.getAutoSave()) {
@@ -2024,7 +2024,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 int chunkX = Chunk.fromKeyX(chunkKey);
                 int chunkZ = Chunk.fromKeyZ(chunkKey);
 
-                for (Entity entity : this.getLevel().getLoadedChunkEntities(chunkX, chunkZ)) {
+                for (Entity entity : this.getWorld().getLoadedChunkEntities(chunkX, chunkZ)) {
                     if (entity != this) {
                         entity.getViewers().remove(this);
                     }
@@ -2122,7 +2122,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         int added = now + add;
         int level = this.getExperienceLevel();
         int most = calculateRequireExperience(level);
-        while (added >= most) {  //Level Up!
+        while (added >= most) {  //World Up!
             added = added - most;
             level++;
             most = calculateRequireExperience(level);
@@ -2214,7 +2214,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return false;
         } else if (source.getCause() == EntityDamageEvent.DamageCause.FALL) {
         }
-        if (this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockIds.SLIME) {
+        if (this.getWorld().getBlockAt(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockIds.SLIME) {
             if (!this.isSneaking()) {
                 //source.setCancelled();
                 this.resetFallDistance();
@@ -2259,7 +2259,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         Vector3f motion = this.getDirectionVector().mul(0.4);
 
-        this.getLevel().dropItem(this.getPosition().add(0, 1.3, 0), item, motion, 40);
+        this.getWorld().dropItem(this.getPosition().add(0, 1.3, 0), item, motion, 40);
 
         this.setUsingItem(false);
         return true;
@@ -2303,9 +2303,9 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.playerData.loadData(tag);
 
         String level = this.playerData.getLevel();
-        this.level = this.server.getLevel(level);
-        if (this.level == null) {
-            this.level = this.server.getDefaultLevel();
+        this.world = this.server.getWorld(level);
+        if (this.world == null) {
+            this.world = this.server.getDefaultWorld();
         }
 
         super.loadAdditionalData(tag);
@@ -2324,9 +2324,9 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        this.playerData.setLevel(this.level.getId());
-        if (this.spawnLocation != null && this.spawnLocation.getLevel() != null) {
-            this.playerData.setSpawnLevel(this.spawnLocation.getLevel().getId());
+        this.playerData.setLevel(this.world.getId());
+        if (this.spawnLocation != null && this.spawnLocation.getWorld() != null) {
+            this.playerData.setSpawnLevel(this.spawnLocation.getWorld().getId());
             this.playerData.setSpawnLocation(this.spawnLocation.getPosition().toInt());
         }
 
@@ -2362,7 +2362,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return;
         }
 
-        boolean showMessages = this.getLevel().getGameRules().get(GameRules.SHOW_DEATH_MESSAGES);
+        boolean showMessages = this.getWorld().getGameRules().get(GameRules.SHOW_DEATH_MESSAGES);
         String message = "death.attack.generic";
 
         List<String> params = new ArrayList<>();
@@ -2426,7 +2426,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                     break;
 
                 case LAVA:
-                    BlockState state = this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt());
+                    BlockState state = this.getWorld().getBlockAt(this.getPosition().add(0, -1, 0).toInt());
                     if (state.getType() == BlockIds.MAGMA) {
                         message = "death.attack.magma";
                         break;
@@ -2501,23 +2501,23 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
         PlayerDeathEvent ev = new PlayerDeathEvent(this, this.getDrops(), new TranslationContainer(message, params.toArray()), this.getExperienceLevel());
 
-        ev.setKeepExperience(this.getLevel().getGameRules().get(GameRules.KEEP_INVENTORY));
+        ev.setKeepExperience(this.getWorld().getGameRules().get(GameRules.KEEP_INVENTORY));
         ev.setKeepInventory(ev.getKeepExperience());
         this.server.getEventManager().fire(ev);
 
-        if (!ev.getKeepInventory() && this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
+        if (!ev.getKeepInventory() && this.getWorld().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
             for (Item item : ev.getDrops()) {
-                this.getLevel().dropItem(this.getPosition(), item, null, true, 40);
+                this.getWorld().dropItem(this.getPosition(), item, null, true, 40);
             }
 
             this.getInventory().clearAll();
         }
 
-        if (!ev.getKeepExperience() && this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
+        if (!ev.getKeepExperience() && this.getWorld().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
             if (this.isSurvival() || this.isAdventure()) {
                 int exp = ev.getExperience() * 7;
                 if (exp > 100) exp = 100;
-                this.getLevel().dropExpOrb(this.getPosition(), exp);
+                this.getWorld().dropExpOrb(this.getPosition(), exp);
             }
             this.setExperience(0, 0);
         }
@@ -2532,8 +2532,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         packet.setPosition(location.getPosition());
         packet.setState(RespawnPacket.State.SERVER_SEARCHING);
 
-        //this is a dirty hack to prevent dying in a different level than the respawn point from breaking everything
-        if (this.getLevel() != location.getLevel()) {
+        //this is a dirty hack to prevent dying in a different world than the respawn point from breaking everything
+        if (this.getWorld() != location.getWorld()) {
             this.teleport(location, null);
         }
 
@@ -2564,7 +2564,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             if (this.chunk != null) {
                 this.chunk.removeEntity(this);
             }
-            this.chunk = this.getLevel().getChunk(pos);
+            this.chunk = this.getWorld().getChunk(pos);
 
             if (!this.justCreated) {
 
@@ -2614,10 +2614,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
             this.removeAllWindows(false);
 
-            if (from.getLevel() != location.getLevel()) { //Different level, update compass position
+            if (from.getWorld() != location.getWorld()) { //Different world, update compass position
                 SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
                 packet.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
-                Location spawn = location.getLevel().getSpawnLocation();
+                Location spawn = location.getWorld().getSpawnLocation();
                 packet.setBlockPosition(spawn.getPosition().toInt());
                 sendPacket(packet);
             }
@@ -2630,9 +2630,9 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             this.newPosition = null;
 
             //Weather
-            this.getLevel().sendWeather(this);
+            this.getWorld().sendWeather(this);
             //Update time
-            this.getLevel().sendTime(this);
+            this.getWorld().sendTime(this);
         }
     }
 
@@ -3008,9 +3008,9 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             //DummyBossBar
             this.getDummyBossBars().values().forEach(DummyBossBar::reshow);
             //Weather
-            this.getLevel().sendWeather(this);
+            this.getWorld().sendWeather(this);
             //Update time
-            this.getLevel().sendTime(this);
+            this.getWorld().sendTime(this);
             return true;
         }
 
@@ -3146,7 +3146,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
      * @param lines    the lines to send
      */
     public void sendSignChange(Vector3i position, String[] lines) {
-        BlockEntity blockEntity = level.getBlockEntity(position);
+        BlockEntity blockEntity = world.getBlockEntity(position);
         if (!(blockEntity instanceof Sign)) {
             return;
         }
@@ -3159,7 +3159,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     public void startFishing(Item fishingRod) {
         Location location = Location.from(this.getPosition().add(0, this.getEyeHeight(), 0), this.getYaw(),
-                this.getPitch(), this.getLevel());
+                this.getPitch(), this.getWorld());
         double f = 1;
         FishingHook fishingHook = EntityRegistry.get().newEntity(EntityTypes.FISHING_HOOK, location);
         fishingHook.setPosition(location.getPosition());
@@ -3189,23 +3189,23 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public boolean switchLevel(Level level) {
-        Level oldLevel = this.getLevel();
-        if (super.switchLevel(level)) {
+    public boolean switchWorld(World world) {
+        World oldWorld = this.getWorld();
+        if (super.switchWorld(world)) {
             SetSpawnPositionPacket spawnPosition = new SetSpawnPositionPacket();
             spawnPosition.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
-            Location spawn = level.getSpawnLocation();
+            Location spawn = world.getSpawnLocation();
             spawnPosition.setBlockPosition(spawn.getPosition().toInt());
             this.sendPacket(spawnPosition);
 
             this.getChunkManager().prepareRegion(this.getPosition());
 
             SetTimePacket setTime = new SetTimePacket();
-            setTime.setTime(level.getTime());
+            setTime.setTime(world.getTime());
             this.sendPacket(setTime);
 
             GameRulesChangedPacket gameRulesChanged = new GameRulesChangedPacket();
-            level.getGameRules().toNetwork(gameRulesChanged.getGameRules());
+            world.getGameRules().toNetwork(gameRulesChanged.getGameRules());
             this.sendPacket(gameRulesChanged);
             return true;
         }
@@ -3306,7 +3306,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             if (experienceOrb.getPickupDelay() <= 0) {
                 int exp = experienceOrb.getExperience();
                 entity.kill();
-                this.getLevel().addSound(this.getPosition(), Sound.RANDOM_ORB);
+                this.getWorld().addSound(this.getPosition(), Sound.RANDOM_ORB);
                 pickedXPOrb = tick;
 
                 //Mending

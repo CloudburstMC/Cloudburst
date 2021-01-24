@@ -6,8 +6,8 @@ import org.cloudburstmc.server.entity.projectile.EnderPearl;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.player.Player;
 
 public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
@@ -80,7 +80,7 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
             if (((Player) owner).isAdventure() || ((Player) owner).isSurvival()) {
                 owner.attack(new EntityDamageByEntityEvent(this, owner, EntityDamageEvent.DamageCause.PROJECTILE, 5f, 0f));
             }
-            this.level.addSound(this.getPosition(), Sound.MOB_ENDERMEN_PORTAL);
+            this.world.addSound(this.getPosition(), Sound.MOB_ENDERMEN_PORTAL);
         }
     }
 }

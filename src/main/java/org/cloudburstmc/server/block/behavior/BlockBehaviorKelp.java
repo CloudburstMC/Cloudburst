@@ -10,8 +10,8 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
@@ -46,7 +46,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
         }
 
 //        if (waterDamage == 8) { //TODO: check
-//            block.getLevel().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
+//            block.getWorld().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
 //        }
 
         if (downState.getType() == KELP && downState.ensureTrait(KELP_AGE) != 24) {
@@ -59,12 +59,12 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             val liquid = block.getExtra();
             Integer waterDamage = liquid.getTrait(FLUID_LEVEL);
 
             if (waterDamage == null || waterDamage != 0 || liquid.ensureTrait(BlockTraits.IS_FLOWING)) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
                 return type;
             }
 
@@ -72,15 +72,15 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
             BlockState downState = down.getState();
             if ((downState.getType() != KELP && !downState.inCategory(BlockCategory.SOLID))
                     || downState.getType() == MAGMA || downState.getType() == ICE || downState.getType() == SOUL_SAND) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
                 return type;
             }
 
 //            if (waterDamage == 8) { //TODO: check
-//                block.getLevel().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
+//                block.getWorld().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
 //            }
             return type;
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == World.BLOCK_UPDATE_RANDOM) {
             if (ThreadLocalRandom.current().nextInt(100) <= 14) {
                 grow(block);
             }
@@ -129,7 +129,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0f) { //Bone Meal
-            val level = block.getLevel();
+            val level = block.getWorld();
             int x = block.getX();
             int z = block.getZ();
             for (int y = block.getY() + 1; y < 255; y++) {

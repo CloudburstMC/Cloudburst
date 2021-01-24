@@ -46,7 +46,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
 
     @Override
     public Item toItem(Block block) {
-        val be = block.getLevel().getBlockEntity(block.getPosition());
+        val be = block.getWorld().getBlockEntity(block.getPosition());
 
         var tag = NbtMap.EMPTY;
         if ((be instanceof ShulkerBox)) {
@@ -80,7 +80,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
+            BlockEntity t = block.getWorld().getBlockEntity(block.getPosition());
             ShulkerBox box;
             if (t instanceof ShulkerBox) {
                 box = (ShulkerBox) t;

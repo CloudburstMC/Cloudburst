@@ -5,7 +5,7 @@ import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.entity.impl.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.entity.vehicle.Minecart;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.MinecartType;
 
@@ -45,7 +45,7 @@ public class EntityMinecart extends EntityAbstractMinecart implements Minecart {
         boolean update = super.onUpdate(currentTick);
 
         if (this.passengers.isEmpty()) {
-            for (Entity entity : this.getLevel().getCollidingEntities(this.boundingBox.grow(0.2f, 0, 0.2f), this)) {
+            for (Entity entity : this.getWorld().getCollidingEntities(this.boundingBox.grow(0.2f, 0, 0.2f), this)) {
                 if (entity.getVehicle() != null || !(entity instanceof EntityLiving) || entity instanceof Player || entity instanceof EntityWaterAnimal) {
                     continue;
                 }

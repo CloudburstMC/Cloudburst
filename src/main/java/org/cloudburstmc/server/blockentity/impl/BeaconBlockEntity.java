@@ -10,7 +10,7 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.Beacon;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.inventory.BeaconInventory;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
@@ -63,24 +63,24 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         }
 
         int oldPowerLevel = this.powerLevel;
-        //Get the power level based on the pyramid
+        //Get the power world based on the pyramid
         this.powerLevel = calculatePowerLevel();
         int newPowerLevel = this.powerLevel;
 
         //Skip beacons that do not have a pyramid or sky access
         if (newPowerLevel < 1 || !hasSkyAccess()) {
             if (oldPowerLevel > 0) {
-                this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_DEACTIVATE);
+                this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_DEACTIVATE);
             }
             return true;
         } else if (oldPowerLevel < 1) {
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_ACTIVATE);
+            this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_ACTIVATE);
         } else {
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_AMBIENT);
+            this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_AMBIENT);
         }
 
         //Get all players in game
-        Map<Long, Player> players = this.getLevel().getPlayers();
+        Map<Long, Player> players = this.getWorld().getPlayers();
 
         //Calculate vars for beacon power
         int range = 10 + this.powerLevel * 10;
@@ -142,7 +142,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     private boolean hasSkyAccess() {
         //Check every block from our y coord to the top of the world
         for (int y = getPosition().getY() + 1; y <= 255; y++) {
-            val state = getLevel().getBlockAt(getPosition().getX(), y, getPosition().getZ());
+            val state = getWorld().getBlockAt(getPosition().getX(), y, getPosition().getZ());
             if (!state.inCategory(BlockCategory.TRANSPARENT)) {
                 //There is no sky access
                 return false;
@@ -157,14 +157,14 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         int tileY = this.getPosition().getY();
         int tileZ = this.getPosition().getZ();
 
-        //The power level that we're testing for
+        //The power world that we're testing for
         for (int powerLevel = 1; powerLevel <= POWER_LEVEL_MAX; powerLevel++) {
             int queryY = tileY - powerLevel; //Layer below the beacon block
 
             for (int queryX = tileX - powerLevel; queryX <= tileX + powerLevel; queryX++) {
                 for (int queryZ = tileZ - powerLevel; queryZ <= tileZ + powerLevel; queryZ++) {
 
-                    Identifier testBlockId = getLevel().getBlockAt(queryX, queryY, queryZ).getType();
+                    Identifier testBlockId = getWorld().getBlockAt(queryX, queryY, queryZ).getType();
                     if (testBlockId != IRON_BLOCK && testBlockId != GOLD_BLOCK && testBlockId != EMERALD_BLOCK &&
                             testBlockId != DIAMOND_BLOCK) {
                         return powerLevel - 1;
@@ -205,7 +205,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         this.setPrimaryEffect(nbt.getInt("primary"));
         this.setSecondaryEffect(nbt.getInt("secondary"));
 
-        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_POWER);
+        this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_POWER);
 
         BeaconInventory inv = (BeaconInventory) player.getWindowById(ContainerIds.BEACON);
 

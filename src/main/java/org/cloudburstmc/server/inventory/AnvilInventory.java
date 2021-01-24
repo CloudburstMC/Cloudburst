@@ -48,7 +48,7 @@ public class AnvilInventory extends FakeBlockUIComponent {
             player.getInventory().sendContents(player);
             sendContents(player);
 
-            player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.RANDOM_ANVIL_USE);
+            player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.RANDOM_ANVIL_USE);
             return true;
         } else if (local.getId() != AIR && second.getId() != AIR) { //enchants combining
             if (!local.equals(second, true, false)) {
@@ -115,7 +115,7 @@ public class AnvilInventory extends FakeBlockUIComponent {
                 clearAll();
                 sendContents(player);
 
-                player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.RANDOM_ANVIL_USE);
+                player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.RANDOM_ANVIL_USE);
                 return true;
             }
         }
@@ -130,7 +130,7 @@ public class AnvilInventory extends FakeBlockUIComponent {
         who.resetCraftingGridType();
 
         for (int i = 0; i < 2; ++i) {
-            this.getHolder().getLevel().dropItem(this.getHolder().getPosition().toFloat().add(0.5, 0.5, 0.5), this.getItem(i));
+            this.getHolder().getWorld().dropItem(this.getHolder().getPosition().toFloat().add(0.5, 0.5, 0.5), this.getItem(i));
             this.clear(i);
         }
     }

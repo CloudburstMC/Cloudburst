@@ -5,7 +5,7 @@ import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.misc.AreaEffectCloud;
 import org.cloudburstmc.server.entity.projectile.LingeringPotion;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.potion.Potion;
 import org.cloudburstmc.server.registry.EntityRegistry;

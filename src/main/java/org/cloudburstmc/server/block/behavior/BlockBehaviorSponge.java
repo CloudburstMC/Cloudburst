@@ -8,9 +8,9 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.particle.SmokeParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
+import org.cloudburstmc.server.world.particle.SmokeParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -42,21 +42,21 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
 
     @Override
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        Level level = block.getLevel();
+        World world = block.getWorld();
 
         val state = item.getBlock();
         boolean blockSet = placeBlock(block, state);
 
         if (blockSet) {
             val type = state.ensureTrait(BlockTraits.SPONGE_TYPE);
-            if (type == WET && level.getDimension() == Level.DIMENSION_NETHER) {
+            if (type == WET && world.getDimension() == World.DIMENSION_NETHER) {
                 block.set(state.withTrait(BlockTraits.SPONGE_TYPE, DRY));
 
-                block.getLevel().addSound(block.getPosition(), Sound.RANDOM_FIZZ);
+                block.getWorld().addSound(block.getPosition(), Sound.RANDOM_FIZZ);
 
                 for (int i = 0; i < 8; ++i) {
                     //TODO: Use correct smoke particle
-                    block.getLevel().addParticle(new SmokeParticle(block.getPosition().add(Math.random(), 1, Math.random())));
+                    block.getWorld().addParticle(new SmokeParticle(block.getPosition().add(Math.random(), 1, Math.random())));
                 }
             } else if (type == DRY && performWaterAbsorb(block.refresh())) {
                 block.set(state.withTrait(BlockTraits.SPONGE_TYPE, WET));
@@ -66,7 +66,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
                     packet.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
                     packet.setPosition(block.getPosition().toFloat().add(0.5, 0.5, 0.5));
                     packet.setData(BlockRegistry.get().getRuntimeId(FLOWING_WATER, 0));
-                    level.addChunkPacket(block.getPosition(), packet);
+                    world.addChunkPacket(block.getPosition(), packet);
                 }
             }
         }

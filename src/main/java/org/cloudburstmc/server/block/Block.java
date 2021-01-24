@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block;
 
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector4i;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
 
 import static org.cloudburstmc.server.math.Direction.*;
@@ -14,7 +14,7 @@ public interface Block extends BlockSnapshot {
 
     Block refresh();
 
-    Level getLevel();
+    World getWorld();
 
     Chunk getChunk();
 

@@ -6,8 +6,8 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
@@ -52,10 +52,10 @@ public class SpawnpointCommand extends Command {
                 return true;
             }
         }
-        Level level = target.getLevel();
+        World world = target.getWorld();
 
         if (args.length == 4) {
-            if (level != null) {
+            if (world != null) {
                 int x;
                 int y;
                 int z;
@@ -68,7 +68,7 @@ public class SpawnpointCommand extends Command {
                 }
                 if (y < 0) y = 0;
                 if (y > 256) y = 256;
-                target.setSpawn(Location.from(x, y, z, level));
+                target.setSpawn(Location.from(x, y, z, world));
                 CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.spawnpoint.success.single", target.getName(),
                         x, y, z));
                 return true;

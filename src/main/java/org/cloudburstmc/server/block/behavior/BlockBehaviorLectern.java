@@ -14,8 +14,8 @@ import org.cloudburstmc.server.event.block.LecternDropBookEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -58,7 +58,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         int power = 0;
         int page = 0;
         int maxPage = 0;
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
         if (blockEntity instanceof Lectern) {
             Lectern lectern = (Lectern) blockEntity;
             if (lectern.hasBook()) {
@@ -87,7 +87,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
+            BlockEntity t = block.getWorld().getBlockEntity(block.getPosition());
             Lectern lectern;
             if (t instanceof Lectern) {
                 lectern = (Lectern) t;
@@ -106,7 +106,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
                     newBook.setCount(1);
                     lectern.setBook(newBook);
                     lectern.spawnToAll();
-                    block.getLevel().addSound(block.getPosition(), Sound.ITEM_BOOK_PUT);
+                    block.getWorld().addSound(block.getPosition(), Sound.ITEM_BOOK_PUT);
                 }
             }
         }
@@ -124,7 +124,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     public void executeRedstonePulse(Block block) {
-        val level = block.getLevel();
+        val level = block.getWorld();
         if (isActivated(block.getState())) {
             level.cancelSheduledUpdate(block.getPosition(), block);
         } else {
@@ -151,16 +151,16 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == World.BLOCK_UPDATE_SCHEDULED) {
             val state = block.getState();
             if (isActivated(state)) {
-                block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
+                block.getWorld().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
 
                 block.set(state.withTrait(BlockTraits.IS_POWERED, false));
-                block.getLevel().updateAroundRedstone(block.getPosition(), null);
+                block.getWorld().updateAroundRedstone(block.getPosition(), null);
             }
 
-            return Level.BLOCK_UPDATE_SCHEDULED;
+            return World.BLOCK_UPDATE_SCHEDULED;
         }
 
         return 0;
@@ -172,17 +172,17 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     public void dropBook(Block block, Player player) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
         if (blockEntity instanceof Lectern) {
             Lectern lectern = (Lectern) blockEntity;
             Item book = lectern.getBook();
             if (book != null && book.getId() != BlockIds.AIR) {
                 LecternDropBookEvent dropBookEvent = new LecternDropBookEvent(player, lectern, book);
-                block.getLevel().getServer().getEventManager().fire(dropBookEvent);
+                block.getWorld().getServer().getEventManager().fire(dropBookEvent);
                 if (!dropBookEvent.isCancelled()) {
                     lectern.setBook(Item.get(BlockIds.AIR));
                     lectern.spawnToAll();
-                    block.getLevel().dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
+                    block.getWorld().dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
                 }
             }
         }

@@ -5,8 +5,8 @@ import lombok.val;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.LeverDirection;
 import org.cloudburstmc.server.player.Player;
@@ -45,7 +45,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        val level = block.getLevel();
+        val level = block.getWorld();
         val state = block.getState();
 
         boolean powerOn = isPowerOn(state);
@@ -63,10 +63,10 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             Direction direction = block.getState().ensureTrait(BlockTraits.LEVER_DIRECTION).getDirection().getOpposite();
             if (!block.getSide(direction).getState().inCategory(BlockCategory.SOLID)) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
             }
         }
         return 0;
@@ -92,7 +92,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
         val state = block.getState();
         if (isPowerOn(state)) {
             Direction face = state.ensureTrait(BlockTraits.LEVER_DIRECTION).getDirection();
-            block.getLevel().updateAround(face.getOpposite().getOffset(block.getPosition()));
+            block.getWorld().updateAround(face.getOpposite().getOffset(block.getPosition()));
         }
         return true;
     }

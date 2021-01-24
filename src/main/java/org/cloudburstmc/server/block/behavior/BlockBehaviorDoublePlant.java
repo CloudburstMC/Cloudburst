@@ -4,8 +4,8 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.ItemRegistry;
@@ -30,18 +30,18 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) {
                 // Top
                 if (!(block.down().getState().getType() == DOUBLE_PLANT)) {
                     removeBlock(block, true);
-                    return Level.BLOCK_UPDATE_NORMAL;
+                    return World.BLOCK_UPDATE_NORMAL;
                 }
             } else {
                 // Bottom
                 if (block.down().getState().inCategory(BlockCategory.TRANSPARENT) || block.up().getState().getType() != DOUBLE_PLANT) {
-                    block.getLevel().useBreakOn(block.getPosition());
-                    return Level.BLOCK_UPDATE_NORMAL;
+                    block.getWorld().useBreakOn(block.getPosition());
+                    return World.BLOCK_UPDATE_NORMAL;
                 }
             }
         }
@@ -67,7 +67,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
         Block down = block.down();
 
         if (block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) { // Top half
-            block.getLevel().useBreakOn(down.getPosition());
+            block.getWorld().useBreakOn(down.getPosition());
         } else {
             removeBlock(block, true);
         }
@@ -126,8 +126,8 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                     if (player != null && player.getGamemode().isSurvival()) {
                         item.decrementCount();
                     }
-                    block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
-                    block.getLevel().dropItem(block.getPosition(), ItemRegistry.get().getItem(block.getState()));
+                    block.getWorld().addParticle(new BoneMealParticle(block.getPosition()));
+                    block.getWorld().dropItem(block.getPosition(), ItemRegistry.get().getItem(block.getState()));
             }
 
             return true;

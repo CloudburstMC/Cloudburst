@@ -8,7 +8,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -32,7 +32,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         super.onBreak(block, item);
 
         for (Direction face : Direction.values()) {
-            block.getLevel().updateAroundRedstone(face.getOffset(pos), null);
+            block.getWorld().updateAroundRedstone(face.getOffset(pos), null);
         }
         return true;
     }
@@ -50,15 +50,15 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
 
         block = block.refresh();
         if (shouldBePowered(block)) {
-            block.getLevel().scheduleUpdate(block, 1);
+            block.getWorld().scheduleUpdate(block, 1);
         }
         return true;
     }
 
     @Override
     public int onUpdate(Block block, int type) {
-        Level level = block.getLevel();
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        World world = block.getWorld();
+        if (type == World.BLOCK_UPDATE_SCHEDULED) {
             if (!this.isLocked(block)) {
                 Vector3i pos = block.getPosition();
                 boolean shouldBePowered = this.shouldBePowered(block);
@@ -67,28 +67,28 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
                 if (this.isPowered && !shouldBePowered) {
                     block.set(this.getUnpowered(state), true, true);
 
-                    level.updateAroundRedstone(this.getFacing(state).getOpposite().getOffset(pos), null);
+                    world.updateAroundRedstone(this.getFacing(state).getOpposite().getOffset(pos), null);
                 } else if (!this.isPowered) {
                     block.set(this.getPowered(state), true, true);
-                    level.updateAroundRedstone(this.getFacing(state).getOpposite().getOffset(pos), null);
+                    world.updateAroundRedstone(this.getFacing(state).getOpposite().getOffset(pos), null);
 
                     if (!shouldBePowered) {
 //                        System.out.println("schedule update 2");
-                        level.scheduleUpdate(level.getBlock(pos), pos, this.getDelay(state));
+                        world.scheduleUpdate(world.getBlock(pos), pos, this.getDelay(state));
                     }
                 }
             }
-        } else if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
+        } else if (type == World.BLOCK_UPDATE_NORMAL || type == World.BLOCK_UPDATE_REDSTONE) {
             // Redstone event
             RedstoneUpdateEvent event = new RedstoneUpdateEvent(block);
-            level.getServer().getEventManager().fire(event);
+            world.getServer().getEventManager().fire(event);
             if (event.isCancelled()) return 0;
-            if (type == Level.BLOCK_UPDATE_NORMAL && block.down().getState().getBehavior().isTransparent()) {
-                level.useBreakOn(block.getPosition());
+            if (type == World.BLOCK_UPDATE_NORMAL && block.down().getState().getBehavior().isTransparent()) {
+                world.useBreakOn(block.getPosition());
             } else {
                 this.updateState(block);
             }
-            return Level.BLOCK_UPDATE_NORMAL;
+            return World.BLOCK_UPDATE_NORMAL;
         }
         return 0;
     }
@@ -97,9 +97,9 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         if (!this.isLocked(block)) {
             boolean shouldPowered = this.shouldBePowered(block);
 
-            Level level = block.getLevel();
+            World world = block.getWorld();
             if ((this.isPowered && !shouldPowered || !this.isPowered && shouldPowered) &&
-                    !level.isBlockTickPending(block.getPosition(), block)) {
+                    !world.isBlockTickPending(block.getPosition(), block)) {
                 /*int priority = -1;
 
                 if (this.isFacingTowardsRepeater()) {
@@ -108,7 +108,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
                     priority = -2;
                 }*/
 
-                level.scheduleUpdate(block, block.getPosition(), this.getDelay(block.getState()));
+                world.scheduleUpdate(block, block.getPosition(), this.getDelay(block.getState()));
             }
         }
     }
@@ -120,12 +120,12 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     protected int calculateInputStrength(Block block) {
         Direction face = getFacing(block.getState());
         Vector3i pos = face.getOffset(block.getPosition());
-        int power = block.getLevel().getRedstonePower(pos, face);
+        int power = block.getWorld().getRedstonePower(pos, face);
 
         if (power >= 15) {
             return power;
         } else {
-            val state = block.getLevel().getBlock(pos).getState();
+            val state = block.getWorld().getBlock(pos).getState();
             return Math.max(power, state.getType() == REDSTONE_WIRE ? state.ensureTrait(BlockTraits.REDSTONE_SIGNAL) : 0);
         }
     }
@@ -140,11 +140,11 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     protected int getPowerOnSide(Block block, Vector3i pos, Direction side) {
-        val b = block.getLevel().getBlock(pos);
+        val b = block.getWorld().getBlock(pos);
         val state = b.getState();
         return isAlternateInput(b) ? (state.getType() == REDSTONE_BLOCK ? 15 :
                 (state.getType() == REDSTONE_WIRE ? state.ensureTrait(BlockTraits.REDSTONE_SIGNAL)
-                        : block.getLevel().getStrongPower(pos, side))) : 0;
+                        : block.getWorld().getStrongPower(pos, side))) : 0;
     }
 
     @Override

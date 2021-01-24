@@ -62,23 +62,23 @@ abstract public class ItemArmor extends Item implements ItemDurable {
             player.getInventory().clear(player.getInventory().getHeldItemIndex());
             switch (this.getTier()) {
                 case TIER_CHAIN:
-                    player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_CHAIN);
+                    player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_CHAIN);
                     break;
                 case TIER_DIAMOND:
-                    player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_DIAMOND);
+                    player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_DIAMOND);
                     break;
                 case TIER_GOLD:
-                    player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_GOLD);
+                    player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_GOLD);
                     break;
                 case TIER_IRON:
-                    player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_IRON);
+                    player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_IRON);
                     break;
                 case TIER_LEATHER:
-                    player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_LEATHER);
+                    player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_LEATHER);
                     break;
                 case TIER_OTHER:
                 default:
-                    player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_GENERIC);
+                    player.getWorld().addLevelSoundEvent(player.getPosition(), SoundEvent.ARMOR_EQUIP_GENERIC);
             }
         }
 

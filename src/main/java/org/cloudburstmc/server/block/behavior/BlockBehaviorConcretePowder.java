@@ -7,7 +7,7 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
@@ -35,14 +35,14 @@ public class BlockBehaviorConcretePowder extends BlockBehaviorFallable {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
-            super.onUpdate(block, Level.BLOCK_UPDATE_NORMAL);
+        if (type == World.BLOCK_UPDATE_NORMAL) {
+            super.onUpdate(block, World.BLOCK_UPDATE_NORMAL);
 
             if (checkLiquid(block)) {
                 block.set(BlockState.get(CONCRETE).withTrait(BlockTraits.COLOR, block.getState().ensureTrait(BlockTraits.COLOR)));
             }
 
-            return Level.BLOCK_UPDATE_NORMAL;
+            return World.BLOCK_UPDATE_NORMAL;
         }
         return 0;
     }

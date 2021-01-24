@@ -8,8 +8,8 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -99,7 +99,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
             return false;
         }
 
-        block.getLevel().addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
+        block.getWorld().addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
         return true;
     }
 
@@ -110,7 +110,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 
     public boolean toggle(Block block, Player player) {
         DoorToggleEvent event = new DoorToggleEvent(block, player);
-        block.getLevel().getServer().getEventManager().fire(event);
+        block.getWorld().getServer().getEventManager().fire(event);
 
         if (event.isCancelled()) {
             return false;
@@ -139,8 +139,8 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_REDSTONE) {
-            val level = block.getLevel();
+        if (type == World.BLOCK_UPDATE_REDSTONE) {
+            val level = block.getWorld();
             if ((!isOpen(block) && level.isBlockPowered(block.getPosition())) || (isOpen(block) && !level.isBlockPowered(block.getPosition()))) {
                 this.toggle(block, null);
                 return type;

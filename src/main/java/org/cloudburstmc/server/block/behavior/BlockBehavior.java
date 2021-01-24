@@ -208,7 +208,7 @@ public abstract class BlockBehavior {
             }
         }
 
-        return block.getLevel().setBlock(block.getPosition(), newState, true, update);
+        return block.getWorld().setBlock(block.getPosition(), newState, true, update);
     }
 
     public boolean onBreak(Block block, Item item) {
@@ -230,7 +230,7 @@ public abstract class BlockBehavior {
             state = BlockStates.AIR;
         }
 
-        return block.getLevel().setBlock(block.getPosition(), state, true, update);
+        return block.getWorld().setBlock(block.getPosition(), state, true, update);
     }
 
     public boolean onBreak(Block block, Item item, Player player) {

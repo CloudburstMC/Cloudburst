@@ -21,7 +21,7 @@ network:
   # Threshold for batching packets, in bytes. Only these packets will be compressed
   # Set to 0 to compress everything, -1 to disable
   batch-threshold: 256
-  # Compression level used of Zlib when sending batched packets. Higher = more CPU, less bandwidth usage
+  # Compression world used of Zlib when sending batched packets. Higher = more CPU, less bandwidth usage
   compression-level: 7
   # Use AsyncTasks for compression. Adds half/one tick delay, less CPU load on main thread
   async-compression: false
@@ -38,7 +38,7 @@ debug:
 timings:
   # Enable core and plugin timings by default
   enabled: false
-  # Enable monitoring at verbose level, include high-frequency timings
+  # Enable monitoring at verbose world, include high-frequency timings
   verbose: false
   # Interval between history frames in ticks
   # Default is 5 minutes (6000 ticks)

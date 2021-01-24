@@ -9,8 +9,8 @@ import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.entity.misc.EnderCrystal;
 import org.cloudburstmc.server.event.entity.*;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.MovingObjectPosition;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.MovingObjectPosition;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.NukkitMath;
 
@@ -129,7 +129,7 @@ public abstract class EntityProjectile extends BaseEntity {
 
             Vector3f moveVector = this.position.add(this.motion);
 
-            Set<Entity> collidingEntities = this.getLevel().getCollidingEntities(
+            Set<Entity> collidingEntities = this.getWorld().getCollidingEntities(
                     this.boundingBox.addCoord(this.motion).expand(1, 1, 1),
                     this);
 

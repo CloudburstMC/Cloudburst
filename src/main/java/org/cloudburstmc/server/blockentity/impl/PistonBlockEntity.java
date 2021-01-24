@@ -7,7 +7,7 @@ import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Piston;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
@@ -78,7 +78,7 @@ public class PistonBlockEntity extends BaseBlockEntity implements Piston {
         float y = lastProgress * this.facing.getYOffset();
         float z = lastProgress * this.facing.getZOffset();
         AxisAlignedBB bb = new SimpleAxisAlignedBB(x, y, z, x + 1f, y + 1f, z + 1f);
-        Set<Entity> entities = this.getLevel().getCollidingEntities(bb);
+        Set<Entity> entities = this.getWorld().getCollidingEntities(bb);
         if (!entities.isEmpty()) {
 
         }

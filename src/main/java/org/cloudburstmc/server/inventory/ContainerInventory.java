@@ -82,11 +82,11 @@ public abstract class ContainerInventory extends BaseInventory {
     }
 
     public static void sendBlockEventPacket(BlockEntity block, int eventData) {
-        if (block.getLevel() == null) return;
+        if (block.getWorld() == null) return;
         BlockEventPacket bep = new BlockEventPacket();
         bep.setBlockPosition(block.getPosition());
         bep.setEventType(1);
         bep.setEventData(eventData);
-        block.getLevel().addChunkPacket(block.getPosition(), bep);
+        block.getWorld().addChunkPacket(block.getPosition(), bep);
     }
 }

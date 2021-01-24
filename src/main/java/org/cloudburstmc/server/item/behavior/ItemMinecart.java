@@ -5,8 +5,8 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.vehicle.Minecart;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -30,7 +30,7 @@ public class ItemMinecart extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+    public boolean onActivate(World world, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (Rail.isRailBlock(target.getState())) {
             RailDirection type = target.getState().ensureTrait(BlockTraits.RAIL_DIRECTION); //TODO: check errors
             double adjacent = 0.0D;
@@ -38,7 +38,7 @@ public class ItemMinecart extends Item {
                 adjacent = 0.5D;
             }
             Vector3f pos = target.getPosition().toFloat().add(0.5, 0.0625 + adjacent, 0.5);
-            Minecart minecart = EntityRegistry.get().newEntity(EntityTypes.MINECART, Location.from(pos, level));
+            Minecart minecart = EntityRegistry.get().newEntity(EntityTypes.MINECART, Location.from(pos, world));
             minecart.spawnToAll();
 
             if (player.isSurvival()) {

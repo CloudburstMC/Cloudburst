@@ -4,7 +4,7 @@ import org.cloudburstmc.server.entity.EntityAgeable;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.EntityCreature;
 import org.cloudburstmc.server.entity.passive.DeprecatedVillager;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.BABY;
 

@@ -4,7 +4,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.impl.ShulkerBoxBlockEntity;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.player.Player;
 
 /**
@@ -26,9 +26,9 @@ public class ShulkerBoxInventory extends ContainerInventory {
         super.onOpen(who);
 
         if (this.getViewers().size() == 1) {
-            Level level = this.getHolder().getLevel();
-            if (level != null) {
-                level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.SHULKERBOX_OPEN);
+            World world = this.getHolder().getWorld();
+            if (world != null) {
+                world.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.SHULKERBOX_OPEN);
                 sendBlockEventPacket(this.getHolder(), 1);
             }
         }
@@ -37,9 +37,9 @@ public class ShulkerBoxInventory extends ContainerInventory {
     @Override
     public void onClose(Player who) {
         if (this.getViewers().size() == 1) {
-            Level level = this.getHolder().getLevel();
-            if (level != null) {
-                level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.SHULKERBOX_CLOSED);
+            World world = this.getHolder().getWorld();
+            if (world != null) {
+                world.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.SHULKERBOX_CLOSED);
                 sendBlockEventPacket(this.getHolder(), 0);
             }
         }

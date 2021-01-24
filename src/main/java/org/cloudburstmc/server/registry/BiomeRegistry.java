@@ -8,15 +8,15 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.NonNull;
-import org.cloudburstmc.server.level.biome.Biome;
-import org.cloudburstmc.server.level.biome.BiomeBuilder;
+import org.cloudburstmc.server.world.biome.Biome;
+import org.cloudburstmc.server.world.biome.BiomeBuilder;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
-import static org.cloudburstmc.server.level.biome.BiomeIds.*;
+import static org.cloudburstmc.server.world.biome.BiomeIds.*;
 
 public class BiomeRegistry implements Registry {
     private static final BiomeRegistry INSTANCE;

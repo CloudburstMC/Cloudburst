@@ -56,7 +56,7 @@ public class ServerPropertiesMappingTest {
             "hardcore=false\n" +
             "pvp=true\n" +
             "difficulty=1\n" +
-            "default-level=world\n" +
+            "default-world=world\n" +
             "allow-nether=true\n" +
             "enable-query=true\n" +
             "auto-save=true\n" +

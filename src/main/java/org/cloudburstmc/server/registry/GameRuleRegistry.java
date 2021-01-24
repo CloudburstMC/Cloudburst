@@ -3,7 +3,7 @@ package org.cloudburstmc.server.registry;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.cloudburstmc.server.level.gamerule.*;
+import org.cloudburstmc.server.world.gamerule.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

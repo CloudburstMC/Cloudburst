@@ -8,7 +8,7 @@ import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.vehicle.HopperMinecart;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.MinecartType;
 
@@ -42,7 +42,7 @@ public class EntityHopperMinecart extends EntityAbstractMinecart implements Hopp
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), Item.get(ItemIds.HOPPER_MINECART));
+        this.getWorld().dropItem(this.getPosition(), Item.get(ItemIds.HOPPER_MINECART));
     }
 
     @Override

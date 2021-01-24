@@ -11,7 +11,7 @@ import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLeaves;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorSolid;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -42,7 +42,7 @@ public class ItemFlintSteel extends ItemTool {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+    public boolean onActivate(World world, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (block.getState() == BlockStates.AIR && target instanceof BlockBehaviorSolid || target instanceof BlockBehaviorLeaves) {
             PORTAL:
             if (target.getState().getType() == OBSIDIAN) {
@@ -52,7 +52,7 @@ public class ItemFlintSteel extends ItemTool {
                 final int targZ = pos.getZ();
                 //check if there's air above (at least 3 blocks)
                 for (int i = 1; i < 4; i++) {
-                    if (level.getBlockAt(targX, targY + i, targZ) != BlockStates.AIR) {
+                    if (world.getBlockAt(targX, targY + i, targZ) != BlockStates.AIR) {
                         break PORTAL;
                     }
                 }
@@ -61,28 +61,28 @@ public class ItemFlintSteel extends ItemTool {
                 int sizePosZ = 0;
                 int sizeNegZ = 0;
                 for (int i = 1; i < MAX_PORTAL_SIZE; i++) {
-                    if (level.getBlockAt(targX + i, targY, targZ).getType() == OBSIDIAN) {
+                    if (world.getBlockAt(targX + i, targY, targZ).getType() == OBSIDIAN) {
                         sizePosX++;
                     } else {
                         break;
                     }
                 }
                 for (int i = 1; i < MAX_PORTAL_SIZE; i++) {
-                    if (level.getBlockAt(targX - i, targY, targZ).getType() == OBSIDIAN) {
+                    if (world.getBlockAt(targX - i, targY, targZ).getType() == OBSIDIAN) {
                         sizeNegX++;
                     } else {
                         break;
                     }
                 }
                 for (int i = 1; i < MAX_PORTAL_SIZE; i++) {
-                    if (level.getBlockAt(targX, targY, targZ + i).getType() == OBSIDIAN) {
+                    if (world.getBlockAt(targX, targY, targZ + i).getType() == OBSIDIAN) {
                         sizePosZ++;
                     } else {
                         break;
                     }
                 }
                 for (int i = 1; i < MAX_PORTAL_SIZE; i++) {
-                    if (level.getBlockAt(targX, targY, targZ - i).getType() == OBSIDIAN) {
+                    if (world.getBlockAt(targX, targY, targZ - i).getType() == OBSIDIAN) {
                         sizeNegZ++;
                     } else {
                         break;
@@ -99,22 +99,22 @@ public class ItemFlintSteel extends ItemTool {
                     int scanZ = targZ;
                     for (int i = 0; i < sizePosX + 1; i++) {
                         //this must be air
-                        if (level.getBlockAt(scanX + i, scanY, scanZ) != BlockStates.AIR) {
+                        if (world.getBlockAt(scanX + i, scanY, scanZ) != BlockStates.AIR) {
                             break PORTAL;
                         }
-                        if (level.getBlockAt(scanX + i + 1, scanY, scanZ).getType() == OBSIDIAN) {
+                        if (world.getBlockAt(scanX + i + 1, scanY, scanZ).getType() == OBSIDIAN) {
                             scanX += i;
                             break;
                         }
                     }
                     //make sure that the above loop finished
-                    if (level.getBlockAt(scanX + 1, scanY, scanZ).getType() != OBSIDIAN) {
+                    if (world.getBlockAt(scanX + 1, scanY, scanZ).getType() != OBSIDIAN) {
                         break PORTAL;
                     }
 
                     int innerWidth = 0;
                     for (int i = 0; i < MAX_PORTAL_SIZE - 2; i++) {
-                        BlockState state = level.getBlockAt(scanX - i, scanY, scanZ);
+                        BlockState state = world.getBlockAt(scanX - i, scanY, scanZ);
                         if (state == BlockStates.AIR) {
                             innerWidth++;
                         } else if (state.getType() == OBSIDIAN) {
@@ -125,7 +125,7 @@ public class ItemFlintSteel extends ItemTool {
                     }
                     int innerHeight = 0;
                     for (int i = 0; i < MAX_PORTAL_SIZE - 2; i++) {
-                        BlockState state = level.getBlockAt(scanX, scanY + i, scanZ);
+                        BlockState state = world.getBlockAt(scanX, scanY + i, scanZ);
                         if (state == BlockStates.AIR) {
                             innerHeight++;
                         } else if (state.getType() == OBSIDIAN) {
@@ -144,18 +144,18 @@ public class ItemFlintSteel extends ItemTool {
                     for (int height = 0; height < innerHeight + 1; height++) {
                         if (height == innerHeight) {
                             for (int width = 0; width < innerWidth; width++) {
-                                if (level.getBlockAt(scanX - width, scanY + height, scanZ).getType() != OBSIDIAN) {
+                                if (world.getBlockAt(scanX - width, scanY + height, scanZ).getType() != OBSIDIAN) {
                                     break PORTAL;
                                 }
                             }
                         } else {
-                            if (level.getBlockAt(scanX + 1, scanY + height, scanZ).getType() != OBSIDIAN
-                                    || level.getBlockAt(scanX - innerWidth, scanY + height, scanZ).getType() != OBSIDIAN) {
+                            if (world.getBlockAt(scanX + 1, scanY + height, scanZ).getType() != OBSIDIAN
+                                    || world.getBlockAt(scanX - innerWidth, scanY + height, scanZ).getType() != OBSIDIAN) {
                                 break PORTAL;
                             }
 
                             for (int width = 0; width < innerWidth; width++) {
-                                if (level.getBlockAt(scanX - width, scanY + height, scanZ) != BlockStates.AIR) {
+                                if (world.getBlockAt(scanX - width, scanY + height, scanZ) != BlockStates.AIR) {
                                     break PORTAL;
                                 }
                             }
@@ -164,11 +164,11 @@ public class ItemFlintSteel extends ItemTool {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlock(Vector3i.from(scanX - width, scanY + height, scanZ), BlockState.get(BlockIds.PORTAL));
+                            world.setBlock(Vector3i.from(scanX - width, scanY + height, scanZ), BlockState.get(BlockIds.PORTAL));
                         }
                     }
 
-                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.IGNITE);
+                    world.addLevelSoundEvent(block.getPosition(), SoundEvent.IGNITE);
                     return true;
                 } else if (sizeZ >= 2 && sizeZ <= MAX_PORTAL_SIZE) {
                     //start scan from 1 block above base
@@ -178,22 +178,22 @@ public class ItemFlintSteel extends ItemTool {
                     int scanZ = targZ;
                     for (int i = 0; i < sizePosZ + 1; i++) {
                         //this must be air
-                        if (level.getBlockAt(scanX, scanY, scanZ + i) != BlockStates.AIR) {
+                        if (world.getBlockAt(scanX, scanY, scanZ + i) != BlockStates.AIR) {
                             break PORTAL;
                         }
-                        if (level.getBlockAt(scanX, scanY, scanZ + i + 1).getType() == OBSIDIAN) {
+                        if (world.getBlockAt(scanX, scanY, scanZ + i + 1).getType() == OBSIDIAN) {
                             scanZ += i;
                             break;
                         }
                     }
                     //make sure that the above loop finished
-                    if (level.getBlockAt(scanX, scanY, scanZ + 1).getType() != OBSIDIAN) {
+                    if (world.getBlockAt(scanX, scanY, scanZ + 1).getType() != OBSIDIAN) {
                         break PORTAL;
                     }
 
                     int innerWidth = 0;
                     for (int i = 0; i < MAX_PORTAL_SIZE - 2; i++) {
-                        BlockState state = level.getBlockAt(scanX, scanY, scanZ - i);
+                        BlockState state = world.getBlockAt(scanX, scanY, scanZ - i);
                         if (state == BlockStates.AIR) {
                             innerWidth++;
                         } else if (state.getType() == OBSIDIAN) {
@@ -204,7 +204,7 @@ public class ItemFlintSteel extends ItemTool {
                     }
                     int innerHeight = 0;
                     for (int i = 0; i < MAX_PORTAL_SIZE - 2; i++) {
-                        BlockState state = level.getBlockAt(scanX, scanY + i, scanZ);
+                        BlockState state = world.getBlockAt(scanX, scanY + i, scanZ);
                         if (state == BlockStates.AIR) {
                             innerHeight++;
                         } else if (state.getType() == OBSIDIAN) {
@@ -223,18 +223,18 @@ public class ItemFlintSteel extends ItemTool {
                     for (int height = 0; height < innerHeight + 1; height++) {
                         if (height == innerHeight) {
                             for (int width = 0; width < innerWidth; width++) {
-                                if (level.getBlockAt(scanX, scanY + height, scanZ - width).getType() != OBSIDIAN) {
+                                if (world.getBlockAt(scanX, scanY + height, scanZ - width).getType() != OBSIDIAN) {
                                     break PORTAL;
                                 }
                             }
                         } else {
-                            if (level.getBlockAt(scanX, scanY + height, scanZ + 1).getType() != OBSIDIAN
-                                    || level.getBlockAt(scanX, scanY + height, scanZ - innerWidth).getType() != OBSIDIAN) {
+                            if (world.getBlockAt(scanX, scanY + height, scanZ + 1).getType() != OBSIDIAN
+                                    || world.getBlockAt(scanX, scanY + height, scanZ - innerWidth).getType() != OBSIDIAN) {
                                 break PORTAL;
                             }
 
                             for (int width = 0; width < innerWidth; width++) {
-                                if (level.getBlockAt(scanX, scanY + height, scanZ - width) != BlockStates.AIR) {
+                                if (world.getBlockAt(scanX, scanY + height, scanZ - width) != BlockStates.AIR) {
                                     break PORTAL;
                                 }
                             }
@@ -243,11 +243,11 @@ public class ItemFlintSteel extends ItemTool {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlock(Vector3i.from(scanX, scanY + height, scanZ - width), BlockState.get(BlockIds.PORTAL));
+                            world.setBlock(Vector3i.from(scanX, scanY + height, scanZ - width), BlockState.get(BlockIds.PORTAL));
                         }
                     }
 
-                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.IGNITE);
+                    world.addLevelSoundEvent(block.getPosition(), SoundEvent.IGNITE);
                     return true;
                 }
             }
@@ -256,13 +256,13 @@ public class ItemFlintSteel extends ItemTool {
 
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
-                block.getLevel().getServer().getEventManager().fire(e);
+                block.getWorld().getServer().getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
-                    level.setBlock(block.getPosition(), fire, true);
-                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.IGNITE);
-                    block = block.getLevel().getBlock(block.getPosition());
-                    level.scheduleUpdate(block, fireBehavior.tickRate() + ThreadLocalRandom.current().nextInt(10));
+                    world.setBlock(block.getPosition(), fire, true);
+                    world.addLevelSoundEvent(block.getPosition(), SoundEvent.IGNITE);
+                    block = block.getWorld().getBlock(block.getPosition());
+                    world.scheduleUpdate(block, fireBehavior.tickRate() + ThreadLocalRandom.current().nextInt(10));
                 }
                 return true;
             }

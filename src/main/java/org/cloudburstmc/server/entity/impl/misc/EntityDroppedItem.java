@@ -19,7 +19,7 @@ import org.cloudburstmc.server.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.world.Location;
 import org.cloudburstmc.server.player.Player;
 
 import javax.annotation.Nonnull;
@@ -137,7 +137,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
             if (this.getItem().getCount() < this.getItem().getMaxStackSize()) {
-                for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
+                for (Entity entity : this.getWorld().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
                     if (entity instanceof EntityDroppedItem) {
                         if (!entity.isAlive()) {
                             continue;
@@ -159,7 +159,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);
                         packet.setData(newAmount);
-                        Server.broadcastPacket(this.getLevel().getPlayers().values(), packet);
+                        Server.broadcastPacket(this.getWorld().getPlayers().values(), packet);
                     }
                 }
             }
@@ -178,7 +178,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                     this.pickupDelay = 0;
                 }
             } else {
-                for (Entity entity : this.level.getNearbyEntities(this.boundingBox.grow(1, 0.5f, 1), this)) {
+                for (Entity entity : this.world.getNearbyEntities(this.boundingBox.grow(1, 0.5f, 1), this)) {
                     if (entity instanceof Player) {
                         if (((Player) entity).pickupEntity(this, true)) {
                             return true;
@@ -188,7 +188,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
             }
 
             Vector3f pos = this.getPosition();
-            val b = this.level.getBlockAt(pos.getFloorX(), (int) this.boundingBox.getMaxY(), pos.getFloorZ()).getType();
+            val b = this.world.getBlockAt(pos.getFloorX(), (int) this.boundingBox.getMaxY(), pos.getFloorZ()).getType();
 
             if (b == FLOWING_WATER || b == WATER) { //item is fully in water or in still water
                 this.motion = this.motion.sub(0, this.getGravity() * -0.015, 0);
@@ -207,7 +207,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                friction *= this.getLevel().getBlockAt(pos.add(0, -1, -1).toInt()).getBehavior().getFrictionFactor();
+                friction *= this.getWorld().getBlockAt(pos.add(0, -1, -1).toInt()).getBehavior().getFrictionFactor();
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);

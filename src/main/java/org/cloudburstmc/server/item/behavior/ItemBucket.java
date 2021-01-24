@@ -8,7 +8,7 @@ import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.server.event.player.PlayerItemConsumeEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
@@ -83,7 +83,7 @@ public class ItemBucket extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+    public boolean onActivate(World world, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         if (player.isAdventure()) {
             return false;
         }
@@ -132,9 +132,9 @@ public class ItemBucket extends Item {
                     }
 
                     if (liquid.getType() == LAVA) {
-                        level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_FILL_LAVA);
+                        world.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_FILL_LAVA);
                     } else {
-                        level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_FILL_WATER);
+                        world.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_FILL_WATER);
                     }
 
                     return true;
@@ -160,7 +160,7 @@ public class ItemBucket extends Item {
                 ev.setCancelled(true);
             }
 
-            if (player.getLevel().getDimension() == Level.DIMENSION_NETHER && this.getMeta() != 10) {
+            if (player.getWorld().getDimension() == World.DIMENSION_NETHER && this.getMeta() != 10) {
                 ev.setCancelled(true);
             }
 
@@ -168,8 +168,8 @@ public class ItemBucket extends Item {
 
             if (!ev.isCancelled()) {
                 int layer = behavior.canWaterlogSource() ? 1 : 0;
-                if (target.getLevel().setBlock(emptyTarget.getPosition(), layer, bucketContents, true, true)) {
-                    target.getLevel().scheduleUpdate(emptyTarget.getPosition(), bucketContents.getBehavior().tickRate());
+                if (target.getWorld().setBlock(emptyTarget.getPosition(), layer, bucketContents, true, true)) {
+                    target.getWorld().scheduleUpdate(emptyTarget.getPosition(), bucketContents.getBehavior().tickRate());
                 }
                 if (player.isSurvival()) {
                     Item clone = this.clone();
@@ -179,15 +179,15 @@ public class ItemBucket extends Item {
                 }
 
                 if (this.getMeta() == 10) {
-                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_EMPTY_LAVA);
+                    world.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_EMPTY_LAVA);
                 } else {
-                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_EMPTY_WATER);
+                    world.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_EMPTY_WATER);
                 }
 
                 return true;
             } else {
-                player.getLevel().sendBlocks(new Player[]{player},
-                        new Block[]{new CloudBlock(block.getLevel(), block.getPosition(), CloudBlock.EMPTY)},
+                player.getWorld().sendBlocks(new Player[]{player},
+                        new Block[]{new CloudBlock(block.getWorld(), block.getPosition(), CloudBlock.EMPTY)},
                         UpdateBlockPacket.FLAG_ALL_PRIORITY);
                 player.getInventory().sendContents(player);
             }

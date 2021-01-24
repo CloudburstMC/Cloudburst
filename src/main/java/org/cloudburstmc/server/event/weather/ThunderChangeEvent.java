@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.weather;
 
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 
 /**
  * author: funcraft
@@ -11,8 +11,8 @@ public class ThunderChangeEvent extends WeatherEvent implements Cancellable {
 
     private final boolean to;
 
-    public ThunderChangeEvent(Level level, boolean to) {
-        super(level);
+    public ThunderChangeEvent(World world, boolean to) {
+        super(world);
         this.to = to;
     }
 

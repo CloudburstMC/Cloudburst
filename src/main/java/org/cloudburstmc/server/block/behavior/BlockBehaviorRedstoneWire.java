@@ -11,7 +11,7 @@ import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -28,8 +28,8 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     private boolean canProvidePower = true;
     private final Set<Vector3f> blocksNeedingUpdate = new HashSet<>();
 
-    protected static boolean canConnectUpwardsTo(Level level, Vector3i pos) {
-        return canConnectTo(level.getBlock(pos), null);
+    protected static boolean canConnectUpwardsTo(World world, Vector3i pos) {
+        return canConnectTo(world.getBlock(pos), null);
     }
 
     protected static boolean canConnectTo(Block block, Direction side) {
@@ -57,7 +57,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         placeBlock(block, item.getBlock());
 
         this.updateSurroundingRedstone(block.refresh(), true);
-        val level = block.getLevel();
+        val level = block.getWorld();
         Vector3i pos = block.getPosition();
 
         for (Direction direction : Direction.Plane.VERTICAL) {
@@ -82,7 +82,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
     private void calculateCurrentChanges(Block block, boolean force) {
         Vector3i pos = block.getPosition();
-        val level = block.getLevel();
+        val level = block.getWorld();
 
         int meta = block.getState().ensureTrait(BlockTraits.REDSTONE_SIGNAL);
         int maxStrength = meta;
@@ -146,8 +146,8 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         }
     }
 
-    private int getMaxCurrentStrength(Level level, Vector3i pos, int maxStrength) {
-        val state = level.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
+    private int getMaxCurrentStrength(World world, Vector3i pos, int maxStrength) {
+        val state = world.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
         if (state.getType() != REDSTONE_WIRE) {
             return maxStrength;
         } else {
@@ -160,7 +160,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     public boolean onBreak(Block block, Item item) {
         removeBlock(block);
 
-        val level = block.getLevel();
+        val level = block.getWorld();
         Vector3i pos = block.getPosition();
 
         this.updateSurroundingRedstone(block, false);
@@ -186,12 +186,12 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         return BlockColor.AIR_BLOCK_COLOR;
     }
 
-    private void updateAround(Level level, Vector3i pos, Direction face) {
-        if (level.getBlockAt(pos).getType() == REDSTONE_WIRE) {
-            level.updateAroundRedstone(pos, face);
+    private void updateAround(World world, Vector3i pos, Direction face) {
+        if (world.getBlockAt(pos).getType() == REDSTONE_WIRE) {
+            world.updateAroundRedstone(pos, face);
 
             for (Direction side : Direction.values()) {
-                level.updateAroundRedstone(side.getOffset(pos), side.getOpposite());
+                world.updateAroundRedstone(side.getOffset(pos), side.getOpposite());
             }
         }
     }
@@ -237,10 +237,10 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type != Level.BLOCK_UPDATE_NORMAL && type != Level.BLOCK_UPDATE_REDSTONE) {
+        if (type != World.BLOCK_UPDATE_NORMAL && type != World.BLOCK_UPDATE_REDSTONE) {
             return 0;
         }
-        val level = block.getLevel();
+        val level = block.getWorld();
         // Redstone event
         RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
         level.getServer().getEventManager().fire(ev);
@@ -248,18 +248,18 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
             return 0;
         }
 
-        if (type == Level.BLOCK_UPDATE_NORMAL && !this.canBePlacedOn(level.getBlockAt(block.getPosition().down()))) {
+        if (type == World.BLOCK_UPDATE_NORMAL && !this.canBePlacedOn(level.getBlockAt(block.getPosition().down()))) {
             level.useBreakOn(block.getPosition());
-            return Level.BLOCK_UPDATE_NORMAL;
+            return World.BLOCK_UPDATE_NORMAL;
         }
 
         this.updateSurroundingRedstone(block, false);
 
-        return Level.BLOCK_UPDATE_NORMAL;
+        return World.BLOCK_UPDATE_NORMAL;
     }
 
     private boolean isPowerSourceAt(Block block, Direction side) {
-        val level = block.getLevel();
+        val level = block.getWorld();
         Vector3i pos = block.getPosition();
         Vector3i v = side.getOffset(pos);
         Block b = level.getBlock(v);
@@ -283,7 +283,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         Vector3i pos = block.getPosition();
 
         for (Direction face : Direction.values()) {
-            int blockPower = this.getIndirectPower(block.getLevel(), face.getOffset(pos), face);
+            int blockPower = this.getIndirectPower(block.getWorld(), face.getOffset(pos), face);
 
             if (blockPower >= 15) {
                 return 15;
@@ -297,17 +297,17 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         return power;
     }
 
-    private int getIndirectPower(Level level, Vector3i pos, Direction face) {
-        val block = level.getBlock(pos);
+    private int getIndirectPower(World world, Vector3i pos, Direction face) {
+        val block = world.getBlock(pos);
         val state = block.getState();
         if (state.getType() == REDSTONE_WIRE) {
             return 0;
         }
-        return _isNormalBlock(block) ? getStrongPower(level, face.getOffset(pos), face) : state.getBehavior().getWeakPower(block, face);
+        return _isNormalBlock(block) ? getStrongPower(world, face.getOffset(pos), face) : state.getBehavior().getWeakPower(block, face);
     }
 
-    private int getStrongPower(Level level, Vector3i pos, Direction direction) {
-        Block block = level.getBlock(pos);
+    private int getStrongPower(World world, Vector3i pos, Direction direction) {
+        Block block = world.getBlock(pos);
         val state = block.getState();
 
         if (state.getType() == REDSTONE_WIRE) {

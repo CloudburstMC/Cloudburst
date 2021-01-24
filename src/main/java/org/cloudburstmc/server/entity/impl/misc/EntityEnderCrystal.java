@@ -7,9 +7,9 @@ import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.EnderCrystal;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
+import org.cloudburstmc.server.world.Explosion;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.gamerule.GameRules;
 
 /**
  * Created by PetteriM1
@@ -52,11 +52,11 @@ public class EntityEnderCrystal extends BaseEntity implements EnderCrystal, Enti
 
     @Override
     public void explode() {
-        Explosion explode = new Explosion(this.getLevel(), this.getPosition(), 6, this);
+        Explosion explode = new Explosion(this.getWorld(), this.getPosition(), 6, this);
 
         this.close();
 
-        if (this.level.getGameRules().get(GameRules.MOB_GRIEFING)) {
+        if (this.world.getGameRules().get(GameRules.MOB_GRIEFING)) {
             explode.explode();
         }
     }

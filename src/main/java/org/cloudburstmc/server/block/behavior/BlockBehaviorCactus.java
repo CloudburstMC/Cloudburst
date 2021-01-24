@@ -10,7 +10,7 @@ import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.Player;
@@ -78,26 +78,26 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             Block down = block.down();
             BlockState downState = down.getState();
             if (downState.getType() != SAND && downState.getType() != CACTUS) {
-                block.getLevel().useBreakOn(block.getPosition());
+                block.getWorld().useBreakOn(block.getPosition());
             } else {
                 for (Direction direction : Plane.HORIZONTAL) {
                     Block side = block.getSide(direction);
                     if (!side.getState().getBehavior().canBeFlooded()) {
-                        block.getLevel().useBreakOn(block.getPosition());
+                        block.getWorld().useBreakOn(block.getPosition());
                     }
                 }
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == World.BLOCK_UPDATE_RANDOM) {
             if (block.down().getState().getType() != CACTUS) {
                 int age = block.getState().ensureTrait(BlockTraits.AGE);
 
                 if (age == 0x0f) {
                     for (int y = 1; y < 3; ++y) {
-                        Block b = block.getLevel().getBlock(block.getX(), block.getY() + y, block.getZ());
+                        Block b = block.getWorld().getBlock(block.getX(), block.getY() + y, block.getZ());
                         if (b.getState().getType() == AIR) {
                             BlockGrowEvent event = new BlockGrowEvent(b, BlockState.get(CACTUS));
                             Server.getInstance().getEventManager().fire(event);

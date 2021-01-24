@@ -12,9 +12,9 @@ import org.cloudburstmc.server.entity.vehicle.TntMinecart;
 import org.cloudburstmc.server.event.entity.EntityExplosionPrimeEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
+import org.cloudburstmc.server.world.Explosion;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.gamerule.GameRules;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.MinecartType;
 
@@ -67,7 +67,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
             fuse -= tickDiff;
 
             if (isAlive() && fuse <= 0) {
-                if (this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES)) {
+                if (this.getWorld().getGameRules().get(GameRules.TNT_EXPLODES)) {
                     this.explode(ThreadLocalRandom.current().nextInt(5));
                 }
                 this.close();
@@ -82,7 +82,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     @Override
     public void activate(int x, int y, int z, boolean flag) {
-        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.IGNITE);
+        this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.IGNITE);
         this.data.setInt(FUSE_LENGTH, 79);
     }
 
@@ -103,7 +103,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
         if (event.isCancelled()) {
             return;
         }
-        Explosion explosion = new Explosion(this.getLevel(), this.getPosition(), event.getForce(), this);
+        Explosion explosion = new Explosion(this.getWorld(), this.getPosition(), event.getForce(), this);
         if (event.isBlockBreaking()) {
             explosion.explodeA();
         }
@@ -113,7 +113,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), Item.get(ItemIds.TNT_MINECART));
+        this.getWorld().dropItem(this.getPosition(), Item.get(ItemIds.TNT_MINECART));
     }
 
     @Override
@@ -125,7 +125,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     public boolean onInteract(Player player, Item item, Vector3f clickedPos) {
         boolean interact = super.onInteract(player, item, clickedPos);
         if (item.getId() == ItemIds.FLINT_AND_STEEL || item.getId() == ItemIds.FIREBALL) {
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.IGNITE);
+            this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.IGNITE);
             this.data.setInt(FUSE_LENGTH, 79);
             return true;
         }

@@ -6,7 +6,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorRedstoneComparator;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Comparator;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 
 /**
  * @author CreeperFace

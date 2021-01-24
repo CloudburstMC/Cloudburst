@@ -12,7 +12,7 @@ public class BlockBehaviorDispenser extends BlockBehaviorSolid {
 
     @Override
     public int getComparatorInputOverride(Block block) {
-        /*BlockEntity blockEntity = this.level.getBlockEntity(this.getPosition());
+        /*BlockEntity blockEntity = this.world.getBlockEntity(this.getPosition());
 
         if(blockEntity instanceof BlockEntityDispenser) {
             //return ContainerInventory.calculateRedstone(((BlockEntityDispenser) blockEntity).getInventory()); TODO: dispenser

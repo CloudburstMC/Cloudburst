@@ -18,9 +18,9 @@ import org.cloudburstmc.server.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.gamerule.GameRules;
-import org.cloudburstmc.server.level.particle.SmokeParticle;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.gamerule.GameRules;
+import org.cloudburstmc.server.world.particle.SmokeParticle;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
@@ -123,7 +123,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         }
 
         SmokeParticle particle = new SmokeParticle(this.getPosition());
-        this.getLevel().addParticle(particle);
+        this.getWorld().addParticle(particle);
     }
 
     @Override
@@ -175,7 +175,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                friction *= this.getLevel().getBlockAt(this.getPosition().down().toInt()).getBehavior().getFrictionFactor();
+                friction *= this.getWorld().getBlockAt(this.getPosition().down().toInt()).getBehavior().getFrictionFactor();
             }
 
             this.motion = motion.mul(friction, 1, friction);
@@ -188,8 +188,8 @@ public class EntityBoat extends EntityVehicle implements Boat {
                         motion.getZ());
             }
 
-            Location from = Location.from(this.lastPosition, lastYaw, lastPitch, this.getLevel());
-            Location to = Location.from(this.position, this.yaw, this.pitch, this.getLevel());
+            Location from = Location.from(this.lastPosition, lastYaw, lastPitch, this.getWorld());
+            Location to = Location.from(this.position, this.yaw, this.pitch, this.getWorld());
 
             this.getServer().getEventManager().fire(new VehicleUpdateEvent(this));
 
@@ -201,7 +201,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
             this.updateMovement();
 
             if (this.passengers.size() < 2) {
-                for (Entity entity : this.getLevel().getCollidingEntities(this.boundingBox.grow(0.2f, 0, 0.2f), this)) {
+                for (Entity entity : this.getWorld().getCollidingEntities(this.boundingBox.grow(0.2f, 0, 0.2f), this)) {
                     if (entity.getVehicle() != null || !(entity instanceof EntityLiving) || entity instanceof Player || entity instanceof EntityWaterAnimal || isPassenger(entity)) {
                         continue;
                     }
@@ -286,7 +286,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
             @Override
             public void accept(int x, int y, int z) {
-                val block = getLevel().getBlock(x, y, z);
+                val block = getWorld().getBlock(x, y, z);
                 BlockState state = block.getState();
 
                 if (state.getType() == BlockIds.WATER || state.getType() == BlockIds.FLOWING_WATER) {
@@ -411,8 +411,8 @@ public class EntityBoat extends EntityVehicle implements Boat {
     public void kill() {
         super.kill();
 
-        if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-            this.getLevel().dropItem(this.getPosition(), Item.get(ItemIds.BOAT));
+        if (this.getWorld().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
+            this.getWorld().dropItem(this.getPosition(), Item.get(ItemIds.BOAT));
         }
     }
 

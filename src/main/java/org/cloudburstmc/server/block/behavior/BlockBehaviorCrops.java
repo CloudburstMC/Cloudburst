@@ -8,8 +8,8 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -47,7 +47,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
                 }
 
                 block.set(ev.getNewState(), false);
-                block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+                block.getWorld().addParticle(new BoneMealParticle(block.getPosition()));
 
                 if (player != null && player.getGamemode().isSurvival()) {
                     item.decrementCount();
@@ -62,12 +62,12 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() != FARMLAND) {
                 removeBlock(block, true);
-                return Level.BLOCK_UPDATE_NORMAL;
+                return World.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == World.BLOCK_UPDATE_RANDOM) {
             if (ThreadLocalRandom.current().nextInt(2) == 1) {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 0x07) {
@@ -77,11 +77,11 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), false, true);
                     } else {
-                        return Level.BLOCK_UPDATE_RANDOM;
+                        return World.BLOCK_UPDATE_RANDOM;
                     }
                 }
             } else {
-                return Level.BLOCK_UPDATE_RANDOM;
+                return World.BLOCK_UPDATE_RANDOM;
             }
         }
 

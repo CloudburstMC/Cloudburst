@@ -12,8 +12,8 @@ import org.cloudburstmc.server.event.entity.EntityCombustByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.gamerule.GameRules;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.gamerule.GameRules;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
@@ -62,7 +62,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         boolean ret = placeBlock(block, BlockState.get(BlockIds.FLOWING_LAVA));
 
-        block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
+        block.getWorld().scheduleUpdate(block.getPosition(), this.tickRate());
         return ret;
     }
 
@@ -70,9 +70,9 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     public int onUpdate(Block block, int type) {
         int result = super.onUpdate(block, type);
 
-        if (type == Level.BLOCK_UPDATE_RANDOM && block.getLevel().getGameRules().get(GameRules.DO_FIRE_TICK)) {
+        if (type == World.BLOCK_UPDATE_RANDOM && block.getWorld().getGameRules().get(GameRules.DO_FIRE_TICK)) {
             val pos = block.getPosition();
-            val level = block.getLevel();
+            val level = block.getWorld();
 
             Random random = ThreadLocalRandom.current();
 
@@ -93,13 +93,13 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                                 BlockState fire = BlockState.get(BlockIds.FIRE);
                                 b.set(fire, true);
                                 level.scheduleUpdate(v, fire.getBehavior().tickRate());
-                                return Level.BLOCK_UPDATE_RANDOM;
+                                return World.BLOCK_UPDATE_RANDOM;
                             }
 
                             return 0;
                         }
                     } else if (state.inCategory(BlockCategory.SOLID)) {
-                        return Level.BLOCK_UPDATE_RANDOM;
+                        return World.BLOCK_UPDATE_RANDOM;
                     }
                 }
             } else {
@@ -147,7 +147,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
     @Override
     public int getFlowDecayPerBlock(Block block) {
-        if (block.getLevel().getDimension() == Level.DIMENSION_NETHER) {
+        if (block.getWorld().getDimension() == World.DIMENSION_NETHER) {
             return 1;
         }
         return 2;

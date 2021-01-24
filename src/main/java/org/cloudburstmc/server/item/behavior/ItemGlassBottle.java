@@ -4,7 +4,7 @@ package org.cloudburstmc.server.item.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
@@ -25,7 +25,7 @@ public class ItemGlassBottle extends Item {
     }
 
     @Override
-    public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+    public boolean onActivate(World world, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
         val targetType = target.getState().getType();
         if (targetType == WATER || targetType == FLOWING_WATER) {
             Item potion = Item.get(POTION);
@@ -38,7 +38,7 @@ public class ItemGlassBottle extends Item {
                 if (player.getInventory().canAddItem(potion)) {
                     player.getInventory().addItem(potion);
                 } else {
-                    player.getLevel().dropItem(player.getPosition().add(0, 1.3, 0), potion, player.getDirectionVector().mul(0.4));
+                    player.getWorld().dropItem(player.getPosition().add(0, 1.3, 0), potion, player.getDirectionVector().mul(0.4));
                 }
             }
         }

@@ -62,7 +62,7 @@ public class BlockBehaviorFurnaceBurning extends BlockBehaviorSolid {
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
         if (player != null) {
-            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+            BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
             Furnace furnace;
             if (blockEntity instanceof Furnace) {
                 furnace = (Furnace) blockEntity;
@@ -98,7 +98,7 @@ public class BlockBehaviorFurnaceBurning extends BlockBehaviorSolid {
 
     @Override
     public int getComparatorInputOverride(Block block) {
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Furnace) {
             return ContainerInventory.calculateRedstone(((Furnace) blockEntity).getInventory());

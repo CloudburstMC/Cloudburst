@@ -20,7 +20,7 @@ public class XpCommand extends Command {
                 .setUsageMessage("/xp <amount>[L] [player]")
                 .setPermissions("cloudburst.command.xp")
                 .setParameters(new CommandParameter[]{
-                        new CommandParameter("amount|level", CommandParamType.INT, false),
+                        new CommandParameter("amount|world", CommandParamType.INT, false),
                         new CommandParameter("player", CommandParamType.TARGET, true)
                 }).build());
     }
@@ -32,7 +32,7 @@ public class XpCommand extends Command {
         }
 
         //  "/xp <amount> [player]"  for adding exp
-        //  "/xp <amount>L [player]" for adding exp level
+        //  "/xp <amount>L [player]" for adding exp world
         String amountString;
         String playerName;
         Player player;

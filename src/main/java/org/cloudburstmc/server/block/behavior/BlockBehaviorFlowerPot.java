@@ -49,7 +49,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, Item item, Player player) {
-        val level = block.getLevel();
+        val level = block.getWorld();
         BlockEntity blockEntity = level.getBlockEntity(block.getPosition());
         if (!(blockEntity instanceof FlowerPot)) return false;
         FlowerPot flowerPot = (FlowerPot) blockEntity;
@@ -79,7 +79,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     public Item[] getDrops(Block block, Item hand) {
         boolean dropInside = false;
         BlockState blockState = BlockStates.AIR;
-        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+        BlockEntity blockEntity = block.getWorld().getBlockEntity(block.getPosition());
         if (blockEntity instanceof FlowerPot) {
             dropInside = true;
             blockState = ((FlowerPot) blockEntity).getPlant();

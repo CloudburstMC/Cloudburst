@@ -5,7 +5,7 @@ import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.TextFormat;
 
@@ -89,14 +89,14 @@ public class StatusCommand extends Command {
         sender.sendMessage(TextFormat.YELLOW + "Players: " + playerColor + server.getOnlinePlayers().size() + TextFormat.GREEN + " online, " +
                 TextFormat.RED + server.getMaxPlayers() + TextFormat.GREEN + " max. ");
 
-        for (Level level : server.getLevels()) {
+        for (World world : server.getWorlds()) {
             sender.sendMessage(
-                    TextFormat.YELLOW + "World \"" + level.getId() + "\"" + (!Objects.equals(level.getId(), level.getName()) ? " (" + level.getName() + ")" : "") + ": " +
-                            TextFormat.RED + level.getChunks().size() + TextFormat.GREEN + " chunks, " +
-                            TextFormat.RED + level.getEntities().length + TextFormat.GREEN + " entities, " +
-                            TextFormat.RED + level.getBlockEntities().size() + TextFormat.GREEN + " blockEntities." +
-                            " Time " + ((level.getTickRate() > 1 || level.getTickRateTime() > 40) ? TextFormat.RED : TextFormat.YELLOW) + NukkitMath.round(level.getTickRateTime(), 2) + "ms" +
-                            (level.getTickRate() > 1 ? " (tick rate " + level.getTickRate() + ")" : "")
+                    TextFormat.YELLOW + "World \"" + world.getId() + "\"" + (!Objects.equals(world.getId(), world.getName()) ? " (" + world.getName() + ")" : "") + ": " +
+                            TextFormat.RED + world.getChunks().size() + TextFormat.GREEN + " chunks, " +
+                            TextFormat.RED + world.getEntities().length + TextFormat.GREEN + " entities, " +
+                            TextFormat.RED + world.getBlockEntities().size() + TextFormat.GREEN + " blockEntities." +
+                            " Time " + ((world.getTickRate() > 1 || world.getTickRateTime() > 40) ? TextFormat.RED : TextFormat.YELLOW) + NukkitMath.round(world.getTickRateTime(), 2) + "ms" +
+                            (world.getTickRate() > 1 ? " (tick rate " + world.getTickRate() + ")" : "")
             );
         }
 

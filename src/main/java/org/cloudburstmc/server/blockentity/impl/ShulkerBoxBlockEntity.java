@@ -10,7 +10,7 @@ import org.cloudburstmc.server.blockentity.ShulkerBox;
 import org.cloudburstmc.server.inventory.ShulkerBoxInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Identifier;
 

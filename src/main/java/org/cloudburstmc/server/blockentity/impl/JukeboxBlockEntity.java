@@ -11,7 +11,7 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.item.behavior.ItemIds;
 import org.cloudburstmc.server.item.behavior.RecordItem;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.IdentityHashMap;
@@ -80,18 +80,18 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
 
     public void play() {
         if (this.recordItem instanceof RecordItem) {
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.getId()));
+            this.getWorld().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.getId()));
         }
     }
 
     public void stop() {
-        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.STOP_RECORD);
+        this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.STOP_RECORD);
     }
 
     public void dropItem() {
         if (this.recordItem != null && !this.recordItem.isNull()) {
             this.stop();
-            this.getLevel().dropItem(this.getPosition().add(UP), this.recordItem);
+            this.getWorld().dropItem(this.getPosition().add(UP), this.recordItem);
             this.recordItem = null;
         }
     }

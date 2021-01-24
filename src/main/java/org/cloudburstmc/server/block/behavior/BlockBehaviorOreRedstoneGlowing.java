@@ -5,7 +5,7 @@ import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 
 public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
 
@@ -21,14 +21,14 @@ public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED || type == Level.BLOCK_UPDATE_RANDOM) {
+        if (type == World.BLOCK_UPDATE_SCHEDULED || type == World.BLOCK_UPDATE_RANDOM) {
             BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockIds.REDSTONE_ORE));
-            block.getLevel().getServer().getEventManager().fire(event);
+            block.getWorld().getServer().getEventManager().fire(event);
             if (!event.isCancelled()) {
                 block.set(event.getNewState(), false, false);
             }
 
-            return Level.BLOCK_UPDATE_WEAK;
+            return World.BLOCK_UPDATE_WEAK;
         }
 
         return 0;

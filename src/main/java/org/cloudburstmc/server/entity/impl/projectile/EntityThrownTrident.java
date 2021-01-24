@@ -12,8 +12,8 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.MovingObjectPosition;
+import org.cloudburstmc.server.world.Location;
+import org.cloudburstmc.server.world.MovingObjectPosition;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -128,7 +128,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
         this.timing.startTiming();
 
         if (this.isCollided && !this.hadCollision) {
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ITEM_TRIDENT_HIT_GROUND);
+            this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.ITEM_TRIDENT_HIT_GROUND);
         }
 
         boolean hasUpdate = super.onUpdate(currentTick);
@@ -159,7 +159,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
             ev = new EntityDamageByChildEntityEvent(this.getOwner(), this, entity, EntityDamageEvent.DamageCause.PROJECTILE, damage);
         }
         entity.attack(ev);
-        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ITEM_TRIDENT_HIT);
+        this.getWorld().addLevelSoundEvent(this.getPosition(), SoundEvent.ITEM_TRIDENT_HIT);
         this.hadCollision = true;
 //        this.close();
 //        EntityThrownTrident newTrident = create(this);

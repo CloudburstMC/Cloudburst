@@ -18,7 +18,7 @@ public class BeaconInventory extends FakeBlockUIComponent {
 
         //Drop item in slot
         if (!this.getItem(0).isNull()) {
-            this.getHolder().getLevel().dropItem(this.getHolder().getPosition(), this.getItem(0));
+            this.getHolder().getWorld().dropItem(this.getHolder().getPosition(), this.getItem(0));
             this.clear(0);
         }
     }

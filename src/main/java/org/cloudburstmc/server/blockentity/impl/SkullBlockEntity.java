@@ -6,7 +6,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Skull;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.world.chunk.Chunk;
 
 /**
  * Created by Snake1999 on 2016/2/3.

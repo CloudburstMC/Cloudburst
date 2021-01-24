@@ -7,10 +7,10 @@ import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.feature.WorldFeature;
-import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
-import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.world.World;
+import org.cloudburstmc.server.world.feature.WorldFeature;
+import org.cloudburstmc.server.world.feature.tree.GenerationTreeSpecies;
+import org.cloudburstmc.server.world.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -44,7 +44,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
                 item.decrementCount();
             }
 
-            block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+            block.getWorld().addParticle(new BoneMealParticle(block.getPosition()));
             if (ThreadLocalRandom.current().nextFloat() >= 0.45) {
                 return true;
             }
@@ -57,25 +57,25 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     }
 
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == World.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
-                block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                block.getWorld().useBreakOn(block.getPosition());
+                return World.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) { //Growth
+        } else if (type == World.BLOCK_UPDATE_RANDOM) { //Growth
             if (ThreadLocalRandom.current().nextInt(1, 8) == 1) {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.HAS_AGE)) {
                     this.grow(block);
                 } else {
                     block.set(state.withTrait(BlockTraits.HAS_AGE, true));
-                    return Level.BLOCK_UPDATE_RANDOM;
+                    return World.BLOCK_UPDATE_RANDOM;
                 }
             } else {
-                return Level.BLOCK_UPDATE_RANDOM;
+                return World.BLOCK_UPDATE_RANDOM;
             }
         }
-        return Level.BLOCK_UPDATE_NORMAL;
+        return World.BLOCK_UPDATE_NORMAL;
     }
 
     private void grow(Block block) {
@@ -85,7 +85,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
         int z = 0;
 
         val state = block.getState();
-        val level = block.getLevel();
+        val level = block.getWorld();
         GenerationTreeSpecies species = GenerationTreeSpecies.fromItem(state.getType(), BlockStateMetaMappings.getMetaFromState(state));
         WorldFeature feature = species.getHugeGenerator();
         BIG_TREE:
@@ -138,7 +138,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     public boolean isSameType(Block block, Vector3i pos) {
         val blockState = block.getState();
 
-        BlockState state = block.getLevel().getBlock(pos).getState();
+        BlockState state = block.getWorld().getBlock(pos).getState();
         return state.getType() == blockState.getType() && state.ensureTrait(BlockTraits.TREE_SPECIES) == blockState.ensureTrait(BlockTraits.TREE_SPECIES);
     }
 

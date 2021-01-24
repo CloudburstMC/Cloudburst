@@ -5,23 +5,23 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector4i;
 import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.world.World;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
 import java.util.*;
 
 public class BlockUpdateScheduler {
-    private final Level level;
+    private final World world;
     private long lastTick;
     private Map<Long, LinkedHashSet<BlockUpdateEntry>> queuedUpdates;
 
     private Set<BlockUpdateEntry> pendingUpdates;
 
-    public BlockUpdateScheduler(Level level, long currentTick) {
+    public BlockUpdateScheduler(World world, long currentTick) {
         queuedUpdates = Maps.newHashMap(); // Change to ConcurrentHashMap if this needs to be concurrent
         lastTick = currentTick;
-        this.level = level;
+        this.world = world;
     }
 
     public synchronized void tick(long currentTick) {
@@ -51,15 +51,15 @@ public class BlockUpdateScheduler {
             if (updates != null) {
                 for (BlockUpdateEntry entry : updates) {
                     Vector3i pos = entry.pos;
-                    if (level.isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) {
-                        Block block = level.getBlock(entry.pos);
+                    if (world.isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) {
+                        Block block = world.getBlock(entry.pos);
                         val state = block.getState();
 
                         if (entry.block.getState().getType() == state.getType()) {
-                            state.getBehavior().onUpdate(block, Level.BLOCK_UPDATE_SCHEDULED);
+                            state.getBehavior().onUpdate(block, World.BLOCK_UPDATE_SCHEDULED);
                         }
                     } else {
-                        level.scheduleUpdate(entry.block, entry.pos, 0);
+                        world.scheduleUpdate(entry.block, entry.pos, 0);
                     }
                 }
             }
