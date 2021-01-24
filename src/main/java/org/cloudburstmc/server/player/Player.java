@@ -15,6 +15,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.BedrockSession;
+import com.nukkitx.protocol.bedrock.data.AuthoritativeMovementMode;
 import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
 import com.nukkitx.protocol.bedrock.data.GameType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
@@ -237,8 +238,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         this.perm = new PermissibleBase(this);
         this.server = Server.getInstance();
         this.lastBreak = -1;
-        this.chunksPerTick = this.server.getConfig("chunk-sending.per-tick", 4);
-        this.spawnThreshold = this.server.getConfig("chunk-sending.spawn-threshold", 56);
+        this.chunksPerTick = this.server.getConfig().getChunkSending().getPerTick();
+        this.spawnThreshold = this.server.getConfig().getChunkSending().getSpawnThreshold();
         this.spawnLocation = null;
         this.playerData.setGamemode(this.server.getGamemode());
         this.viewDistance = this.server.getViewDistance();
@@ -367,7 +368,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public Long getFirstPlayed() {
+    public OptionalLong getFirstPlayed() {
         return this.playerData.getFirstPlayed();
     }
 
@@ -426,7 +427,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public Long getLastPlayed() {
+    public OptionalLong getLastPlayed() {
         return this.playerData.getLastPlayed();
     }
 
@@ -449,7 +450,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
     @Override
     public boolean hasPlayedBefore() {
-        return this.playerData.getFirstPlayed() > 0;
+        return this.playerData.getFirstPlayed().getAsLong() > 0;
     }
 
     public boolean canSee(Player player) {
@@ -874,7 +875,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     public boolean awardAchievement(String achievementId) {
-        if (!Server.getInstance().getPropertyBoolean("achievements", true)) {
+        if (!Server.getInstance().getConfig().isAchievements()) {
             return false;
         }
 
@@ -1507,7 +1508,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setRotation(Vector2f.from(this.getYaw(), this.getPitch()));
         startGamePacket.setSeed(-1);
         startGamePacket.setDimensionId(0);
-        startGamePacket.setTrustingPlayers(true);
+        startGamePacket.setTrustingPlayers(false);
         startGamePacket.setLevelGameType(GameType.from(this.getGamemode().getVanillaId()));
         startGamePacket.setDifficulty(this.server.getDifficulty().ordinal());
         startGamePacket.setDefaultSpawn(this.getSpawn().getPosition().toInt());
@@ -1531,6 +1532,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         startGamePacket.setPremiumWorldTemplateId("");
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(false);
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setBlockPalette(BlockRegistry.get().getPaletteTag());
         startGamePacket.setItemEntries(ItemRegistry.get().getItemEntries());
         this.sendPacket(startGamePacket);
@@ -1653,7 +1655,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             return;
         }
 
-        if (loginChainData.isXboxAuthed() && server.getPropertyBoolean("xbox-auth") || !server.getPropertyBoolean("xbox-auth")) {
+        if (loginChainData.isXboxAuthed() && server.getConfig().isXboxAuth() || !server.getConfig().isXboxAuth()) {
             server.updateName(this.identity, this.username);
         }
 
@@ -3157,7 +3159,6 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         if (!(blockEntity instanceof Sign)) {
             return;
         }
-
         NbtMap tag = blockEntity.getChunkTag().toBuilder().putString("Text", String.join("\n", lines)).build();
         BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
         blockEntityDataPacket.setBlockPosition(position);
@@ -3400,4 +3401,5 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         ENCHANT,
         BEACON
     }
+
 }

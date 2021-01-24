@@ -55,6 +55,10 @@ public interface AxisAlignedBB extends Cloneable {
         return this;
     }
 
+    default AxisAlignedBB offset(Vector3i v) {
+        return offset(v.getX(), v.getY(), v.getZ());
+    }
+
     default AxisAlignedBB offset(Vector3f v) {
         return offset(v.getX(), v.getY(), v.getZ());
     }

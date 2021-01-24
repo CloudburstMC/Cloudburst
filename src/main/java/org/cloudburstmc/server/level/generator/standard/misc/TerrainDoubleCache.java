@@ -24,8 +24,8 @@ public abstract class TerrainDoubleCache {
     public TerrainDoubleCache(
             @JsonProperty(value = "radius", required = true) int radius,
             @JsonProperty(value = "scale", required = true) int scale) {
-        this.radius = PValidation.ensureNonNegative(radius);
-        this.scale = PValidation.ensureNonNegative(scale);
+        this.radius = (int) PValidation.notNegative(radius);
+        this.scale = (int) PValidation.notNegative(scale);
     }
 
     public double get(int x, int z) {

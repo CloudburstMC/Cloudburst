@@ -8,13 +8,13 @@
 Introduction
 -------------
 
-Cloudburst is nuclear-powered server software for Minecraft: Bedrock Edition.
+Cloudburst is a server software for Minecraft: Bedrock Edition.
 It has a few key advantages over other server software:
 
 * Written in Java, Cloudburst is faster and more stable.
 * Having a friendly structure, it's easy to contribute to Cloudburst's development and rewrite plugins from other platforms into Cloudburst plugins.
 
-Cloudburst is **under improvement** yet, we welcome contributions. 
+Cloudburst is **under improvement**, yet we welcome contributions. 
 
 Links
 --------------------
@@ -41,7 +41,7 @@ Simply run `java -jar Cloudburst.jar`.
 
 Plugin API
 -------------
-Information on Cloudburst's API can be found at the [wiki](https://cloudburstmc.org/wiki/nukkit/).
+Information on Cloudburst's API can be found at the [wiki](https://cloudburstmc.org/wiki/cloudburst/).
 
 Docker
 -------------

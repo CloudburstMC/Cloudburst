@@ -157,8 +157,8 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
         tag.listenForBoolean("Hardcore", data::setHardcore);
 
         GameRuleRegistry.get().getRules().forEach(rule -> {
-            NbtMap gameRuleTag = tag.getCompound(rule.getName().toLowerCase());
-            Object value = gameRuleTag == null ? null : gameRuleTag.get(0);
+            Object value = tag.get(rule.getName().toLowerCase());
+
             if (value instanceof Byte) {
                 data.getGameRules().put((GameRule<Boolean>) rule, (byte) value != 0);
             } else if (value instanceof Integer) {

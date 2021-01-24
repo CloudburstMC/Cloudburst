@@ -1,10 +1,12 @@
 package org.cloudburstmc.server.scheduler;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.server.plugin.PluginManager;
 import org.cloudburstmc.server.utils.PluginException;
 
+import javax.annotation.Nonnull;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.ArrayDeque;
 import java.util.Map;
@@ -14,6 +16,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Nukkit Project Team
  */
@@ -21,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Singleton
 public class ServerScheduler {
 
+    private final PluginManager pluginManager;
     private final ForkJoinPool asyncPool;
 
     private final Queue<TaskHandler> pending;
@@ -30,7 +35,9 @@ public class ServerScheduler {
 
     private volatile int currentTick = -1;
 
-    public ServerScheduler() {
+    @Inject
+    public ServerScheduler(PluginManager pluginManager) {
+        this.pluginManager = pluginManager;
         this.pending = new ConcurrentLinkedQueue<>();
         this.currentTaskId = new AtomicInteger();
         this.queueMap = new ConcurrentHashMap<>();
@@ -43,38 +50,38 @@ public class ServerScheduler {
     }
 
     /**
-     * @deprecated Use {@link #scheduleTask(PluginContainer, Runnable)}
+     * @deprecated Use {@link #scheduleTask(Object, Runnable)}
      */
     @Deprecated
     public TaskHandler scheduleTask(Runnable task) {
         return addTask(null, task, 0, 0, false);
     }
 
-    public TaskHandler scheduleTask(PluginContainer plugin, Runnable task) {
+    public TaskHandler scheduleTask(Object plugin, Runnable task) {
         return addTask(plugin, task, 0, 0, false);
     }
 
     /**
-     * @deprecated Use {@link #scheduleTask(PluginContainer, Runnable, boolean)}
+     * @deprecated Use {@link #scheduleTask(Object, Runnable, boolean)}
      */
     @Deprecated
     public TaskHandler scheduleTask(Runnable task, boolean asynchronous) {
         return addTask(null, task, 0, 0, asynchronous);
     }
 
-    public TaskHandler scheduleTask(PluginContainer plugin, Runnable task, boolean asynchronous) {
+    public TaskHandler scheduleTask(Object plugin, Runnable task, boolean asynchronous) {
         return addTask(plugin, task, 0, 0, asynchronous);
     }
 
     /**
-     * @deprecated Use {@link #scheduleAsyncTask(PluginContainer, AsyncTask)}
+     * @deprecated Use {@link #scheduleAsyncTask(Object, AsyncTask)}
      */
     @Deprecated
     public TaskHandler scheduleAsyncTask(AsyncTask task) {
         return addTask(null, task, 0, 0, true);
     }
 
-    public TaskHandler scheduleAsyncTask(PluginContainer plugin, AsyncTask task) {
+    public TaskHandler scheduleAsyncTask(Object plugin, AsyncTask task) {
         return addTask(plugin, task, 0, 0, true);
     }
 
@@ -100,50 +107,50 @@ public class ServerScheduler {
     }
 
     /**
-     * @deprecated Use {@link #scheduleDelayedTask(PluginContainer, Runnable, int)}
+     * @deprecated Use {@link #scheduleDelayedTask(Object, Runnable, int)}
      */
     @Deprecated
     public TaskHandler scheduleDelayedTask(Runnable task, int delay) {
         return addTask(null, task, delay, 0, false);
     }
 
-    public TaskHandler scheduleDelayedTask(PluginContainer plugin, Runnable task, int delay) {
+    public TaskHandler scheduleDelayedTask(Object plugin, Runnable task, int delay) {
         return addTask(plugin, task, delay, 0, false);
     }
 
     /**
-     * @deprecated Use {@link #scheduleDelayedTask(PluginContainer, Runnable, int, boolean)}
+     * @deprecated Use {@link #scheduleDelayedTask(Object, Runnable, int, boolean)}
      */
     @Deprecated
     public TaskHandler scheduleDelayedTask(Runnable task, int delay, boolean asynchronous) {
         return addTask(null, task, delay, 0, asynchronous);
     }
 
-    public TaskHandler scheduleDelayedTask(PluginContainer plugin, Runnable task, int delay, boolean asynchronous) {
+    public TaskHandler scheduleDelayedTask(Object plugin, Runnable task, int delay, boolean asynchronous) {
         return addTask(plugin, task, delay, 0, asynchronous);
     }
 
     /**
-     * @deprecated Use {@link #scheduleRepeatingTask(PluginContainer, Runnable, int)}
+     * @deprecated Use {@link #scheduleRepeatingTask(Object, Runnable, int)}
      */
     @Deprecated
     public TaskHandler scheduleRepeatingTask(Runnable task, int period) {
         return addTask(null, task, 0, period, false);
     }
 
-    public TaskHandler scheduleRepeatingTask(PluginContainer plugin, Runnable task, int period) {
+    public TaskHandler scheduleRepeatingTask(Object plugin, Runnable task, int period) {
         return addTask(plugin, task, 0, period, false);
     }
 
     /**
-     * @deprecated Use {@link #scheduleRepeatingTask(PluginContainer, Runnable, int, boolean)}
+     * @deprecated Use {@link #scheduleRepeatingTask(Object, Runnable, int, boolean)}
      */
     @Deprecated
     public TaskHandler scheduleRepeatingTask(Runnable task, int period, boolean asynchronous) {
         return addTask(null, task, 0, period, asynchronous);
     }
 
-    public TaskHandler scheduleRepeatingTask(PluginContainer plugin, Runnable task, int period, boolean asynchronous) {
+    public TaskHandler scheduleRepeatingTask(Object plugin, Runnable task, int period, boolean asynchronous) {
         return addTask(plugin, task, 0, period, asynchronous);
     }
 
@@ -164,26 +171,26 @@ public class ServerScheduler {
     }
 
     /**
-     * @deprecated Use {@link #scheduleDelayedRepeatingTask(PluginContainer, Runnable, int, int)}
+     * @deprecated Use {@link #scheduleDelayedRepeatingTask(Object, Runnable, int, int)}
      */
     @Deprecated
     public TaskHandler scheduleDelayedRepeatingTask(Runnable task, int delay, int period) {
         return addTask(null, task, delay, period, false);
     }
 
-    public TaskHandler scheduleDelayedRepeatingTask(PluginContainer plugin, Runnable task, int delay, int period) {
+    public TaskHandler scheduleDelayedRepeatingTask(Object plugin, Runnable task, int delay, int period) {
         return addTask(plugin, task, delay, period, false);
     }
 
     /**
-     * @deprecated Use {@link #scheduleDelayedRepeatingTask(PluginContainer, Runnable, int, int, boolean)}
+     * @deprecated Use {@link #scheduleDelayedRepeatingTask(Object, Runnable, int, int, boolean)}
      */
     @Deprecated
     public TaskHandler scheduleDelayedRepeatingTask(Runnable task, int delay, int period, boolean asynchronous) {
         return addTask(null, task, delay, period, asynchronous);
     }
 
-    public TaskHandler scheduleDelayedRepeatingTask(PluginContainer plugin, Runnable task, int delay, int period, boolean asynchronous) {
+    public TaskHandler scheduleDelayedRepeatingTask(Object plugin, Runnable task, int delay, int period, boolean asynchronous) {
         return addTask(plugin, task, delay, period, asynchronous);
     }
 
@@ -197,15 +204,13 @@ public class ServerScheduler {
         }
     }
 
-    public void cancelTask(PluginContainer plugin) {
-        if (plugin == null) {
-            throw new NullPointerException("Plugin cannot be null!");
-        }
+    public void cancelTask(Object plugin) {
+        PluginContainer container = ensurePlugin(plugin);
         for (Map.Entry<Integer, TaskHandler> entry : taskMap.entrySet()) {
             TaskHandler taskHandler = entry.getValue();
             // TODO: Remove the "taskHandler.getPlugin() == null" check
             // It is only there for backwards compatibility!
-            if (taskHandler.getPlugin() == null || plugin.equals(taskHandler.getPlugin())) {
+            if (container == taskHandler.getPlugin()) {
                 try {
                     taskHandler.cancel(); /* It will remove from task map automatic in next main heartbeat. */
                 } catch (RuntimeException ex) {
@@ -237,16 +242,9 @@ public class ServerScheduler {
     }
 
     private TaskHandler addTask(Object plugin, Runnable task, int delay, int period, boolean asynchronous) {
+        PluginContainer container = plugin != null ? ensurePlugin(plugin) : null;
         if (delay < 0 || period < 0) {
             throw new PluginException("Attempted to register a task with negative delay or period.");
-        }
-
-        PluginContainer container = null;
-
-        if (plugin != null) {
-            container = Server.getInstance().getPluginManager().fromInstance(plugin).orElseThrow(() ->
-                    new PluginException("Attempted to register a task with non-plugin object: " + plugin)
-            );
         }
 
         TaskHandler taskHandler = new TaskHandler(container, task, nextTaskId(), asynchronous);
@@ -330,6 +328,13 @@ public class ServerScheduler {
 
     private int nextTaskId() {
         return currentTaskId.incrementAndGet();
+    }
+
+    @Nonnull
+    private PluginContainer ensurePlugin(Object plugin) {
+        checkNotNull(plugin, "plugin");
+        return this.pluginManager.fromInstance(plugin).orElseThrow(() ->
+                new IllegalArgumentException("Object is not a registered plugin"));
     }
 
     public static class ExceptionHandler implements Thread.UncaughtExceptionHandler {

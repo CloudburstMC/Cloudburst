@@ -220,7 +220,7 @@ public class CraftingManager {
                         break;
                 }
             } catch (RegistryException e) {
-                // ignore non-implemented items
+                log.warn("Skipping recipe due to unimplemented item/block: " + recipe);
             } catch (Exception e) {
                 log.error("Exception during registering recipe: " + recipe, e);
             }

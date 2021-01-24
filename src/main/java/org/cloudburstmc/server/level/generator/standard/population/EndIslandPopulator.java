@@ -12,8 +12,8 @@ import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Objects;
 
-import static net.daporkchop.lib.math.primitive.PMath.ceilI;
-import static net.daporkchop.lib.math.primitive.PMath.floorI;
+import static net.daporkchop.lib.common.math.PMath.ceilI;
+import static net.daporkchop.lib.common.math.PMath.floorI;
 
 /**
  * @author DaPorkchop_

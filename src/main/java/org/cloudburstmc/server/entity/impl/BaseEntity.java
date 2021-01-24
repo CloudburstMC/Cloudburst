@@ -44,6 +44,7 @@ import org.cloudburstmc.server.level.EnumLevel;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.level.gamerule.GameRules;
 import org.cloudburstmc.server.math.*;
 import org.cloudburstmc.server.metadata.MetadataValue;
 import org.cloudburstmc.server.metadata.Metadatable;
@@ -227,6 +228,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     @Override
     public void loadAdditionalData(NbtMap tag) {
+        this.tag = tag;
+
         tag.listenForList("Pos", NbtType.FLOAT, list -> {
             this.setPosition(Vector3f.from(list.get(0), list.get(1), list.get(2)));
         });
@@ -263,6 +266,10 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
+        if (this.tag != null && !this.tag.isEmpty()) {
+            tag.putAll(this.tag);
+        }
+
         if (this.hasNameTag()) {
             tag.putString("CustomName", this.getNameTag());
             tag.putBoolean("CustomNameVisible", this.isNameTagVisible());
@@ -1277,7 +1284,12 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public void fall(float fallDistance) {
+        if (this.isPlayer && !level.getGameRules().get(GameRules.FALL_DAMAGE)) {
+            return;
+        }
+
         float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(Effect.JUMP) ? this.getEffect(Effect.JUMP).getAmplifier() + 1 : 0));
+
         if (damage > 0) {
             this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.FALL, damage));
         }
@@ -1404,7 +1416,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         float percent;
 
         if (blockType == WATER || blockType == FLOWING_WATER) {
-            percent = BlockBehaviorLiquid.getFluidHeightPercent(block.getState());
+            percent = BlockBehaviorLiquid.getFluidHeightPercent(state);
         } else {
             return false;
         }
@@ -1415,13 +1427,14 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     public boolean isInsideOfSolid() {
         double y = this.getY() + this.getEyeHeight();
-        BlockState state = this.level.getBlockAt(Vector3i.from(this.getX(), y, this.getZ()));
+        Vector3i pos = Vector3i.from(this.getX(), y, this.getZ());
+        BlockState state = this.level.getBlockAt(pos);
 
         if (state == null) {
             return true;
         }
 
-        AxisAlignedBB bb = state.getBehavior().getBoundingBox();
+        AxisAlignedBB bb = state.getBehavior().getBoundingBox(pos);
 
         return bb != null && state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT) && bb.intersectsWith(this.getBoundingBox());
 

@@ -82,8 +82,8 @@ public class CommandRegistry implements Registry {
         Preconditions.checkArgument(NAME_MATCHER.matches(), "Invalid command name: %s", name);
 
         if (knownAliases.containsKey(name)) {
-            log.warn("Command with name {} already exists, attempting to add prefix {}", name, plugin.getName());
-            name = plugin.getName().toLowerCase() + ":" + name;
+            log.warn("Command with name {} already exists, attempting to add prefix {}", name, plugin.getDescription().getName());
+            name = plugin.getDescription().getName().toLowerCase() + ":" + name;
             command.setRegisteredName(name);
         }
         registerInternal(name, command);
@@ -174,7 +174,7 @@ public class CommandRegistry implements Registry {
             Command cmd = this.registeredCommands.get(cmdName);
             if (cmd instanceof PluginCommand) {
                 log.warn("Alias {} already registered, trying with plugin prefix", alias);
-                alias = ((PluginCommand<?>) cmd).getPlugin().getName().toLowerCase() + ":" + alias;
+                alias = ((PluginCommand<?>) cmd).getPlugin().getDescription().getName().toLowerCase() + ":" + alias;
             }
         }
 
@@ -219,8 +219,9 @@ public class CommandRegistry implements Registry {
                 aliasesToRemove.add(entry.getKey());
             }
         }
-        for (String alias : aliasesToRemove)
+        for (String alias : aliasesToRemove) {
             knownAliases.remove(alias);
+        }
     }
 
     /**
@@ -458,6 +459,7 @@ public class CommandRegistry implements Registry {
         this.registerInternal("say", new SayCommand());
         this.registerInternal("scoreboard", new ScoreboardCommand());
         this.registerInternal("seed", new SeedCommand());
+        this.registerInternal("setblock", new SetBlockCommand());
         this.registerInternal("setworldspawn", new SetWorldSpawnCommand());
         this.registerInternal("spawnpoint", new SpawnpointCommand());
         this.registerInternal("tp", new TeleportCommand());

@@ -8,7 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -30,7 +30,7 @@ public class ItemRegistry implements Registry {
         InputStream stream = RegistryUtils.getOrAssertResource("data/runtime_item_states.json"); //TODO: use legacy_item_ids.json instead
 
         try {
-            VANILLA_ITEMS = Nukkit.JSON_MAPPER.readValue(stream, new TypeReference<List<ItemData>>() {
+            VANILLA_ITEMS = Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<List<ItemData>>() {
             });
         } catch (IOException e) {
             throw new AssertionError("Unable to load vanilla items", e);
@@ -108,9 +108,16 @@ public class ItemRegistry implements Registry {
         ItemFactory itemFactory = this.factoryMap.get(identifier);
         if (itemFactory == null) {
             if (this.blockRegistry.isBlock(identifier)) {
-                return new BlockItem(BlockStateMetaMappings.getStateFromMeta(identifier, meta));
+                BlockState state = BlockStateMetaMappings.getStateFromMeta(identifier, meta);
+                if (state == null) {
+                    throw new RegistryException("Item '" + identifier + "' is not registered");
+                }
+                return new BlockItem(state);
             } else {
-                throw new RegistryException("Item '" + identifier + "' is not registered");
+                log.warn("Registering unknown item {}", identifier);
+                itemFactory = SimpleItem::new;
+                this.factoryMap.put(identifier, itemFactory);
+                this.runtimeIdMap.put(this.runtimeIdAllocator.getAndIncrement(), identifier);
             }
         }
         return itemFactory.create(identifier);

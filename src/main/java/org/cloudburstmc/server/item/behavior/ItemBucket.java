@@ -84,6 +84,10 @@ public class ItemBucket extends Item {
 
     @Override
     public boolean onActivate(Level level, Player player, Block block, Block target, Direction face, Vector3f clickPos) {
+        if (player.isAdventure()) {
+            return false;
+        }
+
         BlockState bucketContents = BlockState.get(getBlockIdFromDamage(this.getMeta()));
 
         if (bucketContents == BlockStates.AIR) {
@@ -118,7 +122,13 @@ public class ItemBucket extends Item {
                         Item clone = this.clone();
                         clone.setCount(this.getCount() - 1);
                         player.getInventory().setItemInHand(clone);
-                        player.getInventory().addItem(ev.getItem());
+                        if (this.getCount() == 1) {
+                            player.getInventory().setItemInHand(ev.getItem());
+                        } else if (player.getInventory().canAddItem(ev.getItem())) {
+                            player.getInventory().addItem(ev.getItem());
+                        } else {
+                            player.dropItem(ev.getItem());
+                        }
                     }
 
                     if (liquid.getType() == LAVA) {
@@ -165,7 +175,7 @@ public class ItemBucket extends Item {
                     Item clone = this.clone();
                     clone.setCount(this.getCount() - 1);
                     player.getInventory().setItemInHand(clone);
-                    player.getInventory().addItem(ev.getItem());
+                    player.getInventory().setItemInHand(ev.getItem());
                 }
 
                 if (this.getMeta() == 10) {
@@ -193,6 +203,10 @@ public class ItemBucket extends Item {
 
     @Override
     public boolean onUse(Player player, int ticksUsed) {
+        if (player.isSpectator()) {
+            return false;
+        }
+
         PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, this);
 
         player.getServer().getEventManager().fire(consumeEvent);
@@ -201,7 +215,7 @@ public class ItemBucket extends Item {
             return false;
         }
 
-        if (player.isSurvival()) {
+        if (!player.isCreative()) {
             this.decrementCount();
             player.getInventory().setItemInHand(this);
             player.getInventory().addItem(Item.get(ItemIds.BUCKET));

@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.plugin.event.firehandler;
+package org.cloudburstmc.server.event.firehandler;
 
 import co.aikar.timings.Timing;
 import lombok.RequiredArgsConstructor;
@@ -6,7 +6,6 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.event.EventFireHandler;
 import org.cloudburstmc.server.event.Listener;
-import org.cloudburstmc.server.utils.EventException;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
@@ -35,7 +34,7 @@ public class ReflectionEventFireHandler implements EventFireHandler {
             try {
                 method.run(event);
             } catch (InvocationTargetException | IllegalAccessException e) {
-                throw new EventException(e, "Exception occurred while executing method " + method + " for " + event);
+                log.error("Exception occurred while executing method " + method + " for " + event, e);
             }
         }
         long differenceTaken = System.nanoTime() - start;

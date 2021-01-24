@@ -2,7 +2,6 @@ package org.cloudburstmc.server.plugin;
 
 import com.google.inject.Injector;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.server.event.EventManager;
 import org.cloudburstmc.server.plugin.util.DirectedAcyclicGraph;
 import org.cloudburstmc.server.plugin.util.GraphException;
@@ -21,8 +20,9 @@ import java.util.*;
 @ParametersAreNonnullByDefault
 @Singleton
 public class CloudPluginManager implements PluginManager {
-    private final Map<Object, PluginContainer> plugins = new HashMap<>();
-    private final Map<Class<?>, PluginLoader> loaders = new HashMap<>();
+    private final Map<String, PluginContainer> plugins = new HashMap<>();
+    private final Map<Object, PluginContainer> pluginInstances = new IdentityHashMap<>();
+    private final Map<Class<?>, PluginLoader> loaders = new IdentityHashMap<>();
 
     private final Injector injector;
     private final EventManager eventManager;
@@ -68,7 +68,7 @@ public class CloudPluginManager implements PluginManager {
     @Override
     public Optional<PluginContainer> fromInstance(Object instance) {
         Objects.requireNonNull(instance, "instance");
-        return Optional.ofNullable(plugins.get(instance));
+        return Optional.ofNullable(pluginInstances.get(instance));
     }
 
     @Override
@@ -112,7 +112,7 @@ public class CloudPluginManager implements PluginManager {
             for (PluginDependency dependency : description.getDependencies()) {
                 Optional<PluginContainer> loadedPlugin = getPlugin(dependency.getId());
                 if ((!loadedPlugin.isPresent() && !dependency.isOptional()) ||
-                        (loadedPlugin.isPresent() && !loadedPlugin.get().getVersion().equals(dependency.getVersion()))) {
+                        (loadedPlugin.isPresent() && !loadedPlugin.get().getDescription().getVersion().equals(dependency.getVersion()))) {
                     log.error("Cannot load plugin {} due to missing dependency {}", description.getId(), dependency.getId());
                     continue load;
                 }
@@ -126,10 +126,10 @@ public class CloudPluginManager implements PluginManager {
                 continue;
             }
 
-            val instance = plugin.getPlugin();
+            Object instance = plugin.getPlugin();
 
             plugins.put(description.getId(), plugin);
-            plugins.put(instance, plugin);
+            pluginInstances.put(instance, plugin);
 
             // Register main class as listener
             eventManager.registerListeners(instance, instance);

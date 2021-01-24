@@ -276,10 +276,10 @@ public class Level implements ChunkManager, Metadatable {
         this.updateQueue = new BlockUpdateScheduler(this, this.levelData.getCurrentTick());
 
         this.chunkTickRadius = Math.min(this.server.getViewDistance(),
-                Math.max(1, this.server.getConfig("chunk-ticking.tick-radius", 4)));
-        this.chunksPerTicks = this.server.getConfig("chunk-ticking.per-tick", 40);
+                Math.max(1, this.server.getConfig().getChunkTicking().getTickRadius()));
+        this.chunksPerTicks = this.server.getConfig().getChunkTicking().getPerTick();
         this.chunkTickList.clear();
-        this.clearChunksOnTick = this.server.getConfig("chunk-ticking.clear-tick-list", true);
+        this.clearChunksOnTick = this.server.getConfig().getChunkTicking().isClearTickList();
         this.tickRate = 1;
         this.chunkManager = new LevelChunkManager(this);
 
@@ -593,7 +593,7 @@ public class Level implements ChunkManager, Metadatable {
             }
 
             // Tick Weather
-            if (this.doWeatherCycle()) {
+            if (this.getDimension() != Level.DIMENSION_NETHER && this.getDimension() != Level.DIMENSION_THE_END && this.doWeatherCycle()) {
                 this.levelData.setRainTime(getRainTime() - 1);
                 if (this.levelData.getRainTime() <= 0) {
                     if (!this.setRaining(this.levelData.getRainLevel() <= 0)) {
@@ -1156,7 +1156,7 @@ public class Level implements ChunkManager, Metadatable {
                     Block block = this.getBlock(x, y, z); //TODO: check loaded block
                     BlockBehavior behavior = block.getState().getBehavior();
                     if (!behavior.canPassThrough() && behavior.collidesWithBB(block, bb)) {
-                        collides.add(behavior.getBoundingBox());
+                        collides.add(behavior.getBoundingBox(block.getPosition()));
                     }
                 }
             }
@@ -1173,12 +1173,12 @@ public class Level implements ChunkManager, Metadatable {
         return collides.toArray(new AxisAlignedBB[0]);
     }
 
-    public boolean isFullBlock(BlockState state) {
+    public boolean isFullBlock(Vector3i pos, BlockState state) {
         BlockBehavior behavior = state.getBehavior();
         if (behavior.isSolid()) {
             return true;
         }
-        AxisAlignedBB bb = behavior.getBoundingBox();
+        AxisAlignedBB bb = behavior.getBoundingBox(pos);
 
         return bb != null && bb.getAverageEdgeLength() >= 1;
     }
@@ -2308,10 +2308,10 @@ public class Level implements ChunkManager, Metadatable {
             int z = v.getFloorZ() & 0x0f;
             if (chunk != null) {
                 int y = NukkitMath.clamp(v.getFloorY(), 0, 254);
-                boolean wasAir = !this.isFullBlock(chunk.getBlock(x, y + 1, z));
+                boolean wasAir = !this.isFullBlock(Vector3i.from(x, y + 1, z), chunk.getBlock(x, y + 1, z));
                 for (; y > 0; --y) {
                     BlockState blockState = chunk.getBlock(x, y, z);
-                    if (this.isFullBlock(blockState)) {
+                    if (this.isFullBlock(Vector3i.from(x, y, z), blockState)) {
                         if (wasAir) {
                             y++;
                             break;
@@ -2322,10 +2322,10 @@ public class Level implements ChunkManager, Metadatable {
                 }
 
                 for (; y >= 0 && y < 255; y++) {
-                    BlockState blockState = chunk.getBlock(x, (y + 1), z);
-                    if (!this.isFullBlock(blockState)) {
+                    BlockState blockState = chunk.getBlock(x, y + 1, z);
+                    if (!this.isFullBlock(Vector3i.from(x, y + 1, z), blockState)) {
                         blockState = chunk.getBlock(x, y, z);
-                        if (!this.isFullBlock(blockState)) {
+                        if (!this.isFullBlock(Vector3i.from(x, y, z), blockState)) {
                             return Location.from(spawn.getX(), y, spawn.getZ(), spawn.getYaw(), spawn.getPitch(), this);
                         }
                     }

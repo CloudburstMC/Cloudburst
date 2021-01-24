@@ -8,7 +8,7 @@ import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PorkUtil;
-import org.cloudburstmc.server.Nukkit;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.Server;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -154,12 +154,12 @@ public class StandardGeneratorUtils {
         switch (id.getNamespace()) {
             case "minecraft":
             case "cloudburst":
-                in = Nukkit.class.getClassLoader().getResourceAsStream(name);
+                in = Bootstrap.class.getClassLoader().getResourceAsStream(name);
                 break;
             default:
                 val plugin = Server.getInstance().getPluginManager().getPlugin(id.getNamespace());
                 if (plugin.isPresent()) {
-                    in = plugin.get().getResource(name);
+                    in = plugin.get().getPlugin().getClass().getClassLoader().getResourceAsStream(name);
                 }
         }
         if (in == null) {

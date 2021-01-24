@@ -3,6 +3,8 @@ package org.cloudburstmc.server.plugin.loader;
 import com.google.inject.Injector;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.val;
+import org.cloudburstmc.server.inject.PluginModule;
 import org.cloudburstmc.server.plugin.*;
 import org.cloudburstmc.server.plugin.loader.java.JavaPluginClassLoader;
 import org.cloudburstmc.server.plugin.loader.java.JavaPluginDescription;
@@ -24,7 +26,6 @@ import java.nio.file.PathMatcher;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
-import java.util.jar.Manifest;
 
 public class JavaPluginLoader implements PluginLoader {
     private static final PathMatcher PATH_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.jar");
@@ -44,11 +45,6 @@ public class JavaPluginLoader implements PluginLoader {
         Objects.requireNonNull(path, "path");
 
         try (JarInputStream jis = new JarInputStream(new BufferedInputStream(Files.newInputStream(path)))) {
-            Manifest manifest = jis.getManifest();
-            if (manifest == null) {
-                throw new IllegalArgumentException("Jar has no manifest");
-            }
-
             JarEntry entry;
             while ((entry = jis.getNextJarEntry()) != null) {
                 if (entry.isDirectory() || !entry.getName().endsWith(".class")) {
@@ -87,10 +83,13 @@ public class JavaPluginLoader implements PluginLoader {
         }
 
         Path path = description.getPath().orElseThrow(() -> new IllegalArgumentException("No path in plugin description"));
-
+        Path dataDirectory = path.getParent().resolve(description.getId());
         Logger logger = LoggerFactory.getLogger(description.getId());
-        return new CloudPluginContainer(injector, path.getParent().resolve(description.getName()), description, getPluginClass(path, (JavaPluginDescription) description),
-                logger);
+
+        val pluginClass = getPluginClass(path, (JavaPluginDescription) description);
+        Injector inj = injector.createChildInjector(new PluginModule(description, logger, dataDirectory, pluginClass));
+
+        return new CloudPluginContainer(inj.getInstance(pluginClass), description, logger, dataDirectory);
     }
 
     @Nonnull
