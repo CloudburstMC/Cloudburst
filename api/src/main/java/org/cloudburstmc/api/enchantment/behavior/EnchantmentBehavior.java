@@ -46,7 +46,7 @@ public abstract class EnchantmentBehavior {
     }
 
     public boolean canEnchant(EnchantmentInstance enchantment, ItemStack item) {
-        return enchantment.getType().getTarget().canEnchantItem(item);
+        return enchantment.canEnchantItem(item);
     }
 
     public boolean isMajor() {
