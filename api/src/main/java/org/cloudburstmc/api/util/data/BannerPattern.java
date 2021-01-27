@@ -1,6 +1,5 @@
 package org.cloudburstmc.api.util.data;
 
-import com.nukkitx.nbt.NbtMap;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
@@ -12,10 +11,12 @@ public class BannerPattern {
     private final Type type;
     private final DyeColor color;
 
+/* //Todo: make this from JSON?
     public static BannerPattern fromNbtMap(NbtMap nbt) {
         return new BannerPattern(Type.getByName(nbt.containsKey("Pattern") ? nbt.getString("Pattern") : ""),
                 nbt.containsKey("Color") ? DyeColor.getByDyeData(nbt.getInt("Color")) : DyeColor.BLACK);
     }
+*/
 
     public DyeColor getColor() {
         return this.color;

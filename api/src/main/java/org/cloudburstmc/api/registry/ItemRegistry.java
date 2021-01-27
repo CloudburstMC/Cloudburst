@@ -5,12 +5,11 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.behavior.ItemBehavior;
-import org.cloudburstmc.api.item.serializer.ItemSerializer;
 import org.cloudburstmc.api.util.Identifier;
 
 public interface ItemRegistry extends Registry {
 
-    void register(ItemType type, ItemSerializer serializer, ItemBehavior behavior, Identifier... identifiers) throws RegistryException;
+    void register(ItemType type, ItemBehavior behavior, Identifier... identifiers) throws RegistryException;
 
     default ItemStack getItem(BlockState state) throws RegistryException {
         return getItem(state, 1);
