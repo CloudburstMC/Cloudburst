@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.block.trait;
 
 import com.google.common.collect.ImmutableList;
+import org.cloudburstmc.api.util.Identifier;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -14,7 +15,7 @@ public class BooleanBlockTrait extends BlockTrait<Boolean> {
     private final boolean defaultValue;
 
     private BooleanBlockTrait(String name, @Nullable String vanillaName, boolean defaultValue, boolean onlySerialize) {
-        super(name, vanillaName, Boolean.class, VALUES, onlySerialize);
+        super(Identifier.fromString(name), vanillaName, Boolean.class, VALUES, onlySerialize);
         this.defaultValue = defaultValue;
     }
 

@@ -1,13 +1,17 @@
 package org.cloudburstmc.api.block;
 
-import com.google.common.base.Enums;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import lombok.experimental.UtilityClass;
+import lombok.val;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.EnumBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.*;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 @UtilityClass
 public class BlockTraits {
@@ -66,7 +70,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<StoneType> STONE_TYPE = EnumBlockTrait.of("stone_type", StoneType.class);
     public static final EnumBlockTrait<StoneBrickType> STONE_BRICK_TYPE = EnumBlockTrait.of("stone_brick_type", StoneBrickType.class);
     public static final EnumBlockTrait<StoneSlabType> STONE_SLAB_TYPE = EnumBlockTrait.of("stone_slab_type", StoneSlabType.class);
-    public static final EnumBlockTrait<StoneSlabType> STONE_STAIRS_TYPE = EnumBlockTrait.of("stone_slab_type", StoneSlabType.class, Enums.getField().getEnumValues(StoneSlabType.class, StoneSlabType.WOOD, StoneSlabType.SMOOTH_STONE, StoneSlabType.CUT_SANDSTONE));
+    public static final EnumBlockTrait<StoneSlabType> STONE_STAIRS_TYPE = EnumBlockTrait.of("stone_slab_type", StoneSlabType.class, getEnumValues(StoneSlabType.class, StoneSlabType.WOOD, StoneSlabType.SMOOTH_STONE, StoneSlabType.CUT_SANDSTONE));
     public static final EnumBlockTrait<StoneSlabType> STONE_BUTTON_TYPE = EnumBlockTrait.of("stone_type", StoneSlabType.class, StoneSlabType.STONE, StoneSlabType.POLISHED_BLACKSTONE);
     public static final EnumBlockTrait<StoneSlabType> STONE_PRESSURE_PLATE_TYPE = EnumBlockTrait.of("stone_type", StoneSlabType.class, StoneSlabType.STONE, StoneSlabType.POLISHED_BLACKSTONE);
     public static final EnumBlockTrait<StructureBlockType> STRUCTURE_BLOCK_TYPE = EnumBlockTrait.of("structure_block_type", StructureBlockType.class);
@@ -139,4 +143,13 @@ public class BlockTraits {
     public static final BooleanBlockTrait HAS_STABILITY_CHECK = BooleanBlockTrait.of("has_stability_check", "stability_check");
     public static final BooleanBlockTrait HAS_UPDATE = BooleanBlockTrait.of("has_update", "update_bit");
     public static final BooleanBlockTrait HAS_MAP = BooleanBlockTrait.of("has_map", "item_frame_map_bit");
+
+    @SuppressWarnings({"unchecked", "ConstantConditions"})
+    private static <T extends Enum<T>> T[] getEnumValues(Class<T> value, T... except) {
+        val set = Sets.newHashSet(except);
+        val values = value.getEnumConstants();
+        val stream = Arrays.stream(values).filter(v -> !set.contains(v));
+
+        return stream.toArray((s) -> (T[]) Array.newInstance(value, s));
+    }
 }
