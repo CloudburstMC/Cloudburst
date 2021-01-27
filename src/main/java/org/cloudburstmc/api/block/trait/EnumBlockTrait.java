@@ -2,6 +2,7 @@ package org.cloudburstmc.api.block.trait;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.cloudburstmc.api.util.Identifier;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -16,7 +17,7 @@ public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
     private final E defaultValue;
 
     private EnumBlockTrait(String name, @Nullable String vanillaName, Class<E> enumClass, ImmutableList<E> possibleValues, E defaultValue) {
-        super(name, vanillaName, enumClass, possibleValues, false);
+        super(Identifier.fromString(name), vanillaName, enumClass, possibleValues, false);
         this.defaultValue = defaultValue;
     }
 

@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.block.trait;
 
-import org.cloudburstmc.server.utils.IntRange;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.IntRange;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -14,7 +15,7 @@ public final class IntegerBlockTrait extends BlockTrait<Integer> {
     private final int defaultValue;
 
     private IntegerBlockTrait(String name, @Nullable String vanillaName, IntRange range, int defaultValue, boolean onlySerialize) {
-        super(name, vanillaName, Integer.class, range, onlySerialize);
+        super(Identifier.fromString(name), vanillaName, Integer.class, range, onlySerialize);
         this.range = range;
         this.defaultValue = defaultValue;
     }

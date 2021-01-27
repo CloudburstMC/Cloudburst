@@ -7,7 +7,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
-public interface GameRuleRegistry {
+public interface GameRuleRegistry extends Registry {
 
     <T extends Comparable<T>> void register(GameRule<T> gameRule);
 

@@ -3,7 +3,7 @@ package org.cloudburstmc.api.util.data;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.util.Identifier;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.api.block.BlockIds.*;
 
 @RequiredArgsConstructor
 public enum StoneSlabType {

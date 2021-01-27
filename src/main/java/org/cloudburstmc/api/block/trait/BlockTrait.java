@@ -3,7 +3,6 @@ package org.cloudburstmc.api.block.trait;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.block.BlockTraits;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -30,16 +29,16 @@ public abstract class BlockTrait<E extends Comparable<E>> {
         this.onlySerialize = onlySerialize;
         this.possibleValues = ImmutableList.copyOf(possibleValues);
 
-        BlockTraits.register(this);
+        //BlockTraits.register(this);
     }
 
-    public String getVanillaName() {
+/*    public String getVanillaName() {
         if (vanillaName != null) {
             return vanillaName;
         }
 
         return name;
-    }
+    }*/
 
     public abstract E getDefaultValue();
 
