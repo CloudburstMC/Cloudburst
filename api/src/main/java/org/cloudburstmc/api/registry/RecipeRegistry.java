@@ -9,7 +9,7 @@ import java.util.Collection;
 
 public interface RecipeRegistry extends Registry {
 
-    void register(Identifier identifier, Recipe recipe) throws RegistryException;
+    void register(Recipe recipe) throws RegistryException;
 
     void loadFromFile(Path file);
 
