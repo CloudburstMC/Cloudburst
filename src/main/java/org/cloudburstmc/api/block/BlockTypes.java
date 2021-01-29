@@ -280,4 +280,6 @@ public class BlockTypes {
     public static final BlockType WITHER_ROSE = BlockType.of(Identifiers.WITHER_ROSE);
     public static final BlockType STRUCTURE_VOID = BlockType.of(Identifiers.STRUCTURE_VOID);
     public static final BlockType QUARTZ_BRICKS = BlockType.of(Identifiers.QUARTZ_BRICKS);
+
+    public static final BlockType UNKNOWN = BlockType.of(Identifiers.UNKNOWN);
 }

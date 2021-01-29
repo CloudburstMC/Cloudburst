@@ -3,8 +3,13 @@ package org.cloudburstmc.api.block;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.cloudburstmc.api.block.trait.BlockTrait;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.TierType;
+import org.cloudburstmc.api.item.ToolType;
 import org.cloudburstmc.api.util.Identifier;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.util.*;
 import java.util.function.Consumer;
@@ -14,7 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Immutable
-public final class BlockType {
+public final class BlockType implements ItemType {
 
     private final Identifier id;
     private final Set<BlockTrait<?>> traits;
@@ -122,5 +127,49 @@ public final class BlockType {
         }
 
         return states.build();
+    }
+
+    @Override
+    public boolean isBlock() {
+        return true;
+    }
+
+    @Override
+    public boolean isPlaceable() {
+        return false;
+    }
+
+    @Nullable
+    @Override
+    public BlockType getBlock() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Class<?> getMetadataClass() {
+        return null;
+    }
+
+    @Override
+    public int getMaximumStackSize() {
+        return 0;
+    }
+
+    @Override
+    public ItemStack createItem(int amount, Object... metadata) {
+        return null; // TODO
+    }
+
+    @Nullable
+    @Override
+    public ToolType getToolType() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public TierType getTierType() {
+        return null;
     }
 }
