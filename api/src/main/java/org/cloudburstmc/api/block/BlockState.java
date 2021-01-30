@@ -13,13 +13,13 @@ import java.util.Map;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-public final class BlockState {
+public class BlockState {
 
     private final BlockType type;
     private final Map<BlockTrait<?>, Comparable<?>> traits;
     private Map<BlockTrait<?>, BlockState[]> blockStates;
 
-    BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits) {
+    public BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits) {
         this.type = type;
         this.traits = traits;
     }
@@ -61,6 +61,10 @@ public final class BlockState {
         }
 
         return result;
+    }
+
+    public boolean inCategory(BlockCategory category) {
+        return BlockCategories.inCategory(this.getType(), category);
     }
 
     @Override

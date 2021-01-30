@@ -15,7 +15,7 @@ public interface RecipeRegistry extends Registry {
 
     Recipe getRecipe(Identifier identifier);
 
-    Recipe matchRecipe(ItemStack[][] inputMap, ItemStack output, ItemStack[][] extraOutputMap);
+    Recipe matchRecipe(ItemStack[][] inputMap, ItemStack output, ItemStack[][] extraOutputMap, Identifier craftingBlock);
 
     Collection<Recipe> getRecipes();
 }
