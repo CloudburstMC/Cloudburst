@@ -1,13 +1,12 @@
 package org.cloudburstmc.server.inventory;
 
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
-import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.api.inventory.RecipeType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.item.ItemStacks;
-import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
@@ -18,15 +17,13 @@ import java.util.*;
  */
 public class ShapedRecipe implements CraftingRecipe {
 
-    private final String recipeId;
+    private final Identifier recipeId;
     private final ItemStack primaryResult;
     private final ImmutableList<ItemStack> extraResults;
     private final CharObjectHashMap<ItemStack> ingredients = new CharObjectHashMap<>();
     private final String[] shape;
     private final int priority;
     private final Identifier block;
-
-    private UUID id;
 
     /**
      * Constructs a ShapedRecipe instance.
@@ -43,7 +40,7 @@ public class ShapedRecipe implements CraftingRecipe {
      *                         <p>
      *                         Note: Recipes **do not** need to be square. Do NOT add padding for empty rows/columns.
      */
-    public ShapedRecipe(String recipeId, int priority, ItemStack primaryResult, String[] shape,
+    public ShapedRecipe(Identifier recipeId, int priority, ItemStack primaryResult, String[] shape,
                         CharObjectMap<ItemStack> ingredients, List<ItemStack> extraResults, Identifier block) {
         this.recipeId = recipeId;
         this.priority = priority;
@@ -53,12 +50,11 @@ public class ShapedRecipe implements CraftingRecipe {
         }
 
         int columnCount = shape[0].length();
-        if (columnCount > 3 || rowCount <= 0) {
+        if (columnCount > 3 || columnCount <= 0) {
             throw new RuntimeException("Shaped recipes may only have 1, 2 or 3 columns, not " + columnCount);
         }
 
 
-        //for($shape as $y => $row) {
         for (String row : shape) {
             if (row.length() != columnCount) {
                 throw new RuntimeException("Shaped recipe rows must all have the same length (expected " + columnCount + ", got " + row.length() + ")");
@@ -97,18 +93,8 @@ public class ShapedRecipe implements CraftingRecipe {
     }
 
     @Override
-    public String getRecipeId() {
+    public Identifier getId() {
         return this.recipeId;
-    }
-
-    @Override
-    public UUID getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     public ShapedRecipe setIngredient(String key, ItemStack item) {
@@ -161,11 +147,6 @@ public class ShapedRecipe implements CraftingRecipe {
     }
 
     @Override
-    public void registerToCraftingManager(CraftingManager manager) {
-        manager.registerShapedRecipe(this);
-    }
-
-    @Override
     public RecipeType getType() {
         return RecipeType.SHAPED;
     }
@@ -177,9 +158,9 @@ public class ShapedRecipe implements CraftingRecipe {
 
     @Override
     public List<ItemStack> getAllResults() {
-        List<ItemStack> list = new ArrayList<>(this.extraResults);
-        list.add(primaryResult);
-
+        List<ItemStack> list = new ArrayList<>();
+        list.add(this.primaryResult);
+        list.addAll(this.extraResults);
         return list;
     }
 
@@ -274,12 +255,5 @@ public class ShapedRecipe implements CraftingRecipe {
     @Override
     public boolean requiresCraftingTable() {
         return this.getHeight() > 2 || this.getWidth() > 2;
-    }
-
-    @Override
-    public CraftingData toNetwork(int netId) {
-        return CraftingData.fromShaped(this.recipeId, this.getWidth(), this.getHeight(),
-                ItemUtils.toNetwork(this.getIngredientList()), ItemUtils.toNetwork(this.getAllResults()), this.getId(),
-                this.block.getName(), this.priority, netId);
     }
 }

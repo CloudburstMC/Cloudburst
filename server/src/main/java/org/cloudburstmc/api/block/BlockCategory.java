@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.block;
+package org.cloudburstmc.api.block;
 
 public enum BlockCategory {
     SOLID,

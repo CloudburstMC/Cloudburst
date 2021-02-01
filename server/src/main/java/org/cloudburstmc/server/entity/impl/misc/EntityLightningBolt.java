@@ -2,10 +2,10 @@ package org.cloudburstmc.server.entity.impl.misc;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
@@ -19,8 +19,8 @@ import org.cloudburstmc.server.math.AxisAlignedBB;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
-import static org.cloudburstmc.server.block.BlockTypes.TALL_GRASS;
+import static org.cloudburstmc.api.block.BlockTypes.AIR;
+import static org.cloudburstmc.api.block.BlockTypes.TALL_GRASS;
 
 /**
  * Created by boybook on 2016/2/27.

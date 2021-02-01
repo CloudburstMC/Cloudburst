@@ -6,10 +6,10 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.val;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
 import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 public class TreeSpeciesSerializer extends DefaultItemSerializer {

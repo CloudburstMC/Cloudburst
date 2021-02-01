@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.BROWN_MUSHROOM;
+import static org.cloudburstmc.api.block.BlockTypes.BROWN_MUSHROOM;
 
 public class BlockBehaviorHugeMushroomBrown extends BlockBehaviorSolid {
     public static final int NONE = 0;

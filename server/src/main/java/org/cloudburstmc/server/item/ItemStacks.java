@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.item;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.item.ItemStack;
 
 @UtilityClass
 public class ItemStacks {

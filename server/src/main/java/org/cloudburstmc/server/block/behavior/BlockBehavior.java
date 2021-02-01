@@ -3,11 +3,11 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.ToolTypes;
@@ -21,8 +21,8 @@ import org.cloudburstmc.server.utils.BlockColor;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.cloudburstmc.server.block.BlockTypes.WEB;
-import static org.cloudburstmc.server.block.BlockTypes.WOOL;
+import static org.cloudburstmc.api.block.BlockTypes.WEB;
+import static org.cloudburstmc.api.block.BlockTypes.WOOL;
 
 public abstract class BlockBehavior {
 

@@ -8,6 +8,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.AddItemEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import lombok.val;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
@@ -17,7 +18,6 @@ import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.server.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.Location;
@@ -28,8 +28,8 @@ import javax.annotation.Nonnull;
 import static com.nukkitx.network.util.Preconditions.checkArgument;
 import static com.nukkitx.network.util.Preconditions.checkNotNull;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.OWNER_EID;
-import static org.cloudburstmc.server.block.BlockTypes.FLOWING_WATER;
-import static org.cloudburstmc.server.block.BlockTypes.WATER;
+import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
+import static org.cloudburstmc.api.block.BlockTypes.WATER;
 
 /**
  * @author MagicDroidX

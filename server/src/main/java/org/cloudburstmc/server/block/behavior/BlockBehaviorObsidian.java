@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.PORTAL;
+import static org.cloudburstmc.api.block.BlockTypes.PORTAL;
 
 public class BlockBehaviorObsidian extends BlockBehaviorSolid {
 

@@ -2,21 +2,24 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.*;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.trait.BlockTrait;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.RailDirection;
+import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.Rail;
-import org.cloudburstmc.server.utils.data.RailDirection;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.cloudburstmc.server.block.BlockTypes.RAIL;
+import static org.cloudburstmc.api.block.BlockTypes.RAIL;
 
 public class BlockBehaviorRail extends FloodableBlockBehavior {
 

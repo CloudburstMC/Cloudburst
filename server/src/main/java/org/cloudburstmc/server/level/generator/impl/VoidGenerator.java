@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.level.generator.impl;
 
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.Generator;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * A basic generator that does nothing at all, resulting in a world of nothing but air.

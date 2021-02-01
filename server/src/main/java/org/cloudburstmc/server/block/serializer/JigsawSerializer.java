@@ -2,10 +2,10 @@ package org.cloudburstmc.server.block.serializer;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockType;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.trait.BlockTrait;
+import org.cloudburstmc.api.util.Direction;
 
 import java.util.Map;
 

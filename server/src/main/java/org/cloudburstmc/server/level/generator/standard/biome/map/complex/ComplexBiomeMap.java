@@ -6,12 +6,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.random.impl.FastPRandom;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
 import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.misc.IntArrayAllocator;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.LinkedHashSet;
 import java.util.Objects;

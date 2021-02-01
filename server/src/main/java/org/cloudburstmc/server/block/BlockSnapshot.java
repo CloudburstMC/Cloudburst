@@ -1,5 +1,9 @@
 package org.cloudburstmc.server.block;
 
+import org.cloudburstmc.api.block.BlockState;
+
+import static org.cloudburstmc.api.block.BlockStates.AIR;
+
 public interface BlockSnapshot {
 
     default BlockState getState() {
@@ -14,7 +18,7 @@ public interface BlockSnapshot {
 
     default int getLiquidLayer() {
         BlockState state = getExtra();
-        if (state == BlockStates.AIR) {
+        if (state == AIR) {
             return 0;
         }
         return 1;
@@ -22,7 +26,7 @@ public interface BlockSnapshot {
 
     default BlockState getLiquid() {
         BlockState state = getExtra();
-        if (state == BlockStates.AIR) {
+        if (state == AIR) {
             return getState();
         }
         return state;

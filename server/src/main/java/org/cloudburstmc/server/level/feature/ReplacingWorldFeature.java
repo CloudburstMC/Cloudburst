@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.level.feature;
 
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
@@ -7,7 +8,6 @@ import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * Provides helper methods for other {@link WorldFeature} to quickly check if a block can be replaced.

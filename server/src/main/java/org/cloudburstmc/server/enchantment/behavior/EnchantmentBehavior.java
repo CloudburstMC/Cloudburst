@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.enchantment.behavior;
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.ItemStack;
 
 public abstract class EnchantmentBehavior {
 
@@ -48,7 +48,7 @@ public abstract class EnchantmentBehavior {
     }
 
     public boolean canEnchant(EnchantmentInstance enchantment, ItemStack item) {
-        return enchantment.getType().getTarget().canEnchantItem(item);
+        return enchantment.canEnchantItem(item);
     }
 
     public boolean isMajor() {

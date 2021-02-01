@@ -1,7 +1,8 @@
 package org.cloudburstmc.server.item.randomitem;
 
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ItemType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Created by Snake1999 on 2016/1/15.
@@ -20,7 +21,7 @@ public class ConstantItemSelector extends Selector {
     }
 
     public ConstantItemSelector(ItemType id, int count, Selector parent, Object... metadata) {
-        this(ItemStack.get(id, count, metadata), parent);
+        this(CloudItemRegistry.get().getItem(id, count, metadata), parent);
     }
 
     public ConstantItemSelector(ItemStack item, Selector parent) {

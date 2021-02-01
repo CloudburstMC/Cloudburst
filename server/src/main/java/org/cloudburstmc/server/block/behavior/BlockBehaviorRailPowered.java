@@ -1,15 +1,15 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.utils.Rail;
 import org.cloudburstmc.server.utils.data.RailDirection;
 
-import static org.cloudburstmc.server.block.BlockTypes.GOLDEN_RAIL;
+import static org.cloudburstmc.api.block.BlockTypes.GOLDEN_RAIL;
 
 public class BlockBehaviorRailPowered extends BlockBehaviorRail {
 

@@ -6,10 +6,10 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.serializer.MultiBlockSerializers.MultiBlock;
 import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.LinkedList;
 import java.util.List;

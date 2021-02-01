@@ -4,9 +4,9 @@ import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Set;
 
