@@ -3,14 +3,19 @@ package org.cloudburstmc.server.item;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.*;
+
+import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
 @UtilityClass
 public class ItemUtils {
@@ -35,7 +40,7 @@ public class ItemUtils {
 
     public static ItemStack deserializeItem(NbtMap tag) {
         if (!tag.containsKey("Name", NbtType.STRING) || !tag.containsKey("Count", NbtType.BYTE)) {
-            return registry.getItem(BlockTypes.AIR);
+            return registry.getItem(AIR);
         }
 
         return deserializeItem(
@@ -141,11 +146,36 @@ public class ItemUtils {
 
         Identifier id;
         if (data.containsKey("id")) {
-            id = registry.fromLegacy(Utils.toInt(data.get("id")));
+            try {
+                id = registry.fromLegacy(Utils.toInt(data.get("id")));  //try prior format first
+            } catch (NumberFormatException | ClassCastException e) {
+                id = Identifier.fromString(data.get("id").toString());
+            }
         } else {
-            id = Identifier.fromString("Name");
+            id = registry.fromLegacy(Utils.toInt(data.get("legacyId")));
+        }
+
+        if (id == null) {
+            throw new IllegalStateException("Unable to decode item JSON");
         }
 
         return deserializeItem(id, (short) Utils.toInt(data.getOrDefault("damage", 0)), Utils.toInt(data.getOrDefault("count", 1)), tag);
+    }
+
+    // -- Used by recipes and crafting
+    public static int getItemHash(CloudItemStack item) {
+        return Objects.hash(System.identityHashCode(item.getId()), item.getNetworkData().getDamage(), item.getAmount());
+    }
+
+    public static UUID getMultiItemHash(List<ItemStack> items) {
+        ByteBuffer buffer = ByteBuffer.allocate(items.size() * 8);
+        for (ItemStack item : items) {
+            buffer.putInt(getItemHash((CloudItemStack) item));
+        }
+        return UUID.nameUUIDFromBytes(buffer.array());
+    }
+
+    public static ItemStack createBlockItem(BlockType block, int amount, Object... metadata) {
+       return CloudItemRegistry.get().getItem(block, amount, metadata);
     }
 }

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.utils.data;
 
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.util.Identifier;
 
 import static org.cloudburstmc.server.block.BlockIds.*;
 

@@ -1,20 +1,14 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.api.inventory.Recipe;
+import org.cloudburstmc.api.item.ItemStack;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author CreeperFace
  */
 public interface CraftingRecipe extends Recipe {
-
-    String getRecipeId();
-
-    UUID getId();
-
-    void setId(UUID id);
 
     boolean requiresCraftingTable();
 

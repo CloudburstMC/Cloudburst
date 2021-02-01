@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.entity.impl.hostile;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.EntityCreature;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;

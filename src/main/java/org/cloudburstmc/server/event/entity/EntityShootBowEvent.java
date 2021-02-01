@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.event.entity;
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.item.ItemStack;
 
 /**
  * author: Box

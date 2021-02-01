@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block;
 
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.util.Identifier;
 
 @FunctionalInterface
 public interface BlockFactory {

@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.event.inventory;
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.InventoryHolder;
-import org.cloudburstmc.server.item.ItemStack;
 
 /**
  * @author CreeperFace

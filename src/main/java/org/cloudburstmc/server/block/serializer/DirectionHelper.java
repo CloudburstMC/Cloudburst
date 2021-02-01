@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block.serializer;
 import com.google.common.base.Preconditions;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
@@ -13,7 +13,7 @@ import org.cloudburstmc.server.math.NukkitMath;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 import static org.cloudburstmc.server.block.serializer.DirectionHelper.SeqType.*;
 
 @UtilityClass

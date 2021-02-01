@@ -2,8 +2,8 @@ package org.cloudburstmc.server.item.data.serializer;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Identifier;
 
 public interface ItemDataSerializer<T> {
 

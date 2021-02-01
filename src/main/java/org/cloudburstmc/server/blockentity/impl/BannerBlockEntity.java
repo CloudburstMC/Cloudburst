@@ -6,7 +6,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import lombok.val;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Banner;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.level.chunk.Chunk;

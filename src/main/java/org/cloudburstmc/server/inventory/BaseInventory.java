@@ -7,20 +7,20 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.val;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.server.event.inventory.InventoryOpenEvent;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.player.Player;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
 /**
  * author: MagicDroidX

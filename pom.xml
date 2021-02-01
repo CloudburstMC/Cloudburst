@@ -5,9 +5,10 @@
     <name>Cloudburst</name>
     <groupId>org.cloudburstmc</groupId>
     <artifactId>cloudburst-server</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.3-SNAPSHOT</version>
 
     <properties>
+        <api-version>0.0.3-SNAPSHOT</api-version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <junit.jupiter.version>5.0.0-M4</junit.jupiter.version>
@@ -86,7 +87,17 @@
         <dependency>
             <groupId>org.cloudburstmc</groupId>
             <artifactId>cloudburst-api</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${api-version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.nukkitx.fastutil</groupId>
+                    <artifactId>fastutil-int-common</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.nukkitx.fastutil</groupId>
+                    <artifactId>fastutil-reference-sets</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Terminal -->

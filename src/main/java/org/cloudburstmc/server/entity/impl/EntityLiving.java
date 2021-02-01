@@ -12,12 +12,13 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import lombok.val;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.CloudServer;
-import lombok.val;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockType;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityDamageable;
 import org.cloudburstmc.server.entity.EntityType;
@@ -27,7 +28,6 @@ import org.cloudburstmc.server.event.entity.EntityDamageByChildEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.entity.EntityDeathEvent;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.math.BlockRayTrace;
@@ -39,8 +39,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.BREATHING;
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
-import static org.cloudburstmc.server.block.BlockTypes.MAGMA;
+import static org.cloudburstmc.api.block.BlockTypes.AIR;
+import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
 
 /**
  * author: MagicDroidX

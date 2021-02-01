@@ -1,28 +1,24 @@
 package org.cloudburstmc.server.inventory;
 
 
-import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
-import lombok.val;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.ItemStack;
-
+import org.cloudburstmc.api.inventory.RecipeType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.Identifiers;
 
 public class BrewingRecipe extends MixRecipe {
 
-    public BrewingRecipe(ItemStack input, ItemStack ingredient, ItemStack output) {
-        super(input, ingredient, output);
+    public BrewingRecipe(Identifier id, ItemStack input, ItemStack ingredient, ItemStack output) {
+        super(id, input, ingredient, output);
     }
 
     @Override
-    public void registerToCraftingManager(CraftingManager manager) {
-        manager.registerBrewingRecipe(this);
+    public RecipeType getType() {
+        return RecipeType.POTION;
     }
 
-    public PotionMixData toData() {
-        val inputData = ((CloudItemStack) getInput()).getNetworkData();
-        val ingredientData = ((CloudItemStack) getIngredient()).getNetworkData();
-        val resultData = ((CloudItemStack) getResult()).getNetworkData();
-
-        return new PotionMixData(inputData.getId(), inputData.getDamage(), ingredientData.getId(), ingredientData.getDamage(), resultData.getId(), resultData.getDamage());
+    @Override
+    public Identifier getBlock() {
+        return Identifiers.BREWING_STAND;
     }
 }

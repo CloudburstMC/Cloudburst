@@ -2,8 +2,8 @@ package org.cloudburstmc.server.utils.data;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.utils.Identifier;
 
 @RequiredArgsConstructor
 @Getter

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.player.Player;
 

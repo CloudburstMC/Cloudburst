@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.generator.standard.store;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.daporkchop.lib.common.function.io.IOFunction;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.util.Identifier;
 
 import java.io.IOException;
 import java.util.HashSet;

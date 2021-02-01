@@ -26,6 +26,7 @@ package co.aikar.timings;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.val;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BlockEntity;
@@ -34,7 +35,6 @@ import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.timings.JsonUtil;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.lang.management.ManagementFactory;
 import java.util.Collection;

@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.inventory;
 
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Map;
 import java.util.TreeMap;

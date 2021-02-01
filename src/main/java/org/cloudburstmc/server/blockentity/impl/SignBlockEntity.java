@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Sign;
 import org.cloudburstmc.server.event.block.SignChangeEvent;

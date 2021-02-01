@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 public class BlockBehaviorBlueIce extends BlockBehaviorIce {

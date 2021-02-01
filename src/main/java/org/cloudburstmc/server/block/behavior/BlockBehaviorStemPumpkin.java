@@ -1,19 +1,19 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 
 public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
 

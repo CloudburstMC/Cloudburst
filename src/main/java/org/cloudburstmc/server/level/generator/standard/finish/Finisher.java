@@ -2,10 +2,10 @@ package org.cloudburstmc.server.level.generator.standard.finish;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.GenerationPass;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * Exactly identical to a {@link Populator}, but only runs after the chunk and its neighbors have been

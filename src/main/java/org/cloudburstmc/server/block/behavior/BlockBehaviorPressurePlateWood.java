@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.utils.BlockColor;
 

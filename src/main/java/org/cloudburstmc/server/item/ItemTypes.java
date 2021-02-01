@@ -2,20 +2,26 @@ package org.cloudburstmc.server.item;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import org.cloudburstmc.server.block.BlockType;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.TierType;
+import org.cloudburstmc.api.item.ToolType;
+import org.cloudburstmc.api.item.*;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.item.data.Coal;
 import org.cloudburstmc.server.item.data.Damageable;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.DyeColor;
 import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import javax.annotation.Nullable;
 
-import static org.cloudburstmc.server.item.TierTypes.*;
-import static org.cloudburstmc.server.item.ToolTypes.*;
+import static org.cloudburstmc.api.item.TierTypes.*;
+import static org.cloudburstmc.api.item.ToolTypes.*;
 
 public class ItemTypes {
 
@@ -484,7 +490,7 @@ public class ItemTypes {
             if (itemsOnly) {
                 throw new IllegalArgumentException("ID " + id + " is not valid.");
             } else {
-                return BlockTypes.byId(id);
+                return BlockRegistry.get().getBlock(id).getType();
             }
         }
         return type;

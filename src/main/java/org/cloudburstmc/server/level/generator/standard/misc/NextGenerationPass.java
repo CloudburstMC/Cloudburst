@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.generation.decorator.Decorator;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * Dummy generation pass to indicate where generation passes from the next layer down should be inserted.

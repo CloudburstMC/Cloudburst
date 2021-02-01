@@ -15,6 +15,7 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
@@ -33,7 +34,6 @@ import org.cloudburstmc.server.level.generator.standard.misc.GenerationPass;
 import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
 import org.cloudburstmc.server.level.generator.standard.store.StandardGeneratorStores;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
 import java.io.InputStream;

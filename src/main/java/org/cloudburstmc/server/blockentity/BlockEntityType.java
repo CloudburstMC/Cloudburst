@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.util.Identifier;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
