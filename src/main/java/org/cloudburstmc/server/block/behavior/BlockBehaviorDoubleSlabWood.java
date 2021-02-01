@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.server.block.BlockTraits;
 
-import static org.cloudburstmc.server.block.BlockTypes.WOODEN_SLAB;
+import static org.cloudburstmc.api.block.BlockTypes.WOODEN_SLAB;
 
 public class BlockBehaviorDoubleSlabWood extends BlockBehaviorDoubleSlab {
 

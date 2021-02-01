@@ -9,6 +9,7 @@ import com.nukkitx.nbt.NbtUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.entity.Entity;
@@ -20,7 +21,6 @@ import org.cloudburstmc.server.level.provider.anvil.palette.BiomePalette;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.NibbleArray;
 
 import java.io.IOException;

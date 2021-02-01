@@ -4,16 +4,16 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.FlowerPot;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
 /**
  * Created by Snake1999 on 2016/2/4.

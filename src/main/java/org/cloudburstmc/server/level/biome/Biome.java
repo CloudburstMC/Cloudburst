@@ -7,10 +7,10 @@ import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.random.impl.FastPRandom;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.InputStream;
 import java.util.Collections;

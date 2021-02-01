@@ -2,13 +2,13 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
@@ -16,7 +16,7 @@ import org.cloudburstmc.server.player.Player;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.FIRE;
+import static org.cloudburstmc.api.block.BlockTypes.FIRE;
 
 /**
  * Created by PetteriM1

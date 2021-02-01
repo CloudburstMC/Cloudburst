@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.generator.standard.finish.Finisher;
 import org.cloudburstmc.server.level.generator.standard.generation.decorator.Decorator;
@@ -11,7 +12,6 @@ import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
 import org.cloudburstmc.server.level.generator.standard.store.GenerationBiomeStore;
 import org.cloudburstmc.server.registry.BiomeRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Arrays;
 import java.util.stream.Stream;

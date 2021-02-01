@@ -4,7 +4,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 

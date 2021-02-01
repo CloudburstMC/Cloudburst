@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item;
 
-import org.cloudburstmc.server.block.BlockType;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.util.Identifier;
 
 import javax.annotation.Nullable;
 

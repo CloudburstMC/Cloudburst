@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level.generator.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
@@ -9,7 +10,6 @@ import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector.Entry;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * A basic generator for superflat worlds.

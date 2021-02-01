@@ -4,12 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.*;
 import org.cloudburstmc.api.level.gamerule.GameRule;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.LevelData;
 import org.cloudburstmc.server.level.gamerule.GameRuleMap;
 import org.cloudburstmc.server.level.provider.LevelDataSerializer;
 import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.LoadState;
 
 import java.io.IOException;

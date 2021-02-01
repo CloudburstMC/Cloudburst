@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory.transaction.data;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.ToString;
-import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStack;
 
 /**
  * @author CreeperFace

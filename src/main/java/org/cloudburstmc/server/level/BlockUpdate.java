@@ -2,8 +2,8 @@ package org.cloudburstmc.server.level;
 
 import com.google.common.base.Preconditions;
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockTypes;
 
 public class BlockUpdate {
 

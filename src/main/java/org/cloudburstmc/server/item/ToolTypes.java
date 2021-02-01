@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.item;
 
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.api.item.ToolType;
 
 public class ToolTypes {
     public static final ToolType SWORD = new IntTool(1.5f);

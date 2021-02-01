@@ -8,12 +8,12 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.stream.Stream;
 

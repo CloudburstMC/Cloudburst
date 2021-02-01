@@ -3,12 +3,14 @@ package org.cloudburstmc.server.block;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.trait.BlockTrait;
+import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
+import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
-import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,7 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 @ParametersAreNonnullByDefault
-public final class CloudBlockState implements BlockState {
+public final class CloudBlockState extends BlockState {
 
     private final Identifier id;
     private final BlockType type;
@@ -32,6 +34,7 @@ public final class CloudBlockState implements BlockState {
 
     CloudBlockState(Identifier id, BlockType type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
                     Reference2IntMap<BlockTrait<?>> traitPalette/*, ImmutableList<NbtMap> tags*/) {
+        super(type, traits);
         Preconditions.checkNotNull(id, "id");
         Preconditions.checkNotNull(type, "type");
         this.id = id;
@@ -42,7 +45,6 @@ public final class CloudBlockState implements BlockState {
     }
 
     @Nonnull
-    @Override
     public Identifier getId() {
         return id;
     }
@@ -58,14 +60,12 @@ public final class CloudBlockState implements BlockState {
 //    }
 
     @Nullable
-    @Override
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> T getTrait(BlockTrait<T> trait) {
         return (T) this.traits.get(trait);
     }
 
     @Nonnull
-    @Override
     public <T extends Comparable<T>> T ensureTrait(BlockTrait<T> trait) {
         return checkNotNull(this.getTrait(trait), "trait does not exist for specific block");
     }
@@ -114,13 +114,13 @@ public final class CloudBlockState implements BlockState {
         return result;
     }
 
-    @Override
+    //@Override
     public BlockBehavior getBehavior() {
         return BlockRegistry.get().getBehavior(this.type);
     }
 
     @Nonnull
-    @Override
+   // @Override
     public BlockState defaultState() {
         return defaultState;
     }

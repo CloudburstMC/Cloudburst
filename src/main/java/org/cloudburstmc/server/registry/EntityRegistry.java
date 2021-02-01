@@ -15,7 +15,9 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityFactory;
@@ -28,7 +30,6 @@ import org.cloudburstmc.server.entity.impl.passive.*;
 import org.cloudburstmc.server.entity.impl.projectile.*;
 import org.cloudburstmc.server.entity.impl.vehicle.*;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.IOException;
 import java.io.InputStream;

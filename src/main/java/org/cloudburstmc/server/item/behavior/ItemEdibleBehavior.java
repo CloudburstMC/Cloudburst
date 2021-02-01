@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.event.player.PlayerItemConsumeEvent;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.food.Food;
 import org.cloudburstmc.server.player.Player;
 

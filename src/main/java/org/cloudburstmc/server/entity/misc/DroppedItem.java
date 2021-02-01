@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity.misc;
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.ItemStack;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;

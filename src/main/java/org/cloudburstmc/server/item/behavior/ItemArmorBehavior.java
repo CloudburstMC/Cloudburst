@@ -6,9 +6,9 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.item.ArmorPartType;
 import org.cloudburstmc.server.item.ArmorPartTypes;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.player.Player;
 

@@ -2,11 +2,11 @@ package org.cloudburstmc.server.inventory.transaction;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.event.inventory.CraftItemEvent;
 import org.cloudburstmc.server.inventory.BigCraftingGrid;
 import org.cloudburstmc.server.inventory.CraftingRecipe;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.ItemTypes;
@@ -16,8 +16,8 @@ import org.cloudburstmc.server.scheduler.Task;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.cloudburstmc.server.block.BlockTypes.CRAFTING_TABLE;
-import static org.cloudburstmc.server.block.BlockTypes.FURNACE;
+import static org.cloudburstmc.api.block.BlockTypes.CRAFTING_TABLE;
+import static org.cloudburstmc.api.block.BlockTypes.FURNACE;
 
 /**
  * @author CreeperFace
@@ -136,7 +136,7 @@ public class CraftingTransaction extends InventoryTransaction {
     public boolean canExecute() {
         ItemStack[][] inputs = reindexInputs();
 
-        recipe = source.getServer().getCraftingManager().matchRecipe(inputs, this.primaryOutput, this.secondaryOutputs);
+        recipe = (CraftingRecipe) source.getServer().getRecipeRegistry().matchRecipe(inputs, this.primaryOutput, this.secondaryOutputs);
 
         return this.recipe != null && super.canExecute();
     }

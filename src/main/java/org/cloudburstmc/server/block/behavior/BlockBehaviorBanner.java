@@ -4,10 +4,10 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Banner;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.item.*;
@@ -21,8 +21,8 @@ import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.CardinalDirection;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
-import static org.cloudburstmc.server.block.BlockTypes.WALL_BANNER;
+import static org.cloudburstmc.api.block.BlockTypes.AIR;
+import static org.cloudburstmc.api.block.BlockTypes.WALL_BANNER;
 import static org.cloudburstmc.server.blockentity.BlockEntityTypes.BANNER;
 
 public class BlockBehaviorBanner extends BlockBehaviorTransparent {

@@ -2,11 +2,13 @@ package org.cloudburstmc.server.block;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.ImmutableMap;
+import org.cloudburstmc.api.block.BlockCategories;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

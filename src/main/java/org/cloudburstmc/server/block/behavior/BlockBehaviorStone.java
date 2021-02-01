@@ -2,14 +2,14 @@ package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
 import lombok.var;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.utils.data.StoneType;
 
-import static org.cloudburstmc.server.block.BlockTypes.COBBLESTONE;
+import static org.cloudburstmc.api.block.BlockTypes.COBBLESTONE;
 
 public class BlockBehaviorStone extends BlockBehaviorSolid {
 

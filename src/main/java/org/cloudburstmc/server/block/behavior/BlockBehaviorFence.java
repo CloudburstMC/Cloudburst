@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public abstract class BlockBehaviorFence extends BlockBehaviorTransparent {

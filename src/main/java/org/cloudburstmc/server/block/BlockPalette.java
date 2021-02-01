@@ -12,9 +12,11 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.trait.BlockTrait;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nullable;
 import java.util.*;

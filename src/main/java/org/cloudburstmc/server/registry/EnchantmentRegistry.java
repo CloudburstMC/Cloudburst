@@ -5,7 +5,9 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.NonNull;
+import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentType;
@@ -23,7 +25,6 @@ import org.cloudburstmc.server.enchantment.behavior.protection.*;
 import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentImpaling;
 import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentLoyalty;
 import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentRiptide;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import javax.inject.Singleton;

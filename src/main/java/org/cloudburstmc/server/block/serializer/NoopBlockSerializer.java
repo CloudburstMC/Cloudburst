@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.serializer;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 
 import java.util.Map;

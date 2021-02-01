@@ -1,9 +1,10 @@
 package org.cloudburstmc.server.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import lombok.ToString;
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.inventory.Recipe;
+import org.cloudburstmc.api.inventory.RecipeType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Identifier;
 
 @ToString
 public abstract class MixRecipe implements Recipe {
@@ -11,11 +12,18 @@ public abstract class MixRecipe implements Recipe {
     private final ItemStack input;
     private final ItemStack ingredient;
     private final ItemStack output;
+    private final Identifier recipeId;
 
-    public MixRecipe(ItemStack input, ItemStack ingredient, ItemStack output) {
+    public MixRecipe(Identifier id, ItemStack input, ItemStack ingredient, ItemStack output) {
+        this.recipeId = id;
         this.input = input;
         this.ingredient = ingredient;
         this.output = output;
+    }
+
+    @Override
+    public Identifier getId() {
+        return this.recipeId;
     }
 
     public ItemStack getIngredient() {
@@ -32,11 +40,6 @@ public abstract class MixRecipe implements Recipe {
 
     @Override
     public RecipeType getType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public CraftingData toNetwork(int netId) {
         throw new UnsupportedOperationException();
     }
 

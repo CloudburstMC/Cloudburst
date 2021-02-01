@@ -7,14 +7,17 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.ToString;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockType;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentType;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -56,7 +59,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     }
 
     public CloudItemStackBuilder id(Identifier id) {
-        Preconditions.checkState(this.blockState == null || id == this.blockState.getId(), "Cannot change item id when block state is set");
+        Preconditions.checkState(this.blockState == null || id == this.blockState.getType().getId(), "Cannot change item id when block state is set");
         this.id = id;
         return this;
     }
