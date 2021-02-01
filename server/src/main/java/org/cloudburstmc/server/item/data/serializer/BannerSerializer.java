@@ -5,9 +5,9 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import lombok.val;
-import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.item.data.Banner;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.data.BannerPattern;
 import org.cloudburstmc.server.utils.data.DyeColor;
 

@@ -1,22 +1,22 @@
 package org.cloudburstmc.server.item.behavior;
 
-import com.google.common.collect.Iterables;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.val;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.server.event.player.PlayerItemConsumeEvent;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 
 /**
  * author: MagicDroidX

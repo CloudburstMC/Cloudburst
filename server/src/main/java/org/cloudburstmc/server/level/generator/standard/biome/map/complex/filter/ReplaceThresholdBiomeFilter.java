@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
 import org.cloudburstmc.server.level.generator.standard.biome.map.complex.AbstractBiomeFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.IntArrayAllocator;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.ArrayList;
 import java.util.Collection;

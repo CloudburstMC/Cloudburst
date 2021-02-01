@@ -1,15 +1,12 @@
 package org.cloudburstmc.server.item.food;
 
-import org.cloudburstmc.api.plugin.PluginContainer;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.val;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.server.event.player.PlayerEatFoodEvent;
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;

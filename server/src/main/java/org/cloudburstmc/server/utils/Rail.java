@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.utils;
 
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockType;
 
 import java.util.Objects;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 
 /**
  * INTERNAL helper class of railway

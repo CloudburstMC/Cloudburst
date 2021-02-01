@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.enchantment;
 
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.util.Identifier;
 
 public interface EnchantmentType {
 

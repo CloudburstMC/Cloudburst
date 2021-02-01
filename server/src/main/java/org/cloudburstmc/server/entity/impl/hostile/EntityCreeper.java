@@ -2,12 +2,12 @@ package org.cloudburstmc.server.entity.impl.hostile;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.hostile.Creeper;
 import org.cloudburstmc.server.entity.misc.LightningBolt;
 import org.cloudburstmc.server.event.entity.CreeperPowerEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 

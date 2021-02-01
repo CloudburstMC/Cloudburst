@@ -1,11 +1,14 @@
 package org.cloudburstmc.server.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.inventory.RecipeType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * author: MagicDroidX
@@ -13,15 +16,19 @@ import java.util.*;
  */
 public class ShapelessRecipe implements CraftingRecipe {
 
-    private final String recipeId;
+    private final Identifier recipeId;
     private final ItemStack output;
     private final List<ItemStack> ingredients;
     private final int priority;
     private final Identifier block;
+    private final List<ItemStack> extraOutputs = new ArrayList<>();
 
-    private UUID id;
+    public ShapelessRecipe(Identifier recipeId, int priority, List<ItemStack> outputs, List<ItemStack> ingredients, Identifier craftingBlock ) {
+        this(recipeId, priority, outputs.remove(0),ingredients, craftingBlock);
+        this.extraOutputs.addAll(outputs);
+    }
 
-    public ShapelessRecipe(String recipeId, int priority, ItemStack result, Collection<ItemStack> ingredients, Identifier block) {
+    public ShapelessRecipe(Identifier recipeId, int priority, ItemStack result, List<ItemStack> ingredients, Identifier block) {
         this.recipeId = recipeId;
         this.priority = priority;
         this.output = result;
@@ -41,23 +48,13 @@ public class ShapelessRecipe implements CraftingRecipe {
     }
 
     @Override
-    public ItemStack getResult() {
-        return this.output;
-    }
-
-    @Override
-    public String getRecipeId() {
+    public Identifier getId() {
         return this.recipeId;
     }
 
     @Override
-    public UUID getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(UUID id) {
-        this.id = id;
+    public ItemStack getResult() {
+        return this.output;
     }
 
     public List<ItemStack> getIngredientList() {
@@ -66,11 +63,6 @@ public class ShapelessRecipe implements CraftingRecipe {
 
     public int getIngredientCount() {
         return ingredients.size();
-    }
-
-    @Override
-    public void registerToCraftingManager(CraftingManager manager) {
-        manager.registerShapelessRecipe(this);
     }
 
     @Override
@@ -85,12 +77,18 @@ public class ShapelessRecipe implements CraftingRecipe {
 
     @Override
     public List<ItemStack> getExtraResults() {
-        return new ArrayList<>();
+        return this.extraOutputs;
     }
 
     @Override
     public List<ItemStack> getAllResults() {
-        return Collections.singletonList(this.getResult());
+        if(this.extraOutputs.size() == 0) {
+            return Collections.singletonList(this.getResult());
+        }
+        List<ItemStack> list = new ArrayList<>();
+        list.add(this.output);
+        list.addAll(this.extraOutputs);
+        return list;
     }
 
     @Override
@@ -105,7 +103,7 @@ public class ShapelessRecipe implements CraftingRecipe {
         for (ItemStack[] items : input) {
             haveInputs.addAll(Arrays.asList(items));
         }
-        haveInputs.sort(CraftingManager.recipeComparator);
+        haveInputs.sort(CloudRecipeRegistry.recipeComparator);
 
         List<ItemStack> needInputs = this.getIngredientList();
 
@@ -117,7 +115,7 @@ public class ShapelessRecipe implements CraftingRecipe {
         for (ItemStack[] items : output) {
             haveOutputs.addAll(Arrays.asList(items));
         }
-        haveOutputs.sort(CraftingManager.recipeComparator);
+        haveOutputs.sort(CloudRecipeRegistry.recipeComparator);
         List<ItemStack> needOutputs = this.getExtraResults();
 
         return this.matchItemList(haveOutputs, needOutputs);
@@ -149,11 +147,5 @@ public class ShapelessRecipe implements CraftingRecipe {
     @Override
     public Identifier getBlock() {
         return block;
-    }
-
-    @Override
-    public CraftingData toNetwork(int netId) {
-        return CraftingData.fromShapeless(this.recipeId, ItemUtils.toNetwork(this.getIngredientList()),
-                ItemUtils.toNetwork(this.getAllResults()), this.id, this.block.getName(), this.priority, netId);
     }
 }

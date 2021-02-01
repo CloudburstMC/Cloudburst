@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.generator.standard.misc;
 
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * Implemented by every interface representing a single pass during world generation or population.

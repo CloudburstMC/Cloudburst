@@ -1,16 +1,16 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DirtType;
 
+import static org.cloudburstmc.api.block.BlockTypes.DIRT;
+import static org.cloudburstmc.api.block.BlockTypes.FARMLAND;
 import static org.cloudburstmc.server.block.BlockTraits.DIRT_TYPE;
-import static org.cloudburstmc.server.block.BlockTypes.DIRT;
-import static org.cloudburstmc.server.block.BlockTypes.FARMLAND;
 
 public class BlockBehaviorDirt extends BlockBehaviorSolid {
 

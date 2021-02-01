@@ -1,22 +1,23 @@
 package org.cloudburstmc.server.item.behavior;
 
-import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.TierType;
+import org.cloudburstmc.api.item.ToolType;
+import org.cloudburstmc.api.item.behavior.ItemBehavior;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.server.block.CloudBlockState;
 import org.cloudburstmc.server.block.behavior.BlockBehavior;
-import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.BlockItemStack;
-import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.item.TierType;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * author: MagicDroidX
@@ -48,7 +49,7 @@ public abstract class CloudItemBehavior implements ItemBehavior {
             return false;
         }
 
-        BlockBehavior behavior = state.getBehavior();
+        BlockBehavior behavior = ((CloudBlockState)state).getBehavior();
         return behavior.canBePlaced();
     }
 
@@ -78,7 +79,7 @@ public abstract class CloudItemBehavior implements ItemBehavior {
     }
 
     @Override
-    public ItemStack useOn(ItemStack item, Block block) {
+    public ItemStack useOn(ItemStack item, BlockState block) {
         return null;
     }
 
@@ -192,8 +193,9 @@ public abstract class CloudItemBehavior implements ItemBehavior {
         return null;
     }
 
+
     @Override
-    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, Player player, BlockState blockState, BlockState blockState1, Direction direction, Vector3f vector3f, Level level) {
         return null;
     }
 

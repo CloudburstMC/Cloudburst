@@ -4,9 +4,9 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.item.data.WrittenBook;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.PageContent;
 
 import java.util.ArrayList;

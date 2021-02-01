@@ -4,8 +4,8 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 
 import java.util.Map;

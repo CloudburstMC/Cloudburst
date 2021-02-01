@@ -5,13 +5,13 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.event.entity.EntityArmorChangeEvent;
 import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.server.event.player.PlayerItemHeldEvent;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.Player;
@@ -19,7 +19,7 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockTypes.AIR;
+import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
 /**
  * author: MagicDroidX

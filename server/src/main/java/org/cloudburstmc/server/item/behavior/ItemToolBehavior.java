@@ -3,11 +3,11 @@ package org.cloudburstmc.server.item.behavior;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.var;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.item.ToolTypes;
@@ -15,8 +15,8 @@ import org.cloudburstmc.server.item.data.Damageable;
 
 import java.util.Random;
 
-import static org.cloudburstmc.server.block.BlockTypes.DIRT;
-import static org.cloudburstmc.server.block.BlockTypes.GRASS;
+import static org.cloudburstmc.api.block.BlockTypes.DIRT;
+import static org.cloudburstmc.api.block.BlockTypes.GRASS;
 import static org.cloudburstmc.server.item.ItemTypes.*;
 
 /**

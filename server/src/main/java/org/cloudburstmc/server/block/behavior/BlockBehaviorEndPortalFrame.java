@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;

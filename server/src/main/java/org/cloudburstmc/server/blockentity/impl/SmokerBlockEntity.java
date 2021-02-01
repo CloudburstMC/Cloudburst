@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.blockentity.impl;
 
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Smoker;
 import org.cloudburstmc.server.inventory.InventoryType;

@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.block;
+package org.cloudburstmc.api.block;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSet;
@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Set;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 
 @UtilityClass
 public class BlockCategories {

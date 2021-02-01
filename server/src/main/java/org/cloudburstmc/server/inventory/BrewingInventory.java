@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.inventory;
 
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.blockentity.BrewingStand;
-import org.cloudburstmc.server.item.ItemStack;
 
 public class BrewingInventory extends ContainerInventory {
 

@@ -5,8 +5,8 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockTypes;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.server.blockentity.Beacon;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.inventory.BeaconInventory;
@@ -17,7 +17,7 @@ import org.cloudburstmc.server.potion.Effect;
 
 import java.util.Map;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 
 /**
  * author: Rover656

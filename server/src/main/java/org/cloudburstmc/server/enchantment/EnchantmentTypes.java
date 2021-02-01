@@ -4,7 +4,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.enchantment.EnchantmentType;
+import org.cloudburstmc.api.util.Identifier;
 
 @UtilityClass
 public class EnchantmentTypes {

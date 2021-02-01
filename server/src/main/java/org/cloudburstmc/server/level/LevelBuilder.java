@@ -3,11 +3,11 @@ package org.cloudburstmc.server.level;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.LevelProviderFactory;
 import org.cloudburstmc.server.registry.StorageRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level;
 
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.level.chunk.IChunk;
 
 /**

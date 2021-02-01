@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.util.Identifier;
 
 @SuppressWarnings("RedundantModifiersUtilityClassLombok")
 @UtilityClass

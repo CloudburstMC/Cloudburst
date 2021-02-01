@@ -3,8 +3,12 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
-import org.cloudburstmc.server.block.*;
-import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -15,7 +19,7 @@ import org.cloudburstmc.server.utils.data.FlowerType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockTypes.*;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 import static org.cloudburstmc.server.item.ItemTypes.DYE;
 
 public class BlockBehaviorFlower extends FloodableBlockBehavior {

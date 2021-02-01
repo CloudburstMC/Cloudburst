@@ -6,12 +6,12 @@ import com.google.common.collect.ImmutableSet;
 import lombok.*;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.Tuple;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
 import org.cloudburstmc.server.block.trait.EnumBlockTrait;
 import org.cloudburstmc.server.item.data.Bucket;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.TerracottaColor;
 import org.cloudburstmc.server.utils.data.*;
 

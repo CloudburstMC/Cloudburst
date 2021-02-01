@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStack;
 
 public interface ItemFrame extends BlockEntity {
 

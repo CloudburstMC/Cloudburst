@@ -9,11 +9,14 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.ToString;
 import lombok.val;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentType;
-import org.cloudburstmc.server.item.behavior.ItemBehavior;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.behavior.ItemBehavior;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

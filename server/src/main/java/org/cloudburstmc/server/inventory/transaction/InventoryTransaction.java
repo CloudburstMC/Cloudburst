@@ -3,13 +3,13 @@ package org.cloudburstmc.server.inventory.transaction;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import lombok.var;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.server.event.inventory.InventoryTransactionEvent;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.inventory.transaction.action.SlotChangeAction;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.*;

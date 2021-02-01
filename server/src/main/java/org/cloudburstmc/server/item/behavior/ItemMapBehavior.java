@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item.behavior;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStack;
 
 import java.util.concurrent.atomic.AtomicLong;
 

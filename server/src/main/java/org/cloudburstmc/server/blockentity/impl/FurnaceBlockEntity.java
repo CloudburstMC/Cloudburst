@@ -6,9 +6,10 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import lombok.val;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockType;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Furnace;
 import org.cloudburstmc.server.event.inventory.FurnaceBurnEvent;
@@ -16,7 +17,6 @@ import org.cloudburstmc.server.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.server.inventory.FurnaceInventory;
 import org.cloudburstmc.server.inventory.FurnaceRecipe;
 import org.cloudburstmc.server.inventory.InventoryType;
-import org.cloudburstmc.server.item.ItemStack;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -30,7 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.cloudburstmc.server.block.BlockTypes.FURNACE;
+import static org.cloudburstmc.api.block.BlockTypes.FURNACE;
 
 /**
  * @author MagicDroidX
