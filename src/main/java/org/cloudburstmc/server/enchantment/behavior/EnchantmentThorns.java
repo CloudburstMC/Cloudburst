@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.enchantment.behavior;
 
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
+import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -26,7 +27,7 @@ public class EnchantmentThorns extends EnchantmentBehavior {
         return this.getMinEnchantAbility(level) + 50;
     }
 
-    @Override
+    //@Override
     public void doPostAttack(EnchantmentInstance enchantment, Entity entity, Entity attacker) {
         if (!(entity instanceof Human)) {
             return;

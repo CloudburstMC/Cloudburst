@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.enchantment;
 
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 /**
  * @author Nukkit Project Team
  */

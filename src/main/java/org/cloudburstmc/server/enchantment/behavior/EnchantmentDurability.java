@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.enchantment.behavior;
 
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
+import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 
 import java.util.Random;
 

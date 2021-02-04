@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.enchantment.behavior;
 
+import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 /**
  * author: MagicDroidX
  * Nukkit Project

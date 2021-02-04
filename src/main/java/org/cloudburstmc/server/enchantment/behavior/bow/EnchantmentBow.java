@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.enchantment.behavior.bow;
 
-import org.cloudburstmc.server.enchantment.behavior.EnchantmentBehavior;
+import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 
 /**
  * author: MagicDroidX
