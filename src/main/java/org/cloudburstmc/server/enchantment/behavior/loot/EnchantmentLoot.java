@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.enchantment.behavior.loot;
 
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentTypes;
-import org.cloudburstmc.server.enchantment.behavior.EnchantmentBehavior;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
+import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 
 /**
  * author: MagicDroidX

@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.enchantment.behavior.protection;
 
 import lombok.val;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.enchantment.behavior.EnchantmentBehavior;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 
 /**
  * author: MagicDroidX
@@ -44,4 +45,6 @@ public abstract class EnchantmentProtection extends EnchantmentBehavior {
     public boolean isMajor() {
         return true;
     }
+
+    public abstract float getProtectionFactor(EnchantmentInstance enchantment, EntityDamageEvent e);
 }

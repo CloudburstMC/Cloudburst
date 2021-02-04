@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.enchantment.behavior.damage;
 
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.entity.Entity;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.server.entity.Smiteable;
+//import org.cloudburstmc.server.entity.Smiteable;
 
 /**
  * author: MagicDroidX
