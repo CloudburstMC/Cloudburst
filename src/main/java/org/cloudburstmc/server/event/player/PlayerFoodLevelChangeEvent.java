@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.player;
 
-import org.cloudburstmc.server.event.Cancellable;
+import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.server.player.Player;
 
 public class PlayerFoodLevelChangeEvent extends PlayerEvent implements Cancellable {

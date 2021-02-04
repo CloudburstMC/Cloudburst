@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.level.chunk;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.level.Level;

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.server;
 
-import org.cloudburstmc.server.event.Event;
+import org.cloudburstmc.api.event.Event;
 
 /**
  * author: MagicDroidX

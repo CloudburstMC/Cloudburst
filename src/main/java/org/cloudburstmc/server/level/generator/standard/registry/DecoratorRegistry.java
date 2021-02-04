@@ -4,8 +4,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.registry.RegistryException;
-import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.level.generator.standard.generation.decorator.*;
 import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
 

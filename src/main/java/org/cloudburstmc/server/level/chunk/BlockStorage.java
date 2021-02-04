@@ -10,8 +10,8 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.cloudburstmc.server.block.BlockStates.AIR;
+import static org.cloudburstmc.api.block.BlockStates.AIR;
 
 @Log4j2
 public class BlockStorage {

@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.event.entity;
 
+import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.event.entity.EntityEvent;
 import org.cloudburstmc.server.entity.hostile.Creeper;
 import org.cloudburstmc.server.entity.misc.LightningBolt;
-import org.cloudburstmc.server.event.Cancellable;
 
 /**
  * author: MagicDroidX

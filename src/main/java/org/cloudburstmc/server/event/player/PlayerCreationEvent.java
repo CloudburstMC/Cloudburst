@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.player;
 
-import org.cloudburstmc.server.event.Event;
+import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.server.network.SourceInterface;
 import org.cloudburstmc.server.player.Player;
 

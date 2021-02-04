@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.TierType;
@@ -15,7 +16,6 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.CloudBlockState;
-import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.item.BlockItemStack;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
