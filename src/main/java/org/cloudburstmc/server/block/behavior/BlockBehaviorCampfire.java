@@ -12,7 +12,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityTypes;
 import org.cloudburstmc.server.blockentity.Campfire;
-import org.cloudburstmc.server.entity.impl.EntityLiving;
+import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.behavior.ItemEdibleBehavior;

@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.entity.impl.projectile.EntityEnderPearl;
+import org.cloudburstmc.server.entity.projectile.EntityEnderPearl;
 import org.cloudburstmc.server.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;

@@ -7,7 +7,7 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.impl.projectile.EntityProjectile;
+import org.cloudburstmc.server.entity.projectile.EntityProjectile;
 import org.cloudburstmc.server.event.entity.EntityShootBowEvent;
 import org.cloudburstmc.server.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.server.level.Location;

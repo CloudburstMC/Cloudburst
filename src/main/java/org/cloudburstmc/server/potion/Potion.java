@@ -2,7 +2,7 @@ package org.cloudburstmc.server.potion;
 
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.entity.impl.EntityLiving;
+import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.server.event.potion.PotionApplyEvent;
 import org.cloudburstmc.server.player.Player;

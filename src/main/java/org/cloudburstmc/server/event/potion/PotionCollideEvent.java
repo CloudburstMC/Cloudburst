@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.potion;
 
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.entity.impl.projectile.EntitySplashPotion;
+import org.cloudburstmc.server.entity.projectile.EntitySplashPotion;
 import org.cloudburstmc.server.potion.Potion;
 
 /**
