@@ -2,6 +2,7 @@ package org.cloudburstmc.api.enchantment.behavior;
 
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 
 public abstract class EnchantmentBehavior {
@@ -25,9 +26,9 @@ public abstract class EnchantmentBehavior {
         return this.getMinEnchantAbility(level) + 5;
     }
 
-   /* public float getProtectionFactor(EnchantmentInstance enchantment, EntityDamageEvent event) { //todo
+    public float getProtectionFactor(EnchantmentInstance enchantment, EntityDamageEvent event) {
         return 0;
-    }*/
+    }
 
     public float getDamageBonus(EnchantmentInstance enchantment, Entity entity) {
         return 0;
