@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.val;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.block.BlockFromToEvent;
@@ -17,7 +18,6 @@ import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
 
