@@ -4,7 +4,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
 import lombok.val;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
 

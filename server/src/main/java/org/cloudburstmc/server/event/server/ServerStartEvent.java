@@ -2,7 +2,7 @@ package org.cloudburstmc.server.event.server;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.cloudburstmc.server.event.Event;
+import org.cloudburstmc.api.event.Event;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ServerStartEvent extends Event {

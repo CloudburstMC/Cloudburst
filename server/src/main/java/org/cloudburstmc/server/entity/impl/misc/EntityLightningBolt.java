@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.impl.misc;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
@@ -13,7 +14,6 @@ import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.LightningBolt;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.math.AxisAlignedBB;
 

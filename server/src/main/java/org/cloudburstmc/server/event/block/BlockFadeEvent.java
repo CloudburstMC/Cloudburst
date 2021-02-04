@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.event.block;
 
+import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.event.Cancellable;
 
 public class BlockFadeEvent extends BlockEvent implements Cancellable {
 

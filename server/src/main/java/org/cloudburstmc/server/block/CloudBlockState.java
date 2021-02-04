@@ -9,7 +9,6 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import javax.annotation.Nonnull;

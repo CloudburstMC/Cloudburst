@@ -1,7 +1,8 @@
 package org.cloudburstmc.server.event.entity;
 
+import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.event.entity.EntityEvent;
 import org.cloudburstmc.server.entity.misc.DroppedItem;
-import org.cloudburstmc.server.event.Cancellable;
 
 /**
  * author: MagicDroidX

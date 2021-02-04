@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.player;
 
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
-import org.cloudburstmc.server.event.Cancellable;
+import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.server.player.Player;
 
 public class PlayerAnimationEvent extends PlayerEvent implements Cancellable {
