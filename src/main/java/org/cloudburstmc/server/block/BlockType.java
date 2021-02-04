@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block;
 
+import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 
 public interface BlockType extends ItemType {
 

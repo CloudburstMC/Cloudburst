@@ -5,6 +5,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.MovingObjectPosition;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.projectile.ThrownTrident;
@@ -14,7 +15,6 @@ import org.cloudburstmc.server.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.MovingObjectPosition;
 
 import java.util.concurrent.ThreadLocalRandom;
 
