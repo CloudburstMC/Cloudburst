@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.passive;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.entity.EntityOwnable;
-import org.cloudburstmc.server.entity.EntityType;
+import org.cloudburstmc.api.entity.EntityOwnable;
+import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.server.level.Location;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.OWNER_EID;

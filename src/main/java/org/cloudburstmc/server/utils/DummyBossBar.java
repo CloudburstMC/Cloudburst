@@ -2,8 +2,8 @@ package org.cloudburstmc.server.utils;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.*;
-import org.cloudburstmc.server.entity.Attribute;
-import org.cloudburstmc.server.entity.EntityTypes;
+import org.cloudburstmc.api.entity.Attribute;
+import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.concurrent.ThreadLocalRandom;

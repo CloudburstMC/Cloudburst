@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.entity;
 
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.potion.Effect;
 
 import java.util.Map;

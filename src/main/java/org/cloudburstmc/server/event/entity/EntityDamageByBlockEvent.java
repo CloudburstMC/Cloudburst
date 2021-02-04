@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.event.entity;
 
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.entity.Entity;
 
 /**
  * author: MagicDroidX

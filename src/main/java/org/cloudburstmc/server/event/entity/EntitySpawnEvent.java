@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.event.entity;
 
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.EntityEvent;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.EntityCreature;
 import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.entity.impl.projectile.EntityProjectile;
 import org.cloudburstmc.server.entity.impl.vehicle.EntityVehicle;
-import org.cloudburstmc.server.entity.misc.DroppedItem;
 import org.cloudburstmc.server.level.Location;
 
 /**

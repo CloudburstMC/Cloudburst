@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.impl.projectile;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.projectile.Arrow;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.server.level.Location;
 
 import java.util.concurrent.ThreadLocalRandom;
