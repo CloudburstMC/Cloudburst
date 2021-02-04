@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.entity.impl.projectile;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.projectile.SplashPotion;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.projectile.SplashPotion;
 import org.cloudburstmc.server.event.potion.PotionCollideEvent;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.particle.Particle;

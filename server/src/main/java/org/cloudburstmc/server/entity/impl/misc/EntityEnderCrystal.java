@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.entity.impl.misc;
 
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityExplosive;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityExplosive;
-import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
-import org.cloudburstmc.server.entity.misc.EnderCrystal;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.Location;
 

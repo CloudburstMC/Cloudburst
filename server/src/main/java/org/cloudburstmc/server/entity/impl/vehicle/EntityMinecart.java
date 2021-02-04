@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.entity.impl.vehicle;
 
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityType;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.vehicle.Minecart;
 import org.cloudburstmc.server.entity.impl.EntityLiving;
 import org.cloudburstmc.server.entity.impl.passive.EntityWaterAnimal;
-import org.cloudburstmc.server.entity.vehicle.Minecart;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.data.MinecartType;

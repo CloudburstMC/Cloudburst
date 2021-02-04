@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.entity;
 
-import org.cloudburstmc.server.entity.Entity;
+import org.cloudburstmc.api.entity.Entity;
 
 /**
  * author: MagicDroidX

@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.entity.impl.hostile;
 
-import org.cloudburstmc.server.entity.Arthropod;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.hostile.CaveSpider;
+import org.cloudburstmc.api.entity.Arthropod;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.hostile.CaveSpider;
 import org.cloudburstmc.server.level.Location;
 
 /**

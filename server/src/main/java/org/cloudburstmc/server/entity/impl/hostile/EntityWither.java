@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.entity.impl.hostile;
 
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.Smiteable;
-import org.cloudburstmc.server.entity.hostile.Wither;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.Smiteable;
+import org.cloudburstmc.api.entity.hostile.Wither;
 import org.cloudburstmc.server.level.Location;
 
 /**

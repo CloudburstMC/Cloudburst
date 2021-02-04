@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.event.entity;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.event.entity.EntityEvent;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.entity.Entity;
 
 import java.util.List;
 

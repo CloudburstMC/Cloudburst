@@ -15,13 +15,13 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityFactory;
+import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityFactory;
-import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.Human;
 import org.cloudburstmc.server.entity.impl.UnknownEntity;
 import org.cloudburstmc.server.entity.impl.hostile.*;
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static org.cloudburstmc.server.entity.EntityTypes.*;
+import static org.cloudburstmc.api.entity.EntityTypes.*;
 
 @Log4j2
 public class EntityRegistry implements Registry {

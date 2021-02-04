@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.entity.impl.projectile;
 
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.EntityTypes;
-import org.cloudburstmc.server.entity.misc.AreaEffectCloud;
-import org.cloudburstmc.server.entity.projectile.LingeringPotion;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
+import org.cloudburstmc.api.entity.projectile.LingeringPotion;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.potion.Potion;

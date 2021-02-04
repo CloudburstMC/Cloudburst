@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity.impl.projectile;
 
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.projectile.DragonFireball;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.projectile.DragonFireball;
 import org.cloudburstmc.server.level.Location;
 
 public class EntityDragonFireball extends EntityProjectile implements DragonFireball {

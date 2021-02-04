@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.vehicle;
 
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Event;
-import org.cloudburstmc.server.entity.Entity;
 
 /**
  * Created by larryTheCoder at 7/5/2017.
