@@ -1,6 +1,5 @@
 package org.cloudburstmc.api.event.entity;
 
-import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Event;
 
 /**

@@ -5,7 +5,6 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.TierType;
 import org.cloudburstmc.api.item.ToolType;
