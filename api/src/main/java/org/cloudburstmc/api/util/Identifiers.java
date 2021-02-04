@@ -595,7 +595,38 @@ public class Identifiers {
     public static final Identifier TRIDENT_LOYALTY = Identifier.fromString("loyalty");
     public static final Identifier TRIDENT_RIPTIDE = Identifier.fromString("riptide");
     public static final Identifier VANISHING_CURSE = Identifier.fromString("vanishing");
-    public static final Identifier WATER_BREATHING = Identifier.fromString("respiration");
+    public static final Identifier RESPIRATION = Identifier.fromString("respiration");
     public static final Identifier WATER_WALKER = Identifier.fromString("depth_strider");
     public static final Identifier WATER_WORKER = Identifier.fromString("aqua_affinity");
+
+    //Effects
+    public static final Identifier ABSORPTION = Identifier.fromString("absorption");
+    public static final Identifier BAD_OMEN = Identifier.fromString("bad_omen");
+    public static final Identifier BLINDNESS = Identifier.fromString("blindness");
+    public static final Identifier CONDUIT_POWER = Identifier.fromString("conduit_power");
+    public static final Identifier DAMAGE_RESISTANCE = Identifier.fromString("resistance");
+    public static final Identifier FATAL_POISON = Identifier.fromString("fatal_poison");
+    public static final Identifier FIRE_RESISTANCE = Identifier.fromString("fire_resistance");
+    public static final Identifier HARMING = Identifier.fromString("instant_damage");
+    public static final Identifier HASTE = Identifier.fromString("haste");
+    public static final Identifier HEALING = Identifier.fromString("instant_health");
+    public static final Identifier HEALTH_BOOST = Identifier.fromString("health_boost");
+    public static final Identifier HERO_OF_THE_VILLAGE = Identifier.fromString("village_hero");
+    public static final Identifier HUNGER = Identifier.fromString("hunger");
+    public static final Identifier INVISIBILITY = Identifier.fromString("invisibility");
+    public static final Identifier JUMP_BOOST = Identifier.fromString("jump_boost");
+    public static final Identifier LEVITATION = Identifier.fromString("levitation");
+    public static final Identifier MINING_FATIGUE = Identifier.fromString("mining_fatigue");
+    public static final Identifier NAUSEA = Identifier.fromString("nausea");
+    public static final Identifier NIGHT_VISION = Identifier.fromString("night_vision");
+    public static final Identifier POISON = Identifier.fromString("poison");
+    public static final Identifier REGENERATION = Identifier.fromString("regeneration");
+    public static final Identifier SATURATION = Identifier.fromString("saturation");
+    public static final Identifier SLOW_FALLING = Identifier.fromString("slow_falling");
+    public static final Identifier SLOWNESS = Identifier.fromString("slowness");
+    public static final Identifier SPEED = Identifier.fromString("speed");
+    public static final Identifier STRENGTH = Identifier.fromString("strength");
+    public static final Identifier WATER_BREATHING = Identifier.fromString("water_breathing");
+    public static final Identifier WEAKNESS = Identifier.fromString("weakness");
+    public static final Identifier WITHER = Identifier.fromString("wither");
 }
