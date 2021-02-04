@@ -5,6 +5,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class Identifiers {
 
+    //Blocks
     public static final Identifier ACACIA_BUTTON = Identifier.fromString("acacia_button");
     public static final Identifier ACACIA_DOOR = Identifier.fromString("acacia_door");
     public static final Identifier ACACIA_FENCE_GATE = Identifier.fromString("acacia_fence_gate");
@@ -559,4 +560,42 @@ public class Identifiers {
     public static final Identifier WOOL = Identifier.fromString("wool");
     public static final Identifier YELLOW_FLOWER = Identifier.fromString("yellow_flower");
     public static final Identifier YELLOW_GLAZED_TERRACOTTA = Identifier.fromString("yellow_glazed_terracotta");
+
+    //Enchantments
+    public static final Identifier BINDING_CURSE = Identifier.fromString("binding");
+    public static final Identifier BOW_POWER = Identifier.fromString("power");
+    public static final Identifier BOW_PUNCH = Identifier.fromString("punch");
+    public static final Identifier BOW_FLAME = Identifier.fromString("flame");
+    public static final Identifier BOW_INFINITY = Identifier.fromString("infinity");
+    public static final Identifier CROSSBOW_MULTISHOT = Identifier.fromString("multishot");
+    public static final Identifier CROSSBOW_PIERCING = Identifier.fromString("piercing");
+    public static final Identifier CROSSBOW_QUICK_CHARGE = Identifier.fromString("quick_charge");
+    public static final Identifier DAMAGE_SHARPNESS = Identifier.fromString("sharpness");
+    public static final Identifier DAMAGE_SMITE = Identifier.fromString("smite");
+    public static final Identifier DAMAGE_ARTHOPODS = Identifier.fromString("DAMAGE_ARTHOPODS");
+    public static final Identifier DURABILITY = Identifier.fromString("unbreaking");
+    public static final Identifier EFFICIENCY = Identifier.fromString("efficiency");
+    public static final Identifier EXPLOSION_PROTECTION = Identifier.fromString("blast_protection");
+    public static final Identifier FALL_PROTECTION = Identifier.fromString("feather_falling");
+    public static final Identifier FIRE_ASPECT = Identifier.fromString("fire_aspect");
+    public static final Identifier FIRE_PROTECTION = Identifier.fromString("fire_protection");
+    public static final Identifier FORTUNE = Identifier.fromString("fortune");
+    public static final Identifier FROST_WALKER = Identifier.fromString("frost_walker");
+    public static final Identifier KNOCKBACK = Identifier.fromString("knockback");
+    public static final Identifier LOOTING = Identifier.fromString("looting");
+    public static final Identifier LUCK = Identifier.fromString("luck_of_the_sea");
+    public static final Identifier LURE = Identifier.fromString("lure");
+    public static final Identifier MENDING = Identifier.fromString("mending");
+    public static final Identifier PROJECTILE_PROTECTION = Identifier.fromString("projectile_protection");
+    public static final Identifier PROTECTION = Identifier.fromString("protection");
+    public static final Identifier SILK_TOUCH = Identifier.fromString("silk_touch");
+    public static final Identifier THORNS = Identifier.fromString("thorns");
+    public static final Identifier TRIDENT_CHANNELING = Identifier.fromString("channeling");
+    public static final Identifier TRIDENT_IMPALING = Identifier.fromString("impaling");
+    public static final Identifier TRIDENT_LOYALTY = Identifier.fromString("loyalty");
+    public static final Identifier TRIDENT_RIPTIDE = Identifier.fromString("riptide");
+    public static final Identifier VANISHING_CURSE = Identifier.fromString("vanishing");
+    public static final Identifier WATER_BREATHING = Identifier.fromString("respiration");
+    public static final Identifier WATER_WALKER = Identifier.fromString("depth_strider");
+    public static final Identifier WATER_WORKER = Identifier.fromString("aqua_affinity");
 }
