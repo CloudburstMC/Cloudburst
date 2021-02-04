@@ -2,12 +2,12 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.ItemFrame;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
@@ -18,7 +18,7 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import java.util.Random;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
-import static org.cloudburstmc.server.blockentity.BlockEntityTypes.ITEM_FRAME;
+import static org.cloudburstmc.api.blockentity.BlockEntityTypes.ITEM_FRAME;
 
 public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
 

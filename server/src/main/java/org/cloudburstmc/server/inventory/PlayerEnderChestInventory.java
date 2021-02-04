@@ -5,7 +5,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import org.cloudburstmc.server.blockentity.EnderChest;
+import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.server.entity.Human;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;

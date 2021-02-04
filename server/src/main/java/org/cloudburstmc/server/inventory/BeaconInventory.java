@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.server.player.Player;
 
 /**

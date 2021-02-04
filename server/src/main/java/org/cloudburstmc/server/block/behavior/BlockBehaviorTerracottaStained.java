@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.TierTypes;

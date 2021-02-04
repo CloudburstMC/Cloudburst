@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.level;
 
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 /**
  * author: MagicDroidX
@@ -8,7 +8,7 @@ import org.cloudburstmc.server.level.chunk.Chunk;
  */
 public class ChunkPopulateEvent extends ChunkEvent {
 
-    public ChunkPopulateEvent(Chunk chunk) {
+    public ChunkPopulateEvent(CloudChunk chunk) {
         super(chunk);
     }
 

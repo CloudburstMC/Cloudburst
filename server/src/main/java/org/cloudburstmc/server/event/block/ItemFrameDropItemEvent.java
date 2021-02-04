@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.event.block;
 
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.blockentity.ItemFrame;
 import org.cloudburstmc.server.player.Player;
 
 /**

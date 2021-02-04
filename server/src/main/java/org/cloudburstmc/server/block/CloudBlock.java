@@ -2,9 +2,11 @@ package org.cloudburstmc.server.block;
 
 import com.nukkitx.math.vector.Vector3i;
 import lombok.ToString;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockSnapshot;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;
 
 import static org.cloudburstmc.api.block.BlockStates.AIR;
@@ -36,7 +38,7 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     }
 
     @Override
-    public Chunk getChunk() {
+    public CloudChunk getChunk() {
         return level.getChunk(position);
     }
 

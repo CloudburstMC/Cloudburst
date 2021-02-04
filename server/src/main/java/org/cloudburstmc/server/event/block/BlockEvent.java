@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.block;
 
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.event.Event;
-import org.cloudburstmc.server.block.Block;
 
 /**
  * author: MagicDroidX

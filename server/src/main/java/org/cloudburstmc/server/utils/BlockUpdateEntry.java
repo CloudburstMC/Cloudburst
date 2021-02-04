@@ -2,7 +2,7 @@ package org.cloudburstmc.server.utils;
 
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector4i;
-import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.api.block.Block;
 
 /**
  * author: MagicDroidX

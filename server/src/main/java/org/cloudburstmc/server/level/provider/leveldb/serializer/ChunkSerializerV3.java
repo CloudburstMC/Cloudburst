@@ -8,9 +8,9 @@ import it.unimi.dsi.fastutil.ints.Int2ShortOpenHashMap;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
-import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
-import org.cloudburstmc.server.level.chunk.ChunkSection;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.ChunkException;
@@ -23,18 +23,18 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
     static ChunkSerializer INSTANCE = new ChunkSerializerV3();
 
     @Override
-    public void serialize(WriteBatch db, Chunk chunk) {
+    public void serialize(WriteBatch db, CloudChunk chunk) {
         // Write chunk sections
-        for (int ySection = 0; ySection < Chunk.SECTION_COUNT; ySection++) {
-            ChunkSection section = chunk.getSection(ySection);
+        for (int ySection = 0; ySection < CloudChunk.SECTION_COUNT; ySection++) {
+            CloudChunkSection section = chunk.getSection(ySection);
             if (section == null) {
                 continue;
             }
 
             ByteBuf buffer = ByteBufAllocator.DEFAULT.ioBuffer();
             try {
-                buffer.writeByte(ChunkSection.CHUNK_SECTION_VERSION);
-                ChunkSectionSerializers.serialize(buffer, section.getBlockStorageArray(), ChunkSection.CHUNK_SECTION_VERSION);
+                buffer.writeByte(CloudChunkSection.CHUNK_SECTION_VERSION);
+                ChunkSectionSerializers.serialize(buffer, section.getBlockStorageArray(), CloudChunkSection.CHUNK_SECTION_VERSION);
 
                 byte[] payload = new byte[buffer.readableBytes()];
                 buffer.readBytes(payload);
@@ -67,9 +67,9 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
             }
         }
 
-        ChunkSection[] sections = new ChunkSection[Chunk.SECTION_COUNT];
+        CloudChunkSection[] sections = new CloudChunkSection[CloudChunk.SECTION_COUNT];
 
-        for (int ySection = 0; ySection < Chunk.SECTION_COUNT; ySection++) {
+        for (int ySection = 0; ySection < CloudChunk.SECTION_COUNT; ySection++) {
             byte[] sectionData = db.get(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunkX, chunkZ, ySection));
             if (sectionData == null) {
                 continue;
@@ -80,7 +80,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
             }
 
             int subChunkVersion = buf.readUnsignedByte();
-            if (subChunkVersion < ChunkSection.CHUNK_SECTION_VERSION) {
+            if (subChunkVersion < CloudChunkSection.CHUNK_SECTION_VERSION) {
                 chunkBuilder.dirty();
             }
             BlockStorage[] blockStorage = ChunkSectionSerializers.deserialize(buf, chunkBuilder, subChunkVersion);
@@ -91,19 +91,19 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                     for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
                             for (int y = ySection * 16, lim = y + 16; y < lim; y++) {
-                                int key = Chunk.blockKey(x, y, z);
+                                int key = CloudChunk.blockKey(x, y, z);
                                 if (extraDataMap.containsKey(key)) {
-                                    short value = extraDataMap.get(Chunk.blockKey(x, y, z));
+                                    short value = extraDataMap.get(CloudChunk.blockKey(x, y, z));
                                     int blockId = value & 0xff;
                                     int blockData = (value >> 8) & 0xf;
-                                    blockStorage[1].setBlock(ChunkSection.blockIndex(x, y, z), BlockRegistry.get().getBlock(blockId, blockData));
+                                    blockStorage[1].setBlock(CloudChunkSection.blockIndex(x, y, z), BlockRegistry.get().getBlock(blockId, blockData));
                                 }
                             }
                         }
                     }
                 }
             }
-            sections[ySection] = new ChunkSection(blockStorage);
+            sections[ySection] = new CloudChunkSection(blockStorage);
         }
 
         chunkBuilder.sections(sections);

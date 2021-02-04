@@ -25,11 +25,11 @@ package co.aikar.timings;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.scheduler.PluginTask;
 import org.cloudburstmc.server.scheduler.TaskHandler;

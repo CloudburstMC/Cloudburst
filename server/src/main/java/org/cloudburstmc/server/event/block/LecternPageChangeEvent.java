@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.block;
 
+import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.blockentity.Lectern;
 import org.cloudburstmc.server.player.Player;
 
 public class LecternPageChangeEvent extends BlockEvent implements Cancellable {

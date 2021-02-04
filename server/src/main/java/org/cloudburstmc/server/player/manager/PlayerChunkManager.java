@@ -12,7 +12,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
 
@@ -36,7 +36,7 @@ public class PlayerChunkManager {
         this.player = player;
         this.comparator = new AroundPlayerChunkComparator(player);
         this.removeChunkLoader = chunkKey -> {
-            Chunk chunk = this.player.getLevel().getLoadedChunk(chunkKey);
+            CloudChunk chunk = this.player.getLevel().getLoadedChunk(chunkKey);
             if (chunk != null) {
                 chunk.removeLoader(this.player);
                 for (Entity entity : chunk.getEntities()) {
@@ -60,7 +60,7 @@ public class PlayerChunkManager {
 //                }
                 sendQueueIterator.remove();
 
-                Chunk chunk = this.player.getLevel().getLoadedChunk(key);
+                CloudChunk chunk = this.player.getLevel().getLoadedChunk(key);
                 if (chunk != null) {
                     chunk.removeLoader(this.player);
                 }
@@ -89,9 +89,9 @@ public class PlayerChunkManager {
                 this.sendQueue.remove(key);
                 this.player.sendPacket(packet);
 
-                Chunk chunk = this.player.getLevel().getLoadedChunk(key);
+                CloudChunk chunk = this.player.getLevel().getLoadedChunk(key);
                 checkArgument(chunk != null, "Attempted to send unloaded chunk (%s, %s) to %s",
-                        Chunk.fromKeyX(key), Chunk.fromKeyZ(key), this.player.getName());
+                        CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key), this.player.getName());
 
                 // Spawn entities
                 for (Entity entity : chunk.getEntities()) {
@@ -134,7 +134,7 @@ public class PlayerChunkManager {
                 int cx = chunkX + x;
                 int cz = chunkZ + z;
 
-                final long key = Chunk.key(cx, cz);
+                final long key = CloudChunk.key(cx, cz);
 
                 chunksForRadius.add(key);
                 if (this.loadedChunks.add(key)) {
@@ -155,14 +155,14 @@ public class PlayerChunkManager {
         chunksToLoad.sort(this.comparator);
 
         for (final long key : chunksToLoad.toLongArray()) {
-            final int cx = Chunk.fromKeyX(key);
-            final int cz = Chunk.fromKeyZ(key);
+            final int cx = CloudChunk.fromKeyX(key);
+            final int cz = CloudChunk.fromKeyZ(key);
 
             if (this.sendQueue.putIfAbsent(key, null) == null) {
                 this.player.getLevel().getChunkFuture(cx, cz).thenApply(chunk -> {
                     chunk.addLoader(this.player);
                     return chunk;
-                }).thenApplyAsync(Chunk::createChunkPacket, this.player.getServer().getScheduler().getAsyncPool())
+                }).thenApplyAsync(CloudChunk::createChunkPacket, this.player.getServer().getScheduler().getAsyncPool())
                         .whenComplete((packet, throwable) -> {
                             synchronized (PlayerChunkManager.this) {
                                 if (throwable != null) {
@@ -213,7 +213,7 @@ public class PlayerChunkManager {
     }
 
     public boolean isChunkInView(int x, int z) {
-        return this.isChunkInView(Chunk.key(x, z));
+        return this.isChunkInView(CloudChunk.key(x, z));
     }
 
     public synchronized boolean isChunkInView(long key) {
@@ -229,7 +229,7 @@ public class PlayerChunkManager {
     }
 
     public synchronized void resendChunk(int chunkX, int chunkZ) {
-        long chunkKey = Chunk.key(chunkX, chunkZ);
+        long chunkKey = CloudChunk.key(chunkX, chunkZ);
         this.loadedChunks.remove(chunkKey);
         removeChunkLoader.accept(chunkKey);
     }
@@ -268,10 +268,10 @@ public class PlayerChunkManager {
 
         @Override
         public int compare(long o1, long o2) {
-            int x1 = Chunk.fromKeyX(o1);
-            int z1 = Chunk.fromKeyZ(o1);
-            int x2 = Chunk.fromKeyX(o2);
-            int z2 = Chunk.fromKeyZ(o2);
+            int x1 = CloudChunk.fromKeyX(o1);
+            int z1 = CloudChunk.fromKeyZ(o1);
+            int x2 = CloudChunk.fromKeyX(o2);
+            int z2 = CloudChunk.fromKeyZ(o2);
             int spawnX = this.player.getPosition().getFloorX() >> 4;
             int spawnZ = this.player.getPosition().getFloorZ() >> 4;
 

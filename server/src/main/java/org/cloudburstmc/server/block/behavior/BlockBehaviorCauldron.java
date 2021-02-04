@@ -3,11 +3,11 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.Cauldron;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.Cauldron;
 import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.server.item.CloudItemStack;
@@ -18,7 +18,7 @@ import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
-import static org.cloudburstmc.server.blockentity.BlockEntityTypes.CAULDRON;
+import static org.cloudburstmc.api.blockentity.BlockEntityTypes.CAULDRON;
 
 public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 

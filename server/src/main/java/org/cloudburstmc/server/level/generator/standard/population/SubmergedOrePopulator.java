@@ -3,10 +3,10 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
@@ -47,7 +47,7 @@ public class SubmergedOrePopulator extends ChancePopulator.Column {
 
     @Override
     protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
-        IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
+        Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
         int y = chunk.getHighestBlock(blockX & 0xF, blockZ & 0xF);
         for (; y > 0; y--) {
             if (this.replace.test(chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0))) {

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.server.blockentity.Hopper;
+import org.cloudburstmc.api.blockentity.Hopper;
 
 /**
  * Created by CreeperFace on 8.5.2017.

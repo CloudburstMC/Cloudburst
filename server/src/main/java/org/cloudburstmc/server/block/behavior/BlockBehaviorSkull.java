@@ -2,13 +2,13 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.blockentity.BlockEntityTypes;
+import org.cloudburstmc.api.blockentity.Skull;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.blockentity.Skull;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.math.Direction;
