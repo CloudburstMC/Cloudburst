@@ -10,7 +10,7 @@ import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.entity.impl.BaseEntity;
+import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.server.event.inventory.InventoryOpenEvent;
 import org.cloudburstmc.server.item.CloudItemStack;

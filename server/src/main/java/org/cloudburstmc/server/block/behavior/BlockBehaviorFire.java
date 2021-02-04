@@ -11,7 +11,7 @@ import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.entity.impl.projectile.EntityArrow;
+import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.event.block.BlockBurnEvent;
 import org.cloudburstmc.server.event.block.BlockFadeEvent;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
