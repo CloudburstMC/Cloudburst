@@ -139,6 +139,62 @@ public final class BlockType implements ItemType {
         return false;
     }
 
+    public boolean blocksMotion() {
+        return true;
+    }
+
+    public boolean blocksWater() {
+        return true;
+    }
+
+    public boolean isFloodable() {
+        return false;
+    }
+
+    public boolean isReplaceable() {
+        return false;
+    }
+
+    public boolean isTransparent() {
+        return false;
+    }
+
+    public int getTranslucency() {
+        return 0;
+    }
+
+    public int getFilterLevel() {
+        return 0;
+    }
+
+    public boolean isSolid() {
+        return true;
+    }
+
+    public boolean isDiggable() {
+        return false;
+    }
+
+    public int getBurnChance() {
+        return 0;
+    }
+
+    public int getBurnAbility() {
+        return 0;
+    }
+
+    public float getHardness() {
+        return 0f;
+    }
+
+    public float getFriction() {
+        return 0f;
+    }
+
+    public float getResistance() {
+        return 0f;
+    }
+
     @Nullable
     @Override
     public BlockType getBlock() {

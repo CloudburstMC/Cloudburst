@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.registry.BlockRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -50,6 +51,11 @@ public class BlockState {
         return this.blockStates.get(trait)[trait.getIndex(value)];
     }
 
+    public <T extends Comparable<T>> T ensureTrait(BlockTrait<T> trait) {
+        checkNotNull(trait, "trait");
+        return (T) this.traits.get(trait);
+    }
+
     @Nonnull
     @SuppressWarnings({"rawtypes", "unchecked"})
     public BlockState copyTraits(BlockState from) {
@@ -78,6 +84,10 @@ public class BlockState {
             builder.setCharAt(builder.length() - 1, '}');
         }
         return builder.toString();
+    }
+
+    public BlockBehavior getBehavior() {
+        return BlockRegistry.get().getBehavior(this.type);
     }
 
     //------------------------      INTERNAL      ------------------------
