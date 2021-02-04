@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.entity.impl.hostile;
 
+import org.cloudburstmc.api.entity.Arthropod;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.hostile.Spider;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.entity.Arthropod;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.hostile.Spider;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 

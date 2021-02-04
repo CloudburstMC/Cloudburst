@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.item.behavior;
 
+import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.Projectile;
+import org.cloudburstmc.api.entity.projectile.LingeringPotion;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.entity.EntityTypes;
-import org.cloudburstmc.server.entity.Projectile;
-import org.cloudburstmc.server.entity.projectile.LingeringPotion;
 import org.cloudburstmc.server.potion.Potion;
 
 public class ItemPotionLingeringBehavior extends ItemProjectileBehavior {

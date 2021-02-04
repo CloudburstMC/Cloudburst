@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.enchantment.behavior.damage;
 
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
-import org.cloudburstmc.api.entity.Entity;
 
 /**
  * author: MagicDroidX

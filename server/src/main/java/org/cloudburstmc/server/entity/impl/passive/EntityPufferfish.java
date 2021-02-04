@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity.impl.passive;
 
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.passive.Pufferfish;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.passive.Pufferfish;
 import org.cloudburstmc.server.level.Location;
 
 /**

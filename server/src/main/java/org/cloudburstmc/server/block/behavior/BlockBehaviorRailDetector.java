@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.impl.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;

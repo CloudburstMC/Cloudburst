@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.vehicle;
 
-import org.cloudburstmc.server.entity.Entity;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.server.level.Location;
 
 public class VehicleMoveEvent extends VehicleEvent {

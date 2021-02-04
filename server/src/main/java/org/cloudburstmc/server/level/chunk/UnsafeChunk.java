@@ -5,10 +5,10 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
 

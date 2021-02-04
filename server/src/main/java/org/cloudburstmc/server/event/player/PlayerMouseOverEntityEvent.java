@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.player;
 
-import org.cloudburstmc.server.entity.Entity;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.server.player.Player;
 
 public class PlayerMouseOverEntityEvent extends PlayerEvent {
