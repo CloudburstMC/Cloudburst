@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.event.entity.CreatureSpawnEvent;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;

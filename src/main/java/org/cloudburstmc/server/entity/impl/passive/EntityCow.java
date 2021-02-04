@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.entity.impl.passive;
 
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.passive.Cow;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.passive.Cow;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Location;
 

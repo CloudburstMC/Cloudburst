@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity.impl.hostile;
 
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.hostile.Guardian;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.hostile.Guardian;
 import org.cloudburstmc.server.level.Location;
 
 /**

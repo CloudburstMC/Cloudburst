@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.utils.BlockColor;
 

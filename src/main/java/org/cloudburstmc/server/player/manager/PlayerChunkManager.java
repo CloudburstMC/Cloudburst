@@ -11,7 +11,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.entity.Entity;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;

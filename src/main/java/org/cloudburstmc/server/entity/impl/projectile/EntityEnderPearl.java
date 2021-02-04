@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.entity.impl.projectile;
 
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.projectile.EnderPearl;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.projectile.EnderPearl;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.server.level.Location;

@@ -2,11 +2,11 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.misc.Painting;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.entity.EntityTypes;
 import org.cloudburstmc.server.entity.impl.misc.EntityPainting;
-import org.cloudburstmc.server.entity.misc.Painting;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.chunk.Chunk;

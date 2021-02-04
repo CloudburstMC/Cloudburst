@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.entity.impl.projectile;
 
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.projectile.XpBottle;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.projectile.XpBottle;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.particle.EnchantParticle;
 import org.cloudburstmc.server.level.particle.Particle;

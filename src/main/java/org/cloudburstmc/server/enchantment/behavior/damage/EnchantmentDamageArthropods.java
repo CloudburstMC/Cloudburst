@@ -1,8 +1,7 @@
 package org.cloudburstmc.server.enchantment.behavior.damage;
 
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
-import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.server.entity.Arthropod;
+import org.cloudburstmc.api.entity.Arthropod;
 import org.cloudburstmc.server.potion.Effect;
 
 import java.util.concurrent.ThreadLocalRandom;

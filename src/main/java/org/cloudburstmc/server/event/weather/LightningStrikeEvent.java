@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.weather;
 
+import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.entity.misc.LightningBolt;
 import org.cloudburstmc.server.level.Level;
 
 /**

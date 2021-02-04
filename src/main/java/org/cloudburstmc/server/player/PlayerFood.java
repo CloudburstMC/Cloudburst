@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.player;
 
+import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.Attribute;
 import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.server.event.player.PlayerFoodLevelChangeEvent;
 import org.cloudburstmc.server.item.food.Food;

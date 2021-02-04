@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.event.entity;
 
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.event.entity.EntityEvent;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.entity.Entity;
 
 /**
  * @author CreeperFace
