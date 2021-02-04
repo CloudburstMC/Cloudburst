@@ -10,10 +10,10 @@ import org.cloudburstmc.api.item.TierType;
 import org.cloudburstmc.api.item.ToolType;
 import org.cloudburstmc.api.item.ToolTypes;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 
 import static org.cloudburstmc.api.block.BlockTypes.WEB;
 import static org.cloudburstmc.api.block.BlockTypes.WOOL;
