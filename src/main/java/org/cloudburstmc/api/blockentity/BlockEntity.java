@@ -1,13 +1,10 @@
 package org.cloudburstmc.api.blockentity;
 
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.player.Player;
 
 import javax.annotation.Nullable;
 
@@ -18,42 +15,6 @@ public interface BlockEntity {
     Vector3i getPosition();
 
     Level getLevel();
-
-    void loadAdditionalData(NbtMap tag);
-
-    void saveAdditionalData(NbtMapBuilder tag);
-
-    /**
-     * Gets the NBT for items with block entity data
-     * Contains all server side NBT without ID and position
-     *
-     * @return block entity tag
-     */
-    NbtMap getItemTag();
-
-    /**
-     * Get the NBT for saving the block entity to disk
-     * Contains all server side NBT with ID and position
-     *
-     * @return block entity tag
-     */
-    NbtMap getServerTag();
-
-    /**
-     * Get the NBT for saving sending to the client in {@link BlockEntityDataPacket}
-     * Contains all server side NBT with ID but no position
-     *
-     * @return block entity tag
-     */
-    NbtMap getClientTag();
-
-    /**
-     * Gets the block entity NBT that is sent in a chunk packet
-     * Contains no server side NBT
-     *
-     * @return block entity tag
-     */
-    NbtMap getChunkTag();
 
     boolean isValid();
 
@@ -74,7 +35,7 @@ public interface BlockEntity {
 
     boolean isSpawnable();
 
-    boolean updateFromClient(NbtMap tag, Player player);
+    // boolean updateFromClient(NbtMap tag, Player player);
 
     Block getBlock();
 
