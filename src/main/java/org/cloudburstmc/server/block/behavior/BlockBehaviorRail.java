@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
@@ -10,7 +11,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.RailDirection;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.Rail;

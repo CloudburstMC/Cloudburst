@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.blockentity.Furnace;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.BlockEntityType;
-import org.cloudburstmc.server.blockentity.Furnace;
 import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.math.Direction;

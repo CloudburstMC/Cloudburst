@@ -2,9 +2,9 @@ package org.cloudburstmc.server.level.generator.standard.population.tree;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
@@ -46,7 +46,7 @@ public abstract class AbstractTreePopulator extends ChancePopulator {
         final int max = min(this.height.max - 1, 254);
         final int min = this.height.min;
 
-        IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
+        Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
         BlockState lastId = chunk.getBlock(blockX & 0xF, max + 1, blockZ & 0xF, 0);
         for (int y = max; y >= min; y--) {
             BlockState id = chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0);

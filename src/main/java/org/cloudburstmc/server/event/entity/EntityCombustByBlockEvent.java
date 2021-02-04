@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.entity;
 
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.server.block.Block;
 
 /**
  * author: Box

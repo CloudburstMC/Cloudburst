@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.EnchantingTable;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.EnchantingTable;
 import org.cloudburstmc.server.inventory.EnchantInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.math.Direction;
@@ -13,7 +13,7 @@ import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.blockentity.BlockEntityTypes.ENCHANTING_TABLE;
+import static org.cloudburstmc.api.blockentity.BlockEntityTypes.ENCHANTING_TABLE;
 
 public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
 

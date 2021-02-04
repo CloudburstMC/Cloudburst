@@ -11,8 +11,8 @@ import io.netty.buffer.ByteBufOutputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.level.LevelData;
-import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.utils.LoadState;
 
@@ -80,9 +80,9 @@ class AnvilProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<Chunk> readChunk(ChunkBuilder chunkBuilder) {
+    public CompletableFuture<CloudChunk> readChunk(ChunkBuilder chunkBuilder) {
         checkForClosed();
-        CompletableFuture<Chunk> future = new CompletableFuture<>();
+        CompletableFuture<CloudChunk> future = new CompletableFuture<>();
 
         final int x = chunkBuilder.getX();
         final int z = chunkBuilder.getZ();
@@ -122,7 +122,7 @@ class AnvilProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<Void> saveChunk(Chunk chunk) {
+    public CompletableFuture<Void> saveChunk(CloudChunk chunk) {
         checkForClosed();
 
         CompletableFuture<Void> savedFuture = new CompletableFuture<>();
@@ -157,7 +157,7 @@ class AnvilProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<Void> forEachChunk(ChunkBuilder.Factory factory, BiConsumer<Chunk, Throwable> consumer) {
+    public CompletableFuture<Void> forEachChunk(ChunkBuilder.Factory factory, BiConsumer<CloudChunk, Throwable> consumer) {
         checkForClosed();
 
         int workers = 1;

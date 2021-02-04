@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;

@@ -7,7 +7,7 @@ import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PValidation;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 /**
  * @author DaPorkchop_
@@ -30,13 +30,13 @@ public abstract class TerrainDoubleCache {
 
     public double get(int x, int z) {
         Long2LongLinkedOpenHashMap cache = this.cacheCache.get();
-        long val = cache.getOrDefault(Chunk.key(x, z), NaN);
+        long val = cache.getOrDefault(CloudChunk.key(x, z), NaN);
         if (val == NaN) {
             if (cache.size() >= 1024) {
                 cache.removeFirstLong();
             }
 
-            cache.put(Chunk.key(x, z), val = Double.doubleToRawLongBits(this.computeValue(x, z, this.radius, this.scale)));
+            cache.put(CloudChunk.key(x, z), val = Double.doubleToRawLongBits(this.computeValue(x, z, this.radius, this.scale)));
         }
         return Double.longBitsToDouble(val);
     }

@@ -3,15 +3,15 @@ package org.cloudburstmc.server.registry;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.BlockEntityFactory;
+import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.BlockEntityFactory;
-import org.cloudburstmc.server.blockentity.BlockEntityType;
-import org.cloudburstmc.server.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.blockentity.impl.*;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.blockentity.*;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 import javax.annotation.Nonnull;
 import java.util.IdentityHashMap;
@@ -80,7 +80,7 @@ public class BlockEntityRegistry implements Registry {
      * @param <T>      entity class type
      * @return new entity
      */
-    public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, Chunk chunk, Vector3i position) {
+    public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, CloudChunk chunk, Vector3i position) {
         checkState(closed, "Cannot create entity till registry is closed");
         checkNotNull(type, "type");
         checkNotNull(chunk, "chunk");
@@ -98,7 +98,7 @@ public class BlockEntityRegistry implements Registry {
      * @param <T>      entity class type
      * @return new entity
      */
-    public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, Object plugin, Chunk chunk, Vector3i position) {
+    public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, Object plugin, CloudChunk chunk, Vector3i position) {
         checkState(closed, "Cannot create entity till registry is closed");
         checkNotNull(type, "type");
         checkNotNull(plugin, "plugin");

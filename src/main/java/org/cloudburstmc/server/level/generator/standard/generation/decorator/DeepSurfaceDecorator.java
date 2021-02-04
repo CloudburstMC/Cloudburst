@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
@@ -36,7 +36,7 @@ public class DeepSurfaceDecorator extends SurfaceDecorator {
     }
 
     @Override
-    public void decorate(PRandom random, IChunk chunk, int x, int z) {
+    public void decorate(PRandom random, Chunk chunk, int x, int z) {
         boolean placed = false;
         final int depth = this.getDepthNoise(chunk, random, x, z);
 

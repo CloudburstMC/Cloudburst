@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.val;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.*;

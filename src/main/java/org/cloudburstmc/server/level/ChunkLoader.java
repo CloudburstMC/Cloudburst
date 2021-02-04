@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 /**
  * author: MagicDroidX
@@ -21,9 +21,9 @@ public interface ChunkLoader {
 
     Level getLevel();
 
-    void onChunkChanged(Chunk chunk);
+    void onChunkChanged(CloudChunk chunk);
 
-    void onChunkLoaded(Chunk chunk);
+    void onChunkLoaded(CloudChunk chunk);
 
-    void onChunkUnloaded(Chunk chunk);
+    void onChunkUnloaded(CloudChunk chunk);
 }

@@ -6,9 +6,9 @@ import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.generation.noise.NoiseGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
@@ -68,7 +68,7 @@ public class MesaSurfaceDecorator extends DepthNoiseDecorator {
     }
 
     @Override
-    public void decorate(PRandom random, IChunk chunk, int x, int z) {
+    public void decorate(PRandom random, Chunk chunk, int x, int z) {
         final int blockX = (chunk.getX() << 4) + x;
         final int blockZ = (chunk.getZ() << 4) + z;
 

@@ -32,7 +32,11 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.EnderChest;
+import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
@@ -52,11 +56,7 @@ import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.EnderChest;
-import org.cloudburstmc.server.blockentity.Sign;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.Human;
@@ -77,7 +77,7 @@ import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.biome.Biome;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.locale.TextContainer;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.BlockRayTrace;
@@ -775,8 +775,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         getInventory().sendCreativeContents();
 
         this.getChunkManager().getLoadedChunks().forEach((LongConsumer) chunkKey -> {
-            int chunkX = Chunk.fromKeyX(chunkKey);
-            int chunkZ = Chunk.fromKeyZ(chunkKey);
+            int chunkX = CloudChunk.fromKeyX(chunkKey);
+            int chunkZ = CloudChunk.fromKeyZ(chunkKey);
             for (Entity entity : this.getLevel().getLoadedChunkEntities(chunkX, chunkZ)) {
                 if (this != entity && !entity.isClosed() && entity.isAlive()) {
                     entity.spawnTo(this);
@@ -1190,7 +1190,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             revert = true;
         } else {
             if (this.chunk == null) {
-                Chunk chunk = this.getLevel().getLoadedChunk(newPosition);
+                CloudChunk chunk = this.getLevel().getLoadedChunk(newPosition);
                 if (chunk == null) {
                     revert = true;
                 } else {
@@ -2019,8 +2019,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
             this.removeAllWindows(true);
 
             this.getChunkManager().getLoadedChunks().forEach((LongConsumer) chunkKey -> {
-                int chunkX = Chunk.fromKeyX(chunkKey);
-                int chunkZ = Chunk.fromKeyZ(chunkKey);
+                int chunkX = CloudChunk.fromKeyX(chunkKey);
+                int chunkZ = CloudChunk.fromKeyZ(chunkKey);
 
                 for (Entity entity : this.getLevel().getLoadedChunkEntities(chunkX, chunkZ)) {
                     if (entity != this) {
@@ -2960,7 +2960,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 
             for (int X = -1; X <= 1; ++X) {
                 for (int Z = -1; Z <= 1; ++Z) {
-                    long index = Chunk.key(chunkX + X, chunkZ + Z);
+                    long index = CloudChunk.key(chunkX + X, chunkZ + Z);
                     if (!this.getChunkManager().isChunkInView(index)) {
                         return false;
                     }
@@ -3023,7 +3023,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public void onChunkChanged(Chunk chunk) {
+    public void onChunkChanged(CloudChunk chunk) {
         this.getChunkManager().resendChunk(chunk.getX(), chunk.getZ());
     }
 
@@ -3061,7 +3061,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public void onChunkLoaded(Chunk chunk) {
+    public void onChunkLoaded(CloudChunk chunk) {
 
     }
 
@@ -3101,7 +3101,7 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     }
 
     @Override
-    public void onChunkUnloaded(Chunk chunk) {
+    public void onChunkUnloaded(CloudChunk chunk) {
         //this.sentChunks.remove(Chunk.key(chunk.getX(), chunk.getZ()));
     }
 

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorBricksEndStone extends BlockBehaviorSolid {
