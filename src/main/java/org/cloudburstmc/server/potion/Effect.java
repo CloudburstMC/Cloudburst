@@ -3,7 +3,7 @@ package org.cloudburstmc.server.potion;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.entity.impl.BaseEntity;
+import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.ServerException;

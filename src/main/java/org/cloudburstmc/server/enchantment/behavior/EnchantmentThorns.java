@@ -6,7 +6,7 @@ import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.entity.impl.Human;
+import org.cloudburstmc.server.entity.Human;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
 
 import java.util.concurrent.ThreadLocalRandom;

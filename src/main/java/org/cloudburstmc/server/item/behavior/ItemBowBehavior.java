@@ -10,7 +10,7 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.impl.projectile.EntityArrow;
+import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.event.entity.EntityShootBowEvent;
 import org.cloudburstmc.server.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.server.item.data.Damageable;

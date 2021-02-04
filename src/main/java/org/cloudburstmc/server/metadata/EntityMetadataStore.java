@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.metadata;
 
-import org.cloudburstmc.server.entity.impl.BaseEntity;
+import org.cloudburstmc.server.entity.BaseEntity;
 
 import javax.inject.Singleton;
 
