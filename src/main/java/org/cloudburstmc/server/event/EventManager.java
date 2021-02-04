@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.event;
 
+import org.cloudburstmc.api.event.Event;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collection;
 

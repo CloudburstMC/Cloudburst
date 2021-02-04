@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.CloudServer;
@@ -16,7 +17,6 @@ import org.cloudburstmc.server.event.block.BlockFadeEvent;
 import org.cloudburstmc.server.event.block.BlockIgniteEvent;
 import org.cloudburstmc.server.event.entity.EntityCombustByBlockEvent;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.math.Direction;

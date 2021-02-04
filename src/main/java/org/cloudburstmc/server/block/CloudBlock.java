@@ -2,17 +2,19 @@ package org.cloudburstmc.server.block;
 
 import com.nukkitx.math.vector.Vector3i;
 import lombok.ToString;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.math.Direction;
 
+import static org.cloudburstmc.api.block.BlockStates.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
 import static org.cloudburstmc.api.block.BlockTypes.WATER;
 
 @ToString(exclude = {"level"}, callSuper = true)
 public class CloudBlock extends CloudBlockSnapshot implements Block {
 
-    public static BlockState[] EMPTY = new BlockState[]{BlockStates.AIR, BlockStates.AIR};
+    public static BlockState[] EMPTY = new BlockState[]{AIR, AIR};
 
     private final Level level;
     private final Vector3i position;

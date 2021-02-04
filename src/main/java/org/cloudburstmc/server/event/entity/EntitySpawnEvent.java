@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.event.entity;
 
+import org.cloudburstmc.api.event.entity.EntityEvent;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.EntityCreature;

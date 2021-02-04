@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.event.player;
 
+import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.CommandSender;
-import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.permission.Permissible;
 import org.cloudburstmc.server.player.Player;
 

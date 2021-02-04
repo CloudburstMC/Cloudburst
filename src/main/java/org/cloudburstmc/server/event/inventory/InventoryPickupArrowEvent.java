@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.inventory;
 
+import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.server.entity.impl.projectile.EntityArrow;
-import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.inventory.Inventory;
 
 /**

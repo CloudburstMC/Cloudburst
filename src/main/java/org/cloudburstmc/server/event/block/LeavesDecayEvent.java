@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.block;
 
+import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.event.Cancellable;
 
 /**
  * author: MagicDroidX

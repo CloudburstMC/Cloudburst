@@ -2,12 +2,15 @@ package org.cloudburstmc.server.enchantment;
 
 import com.google.common.base.Preconditions;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentTarget;
+import org.cloudburstmc.api.enchantment.EnchantmentType;
+import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.enchantment.behavior.EnchantmentBehavior;
-import org.cloudburstmc.server.item.ItemType;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.behavior.ItemBehavior;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.behavior.ItemArmorBehavior;
-import org.cloudburstmc.server.item.behavior.ItemBehavior;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
 
 import java.util.HashSet;

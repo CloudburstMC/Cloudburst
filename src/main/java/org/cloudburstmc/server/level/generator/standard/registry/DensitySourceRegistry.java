@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.noise.NoiseSource;
-import org.cloudburstmc.server.event.Event;
+import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.server.level.generator.standard.generation.density.DensitySource;
 import org.cloudburstmc.server.level.generator.standard.generation.density.EndDensitySource;
 import org.cloudburstmc.server.level.generator.standard.generation.density.NetherDensitySource;

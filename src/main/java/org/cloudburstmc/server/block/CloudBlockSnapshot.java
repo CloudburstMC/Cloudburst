@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block;
 
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.cloudburstmc.api.block.BlockState;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
 

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.player;
 
+import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.event.Cancellable;
 import org.cloudburstmc.server.player.Player;
 
 public class PlayerBedEnterEvent extends PlayerEvent implements Cancellable {

@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
