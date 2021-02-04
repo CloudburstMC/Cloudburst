@@ -4,13 +4,13 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
 import org.cloudburstmc.server.blockentity.Piston;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 
 import java.util.ArrayList;
 import java.util.List;

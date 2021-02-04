@@ -6,6 +6,8 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.blockentity.BlockEntityType;
@@ -19,9 +21,7 @@ import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.InventoryHolder;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 
 import java.util.ArrayList;

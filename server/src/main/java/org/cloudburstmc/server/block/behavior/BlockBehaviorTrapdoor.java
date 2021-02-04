@@ -3,6 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -10,9 +12,7 @@ import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.server.event.block.DoorToggleEvent;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.BlockColor;
 

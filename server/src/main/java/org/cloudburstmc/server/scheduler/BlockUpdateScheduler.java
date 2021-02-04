@@ -5,10 +5,10 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector4i;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.AxisAlignedBB;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
 import java.util.*;
