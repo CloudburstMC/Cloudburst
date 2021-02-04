@@ -4,7 +4,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.event.entity.EntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.entity.impl.EntityLiving;
+import org.cloudburstmc.server.entity.EntityLiving;
 
 /**
  * author: Box

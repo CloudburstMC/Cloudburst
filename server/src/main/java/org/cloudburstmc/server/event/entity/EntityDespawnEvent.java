@@ -4,10 +4,10 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.EntityEvent;
-import org.cloudburstmc.server.entity.impl.EntityCreature;
-import org.cloudburstmc.server.entity.impl.Human;
-import org.cloudburstmc.server.entity.impl.projectile.EntityProjectile;
-import org.cloudburstmc.server.entity.impl.vehicle.EntityVehicle;
+import org.cloudburstmc.server.entity.EntityCreature;
+import org.cloudburstmc.server.entity.Human;
+import org.cloudburstmc.server.entity.projectile.EntityProjectile;
+import org.cloudburstmc.server.entity.vehicle.EntityVehicle;
 import org.cloudburstmc.server.level.Location;
 
 /**
