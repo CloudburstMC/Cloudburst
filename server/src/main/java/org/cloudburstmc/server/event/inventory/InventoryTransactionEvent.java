@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.event.inventory;
 
-import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.Event;
+import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 
 /**

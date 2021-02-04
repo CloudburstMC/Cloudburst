@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Effect;
 import org.cloudburstmc.server.utils.BlockColor;

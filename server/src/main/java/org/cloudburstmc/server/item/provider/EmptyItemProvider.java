@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.item.provider;
 
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 
 import java.util.Collections;
 import java.util.List;

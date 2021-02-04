@@ -2,11 +2,11 @@ package org.cloudburstmc.server.level.generator.standard.registry;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
+import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.event.Event;
 
 import java.util.IdentityHashMap;
 import java.util.Map;

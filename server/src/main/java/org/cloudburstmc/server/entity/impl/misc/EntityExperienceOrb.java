@@ -4,11 +4,11 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.entity.misc.ExperienceOrb;
-import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.player.Player;
 

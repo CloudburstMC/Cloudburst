@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.event.inventory;
 
+import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.Event;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
 import org.cloudburstmc.server.player.Player;
 

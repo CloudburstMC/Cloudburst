@@ -3,12 +3,12 @@ package org.cloudburstmc.server.block;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
-import org.cloudburstmc.server.block.trait.EnumBlockTrait;
-import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.block.trait.BlockTrait;
+import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
+import org.cloudburstmc.api.block.trait.EnumBlockTrait;
+import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.item.data.Bucket;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Axis;
 import org.cloudburstmc.server.math.LeverDirection;
 import org.cloudburstmc.server.utils.Utils;
@@ -160,7 +160,7 @@ public class BlockTraits {
 
     public void register(@Nonnull BlockTrait<?> trait) {
         vanillaMapping.put(trait.getVanillaName(), trait);
-        internalMapping.put(trait.getName(), trait);
+        internalMapping.put(trait.getName().toString(), trait);
     }
 
     public BlockTrait<?> fromVanilla(String name) {

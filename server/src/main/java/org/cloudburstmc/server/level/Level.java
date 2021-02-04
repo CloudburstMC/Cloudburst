@@ -25,19 +25,23 @@ import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.behavior.BlockBehavior;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.*;
-import org.cloudburstmc.server.block.behavior.BlockBehavior;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorRedstoneDiode;
 import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentTypes;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.EntityTypes;
@@ -956,7 +960,7 @@ public class Level implements ChunkManager, Metadatable {
                                 int z = lcg >>> 16 & 0x0f;
 
                                 val state = section.getBlock(x, y, z, 0);
-                                if (randomTickBlocks.contains(state.getType())) {
+                                if (randomTickBlocks.contains(state.getType().getId())) {
                                     Block block = new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
                                             state,
                                             section.getBlock(x, y, z, 1)

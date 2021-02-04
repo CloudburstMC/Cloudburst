@@ -3,8 +3,6 @@ package org.cloudburstmc.server.item;
 import lombok.Getter;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentType;
 import org.cloudburstmc.server.item.behavior.ItemBehavior;
 
 import javax.annotation.Nonnull;

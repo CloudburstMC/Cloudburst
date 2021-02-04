@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.entity.impl.vehicle;
 
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.entity.Entity;
 import org.cloudburstmc.server.entity.EntityInteractable;
 import org.cloudburstmc.server.entity.EntityType;
 import org.cloudburstmc.server.entity.Rideable;
 import org.cloudburstmc.server.entity.impl.BaseEntity;
 import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleDamageEvent;
 import org.cloudburstmc.server.event.vehicle.VehicleDestroyEvent;
 import org.cloudburstmc.server.level.Location;
