@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.enchantment.behavior.protection;
 
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 
 /**
  * author: MagicDroidX

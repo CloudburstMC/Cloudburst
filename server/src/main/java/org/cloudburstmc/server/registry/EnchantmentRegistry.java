@@ -5,14 +5,14 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.NonNull;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentType;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
+import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentInstance;
-import org.cloudburstmc.server.enchantment.EnchantmentType;
-import org.cloudburstmc.server.enchantment.EnchantmentTypes;
-import org.cloudburstmc.server.enchantment.EnchantmentTypes.CloudEnchantmentType;
 import org.cloudburstmc.server.enchantment.behavior.*;
 import org.cloudburstmc.server.enchantment.behavior.bow.EnchantmentBowFlame;
 import org.cloudburstmc.server.enchantment.behavior.bow.EnchantmentBowInfinity;
@@ -22,6 +22,7 @@ import org.cloudburstmc.server.enchantment.behavior.damage.EnchantmentDamageAll;
 import org.cloudburstmc.server.enchantment.behavior.damage.EnchantmentDamageArthropods;
 import org.cloudburstmc.server.enchantment.behavior.damage.EnchantmentDamageSmite;
 import org.cloudburstmc.server.enchantment.behavior.protection.*;
+import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentChanneling;
 import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentImpaling;
 import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentLoyalty;
 import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentRiptide;
@@ -66,7 +67,7 @@ public class EnchantmentRegistry implements Registry {
         Preconditions.checkState(!behaviorMap.containsKey(type), "Enchantment %s already registered", type);
 
         behaviorMap.put(type, behavior);
-        idMap.put(type, ((CloudEnchantmentType) type).getId());
+        idMap.put(type, type.getId());
         identifierMap.put(type, type.getType());
     }
 
@@ -127,15 +128,15 @@ public class EnchantmentRegistry implements Registry {
         this.registerVanilla(EnchantmentTypes.BOW_PUNCH, new EnchantmentBowKnockback());
         this.registerVanilla(EnchantmentTypes.BOW_FLAME, new EnchantmentBowFlame());
         this.registerVanilla(EnchantmentTypes.BOW_INFINITY, new EnchantmentBowInfinity());
-        this.registerVanilla(EnchantmentTypes.LURE, NoopEnchantmentBehavior.INSTANCE);
-        this.registerVanilla(EnchantmentTypes.FROST_WALKER, new EnchantmentLure());
-        this.registerVanilla(EnchantmentTypes.MENDING, new EnchantmentFrostWalker());
-        this.registerVanilla(EnchantmentTypes.BINDING_CURSE, new EnchantmentMending());
-        this.registerVanilla(EnchantmentTypes.VANISHING_CURSE, new EnchantmentBindingCurse());
-        this.registerVanilla(EnchantmentTypes.TRIDENT_IMPALING, new EnchantmentVanishingCurse());
-        this.registerVanilla(EnchantmentTypes.TRIDENT_RIPTIDE, new EnchantmentTridentImpaling());
-        this.registerVanilla(EnchantmentTypes.TRIDENT_LOYALTY, new EnchantmentTridentRiptide());
-        this.registerVanilla(EnchantmentTypes.TRIDENT_CHANNELING, new EnchantmentTridentLoyalty());
+        this.registerVanilla(EnchantmentTypes.LURE, new EnchantmentLure());
+        this.registerVanilla(EnchantmentTypes.FROST_WALKER, new EnchantmentFrostWalker());
+        this.registerVanilla(EnchantmentTypes.MENDING, new EnchantmentMending());
+        this.registerVanilla(EnchantmentTypes.BINDING_CURSE, new EnchantmentBindingCurse());
+        this.registerVanilla(EnchantmentTypes.VANISHING_CURSE, new EnchantmentVanishingCurse());
+        this.registerVanilla(EnchantmentTypes.TRIDENT_IMPALING, new EnchantmentTridentImpaling());
+        this.registerVanilla(EnchantmentTypes.TRIDENT_RIPTIDE, new EnchantmentTridentRiptide());
+        this.registerVanilla(EnchantmentTypes.TRIDENT_LOYALTY, new EnchantmentTridentLoyalty());
+        this.registerVanilla(EnchantmentTypes.TRIDENT_CHANNELING, new EnchantmentTridentChanneling());
         this.registerVanilla(EnchantmentTypes.CROSSBOW_MULTISHOT, NoopEnchantmentBehavior.INSTANCE); //TODO: implement
         this.registerVanilla(EnchantmentTypes.CROSSBOW_PIERCING, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.CROSSBOW_QUICK_CHARGE, NoopEnchantmentBehavior.INSTANCE);

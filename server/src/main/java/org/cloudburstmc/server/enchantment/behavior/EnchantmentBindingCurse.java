@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.enchantment.behavior;
 
+import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
+
 public class EnchantmentBindingCurse extends EnchantmentBehavior {
 
     @Override
