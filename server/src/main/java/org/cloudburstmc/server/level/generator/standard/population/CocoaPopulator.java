@@ -3,11 +3,11 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
@@ -49,7 +49,7 @@ public class CocoaPopulator extends ChancePopulator {
         final BlockFilter on = this.on;
         final boolean avoidDouble = this.avoidDouble;
 
-        final IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
+        final Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
         for (int y = this.height.min, max = this.height.max; y < max; y++) {
             if (random.nextDouble() >= chance || !replace.test(chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0))) {
                 continue;

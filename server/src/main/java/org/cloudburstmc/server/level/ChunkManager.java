@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.server.level.chunk.IChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 /**
  * author: MagicDroidX
@@ -39,15 +39,15 @@ public interface ChunkManager {
 
     void setBlockAt(int x, int y, int z, int layer, BlockState blockState);
 
-    default IChunk getChunk(Vector3i pos) {
+    default Chunk getChunk(Vector3i pos) {
         return getChunk(pos.getX() >> 4, pos.getZ() >> 4);
     }
 
-    default IChunk getChunk(Vector2i chunkPos) {
+    default Chunk getChunk(Vector2i chunkPos) {
         return getChunk(chunkPos.getX(), chunkPos.getY());
     }
 
-    IChunk getChunk(int chunkX, int chunkZ);
+    Chunk getChunk(int chunkX, int chunkZ);
 
     long getSeed();
 }

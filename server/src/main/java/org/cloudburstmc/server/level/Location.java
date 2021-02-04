@@ -3,8 +3,8 @@ package org.cloudburstmc.server.level;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.EqualsAndHashCode;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -77,7 +77,7 @@ public final class Location {
         return level;
     }
 
-    public Chunk getChunk() {
+    public CloudChunk getChunk() {
         return level.getChunk(this.getChunkX(), this.getChunkZ());
     }
 

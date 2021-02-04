@@ -9,9 +9,9 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.iq80.leveldb.DB;
@@ -50,7 +50,7 @@ public class EntitySerializer {
         builder.dataLoader(new DataLoader(entityTags));
     }
 
-    public static void saveEntities(WriteBatch db, Chunk chunk) {
+    public static void saveEntities(WriteBatch db, CloudChunk chunk) {
         byte[] key = LevelDBKey.ENTITIES.getKey(chunk.getX(), chunk.getZ());
         Set<Entity> entities = chunk.getEntities();
         if (entities.isEmpty()) {
@@ -74,7 +74,7 @@ public class EntitySerializer {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Location getLocation(NbtMap tag, Chunk chunk) {
+    private static Location getLocation(NbtMap tag, CloudChunk chunk) {
         List<Float> pos = tag.getList("Pos", NbtType.FLOAT);
         Vector3f position = Vector3f.from(pos.get(0), pos.get(1), pos.get(2));
 
@@ -93,7 +93,7 @@ public class EntitySerializer {
         private final List<NbtMap> entityTags;
 
         @Override
-        public boolean load(Chunk chunk) {
+        public boolean load(CloudChunk chunk) {
             boolean dirty = false;
             for (NbtMap entityTag : entityTags) {
                 try {

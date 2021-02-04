@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.event.entity.CreatureSpawnEvent;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -28,7 +28,7 @@ public class ItemSpawnEggBehavior extends CloudItemBehavior {
 
     @Override
     public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
-        Chunk chunk = level.getLoadedChunk(block.getPosition());
+        CloudChunk chunk = level.getLoadedChunk(block.getPosition());
 
         if (chunk == null) {
             return null;

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.server.level.Level;
 
 /**

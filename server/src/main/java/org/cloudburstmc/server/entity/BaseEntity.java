@@ -21,6 +21,7 @@ import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Attribute;
@@ -37,7 +38,6 @@ import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorNetherPortal;
@@ -47,7 +47,7 @@ import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.server.level.EnumLevel;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.math.NukkitMath;
@@ -84,7 +84,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     private final long runtimeId = EntityRegistry.get().newEntityId();
     protected final SyncedEntityData data = new SyncedEntityData(this::onDataChange);
     private final EntityType<?> type;
-    public Chunk chunk;
+    public CloudChunk chunk;
     public List<Block> blocksAround = new ArrayList<>();
     public List<Block> collisionBlockStates = new ArrayList<>();
     public NbtMap tag;
@@ -957,7 +957,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
                 if (!ev.isCancelled()) {
                     Location newLoc = EnumLevel.moveToNether(this.getLocation());
                     if (newLoc != null) {
-                        List<CompletableFuture<Chunk>> chunksToLoad = new ArrayList<>();
+                        List<CompletableFuture<CloudChunk>> chunksToLoad = new ArrayList<>();
                         for (int x = -1; x < 2; x++) {
                             for (int z = -1; z < 2; z++) {
                                 int chunkX = (newLoc.getChunkX()) + x, chunkZ = (newLoc.getChunkZ()) + z;

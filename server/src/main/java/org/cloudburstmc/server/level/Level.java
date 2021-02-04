@@ -24,11 +24,11 @@ import it.unimi.dsi.fastutil.shorts.ShortSet;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
+import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -45,11 +45,13 @@ import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorRedstoneDiode;
 import org.cloudburstmc.server.block.util.BlockUtils;
-import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.event.block.BlockBreakEvent;
@@ -63,8 +65,8 @@ import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.item.data.Damageable;
-import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.level.chunk.ChunkSection;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.gamerule.GameRuleMap;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
@@ -522,12 +524,12 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public Set<Player> getChunkPlayers(int chunkX, int chunkZ) {
-        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         return chunk == null ? ImmutableSet.of() : chunk.getPlayerLoaders();
     }
 
     public Set<ChunkLoader> getChunkLoaders(int chunkX, int chunkZ) {
-        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         return chunk == null ? ImmutableSet.of() : chunk.getLoaders();
     }
 
@@ -585,7 +587,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public void addChunkPacket(int chunkX, int chunkZ, BedrockPacket packet) {
-        long index = Chunk.key(chunkX, chunkZ);
+        long index = CloudChunk.key(chunkX, chunkZ);
         synchronized (chunkPackets) {
             Deque<BedrockPacket> packets = chunkPackets.computeIfAbsent(index, i -> new ArrayDeque<>());
             packets.add(packet);
@@ -628,7 +630,7 @@ public class Level implements ChunkManager, Metadatable {
                 }
 
                 if (this.isThundering()) {
-                    for (Chunk chunk : this.getChunks()) {
+                    for (CloudChunk chunk : this.getChunks()) {
                         this.performThunder(chunk);
                     }
                 }
@@ -674,10 +676,10 @@ public class Level implements ChunkManager, Metadatable {
                                 Map.Entry<Long, IntSet> entry = iter.next();
                                 long chunkKey = entry.getKey();
                                 IntSet blocks = entry.getValue();
-                                int chunkX = Chunk.fromKeyX(chunkKey);
-                                int chunkZ = Chunk.fromKeyZ(chunkKey);
+                                int chunkX = CloudChunk.fromKeyX(chunkKey);
+                                int chunkZ = CloudChunk.fromKeyZ(chunkKey);
                                 if (blocks.size() > MAX_BLOCK_CACHE) {
-                                    Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+                                    CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
                                     if (chunk != null) {
                                         for (Player p : this.getChunkPlayers(chunkX, chunkZ)) {
                                             p.onChunkChanged(chunk);
@@ -689,7 +691,7 @@ public class Level implements ChunkManager, Metadatable {
                                     Block[] blocksArray = new Block[blocks.size()];
                                     int i = 0;
                                     for (int blockKey : blocks) {
-                                        blocksArray[i++] = this.getBlock(Chunk.fromKey(chunkKey, blockKey).toVector3()); //TODO: send layers separately
+                                        blocksArray[i++] = this.getBlock(CloudChunk.fromKey(chunkKey, blockKey).toVector3()); //TODO: send layers separately
                                     }
                                     this.sendBlocks(playerArray, blocksArray, UpdateBlockPacket.FLAG_ALL);
                                 }
@@ -707,9 +709,9 @@ public class Level implements ChunkManager, Metadatable {
 
                 synchronized (chunkPackets) {
                     for (long index : this.chunkPackets.keySet()) {
-                        int chunkX = Chunk.fromKeyX(index);
-                        int chunkZ = Chunk.fromKeyZ(index);
-                        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+                        int chunkX = CloudChunk.fromKeyX(index);
+                        int chunkZ = CloudChunk.fromKeyZ(index);
+                        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
 
                         Set<Player> playerLoaders;
                         if (chunk == null || (playerLoaders = chunk.getPlayerLoaders()).isEmpty()) {
@@ -734,8 +736,8 @@ public class Level implements ChunkManager, Metadatable {
         }
     }
 
-    private void performThunder(Chunk chunk) {
-        if (areNeighboringChunksLoaded(Chunk.key(chunk.getX(), chunk.getZ()))) return;
+    private void performThunder(CloudChunk chunk) {
+        if (areNeighboringChunksLoaded(CloudChunk.key(chunk.getX(), chunk.getZ()))) return;
         if (ThreadLocalRandom.current().nextInt(10000) == 0) {
             int LCG = this.getUpdateLCG() >> 2;
 
@@ -833,7 +835,7 @@ public class Level implements ChunkManager, Metadatable {
             int chunkZ = block.getChunk().getZ();
 
             if (optimizeRebuilds) {
-                long index = Chunk.key(chunkX, chunkZ);
+                long index = CloudChunk.key(chunkX, chunkZ);
                 if (!chunks.contains(index)) {
                     chunks.add(index);
                     first = true;
@@ -909,13 +911,13 @@ public class Level implements ChunkManager, Metadatable {
                 int chunkX = (int) loader.getX() >> 4;
                 int chunkZ = (int) loader.getZ() >> 4;
 
-                long index = Chunk.key(chunkX, chunkZ);
+                long index = CloudChunk.key(chunkX, chunkZ);
                 int existingLoaders = Math.max(0, this.chunkTickList.getOrDefault(index, 0));
                 this.chunkTickList.put(index, existingLoaders + 1);
                 for (int chunk = 0; chunk < chunksPerLoader; ++chunk) {
                     int dx = random.nextInt(2 * randRange) - randRange;
                     int dz = random.nextInt(2 * randRange) - randRange;
-                    long hash = Chunk.key(dx + chunkX, dz + chunkZ);
+                    long hash = CloudChunk.key(dx + chunkX, dz + chunkZ);
                     if (!this.chunkTickList.containsKey(hash) && this.chunkManager.isChunkLoaded(hash)) {
                         this.chunkTickList.put(hash, -1);
                     }
@@ -937,10 +939,10 @@ public class Level implements ChunkManager, Metadatable {
 
                 int loaders = entry.getIntValue();
 
-                int chunkX = Chunk.fromKeyX(index);
-                int chunkZ = Chunk.fromKeyZ(index);
+                int chunkX = CloudChunk.fromKeyX(index);
+                int chunkZ = CloudChunk.fromKeyZ(index);
 
-                Chunk chunk;
+                CloudChunk chunk;
                 if ((chunk = this.getLoadedChunk(chunkX, chunkZ)) == null) {
                     iter.remove();
                     continue;
@@ -953,9 +955,9 @@ public class Level implements ChunkManager, Metadatable {
                 int tickSpeed = getGameRules().get(GameRules.RANDOM_TICK_SPEED);
 
                 if (tickSpeed > 0) {
-                    ChunkSection[] sections = chunk.getSections();
+                    CloudChunkSection[] sections = chunk.getSections();
                     for (int sectionY = 0; sectionY < sections.length; sectionY++) {
-                        ChunkSection section = sections[sectionY];
+                        CloudChunkSection section = sections[sectionY];
                         if (section != null) {
                             for (int i = 0; i < tickSpeed; ++i) {
                                 int lcg = this.getUpdateLCG();
@@ -1083,7 +1085,7 @@ public class Level implements ChunkManager, Metadatable {
         return this.updateQueue.contains(new BlockUpdateEntry(pos, block));
     }
 
-    public Set<BlockUpdateEntry> getPendingBlockUpdates(Chunk chunk) {
+    public Set<BlockUpdateEntry> getPendingBlockUpdates(CloudChunk chunk) {
         int minX = (chunk.getX() << 4) - 2;
         int maxX = minX + 16 + 2;
         int minZ = (chunk.getZ() << 4) - 2;
@@ -1251,7 +1253,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public int getFullLight(Vector3i pos) {
-        Chunk chunk = this.getChunk(pos);
+        CloudChunk chunk = this.getChunk(pos);
 
         int level = chunk.getSkyLight(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f);
         level -= this.skyLightSubtracted;
@@ -1269,7 +1271,7 @@ public class Level implements ChunkManager, Metadatable {
         int chunkX = x >> 4;
         int chunkZ = z >> 4;
 
-        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
 
         if (y < 0 || y > 255) {
             return new CloudBlock(this, Vector3i.from(x, y, z), CloudBlock.EMPTY);
@@ -1312,7 +1314,7 @@ public class Level implements ChunkManager, Metadatable {
         int chunkX = x >> 4;
         int chunkZ = z >> 4;
 
-        Chunk chunk = this.getChunk(chunkX, chunkZ);
+        CloudChunk chunk = this.getChunk(chunkX, chunkZ);
 
         if (y < 0 || y > 255) {
             return new CloudBlock(this, Vector3i.from(x, y, z), BlockStates.EMPTY_STATES);
@@ -1345,11 +1347,11 @@ public class Level implements ChunkManager, Metadatable {
         for (Long2ObjectMap.Entry<ShortSet> entry : map.long2ObjectEntrySet()) {
             long chunkKey = entry.getLongKey();
             ShortSet blocks = entry.getValue();
-            int chunkX = Chunk.fromKeyX(chunkKey);
-            int chunkZ = Chunk.fromKeyZ(chunkKey);
+            int chunkX = CloudChunk.fromKeyX(chunkKey);
+            int chunkZ = CloudChunk.fromKeyZ(chunkKey);
             for (short blockKey : blocks) {
-                Vector3i position = Chunk.fromKey(chunkKey, blockKey);
-                Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+                Vector3i position = CloudChunk.fromKey(chunkKey, blockKey);
+                CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
                 if (chunk != null) {
                     int lcx = position.getX() & 0xF;
                     int lcz = position.getZ() & 0xF;
@@ -1454,9 +1456,9 @@ public class Level implements ChunkManager, Metadatable {
 
     @Synchronized("lightQueue")
     public void addLightUpdate(int x, int y, int z) {
-        long index = Chunk.key(x >> 4, z >> 4);
+        long index = CloudChunk.key(x >> 4, z >> 4);
         this.lightQueue.computeIfAbsent(index, aLong -> new ShortOpenHashSet())
-                .add(Chunk.blockKey(x, y, z));
+                .add(CloudChunk.blockKey(x, y, z));
     }
 
     public boolean setBlock(Vector3i pos, BlockState blockState) {
@@ -1495,14 +1497,14 @@ public class Level implements ChunkManager, Metadatable {
         if (y < 0 || y >= 256) {
             return false;
         }
-        Chunk chunk = this.getChunk(x >> 4, z >> 4);
+        CloudChunk chunk = this.getChunk(x >> 4, z >> 4);
         BlockState previousState = chunk.getAndSetBlock(x & 0xF, y, z & 0xF, layer, state);
         if (previousState == state) {
             return false;
         }
         int cx = x >> 4;
         int cz = z >> 4;
-        long index = Chunk.key(cx, cz);
+        long index = CloudChunk.key(cx, cz);
 
         Block block = new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
                 layer == 0 ? state : chunk.getBlock(x & 0xf, y, z & 0xf),
@@ -1539,7 +1541,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     private void addBlockChange(int x, int y, int z, int layer) {
-        long index = Chunk.key(x >> 4, z >> 4);
+        long index = CloudChunk.key(x >> 4, z >> 4);
         addBlockChange(index, x, y, z, layer);
     }
 
@@ -1551,7 +1553,7 @@ public class Level implements ChunkManager, Metadatable {
             throw new IllegalStateException("Unable to get block changes", e);
         }
         synchronized (changedBlocks) {
-            current.add(Chunk.blockKey(x, y, z, layer));
+            current.add(CloudChunk.blockKey(x, y, z, layer));
         }
     }
 
@@ -1715,7 +1717,7 @@ public class Level implements ChunkManager, Metadatable {
         }
 
         if (createParticles) {
-            Chunk chunk = this.getLoadedChunk(target.getPosition());
+            CloudChunk chunk = this.getLoadedChunk(target.getPosition());
             if (chunk != null) {
                 this.addParticle(new DestroyBlockParticle(target.getPosition().toFloat().add(0.5, 0.5, 0.5), target.getState()), chunk.getPlayerLoaders());
             }
@@ -2060,13 +2062,13 @@ public class Level implements ChunkManager, Metadatable {
 
 
     public BlockEntity getBlockEntity(Vector3i pos) {
-        Chunk chunk = this.getChunk(pos);
+        CloudChunk chunk = this.getChunk(pos);
         return chunk.getBlockEntity(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f);
     }
 
     @Nullable
     public BlockEntity getLoadedBlockEntity(Vector3i pos) {
-        Chunk chunk = this.getLoadedChunk(pos);
+        CloudChunk chunk = this.getLoadedChunk(pos);
         return chunk == null ? null : chunk.getBlockEntity(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f);
     }
 
@@ -2077,7 +2079,7 @@ public class Level implements ChunkManager, Metadatable {
 
     @Nonnull
     public Set<Entity> getLoadedChunkEntities(int chunkX, int chunkZ) {
-        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         if (chunk != null) {
             return ImmutableSet.<Entity>builder()
                     .addAll(chunk.getEntities())
@@ -2095,19 +2097,19 @@ public class Level implements ChunkManager, Metadatable {
 
     @Nonnull
     public Collection<BlockEntity> getLoadedBlockEntities(int chunkX, int chunkZ) {
-        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         return chunk == null ? Collections.emptyList() : chunk.getBlockEntities();
     }
 
     @Override
     public BlockState getBlockAt(int x, int y, int z, int layer) {
-        Chunk chunk = this.getChunk(x >> 4, z >> 4);
+        CloudChunk chunk = this.getChunk(x >> 4, z >> 4);
         return chunk.getBlock(x & 0x0f, y & 0xff, z & 0x0f, layer);
     }
 
     @Override
     public void setBlockAt(int x, int y, int z, int layer, BlockState blockState) {
-        Chunk chunk = this.getChunk(x >> 4, z >> 4);
+        CloudChunk chunk = this.getChunk(x >> 4, z >> 4);
         chunk.setBlock(x & 0x0f, y & 0xff, z & 0x0f, layer, blockState);
         addBlockChange(x, y, z, layer);
     }
@@ -2140,26 +2142,26 @@ public class Level implements ChunkManager, Metadatable {
         return this.getChunk(x >> 4, z >> 4).getHighestBlock(x & 0xF, z & 0xF);
     }
 
-    public Chunk getLoadedChunk(Vector3f pos) {
+    public CloudChunk getLoadedChunk(Vector3f pos) {
         return this.getLoadedChunk(pos.getFloorX() >> 4, pos.getFloorZ() >> 4);
     }
 
-    public Chunk getLoadedChunk(Vector3i pos) {
+    public CloudChunk getLoadedChunk(Vector3i pos) {
         return this.getLoadedChunk(pos.getX() >> 4, pos.getZ() >> 4);
     }
 
     @Nullable
-    public Chunk getLoadedChunk(long chunkKey) {
+    public CloudChunk getLoadedChunk(long chunkKey) {
         return this.chunkManager.getLoadedChunk(chunkKey);
     }
 
     @Nullable
-    public Chunk getLoadedChunk(int chunkX, int chunkZ) {
+    public CloudChunk getLoadedChunk(int chunkX, int chunkZ) {
         return this.chunkManager.getLoadedChunk(chunkX, chunkZ);
     }
 
     @Nonnull
-    public Set<Chunk> getChunks() {
+    public Set<CloudChunk> getChunks() {
         return this.chunkManager.getLoadedChunks();
     }
 
@@ -2168,27 +2170,27 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     @Nonnull
-    public Chunk getChunk(long chunkKey) {
-        return this.chunkManager.getChunk(Chunk.fromKeyX(chunkKey), Chunk.fromKeyZ(chunkKey));
+    public CloudChunk getChunk(long chunkKey) {
+        return this.chunkManager.getChunk(CloudChunk.fromKeyX(chunkKey), CloudChunk.fromKeyZ(chunkKey));
     }
 
     @Nonnull
-    public Chunk getChunk(Vector3f pos) {
+    public CloudChunk getChunk(Vector3f pos) {
         return this.getChunk(pos.getFloorX() >> 4, pos.getFloorZ() >> 4);
     }
 
     @Nonnull
-    public Chunk getChunk(Vector3i pos) {
+    public CloudChunk getChunk(Vector3i pos) {
         return this.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
     }
 
     @Nonnull
-    public Chunk getChunk(int chunkX, int chunkZ) {
+    public CloudChunk getChunk(int chunkX, int chunkZ) {
         return this.chunkManager.getChunk(chunkX, chunkZ);
     }
 
     @Nonnull
-    public CompletableFuture<Chunk> getChunkFuture(int chunkX, int chunkZ) {
+    public CompletableFuture<CloudChunk> getChunkFuture(int chunkX, int chunkZ) {
         return this.chunkManager.getChunkFuture(chunkX, chunkZ);
     }
 
@@ -2197,7 +2199,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public BlockColor getMapColorAt(int x, int z) {
-        Chunk chunk = this.getChunk(x >> 4, z >> 4);
+        CloudChunk chunk = this.getChunk(x >> 4, z >> 4);
         int y = chunk.getHighestBlock(x & 0x0f, z & 0x0f);
         while (y > 1) {
             Block block = getBlock(Vector3i.from(x, y, z));
@@ -2320,7 +2322,7 @@ public class Level implements ChunkManager, Metadatable {
 
         if (spawn != null) {
             Vector3f v = spawn.getPosition();
-            Chunk chunk = this.getLoadedChunk(v);
+            CloudChunk chunk = this.getLoadedChunk(v);
             int x = v.getFloorX() & 0x0f;
             int z = v.getFloorZ() & 0x0f;
             if (chunk != null) {

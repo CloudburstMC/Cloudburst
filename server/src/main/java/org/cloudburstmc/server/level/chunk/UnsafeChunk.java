@@ -4,13 +4,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.player.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,7 +21,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
 
-public final class UnsafeChunk implements IChunk, Closeable {
+public final class UnsafeChunk implements Chunk, Closeable {
 
     private static final AtomicIntegerFieldUpdater<UnsafeChunk> DIRTY_FIELD = AtomicIntegerFieldUpdater
             .newUpdater(UnsafeChunk.class, "dirty");
@@ -39,7 +40,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
 
     private final Level level;
 
-    private final ChunkSection[] sections;
+    private final CloudChunkSection[] sections;
 
     private final Set<Player> players = Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -65,21 +66,21 @@ public final class UnsafeChunk implements IChunk, Closeable {
         this.x = x;
         this.z = z;
         this.level = level;
-        this.sections = new ChunkSection[Chunk.SECTION_COUNT];
-        this.biomes = new byte[Chunk.ARRAY_SIZE];
-        this.heightMap = new int[Chunk.ARRAY_SIZE];
+        this.sections = new CloudChunkSection[CloudChunk.SECTION_COUNT];
+        this.biomes = new byte[CloudChunk.ARRAY_SIZE];
+        this.heightMap = new int[CloudChunk.ARRAY_SIZE];
     }
 
-    UnsafeChunk(int x, int z, Level level, ChunkSection[] sections, byte[] biomes, int[] heightMap) {
+    UnsafeChunk(int x, int z, Level level, CloudChunkSection[] sections, byte[] biomes, int[] heightMap) {
         this.x = x;
         this.z = z;
         this.level = level;
         Preconditions.checkNotNull(sections, "sections");
-        this.sections = Arrays.copyOf(sections, Chunk.SECTION_COUNT);
+        this.sections = Arrays.copyOf(sections, CloudChunk.SECTION_COUNT);
         Preconditions.checkNotNull(biomes, "biomes");
-        this.biomes = Arrays.copyOf(biomes, Chunk.ARRAY_SIZE);
+        this.biomes = Arrays.copyOf(biomes, CloudChunk.ARRAY_SIZE);
         Preconditions.checkNotNull(heightMap, "heightMap");
-        this.heightMap = Arrays.copyOf(heightMap, Chunk.ARRAY_SIZE);
+        this.heightMap = Arrays.copyOf(heightMap, CloudChunk.ARRAY_SIZE);
     }
 
     static void checkBounds(int x, int y, int z) {
@@ -103,12 +104,12 @@ public final class UnsafeChunk implements IChunk, Closeable {
 
     @Nonnull
     @Override
-    public ChunkSection getOrCreateSection(int y) {
+    public CloudChunkSection getOrCreateSection(int y) {
         checkElementIndex(y, sections.length, "section Y");
 
-        ChunkSection section = this.sections[y];
+        CloudChunkSection section = this.sections[y];
         if (section == null) {
-            section = new ChunkSection();
+            section = new CloudChunkSection();
             this.sections[y] = section;
             this.setDirty();
         }
@@ -117,14 +118,14 @@ public final class UnsafeChunk implements IChunk, Closeable {
 
     @Nullable
     @Override
-    public ChunkSection getSection(int y) {
+    public CloudChunkSection getSection(int y) {
         checkElementIndex(y, sections.length, "section Y");
         return this.sections[y];
     }
 
     @Nonnull
     @Override
-    public ChunkSection[] getSections() {
+    public CloudChunkSection[] getSections() {
         return this.sections;
     }
 
@@ -133,7 +134,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
     @Override
     public BlockState getBlock(int x, int y, int z, int layer) {
         checkBounds(x, y, z);
-        ChunkSection section = this.getSection(y >> 4);
+        CloudChunkSection section = this.getSection(y >> 4);
         BlockState blockState;
         if (section == null) {
             blockState = BlockStates.AIR;
@@ -154,7 +155,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
     @Override
     public void setBlock(int x, int y, int z, int layer, BlockState blockState) {
         checkBounds(x, y, z);
-        ChunkSection section = this.getSection(y >> 4);
+        CloudChunkSection section = this.getSection(y >> 4);
         if (section == null) {
             if (blockState.getType() == BlockTypes.AIR) {
                 // Setting air in an empty section.
@@ -187,7 +188,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
     @Override
     public byte getSkyLight(int x, int y, int z) {
         checkBounds(x, y, z);
-        ChunkSection section = this.getSection(y >> 4);
+        CloudChunkSection section = this.getSection(y >> 4);
         return section == null ? 0 : section.getSkyLight(x, y & 0xf, z);
     }
 
@@ -201,7 +202,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
     @Override
     public byte getBlockLight(int x, int y, int z) {
         checkBounds(x, y, z);
-        ChunkSection section = this.getSection(y >> 4);
+        CloudChunkSection section = this.getSection(y >> 4);
         return section == null ? 0 : section.getBlockLight(x, y & 0xf, z);
     }
 
@@ -216,7 +217,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
     public int getHighestBlock(int x, int z) {
         checkBounds(x, z);
         for (int sectionY = 15; sectionY >= 0; sectionY--) {
-            ChunkSection section = this.sections[sectionY];
+            CloudChunkSection section = this.sections[sectionY];
             if (section != null) {
                 for (int y = 15; y >= 0; y--) {
                     if (section.getBlock(x, y, z, 0) != null) {
@@ -264,7 +265,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
     @Override
     public void addBlockEntity(BlockEntity blockEntity) {
         Preconditions.checkNotNull(blockEntity, "blockEntity");
-        short hash = Chunk.blockKey(blockEntity.getPosition());
+        short hash = CloudChunk.blockKey(blockEntity.getPosition());
         if (this.tiles.put(hash, blockEntity) != blockEntity && this.initialized == 1) {
             this.setDirty();
         }
@@ -273,7 +274,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
     @Override
     public void removeBlockEntity(BlockEntity blockEntity) {
         Preconditions.checkNotNull(blockEntity, "blockEntity");
-        short hash = Chunk.blockKey(blockEntity.getPosition());
+        short hash = CloudChunk.blockKey(blockEntity.getPosition());
         if (this.tiles.remove(hash) == blockEntity && this.initialized == 1) {
             this.setDirty();
         }
@@ -283,7 +284,7 @@ public final class UnsafeChunk implements IChunk, Closeable {
     @Override
     public BlockEntity getBlockEntity(int x, int y, int z) {
         checkBounds(x, y, z);
-        return this.tiles.get(Chunk.blockKey(x, y, z));
+        return this.tiles.get(CloudChunk.blockKey(x, y, z));
     }
 
     @Override

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.block;
 
-import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.api.block.Block;
 
 /**
  * Created by CreeperFace on 2.8.2017.

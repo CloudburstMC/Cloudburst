@@ -3,7 +3,7 @@ package org.cloudburstmc.server.inventory;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.blockentity.impl.ShulkerBoxBlockEntity;
+import org.cloudburstmc.server.blockentity.ShulkerBoxBlockEntity;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
 

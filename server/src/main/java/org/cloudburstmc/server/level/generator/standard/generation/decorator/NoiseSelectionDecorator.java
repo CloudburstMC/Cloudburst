@@ -7,8 +7,8 @@ import com.google.common.base.Preconditions;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.generation.noise.NoiseGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
@@ -69,7 +69,7 @@ public class NoiseSelectionDecorator extends AbstractGenerationPass implements D
     }
 
     @Override
-    public void decorate(PRandom random, IChunk chunk, int x, int z) {
+    public void decorate(PRandom random, Chunk chunk, int x, int z) {
         double noise = this.selector.get((chunk.getX() << 4) + x, (chunk.getZ() << 4) + z) + random.nextDouble() * this.randomFactor;
         for (Decorator decorator : noise < this.min ? this.below : noise > this.max ? this.above : this.in) {
             decorator.decorate(random, chunk, x, z);
