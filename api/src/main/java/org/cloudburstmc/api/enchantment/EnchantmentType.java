@@ -1,13 +1,17 @@
 package org.cloudburstmc.api.enchantment;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.util.Identifier;
 
-public interface EnchantmentType {
-    Identifier getType();
-
-    int getMaxLevel();
-
-    int getWeight();
-
-    EnchantmentTarget getTarget();
+@RequiredArgsConstructor
+@Getter
+@Builder
+public class EnchantmentType {
+    private final short id;
+    private final Identifier type;
+    private final int maxLevel;
+    private final int weight;
+    private final EnchantmentTarget target;
 }
