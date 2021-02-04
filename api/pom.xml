@@ -147,6 +147,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>com.nukkitx</groupId>
+            <artifactId>math</artifactId>
+            <version>1.1.0</version>
+            <scope>compile</scope>
+        </dependency>
 
     </dependencies>
 </project>

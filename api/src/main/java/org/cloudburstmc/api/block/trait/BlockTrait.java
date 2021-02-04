@@ -19,6 +19,7 @@ public abstract class BlockTrait<E extends Comparable<E>> {
     protected final Class<E> valueClass;
     protected final boolean onlySerialize;
     protected final ImmutableList<E> possibleValues;
+    protected final String vanillaName;
 
     BlockTrait(Identifier name, @Nullable String vanillaName, Class<E> valueClass, List<E> possibleValues, boolean onlySerialize) {
         checkNotNull(name);
@@ -28,17 +29,18 @@ public abstract class BlockTrait<E extends Comparable<E>> {
         this.valueClass = valueClass;
         this.onlySerialize = onlySerialize;
         this.possibleValues = ImmutableList.copyOf(possibleValues);
+        this.vanillaName = vanillaName;
 
         //BlockTraits.register(this);
     }
 
-/*    public String getVanillaName() {
+    public String getVanillaName() {
         if (vanillaName != null) {
             return vanillaName;
         }
 
-        return name;
-    }*/
+        return name.getName();
+    }
 
     public abstract E getDefaultValue();
 
