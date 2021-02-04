@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.level.chunk;
 
+import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.level.Level;
 import org.cloudburstmc.server.player.Player;
 
@@ -17,7 +18,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 @NotThreadSafe
-public final class LockableChunk implements IChunk, Lock {
+public final class LockableChunk implements Chunk, Lock {
     private final UnsafeChunk unsafe;
     private final Lock lock;
 
@@ -58,20 +59,20 @@ public final class LockableChunk implements IChunk, Lock {
 
     @Nonnull
     @Override
-    public ChunkSection getOrCreateSection(int y) {
+    public CloudChunkSection getOrCreateSection(int y) {
         return unsafe.getOrCreateSection(y);
     }
 
     @Nullable
     @Override
-    public ChunkSection getSection(int y) {
+    public CloudChunkSection getSection(int y) {
         return unsafe.getSection(y);
     }
 
     @Nonnull
     @Override
-    public ChunkSection[] getSections() {
-        ChunkSection[] sections = unsafe.getSections();
+    public CloudChunkSection[] getSections() {
+        CloudChunkSection[] sections = unsafe.getSections();
         return Arrays.copyOf(sections, sections.length);
     }
 

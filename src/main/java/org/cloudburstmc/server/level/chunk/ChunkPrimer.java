@@ -15,15 +15,15 @@ import java.util.Arrays;
  */
 public final class ChunkPrimer {
     private static final int SECTION_SIZE = 16 * 16 * 16;
-    private static final int LAYER_SIZE = SECTION_SIZE * Chunk.SECTION_COUNT;
+    private static final int LAYER_SIZE = SECTION_SIZE * CloudChunk.SECTION_COUNT;
     private static final int LAYER_COUNT = 2;
     private static final int CHUNK_SIZE = LAYER_SIZE * LAYER_COUNT;
 
     private static int index(int x, int y, int z, int layer) {
-        ChunkSection.checkBounds(x, y, z);
+        CloudChunkSection.checkBounds(x, y, z);
         Preconditions.checkArgument(layer >= 0 && layer < LAYER_COUNT, "layer (%s) is not between 0 and %s", layer, LAYER_COUNT);
 
-        return ChunkSection.blockIndex(x, y, z) | layer * LAYER_SIZE;
+        return CloudChunkSection.blockIndex(x, y, z) | layer * LAYER_SIZE;
     }
 
     private final char[] data = new char[CHUNK_SIZE];

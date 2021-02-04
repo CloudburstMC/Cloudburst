@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.api.block.Block;
 
 public class BlockBehaviorDispenser extends BlockBehaviorSolid {
 

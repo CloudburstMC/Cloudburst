@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.event.inventory;
 
+import org.cloudburstmc.api.blockentity.Furnace;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.blockentity.Furnace;
 import org.cloudburstmc.server.event.block.BlockEvent;
 
 /**

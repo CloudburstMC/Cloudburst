@@ -2,8 +2,8 @@ package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
-import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.WriteBatch;
 
@@ -40,7 +40,7 @@ public class ChunkSerializers {
         return chunkSerializer;
     }
 
-    public static void serializeChunk(WriteBatch db, Chunk chunk, int version) {
+    public static void serializeChunk(WriteBatch db, CloudChunk chunk, int version) {
         getChunkSerializer(version).serialize(db, chunk);
     }
 

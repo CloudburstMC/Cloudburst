@@ -15,11 +15,11 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.generator.GeneratorFactory;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
@@ -156,7 +156,7 @@ public final class StandardGenerator implements Generator {
     }
 
     @Override
-    public void generate(PRandom random, IChunk chunk, int chunkX, int chunkZ) {
+    public void generate(PRandom random, Chunk chunk, int chunkX, int chunkZ) {
         final int baseX = chunkX << 4;
         final int baseZ = chunkZ << 4;
         final ThreadData threadData = THREAD_DATA_CACHE.get();

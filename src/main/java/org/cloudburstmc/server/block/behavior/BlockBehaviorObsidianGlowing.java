@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
 
 import static org.cloudburstmc.api.block.BlockTypes.OBSIDIAN;
 

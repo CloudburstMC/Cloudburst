@@ -2,12 +2,12 @@ package org.cloudburstmc.server.block.behavior;
 
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.BrewingStand;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.BrewingStand;
 import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
@@ -18,7 +18,7 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
-import static org.cloudburstmc.server.blockentity.BlockEntityTypes.BREWING_STAND;
+import static org.cloudburstmc.api.blockentity.BlockEntityTypes.BREWING_STAND;
 
 public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
 

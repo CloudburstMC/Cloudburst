@@ -7,12 +7,12 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.registry.RegistryException;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.BlockEntityType;
-import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.iq80.leveldb.DB;
@@ -49,7 +49,7 @@ public class BlockEntitySerializer {
         builder.dataLoader(new BlockEntityLoader(blockEntityTags));
     }
 
-    public static void saveBlockEntities(WriteBatch db, Chunk chunk) {
+    public static void saveBlockEntities(WriteBatch db, CloudChunk chunk) {
         byte[] key = LevelDBKey.BLOCK_ENTITIES.getKey(chunk.getX(), chunk.getZ());
         if (chunk.getBlockEntities().isEmpty()) {
             db.delete(key);
@@ -77,7 +77,7 @@ public class BlockEntitySerializer {
         private final List<NbtMap> blockEntityTags;
 
         @Override
-        public boolean load(Chunk chunk) {
+        public boolean load(CloudChunk chunk) {
             boolean dirty = false;
             for (NbtMap tag : blockEntityTags) {
                 if (tag != null) {

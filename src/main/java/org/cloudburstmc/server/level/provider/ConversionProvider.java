@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.level.provider;
 
 import org.cloudburstmc.server.level.LevelData;
-import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.utils.LoadState;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -26,7 +26,7 @@ public class ConversionProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<Chunk> readChunk(ChunkBuilder chunkBuilder) {
+    public CompletableFuture<CloudChunk> readChunk(ChunkBuilder chunkBuilder) {
         return this.newChunkProvider.readChunk(chunkBuilder).thenCompose(chunk -> {
             if (chunk == null) {
                 // Couldn't find chunk in new provider so lets check the old one
@@ -43,12 +43,12 @@ public class ConversionProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<Void> saveChunk(Chunk chunk) {
+    public CompletableFuture<Void> saveChunk(CloudChunk chunk) {
         return this.newChunkProvider.saveChunk(chunk);
     }
 
     @Override
-    public CompletableFuture<Void> forEachChunk(ChunkBuilder.Factory factory, BiConsumer<Chunk, Throwable> consumer) {
+    public CompletableFuture<Void> forEachChunk(ChunkBuilder.Factory factory, BiConsumer<CloudChunk, Throwable> consumer) {
         throw new UnsupportedOperationException();
     }
 

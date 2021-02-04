@@ -5,8 +5,8 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
+import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.blockentity.BlockEntity;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.Player;
 

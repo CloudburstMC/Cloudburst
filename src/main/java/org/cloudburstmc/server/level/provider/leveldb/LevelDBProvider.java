@@ -4,10 +4,10 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.LevelData;
-import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
-import org.cloudburstmc.server.level.chunk.IChunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.LockableChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.leveldb.serializer.*;
@@ -53,7 +53,7 @@ class LevelDBProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<Chunk> readChunk(ChunkBuilder chunkBuilder) {
+    public CompletableFuture<CloudChunk> readChunk(ChunkBuilder chunkBuilder) {
         final int x = chunkBuilder.getX();
         final int z = chunkBuilder.getZ();
 
@@ -65,7 +65,7 @@ class LevelDBProvider implements LevelProvider {
 
             byte[] finalizationState = this.db.get(LevelDBKey.STATE_FINALIZATION.getKey(x, z));
             if (finalizationState == null) {
-                chunkBuilder.state(IChunk.STATE_FINISHED);
+                chunkBuilder.state(Chunk.STATE_FINISHED);
             } else {
                 chunkBuilder.state(Unpooled.wrappedBuffer(finalizationState).readIntLE() + 1);
             }
@@ -87,7 +87,7 @@ class LevelDBProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<Void> saveChunk(Chunk chunk) {
+    public CompletableFuture<Void> saveChunk(CloudChunk chunk) {
         final int x = chunk.getX();
         final int z = chunk.getZ();
 
@@ -123,7 +123,7 @@ class LevelDBProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<Void> forEachChunk(ChunkBuilder.Factory factory, BiConsumer<Chunk, Throwable> consumer) {
+    public CompletableFuture<Void> forEachChunk(ChunkBuilder.Factory factory, BiConsumer<CloudChunk, Throwable> consumer) {
         return CompletableFuture.runAsync(() -> {
             DBIterator iterator = this.db.iterator();
             while (iterator.hasNext()) {

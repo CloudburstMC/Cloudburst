@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.Level;

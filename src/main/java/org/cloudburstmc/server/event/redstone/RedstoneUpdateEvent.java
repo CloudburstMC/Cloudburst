@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.event.redstone;
 
-import org.cloudburstmc.server.block.Block;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.server.event.block.BlockUpdateEvent;
 
 public class RedstoneUpdateEvent extends BlockUpdateEvent {

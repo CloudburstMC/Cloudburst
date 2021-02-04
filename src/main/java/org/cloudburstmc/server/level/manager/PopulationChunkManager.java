@@ -3,10 +3,10 @@ package org.cloudburstmc.server.level.manager;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.NonNull;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.level.chunk.IChunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.LockableChunk;
 
 /**
@@ -23,7 +23,7 @@ public final class PopulationChunkManager implements ChunkManager {
     private final int cornerX;
     private final int cornerZ;
 
-    public PopulationChunkManager(@NonNull Chunk chunk, @NonNull LockableChunk[] allChunks, long seed) {
+    public PopulationChunkManager(@NonNull CloudChunk chunk, @NonNull LockableChunk[] allChunks, long seed) {
         this.seed = seed;
         this.cornerX = chunk.getX() - 1;
         this.cornerZ = chunk.getZ() - 1;
@@ -68,7 +68,7 @@ public final class PopulationChunkManager implements ChunkManager {
     }
 
     @Override
-    public IChunk getChunk(int chunkX, int chunkZ) {
+    public Chunk getChunk(int chunkX, int chunkZ) {
         return this.chunks[this.chunkIndex(chunkX, chunkZ)];
     }
 }

@@ -7,10 +7,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.IChunk;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
@@ -64,7 +64,7 @@ public class HugeTreePopulator extends AbstractTreePopulator {
             final int max = min(this.height.max - 1, 254);
             final int min = this.height.min;
 
-            IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
+            Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
             BlockState lastId = chunk.getBlock(blockX & 0xF, max + 1, blockZ & 0xF, 0);
             for (int y = max; y >= min; y--) {
                 BlockState id = chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0);
