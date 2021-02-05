@@ -5,11 +5,11 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.vehicle.Boat;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.data.TreeSpecies;
 
@@ -24,7 +24,7 @@ public class ItemBoatBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public ItemStack onActivate(ItemStack item, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack item, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level) {
         if (face != Direction.UP) return null;
         Vector3f spawnPos = Vector3f.from(block.getX() + 0.5,
                 block.getY() - (BlockBehaviorLiquid.isWater(target.getLiquid().getType()) ? 0.0625 : 0), block.getZ());

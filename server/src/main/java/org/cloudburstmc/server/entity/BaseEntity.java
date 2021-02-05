@@ -28,34 +28,30 @@ import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Rideable;
-import org.cloudburstmc.api.entity.data.SyncedEntityData;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.Event;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.*;
+import org.cloudburstmc.api.event.player.PlayerInteractEvent;
+import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorNetherPortal;
-import org.cloudburstmc.server.event.entity.*;
-import org.cloudburstmc.server.event.player.PlayerInteractEvent;
-import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
+import org.cloudburstmc.server.entity.data.SyncedEntityData;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EnumLevel;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.metadata.MetadataValue;
-import org.cloudburstmc.server.metadata.Metadatable;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.GameMode;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.data.CardinalDirection;
@@ -75,11 +71,11 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
  * @author MagicDroidX
  */
 @Log4j2
-public abstract class BaseEntity implements Entity, Metadatable {
+public abstract class BaseEntity implements Entity {
 
-    protected final Set<Player> hasSpawned = ConcurrentHashMap.newKeySet();
+    protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
 
-    protected final Short2ObjectMap<Effect> effects = new Short2ObjectOpenHashMap<>();
+    protected final Short2ObjectMap<CloudEffect> effects = new Short2ObjectOpenHashMap<>();
     protected final List<Entity> passengers = new ArrayList<>();
     private final long runtimeId = EntityRegistry.get().newEntityId();
     protected final SyncedEntityData data = new SyncedEntityData(this::onDataChange);
@@ -122,7 +118,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     public boolean justCreated;
     public boolean fireProof;
     public boolean invulnerable;
-    protected Level level;
+    protected CloudLevel level;
     public boolean closed = false;
     protected Entity vehicle;
     protected EntityDamageEvent lastDamageCause = null;
@@ -139,7 +135,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
     public BaseEntity(EntityType<?> type, Location location) {
         this.type = type;
-        if (this instanceof Player) {
+        if (this instanceof CloudPlayer) {
             return;
         }
 
@@ -200,7 +196,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     @Override
-    public Level getLevel() {
+    public CloudLevel getLevel() {
         return level;
     }
 
@@ -258,7 +254,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         if (tag.containsKey("ActiveEffects")) {
             List<NbtMap> effects = tag.getList("ActiveEffects", NbtType.COMPOUND);
             for (NbtMap e : effects) {
-                this.addEffect(Effect.getEffect(e));
+                this.addEffect(CloudEffect.fromNBT(e));
             }
         }
 
@@ -279,7 +275,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             tag.putBoolean("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
         }
 
-        if (!(this instanceof Player)) {
+        if (!(this instanceof CloudPlayer)) {
             tag.putString("identifier", this.type.getIdentifier().toString());
         }
 
@@ -309,7 +305,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
         if (!this.effects.isEmpty()) {
             List<NbtMap> list = new ArrayList<>();
-            for (Effect effect : this.effects.values()) {
+            for (CloudEffect effect : this.effects.values()) {
                 list.add(effect.createTag());
             }
 
@@ -451,19 +447,19 @@ public abstract class BaseEntity implements Entity, Metadatable {
         return vehicle;
     }
 
-    public Short2ObjectMap<Effect> getEffects() {
+    public Short2ObjectMap<CloudEffect> getEffects() {
         return effects;
     }
 
     public void removeAllEffects() {
-        for (Effect effect : this.effects.values()) {
+        for (CloudEffect effect : this.effects.values()) {
             this.removeEffect(effect.getId());
         }
     }
 
     public void removeEffect(int effectId) {
         if (this.effects.containsKey((short) effectId)) {
-            Effect effect = this.effects.get((short) effectId);
+            CloudEffect effect = this.effects.get((short) effectId);
             this.effects.remove((short) effectId);
             effect.remove(this);
 
@@ -471,7 +467,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         }
     }
 
-    public Effect getEffect(int effectId) {
+    public CloudEffect getEffect(int effectId) {
         return this.effects.getOrDefault((short) effectId, null);
     }
 
@@ -479,7 +475,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         return this.effects.containsKey((short) effectId);
     }
 
-    public void addEffect(Effect effect) {
+    public void addEffect(CloudEffect effect) {
         if (effect == null) {
             return; //here add null means add nothing
         }
@@ -490,7 +486,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
         this.recalculateEffectColor();
 
-        if (effect.getId() == Effect.HEALTH_BOOST) {
+        if (effect.getId() == CloudEffect.HEALTH_BOOST) {
             this.setHealth(this.getHealth() + 4 * (effect.getAmplifier() + 1));
         }
 
@@ -510,7 +506,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         int[] color = new int[3];
         int count = 0;
         boolean ambient = true;
-        for (Effect effect : this.effects.values()) {
+        for (CloudEffect effect : this.effects.values()) {
             if (effect.isVisible()) {
                 int[] c = effect.getColor();
                 color[0] += c[0] * (effect.getAmplifier() + 1);
@@ -549,7 +545,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
 
         this.timing = Timings.getEntityTiming(this.getType());
 
-        this.isPlayer = this instanceof Player;
+        this.isPlayer = this instanceof CloudPlayer;
 
         this.justCreated = true;
 
@@ -589,7 +585,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         }
     }
 
-    public void spawnTo(Player player) {
+    public void spawnTo(CloudPlayer player) {
         if (!player.isChunkInView(this.chunk.getX(), this.chunk.getZ()) || !this.hasSpawned.add(player)) {
             // out of range or already spawned
             return;
@@ -625,12 +621,12 @@ public abstract class BaseEntity implements Entity, Metadatable {
         return addEntity;
     }
 
-    public Set<Player> getViewers() {
+    public Set<CloudPlayer> getViewers() {
         return hasSpawned;
     }
 
-    public void sendPotionEffects(Player player) {
-        for (Effect effect : this.effects.values()) {
+    public void sendPotionEffects(CloudPlayer player) {
+        for (CloudEffect effect : this.effects.values()) {
             MobEffectPacket pk = new MobEffectPacket();
             pk.setRuntimeEntityId(this.getRuntimeId());
             pk.setEffectId(effect.getId());
@@ -650,11 +646,11 @@ public abstract class BaseEntity implements Entity, Metadatable {
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.setRuntimeEntityId(this.getRuntimeId());
             packet.getMetadata().putAll(changeSet);
-            ((Player) this).sendPacket(packet);
+            ((CloudPlayer) this).sendPacket(packet);
         }
     }
 
-    public void sendData(Player player) {
+    public void sendData(CloudPlayer player) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
         this.data.putAllIn(packet.getMetadata());
@@ -669,7 +665,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         CloudServer.broadcastPacket(this.getViewers(), packet);
     }
 
-    public void sendData(Player player, EntityData... data) {
+    public void sendData(CloudPlayer player, EntityData... data) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
 
@@ -680,7 +676,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         player.sendPacket(packet);
     }
 
-    public void sendFlags(Player player) {
+    public void sendFlags(CloudPlayer player) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
 
@@ -689,7 +685,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
         player.sendPacket(packet);
     }
 
-    public void despawnFrom(Player player) {
+    public void despawnFrom(CloudPlayer player) {
         if (this.hasSpawned.remove(player)) {
             RemoveEntityPacket packet = new RemoveEntityPacket();
             packet.setUniqueEntityId(this.getUniqueId());
@@ -698,7 +694,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public boolean attack(EntityDamageEvent source) {
-        if (hasEffect(Effect.FIRE_RESISTANCE)
+        if (hasEffect(CloudEffect.FIRE_RESISTANCE)
                 && (source.getCause() == EntityDamageEvent.DamageCause.FIRE
                 || source.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK
                 || source.getCause() == EntityDamageEvent.DamageCause.LAVA)) {
@@ -772,7 +768,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public int getMaxHealth() {
-        return maxHealth + (this.hasEffect(Effect.HEALTH_BOOST) ? 4 * (this.getEffect(Effect.HEALTH_BOOST).getAmplifier() + 1) : 0);
+        return maxHealth + (this.hasEffect(CloudEffect.HEALTH_BOOST) ? 4 * (this.getEffect(CloudEffect.HEALTH_BOOST).getAmplifier() + 1) : 0);
     }
 
     public void setMaxHealth(int maxHealth) {
@@ -896,7 +892,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             updatePassengers();
 
             if (!this.effects.isEmpty()) {
-                for (Effect effect : this.effects.values()) {
+                for (CloudEffect effect : this.effects.values()) {
                     if (effect.canTick()) {
                         effect.applyEffect(this);
                     }
@@ -913,8 +909,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
             this.checkBlockCollision();
 
             if (this.position.getY() <= -16 && this.isAlive()) {
-                if (this instanceof Player) {
-                    Player player = (Player) this;
+                if (this instanceof CloudPlayer) {
+                    CloudPlayer player = (CloudPlayer) this;
                     if (player.getGamemode() != GameMode.CREATIVE)
                         this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.VOID, 10));
                 } else {
@@ -930,14 +926,14 @@ public abstract class BaseEntity implements Entity, Metadatable {
                         this.fireTicks = 0;
                     }
                 } else {
-                    if (!this.hasEffect(Effect.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
+                    if (!this.hasEffect(CloudEffect.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
                         this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.FIRE_TICK, 1));
                     }
                     this.fireTicks -= tickDiff;
                 }
                 if (this.fireTicks <= 0) {
                     this.extinguish();
-                } else if (!this.fireProof && (!(this instanceof Player) || !((Player) this).isSpectator())) {
+                } else if (!this.fireProof && (!(this instanceof CloudPlayer) || !((CloudPlayer) this).isSpectator())) {
                     this.data.setFlag(ON_FIRE, true);
                     hasUpdate = true;
                 }
@@ -1217,8 +1213,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
     public void setAbsorption(float absorption) {
         if (absorption != this.absorption) {
             this.absorption = absorption;
-            if (this instanceof Player)
-                ((Player) this).setAttribute(Attribute.getAttribute(Attribute.ABSORPTION).setValue(absorption));
+            if (this instanceof CloudPlayer)
+                ((CloudPlayer) this).setAttribute(Attribute.getAttribute(Attribute.ABSORPTION).setValue(absorption));
         }
     }
 
@@ -1295,7 +1291,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             return;
         }
 
-        float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(Effect.JUMP) ? this.getEffect(Effect.JUMP).getAmplifier() + 1 : 0));
+        float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(CloudEffect.JUMP) ? this.getEffect(CloudEffect.JUMP).getAmplifier() + 1 : 0));
 
         if (damage > 0) {
             this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.FALL, damage));
@@ -1307,8 +1303,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
             if (down.getState().getType() == FARMLAND) {
                 Event ev;
 
-                if (this instanceof Player) {
-                    ev = new PlayerInteractEvent((Player) this, null, down, null, PlayerInteractEvent.Action.PHYSICAL);
+                if (this instanceof CloudPlayer) {
+                    ev = new PlayerInteractEvent((CloudPlayer) this, null, down, null, PlayerInteractEvent.Action.PHYSICAL);
                 } else {
                     ev = new EntityInteractEvent(this, down);
                 }
@@ -1368,15 +1364,15 @@ public abstract class BaseEntity implements Entity, Metadatable {
         }
     }
 
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(CloudPlayer player, ItemStack item, Vector3f clickedPos) {
         return onInteract(player, item);
     }
 
-    public boolean onInteract(Player player, ItemStack item) {
+    public boolean onInteract(CloudPlayer player, ItemStack item) {
         return false;
     }
 
-    protected boolean switchLevel(Level targetLevel) {
+    protected boolean switchLevel(CloudLevel targetLevel) {
         checkNotNull(targetLevel, "targetLevel");
         if (this.closed) {
             return false;
@@ -1730,8 +1726,8 @@ public abstract class BaseEntity implements Entity, Metadatable {
             }
 
             if (!this.justCreated) {
-                Set<Player> loaders = chunk.getPlayerLoaders();
-                for (Player player : this.hasSpawned) {
+                Set<CloudPlayer> loaders = chunk.getPlayerLoaders();
+                for (CloudPlayer player : this.hasSpawned) {
                     if (!loaders.contains(player)) {
                         this.despawnFrom(player);
                     } else {
@@ -1739,7 +1735,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
                     }
                 }
 
-                for (Player player : loaders) {
+                for (CloudPlayer player : loaders) {
                     this.spawnTo(player);
                 }
             }
@@ -1863,7 +1859,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public void respawnToAll() {
-        for (Player player : this.hasSpawned) {
+        for (CloudPlayer player : this.hasSpawned) {
             this.spawnTo(player);
         }
         this.hasSpawned.clear();
@@ -1874,7 +1870,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
             return;
         }
 
-        for (Player player : this.level.getChunkPlayers(this.chunk.getX(), this.chunk.getZ())) {
+        for (CloudPlayer player : this.level.getChunkPlayers(this.chunk.getX(), this.chunk.getZ())) {
             if (player.isOnline()) {
                 this.spawnTo(player);
             }
@@ -1882,7 +1878,7 @@ public abstract class BaseEntity implements Entity, Metadatable {
     }
 
     public void despawnFromAll() {
-        for (Player player : this.hasSpawned) {
+        for (CloudPlayer player : this.hasSpawned) {
             this.despawnFrom(player);
         }
     }
@@ -1914,26 +1910,6 @@ public abstract class BaseEntity implements Entity, Metadatable {
     @Override
     public void setOwner(@Nullable Entity entity) {
         this.data.setLong(OWNER_EID, entity == null ? -1 : entity.getUniqueId());
-    }
-
-    @Override
-    public void setMetadata(String metadataKey, MetadataValue newMetadataValue) {
-        this.server.getEntityMetadata().setMetadata(this, metadataKey, newMetadataValue);
-    }
-
-    @Override
-    public List<MetadataValue> getMetadata(String metadataKey) {
-        return this.server.getEntityMetadata().getMetadata(this, metadataKey);
-    }
-
-    @Override
-    public boolean hasMetadata(String metadataKey) {
-        return this.server.getEntityMetadata().hasMetadata(this, metadataKey);
-    }
-
-    @Override
-    public void removeMetadata(String metadataKey, PluginContainer owningPlugin) {
-        this.server.getEntityMetadata().removeMetadata(this, metadataKey, owningPlugin);
     }
 
     public CloudServer getServer() {

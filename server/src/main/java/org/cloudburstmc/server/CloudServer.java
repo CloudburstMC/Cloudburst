@@ -18,7 +18,10 @@ import lombok.val;
 import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.entity.Attribute;
+import org.cloudburstmc.api.event.server.*;
 import org.cloudburstmc.api.inventory.Recipe;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -30,7 +33,6 @@ import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.config.ServerProperties;
 import org.cloudburstmc.server.console.NukkitConsole;
 import org.cloudburstmc.server.event.CloudEventManager;
-import org.cloudburstmc.server.event.server.*;
 import org.cloudburstmc.server.inject.CloudburstModule;
 import org.cloudburstmc.server.inject.CloudburstPrivateModule;
 import org.cloudburstmc.server.inventory.CraftingManager;
@@ -40,9 +42,6 @@ import org.cloudburstmc.server.locale.LocaleManager;
 import org.cloudburstmc.server.locale.TextContainer;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.metadata.EntityMetadataStore;
-import org.cloudburstmc.server.metadata.LevelMetadataStore;
-import org.cloudburstmc.server.metadata.PlayerMetadataStore;
 import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.network.Network;
 import org.cloudburstmc.server.network.ProtocolInfo;
@@ -54,12 +53,10 @@ import org.cloudburstmc.server.permission.BanList;
 import org.cloudburstmc.server.permission.CloudPermissionManager;
 import org.cloudburstmc.server.permission.Permissible;
 import org.cloudburstmc.server.player.GameMode;
-import org.cloudburstmc.server.player.IPlayer;
 import org.cloudburstmc.server.player.OfflinePlayer;
-import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
 import org.cloudburstmc.server.plugin.loader.JavaPluginLoader;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.potion.Potion;
 import org.cloudburstmc.server.registry.*;
 import org.cloudburstmc.server.scheduler.ServerScheduler;
@@ -1093,7 +1090,7 @@ public class CloudServer implements Server {
 
     public void setAutoSave(boolean autoSave) {
         this.autoSave = autoSave;
-        for (Level level : this.levelManager.getLevels()) {
+        for (CloudLevel level : this.levelManager.getLevels()) {
             level.setAutoSave(this.autoSave);
         }
     }
@@ -1265,18 +1262,7 @@ public class CloudServer implements Server {
         nameLookup.put(nameBytes, buffer.array());
     }
 
-    @Deprecated
-    public IPlayer getOfflinePlayer(final String name) {
-        IPlayer result = this.getPlayerExact(name.toLowerCase());
-        if (result != null) {
-            return result;
-        }
-
-        return lookupName(name).map(uuid -> new OfflinePlayer(this, uuid))
-                .orElse(new OfflinePlayer(this, name));
-    }
-
-    public IPlayer getOfflinePlayer(UUID uuid) {
+    public Player getOfflinePlayer(UUID uuid) {
         Preconditions.checkNotNull(uuid, "uuid");
         Optional<Player> onlinePlayer = getPlayer(uuid);
         //noinspection OptionalIsPresent
@@ -1522,15 +1508,15 @@ public class CloudServer implements Server {
         }
     }
 
-    public Set<Level> getLevels() {
+    public Set<CloudLevel> getLevels() {
         return this.levelManager.getLevels();
     }
 
-    public Level getDefaultLevel() {
+    public CloudLevel getDefaultLevel() {
         return this.levelManager.getDefaultLevel();
     }
 
-    public void setDefaultLevel(Level level) {
+    public void setDefaultLevel(CloudLevel level) {
         this.levelManager.setDefaultLevel(level);
     }
 
@@ -1538,19 +1524,19 @@ public class CloudServer implements Server {
         return this.getLevelByName(name) != null;
     }
 
-    public Level getLevel(String id) {
+    public CloudLevel getLevel(String id) {
         return this.levelManager.getLevel(id);
     }
 
-    public Level getLevelByName(String name) {
+    public CloudLevel getLevelByName(String name) {
         return this.levelManager.getLevelByName(name);
     }
 
-    public boolean unloadLevel(Level level) {
+    public boolean unloadLevel(CloudLevel level) {
         return this.unloadLevel(level, false);
     }
 
-    public boolean unloadLevel(Level level, boolean forceUnload) {
+    public boolean unloadLevel(CloudLevel level, boolean forceUnload) {
         if (level == this.getDefaultLevel() && !forceUnload) {
             throw new IllegalStateException("The default level cannot be unloaded while running, please switch levels.");
         }
@@ -1699,7 +1685,7 @@ public class CloudServer implements Server {
     }
 
     private void registerVanillaComponents() {
-        Effect.init();
+        CloudEffect.init();
         Potion.init();
         Attribute.init();
         this.defaultLevelData.getGameRules().putAll(this.gameRuleRegistry.getDefaultRules());
@@ -1717,7 +1703,7 @@ public class CloudServer implements Server {
         if (worldConfigs.isEmpty()) {
             throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }
-        List<CompletableFuture<Level>> levelFutures = new ArrayList<>(worldConfigs.size());
+        List<CompletableFuture<CloudLevel>> levelFutures = new ArrayList<>(worldConfigs.size());
 
         for (String name : worldConfigs.keySet()) {
             final ServerConfig.World config = worldConfigs.get(name);
@@ -1759,7 +1745,7 @@ public class CloudServer implements Server {
                 log.warn("default-level is unset or empty, falling back to \"" + defaultName + '"');
             }
 
-            Level defaultLevel = this.levelManager.getLevel(defaultName);
+            CloudLevel defaultLevel = this.levelManager.getLevel(defaultName);
             if (defaultLevel == null) {
                 throw new IllegalArgumentException("default-level refers to unknown level: \"" + defaultName + '"');
             }

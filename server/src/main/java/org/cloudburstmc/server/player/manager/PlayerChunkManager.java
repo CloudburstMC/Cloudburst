@@ -14,7 +14,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongConsumer;
@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Log4j2
 public class PlayerChunkManager {
 
-    private final Player player;
+    private final CloudPlayer player;
     private final AroundPlayerChunkComparator comparator;
     private final LongSet loadedChunks = new LongOpenHashSet();
     private final Long2ObjectMap<LevelChunkPacket> sendQueue = new Long2ObjectOpenHashMap<>();
@@ -32,7 +32,7 @@ public class PlayerChunkManager {
     private final LongConsumer removeChunkLoader;
     private volatile int radius;
 
-    public PlayerChunkManager(Player player) {
+    public PlayerChunkManager(CloudPlayer player) {
         this.player = player;
         this.comparator = new AroundPlayerChunkComparator(player);
         this.removeChunkLoader = chunkKey -> {
@@ -258,7 +258,7 @@ public class PlayerChunkManager {
 
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     private static class AroundPlayerChunkComparator implements LongComparator {
-        private final Player player;
+        private final CloudPlayer player;
 
         public static int distance(int centerX, int centerZ, int x, int z) {
             int dx = centerX - x;

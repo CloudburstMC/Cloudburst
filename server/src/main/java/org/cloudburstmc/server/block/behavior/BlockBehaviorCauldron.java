@@ -6,16 +6,16 @@ import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.Cauldron;
+import org.cloudburstmc.api.event.player.PlayerBucketEmptyEvent;
+import org.cloudburstmc.api.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
-import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 import static org.cloudburstmc.api.blockentity.BlockEntityTypes.CAULDRON;
@@ -40,7 +40,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         BlockEntity be = block.getLevel().getBlockEntity(block.getPosition());
 
         if (!(be instanceof Cauldron)) {
@@ -151,7 +151,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
         return true;
     }
 
-    protected void replaceBucket(ItemStack oldBucket, Player player, ItemStack newBucket) {
+    protected void replaceBucket(ItemStack oldBucket, CloudPlayer player, ItemStack newBucket) {
         if (player.isSurvival() || player.isAdventure()) {
             if (oldBucket.getAmount() == 1) {
                 player.getInventory().setItemInHand(newBucket);
@@ -167,7 +167,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         Cauldron cauldron = BlockEntityRegistry.get().newEntity(CAULDRON, block.getChunk(), block.getPosition());
         cauldron.loadAdditionalData(((CloudItemStack) item).getDataTag());
         cauldron.setPotionId(0xffff);

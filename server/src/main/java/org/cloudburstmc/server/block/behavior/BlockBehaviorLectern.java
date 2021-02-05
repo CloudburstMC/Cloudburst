@@ -7,17 +7,17 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.Lectern;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
+import org.cloudburstmc.api.event.block.LecternDropBookEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.event.block.LecternDropBookEvent;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -54,7 +54,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         if (placeBlock(block, BlockState.get(BlockTypes.LECTERN).withTrait(
                 BlockTraits.DIRECTION,
                 player != null ? player.getHorizontalDirection() : Direction.NORTH)
@@ -68,7 +68,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (player != null) {
             BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             Lectern lectern;
@@ -128,7 +128,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             val state = block.getState();
             if (isActivated(state)) {
                 block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
@@ -137,7 +137,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
                 block.getLevel().updateAroundRedstone(block.getPosition(), null);
             }
 
-            return Level.BLOCK_UPDATE_SCHEDULED;
+            return CloudLevel.BLOCK_UPDATE_SCHEDULED;
         }
 
         return 0;
@@ -148,7 +148,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
-    public void dropBook(Block block, Player player) {
+    public void dropBook(Block block, CloudPlayer player) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         if (blockEntity instanceof Lectern) {
             Lectern lectern = (Lectern) blockEntity;

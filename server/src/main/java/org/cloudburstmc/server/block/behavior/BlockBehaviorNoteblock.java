@@ -11,10 +11,10 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.Noteblock;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -121,7 +121,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         return placeBlock(block, item) && this.createBlockEntity(block) != null;
     }
 
@@ -157,7 +157,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         this.increaseStrength(block);
         this.emitSound(block);
         return true;
@@ -165,7 +165,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_REDSTONE) {
+        if (type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
             Noteblock blockEntity = this.getBlockEntity(block);
             if (blockEntity != null) {
                 if (block.getLevel().isBlockPowered(block.getPosition())) {

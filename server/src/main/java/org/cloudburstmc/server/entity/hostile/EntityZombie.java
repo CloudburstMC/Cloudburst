@@ -3,7 +3,7 @@ package org.cloudburstmc.server.entity.hostile;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Smiteable;
 import org.cloudburstmc.api.entity.hostile.Zombie;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.level.Location;
 
 /**
  * Created by Dr. Nick Doran on 4/23/2017.

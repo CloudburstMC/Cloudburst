@@ -1,18 +1,16 @@
 package org.cloudburstmc.server.player;
 
 import com.nukkitx.nbt.NbtMap;
-import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.metadata.MetadataValue;
 
-import java.util.List;
 import java.util.OptionalLong;
 import java.util.UUID;
 
 /**
  * Represents a player that is currently offline.
  */
-public class OfflinePlayer implements IPlayer {
+public class OfflinePlayer implements Player {
     private final CloudServer server;
     private final NbtMap namedTag;
 
@@ -156,20 +154,13 @@ public class OfflinePlayer implements IPlayer {
         return this.namedTag != NbtMap.EMPTY;
     }
 
-    public void setMetadata(String metadataKey, MetadataValue newMetadataValue) {
-        this.server.getPlayerMetadata().setMetadata(this, metadataKey, newMetadataValue);
+    @Override
+    public boolean isInsideOfWater() {
+        return false;
     }
 
-    public List<MetadataValue> getMetadata(String metadataKey) {
-        return this.server.getPlayerMetadata().getMetadata(this, metadataKey);
+    @Override
+    public boolean isOnGround() {
+        return false;
     }
-
-    public boolean hasMetadata(String metadataKey) {
-        return this.server.getPlayerMetadata().hasMetadata(this, metadataKey);
-    }
-
-    public void removeMetadata(String metadataKey, PluginContainer owningPlugin) {
-        this.server.getPlayerMetadata().removeMetadata(this, metadataKey, owningPlugin);
-    }
-
 }

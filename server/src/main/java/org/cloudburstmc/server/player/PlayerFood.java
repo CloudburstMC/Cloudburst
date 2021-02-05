@@ -2,12 +2,12 @@ package org.cloudburstmc.server.player;
 
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
+import org.cloudburstmc.api.event.player.PlayerFoodLevelChangeEvent;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
-import org.cloudburstmc.server.event.player.PlayerFoodLevelChangeEvent;
 import org.cloudburstmc.server.item.food.Food;
 import org.cloudburstmc.server.level.Difficulty;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.server.potion.CloudEffect;
 
 /**
  * Created by funcraft on 2015/11/11.
@@ -20,16 +20,16 @@ public class PlayerFood {
     private int foodTickTimer = 0;
     private double foodExpLevel = 0;
 
-    private final Player player;
+    private final CloudPlayer player;
 
-    public PlayerFood(Player player, int foodLevel, float foodSaturationLevel) {
+    public PlayerFood(CloudPlayer player, int foodLevel, float foodSaturationLevel) {
         this.player = player;
         this.foodLevel = foodLevel;
         this.maxFoodLevel = 20;
         this.foodSaturationLevel = foodSaturationLevel;
     }
 
-    public Player getPlayer() {
+    public CloudPlayer getPlayer() {
         return this.player;
     }
 
@@ -165,7 +165,7 @@ public class PlayerFood {
                     this.foodTickTimer = 0;
                 }
             }
-            if (this.getPlayer().hasEffect(Effect.HUNGER)) {
+            if (this.getPlayer().hasEffect(CloudEffect.HUNGER)) {
                 this.updateFoodExpLevel(0.025);
             }
         }
@@ -174,7 +174,7 @@ public class PlayerFood {
     public void updateFoodExpLevel(double use) {
         if (!this.getPlayer().isFoodEnabled()) return;
         if (CloudServer.getInstance().getDifficulty() == Difficulty.PEACEFUL) return;
-        if (this.getPlayer().hasEffect(Effect.SATURATION)) return;
+        if (this.getPlayer().hasEffect(CloudEffect.SATURATION)) return;
         this.foodExpLevel += use;
         if (this.foodExpLevel > 4) {
             this.useHunger(1);

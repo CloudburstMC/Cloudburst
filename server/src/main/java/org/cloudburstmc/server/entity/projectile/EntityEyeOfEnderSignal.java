@@ -2,7 +2,7 @@ package org.cloudburstmc.server.entity.projectile;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.EyeOfEnderSignal;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.level.Location;
 
 public class EntityEyeOfEnderSignal extends EntityProjectile implements EyeOfEnderSignal {
 

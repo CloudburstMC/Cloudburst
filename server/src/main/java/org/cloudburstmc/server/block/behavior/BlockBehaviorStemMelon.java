@@ -2,13 +2,13 @@ package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -19,12 +19,12 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() != FARMLAND) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             ThreadLocalRandom random = ThreadLocalRandom.current();
             if (random.nextBoolean()) {
                 val state = block.getState();
@@ -34,12 +34,12 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), true);
                     }
-                    return Level.BLOCK_UPDATE_RANDOM;
+                    return CloudLevel.BLOCK_UPDATE_RANDOM;
                 } else {
                     for (Direction face : Direction.Plane.HORIZONTAL) {
                         val b = block.getSide(face).getState();
                         if (b.getType() == MELON_BLOCK) {
-                            return Level.BLOCK_UPDATE_RANDOM;
+                            return CloudLevel.BLOCK_UPDATE_RANDOM;
                         }
                     }
                     Block side = block.getSide(Direction.Plane.HORIZONTAL.random(random));
@@ -53,7 +53,7 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
                     }
                 }
             }
-            return Level.BLOCK_UPDATE_RANDOM;
+            return CloudLevel.BLOCK_UPDATE_RANDOM;
         }
         return 0;
     }

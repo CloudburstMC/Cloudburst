@@ -5,13 +5,13 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
+import org.cloudburstmc.api.event.entity.EntityShootBowEvent;
+import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.projectile.EntityProjectile;
-import org.cloudburstmc.server.event.entity.EntityShootBowEvent;
-import org.cloudburstmc.server.event.entity.ProjectileLaunchEvent;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 /**
@@ -39,12 +39,12 @@ public class ItemTridentBehavior extends ItemToolBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
         return true;
     }
 
     @Override
-    public ItemStack onRelease(ItemStack item, int ticksUsed, Player player) {
+    public ItemStack onRelease(ItemStack item, int ticksUsed, CloudPlayer player) {
         val r = this.useOn(item, player);
 
         Vector3f motion = Vector3f.from(

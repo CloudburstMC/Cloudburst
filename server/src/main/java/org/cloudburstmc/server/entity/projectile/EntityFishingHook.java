@@ -10,18 +10,18 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
+import org.cloudburstmc.api.event.entity.EntityDamageByChildEntityEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.MovingObjectPosition;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.event.entity.EntityDamageByChildEntityEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.server.item.randomitem.Fishing;
-import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.particle.BubbleParticle;
 import org.cloudburstmc.server.level.particle.WaterParticle;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import javax.annotation.Nullable;
@@ -201,7 +201,7 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
 
     public void reelLine() {
         Entity owner = this.getOwner();
-        if (owner instanceof Player && this.caught) {
+        if (owner instanceof CloudPlayer && this.caught) {
             ItemStack item = Fishing.getFishingResult(this.rod);
             int experience = new Random().nextInt((3 - 1) + 1) + 1;
             Vector3f motion;
@@ -217,12 +217,12 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
             droppedItem.setOwner(owner);
             droppedItem.spawnToAll();
 
-            Player player = (Player) owner;
+            CloudPlayer player = (CloudPlayer) owner;
             if (experience > 0) {
                 player.addExperience(experience);
             }
         }
-        if (owner instanceof Player) {
+        if (owner instanceof CloudPlayer) {
             EntityEventPacket packet = new EntityEventPacket();
             packet.setRuntimeEntityId(this.getRuntimeId());
             packet.setType(EntityEventType.FISH_HOOK_TEASE);

@@ -7,8 +7,8 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.GameMode;
-import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.TextFormat;
 
 /**
@@ -67,7 +67,7 @@ public class GamemodeCommand extends Command {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                 return true;
             }
-        } else if (!(sender instanceof Player)) {
+        } else if (!(sender instanceof CloudPlayer)) {
             return false;
         }
 
@@ -76,7 +76,7 @@ public class GamemodeCommand extends Command {
             return true;
         }
 
-        if (!((Player) target).setGamemode(gameMode)) {
+        if (!((CloudPlayer) target).setGamemode(gameMode)) {
             sender.sendMessage("Game mode update for " + target.getName() + " failed");
         } else {
             if (target.equals(sender)) {

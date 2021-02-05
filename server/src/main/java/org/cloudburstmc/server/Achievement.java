@@ -1,6 +1,6 @@
 package org.cloudburstmc.server;
 
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.HashMap;
@@ -26,7 +26,7 @@ public class Achievement {
         }
     };
 
-    public static boolean broadcast(Player player, String achievementId) {
+    public static boolean broadcast(CloudPlayer player, String achievementId) {
         if (!achievements.containsKey(achievementId)) {
             return false;
         }
@@ -61,7 +61,7 @@ public class Achievement {
         return message;
     }
 
-    public void broadcast(Player player) {
+    public void broadcast(CloudPlayer player) {
         String translation = CloudServer.getInstance().getLanguage().translate("chat.type.achievement", player.getDisplayName(), TextFormat.GREEN + this.getMessage(), null);
 
         if (CloudServer.getInstance().getConfig().isAnnouncePlayerAchievements()) {

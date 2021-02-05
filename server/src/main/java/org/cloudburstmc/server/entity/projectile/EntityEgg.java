@@ -2,7 +2,7 @@ package org.cloudburstmc.server.entity.projectile;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.Egg;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.level.Location;
 
 /**
  * author: MagicDroidX

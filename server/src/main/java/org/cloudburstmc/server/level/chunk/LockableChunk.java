@@ -4,8 +4,8 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -164,7 +164,7 @@ public final class LockableChunk implements Chunk, Lock {
 
     @Nonnull
     @Override
-    public Level getLevel() {
+    public CloudLevel getLevel() {
         return this.unsafe.getLevel();
     }
 
@@ -182,7 +182,7 @@ public final class LockableChunk implements Chunk, Lock {
 
     @Nonnull
     @Override
-    public Set<Player> getPlayers() {
+    public Set<CloudPlayer> getPlayers() {
         return this.unsafe.getPlayers();
     }
 

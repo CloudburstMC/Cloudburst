@@ -7,11 +7,11 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -24,7 +24,7 @@ public class ItemEndCrystalBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level) {
         val targetType = target.getState().getType();
         if (!(targetType == BlockTypes.BEDROCK) && !(targetType == BlockTypes.OBSIDIAN)) return null;
         CloudChunk chunk = level.getLoadedChunk(block.getPosition());

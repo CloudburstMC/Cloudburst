@@ -4,8 +4,8 @@ import lombok.val;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Chicken;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Location;
 
 /**
  * Author: BeYkeRYkt Nukkit Project

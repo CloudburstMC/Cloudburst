@@ -4,11 +4,11 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.SplashPotion;
-import org.cloudburstmc.server.event.potion.PotionCollideEvent;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.event.potion.PotionCollideEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.level.particle.Particle;
 import org.cloudburstmc.server.level.particle.SpellParticle;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.potion.Potion;
 
 import java.util.Set;
@@ -96,7 +96,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
         int g;
         int b;
 
-        Effect effect = Potion.getEffect(potion.getId(), true);
+        CloudEffect effect = Potion.getEffect(potion.getId(), true);
 
         if (effect == null) {
             r = 40;

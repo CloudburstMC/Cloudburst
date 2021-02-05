@@ -7,9 +7,9 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.food.Food;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorCake extends BlockBehaviorTransparent {
@@ -51,7 +51,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         if (block.down().getState().getType() != BlockTypes.AIR) {
             placeBlock(block, item);
 
@@ -62,11 +62,11 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() == BlockTypes.AIR) {
                 removeBlock(block, true);
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
 
@@ -84,7 +84,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (player != null && player.getFoodData().getLevel() < player.getFoodData().getMaxLevel()) {
             int counter = block.getState().ensureTrait(BlockTraits.BITE_COUNTER);
 

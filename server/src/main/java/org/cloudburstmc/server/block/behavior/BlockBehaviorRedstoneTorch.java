@@ -4,12 +4,12 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
@@ -20,7 +20,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         if (!super.place(item, block, target, face, clickPos, player)) {
             return false;
         }
@@ -73,9 +73,9 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     @Override
     public int onUpdate(Block block, int type) {
         if (super.onUpdate(block, type) == 0) {
-            if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
+            if (type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
                 block.getLevel().scheduleUpdate(block, tickRate());
-            } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+            } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
                 RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
                 block.getLevel().getServer().getEventManager().fire(ev);
 

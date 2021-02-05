@@ -10,7 +10,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 public class BlockBehaviorFurnace extends BlockBehaviorSolid {
@@ -32,7 +32,7 @@ public class BlockBehaviorFurnace extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         placeBlock(block,
                 item.getBehavior().getBlock(item)
                         .withTrait(BlockTraits.FACING_DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH)
@@ -49,7 +49,7 @@ public class BlockBehaviorFurnace extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (player != null) {
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             Furnace furnace;

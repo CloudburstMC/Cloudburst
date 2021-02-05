@@ -12,16 +12,16 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
+import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
-import org.cloudburstmc.server.event.entity.ItemDespawnEvent;
-import org.cloudburstmc.server.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.Nonnull;
 
@@ -180,8 +180,8 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                 }
             } else {
                 for (Entity entity : this.level.getNearbyEntities(this.boundingBox.grow(1, 0.5f, 1), this)) {
-                    if (entity instanceof Player) {
-                        if (((Player) entity).pickupEntity(this, true)) {
+                    if (entity instanceof CloudPlayer) {
+                        if (((CloudPlayer) entity).pickupEntity(this, true)) {
                             return true;
                         }
                     }

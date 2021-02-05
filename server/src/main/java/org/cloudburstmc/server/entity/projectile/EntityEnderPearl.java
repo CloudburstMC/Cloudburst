@@ -3,12 +3,12 @@ package org.cloudburstmc.server.entity.projectile;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.EnderPearl;
+import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
 
@@ -51,7 +51,7 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
 
         boolean hasUpdate = super.onUpdate(currentTick);
 
-        if (this.isCollided && this.getOwner() instanceof Player) {
+        if (this.isCollided && this.getOwner() instanceof CloudPlayer) {
             teleport();
         }
 
@@ -67,7 +67,7 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
 
     @Override
     public void onCollideWithEntity(Entity entity) {
-        if (this.getOwner() instanceof Player) {
+        if (this.getOwner() instanceof CloudPlayer) {
             teleport();
         }
         super.onCollideWithEntity(entity);
@@ -77,7 +77,7 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
         Entity owner = this.getOwner();
         if (owner != null) {
             owner.teleport(this.getPosition().floor().add(0.5, 0, 0.5), PlayerTeleportEvent.TeleportCause.ENDER_PEARL);
-            if (((Player) owner).isAdventure() || ((Player) owner).isSurvival()) {
+            if (((CloudPlayer) owner).isAdventure() || ((CloudPlayer) owner).isSurvival()) {
                 owner.attack(new EntityDamageByEntityEvent(this, owner, EntityDamageEvent.DamageCause.PROJECTILE, 5f, 0f));
             }
             this.level.addSound(this.getPosition(), Sound.MOB_ENDERMEN_PORTAL);

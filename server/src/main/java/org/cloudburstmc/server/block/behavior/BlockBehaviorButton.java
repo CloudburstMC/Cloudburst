@@ -3,19 +3,19 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 public class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         if (target.getState().inCategory(BlockCategory.TRANSPARENT)) {
             return false;
         }
@@ -31,12 +31,12 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (this.isActivated(block)) {
             return false;
         }
 
-        Level level = block.getLevel();
+        CloudLevel level = block.getLevel();
         level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
 
         block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, true), true, false);
@@ -51,14 +51,14 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.getSide(getFacing(block).getOpposite()).getState().inCategory(BlockCategory.TRANSPARENT)) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             if (this.isActivated(block)) {
-                Level level = block.getLevel();
+                CloudLevel level = block.getLevel();
                 level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
 
                 block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, false),
@@ -69,7 +69,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
                 level.updateAroundRedstone(this.getFacing(block).getOpposite().getOffset(block.getPosition()), null);
             }
 
-            return Level.BLOCK_UPDATE_SCHEDULED;
+            return CloudLevel.BLOCK_UPDATE_SCHEDULED;
         }
 
         return 0;

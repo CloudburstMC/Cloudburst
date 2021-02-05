@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.server.item.food.Food;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * author: MagicDroidX
@@ -13,7 +13,7 @@ import org.cloudburstmc.server.player.Player;
 public abstract class ItemEdibleBehavior extends CloudItemBehavior {
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
         if (player.getFoodData().getLevel() < player.getFoodData().getMaxLevel() || player.isCreative()) {
             return true;
         }
@@ -22,7 +22,7 @@ public abstract class ItemEdibleBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
+    public ItemStack onUse(ItemStack item, int ticksUsed, CloudPlayer player) {
         PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, item);
 
         player.getServer().getEventManager().fire(consumeEvent);

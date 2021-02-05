@@ -11,8 +11,8 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.RailDirection;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.Rail;
 
 import java.util.*;
@@ -38,11 +38,11 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             Optional<Direction> ascendingDirection = this.getOrientation(block.getState()).ascendingDirection();
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT) || (ascendingDirection.isPresent() && block.getSide(ascendingDirection.get()).getState().inCategory(BlockCategory.TRANSPARENT))) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
@@ -65,7 +65,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
 
     //Information from http://minecraft.gamepedia.com/Rail
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         val down = block.down().getState();
         if (down.inCategory(BlockCategory.TRANSPARENT)) {
             return false;

@@ -4,13 +4,13 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.event.block.DoorToggleEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.DoorToggleEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
@@ -71,12 +71,12 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         return placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (player == null) {
             return false;
         }
@@ -94,7 +94,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
-    public boolean toggle(Block block, Player player) {
+    public boolean toggle(Block block, CloudPlayer player) {
         DoorToggleEvent event = new DoorToggleEvent(block, player);
         block.getLevel().getServer().getEventManager().fire(event);
 
@@ -125,7 +125,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_REDSTONE) {
+        if (type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
             val level = block.getLevel();
             if ((!isOpen(block) && level.isBlockPowered(block.getPosition())) || (isOpen(block) && !level.isBlockPowered(block.getPosition()))) {
                 this.toggle(block, null);

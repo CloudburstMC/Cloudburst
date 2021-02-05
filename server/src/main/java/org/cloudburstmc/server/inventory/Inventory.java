@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Collection;
 import java.util.Map;
@@ -44,17 +44,17 @@ public interface Inventory {
 
     void setContents(Map<Integer, ItemStack> items);
 
-    void sendContents(Player player);
+    void sendContents(CloudPlayer player);
 
-    void sendContents(Player... players);
+    void sendContents(CloudPlayer... players);
 
-    void sendContents(Collection<Player> players);
+    void sendContents(Collection<CloudPlayer> players);
 
-    void sendSlot(int index, Player player);
+    void sendSlot(int index, CloudPlayer player);
 
-    void sendSlot(int index, Player... players);
+    void sendSlot(int index, CloudPlayer... players);
 
-    void sendSlot(int index, Collection<Player> players);
+    void sendSlot(int index, Collection<CloudPlayer> players);
 
     boolean contains(ItemStack item);
 
@@ -136,19 +136,19 @@ public interface Inventory {
 
     boolean isEmpty();
 
-    Set<Player> getViewers();
+    Set<CloudPlayer> getViewers();
 
     InventoryType getType();
 
     InventoryHolder getHolder();
 
-    void onOpen(Player who);
+    void onOpen(CloudPlayer who);
 
-    boolean open(Player who);
+    boolean open(CloudPlayer who);
 
-    void close(Player who);
+    void close(CloudPlayer who);
 
-    void onClose(Player who);
+    void onClose(CloudPlayer who);
 
     void onSlotChange(int index, ItemStack before, boolean send);
 }

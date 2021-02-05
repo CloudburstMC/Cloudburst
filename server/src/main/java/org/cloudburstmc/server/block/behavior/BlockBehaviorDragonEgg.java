@@ -7,8 +7,8 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -28,7 +28,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_TOUCH) {
+        if (type == CloudLevel.BLOCK_UPDATE_TOUCH) {
             this.teleport(block);
         }
         return super.onUpdate(block, type);
@@ -64,7 +64,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         teleport(block);
         return true;
     }

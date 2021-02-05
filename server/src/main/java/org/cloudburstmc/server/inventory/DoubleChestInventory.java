@@ -6,8 +6,8 @@ import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.blockentity.ChestBlockEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -110,13 +110,13 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
     }
 
     @Override
-    public void onOpen(Player who) {
+    public void onOpen(CloudPlayer who) {
         super.onOpen(who);
         this.left.viewers.add(who);
         this.right.viewers.add(who);
 
         if (this.getViewers().size() == 1) {
-            Level level = this.left.getHolder().getLevel();
+            CloudLevel level = this.left.getHolder().getLevel();
             if (level != null) {
                 ContainerInventory.sendBlockEventPacket(this.right.getHolder(), 1);
                 level.addLevelSoundEvent(this.left.getHolder().getPosition(), SoundEvent.CHEST_OPEN);
@@ -125,9 +125,9 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
     }
 
     @Override
-    public void onClose(Player who) {
+    public void onClose(CloudPlayer who) {
         if (this.getViewers().size() == 1) {
-            Level level = this.right.getHolder().getLevel();
+            CloudLevel level = this.right.getHolder().getLevel();
             if (level != null) {
                 ContainerInventory.sendBlockEventPacket(this.right.getHolder(), 0);
                 level.addLevelSoundEvent(this.right.getHolder().getPosition(), SoundEvent.CHEST_CLOSED);
@@ -147,9 +147,9 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
         return this.right;
     }
 
-    public void sendSlot(Inventory inv, int index, Player... players) {
+    public void sendSlot(Inventory inv, int index, CloudPlayer... players) {
 
-        for (Player player : players) {
+        for (CloudPlayer player : players) {
             int id = player.getWindowId(this);
             if (id == -1) {
                 this.close(player);

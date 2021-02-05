@@ -7,9 +7,9 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
@@ -45,7 +45,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 //    }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         val targetType = target.getState().getType();
         if (targetType == BlockTypes.WATER || targetType == BlockTypes.FLOWING_WATER) {
             Block up = target.up();
@@ -59,12 +59,12 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             val down = block.down().getState().getType();
 
             if (down != BlockTypes.WATER && down != BlockTypes.FLOWING_WATER) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;

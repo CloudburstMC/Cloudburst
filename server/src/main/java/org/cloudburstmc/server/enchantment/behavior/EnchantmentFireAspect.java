@@ -2,7 +2,7 @@ package org.cloudburstmc.server.enchantment.behavior;
 
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
-import org.cloudburstmc.server.event.entity.EntityCombustByEntityEvent;
+import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
 
 /**
  * author: MagicDroidX

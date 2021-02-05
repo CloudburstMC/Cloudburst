@@ -7,8 +7,8 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.potion.InstantEffect;
 import org.cloudburstmc.server.utils.ServerException;
 import org.cloudburstmc.server.utils.TextFormat;
@@ -45,24 +45,24 @@ public class EffectCommand extends Command {
         if (args.length < 2) {
             return false;
         }
-        Player player = sender.getServer().getPlayer(args[0]);
+        CloudPlayer player = sender.getServer().getPlayer(args[0]);
         if (player == null) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
             return true;
         }
         if (args[1].equalsIgnoreCase("clear")) {
-            for (Effect effect : player.getEffects().values()) {
+            for (CloudEffect effect : player.getEffects().values()) {
                 player.removeEffect(effect.getId());
             }
             sender.sendMessage(new TranslationContainer("%commands.effect.success.removed.all", player.getDisplayName()));
             return true;
         }
-        Effect effect;
+        CloudEffect effect;
         try {
-            effect = Effect.getEffect(Integer.parseInt(args[1]));
+            effect = CloudEffect.fromNBT(Integer.parseInt(args[1]));
         } catch (NumberFormatException | ServerException a) {
             try {
-                effect = Effect.getEffectByName(args[1]);
+                effect = CloudEffect.getEffectByName(args[1]);
             } catch (Exception e) {
                 sender.sendMessage(new TranslationContainer("%commands.effect.notFound", args[1]));
                 return true;

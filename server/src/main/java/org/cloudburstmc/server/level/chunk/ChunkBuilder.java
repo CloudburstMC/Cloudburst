@@ -5,7 +5,7 @@ import it.unimi.dsi.fastutil.ints.Int2ShortMap;
 import it.unimi.dsi.fastutil.ints.Int2ShortOpenHashMap;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.BlockUpdate;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ public class ChunkBuilder {
 
     private final int x;
     private final int z;
-    private final Level level;
+    private final CloudLevel level;
     private final Int2ShortMap extraData = new Int2ShortOpenHashMap();
     private final List<BlockUpdate> blockUpdates = new ArrayList<>();
     private final List<ChunkDataLoader> chunkDataLoaders = new ArrayList<>();
@@ -24,7 +24,7 @@ public class ChunkBuilder {
     private boolean dirty;
     private int state = Chunk.STATE_NEW;
 
-    public ChunkBuilder(int x, int z, Level level) {
+    public ChunkBuilder(int x, int z, CloudLevel level) {
         this.x = x;
         this.z = z;
         this.level = Preconditions.checkNotNull(level, "level");

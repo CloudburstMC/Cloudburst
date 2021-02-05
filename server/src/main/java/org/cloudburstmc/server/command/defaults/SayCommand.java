@@ -6,7 +6,7 @@ import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 
@@ -38,8 +38,8 @@ public class SayCommand extends Command {
         }
 
         String senderString;
-        if (sender instanceof Player) {
-            senderString = ((Player) sender).getDisplayName();
+        if (sender instanceof CloudPlayer) {
+            senderString = ((CloudPlayer) sender).getDisplayName();
         } else if (sender instanceof ConsoleCommandSender) {
             senderString = "Server";
         } else {

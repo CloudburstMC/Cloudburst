@@ -14,7 +14,7 @@ import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.transaction.action.*;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.Optional;
@@ -97,7 +97,7 @@ public class InventoryTransactionUtils {
         return false;
     }
 
-    public static InventoryAction createInventoryAction(Player player, InventoryActionData inventoryActionData) {
+    public static InventoryAction createInventoryAction(CloudPlayer player, InventoryActionData inventoryActionData) {
         InventorySource source = inventoryActionData.getSource();
         int containerId = source.getContainerId();
         int slot = inventoryActionData.getSlot();
