@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
-import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
@@ -38,7 +38,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
             val level = block.getLevel();
 
             for (int i = 1; i <= 2; i++) {
-                val id = level.getBlockAt(block.getX(), block.getY() - i, block.getZ()).getType();
+                val id = level.getBlockState(block.getX(), block.getY() - i, block.getZ()).getType();
 
                 if (id == BlockTypes.REEDS) {
                     count++;

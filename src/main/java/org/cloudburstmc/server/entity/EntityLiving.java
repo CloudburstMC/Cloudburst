@@ -2,9 +2,6 @@ package org.cloudburstmc.server.entity;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
@@ -27,6 +24,9 @@ import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.item.ItemTypes;
@@ -222,7 +222,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
                     this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.SUFFOCATION, 1));
                 }
 
-                val block = this.getLevel().getBlockAt(this.getPosition().toInt()).getType();
+                val block = this.getLevel().getBlockState(this.getPosition().toInt()).getType();
                 boolean ignore = block == BlockTypes.LADDER || block == BlockTypes.VINE || block == BlockTypes.WEB;
                 if (ignore || this.hasEffect(CloudEffect.LEVITATION)) {
                     this.resetFallDistance();

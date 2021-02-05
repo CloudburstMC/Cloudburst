@@ -1,20 +1,19 @@
 package org.cloudburstmc.server.block.behavior;
 
-import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.item.ItemStacks;
-import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
 
-    public static void spawnPortal(Vector3f pos, CloudLevel level) {
+    public static void spawnPortal(Vector3f pos, Level level) {
         int x = pos.getFloorX(), y = pos.getFloorY(), z = pos.getFloorZ();
 
         for (int xx = -1; xx < 4; xx++) {
@@ -26,8 +25,8 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
             }
         }
 
-        val obsidian = BlockState.get(BlockTypes.OBSIDIAN);
-        val portal = BlockState.get(BlockTypes.PORTAL);
+        val obsidian = BlockStates.OBSIDIAN;
+        val portal = BlockStates.PORTAL;
 
         level.setBlockAt(x + 1, y, z, obsidian);
         level.setBlockAt(x + 2, y, z, obsidian);
