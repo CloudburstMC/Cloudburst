@@ -1,14 +1,15 @@
 package org.cloudburstmc.server.command;
 
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.locale.TextContainer;
+import org.cloudburstmc.api.permission.Permission;
+import org.cloudburstmc.api.permission.PermissionAttachment;
+import org.cloudburstmc.api.permission.PermissionAttachmentInfo;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.locale.TextContainer;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.permission.PermissibleBase;
-import org.cloudburstmc.server.permission.Permission;
-import org.cloudburstmc.server.permission.PermissionAttachment;
-import org.cloudburstmc.server.permission.PermissionAttachmentInfo;
 
 import javax.inject.Singleton;
 import java.util.Map;

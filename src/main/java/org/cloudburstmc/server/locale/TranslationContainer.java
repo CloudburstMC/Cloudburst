@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.locale;
 
+import org.cloudburstmc.api.locale.TextContainer;
+
 /**
  * author: MagicDroidX
  * Nukkit Project

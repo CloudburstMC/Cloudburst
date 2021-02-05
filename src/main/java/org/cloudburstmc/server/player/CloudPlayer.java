@@ -31,11 +31,12 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
+import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityInteractable;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.Interactable;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.entity.projectile.Arrow;
@@ -52,6 +53,11 @@ import org.cloudburstmc.api.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.locale.TextContainer;
+import org.cloudburstmc.api.permission.Permission;
+import org.cloudburstmc.api.permission.PermissionAttachment;
+import org.cloudburstmc.api.permission.PermissionAttachmentInfo;
+import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
@@ -59,12 +65,11 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.Achievement;
-import org.cloudburstmc.server.AdventureSettings;
+import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.command.CommandSender;
+import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.entity.Human;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
@@ -79,15 +84,11 @@ import org.cloudburstmc.server.level.Difficulty;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.locale.TextContainer;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.metadata.MetadataValue;
 import org.cloudburstmc.server.permission.PermissibleBase;
-import org.cloudburstmc.server.permission.Permission;
-import org.cloudburstmc.server.permission.PermissionAttachment;
-import org.cloudburstmc.server.permission.PermissionAttachmentInfo;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -114,7 +115,7 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
  * Nukkit Project
  */
 @Log4j2
-public class CloudPlayer extends Human implements CommandSender, InventoryHolder, ChunkLoader, org.cloudburstmc.api.player.Player {
+public class CloudPlayer extends EntityHuman implements CommandSender, InventoryHolder, ChunkLoader, org.cloudburstmc.api.player.Player {
 
     public static final float DEFAULT_SPEED = 0.1f;
     public static final float MAXIMUM_SPEED = 0.5f;
@@ -178,7 +179,7 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
     protected int inAirTicks = 0;
     protected int startAirTicks = 5;
 
-    protected AdventureSettings adventureSettings;
+    protected CloudAdventureSettings adventureSettings;
 
     protected Vector3i sleeping = null;
 
@@ -367,11 +368,11 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
         return this.playerData.getFirstPlayed();
     }
 
-    public AdventureSettings getAdventureSettings() {
+    public CloudAdventureSettings getAdventureSettings() {
         return adventureSettings;
     }
 
-    public void setAdventureSettings(AdventureSettings adventureSettings) {
+    public void setAdventureSettings(CloudAdventureSettings adventureSettings) {
         this.adventureSettings = adventureSettings.clone(this);
         this.adventureSettings.update();
     }
@@ -382,20 +383,20 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
 
     @Deprecated
     public void setAllowFlight(boolean value) {
-        this.getAdventureSettings().set(AdventureSettings.Type.ALLOW_FLIGHT, value);
+        this.getAdventureSettings().set(CloudAdventureSettings.Type.ALLOW_FLIGHT, value);
         this.getAdventureSettings().update();
     }
 
     @Deprecated
     public boolean getAllowFlight() {
-        return this.getAdventureSettings().get(AdventureSettings.Type.ALLOW_FLIGHT);
+        return this.getAdventureSettings().get(CloudAdventureSettings.Type.ALLOW_FLIGHT);
     }
 
     public void setAllowModifyWorld(boolean value) {
-        this.getAdventureSettings().set(AdventureSettings.Type.WORLD_IMMUTABLE, !value);
-        this.getAdventureSettings().set(AdventureSettings.Type.BUILD, value);
-        this.getAdventureSettings().set(AdventureSettings.Type.MINE, value);
-        this.getAdventureSettings().set(AdventureSettings.Type.WORLD_BUILDER, value);
+        this.getAdventureSettings().set(CloudAdventureSettings.Type.WORLD_IMMUTABLE, !value);
+        this.getAdventureSettings().set(CloudAdventureSettings.Type.BUILD, value);
+        this.getAdventureSettings().set(CloudAdventureSettings.Type.MINE, value);
+        this.getAdventureSettings().set(CloudAdventureSettings.Type.WORLD_BUILDER, value);
         this.getAdventureSettings().update();
     }
 
@@ -404,21 +405,21 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
     }
 
     public void setAllowInteract(boolean value, boolean containers) {
-        this.getAdventureSettings().set(AdventureSettings.Type.WORLD_IMMUTABLE, !value);
-        this.getAdventureSettings().set(AdventureSettings.Type.DOORS_AND_SWITCHED, value);
-        this.getAdventureSettings().set(AdventureSettings.Type.OPEN_CONTAINERS, containers);
+        this.getAdventureSettings().set(CloudAdventureSettings.Type.WORLD_IMMUTABLE, !value);
+        this.getAdventureSettings().set(CloudAdventureSettings.Type.DOORS_AND_SWITCHED, value);
+        this.getAdventureSettings().set(CloudAdventureSettings.Type.OPEN_CONTAINERS, containers);
         this.getAdventureSettings().update();
     }
 
     @Deprecated
     public void setAutoJump(boolean value) {
-        this.getAdventureSettings().set(AdventureSettings.Type.AUTO_JUMP, value);
+        this.getAdventureSettings().set(CloudAdventureSettings.Type.AUTO_JUMP, value);
         this.getAdventureSettings().update();
     }
 
     @Deprecated
     public boolean hasAutoJump() {
-        return this.getAdventureSettings().get(AdventureSettings.Type.AUTO_JUMP);
+        return this.getAdventureSettings().get(CloudAdventureSettings.Type.AUTO_JUMP);
     }
 
     @Override
@@ -1054,7 +1055,7 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
             this.sendPacket(pk);
         }
 
-        this.setAdventureSettings(new AdventureSettings(this, gamemode.getAdventureSettings()));
+        this.setAdventureSettings(new CloudAdventureSettings(this, gamemode.getAdventureSettings()));
 
         if (this.isSpectator()) {
             this.teleport(this.getPosition().add(0, 0.1, 0));
@@ -1166,7 +1167,7 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
         int interactDistance = isCreative() ? 5 : 3;
         if (canInteract(this.getPosition(), interactDistance)) {
             if (getEntityPlayerLookingAt(interactDistance) != null) {
-                EntityInteractable onInteract = getEntityPlayerLookingAt(interactDistance);
+                Interactable onInteract = getEntityPlayerLookingAt(interactDistance);
                 setButtonText(onInteract.getInteractButtonText());
             } else {
                 setButtonText("");
@@ -1431,9 +1432,9 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
      * @param maxDistance the maximum distance to check for entities
      * @return Entity|null    either NULL if no entity is found or an instance of the entity
      */
-    public EntityInteractable getEntityPlayerLookingAt(int maxDistance) {
+    public Interactable getEntityPlayerLookingAt(int maxDistance) {
         try (Timing ignored = Timings.playerEntityLookingAtTimer.startTiming()) {
-            EntityInteractable entity = null;
+            Interactable entity = null;
 
             Set<Entity> nearbyEntities = this.getLevel().getNearbyEntities(boundingBox.grow(maxDistance, maxDistance, maxDistance), this);
 
@@ -1471,14 +1472,14 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
         return (dot1 - dot) >= -maxDiff;
     }
 
-    private EntityInteractable getEntityAtPosition(Set<Entity> nearbyEntities, int x, int y, int z) {
+    private Interactable getEntityAtPosition(Set<Entity> nearbyEntities, int x, int y, int z) {
         try (Timing ignored = Timings.playerEntityAtPositionTimer.startTiming()) {
             for (Entity nearestEntity : nearbyEntities) {
                 Vector3f position = nearestEntity.getPosition();
                 if (position.getFloorX() == x && position.getFloorY() == y && position.getFloorZ() == z
-                        && nearestEntity instanceof EntityInteractable
-                        && ((EntityInteractable) nearestEntity).canDoInteraction()) {
-                    return (EntityInteractable) nearestEntity;
+                        && nearestEntity instanceof Interactable
+                        && ((Interactable) nearestEntity).canDoInteraction()) {
+                    return (Interactable) nearestEntity;
                 }
             }
             return null;
@@ -1662,12 +1663,12 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
             this.playerData.setGamemode(this.server.getGamemode());
         }
 
-        this.adventureSettings = new AdventureSettings(this)
-                .set(AdventureSettings.Type.WORLD_IMMUTABLE, isAdventure() || isSpectator())
-                .set(AdventureSettings.Type.WORLD_BUILDER, !isAdventure() && !isSpectator())
-                .set(AdventureSettings.Type.AUTO_JUMP, true)
-                .set(AdventureSettings.Type.ALLOW_FLIGHT, isCreative())
-                .set(AdventureSettings.Type.NO_CLIP, isSpectator());
+        this.adventureSettings = new CloudAdventureSettings(this)
+                .set(CloudAdventureSettings.Type.WORLD_IMMUTABLE, isAdventure() || isSpectator())
+                .set(CloudAdventureSettings.Type.WORLD_BUILDER, !isAdventure() && !isSpectator())
+                .set(CloudAdventureSettings.Type.AUTO_JUMP, true)
+                .set(CloudAdventureSettings.Type.ALLOW_FLIGHT, isCreative())
+                .set(CloudAdventureSettings.Type.NO_CLIP, isSpectator());
 
         CloudLevel level;
         if ((level = this.server.getLevelByName(this.playerData.getLevel())) == null || !isAlive()) {
@@ -2211,7 +2212,7 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
         if (this.isSpectator() || (this.isCreative() && source.getCause() != EntityDamageEvent.DamageCause.SUICIDE)) {
             //source.setCancelled();
             return false;
-        } else if (this.getAdventureSettings().get(AdventureSettings.Type.ALLOW_FLIGHT) && source.getCause() == EntityDamageEvent.DamageCause.FALL) {
+        } else if (this.getAdventureSettings().get(CloudAdventureSettings.Type.ALLOW_FLIGHT) && source.getCause() == EntityDamageEvent.DamageCause.FALL) {
             //source.setCancelled();
             return false;
         } else if (source.getCause() == EntityDamageEvent.DamageCause.FALL) {

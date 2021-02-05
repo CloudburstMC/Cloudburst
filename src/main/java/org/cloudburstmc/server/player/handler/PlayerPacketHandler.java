@@ -40,9 +40,10 @@ import org.cloudburstmc.api.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.AdventureSettings;
+import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLectern;
@@ -67,7 +68,6 @@ import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.InventoryTransactionUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.*;
@@ -196,7 +196,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(AdventureSettingsPacket packet) {
         Set<AdventureSetting> flags = packet.getSettings();
-        if (!player.getServer().getAllowFlight() && flags.contains(AdventureSetting.FLYING) && !player.getAdventureSettings().get(AdventureSettings.Type.ALLOW_FLIGHT)) {
+        if (!player.getServer().getAllowFlight() && flags.contains(AdventureSetting.FLYING) && !player.getAdventureSettings().get(CloudAdventureSettings.Type.ALLOW_FLIGHT)) {
             player.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on player server");
             return true;
         }
@@ -205,7 +205,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (playerToggleFlightEvent.isCancelled()) {
             player.getAdventureSettings().update();
         } else {
-            player.getAdventureSettings().set(AdventureSettings.Type.FLYING, playerToggleFlightEvent.isFlying());
+            player.getAdventureSettings().set(CloudAdventureSettings.Type.FLYING, playerToggleFlightEvent.isFlying());
         }
         return true;
     }
@@ -633,13 +633,13 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        PlayerAnimationEvent animationEvent = new PlayerAnimationEvent(player, packet.getAction());
+        PlayerAnimationEvent animationEvent = new PlayerAnimationEvent(player, PlayerAnimationEvent.Type.values()[packet.getAction().ordinal()]);
         player.getServer().getEventManager().fire(animationEvent);
         if (animationEvent.isCancelled()) {
             return true;
         }
 
-        AnimatePacket.Action animation = animationEvent.getAnimationType();
+        AnimatePacket.Action animation = AnimatePacket.Action.values()[animationEvent.getAnimationType().ordinal()];
 
         switch (animation) {
             case ROW_RIGHT:
@@ -652,7 +652,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         AnimatePacket animatePacket = new AnimatePacket();
         animatePacket.setRuntimeEntityId(player.getRuntimeId());
-        animatePacket.setAction(animationEvent.getAnimationType());
+        animatePacket.setAction(AnimatePacket.Action.values()[animationEvent.getAnimationType().ordinal()]);
         CloudServer.broadcastPacket(player.getViewers(), animatePacket);
         return true;
     }

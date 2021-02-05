@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.misc;
 
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityExplosive;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
@@ -14,7 +14,7 @@ import org.cloudburstmc.server.level.Explosion;
 /**
  * Created by PetteriM1
  */
-public class EntityEnderCrystal extends BaseEntity implements EnderCrystal, EntityExplosive {
+public class EntityEnderCrystal extends BaseEntity implements EnderCrystal, Explosive {
 
     public EntityEnderCrystal(EntityType<EnderCrystal> type, Location location) {
         super(type, location);

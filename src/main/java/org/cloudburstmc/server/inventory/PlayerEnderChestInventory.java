@@ -6,19 +6,19 @@ import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.entity.Human;
+import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 public class PlayerEnderChestInventory extends BaseInventory {
 
-    public PlayerEnderChestInventory(Human player) {
+    public PlayerEnderChestInventory(EntityHuman player) {
         super(player, InventoryType.ENDER_CHEST);
     }
 
     @Override
-    public Human getHolder() {
-        return (Human) this.holder;
+    public EntityHuman getHolder() {
+        return (EntityHuman) this.holder;
     }
 
     @Override

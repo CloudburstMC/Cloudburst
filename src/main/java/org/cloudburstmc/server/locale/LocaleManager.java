@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.server.Bootstrap;
 
 import java.io.BufferedReader;
