@@ -1,23 +1,30 @@
 package org.cloudburstmc.api.event.player;
 
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.locale.TextContainer;
+import org.cloudburstmc.api.player.Player;
 
 public class PlayerLoginEvent extends PlayerEvent implements Cancellable {
 
-    protected String kickMessage;
+    protected TextContainer kickMessage;
 
 
-    public PlayerLoginEvent(Player player, String kickMessage) {
+    public PlayerLoginEvent(Player player, TextContainer kickMessage) {
         super(player);
         this.kickMessage = kickMessage;
     }
 
     public String getKickMessage() {
-        return kickMessage;
+        return kickMessage.getText();
     }
 
+    public TextContainer getKickMessageContainer() { return kickMessage; }
+
     public void setKickMessage(String kickMessage) {
+        this.kickMessage = new TextContainer(kickMessage);
+    }
+
+    public void setKickMessage(TextContainer kickMessage) {
         this.kickMessage = kickMessage;
     }
 }

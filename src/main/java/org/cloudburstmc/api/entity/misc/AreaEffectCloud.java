@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.entity.misc;
 
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.api.potion.Effect;
 
 import java.util.List;
 

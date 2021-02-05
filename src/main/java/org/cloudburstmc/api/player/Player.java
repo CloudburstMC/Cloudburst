@@ -1,12 +1,13 @@
 package org.cloudburstmc.api.player;
 
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.level.Level;
 
 import java.util.OptionalLong;
 import java.util.UUID;
 
-public interface Player {
+public interface Player extends Entity {
     /**
      * Checks if this player is currently online.
      *
@@ -110,4 +111,12 @@ public interface Player {
     float getMovementSpeed();
 
     Level getLevel();
+
+    boolean isSpectator();
+
+    boolean isCreative();
+
+    boolean isSurvival();
+
+    void resetInAirTicks();
 }

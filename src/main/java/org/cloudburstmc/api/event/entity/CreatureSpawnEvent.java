@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.event.Event;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.level.Location;
 
 public class CreatureSpawnEvent extends Event implements Cancellable {
 

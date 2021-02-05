@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.util.BlockColor;
 
 public interface Cauldron extends BlockEntity {
 

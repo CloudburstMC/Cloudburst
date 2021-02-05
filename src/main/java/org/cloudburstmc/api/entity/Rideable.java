@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.entity;
 
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.api.util.data.MountType;
 
 /**
  * author: MagicDroidX
@@ -14,7 +14,7 @@ public interface Rideable extends Entity {
      * @param entity The target Entity
      * @return {@code true} if the mounting successful
      */
-    boolean mount(Entity entity, EntityLinkData.Type mode);
+    boolean mount(Entity entity, MountType mode);
 
     boolean dismount(Entity entity);
 }

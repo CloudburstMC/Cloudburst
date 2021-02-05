@@ -5,7 +5,6 @@ import org.cloudburstmc.api.entity.misc.*;
 import org.cloudburstmc.api.entity.passive.*;
 import org.cloudburstmc.api.entity.projectile.*;
 import org.cloudburstmc.api.entity.vehicle.*;
-import org.cloudburstmc.server.entity.impl.Human;
 
 public class EntityTypes {
 

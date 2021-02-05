@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.blockentity;
 
 import com.google.common.collect.ImmutableList;
-import org.cloudburstmc.server.utils.data.BannerPattern;
-import org.cloudburstmc.server.utils.data.DyeColor;
+import org.cloudburstmc.api.util.data.BannerPattern;
+import org.cloudburstmc.api.util.data.DyeColor;
 
 public interface Banner extends BlockEntity {
 

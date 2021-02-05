@@ -1,10 +1,11 @@
 package org.cloudburstmc.api.event.player;
 
+import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.locale.TextContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.locale.TextContainer;
+import org.cloudburstmc.api.player.Player;
 
 public class PlayerDeathEvent extends EntityDeathEvent implements Cancellable {
 
@@ -14,7 +15,7 @@ public class PlayerDeathEvent extends EntityDeathEvent implements Cancellable {
     private int experience;
 
     public PlayerDeathEvent(Player player, ItemStack[] drops, TextContainer deathMessage, int experience) {
-        super(player, drops);
+        super((Living) player, drops);
         this.deathMessage = deathMessage;
         this.experience = experience;
     }

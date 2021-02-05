@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.server.utils.data.DyeColor;
+import org.cloudburstmc.api.util.data.DyeColor;
 
 public interface Bed extends BlockEntity {
 

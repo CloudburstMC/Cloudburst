@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.player;
 
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
 
 /**
  * Created on 2015/12/23 by xtypr.

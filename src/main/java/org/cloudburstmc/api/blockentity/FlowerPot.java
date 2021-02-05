@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.api.block.BlockState;
 
 public interface FlowerPot extends BlockEntity {
 

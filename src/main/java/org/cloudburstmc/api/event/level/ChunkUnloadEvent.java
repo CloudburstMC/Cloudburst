@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.level;
 
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 /**
  * author: MagicDroidX
@@ -9,7 +9,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
  */
 public class ChunkUnloadEvent extends ChunkEvent implements Cancellable {
 
-    public ChunkUnloadEvent(CloudChunk chunk) {
+    public ChunkUnloadEvent(Chunk chunk) {
         super(chunk);
     }
 

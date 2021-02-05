@@ -1,10 +1,10 @@
 package org.cloudburstmc.api.event.block;
 
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
 
 /**
  * author: MagicDroidX

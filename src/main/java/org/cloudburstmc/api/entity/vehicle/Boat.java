@@ -1,9 +1,8 @@
 package org.cloudburstmc.api.entity.vehicle;
 
-import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
+import org.cloudburstmc.api.util.data.TreeSpecies;
 
-public interface Boat extends Entity {
+public interface Boat extends Vehicle {
 
     void setWoodType(TreeSpecies woodType);
 }

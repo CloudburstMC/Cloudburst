@@ -1,13 +1,9 @@
 package org.cloudburstmc.api.event.entity;
 
-import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
-import org.cloudburstmc.server.entity.EntityCreature;
-import org.cloudburstmc.server.entity.Human;
-import org.cloudburstmc.server.entity.projectile.EntityProjectile;
-import org.cloudburstmc.server.entity.vehicle.EntityVehicle;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.entity.vehicle.Vehicle;
+import org.cloudburstmc.api.level.Location;
 
 /**
  * author: MagicDroidX
@@ -28,7 +24,7 @@ public class EntityDespawnEvent extends EntityEvent {
     }
 
     public boolean isCreature() {
-        return this.entity instanceof EntityCreature;
+        return this.entity instanceof Creature;
     }
 
     public boolean isHuman() {
@@ -36,11 +32,11 @@ public class EntityDespawnEvent extends EntityEvent {
     }
 
     public boolean isProjectile() {
-        return this.entity instanceof EntityProjectile;
+        return this.entity instanceof Projectile;
     }
 
     public boolean isVehicle() {
-        return this.entity instanceof EntityVehicle;
+        return this.entity instanceof Vehicle;
     }
 
     public boolean isItem() {

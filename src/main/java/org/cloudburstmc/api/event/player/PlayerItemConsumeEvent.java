@@ -2,7 +2,7 @@ package org.cloudburstmc.api.event.player;
 
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
 
 /**
  * Called when a player eats something

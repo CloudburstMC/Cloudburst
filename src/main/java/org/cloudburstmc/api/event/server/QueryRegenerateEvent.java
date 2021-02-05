@@ -1,10 +1,8 @@
 package org.cloudburstmc.api.event.server;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
+import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginContainer;
-import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.player.Player;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,14 +42,14 @@ public class QueryRegenerateEvent extends ServerEvent {
 
     private Map<String, String> extraData = new HashMap<>();
 
-    public QueryRegenerateEvent(CloudServer server) {
+    public QueryRegenerateEvent(Server server) {
         this(server, 5);
     }
 
-    public QueryRegenerateEvent(CloudServer server, int timeout) {
+    public QueryRegenerateEvent(Server server, int timeout) {
         this.timeout = timeout;
         this.serverName = server.getMotd();
-        this.listPlugins = server.getConfig().getSettings().isQueryPlugins();
+        //this.listPlugins = server.getConfig().getSettings().isQueryPlugins();
         this.plugins = server.getPluginManager().getAllPlugins().toArray(new PluginContainer[0]);
         this.players = server.getOnlinePlayers().values().toArray(new Player[0]);
         this.gameType = server.getGamemode().isSurvival() ? "SMP" : "CMP";
@@ -196,7 +194,7 @@ public class QueryRegenerateEvent extends ServerEvent {
         return query.toByteArray();
     }
 
-    private static void writeNullTerminatedString(ByteBuf buffer, String string) {
+/*    private static void writeNullTerminatedString(ByteBuf buffer, String string) { // TODO
         buffer.writeBytes(string.getBytes(StandardCharsets.UTF_8));
         buffer.writeByte(0);
     }
@@ -218,5 +216,5 @@ public class QueryRegenerateEvent extends ServerEvent {
         } finally {
             buffer.release();
         }
-    }
+    }*/
 }

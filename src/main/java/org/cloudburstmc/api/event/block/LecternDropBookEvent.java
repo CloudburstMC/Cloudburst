@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.block;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
 
 public class LecternDropBookEvent extends BlockEvent implements Cancellable {
 

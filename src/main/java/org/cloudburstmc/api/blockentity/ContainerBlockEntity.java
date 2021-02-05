@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.blockentity;
 
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.inventory.InventoryHolder;
-import org.cloudburstmc.server.math.Direction;
 
 import java.util.stream.IntStream;
 

@@ -1,23 +1,32 @@
 package org.cloudburstmc.api.event.player;
 
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
 
 public class PlayerAnimationEvent extends PlayerEvent implements Cancellable {
 
-    private final AnimatePacket.Action animationType;
+    private final Type animationType;
 
     public PlayerAnimationEvent(Player player) {
-        this(player, AnimatePacket.Action.SWING_ARM);
+        this(player, Type.SWING_ARM);
     }
 
-    public PlayerAnimationEvent(Player player, AnimatePacket.Action animation) {
+    public PlayerAnimationEvent(Player player, Type animation) {
         super(player);
         this.animationType = animation;
     }
 
-    public AnimatePacket.Action getAnimationType() {
+    public Type getAnimationType() {
         return this.animationType;
+    }
+
+    public enum Type {
+        NO_ACTION,
+        SWING_ARM,
+        WAKE_UP,
+        CRITICAL_HIT,
+        MAGIC_CRITICAL_HIT,
+        ROW_RIGHT,
+        ROW_LEFT,
     }
 }

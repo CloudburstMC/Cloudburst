@@ -4,7 +4,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
 
 /**
  * Created by Pub4Game on 03.07.2016.
