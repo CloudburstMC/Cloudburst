@@ -4,13 +4,13 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityInteractable;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Rideable;
+import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.vehicle.VehicleDamageEvent;
+import org.cloudburstmc.api.event.vehicle.VehicleDestroyEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.BaseEntity;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.vehicle.VehicleDamageEvent;
-import org.cloudburstmc.server.event.vehicle.VehicleDestroyEvent;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
 
@@ -95,7 +95,7 @@ public abstract class EntityVehicle extends BaseEntity implements Rideable, Enti
 
         if (source instanceof EntityDamageByEntityEvent) {
             Entity damager = ((EntityDamageByEntityEvent) source).getDamager();
-            instantKill = damager instanceof Player && ((Player) damager).isCreative();
+            instantKill = damager instanceof CloudPlayer && ((CloudPlayer) damager).isCreative();
         }
 
         if (instantKill || getHealth() - source.getFinalDamage() < 1) {

@@ -4,8 +4,8 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.blockentity.ShulkerBoxBlockEntity;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * Created by PetteriM1
@@ -22,11 +22,11 @@ public class ShulkerBoxInventory extends ContainerInventory {
     }
 
     @Override
-    public void onOpen(Player who) {
+    public void onOpen(CloudPlayer who) {
         super.onOpen(who);
 
         if (this.getViewers().size() == 1) {
-            Level level = this.getHolder().getLevel();
+            CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.SHULKERBOX_OPEN);
                 sendBlockEventPacket(this.getHolder(), 1);
@@ -35,9 +35,9 @@ public class ShulkerBoxInventory extends ContainerInventory {
     }
 
     @Override
-    public void onClose(Player who) {
+    public void onClose(CloudPlayer who) {
         if (this.getViewers().size() == 1) {
-            Level level = this.getHolder().getLevel();
+            CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.SHULKERBOX_CLOSED);
                 sendBlockEventPacket(this.getHolder(), 0);
@@ -57,7 +57,7 @@ public class ShulkerBoxInventory extends ContainerInventory {
     }
 
     @Override
-    public void sendSlot(int index, Player... players) {
+    public void sendSlot(int index, CloudPlayer... players) {
         super.sendSlot(index, players);
     }
 }

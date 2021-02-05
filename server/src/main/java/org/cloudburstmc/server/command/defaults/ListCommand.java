@@ -4,7 +4,7 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.StringJoiner;
 
@@ -29,8 +29,8 @@ public class ListCommand extends Command {
         }
         StringJoiner online = new StringJoiner(", ");
         int onlineCount = 0;
-        for (Player player : sender.getServer().getOnlinePlayers().values()) {
-            if (player.isOnline() && (!(sender instanceof Player) || ((Player) sender).canSee(player))) {
+        for (CloudPlayer player : sender.getServer().getOnlinePlayers().values()) {
+            if (player.isOnline() && (!(sender instanceof CloudPlayer) || ((CloudPlayer) sender).canSee(player))) {
                 online.add(player.getDisplayName());
                 ++onlineCount;
             }

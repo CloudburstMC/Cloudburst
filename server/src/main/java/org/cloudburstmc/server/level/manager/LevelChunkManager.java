@@ -12,9 +12,9 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.message.ParameterizedMessage;
+import org.cloudburstmc.api.event.level.ChunkUnloadEvent;
 import org.cloudburstmc.server.config.ServerConfig;
-import org.cloudburstmc.server.event.level.ChunkUnloadEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
@@ -38,18 +38,18 @@ public final class LevelChunkManager {
     private static final AtomicIntegerFieldUpdater<LoadingChunk> POPULATION_RUNNING_UPDATER = AtomicIntegerFieldUpdater.newUpdater(LoadingChunk.class, "populationRunning");
     private static final AtomicIntegerFieldUpdater<LoadingChunk> FINISH_RUNNING_UPDATER = AtomicIntegerFieldUpdater.newUpdater(LoadingChunk.class, "finishRunning");
 
-    private final Level level;
+    private final CloudLevel level;
     private final LevelProvider provider;
     private final Long2ObjectMap<LoadingChunk> chunks = new Long2ObjectOpenHashMap<>();
     private final Long2LongMap chunkLoadedTimes = new Long2LongOpenHashMap();
     private final Long2LongMap chunkLastAccessTimes = new Long2LongOpenHashMap();
     private final Executor executor;
 
-    public LevelChunkManager(Level level) {
+    public LevelChunkManager(CloudLevel level) {
         this(level, level.getProvider());
     }
 
-    public LevelChunkManager(Level level, LevelProvider provider) {
+    public LevelChunkManager(CloudLevel level, LevelProvider provider) {
         this.level = level;
         this.executor = this.level.getServer().getScheduler().getAsyncPool();
         this.provider = provider;

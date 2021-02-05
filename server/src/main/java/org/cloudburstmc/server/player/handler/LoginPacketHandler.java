@@ -6,12 +6,12 @@ import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.event.player.PlayerAsyncPreLoginEvent;
+import org.cloudburstmc.api.event.player.PlayerPreLoginEvent;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.event.player.PlayerAsyncPreLoginEvent;
-import org.cloudburstmc.server.event.player.PlayerPreLoginEvent;
 import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.network.ProtocolInfo;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.PlayerLoginData;
 import org.cloudburstmc.server.scheduler.AsyncTask;
 import org.cloudburstmc.server.utils.ClientChainData;
@@ -104,9 +104,9 @@ public class LoginPacketHandler implements BedrockPacketHandler {
                     if (e.getLoginResult() == PlayerAsyncPreLoginEvent.LoginResult.KICK) {
                         loginDataInstance.getSession().disconnect(e.getKickMessage());
                     } else if (loginDataInstance.isShouldLogin()) {
-                        Player player = loginDataInstance.initializePlayer();
+                        CloudPlayer player = loginDataInstance.initializePlayer();
 
-                        for (Consumer<Player> action : e.getScheduledActions()) {
+                        for (Consumer<CloudPlayer> action : e.getScheduledActions()) {
                             action.accept(player);
                         }
                     }

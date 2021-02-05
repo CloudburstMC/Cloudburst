@@ -4,15 +4,15 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.LeverDirection;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorLever extends FloodableBlockBehavior {
@@ -38,7 +38,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         val level = block.getLevel();
         val state = block.getState();
 
@@ -57,7 +57,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             Direction direction = block.getState().ensureTrait(BlockTraits.LEVER_DIRECTION).getDirection().getOpposite();
             if (!block.getSide(direction).getState().inCategory(BlockCategory.SOLID)) {
                 block.getLevel().useBreakOn(block.getPosition());
@@ -67,7 +67,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         if (target.getState().getBehavior().isNormalBlock(target)) {
             return placeBlock(block, BlockState.get(BlockTypes.LEVER)
                     .withTrait(

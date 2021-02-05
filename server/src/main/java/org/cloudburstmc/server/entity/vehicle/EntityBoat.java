@@ -10,20 +10,20 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.Boat;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.vehicle.VehicleMoveEvent;
+import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
-import org.cloudburstmc.server.event.vehicle.VehicleMoveEvent;
-import org.cloudburstmc.server.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.ArrayList;
@@ -204,7 +204,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
             if (this.passengers.size() < 2) {
                 for (Entity entity : this.getLevel().getCollidingEntities(this.boundingBox.grow(0.2f, 0, 0.2f), this)) {
-                    if (entity.getVehicle() != null || !(entity instanceof EntityLiving) || entity instanceof Player || entity instanceof EntityWaterAnimal || isPassenger(entity)) {
+                    if (entity.getVehicle() != null || !(entity instanceof EntityLiving) || entity instanceof CloudPlayer || entity instanceof EntityWaterAnimal || isPassenger(entity)) {
                         continue;
                     }
 
@@ -245,10 +245,10 @@ public class EntityBoat extends EntityVehicle implements Boat {
                 broadcastLinkPacket(ent, EntityLinkData.Type.RIDER);
             }
         } else if (passengers.size() == 2) {
-            if (!((ent = passengers.get(0)) instanceof Player)) { //swap
+            if (!((ent = passengers.get(0)) instanceof CloudPlayer)) { //swap
                 Entity passenger2 = passengers.get(1);
 
-                if (passenger2 instanceof Player) {
+                if (passenger2 instanceof CloudPlayer) {
                     this.passengers.set(0, passenger2);
                     this.passengers.set(1, ent);
 
@@ -311,10 +311,10 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     public boolean mount(Entity entity) {
-        boolean player = this.passengers.size() >= 1 && this.passengers.get(0) instanceof Player;
+        boolean player = this.passengers.size() >= 1 && this.passengers.get(0) instanceof CloudPlayer;
         EntityLinkData.Type mode = EntityLinkData.Type.PASSENGER;
 
-        if (!player && (entity instanceof Player || this.passengers.size() == 0)) {
+        if (!player && (entity instanceof CloudPlayer || this.passengers.size() == 0)) {
             mode = EntityLinkData.Type.RIDER;
         }
 
@@ -346,11 +346,11 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     public boolean isControlling(Entity entity) {
-        return entity instanceof Player && this.passengers.indexOf(entity) == 0;
+        return entity instanceof CloudPlayer && this.passengers.indexOf(entity) == 0;
     }
 
     @Override
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(CloudPlayer player, ItemStack item, Vector3f clickedPos) {
         if (this.passengers.size() >= 2) {
             return false;
         }
@@ -361,7 +361,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     public Vector3f getMountedOffset(Entity entity) {
-        return entity instanceof Player ? RIDER_PLAYER_OFFSET : RIDER_OFFSET;
+        return entity instanceof CloudPlayer ? RIDER_PLAYER_OFFSET : RIDER_OFFSET;
     }
 
     public void onPaddle(AnimatePacket.Action animation, float value) {

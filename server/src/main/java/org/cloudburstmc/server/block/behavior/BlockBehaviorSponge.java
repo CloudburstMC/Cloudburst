@@ -8,11 +8,11 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -32,15 +32,15 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        Level level = block.getLevel();
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+        CloudLevel level = block.getLevel();
 
         val state = item.getBehavior().getBlock(item);
         boolean blockSet = placeBlock(block, state);
 
         if (blockSet) {
             val type = state.ensureTrait(BlockTraits.SPONGE_TYPE);
-            if (type == WET && level.getDimension() == Level.DIMENSION_NETHER) {
+            if (type == WET && level.getDimension() == CloudLevel.DIMENSION_NETHER) {
                 block.set(state.withTrait(BlockTraits.SPONGE_TYPE, DRY));
 
                 block.getLevel().addSound(block.getPosition(), Sound.RANDOM_FIZZ);

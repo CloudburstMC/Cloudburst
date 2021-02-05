@@ -19,7 +19,7 @@ public interface ChunkLoader {
 
     float getZ();
 
-    Level getLevel();
+    CloudLevel getLevel();
 
     void onChunkChanged(CloudChunk chunk);
 

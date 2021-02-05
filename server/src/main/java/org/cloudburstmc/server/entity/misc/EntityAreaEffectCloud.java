@@ -6,13 +6,13 @@ import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
+import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.potion.InstantEffect;
 import org.cloudburstmc.server.potion.Potion;
 
@@ -47,7 +47,7 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
     protected float initialRadius;
     protected float radiusOnUse;
     protected int nextApply;
-    protected List<Effect> cloudEffects = new LinkedList<>();
+    protected List<CloudEffect> cloudEffects = new LinkedList<>();
     protected int particleColor;
     protected boolean particleColorSet;
     private int lastAge;
@@ -93,7 +93,7 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
             b = color & 0x000000FF;
         } else {
             a = 255;
-            Effect effect = Potion.getEffect(getPotionId(), true);
+            CloudEffect effect = Potion.getEffect(getPotionId(), true);
             if (effect == null) {
                 r = 40;
                 g = 40;
@@ -219,7 +219,7 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
 
         tag.listenForList(TAG_MOB_EFFECTS, NbtType.COMPOUND, effectTags -> {
             for (NbtMap effectTag : effectTags) {
-                this.cloudEffects.add(Effect.getEffect(effectTag));
+                this.cloudEffects.add(CloudEffect.fromNBT(effectTag));
             }
         });
 
@@ -240,7 +240,7 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
         super.saveAdditionalData(tag);
 
         List<NbtMap> effects = new ArrayList<>();
-        for (Effect effect : this.cloudEffects) {
+        for (CloudEffect effect : this.cloudEffects) {
             effects.add(effect.createTag());
         }
         tag.putList(TAG_MOB_EFFECTS, NbtType.COMPOUND, effects);
@@ -297,10 +297,10 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
                             continue;
                         }
 
-                        for (Effect effect : cloudEffects) {
+                        for (CloudEffect effect : cloudEffects) {
                             if (effect instanceof InstantEffect) {
                                 boolean damage = false;
-                                if (effect.getId() == Effect.HARMING) {
+                                if (effect.getId() == CloudEffect.HARMING) {
                                     damage = true;
                                 }
                                 if (collidingEntity.isUndead()) {
@@ -374,7 +374,7 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
     }
 
     @Override
-    public List<Effect> getCloudEffects() {
+    public List<CloudEffect> getCloudEffects() {
         return cloudEffects;
     }
 }

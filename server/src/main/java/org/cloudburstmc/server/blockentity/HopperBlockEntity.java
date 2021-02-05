@@ -11,18 +11,18 @@ import org.cloudburstmc.api.blockentity.ContainerBlockEntity;
 import org.cloudburstmc.api.blockentity.Hopper;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
+import org.cloudburstmc.api.event.inventory.InventoryMoveItemEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.inventory.InventoryMoveItemEvent;
 import org.cloudburstmc.server.inventory.HopperInventory;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.InventoryHolder;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -222,7 +222,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
     @Override
     public void close() {
         if (!closed) {
-            for (Player player : new HashSet<>(this.getInventory().getViewers())) {
+            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
                 player.removeWindow(this.getInventory());
             }
             super.close();

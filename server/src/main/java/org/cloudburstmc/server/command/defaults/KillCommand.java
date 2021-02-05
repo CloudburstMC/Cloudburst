@@ -9,9 +9,9 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.StringJoiner;
@@ -47,7 +47,7 @@ public class KillCommand extends Command {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                 return true;
             }
-            Player player = sender.getServer().getPlayer(args[0]);
+            CloudPlayer player = sender.getServer().getPlayer(args[0]);
             if (player != null) {
                 EntityDamageEvent ev = new EntityDamageEvent(player, EntityDamageEvent.DamageCause.SUICIDE, 1000);
                 sender.getServer().getEventManager().fire(ev);
@@ -59,9 +59,9 @@ public class KillCommand extends Command {
                 CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.kill.successful", player.getName()));
             } else if (args[0].equals("@e")) {
                 StringJoiner joiner = new StringJoiner(", ");
-                for (Level level : CloudServer.getInstance().getLevels()) {
+                for (CloudLevel level : CloudServer.getInstance().getLevels()) {
                     for (Entity entity : level.getEntities()) {
-                        if (!(entity instanceof Player)) {
+                        if (!(entity instanceof CloudPlayer)) {
                             joiner.add(entity.getName());
                             entity.close();
                         }
@@ -74,22 +74,22 @@ public class KillCommand extends Command {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                     return true;
                 }
-                EntityDamageEvent ev = new EntityDamageEvent((Player) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
+                EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
                 sender.getServer().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return true;
                 }
-                ((Player) sender).setLastDamageCause(ev);
-                ((Player) sender).setHealth(0);
+                ((CloudPlayer) sender).setLastDamageCause(ev);
+                ((CloudPlayer) sender).setHealth(0);
                 sender.sendMessage(new TranslationContainer("commands.kill.successful", sender.getName()));
             } else if (args[0].equals("@a")) {
                 if (!sender.hasPermission("cloudburst.command.kill.other")) {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                     return true;
                 }
-                for (Level level : CloudServer.getInstance().getLevels()) {
+                for (CloudLevel level : CloudServer.getInstance().getLevels()) {
                     for (Entity entity : level.getEntities()) {
-                        if (entity instanceof Player) {
+                        if (entity instanceof CloudPlayer) {
                             entity.setHealth(0);
                             sender.sendMessage(new TranslationContainer(TextFormat.GOLD + "%commands.kill.successful", entity.getName()));
                         }
@@ -100,18 +100,18 @@ public class KillCommand extends Command {
             }
             return true;
         }
-        if (sender instanceof Player) {
+        if (sender instanceof CloudPlayer) {
             if (!sender.hasPermission("cloudburst.command.kill.self")) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                 return true;
             }
-            EntityDamageEvent ev = new EntityDamageEvent((Player) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
+            EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
             sender.getServer().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return true;
             }
-            ((Player) sender).setLastDamageCause(ev);
-            ((Player) sender).setHealth(0);
+            ((CloudPlayer) sender).setLastDamageCause(ev);
+            ((CloudPlayer) sender).setHealth(0);
             sender.sendMessage(new TranslationContainer("commands.kill.successful", sender.getName()));
         } else {
             return false;

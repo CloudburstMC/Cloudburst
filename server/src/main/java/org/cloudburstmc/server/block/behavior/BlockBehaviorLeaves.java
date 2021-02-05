@@ -3,15 +3,15 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.event.block.LeavesDecayEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.LeavesDecayEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.TreeSpecies;
 
@@ -25,7 +25,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         return placeBlock(block, BlockState.get(LEAVES).withTrait(BlockTraits.IS_PERSISTENT, true));
     }
 
@@ -65,9 +65,9 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         val state = block.getState();
-        if (type == Level.BLOCK_UPDATE_RANDOM && !isPersistent(state) && !isCheckDecay(state)) {
+        if (type == CloudLevel.BLOCK_UPDATE_RANDOM && !isPersistent(state) && !isCheckDecay(state)) {
             block.set(block.getState().withTrait(BlockTraits.HAS_UPDATE, true));
-        } else if (type == Level.BLOCK_UPDATE_RANDOM && isCheckDecay(state) && !isPersistent(state)) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM && isCheckDecay(state) && !isPersistent(state)) {
             LeavesDecayEvent ev = new LeavesDecayEvent(block);
 
             CloudServer.getInstance().getEventManager().fire(ev);
@@ -75,7 +75,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
                 block.set(state.withTrait(BlockTraits.HAS_UPDATE, false), false, false);
             } else {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;

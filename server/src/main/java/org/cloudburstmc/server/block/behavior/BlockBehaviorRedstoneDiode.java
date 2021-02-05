@@ -5,13 +5,13 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
+import org.cloudburstmc.api.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.redstone.RedstoneUpdateEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.api.block.BlockTypes.REDSTONE_BLOCK;
@@ -31,7 +31,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         val downState = block.getSide(Direction.DOWN).getState();
         if (downState.getBehavior().isTransparent(downState)) {
             return false;
@@ -51,8 +51,8 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
 
     @Override
     public int onUpdate(Block block, int type) {
-        Level level = block.getLevel();
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        CloudLevel level = block.getLevel();
+        if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             if (!this.isLocked(block)) {
                 Vector3i pos = block.getPosition();
                 boolean shouldBePowered = this.shouldBePowered(block);
@@ -73,18 +73,18 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
                     }
                 }
             }
-        } else if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
             // Redstone event
             RedstoneUpdateEvent event = new RedstoneUpdateEvent(block);
             level.getServer().getEventManager().fire(event);
             if (event.isCancelled()) return 0;
             val downState = block.down().getState();
-            if (type == Level.BLOCK_UPDATE_NORMAL && downState.getBehavior().isTransparent(downState)) {
+            if (type == CloudLevel.BLOCK_UPDATE_NORMAL && downState.getBehavior().isTransparent(downState)) {
                 level.useBreakOn(block.getPosition());
             } else {
                 this.updateState(block);
             }
-            return Level.BLOCK_UPDATE_NORMAL;
+            return CloudLevel.BLOCK_UPDATE_NORMAL;
         }
         return 0;
     }
@@ -92,7 +92,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     public void updateState(Block block) {
         if (!this.isLocked(block)) {
 
-            Level level = block.getLevel();
+            CloudLevel level = block.getLevel();
             if (this.isPowered(block.getState()) != this.shouldBePowered(block) &&
                     !level.isBlockTickPending(block.getPosition(), block)) {
                 /*int priority = -1;

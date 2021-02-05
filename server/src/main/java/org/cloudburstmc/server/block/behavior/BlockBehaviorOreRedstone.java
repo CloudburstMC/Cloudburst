@@ -6,7 +6,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -33,10 +33,10 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_TOUCH) { //type == Level.BLOCK_UPDATE_NORMAL ||
+        if (type == CloudLevel.BLOCK_UPDATE_TOUCH) { //type == Level.BLOCK_UPDATE_NORMAL ||
             block.set(BlockStates.REDSTONE_ORE.withTrait(BlockTraits.IS_EXTINGUISHED, false), false, false);
 
-            return Level.BLOCK_UPDATE_WEAK;
+            return CloudLevel.BLOCK_UPDATE_WEAK;
         }
 
         return 0;

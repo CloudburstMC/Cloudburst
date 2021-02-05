@@ -6,16 +6,12 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.*;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.MovingObjectPosition;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.event.entity.EntityCombustByEntityEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByChildEntityEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.entity.ProjectileHitEvent;
-import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.math.NukkitMath;
 
 import java.util.Set;

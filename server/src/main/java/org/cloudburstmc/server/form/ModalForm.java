@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.ToString;
 import org.cloudburstmc.server.form.util.FormType;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -27,9 +27,9 @@ public class ModalForm extends Form<Boolean> {
             String content,
             String trueValue,
             String falseValue,
-            List<BiConsumer<Player, Boolean>> listeners,
-            List<Consumer<Player>> closeListeners,
-            List<Consumer<Player>> errorListeners
+            List<BiConsumer<CloudPlayer, Boolean>> listeners,
+            List<Consumer<CloudPlayer>> closeListeners,
+            List<Consumer<CloudPlayer>> errorListeners
     ) {
         super(FormType.MODAL, title, listeners, closeListeners, errorListeners);
         this.content = content;
@@ -38,7 +38,7 @@ public class ModalForm extends Form<Boolean> {
     }
 
     @Override
-    public void handleResponse(Player p, JsonNode node) {
+    public void handleResponse(CloudPlayer p, JsonNode node) {
         if (!node.isBoolean()) {
             error(p);
             log.warn("Received invalid response for ModalForm {}", node);

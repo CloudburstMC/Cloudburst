@@ -6,7 +6,7 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 
@@ -38,8 +38,8 @@ public class MeCommand extends Command {
         }
 
         String name;
-        if (sender instanceof Player) {
-            name = ((Player) sender).getDisplayName();
+        if (sender instanceof CloudPlayer) {
+            name = ((CloudPlayer) sender).getDisplayName();
         } else {
             name = sender.getName();
         }

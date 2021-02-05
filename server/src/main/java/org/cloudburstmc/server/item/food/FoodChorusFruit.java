@@ -2,12 +2,12 @@ package org.cloudburstmc.server.item.food;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -22,7 +22,7 @@ public class FoodChorusFruit extends FoodNormal {
     }
 
     @Override
-    protected boolean onEatenBy(Player player) {
+    protected boolean onEatenBy(CloudPlayer player) {
         super.onEatenBy(player);
         // Teleportation
         int minX = player.getPosition().getFloorX() - 8;
@@ -32,7 +32,7 @@ public class FoodChorusFruit extends FoodNormal {
         int maxY = minY + 16;
         int maxZ = minZ + 16;
 
-        Level level = player.getLevel();
+        CloudLevel level = player.getLevel();
         if (level == null) return false;
 
         for (int attempts = 0; attempts < 128; attempts++) {

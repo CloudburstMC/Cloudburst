@@ -9,10 +9,10 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 import org.cloudburstmc.server.utils.data.FlowerType;
@@ -25,7 +25,7 @@ import static org.cloudburstmc.server.item.ItemTypes.DYE;
 public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         val down = block.down().getState().getType();
         if (down == GRASS || down == DIRT || down == FARMLAND || down == PODZOL) {
             placeBlock(block, item.getBehavior().getBlock(item));
@@ -36,11 +36,11 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
                 block.getLevel().useBreakOn(block.getPosition());
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
 
@@ -58,7 +58,7 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (item.getType() == DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bone meal
             val level = block.getLevel();
             if (player != null && player.getGamemode().isSurvival()) {

@@ -11,7 +11,7 @@ import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 
@@ -25,7 +25,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         val state = block.getState();
         if (!target.getState().getBehavior().isTransparent(state) || state.getType() == SNOW_LAYER) {
             BlockState anvil = item.getBehavior().getBlock(item)
@@ -39,7 +39,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (player != null) {
             player.addWindow(new AnvilInventory(player.getUIInventory(), block), ContainerIds.ANVIL);
         }

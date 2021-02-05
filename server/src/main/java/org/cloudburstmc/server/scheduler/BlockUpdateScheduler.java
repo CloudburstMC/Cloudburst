@@ -8,20 +8,20 @@ import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
 import java.util.*;
 
 @Log4j2
 public class BlockUpdateScheduler {
-    private final Level level;
+    private final CloudLevel level;
     private long lastTick;
     private Map<Long, LinkedHashSet<BlockUpdateEntry>> queuedUpdates;
 
     private Set<BlockUpdateEntry> pendingUpdates;
 
-    public BlockUpdateScheduler(Level level, long currentTick) {
+    public BlockUpdateScheduler(CloudLevel level, long currentTick) {
         queuedUpdates = Maps.newHashMap(); // Change to ConcurrentHashMap if this needs to be concurrent
         lastTick = currentTick;
         this.level = level;
@@ -60,11 +60,11 @@ public class BlockUpdateScheduler {
                         val extra = block.getExtra();
 
                         if (entry.block.getState() == state) {
-                            state.getBehavior().onUpdate(block, Level.BLOCK_UPDATE_SCHEDULED);
+                            state.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);
                         }
 
                         if (entry.block.getExtra() == extra && extra != BlockStates.AIR) {
-                            extra.getBehavior().onUpdate(block, Level.BLOCK_UPDATE_SCHEDULED);
+                            extra.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);
                         }
                     } else {
                         level.scheduleUpdate(entry.block, entry.pos, 0);

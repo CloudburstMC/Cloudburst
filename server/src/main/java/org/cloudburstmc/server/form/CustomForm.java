@@ -10,7 +10,7 @@ import org.cloudburstmc.server.form.response.CustomFormResponse;
 import org.cloudburstmc.server.form.util.FormType;
 import org.cloudburstmc.server.form.util.ImageData;
 import org.cloudburstmc.server.form.util.ImageType;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -30,9 +30,9 @@ public class CustomForm extends Form<CustomFormResponse> {
             String title,
             ImageData icon,
             List<Element> elements,
-            List<BiConsumer<Player, CustomFormResponse>> listeners,
-            List<Consumer<Player>> closeListeners,
-            List<Consumer<Player>> errorListeners
+            List<BiConsumer<CloudPlayer, CustomFormResponse>> listeners,
+            List<Consumer<CloudPlayer>> closeListeners,
+            List<Consumer<CloudPlayer>> errorListeners
     ) {
         super(FormType.CUSTOM, title, listeners, closeListeners, errorListeners);
         this.icon = icon;
@@ -49,7 +49,7 @@ public class CustomForm extends Form<CustomFormResponse> {
     }
 
     @Override
-    public void handleResponse(Player p, JsonNode node) {
+    public void handleResponse(CloudPlayer p, JsonNode node) {
         if (!node.isArray()) {
             error(p);
             log.warn("Received invalid response for CustomForm {}", node);

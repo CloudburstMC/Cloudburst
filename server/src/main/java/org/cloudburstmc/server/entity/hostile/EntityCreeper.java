@@ -5,11 +5,11 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.Creeper;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
+import org.cloudburstmc.api.event.entity.CreeperPowerEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.event.entity.CreeperPowerEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Location;
 
 import java.util.concurrent.ThreadLocalRandom;
 

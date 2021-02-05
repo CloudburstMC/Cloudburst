@@ -3,17 +3,17 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.event.block.BlockGrowEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
@@ -69,7 +69,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             Block down = block.down();
             BlockState downState = down.getState();
             if (downState.getType() != SAND && downState.getType() != CACTUS) {
@@ -82,7 +82,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
                     }
                 }
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             if (block.down().getState().getType() != CACTUS) {
                 int age = block.getState().ensureTrait(BlockTraits.AGE);
 
@@ -109,7 +109,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         Block down = block.down();
         if (!block.isWaterlogged() && (down.getState().getType() == SAND || down.getState().getType() == CACTUS)) {
             for (Direction direction : Plane.HORIZONTAL) {

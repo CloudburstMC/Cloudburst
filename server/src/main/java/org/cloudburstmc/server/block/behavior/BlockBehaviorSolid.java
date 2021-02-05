@@ -1,10 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.behavior.BlockBehavior;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.util.data.BlockColor;
 
-public abstract class BlockBehaviorSolid extends BlockBehavior {
+public abstract class BlockBehaviorSolid extends BaseBlockBehavior {
 
     @Override
     public BlockColor getColor(Block state) {

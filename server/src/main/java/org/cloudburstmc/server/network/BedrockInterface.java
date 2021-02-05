@@ -10,9 +10,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.event.server.QueryRegenerateEvent;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.event.server.QueryRegenerateEvent;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.handler.LoginPacketHandler;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -140,13 +140,13 @@ public class BedrockInterface implements AdvancedSourceInterface, BedrockServerE
         this.bedrock.close();
     }
 
-    public NukkitSessionListener initDisconnectHandler(Player player) {
+    public NukkitSessionListener initDisconnectHandler(CloudPlayer player) {
         return new NukkitSessionListener(player);
     }
 
     @RequiredArgsConstructor
     private class NukkitSessionListener implements Consumer<DisconnectReason> {
-        private final Player player;
+        private final CloudPlayer player;
         private String disconnectReason = null;
 
         @Override

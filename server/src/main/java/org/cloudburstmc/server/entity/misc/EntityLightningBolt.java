@@ -8,14 +8,14 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
+import org.cloudburstmc.api.event.block.BlockIgniteEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.entity.BaseEntity;
-import org.cloudburstmc.server.event.block.BlockIgniteEvent;
-import org.cloudburstmc.server.level.Location;
 
 import java.util.concurrent.ThreadLocalRandom;
 

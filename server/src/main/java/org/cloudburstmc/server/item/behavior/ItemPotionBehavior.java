@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.GameMode;
-import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.potion.Potion;
 
 public class ItemPotionBehavior extends CloudItemBehavior {
@@ -54,12 +54,12 @@ public class ItemPotionBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
         return true;
     }
 
     @Override
-    public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
+    public ItemStack onUse(ItemStack item, int ticksUsed, CloudPlayer player) {
         PlayerItemConsumeEvent consumeEvent = new PlayerItemConsumeEvent(player, item);
         player.getServer().getEventManager().fire(consumeEvent);
         if (consumeEvent.isCancelled()) {

@@ -11,17 +11,17 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
+import org.cloudburstmc.api.event.block.BlockUpdateEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.EntityExplodeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorTNT;
-import org.cloudburstmc.server.event.block.BlockUpdateEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.entity.EntityExplodeEvent;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.level.particle.HugeExplodeSeedParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -41,7 +41,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Explosion {
 
     private final int rays = 16; //Rays
-    private final Level level;
+    private final CloudLevel level;
     private final Vector3f source;
     private final double size;
 
@@ -50,7 +50,7 @@ public class Explosion {
 
     private final Object what;
 
-    public Explosion(Level level, Vector3f center, double size, Entity what) {
+    public Explosion(CloudLevel level, Vector3f center, double size, Entity what) {
         this.level = level;
         this.source = center;
         this.size = Math.max(size, 0);
@@ -205,7 +205,7 @@ public class Explosion {
                     this.level.getServer().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         val b = ev.getBlock();
-                        b.getState().getBehavior().onUpdate(b, Level.BLOCK_UPDATE_NORMAL);
+                        b.getState().getBehavior().onUpdate(b, CloudLevel.BLOCK_UPDATE_NORMAL);
                     }
 
                     updateBlocks.add(index);

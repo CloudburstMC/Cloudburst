@@ -2,15 +2,15 @@ package org.cloudburstmc.server.inventory.transaction;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.api.event.inventory.CraftItemEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.event.inventory.CraftItemEvent;
 import org.cloudburstmc.server.inventory.BigCraftingGrid;
 import org.cloudburstmc.server.inventory.CraftingRecipe;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.scheduler.Task;
 
 import java.util.Arrays;
@@ -34,7 +34,7 @@ public class CraftingTransaction extends InventoryTransaction {
 
     protected CraftingRecipe recipe;
 
-    public CraftingTransaction(Player source, List<InventoryAction> actions) {
+    public CraftingTransaction(CloudPlayer source, List<InventoryAction> actions) {
         super(source, actions, false);
 
         this.gridSize = (source.getCraftingGrid() instanceof BigCraftingGrid) ? 3 : 2;

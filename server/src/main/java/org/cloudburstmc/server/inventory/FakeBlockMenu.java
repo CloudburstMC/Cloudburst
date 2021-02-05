@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 
 /**
  * author: MagicDroidX
@@ -22,7 +22,7 @@ public class FakeBlockMenu implements InventoryHolder {
         return blockState.getPosition();
     }
 
-    public Level getLevel() {
+    public CloudLevel getLevel() {
         return blockState.getLevel();
     }
 

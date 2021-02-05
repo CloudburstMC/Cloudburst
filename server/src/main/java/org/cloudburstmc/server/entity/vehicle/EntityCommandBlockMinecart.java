@@ -3,7 +3,7 @@ package org.cloudburstmc.server.entity.vehicle;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.CommandBlockMinecart;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.level.Location;
 
 public class EntityCommandBlockMinecart extends EntityVehicle implements CommandBlockMinecart {
 

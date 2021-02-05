@@ -15,7 +15,7 @@ import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.command.defaults.*;
 import org.cloudburstmc.server.command.simple.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -425,7 +425,7 @@ public class CommandRegistry implements Registry {
      * @param player The player receiving the packet
      * @return The Packet
      */
-    public AvailableCommandsPacket createPacketFor(Player player) {
+    public AvailableCommandsPacket createPacketFor(CloudPlayer player) {
         AvailableCommandsPacket pk = new AvailableCommandsPacket();
         List<CommandData> data = pk.getCommands();
         for (Command command : this.registeredCommands.values()) {

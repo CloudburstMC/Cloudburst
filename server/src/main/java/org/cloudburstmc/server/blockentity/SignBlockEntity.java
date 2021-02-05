@@ -7,9 +7,9 @@ import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Sign;
-import org.cloudburstmc.server.event.block.SignChangeEvent;
+import org.cloudburstmc.api.event.block.SignChangeEvent;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Arrays;
@@ -97,7 +97,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
-    public boolean updateNbtMap(NbtMap tag, Player player) {
+    public boolean updateNbtMap(NbtMap tag, CloudPlayer player) {
         String[] splitText = tag.getString("Text").split("\n", 4);
         String[] text = new String[4];
 

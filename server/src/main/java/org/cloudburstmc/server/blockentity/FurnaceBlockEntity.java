@@ -9,11 +9,11 @@ import lombok.val;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Furnace;
+import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
+import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.inventory.FurnaceBurnEvent;
-import org.cloudburstmc.server.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.server.inventory.FurnaceInventory;
 import org.cloudburstmc.server.inventory.FurnaceRecipe;
 import org.cloudburstmc.server.inventory.InventoryType;
@@ -23,7 +23,7 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -82,7 +82,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     @Override
     public void close() {
         if (!closed) {
-            for (Player player : new HashSet<>(this.getInventory().getViewers())) {
+            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
                 player.removeWindow(this.getInventory());
             }
             super.close();
@@ -126,7 +126,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         }
 
         if (burnTime > 0 && ev.isBurning()) {
-            for (Player p : this.getInventory().getViewers()) {
+            for (CloudPlayer p : this.getInventory().getViewers()) {
                 ContainerSetDataPacket packet = new ContainerSetDataPacket();
                 packet.setWindowId(p.getWindowId(this.getInventory()));
                 packet.setProperty(ContainerSetDataPacket.FURNACE_LIT_DURATION);
@@ -207,7 +207,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             cookTime = 0;
         }
 
-        for (Player player : this.getInventory().getViewers()) {
+        for (CloudPlayer player : this.getInventory().getViewers()) {
             byte windowId = player.getWindowId(this.getInventory());
             if (windowId > 0) {
                 ContainerSetDataPacket packet = new ContainerSetDataPacket();

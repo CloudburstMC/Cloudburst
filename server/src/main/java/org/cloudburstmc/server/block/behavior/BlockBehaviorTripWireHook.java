@@ -6,13 +6,13 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
@@ -20,13 +20,13 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (!_isNormalBlock(block.getSide(block.getState().ensureTrait(BlockTraits.DIRECTION).getOpposite()))) {
                 block.getLevel().useBreakOn(block.getPosition());
             }
 
             return type;
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             this.calculateState(block, false, true, -1, null);
             return type;
         }
@@ -35,7 +35,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         if (!_isNormalBlock(block.getSide(face.getOpposite())) || face.getAxis().isVertical()) {
             return false;
         }

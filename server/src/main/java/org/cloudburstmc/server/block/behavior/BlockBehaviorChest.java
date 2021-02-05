@@ -15,7 +15,7 @@ import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Axis;
 import org.cloudburstmc.server.math.Direction.Plane;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -64,7 +64,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         Direction chestFace = player.getHorizontalDirection().getOpposite();
         Axis axis = chestFace.getAxis() == Axis.X ? Axis.Z : Axis.X;
 
@@ -112,7 +112,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (player != null) {
             Block top = block.up();
             if (!top.getState().inCategory(BlockCategory.TRANSPARENT)) {

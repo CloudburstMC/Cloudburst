@@ -5,7 +5,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
@@ -18,7 +18,7 @@ public class BlockBehaviorWater extends BlockBehaviorLiquid {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         boolean success = target.getLevel().setBlock(block.getPosition(), item.getBehavior().getBlock(item), true, false);
         if (success) block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
 

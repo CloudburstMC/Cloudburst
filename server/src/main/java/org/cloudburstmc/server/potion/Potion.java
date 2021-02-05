@@ -2,10 +2,10 @@ package org.cloudburstmc.server.potion;
 
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
+import org.cloudburstmc.api.event.potion.PotionApplyEvent;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
-import org.cloudburstmc.server.event.potion.PotionApplyEvent;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.ServerException;
 
 /**
@@ -144,7 +144,7 @@ public class Potion implements Cloneable { //TODO: make immutable for item data
         this.splash = splash;
     }
 
-    public Effect getEffect() {
+    public CloudEffect getEffect() {
         return getEffect(this.getId(), this.isSplash());
     }
 
@@ -174,14 +174,14 @@ public class Potion implements Cloneable { //TODO: make immutable for item data
             return;
         }
 
-        Effect applyEffect = getEffect(this.getId(), this.isSplash());
+        CloudEffect applyEffect = getEffect(this.getId(), this.isSplash());
 
         if (applyEffect == null) {
             return;
         }
 
-        if (entity instanceof Player) {
-            if (!((Player) entity).isSurvival() && !((Player) entity).isAdventure() && applyEffect.isBad()) {
+        if (entity instanceof CloudPlayer) {
+            if (!((CloudPlayer) entity).isSurvival() && !((CloudPlayer) entity).isAdventure() && applyEffect.isBad()) {
                 return;
             }
         }
@@ -226,8 +226,8 @@ public class Potion implements Cloneable { //TODO: make immutable for item data
         }
     }
 
-    public static Effect getEffect(int potionType, boolean isSplash) {
-        Effect effect;
+    public static CloudEffect getEffect(int potionType, boolean isSplash) {
+        CloudEffect effect;
         switch (potionType) {
             case NO_EFFECTS:
             case MUNDANE:
@@ -237,61 +237,61 @@ public class Potion implements Cloneable { //TODO: make immutable for item data
                 return null;
             case NIGHT_VISION:
             case NIGHT_VISION_LONG:
-                effect = Effect.getEffect(Effect.NIGHT_VISION);
+                effect = CloudEffect.fromNBT(CloudEffect.NIGHT_VISION);
                 break;
             case INVISIBLE:
             case INVISIBLE_LONG:
-                effect = Effect.getEffect(Effect.INVISIBILITY);
+                effect = CloudEffect.fromNBT(CloudEffect.INVISIBILITY);
                 break;
             case LEAPING:
             case LEAPING_LONG:
             case LEAPING_II:
-                effect = Effect.getEffect(Effect.JUMP);
+                effect = CloudEffect.fromNBT(CloudEffect.JUMP);
                 break;
             case FIRE_RESISTANCE:
             case FIRE_RESISTANCE_LONG:
-                effect = Effect.getEffect(Effect.FIRE_RESISTANCE);
+                effect = CloudEffect.fromNBT(CloudEffect.FIRE_RESISTANCE);
                 break;
             case SPEED:
             case SPEED_LONG:
             case SPEED_II:
-                effect = Effect.getEffect(Effect.SWIFTNESS);
+                effect = CloudEffect.fromNBT(CloudEffect.SWIFTNESS);
                 break;
             case SLOWNESS:
             case SLOWNESS_LONG:
-                effect = Effect.getEffect(Effect.SLOWNESS);
+                effect = CloudEffect.fromNBT(CloudEffect.SLOWNESS);
                 break;
             case WATER_BREATHING:
             case WATER_BREATHING_LONG:
-                effect = Effect.getEffect(Effect.WATER_BREATHING);
+                effect = CloudEffect.fromNBT(CloudEffect.WATER_BREATHING);
                 break;
             case INSTANT_HEALTH:
             case INSTANT_HEALTH_II:
-                return Effect.getEffect(Effect.HEALING);
+                return CloudEffect.fromNBT(CloudEffect.HEALING);
             case HARMING:
             case HARMING_II:
-                return Effect.getEffect(Effect.HARMING);
+                return CloudEffect.fromNBT(CloudEffect.HARMING);
             case POISON:
             case POISON_LONG:
             case POISON_II:
-                effect = Effect.getEffect(Effect.POISON);
+                effect = CloudEffect.fromNBT(CloudEffect.POISON);
                 break;
             case REGENERATION:
             case REGENERATION_LONG:
             case REGENERATION_II:
-                effect = Effect.getEffect(Effect.REGENERATION);
+                effect = CloudEffect.fromNBT(CloudEffect.REGENERATION);
                 break;
             case STRENGTH:
             case STRENGTH_LONG:
             case STRENGTH_II:
-                effect = Effect.getEffect(Effect.STRENGTH);
+                effect = CloudEffect.fromNBT(CloudEffect.STRENGTH);
                 break;
             case WEAKNESS:
             case WEAKNESS_LONG:
-                effect = Effect.getEffect(Effect.WEAKNESS);
+                effect = CloudEffect.fromNBT(CloudEffect.WEAKNESS);
                 break;
             case WITHER_II:
-                effect = Effect.getEffect(Effect.WITHER);
+                effect = CloudEffect.fromNBT(CloudEffect.WITHER);
                 break;
             default:
                 return null;

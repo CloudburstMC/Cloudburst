@@ -8,15 +8,15 @@ import org.cloudburstmc.api.blockentity.Bed;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
@@ -32,7 +32,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         BlockState state = block.getState();
 
         BlockState head = null;
@@ -67,9 +67,9 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             }
         }
 
-        int time = block.getLevel().getTime() % Level.TIME_FULL;
+        int time = block.getLevel().getTime() % CloudLevel.TIME_FULL;
 
-        boolean isNight = (time >= Level.TIME_NIGHT && time < Level.TIME_SUNRISE);
+        boolean isNight = (time >= CloudLevel.TIME_NIGHT && time < CloudLevel.TIME_SUNRISE);
 
         if (player != null && !isNight) {
             player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.noSleep"));
@@ -85,7 +85,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         BlockState down = block.down().getState();
         BlockRegistry registry = BlockRegistry.get();
 

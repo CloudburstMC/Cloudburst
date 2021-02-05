@@ -5,12 +5,12 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.FireworksRocket;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Firework;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 /**
@@ -24,7 +24,7 @@ public class ItemFireworkBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level) {
         if (block.getState().getBehavior().canPassThrough(block.getState())) {
             this.spawnFirework(itemStack, level, block.getPosition().toFloat().add(0.5, 0.5, 0.5));
 
@@ -37,7 +37,7 @@ public class ItemFireworkBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
         if (player.getInventory().getChestplate().getType() == ItemTypes.ELYTRA && player.isGliding()) {
             this.spawnFirework(item, player.getLevel(), player.getPosition());
 
@@ -56,7 +56,7 @@ public class ItemFireworkBehavior extends CloudItemBehavior {
         return false;
     }
 
-    private void spawnFirework(ItemStack item, Level level, Vector3f pos) {
+    private void spawnFirework(ItemStack item, CloudLevel level, Vector3f pos) {
         FireworksRocket rocket = EntityRegistry.get().newEntity(EntityTypes.FIREWORKS_ROCKET, Location.from(pos, level));
         rocket.setFireworkData(item.getMetadata(Firework.class));
 

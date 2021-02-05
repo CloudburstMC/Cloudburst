@@ -8,14 +8,14 @@ import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.Arrow;
+import org.cloudburstmc.api.event.entity.EntityShootBowEvent;
+import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
-import org.cloudburstmc.server.event.entity.EntityShootBowEvent;
-import org.cloudburstmc.server.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.server.item.data.Damageable;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import java.util.Random;
@@ -43,12 +43,12 @@ public class ItemBowBehavior extends ItemToolBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
         return player.getInventory().contains(ItemStack.get(ARROW)) || player.isCreative();
     }
 
     @Override
-    public ItemStack onRelease(ItemStack item, int ticksUsed, Player player) {
+    public ItemStack onRelease(ItemStack item, int ticksUsed, CloudPlayer player) {
         ItemStack itemArrow = ItemStack.get(ARROW);
 
         if ((player.isAdventure() || player.isSurvival()) && !player.getInventory().contains(itemArrow)) {

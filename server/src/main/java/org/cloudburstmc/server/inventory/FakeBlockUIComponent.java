@@ -5,9 +5,9 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.event.inventory.InventoryCloseEvent;
-import org.cloudburstmc.server.event.inventory.InventoryOpenEvent;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.inventory.InventoryOpenEvent;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 public class FakeBlockUIComponent extends PlayerUIComponent {
     private final InventoryType type;
@@ -25,7 +25,7 @@ public class FakeBlockUIComponent extends PlayerUIComponent {
     }
 
     @Override
-    public void close(Player who) {
+    public void close(CloudPlayer who) {
         InventoryCloseEvent ev = new InventoryCloseEvent(this, who);
         who.getServer().getEventManager().fire(ev);
 
@@ -33,7 +33,7 @@ public class FakeBlockUIComponent extends PlayerUIComponent {
     }
 
     @Override
-    public boolean open(Player who) {
+    public boolean open(CloudPlayer who) {
         InventoryOpenEvent ev = new InventoryOpenEvent(this, who);
         who.getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
@@ -45,7 +45,7 @@ public class FakeBlockUIComponent extends PlayerUIComponent {
     }
 
     @Override
-    public void onOpen(Player who) {
+    public void onOpen(CloudPlayer who) {
         super.onOpen(who);
         ContainerOpenPacket packet = new ContainerOpenPacket();
         packet.setId(who.getWindowId(this));
@@ -63,7 +63,7 @@ public class FakeBlockUIComponent extends PlayerUIComponent {
     }
 
     @Override
-    public void onClose(Player who) {
+    public void onClose(CloudPlayer who) {
         ContainerClosePacket packet = new ContainerClosePacket();
         packet.setId(who.getWindowId(this));
         who.sendPacket(packet);
