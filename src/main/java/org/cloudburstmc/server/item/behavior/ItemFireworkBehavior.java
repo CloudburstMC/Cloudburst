@@ -5,9 +5,9 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.FireworksRocket;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.data.Firework;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -58,7 +58,7 @@ public class ItemFireworkBehavior extends CloudItemBehavior {
 
     private void spawnFirework(ItemStack item, CloudLevel level, Vector3f pos) {
         FireworksRocket rocket = EntityRegistry.get().newEntity(EntityTypes.FIREWORKS_ROCKET, Location.from(pos, level));
-        rocket.setFireworkData(item.getMetadata(Firework.class));
+        rocket.setFireworkData(item.getMetadata(FireworkData.class));
 
         rocket.spawnToAll();
     }

@@ -25,6 +25,7 @@ import org.cloudburstmc.api.item.behavior.ItemBehavior;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
 import org.cloudburstmc.server.item.ItemIds;
@@ -581,7 +582,7 @@ public class CloudItemRegistry implements ItemRegistry {
     private void registerVanillaDataSerializers() {
         this.registerDataSerializer(Banner.class, new BannerSerializer());
         this.registerDataSerializer(Damageable.class, new DamageableSerializer());
-        this.registerDataSerializer(Firework.class, new FireworkSerializer());
+        this.registerDataSerializer(FireworkData.class, new FireworkSerializer());
         this.registerDataSerializer(MapItem.class, new MapSerializer());
         this.registerDataSerializer(WrittenBook.class, new WrittenBookSerializer());
         this.registerDataSerializer(EntityType.class, new EntityTypeSerializer());
