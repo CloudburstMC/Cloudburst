@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
@@ -16,6 +15,7 @@ import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
@@ -189,7 +189,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
             }
 
             Vector3f pos = this.getPosition();
-            val b = this.level.getBlockAt(pos.getFloorX(), (int) this.boundingBox.getMaxY(), pos.getFloorZ()).getType();
+            val b = this.level.getBlockState(pos.getFloorX(), (int) this.boundingBox.getMaxY(), pos.getFloorZ()).getType();
 
             if (b == FLOWING_WATER || b == WATER) { //item is fully in water or in still water
                 this.motion = this.motion.sub(0, this.getGravity() * -0.015, 0);
@@ -208,7 +208,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                val block = this.getLevel().getBlockAt(pos.add(0, -1, -1).toInt());
+                val block = this.getLevel().getBlockState(pos.add(0, -1, -1).toInt());
                 friction *= block.getBehavior().getFrictionFactor(block);
             }
 

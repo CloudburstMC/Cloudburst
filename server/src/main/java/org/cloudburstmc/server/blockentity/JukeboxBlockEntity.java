@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
@@ -8,6 +7,7 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Jukebox;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -17,7 +17,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import java.util.EnumMap;
 import java.util.Map;
 
-import static com.nukkitx.math.vector.Vector3i.UP;
+import static org.cloudburstmc.math.vector.Vector3i.UP;
 
 /**
  * @author CreeperFace

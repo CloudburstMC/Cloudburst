@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.DaylightDetector;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 public class DaylightDetectorBlockEntity extends BaseBlockEntity implements DaylightDetector {

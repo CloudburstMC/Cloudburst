@@ -4,10 +4,6 @@ import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import co.aikar.timings.TimingsHistory;
 import com.google.common.collect.Iterables;
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -17,12 +13,13 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import com.spotify.futures.CompletableFutures;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
@@ -34,19 +31,30 @@ import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.potion.Effect;
+import org.cloudburstmc.api.potion.EffectType;
+import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.data.CardinalDirection;
+import org.cloudburstmc.api.util.data.MountType;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorNetherPortal;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EnumLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -54,7 +62,6 @@ import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
-import org.cloudburstmc.server.utils.data.CardinalDirection;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -73,14 +80,14 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
 @Log4j2
 public abstract class BaseEntity implements Entity {
 
-    protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
+    protected final Set<Player> hasSpawned = ConcurrentHashMap.newKeySet();
 
-    protected final Short2ObjectMap<CloudEffect> effects = new Short2ObjectOpenHashMap<>();
+    protected final Reference2ObjectOpenHashMap<EffectType, Effect> effects = new Reference2ObjectOpenHashMap<>();
     protected final List<Entity> passengers = new ArrayList<>();
     private final long runtimeId = EntityRegistry.get().newEntityId();
     protected final SyncedEntityData data = new SyncedEntityData(this::onDataChange);
     private final EntityType<?> type;
-    public CloudChunk chunk;
+    public Chunk chunk;
     public List<Block> blocksAround = new ArrayList<>();
     public List<Block> collisionBlockStates = new ArrayList<>();
     public NbtMap tag;
@@ -118,7 +125,7 @@ public abstract class BaseEntity implements Entity {
     public boolean justCreated;
     public boolean fireProof;
     public boolean invulnerable;
-    protected CloudLevel level;
+    protected Level level;
     public boolean closed = false;
     protected Entity vehicle;
     protected EntityDamageEvent lastDamageCause = null;
@@ -127,7 +134,7 @@ public abstract class BaseEntity implements Entity {
     protected float absorption = 0;
     protected float ySize = 0;
     protected boolean isStatic = false;
-    protected CloudServer server;
+    protected Server server;
     protected Timing timing;
     protected boolean isPlayer = false;
     private int maxHealth = 20;
@@ -196,7 +203,7 @@ public abstract class BaseEntity implements Entity {
     }
 
     @Override
-    public CloudLevel getLevel() {
+    public Level getLevel() {
         return level;
     }
 
@@ -225,7 +232,7 @@ public abstract class BaseEntity implements Entity {
         return yaw;
     }
 
-    @Override
+   // @Override
     public void loadAdditionalData(NbtMap tag) {
         this.tag = tag;
 
@@ -263,7 +270,7 @@ public abstract class BaseEntity implements Entity {
         tag.listenForBoolean("CustomNameAlwaysVisible", this::setNameTagAlwaysVisible);
     }
 
-    @Override
+   // @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         if (this.tag != null && !this.tag.isEmpty()) {
             tag.putAll(this.tag);
@@ -305,8 +312,8 @@ public abstract class BaseEntity implements Entity {
 
         if (!this.effects.isEmpty()) {
             List<NbtMap> list = new ArrayList<>();
-            for (CloudEffect effect : this.effects.values()) {
-                list.add(effect.createTag());
+            for (Effect effect : this.effects.values()) {
+                list.add(((CloudEffect)effect).createTag());
             }
 
             tag.putList("ActiveEffects", NbtType.COMPOUND, list);
@@ -447,46 +454,53 @@ public abstract class BaseEntity implements Entity {
         return vehicle;
     }
 
-    public Short2ObjectMap<CloudEffect> getEffects() {
+    public Map<EffectType, Effect> getEffects() {
         return effects;
     }
 
     public void removeAllEffects() {
-        for (CloudEffect effect : this.effects.values()) {
-            this.removeEffect(effect.getId());
+        for (Effect effect : this.effects.values()) {
+            this.removeEffect(effect.getType().getNetworkId());
         }
     }
-
+    //TODO - depreciate use of network ID, and use EffectType instead
     public void removeEffect(int effectId) {
-        if (this.effects.containsKey((short) effectId)) {
-            CloudEffect effect = this.effects.get((short) effectId);
-            this.effects.remove((short) effectId);
+        EffectType type = EffectType.fromLegacy((byte) effectId);
+        if (this.effects.containsKey(type)) {
+            Effect effect = this.effects.remove(type);
             effect.remove(this);
 
             this.recalculateEffectColor();
         }
     }
 
-    public CloudEffect getEffect(int effectId) {
-        return this.effects.getOrDefault((short) effectId, null);
+    public Effect getEffect(int effectId) {
+        EffectType type = EffectType.fromLegacy((byte) effectId);
+        return this.effects.getOrDefault(type, null);
     }
 
+    @Deprecated
     public boolean hasEffect(int effectId) {
-        return this.effects.containsKey((short) effectId);
+        EffectType type = EffectType.fromLegacy((byte) effectId);
+        return this.effects.containsKey(type);
     }
 
-    public void addEffect(CloudEffect effect) {
+    public boolean hasEffect(EffectType type) {
+        return this.effects.containsKey(type);
+    }
+
+    public void addEffect(Effect effect) {
         if (effect == null) {
             return; //here add null means add nothing
         }
 
         effect.add(this);
 
-        this.effects.put(effect.getId(), effect);
+        this.effects.put(effect.getType(), effect);
 
         this.recalculateEffectColor();
 
-        if (effect.getId() == CloudEffect.HEALTH_BOOST) {
+        if (effect.getType() == EffectTypes.HEALTH_BOOST) {
             this.setHealth(this.getHealth() + 4 * (effect.getAmplifier() + 1));
         }
 
@@ -506,7 +520,7 @@ public abstract class BaseEntity implements Entity {
         int[] color = new int[3];
         int count = 0;
         boolean ambient = true;
-        for (CloudEffect effect : this.effects.values()) {
+        for (Effect effect : this.effects.values()) {
             if (effect.isVisible()) {
                 int[] c = effect.getColor();
                 color[0] += c[0] * (effect.getAmplifier() + 1);
@@ -566,12 +580,12 @@ public abstract class BaseEntity implements Entity {
         this.initEntity();
 
         this.lastUpdate = this.server.getTick();
-        this.server.getEventManager().fire(new EntitySpawnEvent(this));
+        ((CloudServer)this.server).getEventManager().fire(new EntitySpawnEvent(this));
 
         this.scheduleUpdate();
     }
 
-    @Override
+    //@Override
     public NbtMap getTag() {
         return tag;
     }
@@ -621,15 +635,15 @@ public abstract class BaseEntity implements Entity {
         return addEntity;
     }
 
-    public Set<CloudPlayer> getViewers() {
+    public Set<Player> getViewers() {
         return hasSpawned;
     }
 
     public void sendPotionEffects(CloudPlayer player) {
-        for (CloudEffect effect : this.effects.values()) {
+        for (Effect effect : this.effects.values()) {
             MobEffectPacket pk = new MobEffectPacket();
             pk.setRuntimeEntityId(this.getRuntimeId());
-            pk.setEffectId(effect.getId());
+            pk.setEffectId(effect.getType().getNetworkId());
             pk.setAmplifier(effect.getAmplifier());
             pk.setParticles(effect.isVisible());
             pk.setDuration(effect.getDuration());
@@ -694,7 +708,7 @@ public abstract class BaseEntity implements Entity {
     }
 
     public boolean attack(EntityDamageEvent source) {
-        if (hasEffect(CloudEffect.FIRE_RESISTANCE)
+        if (hasEffect(EffectTypes.FIRE_RESISTANCE.getNetworkId())
                 && (source.getCause() == EntityDamageEvent.DamageCause.FIRE
                 || source.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK
                 || source.getCause() == EntityDamageEvent.DamageCause.LAVA)) {
@@ -718,7 +732,7 @@ public abstract class BaseEntity implements Entity {
     }
 
     public void heal(EntityRegainHealthEvent source) {
-        this.server.getEventManager().fire(source);
+        ((CloudServer)this.server).getEventManager().fire(source);
         if (source.isCancelled()) {
             return;
         }
@@ -768,7 +782,7 @@ public abstract class BaseEntity implements Entity {
     }
 
     public int getMaxHealth() {
-        return maxHealth + (this.hasEffect(CloudEffect.HEALTH_BOOST) ? 4 * (this.getEffect(CloudEffect.HEALTH_BOOST).getAmplifier() + 1) : 0);
+        return maxHealth + (this.hasEffect(EffectTypes.HEALTH_BOOST) ? 4 * (this.getEffect(EffectTypes.HEALTH_BOOST).getAmplifier() + 1) : 0);
     }
 
     public void setMaxHealth(int maxHealth) {
@@ -802,13 +816,13 @@ public abstract class BaseEntity implements Entity {
 
         BlockRegistry registry = BlockRegistry.get();
 
-        if (!this.level.getBlockAt(i, j, k).inCategory(BlockCategory.TRANSPARENT)) {
-            boolean flag = this.level.getBlockAt(i - 1, j, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag1 = this.level.getBlockAt(i + 1, j, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag2 = this.level.getBlockAt(i, j - 1, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag3 = this.level.getBlockAt(i, j + 1, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag4 = this.level.getBlockAt(i, j, k - 1).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag5 = this.level.getBlockAt(i, j, k + 1).inCategory(BlockCategory.TRANSPARENT);
+        if (!this.level.getBlockState(i, j, k).inCategory(BlockCategory.TRANSPARENT)) {
+            boolean flag = this.level.getBlockState(i - 1, j, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag1 = this.level.getBlockState(i + 1, j, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag2 = this.level.getBlockState(i, j - 1, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag3 = this.level.getBlockState(i, j + 1, k).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag4 = this.level.getBlockState(i, j, k - 1).inCategory(BlockCategory.TRANSPARENT);
+            boolean flag5 = this.level.getBlockState(i, j, k + 1).inCategory(BlockCategory.TRANSPARENT);
 
             int direction = -1;
             float limit = 9999;
@@ -892,14 +906,14 @@ public abstract class BaseEntity implements Entity {
             updatePassengers();
 
             if (!this.effects.isEmpty()) {
-                for (CloudEffect effect : this.effects.values()) {
+                for (Effect effect : this.effects.values()) {
                     if (effect.canTick()) {
                         effect.applyEffect(this);
                     }
                     effect.setDuration(effect.getDuration() - tickDiff);
 
                     if (effect.getDuration() <= 0) {
-                        this.removeEffect(effect.getId());
+                        this.removeEffect(effect.getType().getNetworkId());
                     }
                 }
             }
@@ -926,7 +940,7 @@ public abstract class BaseEntity implements Entity {
                         this.fireTicks = 0;
                     }
                 } else {
-                    if (!this.hasEffect(CloudEffect.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
+                    if (!this.hasEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
                         this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.FIRE_TICK, 1));
                     }
                     this.fireTicks -= tickDiff;
@@ -953,7 +967,7 @@ public abstract class BaseEntity implements Entity {
                 if (!ev.isCancelled()) {
                     Location newLoc = EnumLevel.moveToNether(this.getLocation());
                     if (newLoc != null) {
-                        List<CompletableFuture<CloudChunk>> chunksToLoad = new ArrayList<>();
+                        List<CompletableFuture<Chunk>> chunksToLoad = new ArrayList<>();
                         for (int x = -1; x < 2; x++) {
                             for (int z = -1; z < 2; z++) {
                                 int chunkX = (newLoc.getChunkX()) + x, chunkZ = (newLoc.getChunkZ()) + z;
@@ -1075,7 +1089,7 @@ public abstract class BaseEntity implements Entity {
      * @return {@code true} if the mounting successful
      */
     @Override
-    public boolean mount(Entity vehicle, EntityLinkData.Type mode) {
+    public boolean mount(Entity vehicle, MountType mode) {
         checkNotNull(vehicle, "The target of the mounting entity can't be null");
 
         if (this.vehicle != null && !this.vehicle.dismount(this)) {
@@ -1084,7 +1098,7 @@ public abstract class BaseEntity implements Entity {
 
         // Entity entering a vehicle
         EntityVehicleEnterEvent ev = new EntityVehicleEnterEvent(vehicle, this);
-        server.getEventManager().fire(ev);
+        ((CloudServer)server).getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return false;
         }
@@ -1095,7 +1109,7 @@ public abstract class BaseEntity implements Entity {
         vehicle.onMount(this); // Flags have to be set before
 //        this.data.setFlag(RIDING, true);
         this.data.update(); // force any data that needs to be sent
-        broadcastLinkPacket(vehicle, mode);
+        broadcastLinkPacket(vehicle, EntityLinkData.Type.byId(mode.ordinal()));
 
         return true;
     }
@@ -1108,7 +1122,7 @@ public abstract class BaseEntity implements Entity {
 
         // Run the events
         EntityVehicleExitEvent event = new EntityVehicleExitEvent(this, vehicle);
-        server.getEventManager().fire(event);
+        ((CloudServer)server).getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
         }
@@ -1291,7 +1305,7 @@ public abstract class BaseEntity implements Entity {
             return;
         }
 
-        float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(CloudEffect.JUMP) ? this.getEffect(CloudEffect.JUMP).getAmplifier() + 1 : 0));
+        float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(EffectTypes.JUMP_BOOST) ? this.getEffect(EffectTypes.JUMP_BOOST).getAmplifier() + 1 : 0));
 
         if (damage > 0) {
             this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.FALL, damage));
@@ -1304,7 +1318,7 @@ public abstract class BaseEntity implements Entity {
                 Event ev;
 
                 if (this instanceof CloudPlayer) {
-                    ev = new PlayerInteractEvent((CloudPlayer) this, null, down, null, PlayerInteractEvent.Action.PHYSICAL);
+                    ev = new PlayerInteractEvent((Player)this, null, down, null, PlayerInteractEvent.Action.PHYSICAL);
                 } else {
                     ev = new EntityInteractEvent(this, down);
                 }
@@ -1313,7 +1327,7 @@ public abstract class BaseEntity implements Entity {
                 if (ev.isCancelled()) {
                     return;
                 }
-                this.level.setBlock(down.getPosition(), BlockState.get(BlockTypes.DIRT), false, true);
+                this.level.setBlockAt(down.getPosition(), BlockRegistry.get().getBlock(BlockTypes.DIRT), false, true);
             }
         }
     }
@@ -1431,7 +1445,7 @@ public abstract class BaseEntity implements Entity {
     public boolean isInsideOfSolid() {
         double y = this.getY() + this.getEyeHeight();
         Vector3i pos = Vector3i.from(this.getX(), y, this.getZ());
-        BlockState state = this.level.getBlockAt(pos);
+        BlockState state = this.level.getBlockState(pos);
 
         if (state == null) {
             return true;
@@ -1726,8 +1740,8 @@ public abstract class BaseEntity implements Entity {
             }
 
             if (!this.justCreated) {
-                Set<CloudPlayer> loaders = chunk.getPlayerLoaders();
-                for (CloudPlayer player : this.hasSpawned) {
+                Set<Player> loaders = ((CloudChunk)chunk).getPlayerLoaders();
+                for (Player player : this.hasSpawned) {
                     if (!loaders.contains(player)) {
                         this.despawnFrom(player);
                     } else {
@@ -1735,7 +1749,7 @@ public abstract class BaseEntity implements Entity {
                     }
                 }
 
-                for (CloudPlayer player : loaders) {
+                for (Player player : loaders) {
                     this.spawnTo(player);
                 }
             }
@@ -1830,7 +1844,7 @@ public abstract class BaseEntity implements Entity {
             to = ev.getTo();
         }
 
-        if (from.getLevel() != to.getLevel() && !this.switchLevel(to.getLevel())) {
+        if (from.getLevel() != to.getLevel() && !this.switchLevel((CloudLevel) to.getLevel())) {
             return false;
         }
 
@@ -1859,7 +1873,7 @@ public abstract class BaseEntity implements Entity {
     }
 
     public void respawnToAll() {
-        for (CloudPlayer player : this.hasSpawned) {
+        for (Player player : this.hasSpawned) {
             this.spawnTo(player);
         }
         this.hasSpawned.clear();
@@ -1870,7 +1884,7 @@ public abstract class BaseEntity implements Entity {
             return;
         }
 
-        for (CloudPlayer player : this.level.getChunkPlayers(this.chunk.getX(), this.chunk.getZ())) {
+        for (Player player : this.level.getChunkPlayers(this.chunk.getX(), this.chunk.getZ())) {
             if (player.isOnline()) {
                 this.spawnTo(player);
             }
@@ -1878,7 +1892,7 @@ public abstract class BaseEntity implements Entity {
     }
 
     public void despawnFromAll() {
-        for (CloudPlayer player : this.hasSpawned) {
+        for (Player player : this.hasSpawned) {
             this.despawnFrom(player);
         }
     }
@@ -1912,7 +1926,8 @@ public abstract class BaseEntity implements Entity {
         this.data.setLong(OWNER_EID, entity == null ? -1 : entity.getUniqueId());
     }
 
-    public CloudServer getServer() {
+    @Override
+    public Server getServer() {
         return server;
     }
 

@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.entity.vehicle;
 
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
@@ -15,6 +13,8 @@ import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -201,7 +201,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             int dz = this.position.getFloorZ();
 
             // Some hack to check rails
-            if (Rail.isRailBlock(this.getLevel().getBlockAt(dx, dy - 1, dz))) {
+            if (Rail.isRailBlock(this.getLevel().getBlockState(dx, dy - 1, dz))) {
                 --dy;
             }
 
@@ -645,11 +645,11 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         int checkY = MathHelper.floor(dy);
         int checkZ = MathHelper.floor(dz);
 
-        if (Rail.isRailBlock(level.getBlockAt(checkX, checkY - 1, checkZ))) {
+        if (Rail.isRailBlock(level.getBlockState(checkX, checkY - 1, checkZ))) {
             --checkY;
         }
 
-        BlockState blockState = level.getBlockAt(checkX, checkY, checkZ);
+        BlockState blockState = level.getBlockState(checkX, checkY, checkZ);
 
         if (Rail.isRailBlock(blockState)) {
             int[][] facing = matrix[blockState.ensureTrait(BlockTraits.RAIL_DIRECTION).ordinal()]; //TODO:

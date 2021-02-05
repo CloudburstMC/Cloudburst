@@ -7,10 +7,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.collect.ImmutableSet;
-import com.nukkitx.math.vector.Vector2i;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.math.vector.Vector4i;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
@@ -47,6 +43,7 @@ import org.cloudburstmc.api.event.weather.LightningStrikeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginContainer;
@@ -54,6 +51,10 @@ import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.math.vector.Vector2i;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector4i;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockStates;
@@ -70,7 +71,6 @@ import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
-import org.cloudburstmc.server.level.gamerule.GameRuleMap;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -108,13 +108,13 @@ public class CloudLevel implements Level, ChunkManager {
     private static final int chunkLoaderCounter = 1;
     public static int COMPRESSION_LEVEL = 8;
 
-    public static final int BLOCK_UPDATE_NORMAL = 1;
+/*    public static final int BLOCK_UPDATE_NORMAL = 1;
     public static final int BLOCK_UPDATE_RANDOM = 2;
     public static final int BLOCK_UPDATE_SCHEDULED = 3;
     public static final int BLOCK_UPDATE_WEAK = 4;
     public static final int BLOCK_UPDATE_TOUCH = 5;
     public static final int BLOCK_UPDATE_REDSTONE = 6;
-    public static final int BLOCK_UPDATE_TICK = 7;
+    public static final int BLOCK_UPDATE_TICK = 7;*/
 
     public static final int TIME_DAY = 0;
     public static final int TIME_NOON = 6000;
@@ -2102,7 +2102,7 @@ public class CloudLevel implements Level, ChunkManager {
     }
 
     @Override
-    public BlockState getBlockAt(int x, int y, int z, int layer) {
+    public BlockState getBlockState(int x, int y, int z, int layer) {
         CloudChunk chunk = this.getChunk(x >> 4, z >> 4);
         return chunk.getBlock(x & 0x0f, y & 0xff, z & 0x0f, layer);
     }

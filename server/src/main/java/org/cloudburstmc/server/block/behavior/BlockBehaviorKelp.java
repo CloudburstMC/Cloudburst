@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
-import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
@@ -133,7 +133,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
             int x = block.getX();
             int z = block.getZ();
             for (int y = block.getY() + 1; y < 255; y++) {
-                val above = level.getBlockAt(x, y, z);
+                val above = level.getBlockState(x, y, z);
                 val blockAbove = above.getType();
                 if (blockAbove == KELP) {
                     continue;

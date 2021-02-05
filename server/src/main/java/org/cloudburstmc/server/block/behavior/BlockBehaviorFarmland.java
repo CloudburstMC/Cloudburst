@@ -42,7 +42,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
                                 continue;
                             }
 
-                            val b = block.getLevel().getBlockAt(x, y, z).getType();
+                            val b = block.getLevel().getBlockState(x, y, z).getType();
 
                             if (b == BlockTypes.FLOWING_WATER || b == BlockTypes.WATER) {
                                 found = true;
@@ -54,7 +54,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
             }
 
             val state = block.getState();
-            val down = block.getLevel().getBlockAt(block.getPosition().down()).getType();
+            val down = block.getLevel().getBlockState(block.getPosition().down()).getType();
             if (found || down == BlockTypes.WATER || down == BlockTypes.FLOWING_WATER) {
                 if (state.ensureTrait(BlockTraits.MOISTURIZED_AMOUNT) < 7) {
                     block.set(state.withTrait(BlockTraits.MOISTURIZED_AMOUNT, 7));

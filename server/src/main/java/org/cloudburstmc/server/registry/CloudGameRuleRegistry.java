@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableSet;
 import org.cloudburstmc.api.level.gamerule.*;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
 import org.cloudburstmc.api.registry.Registry;
-import org.cloudburstmc.server.level.gamerule.GameRuleMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

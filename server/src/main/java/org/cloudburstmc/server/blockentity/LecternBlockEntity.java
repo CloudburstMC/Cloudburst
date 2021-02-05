@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.WrittenBook;

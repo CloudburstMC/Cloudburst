@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
@@ -9,6 +8,7 @@ import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Beacon;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.inventory.BeaconInventory;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
@@ -141,7 +141,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     private boolean hasSkyAccess() {
         //Check every block from our y coord to the top of the world
         for (int y = getPosition().getY() + 1; y <= 255; y++) {
-            val state = getLevel().getBlockAt(getPosition().getX(), y, getPosition().getZ());
+            val state = getLevel().getBlockState(getPosition().getX(), y, getPosition().getZ());
             if (!state.inCategory(BlockCategory.TRANSPARENT)) {
                 //There is no sky access
                 return false;
@@ -163,7 +163,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
             for (int queryX = tileX - powerLevel; queryX <= tileX + powerLevel; queryX++) {
                 for (int queryZ = tileZ - powerLevel; queryZ <= tileZ + powerLevel; queryZ++) {
 
-                    val testBlockId = getLevel().getBlockAt(queryX, queryY, queryZ).getType();
+                    val testBlockId = getLevel().getBlockState(queryX, queryY, queryZ).getType();
                     if (testBlockId != IRON_BLOCK && testBlockId != GOLD_BLOCK && testBlockId != EMERALD_BLOCK &&
                             testBlockId != DIAMOND_BLOCK) {
                         return powerLevel - 1;
