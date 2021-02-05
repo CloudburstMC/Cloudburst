@@ -14,9 +14,9 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 import javax.annotation.Nullable;
@@ -42,7 +42,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
     private final BlockEntityType<?> type;
     private final Vector3i position;
     private final CloudChunk chunk;
-    private final Level level;
+    private final CloudLevel level;
     private NbtMap tag;
     public boolean movable = true;
     public boolean closed = false;
@@ -394,7 +394,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
         return this.customName != null;
     }
 
-    public void spawnTo(Player player) {
+    public void spawnTo(CloudPlayer player) {
         if (this.closed) {
             return;
         }
@@ -410,14 +410,14 @@ public abstract class BaseBlockEntity implements BlockEntity {
             return;
         }
 
-        for (Player player : this.getChunk().getPlayerLoaders()) {
+        for (CloudPlayer player : this.getChunk().getPlayerLoaders()) {
             if (player.spawned) {
                 this.spawnTo(player);
             }
         }
     }
 
-    public final boolean updateFromClient(NbtMap tag, Player player) {
+    public final boolean updateFromClient(NbtMap tag, CloudPlayer player) {
         if (!tag.getString("id").equals(BlockEntityRegistry.get().getPersistentId(this.getType()))) {
             return false;
         }
@@ -432,7 +432,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
      * @param player player
      * @return bool indication of success, will respawn the tile to the player if false.
      */
-    protected boolean updateNbtMap(NbtMap nbt, Player player) {
+    protected boolean updateNbtMap(NbtMap nbt, CloudPlayer player) {
         return false;
     }
 
@@ -447,7 +447,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     @Override
-    public Level getLevel() {
+    public CloudLevel getLevel() {
         return level;
     }
 

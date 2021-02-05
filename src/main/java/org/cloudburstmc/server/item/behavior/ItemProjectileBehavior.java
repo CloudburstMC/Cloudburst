@@ -6,11 +6,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Projectile;
+import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.projectile.EntityEnderPearl;
-import org.cloudburstmc.server.event.entity.ProjectileLaunchEvent;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 /**
@@ -23,7 +23,7 @@ public class ItemProjectileBehavior extends CloudItemBehavior {
     protected final EntityType<? extends Projectile> projectileEntityType;
     protected final float throwForce;
 
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
         Location location = Location.from(player.getPosition().add(0, player.getEyeHeight() - 0.3f, 0),
                 player.getYaw(), player.getPitch(), player.getLevel());
 

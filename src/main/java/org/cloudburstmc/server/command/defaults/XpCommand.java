@@ -6,7 +6,7 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 /**
@@ -35,8 +35,8 @@ public class XpCommand extends Command {
         //  "/xp <amount>L [player]" for adding exp level
         String amountString;
         String playerName;
-        Player player;
-        if (!(sender instanceof Player)) {
+        CloudPlayer player;
+        if (!(sender instanceof CloudPlayer)) {
             if (args.length != 2) {
                 return false;
             }
@@ -46,7 +46,7 @@ public class XpCommand extends Command {
         } else {
             if (args.length == 1) {
                 amountString = args[0];
-                player = (Player) sender;
+                player = (CloudPlayer) sender;
             } else if (args.length == 2) {
                 amountString = args[0];
                 playerName = args[1];

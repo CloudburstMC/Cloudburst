@@ -9,7 +9,7 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
@@ -44,7 +44,7 @@ public class EnchantCommand extends Command {
         if (args.length < 2) {
             return false;
         }
-        Player player = sender.getServer().getPlayer(args[0]);
+        CloudPlayer player = sender.getServer().getPlayer(args[0]);
         if (player == null) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
             return true;

@@ -11,13 +11,13 @@ import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BrewingStand;
+import org.cloudburstmc.api.event.inventory.BrewEvent;
+import org.cloudburstmc.api.event.inventory.StartBrewEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.inventory.BrewEvent;
-import org.cloudburstmc.server.event.inventory.StartBrewEvent;
 import org.cloudburstmc.server.inventory.BrewingInventory;
 import org.cloudburstmc.server.inventory.BrewingRecipe;
 import org.cloudburstmc.server.inventory.ContainerRecipe;
@@ -26,7 +26,7 @@ import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -89,7 +89,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     @Override
     public void close() {
         if (!closed) {
-            for (Player player : new HashSet<>(getInventory().getViewers())) {
+            for (CloudPlayer player : new HashSet<>(getInventory().getViewers())) {
                 player.removeWindow(getInventory());
             }
             super.close();
@@ -229,7 +229,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     public void sendFuel() {
-        for (Player p : this.inventory.getViewers()) {
+        for (CloudPlayer p : this.inventory.getViewers()) {
             int windowId = p.getWindowId(this.inventory);
             if (windowId > 0) {
                 ContainerSetDataPacket fuelAmountPacket = new ContainerSetDataPacket();
@@ -249,7 +249,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     protected void sendBrewTime() {
-        for (Player p : this.inventory.getViewers()) {
+        for (CloudPlayer p : this.inventory.getViewers()) {
             int windowId = p.getWindowId(this.inventory);
             if (windowId > 0) {
                 ContainerSetDataPacket packet = new ContainerSetDataPacket();

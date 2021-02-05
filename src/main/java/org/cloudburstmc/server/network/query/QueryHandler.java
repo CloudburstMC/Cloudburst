@@ -3,8 +3,8 @@ package org.cloudburstmc.server.network.query;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.event.server.QueryRegenerateEvent;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.event.server.QueryRegenerateEvent;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;

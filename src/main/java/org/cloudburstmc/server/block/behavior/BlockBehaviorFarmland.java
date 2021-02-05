@@ -6,7 +6,7 @@ import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
@@ -19,7 +19,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_RANDOM) {
+        if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             val up = block.up();
             if (up.getState().inCategory(BlockCategory.CROPS)) {
                 return 0;
@@ -27,7 +27,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
 
             if (up.getState().inCategory(BlockCategory.SOLID)) {
                 block.set(BlockState.get(BlockTypes.DIRT));
-                return Level.BLOCK_UPDATE_RANDOM;
+                return CloudLevel.BLOCK_UPDATE_RANDOM;
             }
 
             boolean found = false;
@@ -59,7 +59,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
                 if (state.ensureTrait(BlockTraits.MOISTURIZED_AMOUNT) < 7) {
                     block.set(state.withTrait(BlockTraits.MOISTURIZED_AMOUNT, 7));
                 }
-                return Level.BLOCK_UPDATE_RANDOM;
+                return CloudLevel.BLOCK_UPDATE_RANDOM;
             }
 
             if (state.ensureTrait(BlockTraits.MOISTURIZED_AMOUNT) > 0) {
@@ -68,7 +68,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
                 block.set(BlockState.get(BlockTypes.DIRT));
             }
 
-            return Level.BLOCK_UPDATE_RANDOM;
+            return CloudLevel.BLOCK_UPDATE_RANDOM;
         }
 
         return 0;

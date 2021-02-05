@@ -7,14 +7,14 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityExplosive;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.TntMinecart;
+import org.cloudburstmc.api.event.entity.EntityExplosionPrimeEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.event.entity.EntityExplosionPrimeEvent;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.data.MinecartType;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -121,7 +121,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(CloudPlayer player, ItemStack item, Vector3f clickedPos) {
         boolean interact = super.onInteract(player, item, clickedPos);
         if (item.getType() == ItemTypes.FLINT_AND_STEEL || item.getType() == ItemTypes.FIREBALL) {
             this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.IGNITE);

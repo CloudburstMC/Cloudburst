@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.item.ItemStack;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 import javax.inject.Singleton;
@@ -17,7 +17,7 @@ public class CraftingManager {
 
     private CloudRecipeRegistry registry = CloudRecipeRegistry.get();
 
-    public void sendRecipesTo(Player player) {
+    public void sendRecipesTo(CloudPlayer player) {
         player.sendPacket(registry.getNetworkData());
     }
 

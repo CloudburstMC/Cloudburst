@@ -8,13 +8,13 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.item.ItemStacks;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
 
-    public static void spawnPortal(Vector3f pos, Level level) {
+    public static void spawnPortal(Vector3f pos, CloudLevel level) {
         int x = pos.getFloorX(), y = pos.getFloorY(), z = pos.getFloorZ();
 
         for (int xx = -1; xx < 4; xx++) {

@@ -4,6 +4,11 @@ import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.event.block.BlockBurnEvent;
+import org.cloudburstmc.api.event.block.BlockFadeEvent;
+import org.cloudburstmc.api.event.block.BlockIgniteEvent;
+import org.cloudburstmc.api.event.entity.EntityCombustByBlockEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.GameRules;
@@ -12,16 +17,11 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
-import org.cloudburstmc.server.event.block.BlockBurnEvent;
-import org.cloudburstmc.server.event.block.BlockFadeEvent;
-import org.cloudburstmc.server.event.block.BlockIgniteEvent;
-import org.cloudburstmc.server.event.entity.EntityCombustByBlockEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.server.item.ItemStacks;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Plane;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.SlabSlot;
 
@@ -37,7 +37,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
     @Override
     public void onEntityCollide(Block block, Entity entity) {
-        if (!entity.hasEffect(Effect.FIRE_RESISTANCE)) {
+        if (!entity.hasEffect(CloudEffect.FIRE_RESISTANCE)) {
             entity.attack(new EntityDamageByBlockEvent(block, entity, EntityDamageEvent.DamageCause.FIRE, 1));
         }
 
@@ -61,7 +61,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         val level = block.getLevel();
         val position = block.getPosition();
 
-        if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_RANDOM) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.down().getState()) && !BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockStates.AIR);
                 level.getServer().getEventManager().fire(event);
@@ -70,8 +70,8 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                 }
             }
 
-            return Level.BLOCK_UPDATE_NORMAL;
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED && level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
+            return CloudLevel.BLOCK_UPDATE_NORMAL;
+        } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED && level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
             val down = block.down().getState();
             boolean forever = down.getType() == BlockTypes.NETHERRACK || down.getType() == BlockTypes.MAGMA;
 

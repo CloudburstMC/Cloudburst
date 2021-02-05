@@ -15,7 +15,7 @@ import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.inventory.DoubleChestInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -95,11 +95,11 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
         if (!closed) {
             unpair();
 
-            for (Player player : new HashSet<>(this.getInventory().getViewers())) {
+            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
                 player.removeWindow(this.getInventory());
             }
 
-            for (Player player : new HashSet<>(this.getInventory().getViewers())) {
+            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
                 player.removeWindow(this.getRealInventory());
             }
             super.close();

@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.CloudServer;
 
 @Log4j2
@@ -11,16 +12,16 @@ public enum EnumLevel {
     //THE_END
     ;
 
-    Level level;
+    CloudLevel level;
 
-    public Level getLevel() {
+    public CloudLevel getLevel() {
         return level;
     }
 
     public static void initLevels() {
         OVERWORLD.level = CloudServer.getInstance().getDefaultLevel();
 
-        Level netherLevel = CloudServer.getInstance().getLevelByName("nether");
+        CloudLevel netherLevel = CloudServer.getInstance().getLevelByName("nether");
         // attempt to load the nether world if it is allowed in server properties
         if (netherLevel != null && CloudServer.getInstance().isNetherAllowed()) {
             NETHER.level = netherLevel;
@@ -30,7 +31,7 @@ public enum EnumLevel {
         }
     }
 
-    public static Level getOtherNetherPair(Level current) {
+    public static CloudLevel getOtherNetherPair(CloudLevel current) {
         if (current == OVERWORLD.level) {
             return NETHER.level;
         } else if (current == NETHER.level) {
@@ -45,7 +46,7 @@ public enum EnumLevel {
             return null;
         } else {
             int x, y, z;
-            Level level;
+            CloudLevel level;
             if (current.getLevel() == OVERWORLD.level) {
                 x = mRound(current.getFloorX() >> 3, 128);
                 y = mRound(current.getFloorY(), 32);

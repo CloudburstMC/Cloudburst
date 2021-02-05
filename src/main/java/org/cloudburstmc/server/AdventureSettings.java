@@ -4,7 +4,7 @@ import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -17,18 +17,18 @@ public class AdventureSettings implements Cloneable {
 
     private final Map<Type, Boolean> values = new EnumMap<>(Type.class);
 
-    private Player player;
+    private CloudPlayer player;
 
-    public AdventureSettings(Player player) {
+    public AdventureSettings(CloudPlayer player) {
         this.player = player;
     }
 
-    public AdventureSettings(Player player, Map<Type, Boolean> values) {
+    public AdventureSettings(CloudPlayer player, Map<Type, Boolean> values) {
         this.player = player;
         this.values.putAll(values);
     }
 
-    public AdventureSettings clone(Player newPlayer) {
+    public AdventureSettings clone(CloudPlayer newPlayer) {
         try {
             AdventureSettings settings = (AdventureSettings) super.clone();
             settings.player = newPlayer;

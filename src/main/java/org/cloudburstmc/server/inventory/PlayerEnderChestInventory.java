@@ -7,8 +7,8 @@ import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.server.entity.Human;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 public class PlayerEnderChestInventory extends BaseInventory {
 
@@ -22,7 +22,7 @@ public class PlayerEnderChestInventory extends BaseInventory {
     }
 
     @Override
-    public void onOpen(Player who) {
+    public void onOpen(CloudPlayer who) {
         if (who != this.getHolder()) {
             return;
         }
@@ -42,7 +42,7 @@ public class PlayerEnderChestInventory extends BaseInventory {
         this.sendContents(who);
 
         if (chest != null && chest.getInventory().getViewers().size() == 1) {
-            Level level = this.getHolder().getLevel();
+            CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition().add(0.5, 0.5, 0.5), SoundEvent.ENDERCHEST_OPEN);
                 ContainerInventory.sendBlockEventPacket(level.getBlockEntity(chest.getPosition()), 1);
@@ -51,7 +51,7 @@ public class PlayerEnderChestInventory extends BaseInventory {
     }
 
     @Override
-    public void onClose(Player who) {
+    public void onClose(CloudPlayer who) {
         ContainerClosePacket containerClosePacket = new ContainerClosePacket();
         containerClosePacket.setId(who.getWindowId(this));
         who.sendPacket(containerClosePacket);
@@ -59,7 +59,7 @@ public class PlayerEnderChestInventory extends BaseInventory {
 
         EnderChest chest = who.getViewingEnderChest();
         if (chest != null && chest.getInventory().getViewers().size() == 1) {
-            Level level = this.getHolder().getLevel();
+            CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition().add(0.5, 0.5, 0.5), SoundEvent.ENDERCHEST_CLOSED);
                 ContainerInventory.sendBlockEventPacket(level.getBlockEntity(chest.getPosition()), 0);

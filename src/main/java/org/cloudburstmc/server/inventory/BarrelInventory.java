@@ -6,8 +6,8 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Barrel;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 public class BarrelInventory extends ContainerInventory {
 
@@ -21,7 +21,7 @@ public class BarrelInventory extends ContainerInventory {
     }
 
     @Override
-    public void onOpen(Player who) {
+    public void onOpen(CloudPlayer who) {
         super.onOpen(who);
 
         if (this.getViewers().size() == 1) {
@@ -30,7 +30,7 @@ public class BarrelInventory extends ContainerInventory {
     }
 
     @Override
-    public void onClose(Player who) {
+    public void onClose(CloudPlayer who) {
         super.onClose(who);
 
         if (this.getViewers().isEmpty()) {
@@ -40,7 +40,7 @@ public class BarrelInventory extends ContainerInventory {
 
     protected void toggle(boolean open) {
         Barrel barrel = this.getHolder();
-        Level level = barrel.getLevel();
+        CloudLevel level = barrel.getLevel();
         if (level != null) {
             Block block = barrel.getBlock();
             val state = block.getState();

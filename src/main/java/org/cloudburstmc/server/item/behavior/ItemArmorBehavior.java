@@ -10,7 +10,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.item.ArmorPartType;
 import org.cloudburstmc.server.item.ArmorPartTypes;
 import org.cloudburstmc.server.item.TierType;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.server.item.TierTypes.*;
 
@@ -61,7 +61,7 @@ abstract public class ItemArmorBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
         boolean equip = false;
         if (this.isHelmet() && player.getInventory().getHelmet().isNull()) {
             if (player.getInventory().setHelmet(item)) {

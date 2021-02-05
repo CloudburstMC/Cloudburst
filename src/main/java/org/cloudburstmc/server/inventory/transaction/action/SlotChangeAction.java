@@ -4,7 +4,7 @@ import lombok.ToString;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -48,7 +48,7 @@ public class SlotChangeAction extends InventoryAction {
      * @param source player
      * @return valid
      */
-    public boolean isValid(Player source) {
+    public boolean isValid(CloudPlayer source) {
         ItemStack check = inventory.getItem(this.inventorySlot);
 
         return check.equals(this.sourceItem, true);
@@ -60,7 +60,7 @@ public class SlotChangeAction extends InventoryAction {
      * @param source player
      * @return successfully executed
      */
-    public boolean execute(Player source) {
+    public boolean execute(CloudPlayer source) {
         return this.inventory.setItem(this.inventorySlot, this.targetItem, false);
     }
 
@@ -69,8 +69,8 @@ public class SlotChangeAction extends InventoryAction {
      *
      * @param source player
      */
-    public void onExecuteSuccess(Player source) {
-        Set<Player> viewers = new HashSet<>(this.inventory.getViewers());
+    public void onExecuteSuccess(CloudPlayer source) {
+        Set<CloudPlayer> viewers = new HashSet<>(this.inventory.getViewers());
         viewers.remove(source);
 
         this.inventory.sendSlot(this.inventorySlot, viewers);
@@ -81,7 +81,7 @@ public class SlotChangeAction extends InventoryAction {
      *
      * @param source player
      */
-    public void onExecuteFail(Player source) {
+    public void onExecuteFail(CloudPlayer source) {
         this.inventory.sendSlot(this.inventorySlot, source);
     }
 

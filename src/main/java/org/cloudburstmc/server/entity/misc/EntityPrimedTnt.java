@@ -8,11 +8,11 @@ import org.cloudburstmc.api.entity.EntityExplosive;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.PrimedTnt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.EntityExplosionPrimeEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.entity.BaseEntity;
-import org.cloudburstmc.server.event.entity.EntityExplosionPrimeEvent;
 import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.level.Location;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.FUSE_LENGTH;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.IGNITED;

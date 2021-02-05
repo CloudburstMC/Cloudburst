@@ -12,8 +12,8 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.server.inventory.BeaconInventory;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.potion.CloudEffect;
 
 import java.util.Map;
 
@@ -79,22 +79,22 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         }
 
         //Get all players in game
-        Map<Long, Player> players = this.getLevel().getPlayers();
+        Map<Long, CloudPlayer> players = this.getLevel().getPlayers();
 
         //Calculate vars for beacon power
         int range = 10 + this.powerLevel * 10;
         int duration = 9 + this.powerLevel * 2;
 
-        for (Map.Entry<Long, Player> entry : players.entrySet()) {
-            Player p = entry.getValue();
+        for (Map.Entry<Long, CloudPlayer> entry : players.entrySet()) {
+            CloudPlayer p = entry.getValue();
 
             //If the player is in range
             if (p.getPosition().distance(this.getPosition().toFloat()) < range) {
-                Effect e;
+                CloudEffect e;
 
                 if (getPrimaryEffect() != 0) {
                     //Apply the primary power
-                    e = Effect.getEffect(getPrimaryEffect());
+                    e = CloudEffect.fromNBT(getPrimaryEffect());
 
                     //Set duration
                     e.setDuration(duration * 20);
@@ -114,9 +114,9 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
                 }
 
                 //If we have a secondary power as regen, apply it
-                if (getSecondaryEffect() == Effect.REGENERATION) {
+                if (getSecondaryEffect() == CloudEffect.REGENERATION) {
                     //Get the regen effect
-                    e = Effect.getEffect(Effect.REGENERATION);
+                    e = CloudEffect.fromNBT(CloudEffect.REGENERATION);
 
                     //Set duration
                     e.setDuration(duration * 20);
@@ -200,7 +200,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
-    public boolean updateNbtMap(NbtMap nbt, Player player) {
+    public boolean updateNbtMap(NbtMap nbt, CloudPlayer player) {
         this.setPrimaryEffect(nbt.getInt("primary"));
         this.setSecondaryEffect(nbt.getInt("secondary"));
 

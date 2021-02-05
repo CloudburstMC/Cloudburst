@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * @author CreeperFace
@@ -19,7 +19,7 @@ public class PlayerCursorInventory extends PlayerUIComponent {
      * @return Player
      */
     @Override
-    public Player getHolder() {
+    public CloudPlayer getHolder() {
         return playerUI.getHolder();
     }
 }

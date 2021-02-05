@@ -8,7 +8,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
 
@@ -25,7 +25,7 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         var state = item.getBehavior().getBlock(item)
                 .withTrait(BlockTraits.DIRECTION, player != null ? player.getDirection() : Direction.NORTH);
         if ((clickPos.getY() > 0.5 && face != Direction.UP) || face == Direction.DOWN) {

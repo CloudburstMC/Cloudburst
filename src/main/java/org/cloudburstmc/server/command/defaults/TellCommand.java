@@ -6,7 +6,7 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Objects;
@@ -43,7 +43,7 @@ public class TellCommand extends Command {
 
         String name = args[0].toLowerCase();
 
-        Player player = sender.getServer().getPlayer(name);
+        CloudPlayer player = sender.getServer().getPlayer(name);
         if (player == null) {
             sender.sendMessage(new TranslationContainer("commands.generic.player.notFound"));
             return true;
@@ -59,7 +59,7 @@ public class TellCommand extends Command {
             msg.add(args[i]);
         }
 
-        String displayName = (sender instanceof Player ? ((Player) sender).getDisplayName() : sender.getName());
+        String displayName = (sender instanceof CloudPlayer ? ((CloudPlayer) sender).getDisplayName() : sender.getName());
 
         sender.sendMessage(new TranslationContainer("commands.message.display.outgoing", player.getDisplayName(), msg));
         player.sendMessage(new TranslationContainer("commands.message.display.incoming", displayName, msg));

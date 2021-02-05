@@ -20,9 +20,10 @@ import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.inventory.InventoryHolder;
 import org.cloudburstmc.server.inventory.PlayerEnderChestInventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;
@@ -30,9 +31,8 @@ import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.Damageable;
-import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.ArrayList;
@@ -122,7 +122,7 @@ public class Human extends EntityCreature implements InventoryHolder {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        if (!(this instanceof Player)) {
+        if (!(this instanceof CloudPlayer)) {
             tag.listenForString("NameTag", this::setNameTag);
 
 
@@ -272,7 +272,7 @@ public class Human extends EntityCreature implements InventoryHolder {
     }
 
     @Override
-    public void spawnTo(Player player) {
+    public void spawnTo(CloudPlayer player) {
         if (this != player && !this.hasSpawned.contains(player)) {
             this.hasSpawned.add(player);
 
@@ -280,10 +280,10 @@ public class Human extends EntityCreature implements InventoryHolder {
                 throw new IllegalStateException(this.getClass().getSimpleName() + " must have a valid skin set");
             }
 
-            if (this instanceof Player)
-                this.server.updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), this.skin, ((Player) this).getXuid(), new Player[]{player});
+            if (this instanceof CloudPlayer)
+                this.server.updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), this.skin, ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
             else
-                this.server.updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), this.skin, new Player[]{player});
+                this.server.updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), this.skin, new CloudPlayer[]{player});
 
             player.sendPacket(createAddEntityPacket());
 
@@ -297,8 +297,8 @@ public class Human extends EntityCreature implements InventoryHolder {
                 player.sendPacket(packet);
             }
 
-            if (!(this instanceof Player)) {
-                this.server.removePlayerListData(this.getServerId(), new Player[]{player});
+            if (!(this instanceof CloudPlayer)) {
+                this.server.removePlayerListData(this.getServerId(), new CloudPlayer[]{player});
             }
         }
     }
@@ -323,7 +323,7 @@ public class Human extends EntityCreature implements InventoryHolder {
     }
 
     @Override
-    public void despawnFrom(Player player) {
+    public void despawnFrom(CloudPlayer player) {
         if (this.hasSpawned.contains(player)) {
             RemoveEntityPacket packet = new RemoveEntityPacket();
             packet.setUniqueEntityId(this.getUniqueId());
@@ -335,8 +335,8 @@ public class Human extends EntityCreature implements InventoryHolder {
     @Override
     public void close() {
         if (!this.closed) {
-            if (!(this instanceof Player) || ((Player) this).loggedIn) {
-                for (Player viewer : this.inventory.getViewers()) {
+            if (!(this instanceof CloudPlayer) || ((CloudPlayer) this).loggedIn) {
+                for (CloudPlayer viewer : this.inventory.getViewers()) {
                     viewer.removeWindow(this.inventory);
                 }
             }

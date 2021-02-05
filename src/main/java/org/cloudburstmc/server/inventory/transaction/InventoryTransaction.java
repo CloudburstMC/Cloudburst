@@ -3,14 +3,14 @@ package org.cloudburstmc.server.inventory.transaction;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import lombok.var;
+import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
+import org.cloudburstmc.api.event.inventory.InventoryTransactionEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.event.inventory.InventoryClickEvent;
-import org.cloudburstmc.server.event.inventory.InventoryTransactionEvent;
 import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.inventory.transaction.action.SlotChangeAction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -24,23 +24,23 @@ public class InventoryTransaction {
     private long creationTime;
     protected boolean hasExecuted;
 
-    protected Player source;
+    protected CloudPlayer source;
 
     protected Set<Inventory> inventories = new HashSet<>();
 
     protected Set<InventoryAction> actions = new HashSet<>();
 
-    public InventoryTransaction(Player source, List<InventoryAction> actions) {
+    public InventoryTransaction(CloudPlayer source, List<InventoryAction> actions) {
         this(source, actions, true);
     }
 
-    public InventoryTransaction(Player source, List<InventoryAction> actions, boolean init) {
+    public InventoryTransaction(CloudPlayer source, List<InventoryAction> actions, boolean init) {
         if (init) {
             init(source, actions);
         }
     }
 
-    protected void init(Player source, List<InventoryAction> actions) {
+    protected void init(CloudPlayer source, List<InventoryAction> actions) {
         creationTime = System.currentTimeMillis();
         this.source = source;
 
@@ -49,7 +49,7 @@ public class InventoryTransaction {
         }
     }
 
-    public Player getSource() {
+    public CloudPlayer getSource() {
         return source;
     }
 
@@ -251,7 +251,7 @@ public class InventoryTransaction {
 
         SlotChangeAction from = null;
         SlotChangeAction to = null;
-        Player who = null;
+        CloudPlayer who = null;
 
         for (InventoryAction action : this.actions) {
             if (!(action instanceof SlotChangeAction)) {
@@ -260,7 +260,7 @@ public class InventoryTransaction {
             SlotChangeAction slotChange = (SlotChangeAction) action;
 
             if (slotChange.getInventory() instanceof PlayerInventory) {
-                who = (Player) slotChange.getInventory().getHolder();
+                who = (CloudPlayer) slotChange.getInventory().getHolder();
             }
 
             if (from == null) {

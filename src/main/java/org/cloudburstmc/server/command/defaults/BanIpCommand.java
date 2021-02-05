@@ -4,14 +4,14 @@ import com.nukkitx.nbt.NBTInputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.event.player.PlayerKickEvent;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.event.player.PlayerKickEvent;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,7 +60,7 @@ public class BanIpCommand extends Command {
             this.processIPBan(value, sender, reason.toString());
             CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.banip.success", value));
         } else {
-            Player player = sender.getServer().getPlayer(value);
+            CloudPlayer player = sender.getServer().getPlayer(value);
             if (player != null) {
                 this.processIPBan(player.getAddress(), sender, reason.toString());
 
@@ -96,7 +96,7 @@ public class BanIpCommand extends Command {
     private void processIPBan(String ip, CommandSender sender, String reason) {
         sender.getServer().getIPBans().addBan(ip, reason, null, sender.getName());
 
-        for (Player player : new ArrayList<>(sender.getServer().getOnlinePlayers().values())) {
+        for (CloudPlayer player : new ArrayList<>(sender.getServer().getOnlinePlayers().values())) {
             if (player.getAddress().equals(ip)) {
                 player.kick(PlayerKickEvent.Reason.IP_BANNED, !reason.isEmpty() ? reason : "IP banned");
             }

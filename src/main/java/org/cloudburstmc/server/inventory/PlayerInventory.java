@@ -5,16 +5,16 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.event.entity.EntityArmorChangeEvent;
+import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
+import org.cloudburstmc.api.event.player.PlayerItemHeldEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.Human;
-import org.cloudburstmc.server.event.entity.EntityArmorChangeEvent;
-import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
-import org.cloudburstmc.server.event.player.PlayerItemHeldEvent;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.*;
@@ -58,12 +58,12 @@ public class PlayerInventory extends BaseInventory {
      */
     public boolean equipItem(int slot) {
         if (!isHotbarSlot(slot)) {
-            this.sendContents((Player) this.getHolder());
+            this.sendContents((CloudPlayer) this.getHolder());
             return false;
         }
 
-        if (this.getHolder() instanceof Player) {
-            Player player = (Player) this.getHolder();
+        if (this.getHolder() instanceof CloudPlayer) {
+            CloudPlayer player = (CloudPlayer) this.getHolder();
             PlayerItemHeldEvent ev = new PlayerItemHeldEvent(player, this.getItem(slot), slot);
             this.getHolder().getLevel().getServer().getEventManager().fire(ev);
 
@@ -109,8 +109,8 @@ public class PlayerInventory extends BaseInventory {
         if (index >= 0 && index < this.getHotbarSize()) {
             this.itemInHandIndex = index;
 
-            if (this.getHolder() instanceof Player && send) {
-                this.sendHeldItem((Player) this.getHolder());
+            if (this.getHolder() instanceof CloudPlayer && send) {
+                this.sendHeldItem((CloudPlayer) this.getHolder());
             }
 
             this.sendHeldItem(this.getHolder().getViewers());
@@ -145,14 +145,14 @@ public class PlayerInventory extends BaseInventory {
 
         this.itemInHandIndex = slot;
 
-        if (this.getHolder() instanceof Player) {
-            this.sendHeldItem((Player) this.getHolder());
+        if (this.getHolder() instanceof CloudPlayer) {
+            this.sendHeldItem((CloudPlayer) this.getHolder());
         }
 
         this.sendHeldItem(this.getViewers());
     }
 
-    public void sendHeldItem(Player... players) {
+    public void sendHeldItem(CloudPlayer... players) {
         ItemStack item = this.getItemInHand();
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
@@ -160,7 +160,7 @@ public class PlayerInventory extends BaseInventory {
         packet.setInventorySlot(this.getHeldItemIndex());
         packet.setHotbarSlot(this.getHeldItemIndex());
 
-        for (Player player : players) {
+        for (CloudPlayer player : players) {
             packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
             if (player.equals(this.getHolder())) {
                 packet.setRuntimeEntityId(player.getRuntimeId());
@@ -171,14 +171,14 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
-    public void sendHeldItem(Collection<Player> players) {
-        this.sendHeldItem(players.toArray(new Player[0]));
+    public void sendHeldItem(Collection<CloudPlayer> players) {
+        this.sendHeldItem(players.toArray(new CloudPlayer[0]));
     }
 
     @Override
     public void onSlotChange(int index, ItemStack before, boolean send) {
         Human holder = this.getHolder();
-        if (holder instanceof Player && !((Player) holder).spawned) {
+        if (holder instanceof CloudPlayer && !((CloudPlayer) holder).spawned) {
             return;
         }
 
@@ -352,15 +352,15 @@ public class PlayerInventory extends BaseInventory {
         this.setItem(offHandIndex, offhand);
     }
 
-    public void sendOffHandContents(Collection<Player> players) {
-        this.sendOffHandContents(players.toArray(new Player[0]));
+    public void sendOffHandContents(Collection<CloudPlayer> players) {
+        this.sendOffHandContents(players.toArray(new CloudPlayer[0]));
     }
 
-    public void sendOffHandContents(Player player) {
-        this.sendOffHandContents(new Player[]{player});
+    public void sendOffHandContents(CloudPlayer player) {
+        this.sendOffHandContents(new CloudPlayer[]{player});
     }
 
-    public void sendOffHandContents(Player[] players) {
+    public void sendOffHandContents(CloudPlayer[] players) {
         ItemStack offHand = this.getOffHand();
 
         if (offHand == null) {
@@ -373,7 +373,7 @@ public class PlayerInventory extends BaseInventory {
         packet.setContainerId(ContainerId.OFFHAND);
         packet.setInventorySlot(1);
 
-        for (Player player : players) {
+        for (CloudPlayer player : players) {
             if (player.equals(this.getHolder())) {
                 InventoryContentPacket invPacket = new InventoryContentPacket();
                 invPacket.setContainerId(ContainerId.OFFHAND);
@@ -385,15 +385,15 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
-    public void sendOffHandSlot(Player player) {
-        this.sendOffHandSlot(new Player[]{player});
+    public void sendOffHandSlot(CloudPlayer player) {
+        this.sendOffHandSlot(new CloudPlayer[]{player});
     }
 
-    public void sendOffHandSlot(Collection<Player> players) {
-        this.sendOffHandSlot(players.toArray(new Player[0]));
+    public void sendOffHandSlot(Collection<CloudPlayer> players) {
+        this.sendOffHandSlot(players.toArray(new CloudPlayer[0]));
     }
 
-    public void sendOffHandSlot(Player[] players) {
+    public void sendOffHandSlot(CloudPlayer[] players) {
         ItemStack offhand = this.getOffHand();
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
@@ -402,7 +402,7 @@ public class PlayerInventory extends BaseInventory {
         packet.setContainerId(ContainerId.OFFHAND);
         packet.setInventorySlot(1);
 
-        for (Player player : players) {
+        for (CloudPlayer player : players) {
             if (player.equals(this.getHolder())) {
                 InventorySlotPacket slotPacket = new InventorySlotPacket();
                 slotPacket.setContainerId(ContainerId.OFFHAND);
@@ -415,11 +415,11 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
-    public void sendArmorContents(Player player) {
-        this.sendArmorContents(new Player[]{player});
+    public void sendArmorContents(CloudPlayer player) {
+        this.sendArmorContents(new CloudPlayer[]{player});
     }
 
-    public void sendArmorContents(Player[] players) {
+    public void sendArmorContents(CloudPlayer[] players) {
         ItemStack[] armor = this.getArmorContents();
 
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
@@ -429,7 +429,7 @@ public class PlayerInventory extends BaseInventory {
         packet.setLeggings(((CloudItemStack) armor[2]).getNetworkData());
         packet.setBoots(((CloudItemStack) armor[3]).getNetworkData());
 
-        for (Player player : players) {
+        for (CloudPlayer player : players) {
             if (player.equals(this.getHolder())) {
                 InventoryContentPacket packet2 = new InventoryContentPacket();
                 packet2.setContainerId(ContainerId.ARMOR);
@@ -461,15 +461,15 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
-    public void sendArmorContents(Collection<Player> players) {
-        this.sendArmorContents(players.toArray(new Player[0]));
+    public void sendArmorContents(Collection<CloudPlayer> players) {
+        this.sendArmorContents(players.toArray(new CloudPlayer[0]));
     }
 
-    public void sendArmorSlot(int index, Player player) {
-        this.sendArmorSlot(index, new Player[]{player});
+    public void sendArmorSlot(int index, CloudPlayer player) {
+        this.sendArmorSlot(index, new CloudPlayer[]{player});
     }
 
-    public void sendArmorSlot(int index, Player[] players) {
+    public void sendArmorSlot(int index, CloudPlayer[] players) {
         CloudItemStack[] armor = (CloudItemStack[]) this.getArmorContents();
 
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
@@ -479,7 +479,7 @@ public class PlayerInventory extends BaseInventory {
         packet.setLeggings(armor[2].getNetworkData());
         packet.setBoots(armor[3].getNetworkData());
 
-        for (Player player : players) {
+        for (CloudPlayer player : players) {
             if (player.equals(this.getHolder())) {
                 InventorySlotPacket packet2 = new InventorySlotPacket();
                 packet2.setContainerId(ContainerId.ARMOR);
@@ -492,28 +492,28 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
-    public void sendArmorSlot(int index, Collection<Player> players) {
-        this.sendArmorSlot(index, players.toArray(new Player[0]));
+    public void sendArmorSlot(int index, Collection<CloudPlayer> players) {
+        this.sendArmorSlot(index, players.toArray(new CloudPlayer[0]));
     }
 
     @Override
-    public void sendContents(Player player) {
-        this.sendContents(new Player[]{player});
+    public void sendContents(CloudPlayer player) {
+        this.sendContents(new CloudPlayer[]{player});
     }
 
     @Override
-    public void sendContents(Collection<Player> players) {
-        this.sendContents(players.toArray(new Player[0]));
+    public void sendContents(Collection<CloudPlayer> players) {
+        this.sendContents(players.toArray(new CloudPlayer[0]));
     }
 
     @Override
-    public void sendContents(Player[] players) {
+    public void sendContents(CloudPlayer[] players) {
         List<ItemData> itemData = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
             itemData.add(i, ((CloudItemStack) this.getItem(i)).getNetworkData());
         }
 
-        for (Player player : players) {
+        for (CloudPlayer player : players) {
             int id = player.getWindowId(this);
             if (id == -1) {
                 if (this.getHolder() != player) this.close(player);
@@ -529,20 +529,20 @@ public class PlayerInventory extends BaseInventory {
     }
 
     @Override
-    public void sendSlot(int index, Player player) {
-        this.sendSlot(index, new Player[]{player});
+    public void sendSlot(int index, CloudPlayer player) {
+        this.sendSlot(index, new CloudPlayer[]{player});
     }
 
     @Override
-    public void sendSlot(int index, Collection<Player> players) {
-        this.sendSlot(index, players.toArray(new Player[0]));
+    public void sendSlot(int index, Collection<CloudPlayer> players) {
+        this.sendSlot(index, players.toArray(new CloudPlayer[0]));
     }
 
     @Override
-    public void sendSlot(int index, Player... players) {
+    public void sendSlot(int index, CloudPlayer... players) {
         ItemData itemData = ((CloudItemStack) this.getItem(index)).getNetworkData();
 
-        for (Player player : players) {
+        for (CloudPlayer player : players) {
             InventorySlotPacket packet = new InventorySlotPacket();
             packet.setSlot(index);
             packet.setItem(itemData);
@@ -563,10 +563,10 @@ public class PlayerInventory extends BaseInventory {
     }
 
     public void sendCreativeContents() {
-        if (!(this.getHolder() instanceof Player)) {
+        if (!(this.getHolder() instanceof CloudPlayer)) {
             return;
         }
-        Player p = (Player) this.getHolder();
+        CloudPlayer p = (CloudPlayer) this.getHolder();
 
         CreativeContentPacket pk;
 
@@ -586,7 +586,7 @@ public class PlayerInventory extends BaseInventory {
     }
 
     @Override
-    public void onOpen(Player who) {
+    public void onOpen(CloudPlayer who) {
         super.onOpen(who);
         ContainerOpenPacket pk = new ContainerOpenPacket();
         pk.setId(who.getWindowId(this));
@@ -597,7 +597,7 @@ public class PlayerInventory extends BaseInventory {
     }
 
     @Override
-    public void onClose(Player who) {
+    public void onClose(CloudPlayer who) {
         ContainerClosePacket pk = new ContainerClosePacket();
         pk.setId(who.getWindowId(this));
         who.sendPacket(pk);

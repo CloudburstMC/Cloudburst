@@ -31,9 +31,9 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.timings.JsonUtil;
 
 import java.lang.management.ManagementFactory;
@@ -96,7 +96,7 @@ public class TimingsHistory {
         final Map<Identifier, AtomicInteger> entityCounts = new HashMap<>();
         final Map<Identifier, AtomicInteger> blockEntityCounts = new HashMap<>();
         // Information about all loaded entities/block entities
-        for (Level level : CloudServer.getInstance().getLevels()) {
+        for (CloudLevel level : CloudServer.getInstance().getLevels()) {
             ArrayNode jsonLevel = Bootstrap.JSON_MAPPER.createArrayNode();
             for (CloudChunk chunk : level.getChunks()) {
                 entityCounts.clear();
@@ -214,9 +214,9 @@ public class TimingsHistory {
         final double avg;
 
         PingRecord() {
-            final Collection<Player> onlinePlayers = CloudServer.getInstance().getOnlinePlayers().values();
+            final Collection<CloudPlayer> onlinePlayers = CloudServer.getInstance().getOnlinePlayers().values();
             int totalPing = 0;
-            for (Player player : onlinePlayers) {
+            for (CloudPlayer player : onlinePlayers) {
                 totalPing += player.getPing();
             }
 
