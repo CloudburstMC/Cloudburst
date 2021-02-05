@@ -7,8 +7,8 @@ import com.nukkitx.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackClientResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackDataInfoPacket;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.pack.Pack;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.pack.Pack;
 import org.cloudburstmc.server.player.PlayerLoginData;
 
 /**

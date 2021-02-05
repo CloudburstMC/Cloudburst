@@ -2,6 +2,7 @@ package org.cloudburstmc.server.pack.loader;
 
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.pack.loader.PackLoader;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.io.IOException;
