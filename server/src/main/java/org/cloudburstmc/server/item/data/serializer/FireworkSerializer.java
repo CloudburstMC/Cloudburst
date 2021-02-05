@@ -7,15 +7,15 @@ import com.nukkitx.nbt.NbtType;
 import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.data.Firework;
-import org.cloudburstmc.server.item.data.Firework.FireworkExplosion;
-import org.cloudburstmc.server.item.data.Firework.FireworkExplosion.ExplosionType;
+import org.cloudburstmc.api.util.data.FireworkData;
+import org.cloudburstmc.api.util.data.FireworkData.FireworkExplosion;
+import org.cloudburstmc.api.util.data.FireworkData.FireworkExplosion.ExplosionType;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FireworkSerializer implements ItemDataSerializer<Firework> {
+public class FireworkSerializer implements ItemDataSerializer<FireworkData> {
 
     private static final String TAG_FLIGHT = "Flight";
     private static final String TAG_EXPLOSIONS = "Explosions";
@@ -28,7 +28,7 @@ public class FireworkSerializer implements ItemDataSerializer<Firework> {
     private static final String TAG_FLICKER = "FireworkFlicker";
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, Firework value) {
+    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, FireworkData value) {
         List<NbtMap> explosionTags = new ArrayList<>();
         for (FireworkExplosion explosion : value.getExplosions()) {
             byte[] clrs = new byte[explosion.getColors().size()];
@@ -57,7 +57,7 @@ public class FireworkSerializer implements ItemDataSerializer<Firework> {
     }
 
     @Override
-    public Firework deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
+    public FireworkData deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
         val compound = dataTag.getCompound(TAG_FIREWORKS);
 
         if (compound != null) {
@@ -90,7 +90,7 @@ public class FireworkSerializer implements ItemDataSerializer<Firework> {
                 ));
             }
 
-            return Firework.of(ImmutableList.copyOf(explosions), flight);
+            return FireworkData.of(ImmutableList.copyOf(explosions), flight);
         }
         ;
         return null;
