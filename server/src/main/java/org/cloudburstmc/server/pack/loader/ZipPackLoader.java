@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.pack.loader;
 
 import lombok.ToString;
+import org.cloudburstmc.api.pack.loader.PackLoader;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
