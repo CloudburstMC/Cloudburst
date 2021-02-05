@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.player;
 
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.level.Level;
 
 import java.util.OptionalLong;
 import java.util.UUID;
@@ -107,4 +108,6 @@ public interface Player {
     void setMovementSpeed(float speed);
 
     float getMovementSpeed();
+
+    Level getLevel();
 }

@@ -275,4 +275,6 @@ public class BlockStates {
     public static final BlockState WOODEN_STAIRS = BlockTypes.WOODEN_STAIRS.getDefaultState();
     public static final BlockState WOODEN_TRAPDOOR = BlockTypes.WOODEN_TRAPDOOR.getDefaultState();
     public static final BlockState WOOL = BlockTypes.WOOL.getDefaultState();
+
+    public static final BlockState[] EMPTY = new BlockState[]{AIR, AIR};
 }

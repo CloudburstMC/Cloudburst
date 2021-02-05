@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.player;
 
 import org.cloudburstmc.api.event.Event;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
 
 /**
  * author: MagicDroidX

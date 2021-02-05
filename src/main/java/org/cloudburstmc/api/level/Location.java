@@ -82,7 +82,7 @@ public final class Location {
     }
 
     public BlockState getBlock() {
-        return level.getBlockAt(this.position.toInt());
+        return level.getBlockState(this.position.toInt());
     }
 
     public Location add(double x, double y, double z) {
