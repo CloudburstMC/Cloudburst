@@ -1,5 +1,6 @@
 package org.cloudburstmc.api;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.cloudburstmc.api.event.EventManager;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.permission.PermissionManager;
@@ -12,6 +13,7 @@ import java.util.Map;
 
 public interface Server {
 
+    JsonMapper JSON_MAPPER = new JsonMapper();
     String BROADCAST_CHANNEL_ADMINISTRATIVE = "cloudburst.broadcast.admin";
     String BROADCAST_CHANNEL_USERS = "cloudburst.broadcast.user";
 

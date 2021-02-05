@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.server;
 
-import org.cloudburstmc.server.pack.PackManager;
+import org.cloudburstmc.api.registry.ResourcePackRegistry;
 
 /**
  * Fired immediately after the registries are closed.
@@ -9,13 +9,13 @@ import org.cloudburstmc.server.pack.PackManager;
  */
 public class RegistriesClosedEvent extends ServerEvent {
 
-    private final PackManager packManager;
+    private final ResourcePackRegistry packManager;
 
-    public RegistriesClosedEvent(PackManager packManager) {
+    public RegistriesClosedEvent(ResourcePackRegistry packManager) {
         this.packManager = packManager;
     }
 
-    public PackManager getPackManager() {
+    public ResourcePackRegistry getPackManager() {
         return this.packManager;
     }
 }
