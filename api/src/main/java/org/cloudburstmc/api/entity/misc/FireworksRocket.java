@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.entity.misc;
 
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.server.item.data.Firework;
+import org.cloudburstmc.api.util.data.FireworkData;
 
 public interface FireworksRocket extends Entity {
 
@@ -13,7 +13,7 @@ public interface FireworksRocket extends Entity {
 
     void setLifetime(int lifetime);
 
-    Firework getFireworkData();
+    FireworkData getFireworkData();
 
-    void setFireworkData(Firework tag);
+    void setFireworkData(FireworkData tag);
 }
