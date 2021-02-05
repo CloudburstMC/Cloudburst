@@ -19,6 +19,7 @@ import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.Human;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -48,7 +49,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class Human extends EntityCreature implements InventoryHolder {
+public class EntityHuman extends EntityCreature implements InventoryHolder, Human {
 
     protected UUID identity;
     private final PlayerInventory inventory = new PlayerInventory(this);
@@ -56,7 +57,7 @@ public class Human extends EntityCreature implements InventoryHolder {
 
     protected SerializedSkin skin;
 
-    public Human(EntityType<Human> type, Location location) {
+    public EntityHuman(EntityType<EntityHuman> type, Location location) {
         super(type, location);
     }
 

@@ -1,5 +1,9 @@
 package org.cloudburstmc.server.permission;
 
+import org.cloudburstmc.api.permission.Permissible;
+import org.cloudburstmc.api.permission.Permission;
+import org.cloudburstmc.api.permission.PermissionManager;
+
 import javax.annotation.Nonnull;
 import javax.inject.Singleton;
 import java.util.*;

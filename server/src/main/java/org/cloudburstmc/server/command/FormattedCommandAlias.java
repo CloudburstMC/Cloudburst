@@ -2,6 +2,7 @@ package org.cloudburstmc.server.command;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
+import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.locale.TranslationContainer;

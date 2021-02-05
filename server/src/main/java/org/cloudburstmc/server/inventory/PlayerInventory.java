@@ -10,7 +10,7 @@ import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.api.event.player.PlayerItemHeldEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.Human;
+import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -33,7 +33,7 @@ public class PlayerInventory extends BaseInventory {
     protected int itemInHandIndex = 0;
     private int offHandIndex = 40;
 
-    public PlayerInventory(Human player) {
+    public PlayerInventory(EntityHuman player) {
         super(player, InventoryType.PLAYER);
     }
 
@@ -177,7 +177,7 @@ public class PlayerInventory extends BaseInventory {
 
     @Override
     public void onSlotChange(int index, ItemStack before, boolean send) {
-        Human holder = this.getHolder();
+        EntityHuman holder = this.getHolder();
         if (holder instanceof CloudPlayer && !((CloudPlayer) holder).spawned) {
             return;
         }
@@ -581,8 +581,8 @@ public class PlayerInventory extends BaseInventory {
     }
 
     @Override
-    public Human getHolder() {
-        return (Human) super.getHolder();
+    public EntityHuman getHolder() {
+        return (EntityHuman) super.getHolder();
     }
 
     @Override

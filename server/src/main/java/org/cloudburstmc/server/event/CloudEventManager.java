@@ -8,9 +8,9 @@ import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.EventFireHandler;
 import org.cloudburstmc.api.event.EventManager;
 import org.cloudburstmc.api.event.Listener;
-import org.cloudburstmc.api.event.firehandler.ReflectionEventFireHandler;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.plugin.PluginManager;
+import org.cloudburstmc.server.event.firehandler.ReflectionEventFireHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;

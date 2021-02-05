@@ -26,6 +26,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Rideable;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
+import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
@@ -35,6 +36,7 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
@@ -58,7 +60,6 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -599,13 +600,13 @@ public abstract class BaseEntity implements Entity {
         }
     }
 
-    public void spawnTo(CloudPlayer player) {
-        if (!player.isChunkInView(this.chunk.getX(), this.chunk.getZ()) || !this.hasSpawned.add(player)) {
+    public void spawnTo(Player player) {
+        if (!((CloudPlayer) player).isChunkInView(this.chunk.getX(), this.chunk.getZ()) || !this.hasSpawned.add(player)) {
             // out of range or already spawned
             return;
         }
 
-        player.sendPacket(createAddEntityPacket());
+        ((CloudPlayer) player).sendPacket(createAddEntityPacket());
 
         if (this.vehicle != null) {
             this.vehicle.spawnTo(player);
@@ -614,7 +615,7 @@ public abstract class BaseEntity implements Entity {
             packet.setEntityLink(new EntityLinkData(this.vehicle.getUniqueId(),
                     this.getUniqueId(), EntityLinkData.Type.RIDER, true, false));
 
-            player.sendPacket(packet);
+            ((CloudPlayer) player).sendPacket(packet);
         }
     }
 
@@ -699,11 +700,11 @@ public abstract class BaseEntity implements Entity {
         player.sendPacket(packet);
     }
 
-    public void despawnFrom(CloudPlayer player) {
+    public void despawnFrom(Player player) {
         if (this.hasSpawned.remove(player)) {
             RemoveEntityPacket packet = new RemoveEntityPacket();
             packet.setUniqueEntityId(this.getUniqueId());
-            player.sendPacket(packet);
+            ((CloudPlayer) player).sendPacket(packet);
         }
     }
 
@@ -1097,7 +1098,7 @@ public abstract class BaseEntity implements Entity {
         }
 
         // Entity entering a vehicle
-        EntityVehicleEnterEvent ev = new EntityVehicleEnterEvent(vehicle, this);
+        EntityVehicleEnterEvent ev = new EntityVehicleEnterEvent(this, (Vehicle) vehicle);
         ((CloudServer)server).getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return false;
@@ -1336,7 +1337,7 @@ public abstract class BaseEntity implements Entity {
         //todo
     }
 
-    public void onCollideWithPlayer(Human entityPlayer) {
+    public void onCollideWithPlayer(EntityHuman entityPlayer) {
 
     }
 
@@ -1378,11 +1379,11 @@ public abstract class BaseEntity implements Entity {
         }
     }
 
-    public boolean onInteract(CloudPlayer player, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         return onInteract(player, item);
     }
 
-    public boolean onInteract(CloudPlayer player, ItemStack item) {
+    public boolean onInteract(Player player, ItemStack item) {
         return false;
     }
 

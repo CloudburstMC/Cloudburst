@@ -2,8 +2,8 @@ package org.cloudburstmc.server.entity.passive;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.api.entity.EntityOwnable;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.Ownable;
 import org.cloudburstmc.api.level.Location;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.OWNER_EID;
@@ -14,7 +14,7 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.TAMED;
  * Author: BeYkeRYkt
  * Nukkit Project
  */
-public abstract class EntityTameable extends Animal implements EntityOwnable {
+public abstract class EntityTameable extends Animal implements Ownable {
 
 
     public EntityTameable(EntityType<?> type, Location location) {

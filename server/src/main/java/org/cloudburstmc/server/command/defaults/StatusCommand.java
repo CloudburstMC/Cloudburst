@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.command.defaults;
 
+import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.NukkitMath;
