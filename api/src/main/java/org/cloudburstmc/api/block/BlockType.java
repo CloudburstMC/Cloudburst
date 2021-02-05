@@ -7,6 +7,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.TierType;
 import org.cloudburstmc.api.item.ToolType;
+import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Identifier;
 
 import javax.annotation.Nullable;
@@ -227,5 +228,27 @@ public final class BlockType implements ItemType {
     @Override
     public TierType getTierType() {
         return null;
+    }
+
+    public AxisAlignedBB getBoundingBox() {
+        return  null;
+        //TODO
+    }
+
+    // Move these to BlockBehavior instead?
+    public boolean isPowerSource() {
+        return false;
+    }
+
+    public boolean canBeSilkTouched() {
+        return true;
+    }
+
+    public boolean waterlogsSource() {
+        return false;
+    }
+
+    public boolean breaksFlowing() {
+        return false;
     }
 }

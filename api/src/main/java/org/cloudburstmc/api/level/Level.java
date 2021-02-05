@@ -3,6 +3,7 @@ package org.cloudburstmc.api.level;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.gamerule.GameRule;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
@@ -28,7 +29,7 @@ public interface Level {
 
     boolean unload(boolean force);
 
-    Set<Player> getChunkPlayer(int chunkX, int chunkZ);
+    Set<Player> getChunkPlayers(int chunkX, int chunkZ);
 
     Set<GameRule<?>> getGameRules();
 
@@ -172,4 +173,5 @@ public interface Level {
 
     void sendWeather(Player... players);
 
+    Chunk getChunk(int chunkX, int chunkZ);
 }

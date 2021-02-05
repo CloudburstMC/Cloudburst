@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.block;
 
 import com.google.common.collect.ImmutableMap;
+import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;

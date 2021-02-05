@@ -93,4 +93,18 @@ public interface Player {
      * @return true if this player has played before
      */
     boolean hasPlayedBefore();
+
+    boolean isInsideOfWater();
+
+    boolean isOnGround();
+
+    //Inventory getInventory();
+
+    void setOp(boolean value);
+
+    boolean isOp();
+
+    void setMovementSpeed(float speed);
+
+    float getMovementSpeed();
 }

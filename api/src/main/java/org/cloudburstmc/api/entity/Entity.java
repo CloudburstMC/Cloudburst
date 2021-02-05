@@ -1,39 +1,36 @@
 package org.cloudburstmc.api.entity;
 
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
-import org.cloudburstmc.api.entity.data.SyncedEntityData;
+import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.entity.passive.Bat;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
+import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.potion.Effect;
+import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.util.AxisAlignedBB;
-import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.event.entity.EntityRegainHealthEvent;
-import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.metadata.Metadatable;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.MountType;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-public interface Entity extends Metadatable {
+public interface Entity {
 
     EntityType<?> getType();
 
     Level getLevel();
 
-    CloudServer getServer();
+    Server getServer();
 
     long getUniqueId();
 
@@ -46,10 +43,6 @@ public interface Entity extends Metadatable {
     float getWidth();
 
     float getLength();
-
-    void loadAdditionalData(NbtMap tag);
-
-    void saveAdditionalData(NbtMapBuilder tag);
 
     boolean canCollide();
 
@@ -66,6 +59,8 @@ public interface Entity extends Metadatable {
     void setNameTag(String name);
 
     boolean isNameTagVisible();
+
+    void setNameTagVisible(boolean visible);
 
     float getScale();
 
@@ -86,7 +81,7 @@ public interface Entity extends Metadatable {
     Entity getVehicle();
 
     default boolean mount(Entity entity) {
-        return this.mount(entity, EntityLinkData.Type.RIDER);
+        return this.mount(entity, MountType.RIDER);
     }
 
     /**
@@ -96,7 +91,7 @@ public interface Entity extends Metadatable {
      * @param mode    mode
      * @return whether or not the mount was successful
      */
-    boolean mount(Entity vehicle, EntityLinkData.Type mode);
+    boolean mount(Entity vehicle, MountType mode);
 
     boolean dismount(Entity vehicle);
 
@@ -104,11 +99,14 @@ public interface Entity extends Metadatable {
 
     void onDismount(Entity passenger);
 
-    Short2ObjectMap<Effect> getEffects();
+    Map<EffectType, Effect> getEffects();
 
     void removeAllEffects();
 
+    @Deprecated
     Effect getEffect(int effectId);
+
+    Effect getEffect(EffectType type);
 
     void removeEffect(int effectId);
 
@@ -262,9 +260,7 @@ public interface Entity extends Metadatable {
 
     void setOwner(@Nullable Entity entity);
 
-    SyncedEntityData getData();
-
-    NbtMap getTag();
+    //SyncedEntityData getData();
 
     boolean isClosed();
 

@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 public interface BlockEntityFactory<T extends BlockEntity> {
