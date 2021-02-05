@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.event.entity;
 
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.entity.EntityLiving;
 
 /**
  * author: Box
@@ -17,7 +17,7 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
 
     private double force;
 
-    public EntityShootBowEvent(EntityLiving shooter, ItemStack bow, Entity projectile, double force) {
+    public EntityShootBowEvent(Living shooter, ItemStack bow, Entity projectile, double force) {
         this.entity = shooter;
         this.bow = bow;
         this.projectile = projectile;
@@ -25,8 +25,8 @@ public class EntityShootBowEvent extends EntityEvent implements Cancellable {
     }
 
     @Override
-    public EntityLiving getEntity() {
-        return (EntityLiving) this.entity;
+    public Living getEntity() {
+        return (Living) this.entity;
     }
 
 

@@ -2,8 +2,8 @@ package org.cloudburstmc.api.event.potion;
 
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.potion.Potion;
+import org.cloudburstmc.api.potion.Effect;
+import org.cloudburstmc.api.potion.Potion;
 
 /**
  * Created by Snake1999 on 2016/1/12.
@@ -11,11 +11,11 @@ import org.cloudburstmc.server.potion.Potion;
  */
 public class PotionApplyEvent extends PotionEvent implements Cancellable {
 
-    private CloudEffect applyEffect;
+    private Effect applyEffect;
 
     private final Entity entity;
 
-    public PotionApplyEvent(Potion potion, CloudEffect applyEffect, Entity entity) {
+    public PotionApplyEvent(Potion potion, Effect applyEffect, Entity entity) {
         super(potion);
         this.applyEffect = applyEffect;
         this.entity = entity;
@@ -25,11 +25,11 @@ public class PotionApplyEvent extends PotionEvent implements Cancellable {
         return entity;
     }
 
-    public CloudEffect getApplyEffect() {
+    public Effect getApplyEffect() {
         return applyEffect;
     }
 
-    public void setApplyEffect(CloudEffect applyEffect) {
+    public void setApplyEffect(Effect applyEffect) {
         this.applyEffect = applyEffect;
     }
 }

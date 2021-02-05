@@ -2,7 +2,7 @@ package org.cloudburstmc.api.event.weather;
 
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.level.Level;
 
 /**
  * author: funcraft

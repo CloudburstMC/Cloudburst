@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.entity;
 
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.server.potion.CloudEffect;
+import org.cloudburstmc.api.potion.EffectTypes;
 
 import java.util.Map;
 
@@ -38,12 +38,12 @@ public class EntityDamageByEntityEvent extends EntityDamageEvent {
     }
 
     protected void addAttackerModifiers(Entity damager) {
-        if (damager.hasEffect(CloudEffect.STRENGTH)) {
-            this.setDamage((float) (this.getDamage(DamageModifier.BASE) * 0.3 * (damager.getEffect(CloudEffect.STRENGTH).getAmplifier() + 1)), DamageModifier.STRENGTH);
+        if (damager.hasEffect(EffectTypes.STRENGTH)) {
+            this.setDamage((float) (this.getDamage(DamageModifier.BASE) * 0.3 * (damager.getEffect(EffectTypes.STRENGTH).getAmplifier() + 1)), DamageModifier.STRENGTH);
         }
 
-        if (damager.hasEffect(CloudEffect.WEAKNESS)) {
-            this.setDamage(-(float) (this.getDamage(DamageModifier.BASE) * 0.2 * (damager.getEffect(CloudEffect.WEAKNESS).getAmplifier() + 1)), DamageModifier.WEAKNESS);
+        if (damager.hasEffect(EffectTypes.WEAKNESS)) {
+            this.setDamage(-(float) (this.getDamage(DamageModifier.BASE) * 0.2 * (damager.getEffect(EffectTypes.WEAKNESS).getAmplifier() + 1)), DamageModifier.WEAKNESS);
         }
     }
 

@@ -3,8 +3,8 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.server.player.Player;
 
 /**
  * Created by CreeperFace on 1. 1. 2017.

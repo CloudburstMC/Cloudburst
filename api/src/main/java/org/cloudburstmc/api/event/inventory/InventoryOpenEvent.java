@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.event.inventory;
 
 import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.inventory.Inventory;
-import org.cloudburstmc.server.player.Player;
 
 /**
  * author: Box

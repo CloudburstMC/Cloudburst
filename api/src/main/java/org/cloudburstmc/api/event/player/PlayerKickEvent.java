@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.event.player;
 
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.locale.TextContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.locale.TextContainer;
+import org.cloudburstmc.api.player.Player;
 
 public class PlayerKickEvent extends PlayerEvent implements Cancellable {
 

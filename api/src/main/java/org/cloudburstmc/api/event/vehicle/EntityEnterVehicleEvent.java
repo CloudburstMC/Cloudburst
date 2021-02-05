@@ -1,24 +1,25 @@
 package org.cloudburstmc.api.event.vehicle;
 
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
 
 public class EntityEnterVehicleEvent extends VehicleEvent implements Cancellable {
 
-    private final Entity riding;
+    private final Entity rider;
 
-    public EntityEnterVehicleEvent(Entity riding, Entity vehicle) {
+    public EntityEnterVehicleEvent(Entity rider, Vehicle vehicle) {
         super(vehicle);
-        this.riding = riding;
+        this.rider = rider;
     }
 
     public Entity getEntity() {
-        return riding;
+        return rider;
     }
 
     public boolean isPlayer() {
-        return riding instanceof Player;
+        return rider instanceof Player;
     }
 
 }

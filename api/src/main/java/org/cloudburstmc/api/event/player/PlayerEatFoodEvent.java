@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.event.player;
 
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.item.food.Food;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.item.Food;
+import org.cloudburstmc.api.player.Player;
 
 /**
  * Created by Snake1999 on 2016/1/14.

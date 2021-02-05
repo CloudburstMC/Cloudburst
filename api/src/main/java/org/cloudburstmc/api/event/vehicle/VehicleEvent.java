@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.vehicle;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.Event;
 
 /**
@@ -10,13 +10,13 @@ import org.cloudburstmc.api.event.Event;
  */
 public abstract class VehicleEvent extends Event {
 
-    private final Entity vehicle;
+    private final Vehicle vehicle;
 
-    public VehicleEvent(Entity vehicle) {
+    public VehicleEvent(Vehicle vehicle) {
         this.vehicle = vehicle;
     }
 
-    public Entity getVehicle() {
+    public Vehicle getVehicle() {
         return vehicle;
     }
 }

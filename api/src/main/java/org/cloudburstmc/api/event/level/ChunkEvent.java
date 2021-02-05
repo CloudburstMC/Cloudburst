@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.level;
 
-import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 /**
  * author: MagicDroidX
@@ -8,14 +8,14 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
  */
 public abstract class ChunkEvent extends LevelEvent {
 
-    private final CloudChunk chunk;
+    private final Chunk chunk;
 
-    public ChunkEvent(CloudChunk chunk) {
+    public ChunkEvent(Chunk chunk) {
         super(chunk.getLevel());
         this.chunk = chunk;
     }
 
-    public CloudChunk getChunk() {
+    public Chunk getChunk() {
         return chunk;
     }
 }

@@ -103,16 +103,28 @@ public interface Entity {
 
     void removeAllEffects();
 
+    void addEffect(Effect effect);
+
     @Deprecated
     Effect getEffect(int effectId);
 
-    Effect getEffect(EffectType type);
+    default Effect getEffect(EffectType type) {
+        return getEffect(type.getNetworkId());
+    }
 
+    @Deprecated
     void removeEffect(int effectId);
 
+    default void removeEffect(EffectType type) {
+        removeEffect(type.getNetworkId());
+    }
+
+    @Deprecated
     boolean hasEffect(int effectId);
 
-    void addEffect(Effect effect);
+    default boolean hasEffect(EffectType type) {
+        return hasEffect(type.getNetworkId());
+    }
 
     String getName();
 
@@ -265,4 +277,5 @@ public interface Entity {
     boolean isClosed();
 
     void close();
+
 }

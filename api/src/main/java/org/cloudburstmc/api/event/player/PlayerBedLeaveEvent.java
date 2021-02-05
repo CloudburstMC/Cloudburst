@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.player;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
 
 public class PlayerBedLeaveEvent extends PlayerEvent {
 

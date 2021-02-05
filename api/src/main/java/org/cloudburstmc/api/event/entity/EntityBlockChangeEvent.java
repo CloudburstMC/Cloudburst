@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.event.entity;
 
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.block.BlockState;
 
 /**
  * Created on 15-10-26.

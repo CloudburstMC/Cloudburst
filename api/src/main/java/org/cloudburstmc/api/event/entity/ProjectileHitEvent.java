@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.event.entity;
 
+import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.util.MovingObjectPosition;
-import org.cloudburstmc.server.entity.projectile.EntityProjectile;
 
 /**
  * author: MagicDroidX
@@ -12,11 +12,11 @@ public class ProjectileHitEvent extends EntityEvent implements Cancellable {
 
     private MovingObjectPosition movingObjectPosition;
 
-    public ProjectileHitEvent(EntityProjectile entity) {
+    public ProjectileHitEvent(Projectile entity) {
         this(entity, null);
     }
 
-    public ProjectileHitEvent(EntityProjectile entity, MovingObjectPosition movingObjectPosition) {
+    public ProjectileHitEvent(Projectile entity, MovingObjectPosition movingObjectPosition) {
         this.entity = entity;
         this.movingObjectPosition = movingObjectPosition;
     }

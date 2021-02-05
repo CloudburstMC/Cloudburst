@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.entity;
 
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.level.Location;
 
 @FunctionalInterface
 public interface EntityFactory<T extends Entity> {

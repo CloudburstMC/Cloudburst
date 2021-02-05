@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.potion;
 
 import org.cloudburstmc.api.event.Event;
-import org.cloudburstmc.server.potion.Potion;
+import org.cloudburstmc.api.potion.Potion;
 
 /**
  * Created by Snake1999 on 2016/1/12.
