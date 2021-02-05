@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.event.player;
 
-import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.player.Player;
 
 /**

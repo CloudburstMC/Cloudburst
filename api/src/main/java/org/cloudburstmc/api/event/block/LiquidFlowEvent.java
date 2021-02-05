@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.event.block;
 
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.block.BlockState;
 
 public class LiquidFlowEvent extends BlockEvent implements Cancellable {
 

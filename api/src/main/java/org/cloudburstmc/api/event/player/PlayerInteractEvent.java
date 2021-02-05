@@ -1,13 +1,12 @@
 package org.cloudburstmc.api.event.player;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.CloudBlock;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.math.vector.Vector3f;
+
 
 /**
  * author: MagicDroidX
@@ -30,7 +29,7 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
     }
 
     public PlayerInteractEvent(Player player, ItemStack item, Vector3f touchVector, Direction face, Action action) {
-        this(player, item, face, action, new CloudBlock(player.getLevel(), Vector3i.ZERO, CloudBlock.EMPTY), touchVector);
+        this(player, item, face, action, null, touchVector);
     }
 
     private PlayerInteractEvent(Player player, ItemStack item, Direction face, Action action, Block block, Vector3f touchVector) {

@@ -1,11 +1,14 @@
 package org.cloudburstmc.api.level;
 
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.level.gamerule.GameRule;
+import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -13,8 +16,17 @@ import org.cloudburstmc.math.vector.Vector4i;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public interface Level {
+    int BLOCK_UPDATE_NORMAL = 1;
+    int BLOCK_UPDATE_RANDOM = 2;
+    int BLOCK_UPDATE_SCHEDULED = 3;
+    int BLOCK_UPDATE_WEAK = 4;
+    int BLOCK_UPDATE_TOUCH = 5;
+    int BLOCK_UPDATE_REDSTONE = 6;
+    int BLOCK_UPDATE_TICK = 7;
+
     void init();
 
     Server getServer();
@@ -31,7 +43,7 @@ public interface Level {
 
     Set<Player> getChunkPlayers(int chunkX, int chunkZ);
 
-    Set<GameRule<?>> getGameRules();
+    GameRuleMap getGameRules();
 
     void doTick(int currentTick);
 
@@ -51,39 +63,47 @@ public interface Level {
 
     int getFullLight(Vector3i pos);
 
-    default boolean setBlock(Vector3i pos, BlockState blockState) {
-        return this.setBlock(pos, blockState, false);
+    default boolean setBlockAt(Vector3i pos, BlockState blockState) {
+        return this.setBlockAt(pos, blockState, false);
     }
 
-    default boolean setBlock(Vector3i pos, int layer, BlockState blockState) {
-        return this.setBlock(pos.getX(), pos.getY(), pos.getZ(), layer, blockState, false, true);
+    default boolean setBlockAt(Vector3i pos, int layer, BlockState blockState) {
+        return this.setBlockAt(pos.getX(), pos.getY(), pos.getZ(), layer, blockState, false, true);
     }
 
-    default boolean setBlock(Vector3i pos, BlockState blockState, boolean direct) {
-        return this.setBlock(pos, blockState, direct, true);
+    default boolean setBlockAt(Vector3i pos, BlockState blockState, boolean direct) {
+        return this.setBlockAt(pos, blockState, direct, true);
     }
 
-    default boolean setBlock(Vector3i pos, int layer, BlockState blockState, boolean direct, boolean update) {
-        return setBlock(pos.getX(), pos.getY(), pos.getZ(), layer, blockState, direct, update);
+    default boolean setBlockAt(Vector3i pos, int layer, BlockState blockState, boolean direct, boolean update) {
+        return setBlockAt(pos.getX(), pos.getY(), pos.getZ(), layer, blockState, direct, update);
     }
 
-    default boolean setBlock(Vector3i pos, BlockState blockState, boolean direct, boolean update) {
-        return setBlock(pos.getX(), pos.getY(), pos.getZ(), 0, blockState, direct, update);
+    default boolean setBlockAt(Vector3i pos, BlockState blockState, boolean direct, boolean update) {
+        return setBlockAt(pos.getX(), pos.getY(), pos.getZ(), 0, blockState, direct, update);
     }
 
-    default boolean setBlock(Vector4i pos, BlockState blockState) {
-        return this.setBlock(pos, blockState, false);
+    default boolean setBlockAt(Vector4i pos, BlockState blockState) {
+        return this.setBlockAt(pos, blockState, false);
     }
 
-    default boolean setBlock(Vector4i pos, BlockState blockState, boolean direct) {
-        return this.setBlock(pos, blockState, direct, true);
+    default boolean setBlockAt(Vector4i pos, BlockState blockState, boolean direct) {
+        return this.setBlockAt(pos, blockState, direct, true);
     }
 
-    default boolean setBlock(Vector4i pos, BlockState blockState, boolean direct, boolean update) {
-        return setBlock(pos.getX(), pos.getY(), pos.getZ(), pos.getW(), blockState, direct, update);
+    default boolean setBlockAt(Vector4i pos, BlockState blockState, boolean direct, boolean update) {
+        return setBlockAt(pos.getX(), pos.getY(), pos.getZ(), pos.getW(), blockState, direct, update);
     }
 
-    boolean setBlock(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update);
+    default boolean setBlockAt(int x, int y, int z, BlockState state) {
+        return setBlockAt(x,y,z,0,state,false,true);
+    }
+
+    default boolean setBlockAt(int x, int y, int z, int layer, BlockState state) {
+        return setBlockAt(x,y,z,layer,state,false,true);
+    }
+
+    boolean setBlockAt(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update);
 
     default ItemStack useBreakOn(Vector3i pos) {
         return this.useBreakOn(pos, null);
@@ -115,19 +135,23 @@ public interface Level {
 
     Map<Long, Player> getPlayers();
 
-    default BlockState getBlockAt(Vector4i pos) {
-        return getBlockAt(pos.getX(), pos.getY(), pos.getZ(), pos.getW());
+    default BlockState getBlockState(Vector4i pos) {
+        return getBlockState(pos.getX(), pos.getY(), pos.getZ(), pos.getW());
     }
 
-    default BlockState getBlockAt(Vector3i pos) {
-        return getBlockAt(pos, 0);
+    default BlockState getBlockState(Vector3i pos) {
+        return getBlockState(pos, 0);
     }
 
-    default BlockState getBlockAt(Vector3i pos, int layer) {
-        return getBlockAt(pos.getX(), pos.getY(), pos.getZ(), layer);
+    default BlockState getBlockState(Vector3i pos, int layer) {
+        return getBlockState(pos.getX(), pos.getY(), pos.getZ(), layer);
+    }
+    
+    default BlockState getBlockState(int x, int y, int z) {
+        return getBlockState(x, y, z, 0);
     }
 
-    BlockState getBlockAt(int x, int y, int z, int layer);
+    BlockState getBlockState(int x, int y, int z, int layer);
 
     int getBiomeId(int x, int z);
 
@@ -174,4 +198,41 @@ public interface Level {
     void sendWeather(Player... players);
 
     Chunk getChunk(int chunkX, int chunkZ);
+
+    Chunk getLoadedChunk(Vector3f position);
+
+    CompletableFuture<Chunk> getChunkFuture(int chunkX, int chunkZ);
+
+    void addEntity(Entity entity);
+
+    default AxisAlignedBB[] getCollisionCubes(Entity entity, AxisAlignedBB boundingBox) {
+        return getCollisionCubes(entity, boundingBox, true, false);
+    }
+    default AxisAlignedBB[] getCollisionCubes(Entity entity, AxisAlignedBB boundingBox, boolean entities) {
+        return getCollisionCubes(entity,boundingBox,entities,false);
+    }
+
+    AxisAlignedBB[] getCollisionCubes(Entity entity, AxisAlignedBB boundingBox, boolean entities, boolean solidEntites);
+
+    void addEntityMovement(Entity entity, double x, double y, double z, double yaw, double pitch, double headYaw);
+
+    void scheduleEntityUpdate(Entity entity);
+
+    default Block getBlock(Vector3i pos) {
+        return getBlock(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    Block getBlock(int x, int y, int z);
+
+    void removeEntity(Entity entity);
+
+    Block getLoadedBlock(int x, int y, int z);
+
+    Block[] getCollisionBlocks(AxisAlignedBB bb);
+
+    int getTickRate();
+
+    boolean hasCollision(Entity entity, AxisAlignedBB bb, boolean entities);
+
+    Entity getEntity(long runtimeId);
 }
