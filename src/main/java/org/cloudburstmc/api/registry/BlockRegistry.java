@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.registry;
 
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.behavior.BlockBehavior;
 
 public abstract class BlockRegistry {
 

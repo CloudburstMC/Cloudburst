@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.event.entity;
 
 import com.google.common.collect.ImmutableMap;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.event.EventException;
 

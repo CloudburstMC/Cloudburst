@@ -12,7 +12,7 @@ public class EnchantmentTypes {
     public static final EnchantmentType EXPLOSION_PROTECTION = EnchantmentType.builder().id((short) 3).type(Identifiers.EXPLOSION_PROTECTION).maxLevel(5).weight(2).target(EnchantmentTarget.ARMOR).build();
     public static final EnchantmentType PROJECTILE_PROTECTION = EnchantmentType.builder().id((short) 4).type(Identifiers.PROJECTILE_PROTECTION).maxLevel(5).weight(10).target(EnchantmentTarget.ARMOR).build();
     public static final EnchantmentType THORNS = EnchantmentType.builder().id((short) 5).type(Identifiers.THORNS).maxLevel(3).weight(10).target(EnchantmentTarget.ARMOR).build();
-    public static final EnchantmentType WATER_BREATHING = EnchantmentType.builder().id((short) 6).type(Identifiers.WATER_BREATHING).maxLevel(3).weight(10).target(EnchantmentTarget.ARMOR).build();
+    public static final EnchantmentType WATER_BREATHING = EnchantmentType.builder().id((short) 6).type(Identifiers.RESPIRATION).maxLevel(3).weight(10).target(EnchantmentTarget.ARMOR).build();
     public static final EnchantmentType WATER_WALKER = EnchantmentType.builder().id((short) 7).type(Identifiers.WATER_WALKER).maxLevel(3).weight(10).target(EnchantmentTarget.ARMOR).build();
     public static final EnchantmentType WATER_WORKER = EnchantmentType.builder().id((short) 8).type(Identifiers.WATER_WORKER).maxLevel(1).weight(2).target(EnchantmentTarget.ARMOR_HEAD).build();
     public static final EnchantmentType DAMAGE_SHARPNESS = EnchantmentType.builder().id((short) 9).type(Identifiers.DAMAGE_SHARPNESS).maxLevel(5).weight(10).target(EnchantmentTarget.ARMOR).build();
