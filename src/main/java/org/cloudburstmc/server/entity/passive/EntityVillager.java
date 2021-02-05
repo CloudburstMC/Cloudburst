@@ -6,8 +6,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.cloudburstmc.api.entity.EntityAgeable;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Villager;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.EntityCreature;
-import org.cloudburstmc.server.level.Location;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.BABY;
 

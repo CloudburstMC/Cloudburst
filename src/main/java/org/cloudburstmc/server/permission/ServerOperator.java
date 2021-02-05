@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.permission;
 
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * Represents an object that may become a server operator, such as a
- * {@link Player}.
+ * {@link CloudPlayer}.
  */
 public interface ServerOperator {
 

@@ -5,7 +5,7 @@ import lombok.ToString;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockSnapshot;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;
 
@@ -18,17 +18,17 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     public static BlockState[] EMPTY = new BlockState[]{AIR, AIR};
 
-    private final Level level;
+    private final CloudLevel level;
     private final Vector3i position;
 
-    public CloudBlock(Level level, Vector3i position, BlockState[] states) {
+    public CloudBlock(CloudLevel level, Vector3i position, BlockState[] states) {
         super(states);
         this.level = level;
         this.position = position;
     }
 
     @Override
-    public Level getLevel() {
+    public CloudLevel getLevel() {
         return level;
     }
 

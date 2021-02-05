@@ -18,6 +18,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityFactory;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -29,7 +30,6 @@ import org.cloudburstmc.server.entity.misc.*;
 import org.cloudburstmc.server.entity.passive.*;
 import org.cloudburstmc.server.entity.projectile.*;
 import org.cloudburstmc.server.entity.vehicle.*;
-import org.cloudburstmc.server.level.Location;
 
 import java.io.IOException;
 import java.io.InputStream;

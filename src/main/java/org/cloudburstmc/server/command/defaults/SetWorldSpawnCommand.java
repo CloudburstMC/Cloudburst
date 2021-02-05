@@ -7,9 +7,9 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * Created on 2015/12/13 by xtypr.
@@ -32,12 +32,12 @@ public class SetWorldSpawnCommand extends Command {
         if (!this.testPermission(sender)) {
             return true;
         }
-        Level level;
+        CloudLevel level;
         Vector3f pos;
         if (args.length == 0) {
-            if (sender instanceof Player) {
-                level = ((Player) sender).getLevel();
-                pos = ((Player) sender).getPosition();
+            if (sender instanceof CloudPlayer) {
+                level = ((CloudPlayer) sender).getLevel();
+                pos = ((CloudPlayer) sender).getPosition();
             } else {
                 sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
                 return true;

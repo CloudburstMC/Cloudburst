@@ -7,7 +7,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
 
 import static org.cloudburstmc.api.block.BlockTypes.DETECTOR_RAIL;
@@ -33,7 +33,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             updateState(block);
             return type;
         }

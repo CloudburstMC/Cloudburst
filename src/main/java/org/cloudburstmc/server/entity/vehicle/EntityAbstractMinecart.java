@@ -10,20 +10,20 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.vehicle.VehicleMoveEvent;
+import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.Human;
-import org.cloudburstmc.server.event.vehicle.VehicleMoveEvent;
-import org.cloudburstmc.server.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.MathHelper;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.Rail;
 import org.cloudburstmc.server.utils.data.MinecartType;
@@ -317,7 +317,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    public boolean onInteract(Player p, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(CloudPlayer p, ItemStack item, Vector3f clickedPos) {
         if (!passengers.isEmpty() && isRideable()) {
             return false;
         }

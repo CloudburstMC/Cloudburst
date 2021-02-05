@@ -12,7 +12,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.ShulkerBoxInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -67,7 +67,7 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
     @Override
     public void close() {
         if (!closed) {
-            for (Player player : new HashSet<>(this.getInventory().getViewers())) {
+            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
                 player.removeWindow(this.getInventory());
             }
             super.close();

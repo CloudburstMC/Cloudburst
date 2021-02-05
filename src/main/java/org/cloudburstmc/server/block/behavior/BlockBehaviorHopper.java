@@ -12,16 +12,16 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.inventory.ContainerInventory;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.TierTypes;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         Direction facing = face.getOpposite();
 
         if (facing == Direction.UP) {
@@ -38,7 +38,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Hopper) {
@@ -67,7 +67,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             val state = block.getState();
             boolean powered = block.getLevel().isBlockPowered(block.getPosition());
 

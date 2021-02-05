@@ -20,19 +20,19 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityDamageable;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Rideable;
+import org.cloudburstmc.api.event.entity.EntityDamageByChildEntityEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
-import org.cloudburstmc.server.event.entity.EntityDamageByChildEntityEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.entity.EntityDeathEvent;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.math.BlockRayTrace;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.potion.Effect;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.potion.CloudEffect;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -122,7 +122,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
                 }
 
                 //Critical hit
-                if (damager instanceof Player && !damager.isOnGround()) {
+                if (damager instanceof CloudPlayer && !damager.isOnGround()) {
                     AnimatePacket animate = new AnimatePacket();
                     animate.setAction(AnimatePacket.Action.CRITICAL_HIT);
                     animate.setRuntimeEntityId(this.getRuntimeId());
@@ -133,7 +133,7 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
                     source.setDamage(source.getDamage() * 1.5f);
                 }
 
-                if (damager.isOnFire() && !(damager instanceof Player)) {
+                if (damager.isOnFire() && !(damager instanceof CloudPlayer)) {
                     this.setOnFire(2 * this.server.getDifficulty().ordinal());
                 }
 
@@ -196,12 +196,12 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
     public boolean entityBaseTick(int tickDiff) {
         try (Timing ignored = Timings.livingEntityBaseTickTimer.startTiming()) {
             boolean isBreathing = !this.isInsideOfWater();
-            if (this instanceof Player && (((Player) this).isCreative() || ((Player) this).isSpectator())) {
+            if (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator())) {
                 isBreathing = true;
             }
 
-            if (this instanceof Player) {
-                if (!isBreathing && ((Player) this).getInventory().getHelmet().getType() == ItemTypes.TURTLE_HELMET) {
+            if (this instanceof CloudPlayer) {
+                if (!isBreathing && ((CloudPlayer) this).getInventory().getHelmet().getType() == ItemTypes.TURTLE_HELMET) {
                     if (turtleTicks > 0) {
                         isBreathing = true;
                         turtleTicks--;
@@ -224,12 +224,12 @@ public abstract class EntityLiving extends BaseEntity implements EntityDamageabl
 
                 val block = this.getLevel().getBlockAt(this.getPosition().toInt()).getType();
                 boolean ignore = block == BlockTypes.LADDER || block == BlockTypes.VINE || block == BlockTypes.WEB;
-                if (ignore || this.hasEffect(Effect.LEVITATION)) {
+                if (ignore || this.hasEffect(CloudEffect.LEVITATION)) {
                     this.resetFallDistance();
                 }
 
-                if (!this.hasEffect(Effect.WATER_BREATHING) && this.isInsideOfWater()) {
-                    if (this instanceof EntityWaterAnimal || (this instanceof Player && (((Player) this).isCreative() || ((Player) this).isSpectator()))) {
+                if (!this.hasEffect(CloudEffect.WATER_BREATHING) && this.isInsideOfWater()) {
+                    if (this instanceof EntityWaterAnimal || (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator()))) {
                         this.setAirTicks(400);
                     } else {
                         if (turtleTicks == 0 || turtleTicks == 200) {

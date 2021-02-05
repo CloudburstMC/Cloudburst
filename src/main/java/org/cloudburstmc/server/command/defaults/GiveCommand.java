@@ -13,7 +13,7 @@ import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
@@ -58,7 +58,7 @@ public class GiveCommand extends Command {
             return false;
         }
 
-        Player player = sender.getServer().getPlayer(args[0]);
+        CloudPlayer player = sender.getServer().getPlayer(args[0]);
         ItemStack item;
 
         try {

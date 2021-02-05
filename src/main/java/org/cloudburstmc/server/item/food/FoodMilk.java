@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item.food;
 
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.server.item.ItemTypes.BUCKET;
 
@@ -11,7 +11,7 @@ import static org.cloudburstmc.server.item.ItemTypes.BUCKET;
  */
 public class FoodMilk extends Food {
     @Override
-    protected boolean onEatenBy(Player player) {
+    protected boolean onEatenBy(CloudPlayer player) {
         super.onEatenBy(player);
         player.getInventory().addItem(ItemStack.get(BUCKET));
         player.removeAllEffects();

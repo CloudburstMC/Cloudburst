@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -19,7 +19,7 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
  */
 public class DummyBossBar {
 
-    private final Player player;
+    private final CloudPlayer player;
     private final long bossBarId;
 
     private String text;
@@ -35,14 +35,14 @@ public class DummyBossBar {
     }
 
     public static class Builder {
-        private final Player player;
+        private final CloudPlayer player;
         private final long bossBarId;
 
         private String text = "";
         private float length = 100;
         private BlockColor color = null;
 
-        public Builder(Player player) {
+        public Builder(CloudPlayer player) {
             this.player = player;
             this.bossBarId = 1095216660480L + ThreadLocalRandom.current().nextLong(0, 0x7fffffffL);
         }
@@ -71,7 +71,7 @@ public class DummyBossBar {
         }
     }
 
-    public Player getPlayer() {
+    public CloudPlayer getPlayer() {
         return player;
     }
 

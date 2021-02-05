@@ -1,14 +1,13 @@
 package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.IPlayer;
-import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.TextFormat;
 
 /**
@@ -38,7 +37,7 @@ public class DeopCommand extends Command {
         }
 
         String playerName = args[0];
-        IPlayer player = sender.getServer().getOfflinePlayer(playerName);
+        Player player = sender.getServer().getOfflinePlayer(playerName);
         player.setOp(false);
 
         if (player instanceof Player) {

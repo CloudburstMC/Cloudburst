@@ -4,16 +4,16 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -26,7 +26,7 @@ import static org.cloudburstmc.server.math.Direction.DOWN;
 public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         val state = block.getState();
 
         if (state.getType() != WATER && state.getType() != FLOWING_WATER) {
@@ -59,7 +59,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             val liquid = block.getExtra();
             Integer waterDamage = liquid.getTrait(FLUID_LEVEL);
 
@@ -80,7 +80,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 //                block.getLevel().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
 //            }
             return type;
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             if (ThreadLocalRandom.current().nextInt(100) <= 14) {
                 grow(block);
             }
@@ -127,7 +127,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bone Meal
             val level = block.getLevel();
             int x = block.getX();

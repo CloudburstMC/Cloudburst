@@ -6,10 +6,10 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.ChestMinecart;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.data.MinecartType;
 
 /**
@@ -58,7 +58,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
     }
 
     @Override
-    public boolean onInteract(Player p, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(CloudPlayer p, ItemStack item, Vector3f clickedPos) {
         return false;
     }
 }

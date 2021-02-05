@@ -32,8 +32,15 @@ import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
+import org.cloudburstmc.api.event.block.ItemFrameDropItemEvent;
+import org.cloudburstmc.api.event.block.LecternPageChangeEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.player.*;
+import org.cloudburstmc.api.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.CloudServer;
@@ -44,12 +51,6 @@ import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.entity.vehicle.EntityBoat;
-import org.cloudburstmc.server.event.block.ItemFrameDropItemEvent;
-import org.cloudburstmc.server.event.block.LecternPageChangeEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.inventory.InventoryCloseEvent;
-import org.cloudburstmc.server.event.player.*;
-import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
@@ -60,36 +61,35 @@ import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.item.data.MapItem;
-import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.InventoryTransactionUtils;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.GameMode;
-import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
-import static org.cloudburstmc.server.player.Player.CraftingType;
-import static org.cloudburstmc.server.player.Player.DEFAULT_SPEED;
+import static org.cloudburstmc.server.player.CloudPlayer.CraftingType;
+import static org.cloudburstmc.server.player.CloudPlayer.DEFAULT_SPEED;
 
 /**
  * @author Extollite
  */
 @Log4j2
 public class PlayerPacketHandler implements BedrockPacketHandler {
-    private final Player player;
+    private final CloudPlayer player;
 
     protected Vector3i lastRightClickPos = null;
     protected double lastRightClickTime = 0.0;
 
     private Vector3i lastBreakPosition = Vector3i.ZERO;
 
-    public PlayerPacketHandler(Player player) {
+    public PlayerPacketHandler(CloudPlayer player) {
         this.player = player;
     }
 
@@ -212,7 +212,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(EmotePacket packet) {
-        for (Player p : this.player.getViewers()) {
+        for (CloudPlayer p : this.player.getViewers()) {
             p.sendPacket(packet);
         }
         return true;
@@ -986,7 +986,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         Block target = player.getLevel().getBlock(blockVector);
                         Block blockState = target.getSide(face);
 
-                        player.getLevel().sendBlocks(new Player[]{player}, new Block[]{target, blockState}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                        player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{target, blockState}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
                         return true;
                     case InventoryTransactionUtils.USE_ITEM_ACTION_BREAK_BLOCK:
                         if (!player.spawned || !player.isAlive()) {
@@ -1015,7 +1015,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         target = player.getLevel().getBlock(blockVector);
                         BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockVector);
 
-                        player.getLevel().sendBlocks(new Player[]{player}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                        player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
                         player.getInventory().sendHeldItem(player);
 
@@ -1129,8 +1129,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                         if (!player.canInteract(target.getPosition(), player.isCreative() ? 8 : 5)) {
                             break;
-                        } else if (target instanceof Player) {
-                            if (((Player) target).getGamemode() != GameMode.SURVIVAL) {
+                        } else if (target instanceof CloudPlayer) {
+                            if (((CloudPlayer) target).getGamemode() != GameMode.SURVIVAL) {
                                 break;
                             } else if (!player.getServer().getConfig().isPVP()) {
                                 break;
@@ -1146,7 +1146,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                         EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(player, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage);
                         if (player.isSpectator()) entityDamageByEntityEvent.setCancelled();
-                        if ((target instanceof Player) && !player.getLevel().getGameRules().get(GameRules.PVP)) {
+                        if ((target instanceof CloudPlayer) && !player.getLevel().getGameRules().get(GameRules.PVP)) {
                             entityDamageByEntityEvent.setCancelled();
                         }
 

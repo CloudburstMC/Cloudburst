@@ -2,7 +2,7 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Cat;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.level.Location;
 
 public class EntityCat extends Animal implements Cat {
 

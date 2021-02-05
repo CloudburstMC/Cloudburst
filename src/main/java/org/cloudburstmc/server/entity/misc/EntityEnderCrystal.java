@@ -6,10 +6,10 @@ import org.cloudburstmc.api.entity.EntityExplosive;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.level.Location;
 
 /**
  * Created by PetteriM1

@@ -7,16 +7,16 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Event;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
+import org.cloudburstmc.api.event.entity.EntityInteractEvent;
+import org.cloudburstmc.api.event.player.PlayerInteractEvent;
+import org.cloudburstmc.api.event.player.PlayerInteractEvent.Action;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.event.entity.EntityInteractEvent;
-import org.cloudburstmc.server.event.player.PlayerInteractEvent;
-import org.cloudburstmc.server.event.player.PlayerInteractEvent.Action;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * Created by Snake1999 on 2016/1/11.
@@ -60,11 +60,11 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
                 block.getLevel().useBreakOn(block.getPosition());
             }
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             int power = this.getRedstonePower(block.getState());
 
             if (power > 0) {
@@ -76,7 +76,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
             return false;
         }
@@ -96,8 +96,8 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
         if (power == 0) {
             Event ev;
 
-            if (entity instanceof Player) {
-                ev = new PlayerInteractEvent((Player) entity, null, block, null, Action.PHYSICAL);
+            if (entity instanceof CloudPlayer) {
+                ev = new PlayerInteractEvent((CloudPlayer) entity, null, block, null, Action.PHYSICAL);
             } else {
                 ev = new EntityInteractEvent(entity, block);
             }

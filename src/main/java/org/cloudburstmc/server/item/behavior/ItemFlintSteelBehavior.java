@@ -6,14 +6,14 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.event.block.BlockIgniteEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
-import org.cloudburstmc.server.event.block.BlockIgniteEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -41,7 +41,7 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
     }
 
     @Override
-    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level) {
         val targetState = target.getState();
         if (block.getState() == BlockStates.AIR && targetState.getBehavior().isSolid(targetState) || targetState.getType() == BlockTypes.LEAVES) {
             PORTAL:

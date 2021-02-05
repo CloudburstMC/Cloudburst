@@ -7,10 +7,10 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DoublePlantType;
@@ -30,18 +30,18 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) {
                 // Top
                 if (!(block.down().getState().getType() == DOUBLE_PLANT)) {
                     removeBlock(block, true);
-                    return Level.BLOCK_UPDATE_NORMAL;
+                    return CloudLevel.BLOCK_UPDATE_NORMAL;
                 }
             } else {
                 // Bottom
                 if (block.down().getState().inCategory(BlockCategory.TRANSPARENT) || block.up().getState().getType() != DOUBLE_PLANT) {
                     block.getLevel().useBreakOn(block.getPosition());
-                    return Level.BLOCK_UPDATE_NORMAL;
+                    return CloudLevel.BLOCK_UPDATE_NORMAL;
                 }
             }
         }
@@ -49,7 +49,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         BlockState down = block.down().getState();
         Block up = block.up();
 
@@ -116,7 +116,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bone meal
             switch (block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE)) {
                 case SUNFLOWER:

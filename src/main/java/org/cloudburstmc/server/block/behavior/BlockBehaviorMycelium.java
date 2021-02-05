@@ -4,12 +4,12 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.event.block.BlockSpreadEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockSpreadEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DirtType;
 
@@ -30,7 +30,7 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_RANDOM) {
+        if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             //TODO: light levels
             Vector3i pos = block.getPosition();
             int x = ThreadLocalRandom.current().nextInt(pos.getX() - 1, pos.getX() + 1);

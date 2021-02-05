@@ -4,15 +4,15 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
+import org.cloudburstmc.api.event.block.DoorToggleEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.event.block.DoorToggleEvent;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
@@ -177,7 +177,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() == BlockTypes.AIR) {
                 Block up = block.up();
 
@@ -186,11 +186,11 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
                     block.getLevel().useBreakOn(block.getPosition());
                 }
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
 
-        if (type == Level.BLOCK_UPDATE_REDSTONE) {
+        if (type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
             boolean open = isOpen(block);
             if ((!open && block.getLevel().isBlockPowered(block.getPosition())) || (open && !block.getLevel().isBlockPowered(block.getPosition()))) {
                 block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
@@ -203,7 +203,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         if (block.getY() > 254) return false;
         if (face == Direction.UP) {
             Block blockUp = block.up();
@@ -261,7 +261,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (!this.toggle(block, player)) {
             return false;
         }
@@ -270,7 +270,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
         return true;
     }
 
-    public boolean toggle(Block block, Player player) {
+    public boolean toggle(Block block, CloudPlayer player) {
         DoorToggleEvent event = new DoorToggleEvent(block, player);
         block.getLevel().getServer().getEventManager().fire(event);
 

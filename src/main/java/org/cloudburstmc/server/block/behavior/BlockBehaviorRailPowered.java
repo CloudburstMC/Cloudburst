@@ -5,7 +5,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.utils.Rail;
 import org.cloudburstmc.server.utils.data.RailDirection;
 
@@ -24,8 +24,8 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
         //          Network below 86Kb/s. This will became unresponsive to clients 
         //          When updating the block state. Espicially on the world with many rails. 
         //          Trust me, I tested this on my server.
-        if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE || type == Level.BLOCK_UPDATE_SCHEDULED) {
-            if (super.onUpdate(block, type) == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE || type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
+            if (super.onUpdate(block, type) == CloudLevel.BLOCK_UPDATE_NORMAL) {
                 return 0; // Already broken
             }
             boolean wasPowered = isActive(block.getState());

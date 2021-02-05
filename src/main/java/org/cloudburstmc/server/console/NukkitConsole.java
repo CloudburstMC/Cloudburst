@@ -4,8 +4,8 @@ import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import lombok.RequiredArgsConstructor;
 import net.minecrell.terminalconsole.SimpleTerminalConsole;
+import org.cloudburstmc.api.event.server.ServerCommandEvent;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.event.server.ServerCommandEvent;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 

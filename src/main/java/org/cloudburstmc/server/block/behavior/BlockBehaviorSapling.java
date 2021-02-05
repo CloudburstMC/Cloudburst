@@ -11,12 +11,12 @@ import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -28,7 +28,7 @@ import static org.cloudburstmc.server.item.ItemTypes.DYE;
 public class BlockBehaviorSapling extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         val type = block.down().getState().getType();
         if (type == GRASS || type == DIRT || type == FARMLAND || type == PODZOL) {
             placeBlock(block, item);
@@ -43,7 +43,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
         return true;
     }
 
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (item.getType() == DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //BoneMeal
             if (player != null && player.getGamemode().isSurvival()) {
                 player.getInventory().decrementHandCount();
@@ -62,25 +62,25 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     }
 
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) { //Growth
+        } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) { //Growth
             if (ThreadLocalRandom.current().nextInt(1, 8) == 1) {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.HAS_AGE)) {
                     this.grow(block);
                 } else {
                     block.set(state.withTrait(BlockTraits.HAS_AGE, true));
-                    return Level.BLOCK_UPDATE_RANDOM;
+                    return CloudLevel.BLOCK_UPDATE_RANDOM;
                 }
             } else {
-                return Level.BLOCK_UPDATE_RANDOM;
+                return CloudLevel.BLOCK_UPDATE_RANDOM;
             }
         }
-        return Level.BLOCK_UPDATE_NORMAL;
+        return CloudLevel.BLOCK_UPDATE_NORMAL;
     }
 
     private void grow(Block block) {

@@ -3,15 +3,15 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockGrowEvent;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -27,7 +27,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         if (block.down().getState().getType() == FARMLAND) {
             placeBlock(block, item);
             return true;
@@ -36,7 +36,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         //Bone meal
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (block.getState().ensureTrait(BlockTraits.GROWTH) < 7) {
@@ -63,12 +63,12 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() != FARMLAND) {
                 removeBlock(block, true);
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             if (ThreadLocalRandom.current().nextInt(2) == 1) {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 0x07) {
@@ -78,11 +78,11 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), false, true);
                     } else {
-                        return Level.BLOCK_UPDATE_RANDOM;
+                        return CloudLevel.BLOCK_UPDATE_RANDOM;
                     }
                 }
             } else {
-                return Level.BLOCK_UPDATE_RANDOM;
+                return CloudLevel.BLOCK_UPDATE_RANDOM;
             }
         }
 

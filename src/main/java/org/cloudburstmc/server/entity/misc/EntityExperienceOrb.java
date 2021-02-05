@@ -8,9 +8,9 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.BaseEntity;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.EXPERIENCE_VALUE;
 
@@ -20,7 +20,7 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityData.EXPERIENCE_VAL
  */
 public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
 
-    public Player closestPlayer = null;
+    public CloudPlayer closestPlayer = null;
     private int age;
     private int pickupDelay;
 
@@ -118,8 +118,8 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
                 }
             } else {
                 for (Entity entity : this.level.getCollidingEntities(this.boundingBox, this)) {
-                    if (entity instanceof Player) {
-                        if (((Player) entity).pickupEntity(this, false)) {
+                    if (entity instanceof CloudPlayer) {
+                        if (((CloudPlayer) entity).pickupEntity(this, false)) {
                             return true;
                         }
                     }
@@ -133,7 +133,7 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
             }
 
             if (this.closestPlayer == null || this.closestPlayer.getPosition().distanceSquared(this.getPosition()) > 64.0D) {
-                for (Player p : level.getPlayers().values()) {
+                for (CloudPlayer p : level.getPlayers().values()) {
                     if (!p.isSpectator() && p.getPosition().distance(this.getPosition()) <= 8) {
                         this.closestPlayer = p;
                         break;

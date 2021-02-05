@@ -11,7 +11,7 @@ import org.cloudburstmc.server.form.CustomForm.CustomFormBuilder;
 import org.cloudburstmc.server.form.ModalForm.ModalFormBuilder;
 import org.cloudburstmc.server.form.SimpleForm.SimpleFormBuilder;
 import org.cloudburstmc.server.form.util.FormType;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.Nonnull;
 import java.util.LinkedList;
@@ -30,11 +30,11 @@ public abstract class Form<R> {
     private final String title;
 
     @JsonIgnore
-    private final List<BiConsumer<Player, R>> listeners;
+    private final List<BiConsumer<CloudPlayer, R>> listeners;
     @JsonIgnore
-    private final List<Consumer<Player>> closeListeners;
+    private final List<Consumer<CloudPlayer>> closeListeners;
     @JsonIgnore
-    private final List<Consumer<Player>> errorListeners;
+    private final List<Consumer<CloudPlayer>> errorListeners;
 
     /**
      * Use this method to build a new simple form
@@ -63,27 +63,27 @@ public abstract class Form<R> {
         return new CustomFormBuilder();
     }
 
-    public abstract void handleResponse(Player p, JsonNode node);
+    public abstract void handleResponse(CloudPlayer p, JsonNode node);
 
-    public void close(Player p) {
-        for (Consumer<Player> closeListener : closeListeners) {
+    public void close(CloudPlayer p) {
+        for (Consumer<CloudPlayer> closeListener : closeListeners) {
             closeListener.accept(p);
         }
     }
 
-    public void submit(Player p, R response) {
+    public void submit(CloudPlayer p, R response) {
         if (response == null) {
             close(p);
             return;
         }
 
-        for (BiConsumer<Player, R> listener : listeners) {
+        for (BiConsumer<CloudPlayer, R> listener : listeners) {
             listener.accept(p, response);
         }
     }
 
-    public void error(Player p) {
-        for (Consumer<Player> errorListener : errorListeners) {
+    public void error(CloudPlayer p) {
+        for (Consumer<CloudPlayer> errorListener : errorListeners) {
             errorListener.accept(p);
         }
     }
@@ -92,9 +92,9 @@ public abstract class Form<R> {
 
         protected String title = "";
 
-        protected final List<BiConsumer<Player, R>> listeners = new LinkedList<>();
-        protected final List<Consumer<Player>> closeListeners = new LinkedList<>();
-        protected final List<Consumer<Player>> errorListeners = new LinkedList<>();
+        protected final List<BiConsumer<CloudPlayer, R>> listeners = new LinkedList<>();
+        protected final List<Consumer<CloudPlayer>> closeListeners = new LinkedList<>();
+        protected final List<Consumer<CloudPlayer>> errorListeners = new LinkedList<>();
 
         /**
          * Set a title of the form
@@ -113,7 +113,7 @@ public abstract class Form<R> {
          * @param listener callback function
          * @return builder instance
          */
-        public T onSubmit(@Nonnull BiConsumer<Player, R> listener) {
+        public T onSubmit(@Nonnull BiConsumer<CloudPlayer, R> listener) {
             this.listeners.add(listener);
             return self();
         }
@@ -124,7 +124,7 @@ public abstract class Form<R> {
          * @param listener callback function
          * @return builder instance
          */
-        public T onClose(@Nonnull Consumer<Player> listener) {
+        public T onClose(@Nonnull Consumer<CloudPlayer> listener) {
             this.closeListeners.add(listener);
             return self();
         }
@@ -136,7 +136,7 @@ public abstract class Form<R> {
          * @param listener callback function
          * @return builder instance
          */
-        public T onError(@Nonnull Consumer<Player> listener) {
+        public T onError(@Nonnull Consumer<CloudPlayer> listener) {
             this.errorListeners.add(listener);
             return self();
         }

@@ -10,16 +10,16 @@ import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.event.block.BlockFromToEvent;
+import org.cloudburstmc.api.event.block.LiquidFlowEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.BlockType;
-import org.cloudburstmc.server.event.block.BlockFromToEvent;
-import org.cloudburstmc.server.event.block.LiquidFlowEvent;
 import org.cloudburstmc.server.item.ItemStacks;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.Direction;
@@ -151,7 +151,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(final Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             this.checkForHarden(block);
             // This check exists because if water is at layer1 with air at layer0, the water gets invisible
             if (usesWaterLogging() && block.getExtra() != BlockStates.AIR) {
@@ -171,7 +171,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
             block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
             return type;
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             int layer = block.getLiquidLayer();
             BlockState currentState = block.getState(layer);
 
@@ -278,7 +278,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         }
     }
 
-    private int calculateFlowCost(Level level, Vector3i blockPos, int accumulatedCost, int maxCost, Direction originOpposite, Direction lastOpposite) {
+    private int calculateFlowCost(CloudLevel level, Vector3i blockPos, int accumulatedCost, int maxCost, Direction originOpposite, Direction lastOpposite) {
         int cost = 1000;
 
         for (Direction direction : Plane.HORIZONTAL) {
@@ -375,7 +375,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     protected void checkForHarden(Block block) {
     }
 
-    protected void triggerLavaMixEffects(Level level, Vector3f pos) {
+    protected void triggerLavaMixEffects(CloudLevel level, Vector3f pos) {
         level.addSound(pos.add(0.5, 0.5, 0.5), Sound.RANDOM_FIZZ, 1, 2.6F + (ThreadLocalRandom.current().nextFloat() - ThreadLocalRandom.current().nextFloat()) * 0.8F);
 
         for (int i = 0; i < 8; ++i) {

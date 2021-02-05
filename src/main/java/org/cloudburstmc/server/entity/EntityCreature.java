@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.level.Location;
 
 /**
  * author: MagicDroidX

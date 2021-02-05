@@ -8,14 +8,14 @@ import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
+import org.cloudburstmc.api.event.entity.EntityBlockChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.BaseEntity;
-import org.cloudburstmc.server.event.entity.EntityBlockChangeEvent;
-import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.BlockRegistry;
 

@@ -8,7 +8,7 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Map;
 
@@ -36,7 +36,7 @@ public abstract class ContainerInventory extends BaseInventory {
     }
 
     @Override
-    public void onOpen(Player who) {
+    public void onOpen(CloudPlayer who) {
         super.onOpen(who);
         ContainerOpenPacket packet = new ContainerOpenPacket();
         packet.setId(who.getWindowId(this));
@@ -53,7 +53,7 @@ public abstract class ContainerInventory extends BaseInventory {
     }
 
     @Override
-    public void onClose(Player who) {
+    public void onClose(CloudPlayer who) {
         ContainerClosePacket packet = new ContainerClosePacket();
         packet.setId(who.getWindowId(this));
         who.sendPacket(packet);

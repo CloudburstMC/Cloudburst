@@ -6,9 +6,9 @@ import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 /**
@@ -53,7 +53,7 @@ public class TimeCommand extends Command {
 
                 return true;
             }
-            for (Level level : sender.getServer().getLevels()) {
+            for (CloudLevel level : sender.getServer().getLevels()) {
                 level.checkTime();
                 level.startTime();
                 level.checkTime();
@@ -66,7 +66,7 @@ public class TimeCommand extends Command {
 
                 return true;
             }
-            for (Level level : sender.getServer().getLevels()) {
+            for (CloudLevel level : sender.getServer().getLevels()) {
                 level.checkTime();
                 level.stopTime();
                 level.checkTime();
@@ -79,9 +79,9 @@ public class TimeCommand extends Command {
 
                 return true;
             }
-            Level level;
-            if (sender instanceof Player) {
-                level = ((Player) sender).getLevel();
+            CloudLevel level;
+            if (sender instanceof CloudPlayer) {
+                level = ((CloudPlayer) sender).getLevel();
             } else {
                 level = sender.getServer().getDefaultLevel();
             }
@@ -103,17 +103,17 @@ public class TimeCommand extends Command {
 
             int value;
             if ("day".equals(args[1])) {
-                value = Level.TIME_DAY;
+                value = CloudLevel.TIME_DAY;
             } else if ("night".equals(args[1])) {
-                value = Level.TIME_NIGHT;
+                value = CloudLevel.TIME_NIGHT;
             } else if ("midnight".equals(args[1])) {
-                value = Level.TIME_MIDNIGHT;
+                value = CloudLevel.TIME_MIDNIGHT;
             } else if ("noon".equals(args[1])) {
-                value = Level.TIME_NOON;
+                value = CloudLevel.TIME_NOON;
             } else if ("sunrise".equals(args[1])) {
-                value = Level.TIME_SUNRISE;
+                value = CloudLevel.TIME_SUNRISE;
             } else if ("sunset".equals(args[1])) {
-                value = Level.TIME_SUNSET;
+                value = CloudLevel.TIME_SUNSET;
             } else {
                 try {
                     value = Math.max(0, Integer.parseInt(args[1]));
@@ -122,7 +122,7 @@ public class TimeCommand extends Command {
                 }
             }
 
-            for (Level level : sender.getServer().getLevels()) {
+            for (CloudLevel level : sender.getServer().getLevels()) {
                 level.checkTime();
                 level.setTime(value);
                 level.checkTime();
@@ -142,7 +142,7 @@ public class TimeCommand extends Command {
                 return false;
             }
 
-            for (Level level : sender.getServer().getLevels()) {
+            for (CloudLevel level : sender.getServer().getLevels()) {
                 level.checkTime();
                 level.setTime(level.getTime() + value);
                 level.checkTime();

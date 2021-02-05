@@ -8,9 +8,9 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 public interface ItemBehavior {
     boolean canBeActivated();
@@ -71,11 +71,11 @@ public interface ItemBehavior {
 
     boolean isUnbreakable(ItemStack item);
 
-    ItemStack onUse(ItemStack item, int ticksUsed, Player player);
+    ItemStack onUse(ItemStack item, int ticksUsed, CloudPlayer player);
 
-    ItemStack onRelease(ItemStack item, int ticksUsed, Player player);
+    ItemStack onRelease(ItemStack item, int ticksUsed, CloudPlayer player);
 
-    ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level);
+    ItemStack onActivate(ItemStack itemStack, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level);
 
-    boolean onClickAir(ItemStack item, Vector3f directionVector, Player player);
+    boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player);
 }

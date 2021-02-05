@@ -60,8 +60,8 @@ public class LevelBuilder {
     }
 
     @Nonnull
-    public CompletableFuture<Level> load() {
-        Level loadedLevel = this.server.getLevel(id);
+    public CompletableFuture<CloudLevel> load() {
+        CloudLevel loadedLevel = this.server.getLevel(id);
         if (loadedLevel != null) {
             return CompletableFuture.completedFuture(loadedLevel);
         }
@@ -95,7 +95,7 @@ public class LevelBuilder {
 
         // Combine futures
         return providerFuture.thenApply(levelProvider -> {
-            Level level = new Level(this.server, id, levelProvider, levelData);
+            CloudLevel level = new CloudLevel(this.server, id, levelProvider, levelData);
             this.server.getLevelManager().register(level);
             level.init();
             level.setTickRate(this.server.getBaseTickRate());

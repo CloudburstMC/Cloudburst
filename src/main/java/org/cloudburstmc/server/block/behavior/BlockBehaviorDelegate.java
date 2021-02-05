@@ -1,22 +1,22 @@
 package org.cloudburstmc.server.block.behavior;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ToolType;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.AxisAlignedBB;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.item.ToolType;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class BlockBehaviorDelegate extends BlockBehavior {
+public class BlockBehaviorDelegate extends BaseBlockBehavior {
 
     private final BlockBehavior parent;
 
@@ -227,12 +227,6 @@ public class BlockBehaviorDelegate extends BlockBehavior {
     @Override
     public boolean canBeBrokenWith(BlockState state, ItemStack item) {
         return parent.canBeBrokenWith(state, item);
-    }
-
-    @Override
-    @Deprecated
-    public float getBreakTime(BlockState blockState, ItemStack item) {
-        return parent.getBreakTime(blockState, item);
     }
 
     @Override

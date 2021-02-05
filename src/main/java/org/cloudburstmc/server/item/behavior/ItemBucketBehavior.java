@@ -6,16 +6,16 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.event.player.PlayerBucketEmptyEvent;
+import org.cloudburstmc.api.event.player.PlayerBucketFillEvent;
+import org.cloudburstmc.api.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.*;
-import org.cloudburstmc.server.event.player.PlayerBucketEmptyEvent;
-import org.cloudburstmc.server.event.player.PlayerBucketFillEvent;
-import org.cloudburstmc.server.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
@@ -77,7 +77,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level) {
         if (player.isAdventure()) {
             return null;
         }
@@ -152,7 +152,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                 ev.setCancelled(true);
             }
 
-            if (player.getLevel().getDimension() == Level.DIMENSION_NETHER && itemStack.getMetadata(Bucket.class) != Bucket.LAVA) {
+            if (player.getLevel().getDimension() == CloudLevel.DIMENSION_NETHER && itemStack.getMetadata(Bucket.class) != Bucket.LAVA) {
                 ev.setCancelled(true);
             }
 
@@ -183,7 +183,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
 
                 return null;
             } else {
-                player.getLevel().sendBlocks(new Player[]{player},
+                player.getLevel().sendBlocks(new CloudPlayer[]{player},
                         new Block[]{new CloudBlock(block.getLevel(), block.getPosition(), CloudBlock.EMPTY)},
                         UpdateBlockPacket.FLAG_ALL_PRIORITY);
                 player.getInventory().sendContents(player);
@@ -194,12 +194,12 @@ public class ItemBucketBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
         return item.getMetadata(Bucket.class) == Bucket.MILK;
     }
 
     @Override
-    public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
+    public ItemStack onUse(ItemStack item, int ticksUsed, CloudPlayer player) {
         if (player.isSpectator()) {
             return null;
         }

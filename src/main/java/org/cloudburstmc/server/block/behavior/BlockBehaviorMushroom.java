@@ -10,12 +10,12 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
@@ -25,17 +25,17 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (!canStay(block)) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         if (canStay(block)) {
             placeBlock(block, item);
             return true;
@@ -49,7 +49,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (player != null && player.getGamemode().isSurvival()) {
                 player.getInventory().decrementHandCount();

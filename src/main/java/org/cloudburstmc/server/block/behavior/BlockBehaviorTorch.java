@@ -7,9 +7,9 @@ import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.api.block.BlockTypes.STONE_WALL;
@@ -19,7 +19,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             BlockState below = block.down().getState();
 
             val direction = block.getState().ensureTrait(BlockTraits.TORCH_DIRECTION);
@@ -27,7 +27,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
                     && !(direction == Direction.UP && (below.inCategory(BlockCategory.FENCE) || below.getType() == STONE_WALL))) {
                 block.getLevel().useBreakOn(block.getPosition());
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
 
@@ -35,7 +35,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
         BlockState below = block.down().getState();
 
         if (block.getState().inCategory(BlockCategory.LIQUID)) {
