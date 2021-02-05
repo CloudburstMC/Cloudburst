@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.util;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.nukkitx.math.vector.Vector3i;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -12,6 +11,7 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PorkUtil;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;

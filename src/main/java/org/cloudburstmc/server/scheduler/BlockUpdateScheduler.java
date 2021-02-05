@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.scheduler;
 
 import com.google.common.collect.Maps;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.math.vector.Vector4i;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector4i;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;

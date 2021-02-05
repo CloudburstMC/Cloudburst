@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.command.defaults;
 
-import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;

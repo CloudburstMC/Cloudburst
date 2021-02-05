@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.particle;
 
 import com.google.common.base.Strings;
-import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
@@ -15,6 +14,7 @@ import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.ArrayList;
@@ -148,8 +148,8 @@ public class FloatingTextParticle extends Particle {
             packet.setUniqueEntityId(this.entityId);
             packet.setRuntimeEntityId(this.entityId);
             packet.setPosition(this.getPosition());
-            packet.setMotion(com.nukkitx.math.vector.Vector3f.ZERO);
-            packet.setRotation(com.nukkitx.math.vector.Vector3f.ZERO);
+            packet.setMotion(org.cloudburstmc.math.vector.Vector3f.ZERO);
+            packet.setRotation(org.cloudburstmc.math.vector.Vector3f.ZERO);
             packet.getMetadata().putAll(this.dataMap);
             packet.setHand(ItemData.AIR);
             packet.setPlatformChatId("");

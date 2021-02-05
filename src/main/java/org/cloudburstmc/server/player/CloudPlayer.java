@@ -7,9 +7,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
@@ -61,6 +58,9 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.AdventureSettings;
 import org.cloudburstmc.server.CloudServer;
@@ -2216,7 +2216,7 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
             return false;
         } else if (source.getCause() == EntityDamageEvent.DamageCause.FALL) {
         }
-        if (this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockTypes.SLIME) {
+        if (this.getLevel().getBlockState(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockTypes.SLIME) {
             if (!this.isSneaking()) {
                 //source.setCancelled();
                 this.resetFallDistance();
@@ -2428,7 +2428,7 @@ public class CloudPlayer extends Human implements CommandSender, InventoryHolder
                     break;
 
                 case LAVA:
-                    BlockState state = this.getLevel().getBlockAt(this.getPosition().add(0, -1, 0).toInt());
+                    BlockState state = this.getLevel().getBlockState(this.getPosition().add(0, -1, 0).toInt());
                     if (state.getType() == BlockTypes.MAGMA) {
                         message = "death.attack.magma";
                         break;

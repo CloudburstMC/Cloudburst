@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.block;
 
-import com.nukkitx.math.vector.Vector3i;
 import lombok.ToString;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockSnapshot;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;
@@ -49,12 +49,12 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public BlockState getRelativeState(int x, int y, int z, int layer) {
-        return this.level.getBlockAt(getX() + x, getY() + y, getZ() + z, layer);
+        return this.level.getBlockState(getX() + x, getY() + y, getZ() + z, layer);
     }
 
     @Override
     public BlockState getSideState(Direction face, int step, int layer) {
-        return this.level.getBlockAt(
+        return this.level.getBlockState(
                 getX() + face.getXOffset() * step,
                 getY() + face.getYOffset() * step,
                 getZ() + face.getZOffset() * step,
