@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.command;
 
-import com.nukkitx.math.vector.Vector3f;
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.locale.TextContainer;
 import org.cloudburstmc.server.locale.TranslationContainer;

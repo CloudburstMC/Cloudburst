@@ -1,33 +1,28 @@
 package org.cloudburstmc.server.block.behavior;
 
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.val;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.block.BlockFromToEvent;
 import org.cloudburstmc.api.event.block.LiquidFlowEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.AxisAlignedBB;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.BlockType;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Direction.Plane;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.Direction.Plane;
+import org.cloudburstmc.server.registry.BlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
-
-import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
 public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
@@ -151,7 +146,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(final Block block, int type) {
-        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
+        if (type == Level.BLOCK_UPDATE_NORMAL) {
             this.checkForHarden(block);
             // This check exists because if water is at layer1 with air at layer0, the water gets invisible
             if (usesWaterLogging() && block.getExtra() != BlockStates.AIR) {
@@ -171,7 +166,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
             block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
             return type;
-        } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             int layer = block.getLiquidLayer();
             BlockState currentState = block.getState(layer);
 
@@ -214,7 +209,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                     boolean decayed = decay < 0;
                     BlockState to;
                     if (decayed) {
-                        to = BlockState.get(AIR);
+                        to = BlockStates.AIR;
                     } else {
                         to = getState(decay, falling);
                     }
@@ -278,7 +273,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         }
     }
 
-    private int calculateFlowCost(CloudLevel level, Vector3i blockPos, int accumulatedCost, int maxCost, Direction originOpposite, Direction lastOpposite) {
+    private int calculateFlowCost(Level level, Vector3i blockPos, int accumulatedCost, int maxCost, Direction originOpposite, Direction lastOpposite) {
         int cost = 1000;
 
         for (Direction direction : Plane.HORIZONTAL) {
@@ -375,11 +370,11 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     protected void checkForHarden(Block block) {
     }
 
-    protected void triggerLavaMixEffects(CloudLevel level, Vector3f pos) {
-        level.addSound(pos.add(0.5, 0.5, 0.5), Sound.RANDOM_FIZZ, 1, 2.6F + (ThreadLocalRandom.current().nextFloat() - ThreadLocalRandom.current().nextFloat()) * 0.8F);
+    protected void triggerLavaMixEffects(Level level, Vector3f pos) {
+        ((CloudLevel) level).addSound(pos.add(0.5, 0.5, 0.5), Sound.RANDOM_FIZZ, 1, 2.6F + (ThreadLocalRandom.current().nextFloat() - ThreadLocalRandom.current().nextFloat()) * 0.8F);
 
         for (int i = 0; i < 8; ++i) {
-            level.addParticle(new SmokeParticle(pos.toFloat().add(Math.random(), 1.2, Math.random())));
+            ((CloudLevel) level).addParticle(new SmokeParticle(pos.toFloat().add(Math.random(), 1.2, Math.random())));
         }
     }
 
@@ -396,7 +391,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         }
 
         cause.set(event.getTo(), true);
-        cause.getLevel().addLevelSoundEvent(cause.getPosition(), SoundEvent.FIZZ);
+        ((CloudLevel) cause.getLevel()).addLevelSoundEvent(cause.getPosition(), SoundEvent.FIZZ);
         return true;
     }
 
@@ -419,7 +414,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     protected BlockState getState(int decay, boolean falling) {
-        return BlockState.get(flowingId)
+        return BlockRegistry.get().getBlock(flowingId)
                 .withTrait(BlockTraits.FLUID_LEVEL, decay & 0x7)
                 .withTrait(BlockTraits.IS_FLOWING, falling);
     }

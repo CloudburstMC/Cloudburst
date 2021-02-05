@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.block.behavior;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTypes;
@@ -147,7 +147,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     private int getMaxCurrentStrength(CloudLevel level, Vector3i pos, int maxStrength) {
-        val state = level.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
+        val state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
         if (state.getType() != REDSTONE_WIRE) {
             return maxStrength;
         } else {
@@ -187,7 +187,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     private void updateAround(CloudLevel level, Vector3i pos, Direction face) {
-        if (level.getBlockAt(pos).getType() == REDSTONE_WIRE) {
+        if (level.getBlockState(pos).getType() == REDSTONE_WIRE) {
             level.updateAroundRedstone(pos, face);
 
             for (Direction side : Direction.values()) {
@@ -248,7 +248,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
             return 0;
         }
 
-        if (type == CloudLevel.BLOCK_UPDATE_NORMAL && !this.canBePlacedOn(level.getBlockAt(block.getPosition().down()))) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL && !this.canBePlacedOn(level.getBlockState(block.getPosition().down()))) {
             level.useBreakOn(block.getPosition());
             return CloudLevel.BLOCK_UPDATE_NORMAL;
         }

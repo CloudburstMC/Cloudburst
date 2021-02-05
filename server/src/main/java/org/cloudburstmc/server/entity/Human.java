@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity;
 
-import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -24,6 +23,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.inventory.InventoryHolder;
 import org.cloudburstmc.server.inventory.PlayerEnderChestInventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;

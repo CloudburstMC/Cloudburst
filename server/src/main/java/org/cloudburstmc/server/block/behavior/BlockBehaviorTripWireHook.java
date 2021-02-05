@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.block.behavior;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -82,7 +82,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
         for (int i = 1; i < 42; ++i) {
             Vector3i vector = v.add(facing.getUnitVector().mul(i));
-            BlockState b = level.getBlockAt(vector);
+            BlockState b = level.getBlockState(vector);
 
             if (b.getType() == TRIPWIRE_HOOK) {
                 if (b.ensureTrait(BlockTraits.DIRECTION) == facing.getOpposite()) {
@@ -149,7 +149,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
                 Vector3i vc = v.add(facing.getUnitVector().mul(i));
                 blockState = blockStates[i];
 
-                if (blockState != null && level.getBlockAt(vc).getType() != AIR) {
+                if (blockState != null && level.getBlockState(vc).getType() != AIR) {
                     level.setBlock(vc, blockState.withTrait(BlockTraits.IS_ATTACHED, canConnect), true, false);
                 }
             }
