@@ -4,8 +4,8 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityExplosive;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.misc.PrimedTnt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityExplosionPrimeEvent;
@@ -20,7 +20,7 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.IGNITED;
 /**
  * @author MagicDroidX
  */
-public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, EntityExplosive {
+public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, Explosive {
 
     protected int fuse = 80;
 

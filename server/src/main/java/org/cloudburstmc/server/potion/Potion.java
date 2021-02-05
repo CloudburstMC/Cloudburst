@@ -4,6 +4,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.potion.PotionApplyEvent;
+import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.ServerException;
@@ -144,7 +145,7 @@ public class Potion implements Cloneable { //TODO: make immutable for item data
         this.splash = splash;
     }
 
-    public CloudEffect getEffect() {
+    public Effect getEffect() {
         return getEffect(this.getId(), this.isSplash());
     }
 

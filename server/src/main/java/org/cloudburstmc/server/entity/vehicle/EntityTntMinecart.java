@@ -3,8 +3,8 @@ package org.cloudburstmc.server.entity.vehicle;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityExplosive;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.vehicle.TntMinecart;
 import org.cloudburstmc.api.event.entity.EntityExplosionPrimeEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -27,7 +27,7 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.CHARGED;
  * <p>
  * Nukkit Project.
  */
-public class EntityTntMinecart extends EntityAbstractMinecart implements TntMinecart, EntityExplosive {
+public class EntityTntMinecart extends EntityAbstractMinecart implements TntMinecart, Explosive {
 
     public EntityTntMinecart(EntityType<TntMinecart> type, Location location) {
         super(type, location);

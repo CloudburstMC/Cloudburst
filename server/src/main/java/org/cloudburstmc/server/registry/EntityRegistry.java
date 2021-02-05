@@ -23,7 +23,7 @@ import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.entity.Human;
+import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.UnknownEntity;
 import org.cloudburstmc.server.entity.hostile.*;
 import org.cloudburstmc.server.entity.misc.*;
@@ -305,7 +305,7 @@ public class EntityRegistry implements Registry {
         registerVanilla(VINDICATOR, EntityVindicator::new, 57);
         registerVanilla(PHANTOM, EntityPhantom::new, 58);
         registerVanilla(RAVAGER, EntityRavager::new, 59);
-        registerVanilla(PLAYER, Human::new, 63);
+        registerVanilla(PLAYER, EntityHuman::new, 63);
         registerVanilla(ITEM, EntityDroppedItem::new, 64);
         registerVanilla(TNT, EntityPrimedTnt::new, 65);
         registerVanilla(FALLING_BLOCK, EntityFallingBlock::new, 66);

@@ -6,10 +6,10 @@ import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockFadeEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorIce extends BlockBehaviorTransparent {

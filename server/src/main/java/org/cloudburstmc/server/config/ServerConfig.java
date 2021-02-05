@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.config;
 
 import lombok.*;
+import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.server.level.Difficulty;
-import org.cloudburstmc.server.player.GameMode;
 
 import java.util.Collections;
 import java.util.List;
