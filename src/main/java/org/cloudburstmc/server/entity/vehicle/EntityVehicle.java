@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.entity.vehicle;
 
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityInteractable;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.Interactable;
 import org.cloudburstmc.api.entity.Rideable;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -18,7 +18,7 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class EntityVehicle extends BaseEntity implements Rideable, EntityInteractable {
+public abstract class EntityVehicle extends BaseEntity implements Rideable, Interactable {
 
     public EntityVehicle(EntityType<?> type, Location location) {
         super(type, location);

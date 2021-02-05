@@ -2,6 +2,7 @@ package org.cloudburstmc.server.command;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;

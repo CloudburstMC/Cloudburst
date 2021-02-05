@@ -18,8 +18,8 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
+import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.entity.Human;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.MathHelper;
@@ -333,7 +333,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     public void onEntityCollision(Entity entity) {
         if (entity != vehicle) {
             if (entity instanceof EntityLiving
-                    && !(entity instanceof Human)
+                    && !(entity instanceof EntityHuman)
                     && this.motion.getX() * this.motion.getX() + this.motion.getZ() * this.motion.getZ() > 0.01D
                     && passengers.isEmpty()
                     && entity.getVehicle() == null

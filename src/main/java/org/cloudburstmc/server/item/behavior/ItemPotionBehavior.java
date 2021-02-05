@@ -2,10 +2,10 @@ package org.cloudburstmc.server.item.behavior;
 
 import org.cloudburstmc.api.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.player.GameMode;
 import org.cloudburstmc.server.potion.Potion;
 
 public class ItemPotionBehavior extends CloudItemBehavior {

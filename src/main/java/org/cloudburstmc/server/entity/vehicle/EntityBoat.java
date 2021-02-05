@@ -15,16 +15,18 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.data.MountType;
+import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
+import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.ArrayList;
 
@@ -312,10 +314,10 @@ public class EntityBoat extends EntityVehicle implements Boat {
     @Override
     public boolean mount(Entity entity) {
         boolean player = this.passengers.size() >= 1 && this.passengers.get(0) instanceof CloudPlayer;
-        EntityLinkData.Type mode = EntityLinkData.Type.PASSENGER;
+        MountType mode = MountType.PASSENGER;
 
         if (!player && (entity instanceof CloudPlayer || this.passengers.size() == 0)) {
-            mode = EntityLinkData.Type.RIDER;
+            mode = MountType.RIDER;
         }
 
         return super.mount(entity, mode);
@@ -325,9 +327,9 @@ public class EntityBoat extends EntityVehicle implements Boat {
     public void onMount(Entity passenger) {
         super.onMount(passenger);
 
-        passenger.getData().setByte(RIDER_ROTATION_LOCKED, 1);
-        passenger.getData().setFloat(RIDER_MAX_ROTATION, 90);
-        passenger.getData().setFloat(RIDER_MIN_ROTATION, -90);
+        ((BaseEntity) passenger).getData().setByte(RIDER_ROTATION_LOCKED, 1);
+        ((BaseEntity) passenger).getData().setFloat(RIDER_MAX_ROTATION, 90);
+        ((BaseEntity) passenger).getData().setFloat(RIDER_MIN_ROTATION, -90);
 
         //            if(entity instanceof Player && mode == SetEntityLinkPacket.TYPE_RIDE){ //TODO: controlling?
 //                entity.setDataProperty(new ByteEntityData(DATA_FLAG_WASD_CONTROLLED))
@@ -419,7 +421,8 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public boolean mount(Entity entity, EntityLinkData.Type mode) {
+    public boolean mount(Entity entity, MountType mode) {
         return this.mount(entity);
     }
+
 }

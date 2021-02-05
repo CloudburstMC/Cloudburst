@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.permission;
 
+import org.cloudburstmc.api.permission.Permission;
 import org.cloudburstmc.server.CloudServer;
 
 /**

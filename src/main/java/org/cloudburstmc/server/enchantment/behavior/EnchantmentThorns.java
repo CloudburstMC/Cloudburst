@@ -7,7 +7,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.entity.Human;
+import org.cloudburstmc.server.entity.EntityHuman;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -29,11 +29,11 @@ public class EnchantmentThorns extends EnchantmentBehavior {
 
     //@Override
     public void doPostAttack(EnchantmentInstance enchantment, Entity entity, Entity attacker) {
-        if (!(entity instanceof Human)) {
+        if (!(entity instanceof EntityHuman)) {
             return;
         }
 
-        Human human = (Human) entity;
+        EntityHuman human = (EntityHuman) entity;
 
         int thornsLevel = 0;
 

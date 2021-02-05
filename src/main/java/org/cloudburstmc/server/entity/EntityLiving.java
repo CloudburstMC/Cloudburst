@@ -13,10 +13,7 @@ import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityDamageable;
-import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Rideable;
+import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.event.entity.EntityDamageByChildEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -46,7 +43,7 @@ import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class EntityLiving extends BaseEntity implements EntityDamageable {
+public abstract class EntityLiving extends BaseEntity implements Damageable, Living {
 
     public EntityLiving(EntityType<?> type, Location location) {
         super(type, location);
