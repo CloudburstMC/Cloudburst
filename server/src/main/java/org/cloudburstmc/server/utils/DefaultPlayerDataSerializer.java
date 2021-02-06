@@ -2,6 +2,7 @@ package org.cloudburstmc.server.utils;
 
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.api.util.PlayerDataSerializer;
 import org.cloudburstmc.server.CloudServer;
 
 import java.io.IOException;
