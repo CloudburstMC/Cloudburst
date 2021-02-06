@@ -1,8 +1,10 @@
 package org.cloudburstmc.api.potion;
 
+import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.math.vector.Vector3i;
 
+@UtilityClass
 public class EffectTypes {
 
     public final static EffectType SWIFTNESS = new EffectType(Identifiers.SPEED, (byte) 1, Vector3i.from(124, 175, 198));
