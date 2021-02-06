@@ -1,7 +1,9 @@
 package org.cloudburstmc.api.util;
 
 import com.google.common.collect.ImmutableList;
-import lombok.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -9,7 +11,6 @@ import java.util.List;
 import java.util.UUID;
 
 @ToString(exclude = {"geometryData", "animationData"})
-@RequiredArgsConstructor
 @NoArgsConstructor
 @Data
 public class Skin {
@@ -39,7 +40,6 @@ public class Skin {
         return "{\"geometry\" : {\"default\" : \"" + geometryName + "\"}}";
     }
 
-    @ToString
     @Data
     public class PersonaPieceTint {
         private final String pieceType;
@@ -51,9 +51,7 @@ public class Skin {
         }
     }
 
-    @ToString
     @Data
-    @AllArgsConstructor
     public class PersonaPiece {
         private final String id;
         private final String type;
@@ -63,8 +61,6 @@ public class Skin {
     }
 
     @Data
-    @ToString
-    @AllArgsConstructor
     public class SkinAnimation {
         private final BufferedImage image;
         private final int type;

@@ -1,7 +1,5 @@
 package org.cloudburstmc.api.util;
 
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-
 import java.util.UUID;
 
 /**
@@ -39,7 +37,7 @@ public interface LoginChainData {
 
     int getDefaultInputMode();
 
-    SerializedSkin getSkin();
+    Skin getSkin();
 
     int getUIProfile();
 }
