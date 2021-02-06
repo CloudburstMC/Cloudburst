@@ -3,8 +3,8 @@ package org.cloudburstmc.server.player;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
-import org.cloudburstmc.api.event.player.PlayerCreationEvent;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.event.player.PlayerCreationEvent;
 import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.scheduler.AsyncTask;
 import org.cloudburstmc.server.utils.ClientChainData;
@@ -38,7 +38,7 @@ public class PlayerLoginData {
 
         PlayerCreationEvent ev = new PlayerCreationEvent(interfaz, CloudPlayer.class, CloudPlayer.class, this.chainData.getClientId(), session.getAddress());
         this.server.getEventManager().fire(ev);
-        Class<? extends CloudPlayer> clazz = ev.getPlayerClass();
+        Class<? extends CloudPlayer> clazz = (Class<? extends CloudPlayer>) ev.getPlayerClass();
 
         try {
             Constructor<? extends CloudPlayer> constructor = clazz.getConstructor(BedrockServerSession.class, ClientChainData.class);
