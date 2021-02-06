@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.event.player;
 
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Skin;
 
 /**
  * author: KCodeYT
@@ -10,14 +10,14 @@ import org.cloudburstmc.api.player.Player;
  */
 public class PlayerChangeSkinEvent extends PlayerEvent implements Cancellable {
 
-    private final SerializedSkin skin;
+    private final Skin skin;
 
-    public PlayerChangeSkinEvent(Player player, SerializedSkin skin) {
+    public PlayerChangeSkinEvent(Player player, Skin skin) {
         super(player);
         this.skin = skin;
     }
 
-    public SerializedSkin getSkin() {
+    public Skin getSkin() {
         return this.skin;
     }
 
