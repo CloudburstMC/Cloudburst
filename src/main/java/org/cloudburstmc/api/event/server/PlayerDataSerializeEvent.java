@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.server;
 
 import com.google.common.base.Preconditions;
-import org.cloudburstmc.server.utils.PlayerDataSerializer;
+import org.cloudburstmc.api.util.PlayerDataSerializer;
 
 import java.util.Optional;
 import java.util.UUID;
