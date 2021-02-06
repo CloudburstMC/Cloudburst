@@ -14,6 +14,7 @@ import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minidev.json.JSONObject;
+import org.cloudburstmc.api.util.LoginChainData;
 import org.cloudburstmc.server.Bootstrap;
 
 import java.io.IOException;
