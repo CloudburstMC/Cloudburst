@@ -6,10 +6,10 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.SplashPotion;
 import org.cloudburstmc.api.event.potion.PotionCollideEvent;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.potion.Potion;
 import org.cloudburstmc.server.level.particle.Particle;
 import org.cloudburstmc.server.level.particle.SpellParticle;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.potion.Potion;
 
 import java.util.Set;
 
