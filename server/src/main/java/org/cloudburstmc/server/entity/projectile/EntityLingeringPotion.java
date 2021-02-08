@@ -6,8 +6,8 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
 import org.cloudburstmc.api.entity.projectile.LingeringPotion;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.potion.Potion;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.potion.Potion;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.LINGERING;
