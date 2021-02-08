@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.event.potion;
 
+import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.potion.Potion;
-import org.cloudburstmc.server.entity.projectile.EntitySplashPotion;
 
 /**
  * Created by Snake1999 on 2016/1/12.
@@ -10,14 +10,14 @@ import org.cloudburstmc.server.entity.projectile.EntitySplashPotion;
  */
 public class PotionCollideEvent extends PotionEvent implements Cancellable {
 
-    private final EntitySplashPotion thrownPotion;
+    private final Projectile thrownPotion;
 
-    public PotionCollideEvent(Potion potion, EntitySplashPotion thrownPotion) {
+    public PotionCollideEvent(Potion potion, Projectile thrownPotion) {
         super(potion);
         this.thrownPotion = thrownPotion;
     }
 
-    public EntitySplashPotion getThrownPotion() {
+    public Projectile getThrownPotion() {
         return thrownPotion;
     }
 }
