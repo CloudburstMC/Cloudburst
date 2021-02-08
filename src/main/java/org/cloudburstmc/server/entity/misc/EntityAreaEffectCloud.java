@@ -10,11 +10,11 @@ import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.potion.Potion;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.potion.InstantEffect;
-import org.cloudburstmc.server.potion.Potion;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

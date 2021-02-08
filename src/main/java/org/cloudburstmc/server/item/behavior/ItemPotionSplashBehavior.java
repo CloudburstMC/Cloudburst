@@ -3,7 +3,7 @@ package org.cloudburstmc.server.item.behavior;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.potion.Potion;
+import org.cloudburstmc.api.potion.Potion;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.POTION_AUX_VALUE;
 

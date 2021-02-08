@@ -22,6 +22,7 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.behavior.ItemBehavior;
+import org.cloudburstmc.api.potion.Potion;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -36,7 +37,6 @@ import org.cloudburstmc.server.item.data.*;
 import org.cloudburstmc.server.item.data.serializer.BannerSerializer;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
-import org.cloudburstmc.server.potion.Potion;
 
 import java.io.IOException;
 import java.net.URI;
