@@ -52,6 +52,8 @@ import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
 import org.cloudburstmc.api.event.player.*;
+import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;

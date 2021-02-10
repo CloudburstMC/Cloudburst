@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import org.cloudburstmc.api.blockentity.Furnace;
+import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**

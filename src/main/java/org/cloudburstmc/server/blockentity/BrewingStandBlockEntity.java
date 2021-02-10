@@ -10,8 +10,8 @@ import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BrewingStand;
-import org.cloudburstmc.api.event.inventory.BrewEvent;
-import org.cloudburstmc.api.event.inventory.StartBrewEvent;
+import org.cloudburstmc.api.event.inventory.BrewFinishEvent;
+import org.cloudburstmc.api.event.inventory.BrewStartEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.CloudServer;
@@ -175,7 +175,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         if (canBrew) {
             if (this.cookTime == MAX_COOK_TIME) {
                 this.sendBrewTime();
-                StartBrewEvent e = new StartBrewEvent(this);
+                BrewStartEvent e = new BrewStartEvent(this);
                 this.server.getEventManager().fire(e);
 
                 if (e.isCancelled()) {
@@ -186,7 +186,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             this.cookTime--;
 
             if (this.cookTime <= 0) { //20 seconds
-                BrewEvent e = new BrewEvent(this);
+                BrewFinishEvent e = new BrewFinishEvent(this);
                 this.server.getEventManager().fire(e);
 
                 if (!e.isCancelled()) {

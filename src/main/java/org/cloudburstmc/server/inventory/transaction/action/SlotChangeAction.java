@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
 import lombok.ToString;
+import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.player.CloudPlayer;
 

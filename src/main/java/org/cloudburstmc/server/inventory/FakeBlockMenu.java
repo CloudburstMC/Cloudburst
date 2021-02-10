@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.inventory;
 
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
 
