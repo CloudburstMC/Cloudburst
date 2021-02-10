@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
+import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 

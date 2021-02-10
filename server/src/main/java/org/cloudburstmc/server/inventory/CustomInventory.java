@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
+import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 
 import java.util.Map;
