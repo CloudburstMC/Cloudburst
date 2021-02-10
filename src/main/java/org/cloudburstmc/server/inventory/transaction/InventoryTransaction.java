@@ -4,9 +4,8 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
-import org.cloudburstmc.api.event.inventory.InventoryTransactionEvent;
+import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.inventory.Inventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.inventory.transaction.action.SlotChangeAction;
@@ -246,8 +245,8 @@ public class InventoryTransaction {
     }
 
     protected boolean callExecuteEvent() {
-        InventoryTransactionEvent ev = new InventoryTransactionEvent(this);
-        this.source.getServer().getEventManager().fire(ev);
+        //InventoryTransactionEvent ev = new InventoryTransactionEvent(this);
+        //this.source.getServer().getEventManager().fire(ev);
 
         SlotChangeAction from = null;
         SlotChangeAction to = null;
@@ -283,7 +282,7 @@ public class InventoryTransaction {
             }
         }
 
-        return !ev.isCancelled();
+        return false;
     }
 
     public boolean execute() {

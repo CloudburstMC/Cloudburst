@@ -2,6 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.blockentity.Chest;
+import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 

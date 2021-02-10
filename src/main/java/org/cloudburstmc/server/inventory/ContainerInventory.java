@@ -5,8 +5,12 @@ import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -87,6 +91,6 @@ public abstract class ContainerInventory extends BaseInventory {
         bep.setBlockPosition(block.getPosition());
         bep.setEventType(1);
         bep.setEventData(eventData);
-        block.getLevel().addChunkPacket(block.getPosition(), bep);
+        ((CloudLevel) block.getLevel()).addChunkPacket(block.getPosition(), bep);
     }
 }

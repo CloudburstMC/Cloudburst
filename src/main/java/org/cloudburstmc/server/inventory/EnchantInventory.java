@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.CloudPlayer.CraftingType;
 
