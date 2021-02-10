@@ -40,6 +40,7 @@ import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.metadata.EntityMetadataStore;
 import org.cloudburstmc.server.metadata.LevelMetadataStore;
 import org.cloudburstmc.server.metadata.PlayerMetadataStore;
+import org.cloudburstmc.server.metrics.CloudMetrics;
 import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.network.Network;
 import org.cloudburstmc.server.network.ProtocolInfo;
@@ -472,6 +473,9 @@ public class Server {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        // Initialize metrics
+        new CloudMetrics(this);
 
         this.commandRegistry.registerVanilla();
 
