@@ -9,7 +9,7 @@ import org.cloudburstmc.api.player.Player;
 /**
  * Created by Pub4Game on 03.07.2016.
  */
-public class ItemFrameDropItemEvent extends BlockEvent implements Cancellable {
+public final class ItemFrameDropItemEvent extends BlockEvent implements Cancellable {
 
     private final Player player;
     private final ItemStack item;

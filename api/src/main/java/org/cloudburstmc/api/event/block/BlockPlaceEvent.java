@@ -10,7 +10,7 @@ import org.cloudburstmc.api.player.Player;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class BlockPlaceEvent extends BlockEvent implements Cancellable {
+public final class BlockPlaceEvent extends BlockEvent implements Cancellable {
 
     protected final Player player;
 

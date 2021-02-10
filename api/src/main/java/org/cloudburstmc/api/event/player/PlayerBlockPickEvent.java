@@ -8,7 +8,7 @@ import org.cloudburstmc.api.player.Player;
 /**
  * @author CreeperFace
  */
-public class PlayerBlockPickEvent extends PlayerEvent implements Cancellable {
+public final class PlayerBlockPickEvent extends PlayerEvent implements Cancellable {
 
     private final Block blockStateClicked;
     private ItemStack item;

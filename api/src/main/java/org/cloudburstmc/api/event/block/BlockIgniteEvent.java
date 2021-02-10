@@ -4,7 +4,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
 
-public class BlockIgniteEvent extends BlockEvent implements Cancellable {
+public final class BlockIgniteEvent extends BlockEvent implements Cancellable {
 
     private final Block source;
     private final Entity entity;

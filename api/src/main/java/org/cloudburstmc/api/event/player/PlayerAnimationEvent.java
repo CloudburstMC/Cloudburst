@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerAnimationEvent extends PlayerEvent implements Cancellable {
+public final class PlayerAnimationEvent extends PlayerEvent implements Cancellable {
 
     private final Type animationType;
 

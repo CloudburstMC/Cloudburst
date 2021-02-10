@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerMouseOverEntityEvent extends PlayerEvent {
+public final class PlayerMouseOverEntityEvent extends PlayerEvent {
 
     private final Entity entity;
 

@@ -8,7 +8,7 @@ import org.cloudburstmc.api.item.ItemStack;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class EntityArmorChangeEvent extends EntityEvent implements Cancellable {
+public final class EntityArmorChangeEvent extends EntityEvent implements Cancellable {
 
     private final ItemStack oldItem;
     private ItemStack newItem;

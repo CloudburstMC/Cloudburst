@@ -8,7 +8,7 @@ import org.cloudburstmc.api.level.Location;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class EntityTeleportEvent extends EntityEvent implements Cancellable {
+public final class EntityTeleportEvent extends EntityEvent implements Cancellable {
 
     private Location from;
     private Location to;

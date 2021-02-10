@@ -8,7 +8,7 @@ import org.cloudburstmc.api.util.MovingObjectPosition;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class ProjectileHitEvent extends EntityEvent implements Cancellable {
+public final class ProjectileHitEvent extends EntityEvent implements Cancellable {
 
     private MovingObjectPosition movingObjectPosition;
 

@@ -7,7 +7,7 @@ import org.cloudburstmc.api.level.chunk.Chunk;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class ChunkUnloadEvent extends ChunkEvent implements Cancellable {
+public final class ChunkUnloadEvent extends ChunkEvent implements Cancellable {
 
     public ChunkUnloadEvent(Chunk chunk) {
         super(chunk);

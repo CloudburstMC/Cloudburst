@@ -7,7 +7,7 @@ import org.cloudburstmc.api.item.ItemStack;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class EntityDeathEvent extends EntityEvent {
+public final class EntityDeathEvent extends EntityEvent {
 
     private ItemStack[] drops;
 

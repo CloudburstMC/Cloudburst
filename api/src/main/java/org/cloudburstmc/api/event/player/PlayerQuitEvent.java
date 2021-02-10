@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerQuitEvent extends PlayerEvent {
+public final class PlayerQuitEvent extends PlayerEvent {
 
     protected TextContainer quitMessage;
     protected boolean autoSave = true;

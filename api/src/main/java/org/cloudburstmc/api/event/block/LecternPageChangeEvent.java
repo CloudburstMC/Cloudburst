@@ -4,7 +4,7 @@ import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
 
-public class LecternPageChangeEvent extends BlockEvent implements Cancellable {
+public final class LecternPageChangeEvent extends BlockEvent implements Cancellable {
 
     private final Player player;
     private final Lectern lectern;

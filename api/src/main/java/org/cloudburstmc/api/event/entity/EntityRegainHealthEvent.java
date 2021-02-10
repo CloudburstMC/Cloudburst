@@ -7,7 +7,7 @@ import org.cloudburstmc.api.event.Cancellable;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class EntityRegainHealthEvent extends EntityEvent implements Cancellable {
+public final class EntityRegainHealthEvent extends EntityEvent implements Cancellable {
 
     public static final int CAUSE_REGEN = 0;
     public static final int CAUSE_EATING = 1;

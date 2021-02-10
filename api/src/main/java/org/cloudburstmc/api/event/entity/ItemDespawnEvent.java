@@ -7,7 +7,7 @@ import org.cloudburstmc.api.event.Cancellable;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class ItemDespawnEvent extends EntityEvent implements Cancellable {
+public final class ItemDespawnEvent extends EntityEvent implements Cancellable {
 
     public ItemDespawnEvent(DroppedItem item) {
         this.entity = item;

@@ -119,4 +119,6 @@ public interface Player extends Entity {
     boolean isSurvival();
 
     void resetInAirTicks();
+
+    boolean isSpawned();
 }

@@ -8,7 +8,7 @@ import org.cloudburstmc.api.event.Cancellable;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class CreeperPowerEvent extends EntityEvent implements Cancellable {
+public final class CreeperPowerEvent extends EntityEvent implements Cancellable {
 
     private final PowerCause cause;
     private LightningBolt lightningBolt;

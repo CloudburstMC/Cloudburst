@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.vehicle;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.level.Location;
 
-public class VehicleMoveEvent extends VehicleEvent {
+public final class VehicleMoveEvent extends VehicleEvent {
 
     private final Location from;
     private final Location to;

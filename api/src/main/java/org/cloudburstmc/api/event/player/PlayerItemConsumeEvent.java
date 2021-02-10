@@ -7,7 +7,7 @@ import org.cloudburstmc.api.player.Player;
 /**
  * Called when a player eats something
  */
-public class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
+public final class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable {
 
     private final ItemStack item;
 

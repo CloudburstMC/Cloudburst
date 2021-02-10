@@ -7,7 +7,7 @@ import org.cloudburstmc.api.event.Cancellable;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class ServerCommandEvent extends ServerEvent implements Cancellable {
+public final class ServerCommandEvent extends ServerEvent implements Cancellable {
 
     protected String command;
 

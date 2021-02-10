@@ -7,7 +7,7 @@ import org.cloudburstmc.api.registry.ResourcePackRegistry;
  *
  * @author DaPorkchop_
  */
-public class RegistriesClosedEvent extends ServerEvent {
+public final class RegistriesClosedEvent extends ServerEvent {
 
     private final ResourcePackRegistry packManager;
 

@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerJoinEvent extends PlayerEvent {
+public final class PlayerJoinEvent extends PlayerEvent {
 
     protected TextContainer joinMessage;
 

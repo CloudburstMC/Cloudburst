@@ -6,7 +6,7 @@ import org.cloudburstmc.api.event.Cancellable;
 /**
  * Created on 15-10-27.
  */
-public class EntityExplosionPrimeEvent extends EntityEvent implements Cancellable {
+public final class EntityExplosionPrimeEvent extends EntityEvent implements Cancellable {
 
     private double force;
     private boolean blockBreaking;

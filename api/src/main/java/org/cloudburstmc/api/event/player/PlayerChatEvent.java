@@ -9,7 +9,7 @@ import org.cloudburstmc.api.player.Player;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PlayerChatEvent extends PlayerMessageEvent implements Cancellable {
+public final class PlayerChatEvent extends PlayerMessageEvent implements Cancellable {
 
     protected String format;
 

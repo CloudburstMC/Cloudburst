@@ -5,7 +5,7 @@ import org.cloudburstmc.api.block.Block;
 /**
  * Created by CreeperFace on 12.5.2017.
  */
-public class BlockRedstoneEvent extends BlockEvent {
+public final class BlockRedstoneEvent extends BlockEvent {
 
     private final int oldPower;
     private final int newPower;

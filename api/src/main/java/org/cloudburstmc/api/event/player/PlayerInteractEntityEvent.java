@@ -9,7 +9,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 /**
  * Created by CreeperFace on 1. 1. 2017.
  */
-public class PlayerInteractEntityEvent extends PlayerEvent implements Cancellable {
+public final class PlayerInteractEntityEvent extends PlayerEvent implements Cancellable {
 
     protected final Entity entity;
     protected final ItemStack item;

@@ -1,13 +1,13 @@
 package org.cloudburstmc.api.event.inventory;
 
+import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.server.inventory.Inventory;
 
 /**
  * author: Box
  * Nukkit Project
  */
-public class InventoryCloseEvent extends InventoryEvent {
+public final class InventoryCloseEvent extends InventoryEvent {
 
     private final Player who;
 

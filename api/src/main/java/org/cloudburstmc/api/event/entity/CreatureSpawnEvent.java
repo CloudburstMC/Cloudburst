@@ -5,7 +5,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.level.Location;
 
-public class CreatureSpawnEvent extends Event implements Cancellable {
+public final class CreatureSpawnEvent extends Event implements Cancellable {
 
     private final SpawnReason reason;
     private final EntityType<?> type;

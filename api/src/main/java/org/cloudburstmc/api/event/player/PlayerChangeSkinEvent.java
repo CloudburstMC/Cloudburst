@@ -8,7 +8,7 @@ import org.cloudburstmc.api.util.Skin;
  * author: KCodeYT
  * Nukkit Project
  */
-public class PlayerChangeSkinEvent extends PlayerEvent implements Cancellable {
+public final class PlayerChangeSkinEvent extends PlayerEvent implements Cancellable {
 
     private final Skin skin;
 

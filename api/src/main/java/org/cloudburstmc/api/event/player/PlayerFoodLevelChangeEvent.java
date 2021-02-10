@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerFoodLevelChangeEvent extends PlayerEvent implements Cancellable {
+public final class PlayerFoodLevelChangeEvent extends PlayerEvent implements Cancellable {
 
     protected int foodLevel;
     protected float foodSaturationLevel;

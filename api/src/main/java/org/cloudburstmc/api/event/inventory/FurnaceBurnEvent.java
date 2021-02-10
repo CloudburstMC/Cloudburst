@@ -9,7 +9,7 @@ import org.cloudburstmc.api.item.ItemStack;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class FurnaceBurnEvent extends BlockEvent implements Cancellable {
+public final class FurnaceBurnEvent extends BlockEvent implements Cancellable {
 
     private final Furnace furnace;
     private final ItemStack fuel;

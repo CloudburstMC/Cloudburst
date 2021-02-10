@@ -4,7 +4,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerTeleportEvent extends PlayerEvent implements Cancellable {
+public final class PlayerTeleportEvent extends PlayerEvent implements Cancellable {
 
     private final TeleportCause cause;
     private final Location from;

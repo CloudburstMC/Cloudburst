@@ -8,7 +8,7 @@ import org.cloudburstmc.api.player.Player;
  * Created by Snake1999 on 2016/1/14.
  * Package cn.nukkit.event.player in project nukkit.
  */
-public class PlayerEatFoodEvent extends PlayerEvent implements Cancellable {
+public final class PlayerEatFoodEvent extends PlayerEvent implements Cancellable {
 
     private Food food;
 

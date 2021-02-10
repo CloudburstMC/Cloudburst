@@ -4,7 +4,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.event.Cancellable;
 
-public class BlockFadeEvent extends BlockEvent implements Cancellable {
+public final class BlockFadeEvent extends BlockEvent implements Cancellable {
 
 
     private final BlockState newState;

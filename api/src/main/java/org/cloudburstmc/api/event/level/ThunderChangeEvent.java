@@ -7,7 +7,7 @@ import org.cloudburstmc.api.level.Level;
  * author: funcraft
  * Nukkit Project
  */
-public class ThunderChangeEvent extends WeatherEvent implements Cancellable {
+public final class ThunderChangeEvent extends WeatherEvent implements Cancellable {
 
     private final boolean to;
 

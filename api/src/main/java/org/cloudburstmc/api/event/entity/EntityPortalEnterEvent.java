@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.entity;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
 
-public class EntityPortalEnterEvent extends EntityEvent implements Cancellable {
+public final class EntityPortalEnterEvent extends EntityEvent implements Cancellable {
 
     private final PortalType type;
 

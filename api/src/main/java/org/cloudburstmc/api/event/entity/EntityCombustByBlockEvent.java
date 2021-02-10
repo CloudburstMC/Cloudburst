@@ -7,7 +7,7 @@ import org.cloudburstmc.api.entity.Entity;
  * author: Box
  * Nukkit Project
  */
-public class EntityCombustByBlockEvent extends EntityCombustEvent {
+public final class EntityCombustByBlockEvent extends EntityCombustEvent {
 
     protected final Block combustor;
 

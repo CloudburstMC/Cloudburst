@@ -12,7 +12,7 @@ import org.cloudburstmc.math.vector.Vector3f;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
+public final class PlayerInteractEvent extends PlayerEvent implements Cancellable {
 
     protected final Block blockTouched;
 
