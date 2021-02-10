@@ -4,6 +4,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
+import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 

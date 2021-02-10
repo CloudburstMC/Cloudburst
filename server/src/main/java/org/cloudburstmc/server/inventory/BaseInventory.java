@@ -10,7 +10,11 @@ import lombok.val;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.api.event.inventory.InventoryOpenEvent;
+import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
@@ -507,7 +511,6 @@ public abstract class BaseInventory implements Inventory {
         this.maxStackSize = maxStackSize;
     }
 
-    @Override
     public boolean open(CloudPlayer who) {
         InventoryOpenEvent ev = new InventoryOpenEvent(this, who);
         who.getServer().getEventManager().fire(ev);
@@ -519,17 +522,14 @@ public abstract class BaseInventory implements Inventory {
         return true;
     }
 
-    @Override
     public void close(CloudPlayer who) {
         this.onClose(who);
     }
 
-    @Override
     public void onOpen(CloudPlayer who) {
         this.viewers.add(who);
     }
 
-    @Override
     public void onClose(CloudPlayer who) {
         this.viewers.remove(who);
     }
@@ -542,12 +542,7 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public void sendContents(CloudPlayer player) {
-        this.sendContents(new CloudPlayer[]{player});
-    }
-
-    @Override
-    public void sendContents(CloudPlayer... players) {
+    public void sendContents(Player... players) {
         InventoryContentPacket packet = new InventoryContentPacket();
         List<ItemData> contents = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
@@ -555,14 +550,14 @@ public abstract class BaseInventory implements Inventory {
         }
         packet.setContents(contents);
 
-        for (CloudPlayer player : players) {
-            int id = player.getWindowId(this);
-            if (id == -1 || !player.spawned) {
+        for (Player player : players) {
+            int id = ((CloudPlayer) player).getWindowId(this);
+            if (id == -1 || !player.isSpawned()) {
                 this.close(player);
                 continue;
             }
             packet.setContainerId(id);
-            player.sendPacket(packet);
+            ((CloudPlayer) player).sendPacket(packet);
         }
     }
 
@@ -615,35 +610,20 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public void sendContents(Collection<CloudPlayer> players) {
-        this.sendContents(players.toArray(new CloudPlayer[0]));
-    }
-
-    @Override
-    public void sendSlot(int index, CloudPlayer player) {
-        this.sendSlot(index, new CloudPlayer[]{player});
-    }
-
-    @Override
-    public void sendSlot(int index, CloudPlayer... players) {
+    public void sendSlot(int index, Player... players) {
         InventorySlotPacket packet = new InventorySlotPacket();
         packet.setSlot(index);
         packet.setItem(((CloudItemStack) this.getItem(index)).getNetworkData());
 
-        for (CloudPlayer player : players) {
-            int id = player.getWindowId(this);
+        for (Player player : players) {
+            int id = ((CloudPlayer) player).getWindowId(this);
             if (id == -1) {
                 this.close(player);
                 continue;
             }
             packet.setContainerId(id);
-            player.sendPacket(packet);
+            ((CloudPlayer) player).sendPacket(packet);
         }
-    }
-
-    @Override
-    public void sendSlot(int index, Collection<CloudPlayer> players) {
-        this.sendSlot(index, players.toArray(new CloudPlayer[0]));
     }
 
     @Override

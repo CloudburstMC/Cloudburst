@@ -12,6 +12,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -394,7 +395,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
         return this.customName != null;
     }
 
-    public void spawnTo(CloudPlayer player) {
+    public void spawnTo(Player player) {
         if (this.closed) {
             return;
         }
@@ -402,7 +403,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
         BlockEntityDataPacket packet = new BlockEntityDataPacket();
         packet.setBlockPosition(this.getPosition());
         packet.setData(this.getClientTag());
-        player.sendPacket(packet);
+        ((CloudPlayer) player).sendPacket(packet);
     }
 
     public void spawnToAll() {
