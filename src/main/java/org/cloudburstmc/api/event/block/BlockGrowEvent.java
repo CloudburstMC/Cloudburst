@@ -8,7 +8,7 @@ import org.cloudburstmc.api.event.Cancellable;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class BlockGrowEvent extends BlockEvent implements Cancellable {
+public final class BlockGrowEvent extends BlockEvent implements Cancellable {
 
     private final BlockState newState;
 

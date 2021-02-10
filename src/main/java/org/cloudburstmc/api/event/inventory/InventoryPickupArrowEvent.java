@@ -1,23 +1,23 @@
 package org.cloudburstmc.api.event.inventory;
 
+import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.entity.projectile.EntityArrow;
-import org.cloudburstmc.server.inventory.Inventory;
+import org.cloudburstmc.api.inventory.Inventory;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
-public class InventoryPickupArrowEvent extends InventoryEvent implements Cancellable {
+public final class InventoryPickupArrowEvent extends InventoryEvent implements Cancellable {
 
-    private final EntityArrow arrow;
+    private final Arrow arrow;
 
-    public InventoryPickupArrowEvent(Inventory inventory, EntityArrow arrow) {
+    public InventoryPickupArrowEvent(Inventory inventory, Arrow arrow) {
         super(inventory);
         this.arrow = arrow;
     }
 
-    public EntityArrow getArrow() {
+    public Arrow getArrow() {
         return arrow;
     }
 }

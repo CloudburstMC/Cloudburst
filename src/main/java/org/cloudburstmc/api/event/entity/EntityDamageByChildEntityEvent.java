@@ -6,7 +6,7 @@ import org.cloudburstmc.api.entity.Entity;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class EntityDamageByChildEntityEvent extends EntityDamageByEntityEvent {
+public final class EntityDamageByChildEntityEvent extends EntityDamageByEntityEvent {
 
     private final Entity childEntity;
 

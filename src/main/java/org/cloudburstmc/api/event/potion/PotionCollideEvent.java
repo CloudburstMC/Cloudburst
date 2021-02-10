@@ -8,7 +8,7 @@ import org.cloudburstmc.api.potion.Potion;
  * Created by Snake1999 on 2016/1/12.
  * Package cn.nukkit.event.potion in project nukkit
  */
-public class PotionCollideEvent extends PotionEvent implements Cancellable {
+public final class PotionCollideEvent extends PotionEvent implements Cancellable {
 
     private final Projectile thrownPotion;
 

@@ -1,16 +1,17 @@
 package org.cloudburstmc.api.event.inventory;
 
 import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.inventory.Inventory;
-import org.cloudburstmc.server.inventory.InventoryHolder;
+
 
 /**
  * @author CreeperFace
  * <p>
  * Called when inventory transaction is not caused by a player
  */
-public class InventoryMoveItemEvent extends InventoryEvent implements Cancellable {
+public final class InventoryMoveItemEvent extends InventoryEvent implements Cancellable {
 
     private final Inventory targetInventory;
     private final InventoryHolder source;

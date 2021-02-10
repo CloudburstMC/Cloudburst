@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.server.inventory.BrewingInventory;
+import org.cloudburstmc.api.inventory.BrewingInventory;
 
 public interface BrewingStand extends BlockEntity, ContainerBlockEntity {
 

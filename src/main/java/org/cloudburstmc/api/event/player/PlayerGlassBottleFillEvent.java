@@ -5,7 +5,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerGlassBottleFillEvent extends PlayerEvent implements Cancellable {
+public final class PlayerGlassBottleFillEvent extends PlayerEvent implements Cancellable {
 
     protected final ItemStack item;
     protected final BlockState target;

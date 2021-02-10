@@ -2,13 +2,13 @@ package org.cloudburstmc.api.event.inventory;
 
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.server.inventory.Inventory;
+import org.cloudburstmc.api.inventory.Inventory;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
-public class InventoryPickupItemEvent extends InventoryEvent implements Cancellable {
+public final class InventoryPickupItemEvent extends InventoryEvent implements Cancellable {
 
     private final DroppedItem item;
 

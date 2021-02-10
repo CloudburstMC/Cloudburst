@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerBedLeaveEvent extends PlayerEvent {
+public final class PlayerBedLeaveEvent extends PlayerEvent {
 
     private final Block bed;
 

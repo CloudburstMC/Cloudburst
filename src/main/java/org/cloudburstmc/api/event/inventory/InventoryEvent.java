@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.event.inventory;
 
 import org.cloudburstmc.api.event.Event;
+import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.server.inventory.Inventory;
 
 /**
  * author: MagicDroidX

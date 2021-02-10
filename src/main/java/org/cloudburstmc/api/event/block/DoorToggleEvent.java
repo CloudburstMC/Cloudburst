@@ -8,7 +8,7 @@ import org.cloudburstmc.api.player.Player;
  * Created by Snake1999 on 2016/1/22.
  * Package cn.nukkit.event.block in project nukkit.
  */
-public class DoorToggleEvent extends BlockUpdateEvent implements Cancellable {
+public final class DoorToggleEvent extends BlockUpdateEvent implements Cancellable {
 
     private Player player;
 

@@ -7,7 +7,7 @@ import org.cloudburstmc.api.event.Cancellable;
 /**
  * @author CreeperFace
  */
-public class EntityInteractEvent extends EntityEvent implements Cancellable {
+public final class EntityInteractEvent extends EntityEvent implements Cancellable {
 
     private final Block block;
 

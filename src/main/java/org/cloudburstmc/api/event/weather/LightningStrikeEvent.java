@@ -8,7 +8,7 @@ import org.cloudburstmc.api.level.Level;
  * author: funcraft
  * Nukkit Project
  */
-public class LightningStrikeEvent extends WeatherEvent implements Cancellable {
+public final class LightningStrikeEvent extends WeatherEvent implements Cancellable {
 
     private final LightningBolt lightningBolt;
 

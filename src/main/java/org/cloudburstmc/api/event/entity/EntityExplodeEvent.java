@@ -11,7 +11,7 @@ import java.util.List;
  * author: Angelic47
  * Nukkit Project
  */
-public class EntityExplodeEvent extends EntityEvent implements Cancellable {
+public final class EntityExplodeEvent extends EntityEvent implements Cancellable {
 
     protected final Vector3f position;
     protected List<Block> blockStates;

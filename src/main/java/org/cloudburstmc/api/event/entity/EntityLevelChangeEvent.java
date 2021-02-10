@@ -8,7 +8,7 @@ import org.cloudburstmc.api.level.Level;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class EntityLevelChangeEvent extends EntityEvent implements Cancellable {
+public final class EntityLevelChangeEvent extends EntityEvent implements Cancellable {
 
     private final Level originLevel;
     private final Level targetLevel;

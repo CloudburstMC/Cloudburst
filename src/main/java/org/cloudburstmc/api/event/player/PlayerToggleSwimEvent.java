@@ -6,7 +6,7 @@ import org.cloudburstmc.api.player.Player;
 /**
  * @author CreeperFace
  */
-public class PlayerToggleSwimEvent extends PlayerEvent implements Cancellable {
+public final class PlayerToggleSwimEvent extends PlayerEvent implements Cancellable {
 
     private final boolean isSwimming;
 

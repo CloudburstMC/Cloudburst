@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class QueryRegenerateEvent extends ServerEvent {
+public final class QueryRegenerateEvent extends ServerEvent {
     //alot todo
 
     private static final Pattern PLUGIN_NAME_PATTERN = Pattern.compile("[;: ]");

@@ -4,7 +4,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerGameModeChangeEvent extends PlayerEvent implements Cancellable {
+public final class PlayerGameModeChangeEvent extends PlayerEvent implements Cancellable {
 
     protected final GameMode gamemode;
 

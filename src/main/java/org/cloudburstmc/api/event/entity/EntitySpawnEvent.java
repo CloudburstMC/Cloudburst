@@ -9,7 +9,7 @@ import org.cloudburstmc.api.level.Location;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class EntitySpawnEvent extends EntityEvent {
+public final class EntitySpawnEvent extends EntityEvent {
 
     public EntitySpawnEvent(Entity entity) {
         this.entity = entity;

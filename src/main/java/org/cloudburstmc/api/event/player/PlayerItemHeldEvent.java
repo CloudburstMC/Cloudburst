@@ -8,7 +8,7 @@ import org.cloudburstmc.api.player.Player;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class PlayerItemHeldEvent extends PlayerEvent implements Cancellable {
+public final class PlayerItemHeldEvent extends PlayerEvent implements Cancellable {
 
     private final ItemStack item;
     private final int hotbarSlot;

@@ -7,7 +7,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerDeathEvent extends EntityDeathEvent implements Cancellable {
+public final class PlayerDeathEvent extends EntityDeathEvent implements Cancellable {
 
     private TextContainer deathMessage;
     private boolean keepInventory = false;

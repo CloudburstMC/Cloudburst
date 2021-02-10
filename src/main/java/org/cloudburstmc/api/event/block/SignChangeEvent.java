@@ -8,7 +8,7 @@ import org.cloudburstmc.api.player.Player;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class SignChangeEvent extends BlockEvent implements Cancellable {
+public final class SignChangeEvent extends BlockEvent implements Cancellable {
 
     private final Player player;
 

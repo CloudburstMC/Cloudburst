@@ -7,7 +7,7 @@ import org.cloudburstmc.math.vector.Vector3f;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class SpawnChangeEvent extends LevelEvent {
+public final class SpawnChangeEvent extends LevelEvent {
 
     private final Vector3f previousSpawn;
 

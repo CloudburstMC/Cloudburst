@@ -11,7 +11,7 @@ import java.util.function.Consumer;
  *
  * @author CreeperFace
  */
-public class PlayerAsyncPreLoginEvent extends PlayerEvent {
+public final class PlayerAsyncPreLoginEvent extends PlayerEvent {
 
 //    private final PlayerLoginData loginData;
 

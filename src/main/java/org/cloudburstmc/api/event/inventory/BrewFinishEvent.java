@@ -7,14 +7,14 @@ import org.cloudburstmc.api.item.ItemStack;
 /**
  * @author CreeperFace
  */
-public class BrewEvent extends InventoryEvent implements Cancellable {
+public final class BrewFinishEvent extends InventoryEvent implements Cancellable {
 
     private final BrewingStand brewingStand;
     private final ItemStack ingredient;
     private final ItemStack[] potions;
     private final int fuel;
 
-    public BrewEvent(BrewingStand blockEntity) {
+    public BrewFinishEvent(BrewingStand blockEntity) {
         super(blockEntity.getInventory());
         this.brewingStand = blockEntity;
         this.fuel = blockEntity.getFuelAmount();

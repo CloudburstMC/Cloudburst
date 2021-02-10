@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-public class PlayerDataSerializeEvent extends ServerEvent {
+public final class PlayerDataSerializeEvent extends ServerEvent {
 
     private final Optional<String> name;
     private final Optional<UUID> uuid;

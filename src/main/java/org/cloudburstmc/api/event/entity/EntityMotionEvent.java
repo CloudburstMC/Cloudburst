@@ -8,7 +8,7 @@ import org.cloudburstmc.math.vector.Vector3f;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class EntityMotionEvent extends EntityEvent implements Cancellable {
+public final class EntityMotionEvent extends EntityEvent implements Cancellable {
 
     private final Vector3f motion;
 

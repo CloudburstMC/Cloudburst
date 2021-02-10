@@ -4,7 +4,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerDropItemEvent extends PlayerEvent implements Cancellable {
+public final class PlayerDropItemEvent extends PlayerEvent implements Cancellable {
 
     private final ItemStack drop;
 

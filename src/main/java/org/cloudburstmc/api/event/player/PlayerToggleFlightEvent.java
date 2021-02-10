@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerToggleFlightEvent extends PlayerEvent implements Cancellable {
+public final class PlayerToggleFlightEvent extends PlayerEvent implements Cancellable {
 
     protected final boolean isFlying;
 

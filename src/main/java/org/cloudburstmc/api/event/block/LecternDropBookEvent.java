@@ -5,7 +5,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 
-public class LecternDropBookEvent extends BlockEvent implements Cancellable {
+public final class LecternDropBookEvent extends BlockEvent implements Cancellable {
 
     private final Player player;
     private final Lectern lectern;

@@ -1,15 +1,15 @@
 package org.cloudburstmc.api.event.inventory;
 
 import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.server.inventory.Inventory;
 
 /**
  * author: boybook
  * Nukkit Project
  */
-public class InventoryClickEvent extends InventoryEvent implements Cancellable {
+public final class InventoryClickEvent extends InventoryEvent implements Cancellable {
 
     private final int slot;
     private final ItemStack sourceItem;

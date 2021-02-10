@@ -7,7 +7,7 @@ import org.cloudburstmc.api.level.Level;
  * Nukkit Project
  */
 @Deprecated()
-public class LevelInitEvent extends LevelEvent {
+public final class LevelInitEvent extends LevelEvent {
 
     public LevelInitEvent(Level level) {
         super(level);

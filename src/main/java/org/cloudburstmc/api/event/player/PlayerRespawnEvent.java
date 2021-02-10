@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerRespawnEvent extends PlayerEvent {
+public final class PlayerRespawnEvent extends PlayerEvent {
 
     private Location location;
 

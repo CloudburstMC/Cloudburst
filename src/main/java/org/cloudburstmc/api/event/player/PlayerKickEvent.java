@@ -4,7 +4,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerKickEvent extends PlayerEvent implements Cancellable {
+public final class PlayerKickEvent extends PlayerEvent implements Cancellable {
 
     public enum Reason {
         NEW_CONNECTION,

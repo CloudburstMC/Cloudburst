@@ -9,7 +9,7 @@ import org.cloudburstmc.api.event.Cancellable;
  * <p>
  * Called when a entity decides to explode
  */
-public class ExplosionPrimeEvent extends EntityEvent implements Cancellable {
+public final class ExplosionPrimeEvent extends EntityEvent implements Cancellable {
 
     protected double force;
     private boolean blockBreaking;

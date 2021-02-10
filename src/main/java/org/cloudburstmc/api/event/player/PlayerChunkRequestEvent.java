@@ -3,7 +3,7 @@ package org.cloudburstmc.api.event.player;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
 
-public class PlayerChunkRequestEvent extends PlayerEvent implements Cancellable {
+public final class PlayerChunkRequestEvent extends PlayerEvent implements Cancellable {
 
     private final int chunkX;
     private final int chunkZ;

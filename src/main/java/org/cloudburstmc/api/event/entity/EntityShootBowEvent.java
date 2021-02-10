@@ -9,7 +9,7 @@ import org.cloudburstmc.api.item.ItemStack;
  * author: Box
  * Nukkit Project
  */
-public class EntityShootBowEvent extends EntityEvent implements Cancellable {
+public final class EntityShootBowEvent extends EntityEvent implements Cancellable {
 
     private final ItemStack bow;
 

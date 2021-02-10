@@ -4,7 +4,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.Cancellable;
 
-public class EntityVehicleExitEvent extends EntityEvent implements Cancellable {
+public final class EntityVehicleExitEvent extends EntityEvent implements Cancellable {
 
     private final Vehicle vehicle;
 

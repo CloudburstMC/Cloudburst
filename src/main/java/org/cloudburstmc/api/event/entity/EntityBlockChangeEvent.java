@@ -8,7 +8,7 @@ import org.cloudburstmc.api.event.Cancellable;
 /**
  * Created on 15-10-26.
  */
-public class EntityBlockChangeEvent extends EntityEvent implements Cancellable {
+public final class EntityBlockChangeEvent extends EntityEvent implements Cancellable {
 
     private final Block block;
     private final BlockState to;

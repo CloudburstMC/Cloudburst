@@ -7,7 +7,7 @@ import org.cloudburstmc.api.player.Player;
 /**
  * Created by CreeperFace on 18.3.2017.
  */
-public class PlayerMapInfoRequestEvent extends PlayerEvent implements Cancellable {
+public final class PlayerMapInfoRequestEvent extends PlayerEvent implements Cancellable {
 
     private final ItemStack item;
 
