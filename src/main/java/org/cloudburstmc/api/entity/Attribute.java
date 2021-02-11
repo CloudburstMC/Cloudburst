@@ -1,14 +1,13 @@
 package org.cloudburstmc.api.entity;
-/*
+/**
   Attribute
 
   @author Box, MagicDroidX(code), PeratX @ Nukkit Project
  * @since Nukkit 1.0 | Nukkit API 1.0.0
  */
 
-import com.nukkitx.protocol.bedrock.data.AttributeData;
 import lombok.ToString;
-import org.cloudburstmc.server.utils.ServerException;
+import org.cloudburstmc.api.ServerException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -174,7 +173,4 @@ public class Attribute implements Cloneable {
         }
     }
 
-    public AttributeData toNetwork() {
-        return new AttributeData(name, minValue, maxValue, currentValue, defaultValue);
-    }
 }

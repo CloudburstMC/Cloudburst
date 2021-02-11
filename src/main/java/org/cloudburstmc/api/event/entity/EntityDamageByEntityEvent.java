@@ -9,7 +9,7 @@ import java.util.Map;
  * author: MagicDroidX
  * Nukkit Project
  */
-public final class EntityDamageByEntityEvent extends EntityDamageEvent {
+public class EntityDamageByEntityEvent extends EntityDamageEvent {
 
     private final Entity damager;
 

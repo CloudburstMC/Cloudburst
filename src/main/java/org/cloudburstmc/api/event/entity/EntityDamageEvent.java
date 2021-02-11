@@ -12,7 +12,7 @@ import java.util.Map;
  * author: MagicDroidX
  * Nukkit Project
  */
-public final class EntityDamageEvent extends EntityEvent implements Cancellable {
+public class EntityDamageEvent extends EntityEvent implements Cancellable {
 
     private int attackCooldown = 10;
     private final DamageCause cause;
