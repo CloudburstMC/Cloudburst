@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.server.inventory.ContainerInventory;
+import org.cloudburstmc.api.inventory.ContainerInventory;
 
 public interface Chest extends BlockEntity, ContainerBlockEntity {
 

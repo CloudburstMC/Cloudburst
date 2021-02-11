@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.server.inventory.ShulkerBoxInventory;
+import org.cloudburstmc.api.inventory.ContainerInventory;
 
 public interface ShulkerBox extends BlockEntity, ContainerBlockEntity {
 
     @Override
-    ShulkerBoxInventory getInventory();
+    ContainerInventory getInventory();
 }

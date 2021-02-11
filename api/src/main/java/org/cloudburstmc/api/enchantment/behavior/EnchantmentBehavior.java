@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.enchantment.behavior;
 
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 

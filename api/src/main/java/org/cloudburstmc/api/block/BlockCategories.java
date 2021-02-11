@@ -439,11 +439,11 @@ public class BlockCategories {
         categoryMap.get(category).addAll(Arrays.asList(types));
     }
 
-    public boolean inCategory(BlockType type, BlockCategory category) {
+    public static boolean inCategory(BlockType type, BlockCategory category) {
         return categoryMap.get(category).contains(type);
     }
 
-    public boolean inCategories(BlockType type, BlockCategory... categories) {
+    public static boolean inCategories(BlockType type, BlockCategory... categories) {
         for (BlockCategory category : categories) {
             if (!inCategory(type, category)) {
                 return false;

@@ -7,7 +7,7 @@ import org.cloudburstmc.api.event.Cancellable;
  * author: MagicDroidX
  * Nukkit Project
  */
-public final class EntityCombustEvent extends EntityEvent implements Cancellable {
+public class EntityCombustEvent extends EntityEvent implements Cancellable {
 
     protected int duration;
 
