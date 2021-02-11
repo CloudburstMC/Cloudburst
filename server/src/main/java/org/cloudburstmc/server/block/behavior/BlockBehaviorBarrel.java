@@ -8,7 +8,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.inventory.ContainerInventory;
+import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -89,7 +89,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Barrel) {
-            return ContainerInventory.calculateRedstone(((Barrel) blockEntity).getInventory());
+            return CloudContainer.calculateRedstone(((Barrel) blockEntity).getInventory());
         }
 
         return super.getComparatorInputOverride(block);

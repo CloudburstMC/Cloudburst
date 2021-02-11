@@ -11,7 +11,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 /**
  * Created by PetteriM1
  */
-public class ShulkerBoxInventory extends ContainerInventory {
+public class ShulkerBoxInventory extends CloudContainer {
 
     public ShulkerBoxInventory(ShulkerBoxBlockEntity box) {
         super(box, InventoryType.SHULKER_BOX);

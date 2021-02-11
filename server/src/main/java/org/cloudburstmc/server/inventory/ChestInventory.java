@@ -10,7 +10,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class ChestInventory extends ContainerInventory {
+public class ChestInventory extends CloudContainer {
 
     protected DoubleChestInventory doubleInventory;
 
@@ -31,7 +31,7 @@ public class ChestInventory extends ContainerInventory {
             CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.CHEST_OPEN);
-                ContainerInventory.sendBlockEventPacket(this.getHolder(), 1);
+                CloudContainer.sendBlockEventPacket(this.getHolder(), 1);
             }
         }
     }
@@ -42,7 +42,7 @@ public class ChestInventory extends ContainerInventory {
             CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.CHEST_CLOSED);
-                ContainerInventory.sendBlockEventPacket(this.getHolder(), 0);
+                CloudContainer.sendBlockEventPacket(this.getHolder(), 0);
             }
         }
         super.onClose(who);
