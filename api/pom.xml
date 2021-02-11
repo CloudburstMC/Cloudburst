@@ -5,7 +5,7 @@
     <name>Cloudburst API</name>
     <groupId>org.cloudburstmc</groupId>
     <artifactId>cloudburst-api</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.1-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -38,20 +38,6 @@
             </snapshots>
         </repository>
     </repositories>
-
-
-    <distributionManagement>
-        <repository>
-            <id>releases</id>
-            <name>opencollab-releases</name>
-            <url>https://repo.opencollab.dev/maven-releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>opencollab-snapshots</name>
-            <url>https://repo.opencollab.dev/maven-snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <dependencies>
         <!-- Annotations -->

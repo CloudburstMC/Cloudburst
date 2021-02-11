@@ -28,10 +28,28 @@ pipeline {
                 }
             }
             steps {
-                sh 'mvn javadoc:javadoc javadoc:jar source:jar deploy -DskipTests'
-                step([$class: 'JavadocArchiver',
-                      javadocDir: 'target/site/apidocs',
-                      keepAll: false])
+                 rtMavenDeployer (
+                        id: "maven-deployer",
+                        serverId: "opencollab-artifactory",
+                        releaseRepo: "maven-releases",
+                        snapshotRepo: "maven-snapshots"
+                 )
+                 rtMavenResolver (
+                        id: "maven-resolver",
+                        serverId: "opencollab-artifactory",
+                        releaseRepo: "release",
+                        snapshotRepo: "snapshot"
+                )
+                rtMavenRun (
+                        pom: 'pom.xml',
+                        goals: 'javadoc:javadoc javadoc:jar source:jar install -DskipTests',
+                        deployerId: "maven-deployer",
+                        resolverId: "maven-resolver"
+                )
+                rtPublishBuildInfo (
+                        serverId: "opencollab-artifactory"
+                )
+                step([$class: 'JavadocArchiver', javadocDir: 'target/site/apidocs', keepAll: false])
             }
         }
     }
