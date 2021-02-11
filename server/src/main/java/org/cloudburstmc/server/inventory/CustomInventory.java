@@ -10,7 +10,7 @@ import java.util.Map;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class CustomInventory extends ContainerInventory {
+public abstract class CustomInventory extends CloudContainer {
     public CustomInventory(InventoryHolder holder, InventoryType type) {
         super(holder, type);
     }

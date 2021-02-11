@@ -46,7 +46,7 @@ public class PlayerEnderChestInventory extends BaseInventory {
             CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition().add(0.5, 0.5, 0.5), SoundEvent.ENDERCHEST_OPEN);
-                ContainerInventory.sendBlockEventPacket(level.getBlockEntity(chest.getPosition()), 1);
+                CloudContainer.sendBlockEventPacket(level.getBlockEntity(chest.getPosition()), 1);
             }
         }
     }
@@ -63,7 +63,7 @@ public class PlayerEnderChestInventory extends BaseInventory {
             CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition().add(0.5, 0.5, 0.5), SoundEvent.ENDERCHEST_CLOSED);
-                ContainerInventory.sendBlockEventPacket(level.getBlockEntity(chest.getPosition()), 0);
+                CloudContainer.sendBlockEventPacket(level.getBlockEntity(chest.getPosition()), 0);
             }
 
             who.setViewingEnderChest(null);

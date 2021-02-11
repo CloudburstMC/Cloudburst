@@ -17,6 +17,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.ServerException;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.event.server.*;

@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.utils;
 
+import org.cloudburstmc.api.ServerException;
+
 /**
  * author: MagicDroidX
  * Nukkit Project

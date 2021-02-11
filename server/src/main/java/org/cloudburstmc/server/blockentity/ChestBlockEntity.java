@@ -11,7 +11,7 @@ import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.inventory.ChestInventory;
-import org.cloudburstmc.server.inventory.ContainerInventory;
+import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.inventory.DoubleChestInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -122,7 +122,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
 
 
     @Override
-    public ContainerInventory getInventory() {
+    public CloudContainer getInventory() {
         if (this.doubleInventory == null && this.isPaired()) {
             this.checkPairing();
         }

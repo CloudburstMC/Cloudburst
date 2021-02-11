@@ -4,7 +4,7 @@ import org.cloudburstmc.api.blockentity.BrewingStand;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 
-public class BrewingInventory extends ContainerInventory {
+public class BrewingInventory extends CloudContainer {
 
     public static final int SLOT_INGREDIENT = 0;
     public static final int SLOT_FUEL = 4;
