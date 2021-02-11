@@ -19,7 +19,7 @@ import java.util.Map;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class DoubleChestInventory extends ContainerInventory implements InventoryHolder {
+public class DoubleChestInventory extends CloudContainer implements InventoryHolder {
 
     private final ChestInventory left;
     private final ChestInventory right;
@@ -121,7 +121,7 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
         if (this.getViewers().size() == 1) {
             CloudLevel level = this.left.getHolder().getLevel();
             if (level != null) {
-                ContainerInventory.sendBlockEventPacket(this.right.getHolder(), 1);
+                CloudContainer.sendBlockEventPacket(this.right.getHolder(), 1);
                 level.addLevelSoundEvent(this.left.getHolder().getPosition(), SoundEvent.CHEST_OPEN);
             }
         }
@@ -132,7 +132,7 @@ public class DoubleChestInventory extends ContainerInventory implements Inventor
         if (this.getViewers().size() == 1) {
             CloudLevel level = this.right.getHolder().getLevel();
             if (level != null) {
-                ContainerInventory.sendBlockEventPacket(this.right.getHolder(), 0);
+                CloudContainer.sendBlockEventPacket(this.right.getHolder(), 0);
                 level.addLevelSoundEvent(this.right.getHolder().getPosition(), SoundEvent.CHEST_CLOSED);
             }
         }

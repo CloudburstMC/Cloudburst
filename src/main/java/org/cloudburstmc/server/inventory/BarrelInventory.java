@@ -10,7 +10,7 @@ import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class BarrelInventory extends ContainerInventory {
+public class BarrelInventory extends CloudContainer {
 
     public BarrelInventory(Barrel barrelEntity) {
         super(barrelEntity, InventoryType.BARREL);
