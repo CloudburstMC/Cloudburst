@@ -1,12 +1,14 @@
 package org.cloudburstmc.api.potion;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @RequiredArgsConstructor
 @Builder
 public class PotionType {
-    @NonNull
     private final int networkId;
     private final EffectType type;
     private final int level;
