@@ -5,6 +5,7 @@ import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.inventory.ContainerInventory;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.InventoryType;
@@ -22,20 +23,20 @@ import static org.cloudburstmc.api.block.BlockTypes.AIR;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class ContainerInventory extends BaseInventory {
-    public ContainerInventory(InventoryHolder holder, InventoryType type) {
+public abstract class CloudContainer extends BaseInventory implements ContainerInventory {
+    public CloudContainer(InventoryHolder holder, InventoryType type) {
         super(holder, type);
     }
 
-    public ContainerInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items) {
+    public CloudContainer(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items) {
         super(holder, type, items);
     }
 
-    public ContainerInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize) {
+    public CloudContainer(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize) {
         super(holder, type, items, overrideSize);
     }
 
-    public ContainerInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize, String overrideTitle) {
+    public CloudContainer(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize, String overrideTitle) {
         super(holder, type, items, overrideSize, overrideTitle);
     }
 

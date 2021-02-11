@@ -10,7 +10,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.inventory.ContainerInventory;
+import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.Direction.Axis;
@@ -143,7 +143,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Chest) {
-            return ContainerInventory.calculateRedstone(((Chest) blockEntity).getInventory());
+            return CloudContainer.calculateRedstone(((Chest) blockEntity).getInventory());
         }
 
         return super.getComparatorInputOverride(block);

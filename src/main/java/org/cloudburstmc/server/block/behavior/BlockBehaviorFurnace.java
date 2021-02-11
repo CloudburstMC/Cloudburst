@@ -7,7 +7,7 @@ import org.cloudburstmc.api.blockentity.Furnace;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.inventory.ContainerInventory;
+import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -87,7 +87,7 @@ public class BlockBehaviorFurnace extends BlockBehaviorSolid {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Furnace) {
-            return ContainerInventory.calculateRedstone(((Furnace) blockEntity).getInventory());
+            return CloudContainer.calculateRedstone(((Furnace) blockEntity).getInventory());
         }
 
         return super.getComparatorInputOverride(block);

@@ -8,7 +8,7 @@ import org.cloudburstmc.api.item.ItemStack;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class FurnaceInventory extends ContainerInventory {
+public class FurnaceInventory extends CloudContainer {
 
     public static final int SLOT_SMELTING = 0;
     public static final int SLOT_FUEL = 1;

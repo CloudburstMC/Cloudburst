@@ -8,7 +8,7 @@ import org.cloudburstmc.api.blockentity.BrewingStand;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.inventory.ContainerInventory;
+import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.TierTypes;
@@ -93,7 +93,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof BrewingStand) {
-            return ContainerInventory.calculateRedstone(((BrewingStand) blockEntity).getInventory());
+            return CloudContainer.calculateRedstone(((BrewingStand) blockEntity).getInventory());
         }
 
         return super.getComparatorInputOverride(block);

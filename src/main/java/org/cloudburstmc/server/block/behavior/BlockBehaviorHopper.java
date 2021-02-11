@@ -9,7 +9,7 @@ import org.cloudburstmc.api.blockentity.Hopper;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.inventory.ContainerInventory;
+import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.TierTypes;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -59,7 +59,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
 
         if (blockEntity instanceof Hopper) {
-            return ContainerInventory.calculateRedstone(((Hopper) blockEntity).getInventory());
+            return CloudContainer.calculateRedstone(((Hopper) blockEntity).getInventory());
         }
 
         return super.getComparatorInputOverride(block);

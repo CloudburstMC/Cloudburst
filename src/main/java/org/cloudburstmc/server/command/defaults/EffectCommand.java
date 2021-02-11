@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.ServerException;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
@@ -10,7 +11,6 @@ import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.potion.InstantEffect;
-import org.cloudburstmc.server.utils.ServerException;
 import org.cloudburstmc.server.utils.TextFormat;
 
 /**
