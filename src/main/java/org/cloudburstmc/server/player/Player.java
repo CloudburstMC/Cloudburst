@@ -93,8 +93,11 @@ import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.registry.ItemRegistry;
+import org.cloudburstmc.server.scoreboard.Scoreboard;
+import org.cloudburstmc.server.scoreboard.impl.CloudScoreboard;
 import org.cloudburstmc.server.utils.*;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.*;
@@ -220,6 +223,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
     public FishingHook fishing = null;
 
     private final PlayerChunkManager chunkManager = new PlayerChunkManager(this);
+
+    private Scoreboard scoreboard;
 
     public int packetsRecieved;
 
@@ -2008,6 +2013,10 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
                 if (this.fishing != null) {
                     this.stopFishing(false);
                 }
+                if (this.scoreboard != null) {
+                    ((CloudScoreboard) this.scoreboard).getPlayers().remove(this);
+                    this.scoreboard = null;
+                }
             }
 
             for (Player player : new ArrayList<>(this.server.getOnlinePlayers().values())) {
@@ -3341,6 +3350,33 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
         }
 
         return false;
+    }
+
+    /**
+     * Gets the current {@link Scoreboard} of
+     * the player
+     *
+     * @return the current scoreboard of the player
+     */
+    @Nullable
+    public Scoreboard getScoreboard() {
+        return this.scoreboard;
+    }
+
+    /**
+     * Sets the player's {@link Scoreboard} to the
+     * specified scoreboard
+     *
+     * @param scoreboard the scoreboard to set
+     */
+    public void setScoreboard(@Nullable Scoreboard scoreboard) {
+        if (this.scoreboard != null) {
+            ((CloudScoreboard) this.scoreboard).hide(this);
+        }
+        if (scoreboard != null) {
+            ((CloudScoreboard) scoreboard).show(this);
+        }
+        this.scoreboard = scoreboard;
     }
 
     @Override
