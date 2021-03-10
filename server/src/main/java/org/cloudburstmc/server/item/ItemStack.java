@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item;
 
+import com.nukkitx.math.GenericMath;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.behavior.ItemBehavior;
 import org.cloudburstmc.server.registry.CloudItemRegistry;

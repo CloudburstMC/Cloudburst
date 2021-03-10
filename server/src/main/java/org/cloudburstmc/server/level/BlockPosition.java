@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.level;
 
-import org.cloudburstmc.math.vector.Vector3i;
+import com.nukkitx.math.vector.Vector3i;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

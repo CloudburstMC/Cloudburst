@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.item.behavior;
 
+import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
@@ -13,7 +14,6 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.CloudBlockState;
 import org.cloudburstmc.server.item.BlockItemStack;
 import org.cloudburstmc.server.registry.BlockRegistry;

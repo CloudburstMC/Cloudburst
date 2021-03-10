@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
@@ -8,7 +9,6 @@ import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.inventory.InventoryOpenEvent;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.InventoryType;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 public class FakeBlockUIComponent extends PlayerUIComponent {

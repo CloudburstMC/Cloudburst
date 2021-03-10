@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.misc;
 
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
@@ -8,7 +9,6 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 

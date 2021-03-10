@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.block.behavior;
 
+import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.level.CloudLevel;

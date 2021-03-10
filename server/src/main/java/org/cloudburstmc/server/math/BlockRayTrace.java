@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.math;
 
 import com.google.common.base.Preconditions;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 
 import javax.annotation.Nonnull;
 import java.util.Iterator;
