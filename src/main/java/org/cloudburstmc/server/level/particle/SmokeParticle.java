@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.level.particle;
 
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 
 /**
  * Created on 2015/11/21 by xtypr.

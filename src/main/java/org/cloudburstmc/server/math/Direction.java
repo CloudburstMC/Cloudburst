@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.math;
 
 import com.google.common.collect.Iterators;
+import com.nukkitx.math.vector.Vector3i;
 import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.utils.data.CardinalDirection;
 
 import javax.annotation.Nonnull;

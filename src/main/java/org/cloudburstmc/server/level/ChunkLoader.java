@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.level;
 
-import org.cloudburstmc.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 /**
