@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
@@ -7,7 +8,6 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.event.block.SignChangeEvent;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;

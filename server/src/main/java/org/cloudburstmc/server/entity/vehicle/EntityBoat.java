@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.vehicle;
 
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
@@ -17,7 +18,6 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.api.util.data.TreeSpecies;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
 import org.cloudburstmc.server.entity.BaseEntity;

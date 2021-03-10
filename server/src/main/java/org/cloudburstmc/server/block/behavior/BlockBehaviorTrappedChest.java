@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
+import com.nukkitx.math.GenericMath;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.Chest;
-import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.math.Direction;
 
 public class BlockBehaviorTrappedChest extends BlockBehaviorChest {

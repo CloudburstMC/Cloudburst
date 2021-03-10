@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.command;
 
+import com.nukkitx.math.vector.Vector3f;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permissible;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.utils.TextFormat;

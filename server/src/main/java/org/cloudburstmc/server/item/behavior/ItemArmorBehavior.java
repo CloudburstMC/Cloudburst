@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.item.behavior;
 
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.item.ArmorPartType;
 import org.cloudburstmc.server.item.ArmorPartTypes;
 import org.cloudburstmc.server.item.TierType;

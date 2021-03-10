@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.level.particle;
 
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.math.Direction;

@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.level;
 
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import lombok.extern.log4j.Log4j2;
@@ -17,8 +19,6 @@ import org.cloudburstmc.api.event.entity.EntityExplodeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorTNT;

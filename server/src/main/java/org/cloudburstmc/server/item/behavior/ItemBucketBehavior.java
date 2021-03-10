@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.item.behavior;
 
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.val;
@@ -9,7 +10,6 @@ import org.cloudburstmc.api.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.api.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.api.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
