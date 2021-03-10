@@ -1,12 +1,12 @@
 package org.cloudburstmc.api.item;
 
+import com.nukkitx.math.GenericMath;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.behavior.ItemBehavior;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.math.GenericMath;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

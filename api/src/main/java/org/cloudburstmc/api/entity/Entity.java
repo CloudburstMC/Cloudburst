@@ -1,5 +1,7 @@
 package org.cloudburstmc.api.entity;
 
+import com.nukkitx.math.vector.Vector2f;
+import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.entity.passive.Bat;
@@ -15,8 +17,6 @@ import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.MountType;
-import org.cloudburstmc.math.vector.Vector2f;
-import org.cloudburstmc.math.vector.Vector3f;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;

@@ -2,9 +2,9 @@ package org.cloudburstmc.api.potion;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.HashMap;
 

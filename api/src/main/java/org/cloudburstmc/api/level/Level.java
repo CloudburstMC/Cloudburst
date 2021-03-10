@@ -1,5 +1,8 @@
 package org.cloudburstmc.api.level;
 
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.math.vector.Vector4i;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
@@ -10,9 +13,6 @@ import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.math.vector.Vector4i;
 
 import java.util.Map;
 import java.util.Set;

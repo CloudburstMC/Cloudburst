@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.util;
 
-import org.cloudburstmc.math.GenericMath;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
+import com.nukkitx.math.GenericMath;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 
 
 public interface AxisAlignedBB extends Cloneable {
