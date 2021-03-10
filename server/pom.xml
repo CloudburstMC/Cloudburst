@@ -10,6 +10,7 @@
     <properties>
         <api-version>0.0.3-SNAPSHOT</api-version>
         <protocol.version>2.6.2-SNAPSHOT</protocol.version>
+        <protocol.number>428</protocol.number>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <junit.jupiter.version>5.0.0-M4</junit.jupiter.version>
@@ -266,8 +267,8 @@
         <!-- Miscellaneous -->
         <dependency>
             <groupId>com.nukkitx.protocol</groupId>
-            <artifactId>bedrock-v428</artifactId>
-            <version>2.6.2-SNAPSHOT</version>
+            <artifactId>bedrock-v${protocol.number}</artifactId>
+            <version>${protocol.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.nukkitx</groupId>
