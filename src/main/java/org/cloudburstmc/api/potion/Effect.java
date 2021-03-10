@@ -1,10 +1,10 @@
 package org.cloudburstmc.api.potion;
 
+import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.NonNull;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.math.vector.Vector3i;
 
 @Getter
 public abstract class Effect {

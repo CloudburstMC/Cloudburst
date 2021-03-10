@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.potion;
 
+import com.nukkitx.math.vector.Vector3i;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.util.Identifiers;
-import org.cloudburstmc.math.vector.Vector3i;
 
 @UtilityClass
 public class EffectTypes {

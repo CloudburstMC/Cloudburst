@@ -1,10 +1,10 @@
 package org.cloudburstmc.api.block;
 
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.math.vector.Vector4i;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.math.vector.Vector4i;
 
 public interface Block extends BlockSnapshot {
 
