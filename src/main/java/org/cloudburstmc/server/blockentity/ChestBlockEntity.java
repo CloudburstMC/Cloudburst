@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -9,7 +10,6 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.inventory.ChestInventory;
 import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.inventory.DoubleChestInventory;

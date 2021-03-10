@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -16,7 +17,6 @@ import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.inventory.HopperInventory;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.cloudburstmc.math.vector.Vector3i.UP;
+import static com.nukkitx.math.vector.Vector3i.UP;
 
 /**
  * Created by CreeperFace on 8.5.2017.

@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.player;
 
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.player.GameMode;
-import org.cloudburstmc.math.vector.Vector3i;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

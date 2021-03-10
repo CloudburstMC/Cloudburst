@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.block;
 
+import com.nukkitx.math.vector.Vector3i;
 import lombok.ToString;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockSnapshot;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.Direction;

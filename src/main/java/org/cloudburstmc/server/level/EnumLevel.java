@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.level;
 
+import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.CloudServer;
 
 @Log4j2

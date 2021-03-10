@@ -2,6 +2,7 @@ package org.cloudburstmc.server.blockentity;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -13,7 +14,6 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;

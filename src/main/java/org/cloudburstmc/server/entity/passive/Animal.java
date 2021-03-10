@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.entity.passive;
 
+import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.entity.EntityAgeable;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.EntityCreature;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.player.CloudPlayer;

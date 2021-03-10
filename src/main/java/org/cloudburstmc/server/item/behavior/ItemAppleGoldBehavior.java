@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item.behavior;
 
+import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 /**

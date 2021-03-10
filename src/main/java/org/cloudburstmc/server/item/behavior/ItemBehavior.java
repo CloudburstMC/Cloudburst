@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.item.behavior;
 
+import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.item.ToolType;

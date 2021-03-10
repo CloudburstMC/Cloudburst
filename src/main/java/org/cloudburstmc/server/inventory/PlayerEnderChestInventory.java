@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.inventory;
 
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.inventory.InventoryType;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;

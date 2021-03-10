@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.*;
 import com.nukkitx.nbt.util.stream.LittleEndianDataInputStream;
 import com.nukkitx.nbt.util.stream.LittleEndianDataOutputStream;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.level.gamerule.GameRule;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.LevelData;
 import org.cloudburstmc.server.level.provider.LevelDataSerializer;
 import org.cloudburstmc.server.registry.CloudGameRuleRegistry;

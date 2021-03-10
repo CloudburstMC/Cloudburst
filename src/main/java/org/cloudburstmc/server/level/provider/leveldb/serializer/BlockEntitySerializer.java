@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NBTInputStream;
 import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
@@ -9,7 +10,6 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.registry.RegistryException;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
 import org.cloudburstmc.server.level.chunk.CloudChunk;

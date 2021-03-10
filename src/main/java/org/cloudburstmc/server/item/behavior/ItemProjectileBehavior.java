@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.item.behavior;
 
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -8,7 +9,6 @@ import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.projectile.EntityEnderPearl;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
