@@ -4,9 +4,9 @@ import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerFoodLevelChangeEvent;
+import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.item.food.Food;
-import org.cloudburstmc.server.level.Difficulty;
 import org.cloudburstmc.server.potion.CloudEffect;
 
 /**
