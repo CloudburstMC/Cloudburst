@@ -22,6 +22,7 @@ import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.event.server.*;
 import org.cloudburstmc.api.inventory.Recipe;
+import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permissible;

@@ -14,12 +14,15 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ShulkerBox;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.blockentity.ShulkerBoxBlockEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.blockentity.BlockEntityTypes.SHULKER_BOX;
 
@@ -35,24 +38,24 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
         val be = block.getLevel().getBlockEntity(block.getPosition());
 
         var tag = NbtMap.EMPTY;
-        if ((be instanceof ShulkerBox)) {
-            ShulkerBox shulkerBox = (ShulkerBox) be;
+        if ((be instanceof ShulkerBoxBlockEntity)) {
+            ShulkerBoxBlockEntity shulkerBox = (ShulkerBoxBlockEntity) be;
 
             NbtMapBuilder tagBuilder = NbtMap.builder();
             shulkerBox.saveAdditionalData(tagBuilder);
             tag = tagBuilder.build();
         }
 
-        return new CloudItemStackBuilder(ItemStack.get(block.getState()))
+        return new CloudItemStackBuilder(CloudItemRegistry.get().getItem(block.getState()))
                 .dataTag(tag)
                 .build();
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         placeBlock(block, item);
 
-        ShulkerBox shulkerBox = BlockEntityRegistry.get().newEntity(SHULKER_BOX, block);
+        ShulkerBoxBlockEntity shulkerBox = (ShulkerBoxBlockEntity) BlockEntityRegistry.get().newEntity(SHULKER_BOX, block);
         shulkerBox.loadAdditionalData(((CloudItemStack) item).getNbt());
         if (item.getName() != null) {
             shulkerBox.setCustomName(item.getName());
@@ -62,7 +65,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             ShulkerBox box;
@@ -73,7 +76,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
                 box = BlockEntityRegistry.get().newEntity(SHULKER_BOX, block);
             }
 
-            player.addWindow(box.getInventory());
+            ((CloudPlayer) player).addWindow(box.getInventory());
         }
 
         return true;

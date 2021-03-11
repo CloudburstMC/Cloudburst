@@ -4,17 +4,16 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import lombok.val;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.SlabSlot;
-import org.cloudburstmc.server.utils.data.StoneSlabType;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.SlabSlot;
+import org.cloudburstmc.api.util.data.StoneSlabType;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.EnumMap;
 
@@ -72,14 +71,14 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().resetTrait(BlockTraits.SLAB_SLOT).getType());
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         boolean isTop;
 
-        val state = item.getBehavior().getBlock(item).defaultState();
+        val state = item.getBehavior().getBlock(item).getType().getDefaultState();
         val blockState = block.getState();
         val targetState = target.getState();
 
@@ -150,7 +149,7 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
         pk.setRelativeVolumeDisabled(false);
 
 
-        block.getLevel().addChunkPacket(block.getPosition(), pk);
+        ((CloudLevel) block.getLevel()).addChunkPacket(block.getPosition(), pk);
     }
 
     @Override
