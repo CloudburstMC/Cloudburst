@@ -148,19 +148,19 @@ public abstract class BlockBehavior {
         return placeBlock(block, item);
     }
 
-    public boolean placeBlock(Block block, ItemStack item) {
+    protected boolean placeBlock(Block block, ItemStack item) {
         return placeBlock(block, item, true);
     }
 
-    public boolean placeBlock(Block block, ItemStack item, boolean update) {
+    protected boolean placeBlock(Block block, ItemStack item, boolean update) {
         return placeBlock(block, item.getBehavior().getBlock(item), update);
     }
 
-    public boolean placeBlock(Block block, BlockState newState) {
+    protected boolean placeBlock(Block block, BlockState newState) {
         return placeBlock(block, newState, true);
     }
 
-    public abstract boolean placeBlock(Block block, BlockState newState, boolean update);
+    protected abstract boolean placeBlock(Block block, BlockState newState, boolean update);
 
     public boolean onBreak(Block block, ItemStack item) {
         return removeBlock(block, true);

@@ -2,6 +2,7 @@ package org.cloudburstmc.api;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.cloudburstmc.api.event.EventManager;
+import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.permission.PermissionManager;
 import org.cloudburstmc.api.player.GameMode;
@@ -54,4 +55,6 @@ public interface Server {
     int getPort();
 
     String getIp();
+
+    Difficulty getDifficulty();
 }
