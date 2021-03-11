@@ -114,12 +114,12 @@
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-common</artifactId>
-            <version>8.3.1</version>
+            <version>8.5.2</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-reference-sets</artifactId>
-            <version>8.3.1</version>
+            <version>8.5.2</version>
         </dependency>
 
         <dependency>

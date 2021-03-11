@@ -6,6 +6,7 @@ import com.nukkitx.math.vector.Vector4i;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -230,9 +231,15 @@ public interface Level {
 
     Block[] getCollisionBlocks(AxisAlignedBB bb);
 
+    Entity[] getCollidingEntities(AxisAlignedBB bb, Entity target);
+
     int getTickRate();
 
     boolean hasCollision(Entity entity, AxisAlignedBB bb, boolean entities);
 
     Entity getEntity(long runtimeId);
+
+    BlockEntity getBlockEntity(Vector3i position);
+
+    boolean canBlockSeeSky(Vector3i position);
 }
