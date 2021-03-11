@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.event.block.BlockBurnEvent;
 import org.cloudburstmc.api.event.block.BlockFadeEvent;
 import org.cloudburstmc.api.event.block.BlockIgniteEvent;
@@ -11,19 +11,16 @@ import org.cloudburstmc.api.event.entity.EntityCombustByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Direction.Plane;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.item.ItemStacks;
-import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.Direction.Plane;
-import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.SlabSlot;
+import org.cloudburstmc.server.registry.BlockRegistry;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -37,12 +34,12 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
     @Override
     public void onEntityCollide(Block block, Entity entity) {
-        if (!entity.hasEffect(CloudEffect.FIRE_RESISTANCE)) {
+        if (!entity.hasEffect(EffectTypes.FIRE_RESISTANCE)) {
             entity.attack(new EntityDamageByBlockEvent(block, entity, EntityDamageEvent.DamageCause.FIRE, 1));
         }
 
         EntityCombustByBlockEvent ev = new EntityCombustByBlockEvent(block, entity, 8);
-        if (entity instanceof EntityArrow) {
+        if (entity instanceof Arrow) {
             ev.setCancelled();
         }
         CloudServer.getInstance().getEventManager().fire(ev);
@@ -61,17 +58,17 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
         val level = block.getLevel();
         val position = block.getPosition();
 
-        if (type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_RANDOM) {
+        if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_RANDOM) {
             if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.down().getState()) && !BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockStates.AIR);
                 level.getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
-                    level.setBlock(position, event.getNewState(), true);
+                    level.setBlockAt(position, event.getNewState(), true);
                 }
             }
 
-            return CloudLevel.BLOCK_UPDATE_NORMAL;
-        } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED && level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
+            return Level.BLOCK_UPDATE_NORMAL;
+        } else if (type == Level.BLOCK_UPDATE_SCHEDULED && level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
             val down = block.down().getState();
             boolean forever = down.getType() == BlockTypes.NETHERRACK || down.getType() == BlockTypes.MAGMA;
 
@@ -80,10 +77,10 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
             //TODO: END
 
             if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(down) && !BlockBehaviorFire.canNeighborBurn(block)) {
-                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockRegistry.get().getBlock(BlockTypes.AIR));
                 level.getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
-                    level.setBlock(position, event.getNewState(), true);
+                    level.setBlockAt(position, event.getNewState(), true);
                 }
             }
 
@@ -94,7 +91,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                             level.canBlockSeeSky(position.south()) ||
                             level.canBlockSeeSky(position.north()))
             ) {
-                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockRegistry.get().getBlock(BlockTypes.AIR));
                 level.getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
                     block.set(event.getNewState(), true);
@@ -108,21 +105,21 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                     block.set(state.withTrait(BlockTraits.AGE, Math.min(newAge, 15)));
                 }
 
-                level.scheduleUpdate(block, this.tickRate() + random.nextInt(10));
+                level.scheduleUpdate(block.getPosition(), this.tickRate() + random.nextInt(10));
 
                 if (!forever && !BlockBehaviorFire.canNeighborBurn(block)) {
                     if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(down) || age > 3) {
-                        BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
+                        BlockFadeEvent event = new BlockFadeEvent(block, BlockRegistry.get().getBlock(BlockTypes.AIR));
                         level.getServer().getEventManager().fire(event);
                         if (!event.isCancelled()) {
-                            level.setBlock(position, event.getNewState(), true);
+                            level.setBlockAt(position, event.getNewState(), true);
                         }
                     }
                 } else if (!forever && !(down.getBehavior().getBurnAbility(down) > 0) && age == 15 && random.nextInt(4) == 0) {
-                    BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.AIR));
+                    BlockFadeEvent event = new BlockFadeEvent(block, BlockRegistry.get().getBlock(BlockTypes.AIR));
                     level.getServer().getEventManager().fire(event);
                     if (!event.isCancelled()) {
-                        level.setBlock(position, event.getNewState(), true);
+                        level.setBlockAt(position, event.getNewState(), true);
                     }
                 } else {
                     int o = 0;
@@ -166,8 +163,8 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                                             level.getServer().getEventManager().fire(e);
 
                                             if (!e.isCancelled()) {
-                                                blockState.set(BlockState.get(BlockTypes.FIRE).withTrait(BlockTraits.AGE, age_));
-                                                level.scheduleUpdate(blockState, this.tickRate());
+                                                blockState.set(BlockRegistry.get().getBlock(BlockTypes.FIRE).withTrait(BlockTraits.AGE, age_));
+                                                level.scheduleUpdate(blockState.getPosition(), this.tickRate());
                                             }
                                         }
                                     }
@@ -203,8 +200,8 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                 block.getLevel().getServer().getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
-                    block.set(BlockState.get(BlockTypes.FIRE).withTrait(BlockTraits.AGE, meta), true);
-                    block.getLevel().scheduleUpdate(block, this.tickRate());
+                    block.set(BlockRegistry.get().getBlock(BlockTypes.FIRE).withTrait(BlockTraits.AGE, meta), true);
+                    block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
                 }
             } else {
                 BlockBurnEvent ev = new BlockBurnEvent(block);

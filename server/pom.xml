@@ -81,11 +81,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>com.nukkitx.fastutil</groupId>
-                    <artifactId>fastutil-int-common</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.nukkitx.fastutil</groupId>
-                    <artifactId>fastutil-reference-sets</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -261,6 +257,10 @@
                 <exclusion>
                     <groupId>com.nukkitx</groupId>
                     <artifactId>nbt</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.nukkitx.fastutil</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

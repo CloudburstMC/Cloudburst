@@ -63,7 +63,7 @@ public abstract class BaseBlockBehavior extends BlockBehavior {
             }
         }
 
-        return block.getLevel().setBlock(block.getPosition(), newState, true, update);
+        return block.getLevel().setBlockAt(block.getPosition(), newState, true, update);
     }
 
     //http://minecraft.gamepedia.com/Breaking
