@@ -8,9 +8,10 @@
     <version>0.0.3-SNAPSHOT</version>
 
     <properties>
-        <api-version>0.0.3-SNAPSHOT</api-version>
+        <api-version>0.0.1-SNAPSHOT</api-version>
         <protocol.version>2.6.2-SNAPSHOT</protocol.version>
         <protocol.number>428</protocol.number>
+        <fastutil.version>8.5.2</fastutil.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <junit.jupiter.version>5.0.0-M4</junit.jupiter.version>
@@ -93,11 +94,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>com.nukkitx.fastutil</groupId>
-                    <artifactId>fastutil-int-common</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.nukkitx.fastutil</groupId>
-                    <artifactId>fastutil-reference-sets</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -201,67 +198,67 @@
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-byte-sets</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-long-queues</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-int-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-short-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-long-long-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-long-int-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-long-byte-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-short-object-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-reference-int-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-reference-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-reference-reference-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-reference-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-reference-object-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
         </dependency>
 
         <!-- Miscellaneous -->
@@ -273,6 +270,10 @@
                 <exclusion>
                     <groupId>com.nukkitx</groupId>
                     <artifactId>nbt</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.nukkitx.fastutil</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

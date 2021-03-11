@@ -3,8 +3,8 @@ package org.cloudburstmc.server.config;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.level.Difficulty;
 
 import java.nio.file.Path;
 
