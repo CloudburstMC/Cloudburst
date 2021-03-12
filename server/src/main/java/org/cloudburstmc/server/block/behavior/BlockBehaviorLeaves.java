@@ -3,17 +3,19 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.block.LeavesDecayEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -25,13 +27,13 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
-        return placeBlock(block, BlockState.get(LEAVES).withTrait(BlockTraits.IS_PERSISTENT, true));
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        return placeBlock(block, BlockRegistry.get().getBlock(LEAVES).withTrait(BlockTraits.IS_PERSISTENT, true));
     }
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(BlockState.get(LEAVES).copyTrait(BlockTraits.TREE_SPECIES_OVERWORLD, block.getState()));
+        return CloudItemRegistry.get().getItem(BlockRegistry.get().getBlock(LEAVES).withTrait(BlockTraits.TREE_SPECIES_OVERWORLD, block.getState().ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD)));
     }
 
     @Override
@@ -44,13 +46,13 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
         } else {
             if (this.canDropApple(state) && ThreadLocalRandom.current().nextInt(200) == 0) {
                 return new ItemStack[]{
-                        ItemStack.get(APPLE)
+                        CloudItemRegistry.get().getItem(APPLE)
                 };
             }
             if (ThreadLocalRandom.current().nextInt(20) == 0) {
                 if (ThreadLocalRandom.current().nextBoolean()) {
                     return new ItemStack[]{
-                            ItemStack.get(STICK, ThreadLocalRandom.current().nextInt(1, 2))
+                            CloudItemRegistry.get().getItem(STICK, ThreadLocalRandom.current().nextInt(1, 2))
                     };
                 } else if (state.ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD) != TreeSpecies.JUNGLE || ThreadLocalRandom.current().nextInt(20) == 0) {
                     return new ItemStack[]{
@@ -115,7 +117,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     }
 
     protected ItemStack getSapling(BlockState state) {
-        return ItemStack.get(BlockState.get(SAPLING).copyTrait(BlockTraits.TREE_SPECIES_OVERWORLD, state));
+        return CloudItemRegistry.get().getItem(BlockRegistry.get().getBlock(SAPLING).withTrait(BlockTraits.TREE_SPECIES_OVERWORLD, state.ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD)));
     }
 
 
