@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
@@ -53,7 +53,7 @@ public class BushPopulator extends AbstractTreePopulator {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if ((abs(dx) != radius || abs(dz) != radius || random.nextBoolean())
-                            && this.replace.test(level.getBlockAt(x + dx, y + dy, z + dz, 0))) {
+                            && this.replace.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
                         level.setBlockAt(x + dx, y + dy, z + dz, 0, leaves);
                     }
                 }

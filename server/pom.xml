@@ -247,6 +247,16 @@
             <artifactId>fastutil-reference-object-maps</artifactId>
             <version>${fastutil.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-long-object-maps</artifactId>
+            <version>${fastutil.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.fastutil</groupId>
+            <artifactId>fastutil-int-object-maps</artifactId>
+            <version>${fastutil.version}</version>
+        </dependency>
 
         <!-- Miscellaneous -->
         <dependency>
