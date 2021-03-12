@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.feature;
 
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.level.ChunkManager;
+import org.cloudburstmc.api.level.ChunkManager;
 
 /**
  * @author DaPorkchop_

@@ -2,8 +2,8 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
@@ -43,7 +43,7 @@ public class FeatureSpruceTree extends FeatureNormalTree {
             int radius = dy < leavesStart ? 0 : maxRadius;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockAt(x, y + dy, z, 0))) {
+                    if (!this.test(level.getBlockState(x, y + dy, z, 0))) {
                         return false;
                     }
                 }
@@ -62,7 +62,7 @@ public class FeatureSpruceTree extends FeatureNormalTree {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if ((abs(dx) != radius || abs(dz) != radius || radius <= 0)
-                            && this.test(level.getBlockAt(x + dx, y + dy, z + dz, 0))) {
+                            && this.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
                         level.setBlockAt(x + dx, y + dy, z + dz, 0, leaves);
                     }
                 }

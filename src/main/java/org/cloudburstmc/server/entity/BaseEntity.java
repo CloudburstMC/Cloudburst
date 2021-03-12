@@ -1329,7 +1329,7 @@ public abstract class BaseEntity implements Entity {
                 if (ev.isCancelled()) {
                     return;
                 }
-                this.level.setBlockAt(down.getPosition(), BlockRegistry.get().getBlock(BlockTypes.DIRT), false, true);
+                this.level.setBlockState(down.getPosition(), BlockRegistry.get().getBlock(BlockTypes.DIRT), false, true);
             }
         }
     }

@@ -3,6 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
@@ -10,16 +12,16 @@ import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.event.block.LecternDropBookEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.registry.BlockRegistry;
 
 public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
@@ -54,8 +56,8 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
-        if (placeBlock(block, BlockState.get(BlockTypes.LECTERN).withTrait(
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        if (placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.LECTERN).withTrait(
                 BlockTraits.DIRECTION,
                 player != null ? player.getHorizontalDirection() : Direction.NORTH)
         )) {
@@ -68,7 +70,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             Lectern lectern;
@@ -82,12 +84,12 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
             if (currentBook != null && currentBook.isNull()) {
                 if (item.getType() == ItemTypes.WRITTEN_BOOK || item.getType() == ItemTypes.WRITABLE_BOOK) {
                     if (player.isSurvival()) {
-                        player.getInventory().decrementHandCount();
+                        ((PlayerInventory)player.getInventory()).decrementHandCount();
                     }
 
                     lectern.setBook(item.withAmount(1));
                     lectern.spawnToAll();
-                    block.getLevel().addSound(block.getPosition(), Sound.ITEM_BOOK_PUT);
+                    ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.ITEM_BOOK_PUT);
                 }
             }
         }
@@ -103,7 +105,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     public void executeRedstonePulse(Block block) {
         val level = block.getLevel();
         if (isActivated(block.getState())) {
-            level.cancelSheduledUpdate(block.getPosition(), block);
+            level.cancelScheduledUpdate(block.getPosition());
         } else {
             level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
         }
@@ -111,9 +113,9 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         level.scheduleUpdate(block.getPosition(), 4);
 
         block.set(block.getState().withTrait(BlockTraits.IS_POWERED, false), true);
-        level.addSound(block.getPosition(), Sound.ITEM_BOOK_PAGE_TURN);
+        ((CloudLevel)level).addSound(block.getPosition(), Sound.ITEM_BOOK_PAGE_TURN);
 
-        level.updateAroundRedstone(block.getPosition(), null);
+        ((CloudLevel)level).updateAroundRedstone(block.getPosition(), null);
     }
 
     @Override
@@ -134,7 +136,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
                 block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
 
                 block.set(state.withTrait(BlockTraits.IS_POWERED, false));
-                block.getLevel().updateAroundRedstone(block.getPosition(), null);
+                ((CloudLevel)block.getLevel()).updateAroundRedstone(block.getPosition(), null);
             }
 
             return CloudLevel.BLOCK_UPDATE_SCHEDULED;
@@ -148,7 +150,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
-    public void dropBook(Block block, CloudPlayer player) {
+    public void dropBook(Block block, Player player) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         if (blockEntity instanceof Lectern) {
             Lectern lectern = (Lectern) blockEntity;
@@ -159,7 +161,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
                 if (!dropBookEvent.isCancelled()) {
                     lectern.setBook(ItemStacks.AIR);
                     lectern.spawnToAll();
-                    block.getLevel().dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
+                    ((CloudLevel)block.getLevel()).dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
                 }
             }
         }

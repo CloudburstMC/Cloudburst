@@ -3,9 +3,9 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
@@ -57,7 +57,7 @@ public class SpikesPopulator extends ChancePopulator.Column {
     @Override
     protected void populate0(PRandom random, ChunkManager level, int x, int z) {
         int y = level.getChunk(x >> 4, z >> 4).getHighestBlock(x & 0xF, z & 0xF);
-        if (y < 0 || !this.on.test(level.getBlockAt(x, y, z, 0))) {
+        if (y < 0 || !this.on.test(level.getBlockState(x, y, z, 0))) {
             return;
         }
 
@@ -80,10 +80,10 @@ public class SpikesPopulator extends ChancePopulator.Column {
                     double fz = abs(dz) - 0.25d;
                     if (((dx == 0 && dz == 0) || fx * fx + fz * fz < rf)
                             && ((abs(dx) != radius && abs(dz) != radius) || random.nextInt(4) == 0)) {
-                        if (y + dy < 255 && replace.test(level.getBlockAt(x + dx, y + dy, z + dz, 0))) {
+                        if (y + dy < 255 && replace.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
                             level.setBlockAt(x + dx, y + dy, z + dz, 0, block);
                         }
-                        if (dy != 0 && radius > 1 && y - dy < 255 && replace.test(level.getBlockAt(x + dx, y - dy, z + dz, 0))) {
+                        if (dy != 0 && radius > 1 && y - dy < 255 && replace.test(level.getBlockState(x + dx, y - dy, z + dz, 0))) {
                             level.setBlockAt(x + dx, y - dy, z + dz, 0, block);
                         }
                     }
@@ -92,13 +92,13 @@ public class SpikesPopulator extends ChancePopulator.Column {
         }
 
         for (; y >= 0; y--) {
-            BlockState test = level.getBlockAt(x, y, z, 0);
+            BlockState test = level.getBlockState(x, y, z, 0);
             if (test != block && !replace.test(test)) {
                 return;
             }
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
-                    if ((dx == 0 || dz == 0 || random.nextBoolean()) && replace.test(level.getBlockAt(x + dx, y, z + dz, 0))) {
+                    if ((dx == 0 || dz == 0 || random.nextBoolean()) && replace.test(level.getBlockState(x + dx, y, z + dz, 0))) {
                         level.setBlockAt(x + dx, y, z + dz, 0, block);
                     }
                 }

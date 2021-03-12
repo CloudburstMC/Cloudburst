@@ -18,12 +18,12 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.level.BlockUpdate;
-import org.cloudburstmc.server.level.ChunkLoader;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.utils.ChunkException;
 

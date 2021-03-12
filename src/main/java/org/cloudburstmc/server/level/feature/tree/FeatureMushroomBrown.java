@@ -2,11 +2,11 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomBrown;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
 /**
@@ -34,7 +34,7 @@ public class FeatureMushroomBrown extends FeatureAbstractTree {
             int radius = dy < 3 ? 0 : 4;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockAt(x, y + dy, z, 0))) {
+                    if (!this.test(level.getBlockState(x, y + dy, z, 0))) {
                         return false;
                     }
                 }
