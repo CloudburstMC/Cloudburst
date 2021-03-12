@@ -181,7 +181,7 @@ public abstract class BlockBehavior {
             state = AIR;
         }
 
-        return block.getLevel().setBlockAt(block.getPosition(), state, true, update);
+        return block.getLevel().setBlockState(block.getPosition(), state, true, update);
     }
 
     public boolean onBreak(Block block, ItemStack item, Player player) {
