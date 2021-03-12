@@ -2,6 +2,7 @@ package org.cloudburstmc.api.player;
 
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.level.Level;
 
 import java.util.OptionalLong;
@@ -98,9 +99,11 @@ public interface Player extends Entity {
 
     boolean isInsideOfWater();
 
+    boolean isSneaking();
+
     boolean isOnGround();
 
-    //Inventory getInventory();
+    Inventory getInventory();
 
     void setOp(boolean value);
 
@@ -121,4 +124,6 @@ public interface Player extends Entity {
     void resetInAirTicks();
 
     boolean isSpawned();
+
+    GameMode getGamemode();
 }
