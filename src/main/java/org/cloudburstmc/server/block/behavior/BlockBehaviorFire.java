@@ -63,7 +63,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockStates.AIR);
                 level.getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
-                    level.setBlockAt(position, event.getNewState(), true);
+                    level.setBlockState(position, event.getNewState(), true);
                 }
             }
 
@@ -80,7 +80,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockRegistry.get().getBlock(BlockTypes.AIR));
                 level.getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
-                    level.setBlockAt(position, event.getNewState(), true);
+                    level.setBlockState(position, event.getNewState(), true);
                 }
             }
 
@@ -112,14 +112,14 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                         BlockFadeEvent event = new BlockFadeEvent(block, BlockRegistry.get().getBlock(BlockTypes.AIR));
                         level.getServer().getEventManager().fire(event);
                         if (!event.isCancelled()) {
-                            level.setBlockAt(position, event.getNewState(), true);
+                            level.setBlockState(position, event.getNewState(), true);
                         }
                     }
                 } else if (!forever && !(down.getBehavior().getBurnAbility(down) > 0) && age == 15 && random.nextInt(4) == 0) {
                     BlockFadeEvent event = new BlockFadeEvent(block, BlockRegistry.get().getBlock(BlockTypes.AIR));
                     level.getServer().getEventManager().fire(event);
                     if (!event.isCancelled()) {
-                        level.setBlockAt(position, event.getNewState(), true);
+                        level.setBlockState(position, event.getNewState(), true);
                     }
                 } else {
                     int o = 0;

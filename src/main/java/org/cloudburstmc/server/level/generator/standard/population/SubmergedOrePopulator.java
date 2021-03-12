@@ -3,10 +3,10 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
@@ -54,7 +54,7 @@ public class SubmergedOrePopulator extends ChancePopulator.Column {
                 break;
             }
         }
-        if (y <= 0 || y >= 255 || !this.start.test(level.getBlockAt(blockX, y + 1, blockZ, 0))) {
+        if (y <= 0 || y >= 255 || !this.start.test(level.getBlockState(blockX, y + 1, blockZ, 0))) {
             return;
         }
 
@@ -66,7 +66,7 @@ public class SubmergedOrePopulator extends ChancePopulator.Column {
             for (int dz = -radius; dz <= radius; dz++) {
                 if (dx * dx + dz * dz <= radiusSq) {
                     for (int dy = -1; dy < 1; dy++) {
-                        if (this.replace.test(level.getBlockAt(blockX + dx, y + dy, blockZ + dz, 0))) {
+                        if (this.replace.test(level.getBlockState(blockX + dx, y + dy, blockZ + dz, 0))) {
                             level.setBlockAt(blockX + dx, y + dy, blockZ + dz, 0, block);
                         }
                     }

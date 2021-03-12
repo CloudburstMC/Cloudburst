@@ -2,8 +2,8 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
@@ -48,7 +48,7 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
             int radius = dy == 0 ? 1 : 2;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockAt(x + dx, y + dy, z + dz, 0))) {
+                    if (!this.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
                         return false;
                     }
                 }
@@ -86,7 +86,7 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
             for (int dz = -radius; dz <= radius + 1; dz++) {
                 int dxSq = dx > 0 ? (dx - 1) * (dx - 1) : dx * dx;
                 int dzSq = dz > 0 ? (dz - 1) * (dz - 1) : dz * dz;
-                if (dxSq + dzSq <= radiusSq && this.test(level.getBlockAt(x + dx, y, z + dz, 0))) {
+                if (dxSq + dzSq <= radiusSq && this.test(level.getBlockState(x + dx, y, z + dz, 0))) {
                     level.setBlockAt(x + dx, y, z + dz, 0, block);
                 }
             }

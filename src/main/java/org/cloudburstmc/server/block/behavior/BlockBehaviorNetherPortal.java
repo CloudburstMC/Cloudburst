@@ -19,8 +19,8 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
         for (int xx = -1; xx < 4; xx++) {
             for (int yy = 1; yy < 4; yy++) {
                 for (int zz = -1; zz < 3; zz++) {
-                    level.setBlockAt(x + xx, y + yy, z + zz, BlockStates.AIR);
-                    level.setBlockAt(x + xx, y + yy, z + zz, 1, BlockStates.AIR);
+                    level.setBlockState(x + xx, y + yy, z + zz, BlockStates.AIR);
+                    level.setBlockState(x + xx, y + yy, z + zz, 1, BlockStates.AIR);
                 }
             }
         }
@@ -28,43 +28,43 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
         val obsidian = BlockStates.OBSIDIAN;
         val portal = BlockStates.PORTAL;
 
-        level.setBlockAt(x + 1, y, z, obsidian);
-        level.setBlockAt(x + 2, y, z, obsidian);
+        level.setBlockState(x + 1, y, z, obsidian);
+        level.setBlockState(x + 2, y, z, obsidian);
 
         z += 1;
-        level.setBlockAt(x, y, z, obsidian);
-        level.setBlockAt(x + 1, y, z, obsidian);
-        level.setBlockAt(x + 2, y, z, obsidian);
-        level.setBlockAt(x + 3, y, z, obsidian);
+        level.setBlockState(x, y, z, obsidian);
+        level.setBlockState(x + 1, y, z, obsidian);
+        level.setBlockState(x + 2, y, z, obsidian);
+        level.setBlockState(x + 3, y, z, obsidian);
 
         z += 1;
-        level.setBlockAt(x + 1, y, z, obsidian);
-        level.setBlockAt(x + 2, y, z, obsidian);
+        level.setBlockState(x + 1, y, z, obsidian);
+        level.setBlockState(x + 2, y, z, obsidian);
 
         z -= 1;
         y += 1;
-        level.setBlockAt(x, y, z, obsidian);
-        level.setBlockAt(x + 1, y, z, portal);
-        level.setBlockAt(x + 2, y, z, portal);
-        level.setBlockAt(x + 3, y, z, obsidian);
+        level.setBlockState(x, y, z, obsidian);
+        level.setBlockState(x + 1, y, z, portal);
+        level.setBlockState(x + 2, y, z, portal);
+        level.setBlockState(x + 3, y, z, obsidian);
 
         y += 1;
-        level.setBlockAt(x, y, z, obsidian);
-        level.setBlockAt(x + 1, y, z, portal);
-        level.setBlockAt(x + 2, y, z, portal);
-        level.setBlockAt(x + 3, y, z, obsidian);
+        level.setBlockState(x, y, z, obsidian);
+        level.setBlockState(x + 1, y, z, portal);
+        level.setBlockState(x + 2, y, z, portal);
+        level.setBlockState(x + 3, y, z, obsidian);
 
         y += 1;
-        level.setBlockAt(x, y, z, obsidian);
-        level.setBlockAt(x + 1, y, z, portal);
-        level.setBlockAt(x + 2, y, z, portal);
-        level.setBlockAt(x + 3, y, z, obsidian);
+        level.setBlockState(x, y, z, obsidian);
+        level.setBlockState(x + 1, y, z, portal);
+        level.setBlockState(x + 2, y, z, portal);
+        level.setBlockState(x + 3, y, z, obsidian);
 
         y += 1;
-        level.setBlockAt(x, y, z, obsidian);
-        level.setBlockAt(x + 1, y, z, obsidian);
-        level.setBlockAt(x + 2, y, z, obsidian);
-        level.setBlockAt(x + 3, y, z, obsidian);
+        level.setBlockState(x, y, z, obsidian);
+        level.setBlockState(x + 1, y, z, obsidian);
+        level.setBlockState(x + 2, y, z, obsidian);
+        level.setBlockState(x + 3, y, z, obsidian);
     }
 
 

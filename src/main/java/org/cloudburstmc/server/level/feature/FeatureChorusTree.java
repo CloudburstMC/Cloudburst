@@ -3,9 +3,9 @@ package org.cloudburstmc.server.level.feature;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.math.Direction;
@@ -34,7 +34,7 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
 
     @Override
     public boolean place(ChunkManager level, PRandom random, int x, int y, int z) {
-        if (this.test(level.getBlockAt(x, y, z, 0)) && this.place0(level, random, x, y, z, 0, 0, 0)) {
+        if (this.test(level.getBlockState(x, y, z, 0)) && this.place0(level, random, x, y, z, 0, 0, 0)) {
             level.setBlockAt(x, y, z, 0, BlockStates.CHORUS_PLANT);
             return true;
         } else {
@@ -64,8 +64,8 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
                 final int dz = face.getUnitVector().getZ();
 
                 if (abs(deltaX + dx) < this.maxOverhang && abs(deltaZ + dz) < this.maxOverhang
-                        && org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y, z + dz, 0)) == 0
-                        && org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockAt(x + dx, y - 1, z + dz, 0)) == 0
+                        && org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockState(x + dx, y, z + dz, 0)) == 0
+                        && org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockState(x + dx, y - 1, z + dz, 0)) == 0
                         && this.allNeighborsMatch(level, x + dx, y, z + dz, BlockFilter.AIR, face.getOpposite())
                         && this.place0(level, random, x + dx, y, z + dz, depth + 1, deltaX + dx, deltaZ + dz)) {
                     level.setBlockAt(x + dx, y, z + dz, 0, BlockStates.CHORUS_PLANT);

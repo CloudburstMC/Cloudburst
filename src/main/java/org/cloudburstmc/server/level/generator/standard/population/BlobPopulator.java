@@ -3,9 +3,9 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
@@ -47,7 +47,7 @@ public class BlobPopulator extends ChancePopulator.Column {
     @Override
     protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
-        if (y < 0 || !this.on.test(level.getBlockAt(blockX, y, blockZ, 0))) {
+        if (y < 0 || !this.on.test(level.getBlockState(blockX, y, blockZ, 0))) {
             return;
         }
 
@@ -68,7 +68,7 @@ public class BlobPopulator extends ChancePopulator.Column {
                         continue;
                     }
                     for (int dz = -vz; dz <= vz; dz++) {
-                        if (dx * dx + dy * dy + dz * dz <= g && replace.test(level.getBlockAt(blockX + dx, y + dy, blockZ + dz, 0))) {
+                        if (dx * dx + dy * dy + dz * dz <= g && replace.test(level.getBlockState(blockX + dx, y + dy, blockZ + dz, 0))) {
                             level.setBlockAt(blockX + dx, y + dy, blockZ + dz, 0, block);
                         }
                     }
