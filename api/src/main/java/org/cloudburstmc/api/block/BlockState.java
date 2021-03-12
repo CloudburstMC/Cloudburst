@@ -91,6 +91,10 @@ public class BlockState {
         return BlockRegistry.get().getBehavior(this.type);
     }
 
+    public BlockState toggleTrait(BooleanBlockTrait trait) {
+        return this.blockStates.get(trait)[trait.getIndex(!((Boolean) this.traits.get(trait)))];
+    }
+
     //------------------------      INTERNAL      ------------------------
 
     void initialize(Map<Map<BlockTrait<?>, Comparable<?>>, BlockState> map) {
