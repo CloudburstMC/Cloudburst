@@ -3,9 +3,9 @@ package org.cloudburstmc.server.level.manager;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.NonNull;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.LockableChunk;
 
@@ -48,12 +48,12 @@ public final class PopulationChunkManager implements ChunkManager {
     }
 
     @Override
-    public BlockState getBlockAt(int x, int y, int z) {
+    public BlockState getBlockState(int x, int y, int z) {
         return this.chunkFromBlock(x, z).getBlock(x & 0xF, y, z & 0xF, 0);
     }
 
     @Override
-    public BlockState getBlockAt(int x, int y, int z, int layer) {
+    public BlockState getBlockState(int x, int y, int z, int layer) {
         return this.chunkFromBlock(x, z).getBlock(x & 0xF, y, z & 0xF, layer);
     }
 

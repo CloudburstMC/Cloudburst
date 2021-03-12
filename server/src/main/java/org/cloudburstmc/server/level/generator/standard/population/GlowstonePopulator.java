@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
@@ -51,7 +51,7 @@ public class GlowstonePopulator extends AbstractReplacingPopulator {
         final BlockState block = this.block.selectWeighted(random);
         final BlockState ground = this.ground;
 
-        if (blockY >= 255 || !replace.test(level.getBlockAt(blockX, blockY, blockZ, 0)) || level.getBlockAt(blockX, blockY + 1, blockZ, 0) != ground) {
+        if (blockY >= 255 || !replace.test(level.getBlockState(blockX, blockY, blockZ, 0)) || level.getBlockState(blockX, blockY + 1, blockZ, 0) != ground) {
             return;
         }
         level.setBlockAt(blockX, blockY, blockZ, 0, block);
@@ -61,24 +61,24 @@ public class GlowstonePopulator extends AbstractReplacingPopulator {
             int y = blockY - random.nextInt(12);
             int z = blockZ + random.nextInt(8) - random.nextInt(8);
 
-            if (replace.test(level.getBlockAt(x, y, z, 0))) {
+            if (replace.test(level.getBlockState(x, y, z, 0))) {
                 int neighbors = 0;
-                if (level.getBlockAt(x - 1, y, z, 0) == block) {
+                if (level.getBlockState(x - 1, y, z, 0) == block) {
                     neighbors++;
                 }
-                if (level.getBlockAt(x + 1, y, z, 0) == block) {
+                if (level.getBlockState(x + 1, y, z, 0) == block) {
                     neighbors++;
                 }
-                if (level.getBlockAt(x, y - 1, z, 0) == block) {
+                if (level.getBlockState(x, y - 1, z, 0) == block) {
                     neighbors++;
                 }
-                if (level.getBlockAt(x, y + 1, z, 0) == block) {
+                if (level.getBlockState(x, y + 1, z, 0) == block) {
                     neighbors++;
                 }
-                if (level.getBlockAt(x, y, z - 1, 0) == block) {
+                if (level.getBlockState(x, y, z - 1, 0) == block) {
                     neighbors++;
                 }
-                if (level.getBlockAt(x, y, z + 1, 0) == block) {
+                if (level.getBlockState(x, y, z + 1, 0) == block) {
                     neighbors++;
                 }
 

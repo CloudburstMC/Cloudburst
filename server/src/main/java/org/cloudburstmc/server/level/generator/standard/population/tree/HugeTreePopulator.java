@@ -7,10 +7,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
@@ -84,8 +84,8 @@ public class HugeTreePopulator extends AbstractTreePopulator {
     protected void placeTree(PRandom random, ChunkManager level, int x, int y, int z) {
         for (int dx = 0; dx <= 1; dx++) {
             for (int dz = 0; dz <= 1; dz++) {
-                BlockState test = level.getBlockAt(x + dx, y, z + dz, 0);
-                if (!this.on.test(test) && (!this.replace.test(test) || !this.on.test(level.getBlockAt(x + dx, y - 1, z + dz, 0)))) {
+                BlockState test = level.getBlockState(x + dx, y, z + dz, 0);
+                if (!this.on.test(test) && (!this.replace.test(test) || !this.on.test(level.getBlockState(x + dx, y - 1, z + dz, 0)))) {
                     return;
                 }
             }

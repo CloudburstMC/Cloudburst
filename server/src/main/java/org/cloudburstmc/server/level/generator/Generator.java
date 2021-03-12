@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.level.generator;
 
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.level.ChunkManager;
 
 /**
  * Generates terrain in a level.
