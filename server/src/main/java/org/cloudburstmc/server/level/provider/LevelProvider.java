@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.level.provider;
 
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.LevelData;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -37,7 +38,7 @@ public interface LevelProvider extends PlayerDataProvider, Closeable {
      * @param chunk chunk
      * @return void future when chunk is saved.
      */
-    CompletableFuture<Void> saveChunk(CloudChunk chunk);
+    CompletableFuture<Void> saveChunk(Chunk chunk);
 
     /**
      * Iterate over all chunks that the provider has.

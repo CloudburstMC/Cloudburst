@@ -22,8 +22,11 @@ import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
+import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.level.BlockUpdate;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.utils.ChunkException;
 
@@ -68,8 +71,8 @@ public final class CloudChunk implements Chunk, Closeable {
 
     private List<BlockUpdate> blockUpdates;
 
-    private final LockableChunk readLockable;
-    private final LockableChunk writeLockable;
+    private final CloudLockableChunk readLockable;
+    private final CloudLockableChunk writeLockable;
 
     public CloudChunk(int x, int z, Level level) {
         this(new UnsafeChunk(x, z, level));
@@ -88,14 +91,14 @@ public final class CloudChunk implements Chunk, Closeable {
         this.readLock = lock.readLock();
         this.writeLock = lock.writeLock();
 
-        this.readLockable = new LockableChunk(unsafe, this.readLock);
-        this.writeLockable = new LockableChunk(unsafe, this.writeLock);
+        this.readLockable = new CloudLockableChunk(unsafe, this.readLock);
+        this.writeLockable = new CloudLockableChunk(unsafe, this.writeLock);
     }
 
     public void init() {
         boolean init = this.unsafe.init();
         if (init) {
-            try (Timing ignored = unsafe.getLevel().timings.syncChunkLoadEntitiesTimer.startTiming()) {
+            try (Timing ignored = ((CloudLevel) unsafe.getLevel()).timings.syncChunkLoadEntitiesTimer.startTiming()) {
                 boolean dirty = false;
 
                 for (ChunkDataLoader chunkDataLoader : this.chunkDataLoaders) {
@@ -108,7 +111,7 @@ public final class CloudChunk implements Chunk, Closeable {
             }
 
             for (BlockUpdate update : blockUpdates) {
-                this.unsafe.getLevel().scheduleUpdate(update);
+                ((CloudLevel) this.unsafe.getLevel()).scheduleUpdate(update);
             }
             this.blockUpdates = null;
 
@@ -422,10 +425,12 @@ public final class CloudChunk implements Chunk, Closeable {
         //todo
     }
 
+    @Override
     public LockableChunk readLockable() {
         return this.readLockable;
     }
 
+    @Override
     public LockableChunk writeLockable() {
         return this.writeLockable;
     }
@@ -518,10 +523,6 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    public long key() {
-        return CloudChunk.key(this.getX(), this.getZ());
-    }
-
     public static long key(int x, int z) {
         return (((long) x) << 32) | (z & 0xffffffffL);
     }
@@ -596,7 +597,7 @@ public final class CloudChunk implements Chunk, Closeable {
                         tiles.forEach(blockEntity -> {
                             if (blockEntity.isSpawnable()) {
                                 try {
-                                    nbtOutputStream.writeTag(blockEntity.getChunkTag());
+                                    nbtOutputStream.writeTag(((BaseBlockEntity) blockEntity).getChunkTag());
                                 } catch (IOException e) {
                                     throw new RuntimeException(e);
                                 }

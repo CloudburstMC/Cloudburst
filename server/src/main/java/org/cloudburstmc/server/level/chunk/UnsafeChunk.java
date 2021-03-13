@@ -11,6 +11,7 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
 
 import javax.annotation.Nonnull;
@@ -416,5 +417,20 @@ public final class UnsafeChunk implements Chunk, Closeable {
             ImmutableList.copyOf(this.tiles.values()).forEach(BlockEntity::close);
             clear();
         }
+    }
+
+    @Override
+    public long key() {
+        return CloudChunk.key(getX(), getZ());
+    }
+
+    @Override
+    public LockableChunk readLockable() {
+        return null;
+    }
+
+    @Override
+    public LockableChunk writeLockable() {
+        return null;
     }
 }

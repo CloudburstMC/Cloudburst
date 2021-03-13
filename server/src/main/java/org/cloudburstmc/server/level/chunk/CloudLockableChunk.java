@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.level.chunk;
 
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.chunk.LockableChunk;
+import org.cloudburstmc.api.player.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,48 +13,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 @NotThreadSafe
-public final class LockableChunk implements Chunk, Lock {
+public final class CloudLockableChunk extends LockableChunk {
     private final UnsafeChunk unsafe;
-    private final Lock lock;
 
-    LockableChunk(UnsafeChunk unsafe, Lock lock) {
+    CloudLockableChunk(UnsafeChunk unsafe, Lock lock) {
+        super(lock);
         this.unsafe = unsafe;
-        this.lock = lock;
-    }
-
-    @Override
-    public void lock() {
-        this.lock.lock();
-    }
-
-    @Override
-    public void lockInterruptibly() throws InterruptedException {
-        this.lock.lockInterruptibly();
-    }
-
-    @Override
-    public boolean tryLock() {
-        return this.lock.tryLock();
-    }
-
-    @Override
-    public boolean tryLock(long time, @Nonnull TimeUnit unit) throws InterruptedException {
-        return this.lock.tryLock(time, unit);
-    }
-
-    @Override
-    public void unlock() {
-        this.lock.unlock();
-    }
-
-    @Override
-    public Condition newCondition() {
-        return lock.newCondition();
     }
 
     @Nonnull
@@ -164,7 +131,7 @@ public final class LockableChunk implements Chunk, Lock {
 
     @Nonnull
     @Override
-    public CloudLevel getLevel() {
+    public Level getLevel() {
         return this.unsafe.getLevel();
     }
 
@@ -182,7 +149,7 @@ public final class LockableChunk implements Chunk, Lock {
 
     @Nonnull
     @Override
-    public Set<CloudPlayer> getPlayers() {
+    public Set<Player> getPlayers() {
         return this.unsafe.getPlayers();
     }
 
@@ -227,4 +194,21 @@ public final class LockableChunk implements Chunk, Lock {
     public void clear() {
         this.unsafe.clear();
     }
+
+    @Override
+    public long key() {
+        return CloudChunk.key(getX(), getZ());
+    }
+
+    @Override
+    public LockableChunk readLockable() {
+        return this;
+    }
+
+    @Override
+    public LockableChunk writeLockable() {
+        return this;
+    }
+
+
 }

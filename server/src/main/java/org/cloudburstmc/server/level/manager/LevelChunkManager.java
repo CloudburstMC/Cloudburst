@@ -13,6 +13,7 @@ import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.cloudburstmc.api.event.level.ChunkUnloadEvent;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
@@ -61,10 +62,10 @@ public final class LevelChunkManager {
      * @return chunks
      */
     @Nonnull
-    public synchronized Set<CloudChunk> getLoadedChunks() {
-        ImmutableSet.Builder<CloudChunk> chunks = ImmutableSet.builder();
+    public synchronized Set<Chunk> getLoadedChunks() {
+        ImmutableSet.Builder<Chunk> chunks = ImmutableSet.builder();
         for (LoadingChunk loadingChunk : this.chunks.values()) {
-            CloudChunk chunk = loadingChunk.getChunk();
+            Chunk chunk = loadingChunk.getChunk();
             if (chunk != null) {
                 chunks.add(chunk);
             }
@@ -83,7 +84,7 @@ public final class LevelChunkManager {
      * @return chunk or null
      */
     @Nullable
-    public synchronized CloudChunk getLoadedChunk(long key) {
+    public synchronized Chunk getLoadedChunk(long key) {
         LoadingChunk chunk = this.chunks.get(key);
         return chunk == null ? null : chunk.getChunk();
     }
@@ -96,7 +97,7 @@ public final class LevelChunkManager {
      * @return chunk or null
      */
     @Nullable
-    public synchronized CloudChunk getLoadedChunk(int x, int z) {
+    public synchronized Chunk getLoadedChunk(int x, int z) {
         return getLoadedChunk(CloudChunk.key(x, z));
     }
 
@@ -108,8 +109,8 @@ public final class LevelChunkManager {
      * @return chunk
      */
     @Nonnull
-    public CloudChunk getChunk(int x, int z) {
-        CloudChunk chunk = getLoadedChunk(x, z);
+    public Chunk getChunk(int x, int z) {
+        Chunk chunk = getLoadedChunk(x, z);
         if (chunk == null) {
             chunk = this.getChunkFuture(x, z).join();
         }
@@ -125,12 +126,12 @@ public final class LevelChunkManager {
      * @return chunk future
      */
     @Nonnull
-    public CompletableFuture<CloudChunk> getChunkFuture(int x, int z) {
+    public CompletableFuture<Chunk> getChunkFuture(int x, int z) {
         return this.getChunkFuture(x, z, true, true, true);
     }
 
     @Nonnull
-    private synchronized CompletableFuture<CloudChunk> getChunkFuture(int chunkX, int chunkZ, boolean generate, boolean populate, boolean finish) {
+    private synchronized CompletableFuture<Chunk> getChunkFuture(int chunkX, int chunkZ, boolean generate, boolean populate, boolean finish) {
         final long chunkKey = CloudChunk.key(chunkX, chunkZ);
         this.chunkLastAccessTimes.put(chunkKey, System.currentTimeMillis());
         LoadingChunk chunk = this.chunks.computeIfAbsent(chunkKey, key -> new LoadingChunk(key, true));
@@ -187,7 +188,7 @@ public final class LevelChunkManager {
         if (loadingChunk == null) {
             return false;
         }
-        CloudChunk chunk = loadingChunk.getChunk();
+        Chunk chunk = loadingChunk.getChunk();
         if (chunk == null) {
             return false;
         }
@@ -222,7 +223,7 @@ public final class LevelChunkManager {
     public synchronized CompletableFuture<Void> saveChunks() {
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (LoadingChunk loadingChunk : this.chunks.values()) {
-            CloudChunk chunk = loadingChunk.getChunk();
+            Chunk chunk = loadingChunk.getChunk();
             if (chunk != null) {
                 futures.add(saveChunk(chunk));
             }
@@ -231,7 +232,7 @@ public final class LevelChunkManager {
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
     }
 
-    public CompletableFuture<Void> saveChunk(CloudChunk chunk) {
+    public CompletableFuture<Void> saveChunk(Chunk chunk) {
         Preconditions.checkNotNull(chunk, "chunk");
         Preconditions.checkArgument(chunk.getLevel() == this.level,
                 "Chunk is not from this ChunkManager's Level");
@@ -265,7 +266,7 @@ public final class LevelChunkManager {
                 Long2ObjectMap.Entry<LoadingChunk> entry = iterator.next();
                 long chunkKey = entry.getLongKey();
                 LoadingChunk loadingChunk = entry.getValue();
-                CloudChunk chunk = loadingChunk.getChunk();
+                Chunk chunk = loadingChunk.getChunk();
                 if (chunk == null) {
                     continue; // Chunk hasn't loaded
                 }
@@ -301,11 +302,11 @@ public final class LevelChunkManager {
 
         private final int x;
         private final int z;
-        private CompletableFuture<CloudChunk> future;
+        private CompletableFuture<Chunk> future;
         volatile int generationRunning;
         volatile int populationRunning;
         volatile int finishRunning;
-        private CloudChunk chunk;
+        private Chunk chunk;
 
         public LoadingChunk(long key, boolean load) {
             this.x = CloudChunk.fromKeyX(key);
@@ -340,12 +341,12 @@ public final class LevelChunkManager {
             this.future.whenComplete((chunk, throwable) -> this.chunk = chunk);
         }
 
-        public CompletableFuture<CloudChunk> getFuture() {
+        public CompletableFuture<Chunk> getFuture() {
             return future;
         }
 
         @Nullable
-        private CloudChunk getChunk() {
+        private Chunk getChunk() {
             if (this.chunk != null && this.chunk.isGenerated() && this.chunk.isPopulated() && this.chunk.isFinished()) {
                 return this.chunk;
             }
@@ -363,14 +364,14 @@ public final class LevelChunkManager {
             this.generate();
             if ((this.chunk == null || !this.chunk.isPopulated()) && POPULATION_RUNNING_UPDATER.compareAndSet(this, 0, 1)) {
                 // Load and generate chunks around the chunk to be populated.
-                List<CompletableFuture<CloudChunk>> chunksToLoad = new ArrayList<>(8);
+                List<CompletableFuture<Chunk>> chunksToLoad = new ArrayList<>(8);
                 for (int z = this.z - 1, maxZ = this.z + 1; z <= maxZ; z++) {
                     for (int x = this.x - 1, maxX = this.x + 1; x <= maxX; x++) {
                         if (x == this.x && z == this.z) continue;
                         chunksToLoad.add(LevelChunkManager.this.getChunkFuture(x, z, true, false, false));
                     }
                 }
-                CompletableFuture<List<CloudChunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
+                CompletableFuture<List<Chunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
 
                 future = future.thenCombineAsync(aroundFuture, PopulationTask.INSTANCE, LevelChunkManager.this.executor);
                 future.thenRun(() -> POPULATION_RUNNING_UPDATER.compareAndSet(this, 1, 0));
@@ -380,14 +381,14 @@ public final class LevelChunkManager {
         private void finish() {
             this.populate();
             if ((this.chunk == null || !this.chunk.isFinished()) && FINISH_RUNNING_UPDATER.compareAndSet(this, 0, 1)) {
-                List<CompletableFuture<CloudChunk>> chunksToLoad = new ArrayList<>(8);
+                List<CompletableFuture<Chunk>> chunksToLoad = new ArrayList<>(8);
                 for (int z = this.z - 1, maxZ = this.z + 1; z <= maxZ; z++) {
                     for (int x = this.x - 1, maxX = this.x + 1; x <= maxX; x++) {
                         if (x == this.x && z == this.z) continue;
                         chunksToLoad.add(LevelChunkManager.this.getChunkFuture(x, z, true, true, false));
                     }
                 }
-                CompletableFuture<List<CloudChunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
+                CompletableFuture<List<Chunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
 
                 future = future.thenCombineAsync(aroundFuture, FinishingTask.INSTANCE, LevelChunkManager.this.executor);
                 future.thenRun(() -> FINISH_RUNNING_UPDATER.compareAndSet(this, 1, 0));
