@@ -7,8 +7,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.level.chunk.LockableChunk;
+import org.cloudburstmc.api.level.chunk.LockableChunk;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.generator.Generator;
 
 import java.util.List;
@@ -21,11 +21,11 @@ import java.util.function.BiFunction;
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class PopulationTask implements BiFunction<CloudChunk, List<CloudChunk>, CloudChunk> {
+public final class PopulationTask implements BiFunction<Chunk, List<Chunk>, Chunk> {
     public static final PopulationTask INSTANCE = new PopulationTask();
 
     @Override
-    public CloudChunk apply(@NonNull CloudChunk chunk, List<CloudChunk> chunks) {
+    public Chunk apply(@NonNull Chunk chunk, List<Chunk> chunks) {
         if (chunk.isPopulated()) {
             return chunk;
         }
@@ -36,12 +36,12 @@ public final class PopulationTask implements BiFunction<CloudChunk, List<CloudCh
         chunks.add(chunk);
         LockableChunk[] lockableChunks = chunks.stream()
                 .peek(populationChunk -> Preconditions.checkState(populationChunk.isGenerated(), "Chunk %d,%d was used for population before being generated!", populationChunk.getX(), populationChunk.getZ()))
-                .map(CloudChunk::writeLockable)
+                .map(Chunk::writeLockable)
                 .sorted()
                 .peek(Lock::lock)
                 .toArray(LockableChunk[]::new);
         try {
-            chunk.getLevel().getGenerator().populate(random, new PopulationChunkManager(chunk, lockableChunks, chunk.getLevel().getSeed()), chunk.getX(), chunk.getZ());
+            ((CloudLevel) chunk.getLevel()).getGenerator().populate(random, new PopulationChunkManager(chunk, lockableChunks, chunk.getLevel().getSeed()), chunk.getX(), chunk.getZ());
             chunk.setState(Chunk.STATE_POPULATED);
             chunk.setDirty();
         } finally {

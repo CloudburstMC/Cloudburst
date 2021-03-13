@@ -12,6 +12,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector4i;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
+import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.*;
@@ -39,26 +40,26 @@ import org.cloudburstmc.api.event.block.BlockBreakEvent;
 import org.cloudburstmc.api.event.block.BlockPlaceEvent;
 import org.cloudburstmc.api.event.block.BlockUpdateEvent;
 import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
-import org.cloudburstmc.api.event.level.LevelSaveEvent;
+import org.cloudburstmc.api.event.level.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
-import org.cloudburstmc.api.event.weather.LightningStrikeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.level.chunk.ChunkSection;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
@@ -71,7 +72,6 @@ import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -85,7 +85,10 @@ import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.registry.GeneratorRegistry;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.timings.LevelTimings;
-import org.cloudburstmc.server.utils.*;
+import org.cloudburstmc.server.utils.BlockUpdateEntry;
+import org.cloudburstmc.server.utils.Hash;
+import org.cloudburstmc.server.utils.LevelException;
+import org.cloudburstmc.server.utils.TextFormat;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -105,23 +108,6 @@ public class CloudLevel implements Level {
     private static final int levelIdCounter = 1;
     private static final int chunkLoaderCounter = 1;
     public static int COMPRESSION_LEVEL = 8;
-
-/*    public static final int BLOCK_UPDATE_NORMAL = 1;
-    public static final int BLOCK_UPDATE_RANDOM = 2;
-    public static final int BLOCK_UPDATE_SCHEDULED = 3;
-    public static final int BLOCK_UPDATE_WEAK = 4;
-    public static final int BLOCK_UPDATE_TOUCH = 5;
-    public static final int BLOCK_UPDATE_REDSTONE = 6;
-    public static final int BLOCK_UPDATE_TICK = 7;*/
-
-    public static final int TIME_DAY = 0;
-    public static final int TIME_NOON = 6000;
-    public static final int TIME_SUNSET = 12000;
-    public static final int TIME_NIGHT = 14000;
-    public static final int TIME_MIDNIGHT = 18000;
-    public static final int TIME_SUNRISE = 23000;
-
-    public static final int TIME_FULL = 24000;
 
     public static final int DIMENSION_OVERWORLD = 0;
     public static final int DIMENSION_NETHER = 1;
@@ -205,7 +191,7 @@ public class CloudLevel implements Level {
 
     private boolean autoSave;
 
-    private BlockMetadataStore blockMetadata;
+    //private BlockMetadataStore blockMetadata;
 
     public int sleepTicks = 0;
 
@@ -235,7 +221,7 @@ public class CloudLevel implements Level {
 
     CloudLevel(CloudServer server, String id, LevelProvider levelProvider, LevelData levelData) {
         this.id = id;
-        this.blockMetadata = new BlockMetadataStore(this);
+        //this.blockMetadata = new BlockMetadataStore(this);
         this.server = server;
         this.autoSave = server.getAutoSave();
         this.provider = levelProvider;
@@ -343,7 +329,7 @@ public class CloudLevel implements Level {
             throw new LevelException("Error occurred whilst closing level", e);
         }
         this.provider = null;
-        this.blockMetadata = null;
+        // this.blockMetadata = null;
     }
 
     private Vector3f mutableBlock;
@@ -506,7 +492,7 @@ public class CloudLevel implements Level {
 
         for (Player player : new ArrayList<>(this.getPlayers().values())) {
             if (this == defaultLevel || defaultLevel == null) {
-                player.close(player.getLeaveMessage(), "Forced default level unload");
+                ((CloudPlayer) player).close(((CloudPlayer) player).getLeaveMessage(), "Forced default level unload");
             } else {
                 player.teleport(this.server.getDefaultLevel().getSafeSpawn());
             }
@@ -522,12 +508,12 @@ public class CloudLevel implements Level {
     }
 
     public Set<Player> getChunkPlayers(int chunkX, int chunkZ) {
-        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         return chunk == null ? ImmutableSet.of() : chunk.getPlayerLoaders();
     }
 
     public Set<ChunkLoader> getChunkLoaders(int chunkX, int chunkZ) {
-        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         return chunk == null ? ImmutableSet.of() : chunk.getLoaders();
     }
 
@@ -628,7 +614,7 @@ public class CloudLevel implements Level {
                 }
 
                 if (this.isThundering()) {
-                    for (CloudChunk chunk : this.getChunks()) {
+                    for (Chunk chunk : this.getChunks()) {
                         this.performThunder(chunk);
                     }
                 }
@@ -677,7 +663,7 @@ public class CloudLevel implements Level {
                                 int chunkX = CloudChunk.fromKeyX(chunkKey);
                                 int chunkZ = CloudChunk.fromKeyZ(chunkKey);
                                 if (blocks.size() > MAX_BLOCK_CACHE) {
-                                    CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+                                    Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
                                     if (chunk != null) {
                                         for (Player p : this.getChunkPlayers(chunkX, chunkZ)) {
                                             p.onChunkChanged(chunk);
@@ -709,7 +695,7 @@ public class CloudLevel implements Level {
                     for (long index : this.chunkPackets.keySet()) {
                         int chunkX = CloudChunk.fromKeyX(index);
                         int chunkZ = CloudChunk.fromKeyZ(index);
-                        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+                        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
 
                         Set<Player> playerLoaders;
                         if (chunk == null || (playerLoaders = chunk.getPlayerLoaders()).isEmpty()) {
@@ -726,7 +712,10 @@ public class CloudLevel implements Level {
 
                 if (this.levelData.getGameRules().isDirty()) {
                     GameRulesChangedPacket packet = new GameRulesChangedPacket();
-                    this.levelData.getGameRules().toNetwork(packet.getGameRules());
+                    //this.levelData.getGameRules().toNetwork(packet.getGameRules());
+                    this.levelData.getGameRules().forEach((gameRule, o) -> {
+                        packet.getGameRules().add(new GameRuleData<>(gameRule.getName(), o));
+                    });
                     CloudServer.broadcastPacket(players.values().toArray(new Player[0]), packet);
                     this.levelData.getGameRules().refresh();
                 }
@@ -734,7 +723,7 @@ public class CloudLevel implements Level {
         }
     }
 
-    private void performThunder(CloudChunk chunk) {
+    private void performThunder(Chunk chunk) {
         if (areNeighboringChunksLoaded(CloudChunk.key(chunk.getX(), chunk.getZ()))) return;
         if (ThreadLocalRandom.current().nextInt(10000) == 0) {
             int LCG = this.getUpdateLCG() >> 2;
@@ -940,7 +929,7 @@ public class CloudLevel implements Level {
                 int chunkX = CloudChunk.fromKeyX(index);
                 int chunkZ = CloudChunk.fromKeyZ(index);
 
-                CloudChunk chunk;
+                Chunk chunk;
                 if ((chunk = this.getLoadedChunk(chunkX, chunkZ)) == null) {
                     iter.remove();
                     continue;
@@ -953,9 +942,9 @@ public class CloudLevel implements Level {
                 int tickSpeed = getGameRules().get(GameRules.RANDOM_TICK_SPEED);
 
                 if (tickSpeed > 0) {
-                    CloudChunkSection[] sections = chunk.getSections();
+                    ChunkSection[] sections = chunk.getSections();
                     for (int sectionY = 0; sectionY < sections.length; sectionY++) {
-                        CloudChunkSection section = sections[sectionY];
+                        ChunkSection section = sections[sectionY];
                         if (section != null) {
                             for (int i = 0; i < tickSpeed; ++i) {
                                 int lcg = this.getUpdateLCG();
@@ -1081,7 +1070,7 @@ public class CloudLevel implements Level {
     }
 
     public boolean isUpdateScheduled(Vector3i pos) {
-        return this.updateQueue.contains(new BlockUpdateEntry(pos, getBlock(pos));
+        return this.updateQueue.contains(new BlockUpdateEntry(pos, getBlock(pos)));
     }
 
     public Set<BlockUpdateEntry> getPendingBlockUpdates(CloudChunk chunk) {
@@ -1252,7 +1241,7 @@ public class CloudLevel implements Level {
     }
 
     public int getFullLight(Vector3i pos) {
-        CloudChunk chunk = this.getChunk(pos);
+        Chunk chunk = this.getChunk(pos);
 
         int level = chunk.getSkyLight(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f);
         level -= this.skyLightSubtracted;
@@ -1270,7 +1259,7 @@ public class CloudLevel implements Level {
         int chunkX = x >> 4;
         int chunkZ = z >> 4;
 
-        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
 
         if (y < 0 || y > 255) {
             return new CloudBlock(this, Vector3i.from(x, y, z), CloudBlock.EMPTY);
@@ -1288,32 +1277,12 @@ public class CloudLevel implements Level {
         );
     }
 
-    @Nullable
-    public Block getLoadedBlock(Vector3f pos) {
-        return this.getLoadedBlock(pos.getFloorX(), pos.getFloorY(), pos.getFloorZ());
-    }
-
-    @Nullable
-    public Block getLoadedBlock(Vector3i pos) {
-        return this.getLoadedBlock(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    @Nonnull
-    public Block getBlock(Vector3f vector) {
-        return this.getBlock(vector.getFloorX(), vector.getFloorY(), vector.getFloorZ());
-    }
-
-    @Nonnull
-    public Block getBlock(Vector3i vector) {
-        return this.getBlock(vector.getX(), vector.getY(), vector.getZ());
-    }
-
     @Nonnull
     public Block getBlock(int x, int y, int z) {
         int chunkX = x >> 4;
         int chunkZ = z >> 4;
 
-        CloudChunk chunk = this.getChunk(chunkX, chunkZ);
+        Chunk chunk = this.getChunk(chunkX, chunkZ);
 
         if (y < 0 || y > 255) {
             return new CloudBlock(this, Vector3i.from(x, y, z), BlockStates.EMPTY);
@@ -1323,12 +1292,6 @@ public class CloudLevel implements Level {
                 chunk.getBlock(x & 0xf, y, z & 0xf, 0),
                 chunk.getBlock(x & 0xf, y, z & 0xf, 1)
         });
-    }
-
-    @Override
-    public BlockState getBlockState(int x, int y, int z, int layer) {
-        Block b = this.getBlock(x, y, z);
-        return b.getState(layer);
     }
 
     public void updateBlockSkyLight(int x, int y, int z) {
@@ -1356,7 +1319,7 @@ public class CloudLevel implements Level {
             int chunkZ = CloudChunk.fromKeyZ(chunkKey);
             for (short blockKey : blocks) {
                 Vector3i position = CloudChunk.fromKey(chunkKey, blockKey);
-                CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+                Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
                 if (chunk != null) {
                     int lcx = position.getX() & 0xF;
                     int lcz = position.getZ() & 0xF;
@@ -1470,7 +1433,7 @@ public class CloudLevel implements Level {
         if (y < 0 || y >= 256) {
             return false;
         }
-        CloudChunk chunk = this.getChunk(x >> 4, z >> 4);
+        Chunk chunk = this.getChunk(x >> 4, z >> 4);
         BlockState previousState = chunk.getAndSetBlock(x & 0xF, y, z & 0xF, layer, state);
         if (previousState == state) {
             return false;
@@ -1653,7 +1616,7 @@ public class CloudLevel implements Level {
             }
 
             BlockBreakEvent ev = new BlockBreakEvent(player, target, face, item, eventDrops, dropExp, player.isCreative(),
-                    (((Player) player).lastBreak + breakTime * 1000) > System.currentTimeMillis());
+                    (((CloudPlayer) player).lastBreak + breakTime * 1000) > System.currentTimeMillis());
 
             if (player.isSurvival() && !targetBehavior.isBreakable(target.getState(), item)) {
                 ev.setCancelled();
@@ -1670,7 +1633,7 @@ public class CloudLevel implements Level {
                 return null;
             }
 
-            ((Player) player).lastBreak = System.currentTimeMillis();
+            ((CloudPlayer) player).lastBreak = System.currentTimeMillis();
 
             drops = ev.getDrops();
             dropExp = ev.getDropExp();
@@ -1690,7 +1653,7 @@ public class CloudLevel implements Level {
         }
 
         if (createParticles) {
-            CloudChunk chunk = this.getLoadedChunk(target.getPosition());
+            Chunk chunk = this.getLoadedChunk(target.getPosition());
             if (chunk != null) {
                 this.addParticle(new DestroyBlockParticle(target.getPosition().toFloat().add(0.5, 0.5, 0.5), target.getState()), chunk.getPlayerLoaders());
             }
@@ -1805,7 +1768,7 @@ public class CloudLevel implements Level {
                 }
 
                 if (itemBehavior.canBeActivated()) {
-                    val result = itemBehavior.onActivate(item, player, block, target, face, clickPos, this);
+                    val result = itemBehavior.onActivate(item, player, block.getState(), target.getState(), face, clickPos, this);
                     if (result != null) {
                         item = result;
                         if (item.getAmount() <= 0) {
@@ -1858,7 +1821,7 @@ public class CloudLevel implements Level {
             }
 
             if (player != null) {
-                Vector3f diff = player.getNextPosition().sub(player.getPosition());
+                Vector3f diff = ((CloudPlayer) player).getNextPosition().sub(player.getPosition());
                 if (diff.lengthSquared() > 0.00001) {
                     AxisAlignedBB bb = player.getBoundingBox().getOffsetBoundingBox(diff);
                     if (handBB.addCoord(blockPosF).intersectsWith(bb)) {
@@ -1904,15 +1867,15 @@ public class CloudLevel implements Level {
         try {
             if (!handBehavior.place(item, block, target, face, clickPos, player)) {
                 if (pos != null) {
-                    this.setBlock(pos, 0, block.getState(), false, false);
-                    this.setBlock(pos, 1, air, false, false);
+                    this.setBlockState(pos, 0, block.getState(), false, false);
+                    this.setBlockState(pos, 1, air, false, false);
                 }
                 return null;
             }
         } catch (Exception e) {
             if (pos != null) {
-                this.setBlock(pos, 0, block.getState(), false, false);
-                this.setBlock(pos, 1, air, false, false);
+                this.setBlockState(pos, 0, block.getState(), false, false);
+                this.setBlockState(pos, 1, air, false, false);
             }
             throw e;
         }
@@ -1938,7 +1901,7 @@ public class CloudLevel implements Level {
         if (distance > -1) {
 
             Vector2i t = vector3.toVector2(true);
-            Vector2i s = this.getSpawnLocation().getPosition().toInt().toVector2(true);
+            Vector2i s = this.getSpawnLocation().toInt().toVector2(true);
             return t.distance(s) <= distance;
         }
         return false;
@@ -2035,13 +1998,13 @@ public class CloudLevel implements Level {
 
 
     public BlockEntity getBlockEntity(Vector3i pos) {
-        CloudChunk chunk = this.getChunk(pos);
+        Chunk chunk = this.getChunk(pos);
         return chunk.getBlockEntity(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f);
     }
 
     @Nullable
     public BlockEntity getLoadedBlockEntity(Vector3i pos) {
-        CloudChunk chunk = this.getLoadedChunk(pos);
+        Chunk chunk = this.getLoadedChunk(pos);
         return chunk == null ? null : chunk.getBlockEntity(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f);
     }
 
@@ -2052,7 +2015,7 @@ public class CloudLevel implements Level {
 
     @Nonnull
     public Set<Entity> getLoadedChunkEntities(int chunkX, int chunkZ) {
-        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         if (chunk != null) {
             return ImmutableSet.<Entity>builder()
                     .addAll(chunk.getEntities())
@@ -2070,13 +2033,13 @@ public class CloudLevel implements Level {
 
     @Nonnull
     public Collection<BlockEntity> getLoadedBlockEntities(int chunkX, int chunkZ) {
-        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         return chunk == null ? Collections.emptyList() : chunk.getBlockEntities();
     }
 
     @Override
     public BlockState getBlockState(int x, int y, int z, int layer) {
-        CloudChunk chunk = this.getChunk(x >> 4, z >> 4);
+        Chunk chunk = this.getChunk(x >> 4, z >> 4);
         return chunk.getBlock(x & 0x0f, y & 0xff, z & 0x0f, layer);
     }
 
@@ -2108,26 +2071,26 @@ public class CloudLevel implements Level {
         return this.getChunk(x >> 4, z >> 4).getHighestBlock(x & 0xF, z & 0xF);
     }
 
-    public CloudChunk getLoadedChunk(Vector3f pos) {
+    public Chunk getLoadedChunk(Vector3f pos) {
         return this.getLoadedChunk(pos.getFloorX() >> 4, pos.getFloorZ() >> 4);
     }
 
-    public CloudChunk getLoadedChunk(Vector3i pos) {
+    public Chunk getLoadedChunk(Vector3i pos) {
         return this.getLoadedChunk(pos.getX() >> 4, pos.getZ() >> 4);
     }
 
     @Nullable
-    public CloudChunk getLoadedChunk(long chunkKey) {
+    public Chunk getLoadedChunk(long chunkKey) {
         return this.chunkManager.getLoadedChunk(chunkKey);
     }
 
     @Nullable
-    public CloudChunk getLoadedChunk(int chunkX, int chunkZ) {
+    public Chunk getLoadedChunk(int chunkX, int chunkZ) {
         return this.chunkManager.getLoadedChunk(chunkX, chunkZ);
     }
 
     @Nonnull
-    public Set<CloudChunk> getChunks() {
+    public Set<Chunk> getChunks() {
         return this.chunkManager.getLoadedChunks();
     }
 
@@ -2136,27 +2099,17 @@ public class CloudLevel implements Level {
     }
 
     @Nonnull
-    public CloudChunk getChunk(long chunkKey) {
+    public Chunk getChunk(long chunkKey) {
         return this.chunkManager.getChunk(CloudChunk.fromKeyX(chunkKey), CloudChunk.fromKeyZ(chunkKey));
     }
 
     @Nonnull
-    public CloudChunk getChunk(Vector3f pos) {
-        return this.getChunk(pos.getFloorX() >> 4, pos.getFloorZ() >> 4);
-    }
-
-    @Nonnull
-    public CloudChunk getChunk(Vector3i pos) {
-        return this.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
-    }
-
-    @Nonnull
-    public CloudChunk getChunk(int chunkX, int chunkZ) {
+    public Chunk getChunk(int chunkX, int chunkZ) {
         return this.chunkManager.getChunk(chunkX, chunkZ);
     }
 
     @Nonnull
-    public CompletableFuture<CloudChunk> getChunkFuture(int chunkX, int chunkZ) {
+    public CompletableFuture<Chunk> getChunkFuture(int chunkX, int chunkZ) {
         return this.chunkManager.getChunkFuture(chunkX, chunkZ);
     }
 
@@ -2165,7 +2118,7 @@ public class CloudLevel implements Level {
     }
 
     public BlockColor getMapColorAt(int x, int z) {
-        CloudChunk chunk = this.getChunk(x >> 4, z >> 4);
+        Chunk chunk = this.getChunk(x >> 4, z >> 4);
         int y = chunk.getHighestBlock(x & 0x0f, z & 0x0f);
         while (y > 1) {
             Block block = getBlock(Vector3i.from(x, y, z));
@@ -2198,15 +2151,15 @@ public class CloudLevel implements Level {
                 this.chunkManager.isChunkLoaded(hash - (1L << 32));
     }
 
-    public Location getSpawnLocation() {
-        return Location.from(this.levelData.getSpawn().toFloat().add(0.5f, 0f, 0.5f), this);
+    public Vector3f getSpawnLocation() {
+        return this.levelData.getSpawn().toFloat().add(0.5f, 0f, 0.5f);
     }
 
     public void setSpawnLocation(Vector3f pos) {
-        Location previousSpawn = this.getSpawnLocation();
+        Vector3f previousSpawn = this.getSpawnLocation();
         Vector3i blockPos = pos.toInt();
         this.levelData.setSpawn(blockPos);
-        this.server.getEventManager().fire(new SpawnChangeEvent(this, previousSpawn.getPosition()));
+        this.server.getEventManager().fire(new SpawnChangeEvent(this, previousSpawn));
 
         SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
         packet.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
@@ -2281,48 +2234,45 @@ public class CloudLevel implements Level {
         return this.getSafeSpawn(null);
     }
 
-    public Location getSafeSpawn(Location spawn) {
-        if (spawn == null || spawn.getY() < 1) {
-            spawn = this.getSpawnLocation();
+    public Location getSafeSpawn(Location pos) {
+        if (pos == null || pos.getY() < 1) {
+            pos = Location.from(this.getSpawnLocation(), this);
         }
 
-        if (spawn != null) {
-            Vector3f v = spawn.getPosition();
-            CloudChunk chunk = this.getLoadedChunk(v);
-            int x = v.getFloorX() & 0x0f;
-            int z = v.getFloorZ() & 0x0f;
-            if (chunk != null) {
-                int y = NukkitMath.clamp(v.getFloorY(), 0, 254);
-                boolean wasAir = !this.isFullBlock(Vector3i.from(x, y + 1, z), chunk.getBlock(x, y + 1, z));
-                for (; y > 0; --y) {
-                    BlockState blockState = chunk.getBlock(x, y, z);
-                    if (this.isFullBlock(Vector3i.from(x, y, z), blockState)) {
-                        if (wasAir) {
-                            y++;
-                            break;
-                        }
-                    } else {
-                        wasAir = true;
+        Vector3f v = pos.getPosition();
+        Chunk chunk = this.getLoadedChunk(v);
+        int x = v.getFloorX() & 0x0f;
+        int z = v.getFloorZ() & 0x0f;
+        if (chunk != null) {
+            int y = NukkitMath.clamp(v.getFloorY(), 0, 254);
+            boolean wasAir = !this.isFullBlock(Vector3i.from(x, y + 1, z), chunk.getBlock(x, y + 1, z));
+            for (; y > 0; --y) {
+                BlockState blockState = chunk.getBlock(x, y, z);
+                if (this.isFullBlock(Vector3i.from(x, y, z), blockState)) {
+                    if (wasAir) {
+                        y++;
+                        break;
                     }
+                } else {
+                    wasAir = true;
                 }
-
-                for (; y >= 0 && y < 255; y++) {
-                    BlockState blockState = chunk.getBlock(x, y + 1, z);
-                    if (!this.isFullBlock(Vector3i.from(x, y + 1, z), blockState)) {
-                        blockState = chunk.getBlock(x, y, z);
-                        if (!this.isFullBlock(Vector3i.from(x, y, z), blockState)) {
-                            return Location.from(spawn.getX(), y, spawn.getZ(), spawn.getYaw(), spawn.getPitch(), this);
-                        }
-                    }
-                }
-
-                v = Vector3f.from(spawn.getX(), y, spawn.getZ());
             }
 
-            return Location.from(v.getX(), v.getY(), v.getZ(), spawn.getYaw(), spawn.getPitch(), this);
+            for (; y >= 0 && y < 255; y++) {
+                BlockState blockState = chunk.getBlock(x, y + 1, z);
+                if (!this.isFullBlock(Vector3i.from(x, y + 1, z), blockState)) {
+                    blockState = chunk.getBlock(x, y, z);
+                    if (!this.isFullBlock(Vector3i.from(x, y, z), blockState)) {
+                        return Location.from(pos.getX(), y, pos.getZ(), pos.getYaw(), pos.getPitch(), this);
+                    }
+                }
+            }
+
+            v = Vector3f.from(pos.getX(), y, pos.getZ());
         }
 
-        return null;
+        return Location.from(v.getX(), v.getY(), v.getZ(), pos.getYaw(), pos.getPitch(), this);
+
     }
 
     public int getTime() {
@@ -2368,7 +2318,7 @@ public class CloudLevel implements Level {
         this.chunkManager.tick();
     }
 
-    @Override
+/*    @Override
     public void setMetadata(String metadataKey, MetadataValue newMetadataValue) throws Exception {
         this.server.getLevelMetadata().setMetadata(this, metadataKey, newMetadataValue);
     }
@@ -2386,7 +2336,7 @@ public class CloudLevel implements Level {
     @Override
     public void removeMetadata(String metadataKey, PluginContainer owningPlugin) throws Exception {
         this.server.getLevelMetadata().removeMetadata(this, metadataKey, owningPlugin);
-    }
+    }*/
 
     public void addEntityMovement(Entity entity, double x, double y, double z, double yaw, double pitch, double headYaw) {
         MoveEntityAbsolutePacket packet = new MoveEntityAbsolutePacket();

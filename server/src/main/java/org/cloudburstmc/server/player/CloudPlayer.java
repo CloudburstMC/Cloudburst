@@ -57,6 +57,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permission;
@@ -3033,7 +3034,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     @Override
-    public void onChunkChanged(CloudChunk chunk) {
+    public void onChunkChanged(Chunk chunk) {
         this.getChunkManager().resendChunk(chunk.getX(), chunk.getZ());
     }
 
