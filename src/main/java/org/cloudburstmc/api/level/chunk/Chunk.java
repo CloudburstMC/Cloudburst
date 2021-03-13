@@ -3,13 +3,14 @@ package org.cloudburstmc.api.level.chunk;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.player.Player;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
+import java.util.Set;
 
 public interface Chunk extends Comparable<Chunk> {
     int STATE_NEW = 0;
@@ -114,7 +115,7 @@ public interface Chunk extends Comparable<Chunk> {
      * @return player set
      */
     @Nonnull
-    Collection<Player> getPlayers();
+    Set<Player> getPlayers();
 
     /**
      * Gets an immutable copy of entities currently in this chunk
@@ -122,15 +123,15 @@ public interface Chunk extends Comparable<Chunk> {
      * @return entity set
      */
     @Nonnull
-    Collection<Entity> getEntities();
+    Set<Entity> getEntities();
 
     /**
      * Gets an immutable copy of all block entities within the current chunk.
      *
-     * @return block entity collection
+     * @return block entity set
      */
     @Nonnull
-    Collection<BlockEntity> getBlockEntities();
+    Set<BlockEntity> getBlockEntities();
 
     /**
      * Gets this chunk's current state.
@@ -194,7 +195,9 @@ public interface Chunk extends Comparable<Chunk> {
     /**
      * @return this chunk's key
      */
-    long key();
+    default long key() {
+        return (((long) getX()) << 32) | (getZ() & 0xffffffffL);
+    }
 
     @Override
     default int compareTo(Chunk o) {
@@ -202,4 +205,15 @@ public interface Chunk extends Comparable<Chunk> {
         int x = Integer.compare(this.getX(), o.getX());
         return x != 0 ? x : Integer.compare(this.getZ(), o.getZ());
     }
+
+    LockableChunk readLockable();
+
+    LockableChunk writeLockable();
+
+    void close();
+
+    Set<ChunkLoader> getLoaders();
+
+    Set<Player> getPlayerLoaders();
+
 }
