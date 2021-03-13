@@ -1,9 +1,11 @@
 package org.cloudburstmc.api.player;
 
+import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 import java.util.OptionalLong;
 import java.util.UUID;
@@ -101,6 +103,12 @@ public interface Player extends Entity {
 
     boolean isSneaking();
 
+    boolean isSleeping();
+
+    boolean sleepOn(Vector3i pos);
+
+    void stopSleep();
+
     boolean isOnGround();
 
     Inventory getInventory();
@@ -126,4 +134,6 @@ public interface Player extends Entity {
     boolean isSpawned();
 
     GameMode getGamemode();
+
+    void onChunkChanged(Chunk chunk);
 }

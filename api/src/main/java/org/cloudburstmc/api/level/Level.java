@@ -24,6 +24,14 @@ public interface Level extends ChunkManager {
     int BLOCK_UPDATE_REDSTONE = 6;
     int BLOCK_UPDATE_TICK = 7;
 
+    int TIME_DAY = 0;
+    int TIME_NOON = 6000;
+    int TIME_SUNSET = 12000;
+    int TIME_NIGHT = 14000;
+    int TIME_MIDNIGHT = 18000;
+    int TIME_SUNRISE = 23000;
+    int TIME_FULL = 24000;
+
     void init();
 
     Server getServer();
@@ -118,7 +126,7 @@ public interface Level extends ChunkManager {
 
     boolean isRaining();
 
-    void setRaining(boolean raining);
+    boolean setRaining(boolean raining);
 
     int getRainTime();
 
@@ -126,7 +134,7 @@ public interface Level extends ChunkManager {
 
     boolean isThundering();
 
-    void setThundering(boolean thundering);
+    boolean setThundering(boolean thundering);
 
     int getThunderTime();
 
@@ -153,7 +161,7 @@ public interface Level extends ChunkManager {
 
     Block[] getCollisionBlocks(AxisAlignedBB bb);
 
-    Entity[] getCollidingEntities(AxisAlignedBB bb, Entity target);
+    Set<Entity> getCollidingEntities(AxisAlignedBB bb, Entity target);
 
     int getTickRate();
 

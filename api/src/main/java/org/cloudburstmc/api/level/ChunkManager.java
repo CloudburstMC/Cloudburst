@@ -38,16 +38,24 @@ public interface ChunkManager {
         return getBlock(pos.getX(), pos.getY(), pos.getZ());
     }
 
+    default Block getBlock(Vector3f pos) {
+        return getBlock(pos.toInt());
+    }
+
     Block getBlock(int x, int y, int z);
 
     default Block getLoadedBlock(Vector3i pos) {
         return getLoadedBlock(pos.getX(), pos.getY(), pos.getZ());
     }
 
+    default Block getLoadedBlock(Vector3f pos) {
+        return getLoadedBlock(pos.toInt());
+    }
+
     Block getLoadedBlock(int x, int y, int z);
 
     default boolean setBlockState(Vector3i pos, BlockState blockState) {
-       return this.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, blockState);
+        return this.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, blockState);
     }
 
     default boolean setBlockState(Vector3i pos, int layer, BlockState blockState) {
