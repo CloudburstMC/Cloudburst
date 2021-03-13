@@ -3,11 +3,10 @@ package org.cloudburstmc.server.level.manager;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.NonNull;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.level.chunk.LockableChunk;
+import org.cloudburstmc.api.level.chunk.LockableChunk;
 
 /**
  * Implementation of {@link ChunkManager} used during chunk population.
@@ -23,7 +22,7 @@ public final class PopulationChunkManager implements ChunkManager {
     private final int cornerX;
     private final int cornerZ;
 
-    public PopulationChunkManager(@NonNull CloudChunk chunk, @NonNull LockableChunk[] allChunks, long seed) {
+    public PopulationChunkManager(@NonNull Chunk chunk, @NonNull LockableChunk[] allChunks, long seed) {
         this.seed = seed;
         this.cornerX = chunk.getX() - 1;
         this.cornerZ = chunk.getZ() - 1;
@@ -58,13 +57,15 @@ public final class PopulationChunkManager implements ChunkManager {
     }
 
     @Override
-    public void setBlockAt(int x, int y, int z, BlockState state) {
+    public boolean setBlockState(int x, int y, int z, BlockState state) {
         this.chunkFromBlock(x, z).setBlock(x & 0xF, y, z & 0xF, 0, state);
+        return true;
     }
 
     @Override
-    public void setBlockAt(int x, int y, int z, int layer, BlockState state) {
+    public boolean setBlockState(int x, int y, int z, int layer, BlockState state) {
         this.chunkFromBlock(x, z).setBlock(x & 0xF, y, z & 0xF, layer, state);
+        return true;
     }
 
     @Override
