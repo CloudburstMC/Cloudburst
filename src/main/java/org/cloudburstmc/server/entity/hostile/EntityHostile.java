@@ -4,9 +4,9 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.entity.EntityCreature;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * author: MagicDroidX
@@ -19,7 +19,7 @@ public abstract class EntityHostile extends EntityCreature {
     }
 
     @Override
-    public boolean onInteract(CloudPlayer player, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         if (item.getType() == ItemTypes.NAME_TAG) {
             if (item.hasName()) {
                 this.setNameTag(item.getName());

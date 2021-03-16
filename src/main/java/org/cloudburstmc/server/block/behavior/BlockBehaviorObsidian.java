@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block.behavior;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.item.TierTypes;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.api.block.BlockTypes.PORTAL;
 

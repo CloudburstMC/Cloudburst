@@ -3,14 +3,15 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 
@@ -45,12 +46,12 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 //    }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val targetType = target.getState().getType();
         if (targetType == BlockTypes.WATER || targetType == BlockTypes.FLOWING_WATER) {
             Block up = target.up();
             if (up.getState() == BlockStates.AIR) {
-                placeBlock(block, BlockState.get(BlockTypes.WATERLILY));
+                placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.WATERLILY));
                 return true;
             }
         }
@@ -72,7 +73,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState());
+        return CloudItemRegistry.get().getItem(block.getState());
     }
 
     @Override

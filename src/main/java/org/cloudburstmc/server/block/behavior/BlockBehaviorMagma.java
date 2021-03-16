@@ -4,9 +4,9 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorMagma extends BlockBehaviorSolid {
 

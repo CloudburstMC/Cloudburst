@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.utils;
 
-import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.api.util.Direction;
 
 public interface Faceable {
 

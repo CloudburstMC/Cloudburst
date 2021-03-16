@@ -4,12 +4,12 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorLog extends BlockBehaviorSolid {
 

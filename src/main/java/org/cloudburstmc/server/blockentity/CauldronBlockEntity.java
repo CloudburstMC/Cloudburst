@@ -6,8 +6,8 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Cauldron;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.utils.BlockColor;
 
 /**
  * author: CreeperFace
@@ -88,7 +88,9 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
     }
 
     private void setCustomColor(int customColor) {
-        this.customColor = new BlockColor(customColor);
+       // this.customColor = new BlockColor(customColor);
+        //TODO - need to convert BlockColer back to class instead of enum? or just store/return an RGB int?
+
     }
 
     @Override

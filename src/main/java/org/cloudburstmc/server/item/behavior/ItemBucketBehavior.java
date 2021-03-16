@@ -10,11 +10,11 @@ import org.cloudburstmc.api.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.api.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.api.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;

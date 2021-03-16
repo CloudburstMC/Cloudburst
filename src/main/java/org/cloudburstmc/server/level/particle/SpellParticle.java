@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.util.data.BlockColor;
 
 /**
  * Created on 2015/12/27 by xtypr.

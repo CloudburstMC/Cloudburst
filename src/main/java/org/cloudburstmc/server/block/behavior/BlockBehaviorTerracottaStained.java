@@ -3,10 +3,10 @@ package org.cloudburstmc.server.block.behavior;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.TierTypes;
-import org.cloudburstmc.server.utils.BlockColor;
 import org.cloudburstmc.server.utils.data.DyeColor;
 
 public class BlockBehaviorTerracottaStained extends BlockBehaviorSolid {
