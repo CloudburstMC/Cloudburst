@@ -10,6 +10,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginManager;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.UUID;
 
@@ -92,5 +93,8 @@ public interface Server {
     void addOnlinePlayer(Player who);
 
     void onPlayerCompleteLoginSequence(Player who);
+
+    @Nullable
+    Player getPlayer(String name);
 
 }
