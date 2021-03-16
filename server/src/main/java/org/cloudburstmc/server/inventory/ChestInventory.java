@@ -3,8 +3,9 @@ package org.cloudburstmc.server.inventory;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.blockentity.ChestBlockEntity;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * author: MagicDroidX
@@ -19,12 +20,12 @@ public class ChestInventory extends CloudContainer {
     }
 
     @Override
-    public Chest getHolder() {
-        return (Chest) this.holder;
+    public ChestBlockEntity getHolder() {
+        return (ChestBlockEntity) this.holder;
     }
 
     @Override
-    public void onOpen(CloudPlayer who) {
+    public void onOpen(Player who) {
         super.onOpen(who);
 
         if (this.getViewers().size() == 1) {
@@ -37,7 +38,7 @@ public class ChestInventory extends CloudContainer {
     }
 
     @Override
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player who) {
         if (this.getViewers().size() == 1) {
             CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
@@ -57,7 +58,7 @@ public class ChestInventory extends CloudContainer {
     }
 
     @Override
-    public void sendSlot(int index, CloudPlayer... players) {
+    public void sendSlot(int index, Player... players) {
         if (this.doubleInventory != null) {
             this.doubleInventory.sendSlot(this, index, players);
         } else {

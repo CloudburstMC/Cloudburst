@@ -541,6 +541,7 @@ public class CloudLevel implements Level {
         return this.getGameRules().get(GameRules.DO_WEATHER_CYCLE);
     }
 
+    @Override
     public void sendTime(Player... players) {
         /*if (this.stopTime) { //TODO
             SetTimePacket pk0 = new SetTimePacket();
@@ -666,7 +667,7 @@ public class CloudLevel implements Level {
                                     Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
                                     if (chunk != null) {
                                         for (Player p : this.getChunkPlayers(chunkX, chunkZ)) {
-                                            p.onChunkChanged(chunk);
+                                            ((CloudPlayer) p).onChunkChanged(chunk);
                                         }
                                     }
                                 } else {
@@ -2071,22 +2072,24 @@ public class CloudLevel implements Level {
         return this.getChunk(x >> 4, z >> 4).getHighestBlock(x & 0xF, z & 0xF);
     }
 
-    public Chunk getLoadedChunk(Vector3f pos) {
-        return this.getLoadedChunk(pos.getFloorX() >> 4, pos.getFloorZ() >> 4);
+    @Override
+    public CloudChunk getLoadedChunk(long chunkKey) {
+        return (CloudChunk) this.chunkManager.getLoadedChunk(chunkKey);
     }
 
-    public Chunk getLoadedChunk(Vector3i pos) {
-        return this.getLoadedChunk(pos.getX() >> 4, pos.getZ() >> 4);
+    @Override
+    public CloudChunk getLoadedChunk(int chunkX, int chunkZ) {
+        return (CloudChunk) this.chunkManager.getLoadedChunk(chunkX, chunkZ);
     }
 
-    @Nullable
-    public Chunk getLoadedChunk(long chunkKey) {
-        return this.chunkManager.getLoadedChunk(chunkKey);
+    @Override
+    public CloudChunk getLoadedChunk(Vector3i pos) {
+        return this.getLoadedChunk(pos.getX(), pos.getZ());
     }
 
-    @Nullable
-    public Chunk getLoadedChunk(int chunkX, int chunkZ) {
-        return this.chunkManager.getLoadedChunk(chunkX, chunkZ);
+    @Override
+    public CloudChunk getLoadedChunk(Vector3f pos) {
+        return this.getLoadedChunk(pos.toInt());
     }
 
     @Nonnull
@@ -2098,18 +2101,28 @@ public class CloudLevel implements Level {
         return this.chunkManager.getLoadedCount();
     }
 
-    @Nonnull
-    public Chunk getChunk(long chunkKey) {
-        return this.chunkManager.getChunk(CloudChunk.fromKeyX(chunkKey), CloudChunk.fromKeyZ(chunkKey));
+    @Override
+    public CloudChunk getChunk(Vector3i pos) {
+        return getChunk(pos.getX(), pos.getZ());
     }
 
-    @Nonnull
-    public Chunk getChunk(int chunkX, int chunkZ) {
-        return this.chunkManager.getChunk(chunkX, chunkZ);
+    @Override
+    public CloudChunk getChunk(Vector3f pos) {
+        return getChunk(pos.getFloorX(), pos.getFloorZ());
     }
 
-    @Nonnull
-    public CompletableFuture<Chunk> getChunkFuture(int chunkX, int chunkZ) {
+    @Override
+    public CloudChunk getChunk(long chunkKey) {
+        return getChunk(CloudChunk.fromKeyX(chunkKey), CloudChunk.fromKeyZ(chunkKey);
+    }
+
+    @Override
+    public CloudChunk getChunk(int chunkX, int chunkZ) {
+        return (CloudChunk) this.chunkManager.getChunk(chunkX, chunkZ);
+    }
+
+    @Override
+    public CompletableFuture<CloudChunk> getChunkFuture(int chunkX, int chunkZ) {
         return this.chunkManager.getChunkFuture(chunkX, chunkZ);
     }
 

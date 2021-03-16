@@ -10,6 +10,7 @@ import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.api.event.player.PlayerItemHeldEvent;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.item.CloudItemStack;
@@ -179,7 +180,7 @@ public class PlayerInventory extends BaseInventory {
     @Override
     public void onSlotChange(int index, ItemStack before, boolean send) {
         EntityHuman holder = this.getHolder();
-        if (holder instanceof CloudPlayer && !((CloudPlayer) holder).spawned) {
+        if (holder instanceof Player && !((Player) holder).isSpawned()) {
             return;
         }
 
@@ -374,14 +375,14 @@ public class PlayerInventory extends BaseInventory {
         packet.setContainerId(ContainerId.OFFHAND);
         packet.setInventorySlot(1);
 
-        for (CloudPlayer player : players) {
+        for (Player player : players) {
             if (player.equals(this.getHolder())) {
                 InventoryContentPacket invPacket = new InventoryContentPacket();
                 invPacket.setContainerId(ContainerId.OFFHAND);
                 invPacket.setContents(ItemUtils.toNetwork(Collections.singleton(offHand)));
-                player.sendPacket(invPacket);
+                ((CloudPlayer) player).sendPacket(invPacket);
             } else {
-                player.sendPacket(packet);
+                ((CloudPlayer) player).sendPacket(packet);
             }
         }
     }
@@ -498,23 +499,13 @@ public class PlayerInventory extends BaseInventory {
     }
 
     @Override
-    public void sendContents(CloudPlayer player) {
-        this.sendContents(new CloudPlayer[]{player});
-    }
-
-    @Override
-    public void sendContents(Collection<CloudPlayer> players) {
-        this.sendContents(players.toArray(new CloudPlayer[0]));
-    }
-
-    @Override
-    public void sendContents(CloudPlayer[] players) {
+    public void sendContents(Player[] players) {
         List<ItemData> itemData = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
             itemData.add(i, ((CloudItemStack) this.getItem(i)).getNetworkData());
         }
 
-        for (CloudPlayer player : players) {
+        for (CloudPlayer player : (CloudPlayer[]) players) {
             int id = player.getWindowId(this);
             if (id == -1) {
                 if (this.getHolder() != player) this.close(player);
@@ -530,20 +521,10 @@ public class PlayerInventory extends BaseInventory {
     }
 
     @Override
-    public void sendSlot(int index, CloudPlayer player) {
-        this.sendSlot(index, new CloudPlayer[]{player});
-    }
-
-    @Override
-    public void sendSlot(int index, Collection<CloudPlayer> players) {
-        this.sendSlot(index, players.toArray(new CloudPlayer[0]));
-    }
-
-    @Override
-    public void sendSlot(int index, CloudPlayer... players) {
+    public void sendSlot(int index, Player... players) {
         ItemData itemData = ((CloudItemStack) this.getItem(index)).getNetworkData();
 
-        for (CloudPlayer player : players) {
+        for (CloudPlayer player : (CloudPlayer[]) players) {
             InventorySlotPacket packet = new InventorySlotPacket();
             packet.setSlot(index);
             packet.setItem(itemData);
@@ -564,7 +545,7 @@ public class PlayerInventory extends BaseInventory {
     }
 
     public void sendCreativeContents() {
-        if (!(this.getHolder() instanceof CloudPlayer)) {
+        if (!(this.getHolder() instanceof Player)) {
             return;
         }
         CloudPlayer p = (CloudPlayer) this.getHolder();
@@ -587,21 +568,21 @@ public class PlayerInventory extends BaseInventory {
     }
 
     @Override
-    public void onOpen(CloudPlayer who) {
+    public void onOpen(Player who) {
         super.onOpen(who);
         ContainerOpenPacket pk = new ContainerOpenPacket();
-        pk.setId(who.getWindowId(this));
+        pk.setId(((CloudPlayer) who).getWindowId(this));
         pk.setType(ContainerType.INVENTORY);
         pk.setBlockPosition(who.getPosition().toInt());
         pk.setUniqueEntityId(who.getUniqueId());
-        who.sendPacket(pk);
+        ((CloudPlayer) who).sendPacket(pk);
     }
 
     @Override
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player who) {
         ContainerClosePacket pk = new ContainerClosePacket();
-        pk.setId(who.getWindowId(this));
-        who.sendPacket(pk);
+        pk.setId(((CloudPlayer) who).getWindowId(this));
+        ((CloudPlayer) who).sendPacket(pk);
         // Player can neer stop viewing their own inventory
         if (who != holder)
             super.onClose(who);
