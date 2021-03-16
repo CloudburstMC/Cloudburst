@@ -36,7 +36,6 @@ import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
@@ -566,7 +565,7 @@ public abstract class BaseEntity implements Entity {
 
         this.justCreated = true;
 
-        this.chunk = location.getLevel().getLoadedChunk(location.getPosition());
+        this.chunk = (CloudChunk) location.getLevel().getLoadedChunk(location.getPosition());
         this.level = (CloudLevel) location.getLevel();
         this.server = (CloudServer) location.getLevel().getServer();
 
@@ -970,11 +969,11 @@ public abstract class BaseEntity implements Entity {
                 if (!ev.isCancelled()) {
                     Location newLoc = EnumLevel.moveToNether(this.getLocation());
                     if (newLoc != null) {
-                        List<CompletableFuture<Chunk>> chunksToLoad = new ArrayList<>();
+                        List<CompletableFuture<CloudChunk>> chunksToLoad = new ArrayList<>();
                         for (int x = -1; x < 2; x++) {
                             for (int z = -1; z < 2; z++) {
                                 int chunkX = (newLoc.getChunkX()) + x, chunkZ = (newLoc.getChunkZ()) + z;
-                                chunksToLoad.add(newLoc.getLevel().getChunkFuture(chunkX, chunkZ));
+                                chunksToLoad.add(((CloudLevel) newLoc.getLevel()).getChunkFuture(chunkX, chunkZ));
                             }
                         }
                         CompletableFutures.allAsList(chunksToLoad).whenComplete((chunks, throwable) -> {
@@ -1743,7 +1742,7 @@ public abstract class BaseEntity implements Entity {
             }
 
             if (!this.justCreated) {
-                Set<Player> loaders = ((CloudChunk)chunk).getPlayerLoaders();
+                Set<CloudPlayer> loaders = chunk.getPlayerLoaders();
                 for (Player player : this.hasSpawned) {
                     if (!loaders.contains(player)) {
                         this.despawnFrom(player);

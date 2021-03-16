@@ -28,7 +28,6 @@ import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permissible;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.potion.Potion;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -61,7 +60,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.OfflinePlayer;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
 import org.cloudburstmc.server.plugin.loader.JavaPluginLoader;
-import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.registry.*;
 import org.cloudburstmc.server.scheduler.ServerScheduler;
 import org.cloudburstmc.server.scheduler.Task;
@@ -146,11 +144,11 @@ public class CloudServer implements Server {
 
     private boolean autoSave = true;
 
-    private final EntityMetadataStore entityMetadata;
+/*    private final EntityMetadataStore entityMetadata;
 
     private final PlayerMetadataStore playerMetadata;
 
-    private final LevelMetadataStore levelMetadata;
+    private final LevelMetadataStore levelMetadata;*/
 
     private Network network;
 
@@ -200,7 +198,7 @@ public class CloudServer implements Server {
     private final BiomeRegistry biomeRegistry = BiomeRegistry.get();
     private final CommandRegistry commandRegistry = CommandRegistry.get();
 
-    private final Map<InetSocketAddress, Player> players = new HashMap<>();
+    private final Map<InetSocketAddress, CloudPlayer> players = new HashMap<>();
 
     private final Map<UUID, CloudPlayer> playerList = new HashMap<>();
     private final LevelData defaultLevelData = new LevelData();
@@ -596,7 +594,7 @@ public class CloudServer implements Server {
 
         try (Timing ignored = Timings.playerNetworkSendTimer.startTiming()) {
             List<Player> targets = new ArrayList<>();
-            for (Player p : players) {
+            for (CloudPlayer p : (CloudPlayer[]) players) {
                 if (p.isConnected()) {
                     for (BedrockPacket packet : packets) {
                         p.sendPacket(packet);
@@ -645,7 +643,7 @@ public class CloudServer implements Server {
 
             this.hasStopped = true;
 
-            for (Player player : new ArrayList<>(this.players.values())) {
+            for (CloudPlayer player : new ArrayList<>(this.players.values())) {
                 player.close(player.getLeaveMessage(), this.getConfig().getSettings().getShutdownMessage());
             }
 
@@ -766,7 +764,7 @@ public class CloudServer implements Server {
     }
 
     public void onPlayerCompleteLoginSequence(Player player) {
-        this.sendFullPlayerListData(player);
+        this.sendFullPlayerListData((CloudPlayer) player);
     }
 
     public void onPlayerLogin(Player player) {
@@ -776,12 +774,12 @@ public class CloudServer implements Server {
     }
 
     public void addPlayer(InetSocketAddress socketAddress, Player player) {
-        this.players.put(socketAddress, player);
+        this.players.put(socketAddress, (CloudPlayer) player);
     }
 
     public void addOnlinePlayer(Player player) {
-        this.playerList.put(player.getServerId(), player);
-        this.updatePlayerListData(player.getServerId(), player.getUniqueId(), player.getDisplayName(), player.getSkin(), player.getXuid());
+        this.playerList.put(player.getServerId(), (CloudPlayer) player);
+        this.updatePlayerListData(player.getServerId(), player.getUniqueId(), player.getDisplayName(), ((CloudPlayer) player).getSkin(), player.getXuid());
     }
 
     public void removeOnlinePlayer(Player player) {
@@ -792,7 +790,7 @@ public class CloudServer implements Server {
             packet.setAction(PlayerListPacket.Action.REMOVE);
             packet.getEntries().add(new PlayerListPacket.Entry(player.getServerId()));
 
-            CloudServer.broadcastPacket(this.playerList.values(), packet);
+            CloudServer.broadcastPacket((Set<CloudPlayer>) this.playerList.values(), packet);
         }
     }
 
@@ -804,11 +802,11 @@ public class CloudServer implements Server {
         this.updatePlayerListData(uuid, entityId, name, skin, xboxUserId, this.playerList.values());
     }
 
-    public void updatePlayerListData(UUID uuid, long entityId, String name, SerializedSkin skin, Player[] players) {
+    public void updatePlayerListData(UUID uuid, long entityId, String name, SerializedSkin skin, CloudPlayer[] players) {
         this.updatePlayerListData(uuid, entityId, name, skin, "", players);
     }
 
-    public void updatePlayerListData(UUID uuid, long entityId, String name, SerializedSkin skin, String xboxUserId, Player[] players) {
+    public void updatePlayerListData(UUID uuid, long entityId, String name, SerializedSkin skin, String xboxUserId, CloudPlayer[] players) {
         PlayerListPacket packet = new PlayerListPacket();
         packet.setAction(PlayerListPacket.Action.ADD);
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
@@ -821,29 +819,29 @@ public class CloudServer implements Server {
         CloudServer.broadcastPacket(players, packet);
     }
 
-    public void updatePlayerListData(UUID uuid, long entityId, String name, SerializedSkin skin, String xboxUserId, Collection<Player> players) {
+    public void updatePlayerListData(UUID uuid, long entityId, String name, SerializedSkin skin, String xboxUserId, Collection<CloudPlayer> players) {
         this.updatePlayerListData(uuid, entityId, name, skin, xboxUserId,
                 players.stream()
                         .filter(p -> !p.getServerId().equals(uuid))
-                        .toArray(Player[]::new));
+                        .toArray(CloudPlayer[]::new));
     }
 
     public void removePlayerListData(UUID uuid) {
         this.removePlayerListData(uuid, this.playerList.values());
     }
 
-    public void removePlayerListData(UUID uuid, Player[] players) {
+    public void removePlayerListData(UUID uuid, CloudPlayer[] players) {
         PlayerListPacket packet = new PlayerListPacket();
         packet.setAction(PlayerListPacket.Action.REMOVE);
         packet.getEntries().add(new PlayerListPacket.Entry(uuid));
         CloudServer.broadcastPacket(players, packet);
     }
 
-    public void removePlayerListData(UUID uuid, Collection<Player> players) {
-        this.removePlayerListData(uuid, players.toArray(new Player[0]));
+    public void removePlayerListData(UUID uuid, Collection<CloudPlayer> players) {
+        this.removePlayerListData(uuid, players.toArray(new CloudPlayer[0]));
     }
 
-    public void sendFullPlayerListData(Player player) {
+    public void sendFullPlayerListData(CloudPlayer player) {
         PlayerListPacket packet = new PlayerListPacket();
         packet.setAction(PlayerListPacket.Action.ADD);
         packet.getEntries().addAll(this.playerList.values().stream()
@@ -861,7 +859,7 @@ public class CloudServer implements Server {
     }
 
     public void sendRecipeList(Player player) {
-        this.craftingManager.sendRecipesTo(player);
+        this.craftingManager.sendRecipesTo((CloudPlayer) player);
     }
 
     private void checkTickUpdates(int currentTick, long tickTime) {
@@ -1147,7 +1145,7 @@ public class CloudServer implements Server {
         return this.serverProperties.isForceResources();
     }
 
-    public EntityMetadataStore getEntityMetadata() {
+/*    public EntityMetadataStore getEntityMetadata() {
         return entityMetadata;
     }
 
@@ -1157,7 +1155,7 @@ public class CloudServer implements Server {
 
     public LevelMetadataStore getLevelMetadata() {
         return levelMetadata;
-    }
+    }*/
 
     public CloudEventManager getEventManager() {
         return eventManager;
@@ -1489,13 +1487,13 @@ public class CloudServer implements Server {
     }
 
     public void removePlayer(Player player) {
-        Player toRemove = this.players.remove(player.getSocketAddress());
+        CloudPlayer toRemove = this.players.remove(((CloudPlayer) player).getSocketAddress());
         if (toRemove != null) {
             return;
         }
 
         for (InetSocketAddress socketAddress : new ArrayList<>(this.players.keySet())) {
-            Player p = this.players.get(socketAddress);
+            CloudPlayer p = this.players.get(socketAddress);
             if (player == p) {
                 this.players.remove(socketAddress);
                 break;
@@ -1619,9 +1617,19 @@ public class CloudServer implements Server {
         this.operators.save();
     }
 
+    @Override
+    public void addWhitelist(Player player) {
+        this.addWhitelist(player.getName());
+    }
+
     public void addWhitelist(String name) {
         this.whitelist.set(name.toLowerCase(), true);
         this.whitelist.save(true);
+    }
+
+    @Override
+    public void removeWhitelist(Player player) {
+        this.removeWhitelist(player.getName());
     }
 
     public void removeWhitelist(String name) {
@@ -1629,8 +1637,18 @@ public class CloudServer implements Server {
         this.whitelist.save(true);
     }
 
+    @Override
+    public boolean isWhitelisted(Player player) {
+        return this.isWhitelisted(player.getName());
+    }
+
     public boolean isWhitelisted(String name) {
         return !this.hasWhitelist() || this.operators.exists(name, true) || this.whitelist.exists(name, true);
+    }
+
+    @Override
+    public boolean isOp(Player player) {
+        return this.isOp(player.getName());
     }
 
     public boolean isOp(String name) {
@@ -1713,8 +1731,6 @@ public class CloudServer implements Server {
     }
 
     private void registerVanillaComponents() {
-        CloudEffect.init();
-        Potion.init();
         Attribute.init();
         this.defaultLevelData.getGameRules().putAll(this.gameRuleRegistry.getDefaultRules());
     }
