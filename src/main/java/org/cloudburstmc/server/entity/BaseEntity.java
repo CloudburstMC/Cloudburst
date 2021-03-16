@@ -20,7 +20,6 @@ import com.spotify.futures.CompletableFutures;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
@@ -32,12 +31,10 @@ import org.cloudburstmc.api.entity.Rideable;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.Event;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
+import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.gamerule.GameRules;
@@ -82,14 +79,14 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
 @Log4j2
 public abstract class BaseEntity implements Entity {
 
-    protected final Set<Player> hasSpawned = ConcurrentHashMap.newKeySet();
+    protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
 
     protected final Reference2ObjectOpenHashMap<EffectType, Effect> effects = new Reference2ObjectOpenHashMap<>();
     protected final List<Entity> passengers = new ArrayList<>();
     private final long runtimeId = EntityRegistry.get().newEntityId();
     protected final SyncedEntityData data = new SyncedEntityData(this::onDataChange);
     private final EntityType<?> type;
-    public Chunk chunk;
+    public CloudChunk chunk;
     public List<Block> blocksAround = new ArrayList<>();
     public List<Block> collisionBlockStates = new ArrayList<>();
     public NbtMap tag;
@@ -127,7 +124,7 @@ public abstract class BaseEntity implements Entity {
     public boolean justCreated;
     public boolean fireProof;
     public boolean invulnerable;
-    protected Level level;
+    protected CloudLevel level;
     public boolean closed = false;
     protected Entity vehicle;
     protected EntityDamageEvent lastDamageCause = null;
@@ -136,7 +133,7 @@ public abstract class BaseEntity implements Entity {
     protected float absorption = 0;
     protected float ySize = 0;
     protected boolean isStatic = false;
-    protected Server server;
+    protected CloudServer server;
     protected Timing timing;
     protected boolean isPlayer = false;
     private int maxHealth = 20;
@@ -205,8 +202,12 @@ public abstract class BaseEntity implements Entity {
     }
 
     @Override
-    public Level getLevel() {
+    public CloudLevel getLevel() {
         return level;
+    }
+
+    public CloudChunk getChunk() {
+        return chunk;
     }
 
     @Override
@@ -566,8 +567,8 @@ public abstract class BaseEntity implements Entity {
         this.justCreated = true;
 
         this.chunk = location.getLevel().getLoadedChunk(location.getPosition());
-        this.level = location.getLevel();
-        this.server = location.getLevel().getServer();
+        this.level = (CloudLevel) location.getLevel();
+        this.server = (CloudServer) location.getLevel().getServer();
 
         this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
 
@@ -582,7 +583,7 @@ public abstract class BaseEntity implements Entity {
         this.initEntity();
 
         this.lastUpdate = this.server.getTick();
-        ((CloudServer)this.server).getEventManager().fire(new EntitySpawnEvent(this));
+        this.getServer().getEventManager().fire(new EntitySpawnEvent(this));
 
         this.scheduleUpdate();
     }
@@ -601,13 +602,13 @@ public abstract class BaseEntity implements Entity {
         }
     }
 
-    public void spawnTo(Player player) {
-        if (!((CloudPlayer) player).isChunkInView(this.chunk.getX(), this.chunk.getZ()) || !this.hasSpawned.add(player)) {
+    public void spawnTo(CloudPlayer player) {
+        if (!player.isChunkInView(this.chunk.getX(), this.chunk.getZ()) || !this.getViewers().add(player)) {
             // out of range or already spawned
             return;
         }
 
-        ((CloudPlayer) player).sendPacket(createAddEntityPacket());
+        player.sendPacket(createAddEntityPacket());
 
         if (this.vehicle != null) {
             this.vehicle.spawnTo(player);
@@ -616,7 +617,7 @@ public abstract class BaseEntity implements Entity {
             packet.setEntityLink(new EntityLinkData(this.vehicle.getUniqueId(),
                     this.getUniqueId(), EntityLinkData.Type.RIDER, true, false));
 
-            ((CloudPlayer) player).sendPacket(packet);
+            player.sendPacket(packet);
         }
     }
 
@@ -637,7 +638,7 @@ public abstract class BaseEntity implements Entity {
         return addEntity;
     }
 
-    public Set<Player> getViewers() {
+    public Set<CloudPlayer> getViewers() {
         return hasSpawned;
     }
 
@@ -902,7 +903,7 @@ public abstract class BaseEntity implements Entity {
                 return false;
             }
             if (vehicle != null && !vehicle.isAlive() && vehicle instanceof Rideable) {
-                this.mount(vehicle);
+                this.mount((Rideable) vehicle);
             }
 
             updatePassengers();
@@ -1123,7 +1124,7 @@ public abstract class BaseEntity implements Entity {
         }
 
         // Run the events
-        EntityVehicleExitEvent event = new EntityVehicleExitEvent(this, vehicle);
+        EntityVehicleExitEvent event = new EntityVehicleExitEvent(this, (Vehicle) vehicle);
         ((CloudServer)server).getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
@@ -1162,7 +1163,7 @@ public abstract class BaseEntity implements Entity {
         SetEntityLinkPacket packet = new SetEntityLinkPacket();
         packet.setEntityLink(new EntityLinkData(getUniqueId(), vehicle.getUniqueId(), type, false, false));
 
-        CloudServer.broadcastPacket(vehicle.getViewers(), packet);
+        CloudServer.broadcastPacket(((BaseEntity) vehicle).getViewers(), packet);
     }
 
     public void updatePassengers() {
@@ -1929,7 +1930,7 @@ public abstract class BaseEntity implements Entity {
     }
 
     @Override
-    public Server getServer() {
+    public CloudServer getServer() {
         return server;
     }
 

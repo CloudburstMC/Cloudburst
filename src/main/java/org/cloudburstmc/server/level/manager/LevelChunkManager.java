@@ -126,12 +126,12 @@ public final class LevelChunkManager {
      * @return chunk future
      */
     @Nonnull
-    public CompletableFuture<Chunk> getChunkFuture(int x, int z) {
+    public CompletableFuture<CloudChunk> getChunkFuture(int x, int z) {
         return this.getChunkFuture(x, z, true, true, true);
     }
 
     @Nonnull
-    private synchronized CompletableFuture<Chunk> getChunkFuture(int chunkX, int chunkZ, boolean generate, boolean populate, boolean finish) {
+    private synchronized CompletableFuture<CloudChunk> getChunkFuture(int chunkX, int chunkZ, boolean generate, boolean populate, boolean finish) {
         final long chunkKey = CloudChunk.key(chunkX, chunkZ);
         this.chunkLastAccessTimes.put(chunkKey, System.currentTimeMillis());
         LoadingChunk chunk = this.chunks.computeIfAbsent(chunkKey, key -> new LoadingChunk(key, true));
@@ -302,7 +302,7 @@ public final class LevelChunkManager {
 
         private final int x;
         private final int z;
-        private CompletableFuture<Chunk> future;
+        private CompletableFuture<CloudChunk> future;
         volatile int generationRunning;
         volatile int populationRunning;
         volatile int finishRunning;
@@ -341,7 +341,7 @@ public final class LevelChunkManager {
             this.future.whenComplete((chunk, throwable) -> this.chunk = chunk);
         }
 
-        public CompletableFuture<Chunk> getFuture() {
+        public CompletableFuture<CloudChunk> getFuture() {
             return future;
         }
 

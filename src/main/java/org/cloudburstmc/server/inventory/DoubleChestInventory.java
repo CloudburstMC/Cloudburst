@@ -7,6 +7,7 @@ import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.ChestBlockEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -113,10 +114,10 @@ public class DoubleChestInventory extends CloudContainer implements InventoryHol
     }
 
     @Override
-    public void onOpen(CloudPlayer who) {
+    public void onOpen(Player who) {
         super.onOpen(who);
-        this.left.viewers.add(who);
-        this.right.viewers.add(who);
+        this.left.viewers.add((CloudPlayer) who);
+        this.right.viewers.add((CloudPlayer) who);
 
         if (this.getViewers().size() == 1) {
             CloudLevel level = this.left.getHolder().getLevel();
@@ -128,7 +129,7 @@ public class DoubleChestInventory extends CloudContainer implements InventoryHol
     }
 
     @Override
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player who) {
         if (this.getViewers().size() == 1) {
             CloudLevel level = this.right.getHolder().getLevel();
             if (level != null) {
@@ -150,9 +151,9 @@ public class DoubleChestInventory extends CloudContainer implements InventoryHol
         return this.right;
     }
 
-    public void sendSlot(Inventory inv, int index, CloudPlayer... players) {
+    public void sendSlot(Inventory inv, int index, Player... players) {
 
-        for (CloudPlayer player : players) {
+        for (CloudPlayer player : (CloudPlayer[]) players) {
             int id = player.getWindowId(this);
             if (id == -1) {
                 this.close(player);

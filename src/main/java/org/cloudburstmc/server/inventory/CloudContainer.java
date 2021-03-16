@@ -11,6 +11,7 @@ import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -41,7 +42,7 @@ public abstract class CloudContainer extends BaseInventory implements ContainerI
     }
 
     @Override
-    public void onOpen(CloudPlayer who) {
+    public void onOpen(Player who) {
         super.onOpen(who);
         ContainerOpenPacket packet = new ContainerOpenPacket();
         packet.setId(who.getWindowId(this));
@@ -52,16 +53,16 @@ public abstract class CloudContainer extends BaseInventory implements ContainerI
         } else {
             packet.setBlockPosition(Vector3i.ZERO);
         }
-        who.sendPacket(packet);
+        ((CloudPlayer) who).sendPacket(packet);
 
         this.sendContents(who);
     }
 
     @Override
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player who) {
         ContainerClosePacket packet = new ContainerClosePacket();
         packet.setId(who.getWindowId(this));
-        who.sendPacket(packet);
+        ((CloudPlayer) who).sendPacket(packet);
         super.onClose(who);
     }
 

@@ -28,6 +28,7 @@ import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.level.BlockUpdate;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.ChunkException;
 
 import javax.annotation.Nonnull;
@@ -63,7 +64,7 @@ public final class CloudChunk implements Chunk, Closeable {
 
     private final Set<ChunkLoader> loaders = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    private final Set<Player> playerLoaders = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<CloudPlayer> playerLoaders = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private SoftReference<LevelChunkPacket> cached = null;
 
@@ -386,8 +387,8 @@ public final class CloudChunk implements Chunk, Closeable {
     public void addLoader(ChunkLoader chunkLoader) {
         Preconditions.checkNotNull(chunkLoader, "chunkLoader");
         this.loaders.add(chunkLoader);
-        if (chunkLoader instanceof Player) {
-            this.playerLoaders.add((Player) chunkLoader);
+        if (chunkLoader instanceof CloudPlayer) {
+            this.playerLoaders.add((CloudPlayer) chunkLoader);
         }
     }
 
@@ -408,7 +409,7 @@ public final class CloudChunk implements Chunk, Closeable {
 
     @Nonnull
     @Synchronized("loaders")
-    public Set<Player> getPlayerLoaders() {
+    public Set<CloudPlayer> getPlayerLoaders() {
         return new HashSet<>(playerLoaders);
     }
 
