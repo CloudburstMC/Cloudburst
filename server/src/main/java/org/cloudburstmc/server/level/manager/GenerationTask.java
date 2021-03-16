@@ -19,17 +19,17 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class GenerationTask implements Function<Chunk, Chunk> {
+public final class GenerationTask implements Function<CloudChunk, CloudChunk> {
     public static final GenerationTask INSTANCE = new GenerationTask();
 
     @Override
-    public Chunk apply(@NonNull Chunk chunk) {
+    public CloudChunk apply(@NonNull CloudChunk chunk) {
         if (chunk.isGenerated()) {
             return chunk;
         }
 
         PRandom random = new FastPRandom(chunk.getX() * 3053330778986901431L ^ chunk.getZ() * 1517227374085824433L ^ chunk.getLevel().getSeed());
-        LockableChunk lockable = ((CloudChunk) chunk).writeLockable();
+        LockableChunk lockable = chunk.writeLockable();
 
         lockable.lock();
         try {
