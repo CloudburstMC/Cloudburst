@@ -4,9 +4,9 @@ import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
 

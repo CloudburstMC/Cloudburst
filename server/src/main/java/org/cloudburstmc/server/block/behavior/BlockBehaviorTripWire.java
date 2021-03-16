@@ -6,11 +6,11 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.api.block.BlockTypes.TRIPWIRE;

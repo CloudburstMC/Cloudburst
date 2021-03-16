@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.particle;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.util.data.BlockColor;
 
 /**
  * Created on 2015/11/21 by xtypr.

@@ -4,7 +4,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.api.util.Direction;
 
 /**
  * author: MagicDroidX

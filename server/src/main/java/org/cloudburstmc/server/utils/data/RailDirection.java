@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.utils.data;
 
-import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.api.util.Direction;
 
 import java.util.Arrays;
 import java.util.List;

@@ -14,6 +14,7 @@ import org.cloudburstmc.api.blockentity.BrewingStand;
 import org.cloudburstmc.api.event.inventory.BrewFinishEvent;
 import org.cloudburstmc.api.event.inventory.BrewStartEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
@@ -25,7 +26,6 @@ import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;

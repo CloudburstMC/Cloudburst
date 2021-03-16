@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
 
 public class BlockBehaviorRedstone extends BlockBehaviorSolid {
 

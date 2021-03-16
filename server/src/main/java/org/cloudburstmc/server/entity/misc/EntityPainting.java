@@ -9,12 +9,12 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.Painting;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.entity.HangingEntity;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * author: MagicDroidX
@@ -69,7 +69,7 @@ public class EntityPainting extends HangingEntity implements Painting {
             if (source instanceof EntityDamageByEntityEvent) {
                 Entity damager = ((EntityDamageByEntityEvent) source).getDamager();
                 if (damager instanceof CloudPlayer && ((CloudPlayer) damager).isSurvival() && this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-                    this.level.dropItem(this.getPosition(), ItemStack.get(ItemTypes.PAINTING));
+                    this.level.dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.PAINTING));
                 }
             }
             this.close();

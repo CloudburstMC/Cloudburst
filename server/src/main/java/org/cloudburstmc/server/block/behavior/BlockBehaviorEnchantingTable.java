@@ -5,13 +5,13 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnchantingTable;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.inventory.EnchantInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
 
 import static org.cloudburstmc.api.blockentity.BlockEntityTypes.ENCHANTING_TABLE;
 

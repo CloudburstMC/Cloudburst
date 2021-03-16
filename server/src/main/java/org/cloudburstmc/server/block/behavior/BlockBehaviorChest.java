@@ -8,18 +8,18 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Direction.Axis;
+import org.cloudburstmc.api.util.Direction.Plane;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.Direction.Axis;
-import org.cloudburstmc.server.math.Direction.Plane;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
 
 @Log4j2
 public class BlockBehaviorChest extends BlockBehaviorTransparent {

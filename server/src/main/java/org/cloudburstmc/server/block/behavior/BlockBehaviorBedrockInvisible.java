@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.item.ItemStacks;
-import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorBedrockInvisible extends BlockBehaviorSolid {
 

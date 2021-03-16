@@ -4,10 +4,10 @@ import com.google.common.base.Preconditions;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
 
 import javax.annotation.Nonnull;

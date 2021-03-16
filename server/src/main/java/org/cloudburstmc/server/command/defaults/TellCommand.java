@@ -43,7 +43,7 @@ public class TellCommand extends Command {
 
         String name = args[0].toLowerCase();
 
-        CloudPlayer player = sender.getServer().getPlayer(name);
+        CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(name);
         if (player == null) {
             sender.sendMessage(new TranslationContainer("commands.generic.player.notFound"));
             return true;
