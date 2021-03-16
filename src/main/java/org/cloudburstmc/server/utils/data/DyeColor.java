@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.utils.data;
 
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.utils.NonSerializable;
 
 public enum DyeColor implements NonSerializable {

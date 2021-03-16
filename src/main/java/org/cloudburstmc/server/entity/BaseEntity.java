@@ -601,6 +601,11 @@ public abstract class BaseEntity implements Entity {
         }
     }
 
+    @Override
+    public void spawnTo(Player player) {
+        this.spawnTo(((CloudPlayer) player));
+    }
+
     public void spawnTo(CloudPlayer player) {
         if (!player.isChunkInView(this.chunk.getX(), this.chunk.getZ()) || !this.getViewers().add(player)) {
             // out of range or already spawned
@@ -701,11 +706,16 @@ public abstract class BaseEntity implements Entity {
         player.sendPacket(packet);
     }
 
+    @Override
     public void despawnFrom(Player player) {
+        this.despawnFrom((CloudPlayer) player);
+    }
+
+    public void despawnFrom(CloudPlayer player) {
         if (this.hasSpawned.remove(player)) {
             RemoveEntityPacket packet = new RemoveEntityPacket();
             packet.setUniqueEntityId(this.getUniqueId());
-            ((CloudPlayer) player).sendPacket(packet);
+            player.sendPacket(packet);
         }
     }
 

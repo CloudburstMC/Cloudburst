@@ -5,9 +5,9 @@ import lombok.ToString;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockSnapshot;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.math.Direction;
 
 import static org.cloudburstmc.api.block.BlockStates.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;

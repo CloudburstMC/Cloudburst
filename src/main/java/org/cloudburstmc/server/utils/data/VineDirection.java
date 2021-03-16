@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.utils.data;
 
 import com.google.common.collect.ImmutableSet;
-import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.api.util.Direction;
 
 import java.util.Set;
 

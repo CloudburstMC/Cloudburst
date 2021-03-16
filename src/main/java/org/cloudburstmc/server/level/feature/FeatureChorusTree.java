@@ -4,11 +4,11 @@ import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
-import org.cloudburstmc.server.math.Direction;
 
 import static java.lang.Math.abs;
 

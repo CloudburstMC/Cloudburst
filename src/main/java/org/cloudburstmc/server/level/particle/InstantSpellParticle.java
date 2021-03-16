@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.particle;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.util.data.BlockColor;
 
 /**
  * Created on 2016/1/4 by xtypr.
