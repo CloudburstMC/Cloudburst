@@ -11,6 +11,7 @@ import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
@@ -29,6 +30,8 @@ public interface Entity {
     EntityType<?> getType();
 
     Level getLevel();
+
+    Chunk getChunk();
 
     Server getServer();
 
@@ -66,7 +69,7 @@ public interface Entity {
 
     void setScale(float scale);
 
-    List<Entity> getPassengers();
+    List<? extends Entity> getPassengers();
 
     boolean isPassenger(Entity entity);
 
@@ -136,7 +139,7 @@ public interface Entity {
 
     void despawnFromAll();
 
-    Set<Player> getViewers();
+    Set<? extends Player> getViewers();
 
     default boolean attack(float damage) {
         return this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.CUSTOM, damage));

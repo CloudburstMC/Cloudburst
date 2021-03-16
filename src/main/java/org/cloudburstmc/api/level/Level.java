@@ -116,6 +116,12 @@ public interface Level extends ChunkManager {
 
     void startTime();
 
+    default void sendTime(Player who) {
+        sendTime(new Player[]{who});
+    }
+
+    void sendTime(Player... players);
+
     long getCurrentTick();
 
     String getName();

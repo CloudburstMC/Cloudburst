@@ -212,8 +212,8 @@ public interface Chunk extends Comparable<Chunk> {
 
     void close();
 
-    Set<ChunkLoader> getLoaders();
+    Set<? extends ChunkLoader> getLoaders();
 
-    Set<Player> getPlayerLoaders();
+    Set<? extends Player> getPlayerLoaders();
 
 }

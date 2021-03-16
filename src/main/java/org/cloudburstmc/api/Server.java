@@ -11,6 +11,7 @@ import org.cloudburstmc.api.plugin.PluginManager;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
 
 import java.util.Map;
+import java.util.UUID;
 
 public interface Server {
 
@@ -42,7 +43,7 @@ public interface Server {
 
     String getMotd();
 
-    Map<Long, Player> getOnlinePlayers();
+    Map<UUID, ? extends Player> getOnlinePlayers();
 
     GameMode getGamemode();
 
@@ -52,9 +53,44 @@ public interface Server {
 
     boolean hasWhitelist();
 
+    void addWhitelist(Player who);
+
+    void removeWhitelist(Player who);
+
+    boolean isWhitelisted(Player who);
+
+    boolean isBanned(Player who);
+
+    boolean isIPBanned(Player who);
+
+    void setBanned(Player who, boolean banned, boolean byIP);
+
+    default void ban(Player who) {
+        setBanned(who, true, false);
+    }
+
+    default void banIP(Player who) {
+        setBanned(who, true, true);
+    }
+
+    default void unban(Player who) {
+        setBanned(who, false, false);
+    }
+
+    void addOp(Player who);
+
+    void removeOp(Player who);
+
+    boolean isOp(Player who);
+
     int getPort();
 
     String getIp();
 
     Difficulty getDifficulty();
+
+    void addOnlinePlayer(Player who);
+
+    void onPlayerCompleteLoginSequence(Player who);
+
 }

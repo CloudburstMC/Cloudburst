@@ -5,7 +5,6 @@ import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.level.Level;
-import org.cloudburstmc.api.level.chunk.Chunk;
 
 import java.util.OptionalLong;
 import java.util.UUID;
@@ -135,5 +134,8 @@ public interface Player extends Entity {
 
     GameMode getGamemode();
 
-    void onChunkChanged(Chunk chunk);
+    byte getWindowId(Inventory inventory);
+
+    String getDisplayName();
+
 }
