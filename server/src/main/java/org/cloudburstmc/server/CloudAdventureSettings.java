@@ -5,7 +5,6 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import org.cloudburstmc.api.player.AdventureSetting;
 import org.cloudburstmc.api.player.AdventureSettings;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.EnumMap;
@@ -19,18 +18,18 @@ public class CloudAdventureSettings implements AdventureSettings, Cloneable {
 
     private final Map<AdventureSetting, Boolean> values = new EnumMap<>(AdventureSetting.class);
 
-    private Player player;
+    private CloudPlayer player;
 
-    public CloudAdventureSettings(Player player) {
+    public CloudAdventureSettings(CloudPlayer player) {
         this.player = player;
     }
 
-    public CloudAdventureSettings(Player player, Map<AdventureSetting, Boolean> values) {
+    public CloudAdventureSettings(CloudPlayer player, Map<AdventureSetting, Boolean> values) {
         this.player = player;
         this.values.putAll(values);
     }
 
-    public CloudAdventureSettings clone(Player newPlayer) {
+    public CloudAdventureSettings clone(CloudPlayer newPlayer) {
         try {
             CloudAdventureSettings settings = (CloudAdventureSettings) super.clone();
             settings.player = newPlayer;
@@ -40,7 +39,7 @@ public class CloudAdventureSettings implements AdventureSettings, Cloneable {
         }
     }
 
-    public AdventureSettings set(AdventureSetting type, boolean value) {
+    public CloudAdventureSettings set(AdventureSetting type, boolean value) {
         this.values.put(type, value);
         return this;
     }
@@ -65,7 +64,7 @@ public class CloudAdventureSettings implements AdventureSettings, Cloneable {
         pk.setUniqueEntityId(player.getUniqueId());
 
         CloudServer.broadcastPacket(player.getViewers(), pk);
-        ((CloudPlayer) player).sendPacket(pk);
+        player.sendPacket(pk);
 
         player.resetInAirTicks();
     }

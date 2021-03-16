@@ -26,6 +26,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.inventory.PlayerEnderChestInventory;
 import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
@@ -57,7 +58,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
 
     protected SerializedSkin skin;
 
-    public EntityHuman(EntityType<EntityHuman> type, Location location) {
+    public EntityHuman(EntityType<Human> type, Location location) {
         super(type, location);
     }
 
@@ -273,7 +274,8 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
     }
 
     @Override
-    public void spawnTo(CloudPlayer player) {
+    public void spawnTo(Player p) {
+        CloudPlayer player = (CloudPlayer) p;
         if (this != player && !this.hasSpawned.contains(player)) {
             this.hasSpawned.add(player);
 
@@ -282,9 +284,9 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
             }
 
             if (this instanceof CloudPlayer)
-                this.server.updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), this.skin, ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
+                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), this.skin, ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
             else
-                this.server.updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), this.skin, new CloudPlayer[]{player});
+                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), this.skin, new CloudPlayer[]{player});
 
             player.sendPacket(createAddEntityPacket());
 
@@ -324,11 +326,11 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
     }
 
     @Override
-    public void despawnFrom(CloudPlayer player) {
+    public void despawnFrom(Player player) {
         if (this.hasSpawned.contains(player)) {
             RemoveEntityPacket packet = new RemoveEntityPacket();
             packet.setUniqueEntityId(this.getUniqueId());
-            player.sendPacket(packet);
+            ((CloudPlayer) player).sendPacket(packet);
             this.hasSpawned.remove(player);
         }
     }
