@@ -7,6 +7,7 @@ import com.nukkitx.math.vector.Vector4i;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.player.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -90,14 +91,19 @@ public interface ChunkManager {
     }
 
     default boolean setBlockState(int x, int y, int z, BlockState state) {
-        return setBlockState(x,y,z,0,state,false,true);
+        return setBlockState(x, y, z, 0, state, false, true);
     }
 
     default boolean setBlockState(int x, int y, int z, int layer, BlockState state) {
-        return setBlockState(x,y,z,layer,state,false,true);
+        return setBlockState(x, y, z, layer, state, false, true);
     }
 
     boolean setBlockState(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update);
+
+    @Nonnull
+    default Chunk getChunk(Vector3f pos) {
+        return getChunk(pos.toInt());
+    }
 
     @Nonnull
     default Chunk getChunk(Vector3i pos) {
@@ -110,7 +116,9 @@ public interface ChunkManager {
     }
 
     @Nonnull
-    Chunk getChunk(int chunkX, int chunkZ);
+    default Chunk getChunk(int chunkX, int chunkZ) {
+        return getChunk((((long) chunkX) << 32) | (chunkZ & 0xffffffffL));
+    }
 
     @Nonnull
     Chunk getChunk(long key);
@@ -140,4 +148,8 @@ public interface ChunkManager {
 
     @Nonnull
     Set<? extends Chunk> getChunks();
+
+    Set<? extends Player> getChunkPlayers(int chunkX, int chunkZ);
+
+    Set<? extends ChunkLoader> getChunkLoaders(int chunkX, int chunkZ);
 }

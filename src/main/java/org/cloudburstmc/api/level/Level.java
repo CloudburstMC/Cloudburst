@@ -46,8 +46,6 @@ public interface Level extends ChunkManager {
 
     boolean unload(boolean force);
 
-    Set<Player> getChunkPlayers(int chunkX, int chunkZ);
-
     GameRuleMap getGameRules();
 
     void doTick(int currentTick);
@@ -96,7 +94,7 @@ public interface Level extends ChunkManager {
 
     ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos, Player player, boolean playSound);
 
-    Map<Long, Player> getPlayers();
+    Map<Long, ? extends Player> getPlayers();
 
     int getBiomeId(int x, int z);
 
