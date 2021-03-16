@@ -8,6 +8,9 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.chunk.Chunk;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -96,19 +99,45 @@ public interface ChunkManager {
 
     boolean setBlockState(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update);
 
+    @Nonnull
     default Chunk getChunk(Vector3i pos) {
         return getChunk(pos.getX() >> 4, pos.getZ() >> 4);
     }
 
+    @Nonnull
     default Chunk getChunk(Vector2i chunkPos) {
         return getChunk(chunkPos.getX(), chunkPos.getY());
     }
 
+    @Nonnull
     Chunk getChunk(int chunkX, int chunkZ);
 
-    Chunk getLoadedChunk(Vector3f position);
+    @Nonnull
+    Chunk getChunk(long key);
 
-    CompletableFuture<Chunk> getChunkFuture(int chunkX, int chunkZ);
+    @Nullable
+    default Chunk getLoadedChunk(Vector3f position) {
+        return getLoadedChunk(position.getFloorX() >> 4, position.getFloorZ() >> 4);
+    }
+
+    @Nullable
+    default Chunk getLoadedChunk(Vector3i position) {
+        return getLoadedChunk(position.getX(), position.getZ());
+    }
+
+    @Nullable
+    default Chunk getLoadedChunk(int chunkX, int chunkZ) {
+        return getLoadedChunk((((long) chunkX) << 32) | (chunkZ & 0xffffffffL));
+    }
+
+    @Nullable
+    Chunk getLoadedChunk(long key);
+
+    @Nonnull
+    CompletableFuture<? extends Chunk> getChunkFuture(int chunkX, int chunkZ);
 
     long getSeed();
+
+    @Nonnull
+    Set<? extends Chunk> getChunks();
 }

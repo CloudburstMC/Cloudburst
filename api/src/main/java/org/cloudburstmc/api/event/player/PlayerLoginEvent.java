@@ -14,11 +14,17 @@ public final class PlayerLoginEvent extends PlayerEvent implements Cancellable {
         this.kickMessage = kickMessage;
     }
 
+    public PlayerLoginEvent(Player player, String kickMessage) {
+        this(player, new TextContainer(kickMessage));
+    }
+
     public String getKickMessage() {
         return kickMessage.getText();
     }
 
-    public TextContainer getKickMessageContainer() { return kickMessage; }
+    public TextContainer getKickMessageContainer() {
+        return kickMessage;
+    }
 
     public void setKickMessage(String kickMessage) {
         this.kickMessage = new TextContainer(kickMessage);
