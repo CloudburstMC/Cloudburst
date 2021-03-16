@@ -138,4 +138,15 @@ public interface Player extends Entity {
 
     String getDisplayName();
 
+    String getXuid();
+
+    boolean isConnected();
+
+    default void save() {
+        save(false);
+    }
+
+    void save(boolean async);
+
+
 }
