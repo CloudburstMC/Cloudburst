@@ -511,7 +511,7 @@ public abstract class BaseInventory implements Inventory {
         this.maxStackSize = maxStackSize;
     }
 
-    public boolean open(CloudPlayer who) {
+    public boolean open(Player who) {
         InventoryOpenEvent ev = new InventoryOpenEvent(this, who);
         who.getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
@@ -522,15 +522,15 @@ public abstract class BaseInventory implements Inventory {
         return true;
     }
 
-    public void close(CloudPlayer who) {
+    public void close(Player who) {
         this.onClose(who);
     }
 
-    public void onOpen(CloudPlayer who) {
-        this.viewers.add(who);
+    public void onOpen(Player who) {
+        this.viewers.add((CloudPlayer) who);
     }
 
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player who) {
         this.viewers.remove(who);
     }
 

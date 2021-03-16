@@ -57,6 +57,7 @@ import org.cloudburstmc.server.pack.PackManager;
 import org.cloudburstmc.server.permission.BanEntry;
 import org.cloudburstmc.server.permission.BanList;
 import org.cloudburstmc.server.permission.CloudPermissionManager;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.OfflinePlayer;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
 import org.cloudburstmc.server.plugin.loader.JavaPluginLoader;
@@ -201,7 +202,7 @@ public class CloudServer implements Server {
 
     private final Map<InetSocketAddress, Player> players = new HashMap<>();
 
-    private final Map<UUID, Player> playerList = new HashMap<>();
+    private final Map<UUID, CloudPlayer> playerList = new HashMap<>();
     private final LevelData defaultLevelData = new LevelData();
     private String predefinedLanguage;
 
@@ -242,9 +243,9 @@ public class CloudServer implements Server {
         this.packManager = injector.getInstance(PackManager.class);
         this.scheduler = injector.getInstance(ServerScheduler.class);
 
-        this.playerMetadata = injector.getInstance(PlayerMetadataStore.class);
+/*        this.playerMetadata = injector.getInstance(PlayerMetadataStore.class);
         this.levelMetadata = injector.getInstance(LevelMetadataStore.class);
-        this.entityMetadata = injector.getInstance(EntityMetadataStore.class);
+        this.entityMetadata = injector.getInstance(EntityMetadataStore.class);*/
 
         this.consoleSender = injector.getInstance(ConsoleCommandSender.class);
 
@@ -252,11 +253,11 @@ public class CloudServer implements Server {
         this.consoleThread = new ConsoleThread();
     }
 
-    public static void broadcastPackets(Player[] players, BedrockPacket[] packets) {
+    public static void broadcastPackets(CloudPlayer[] players, BedrockPacket[] packets) {
         CloudServer.getInstance().batchPackets(players, packets);
     }
 
-    public static void broadcastPacket(Player[] players, BedrockPacket packet) {
+    public static void broadcastPacket(CloudPlayer[] players, BedrockPacket packet) {
         CloudServer.getInstance().batchPackets(players, new BedrockPacket[]{packet});
     }
 
@@ -328,8 +329,8 @@ public class CloudServer implements Server {
         return recipients.size();
     }
 
-    public static void broadcastPacket(Collection<Player> players, BedrockPacket packet) {
-        broadcastPacket(players.toArray(new Player[0]), packet);
+    public static void broadcastPacket(Set<CloudPlayer> players, BedrockPacket packet) {
+        broadcastPacket(players.toArray(new CloudPlayer[0]), packet);
     }
 
     public void boot() throws IOException {
@@ -926,7 +927,7 @@ public class CloudServer implements Server {
             this.levelManager.tick(this.tickCounter);
 
             for (Player player : new ArrayList<>(this.players.values())) {
-                player.checkNetwork();
+                ((CloudPlayer) player).checkNetwork();
             }
 
             if ((this.tickCounter & 0b1111) == 0) {
@@ -1216,7 +1217,7 @@ public class CloudServer implements Server {
         return this.commandRegistry;
     }
 
-    public Map<UUID, Player> getOnlinePlayers() {
+    public Map<UUID, CloudPlayer> getOnlinePlayers() {
         return ImmutableMap.copyOf(playerList);
     }
 
@@ -1462,11 +1463,11 @@ public class CloudServer implements Server {
         return found;
     }
 
-    public Player getPlayerExact(String name) {
+    public CloudPlayer getPlayerExact(String name) {
         name = name.toLowerCase();
         for (Player player : this.getOnlinePlayers().values()) {
             if (player.getName().toLowerCase().equals(name)) {
-                return player;
+                return (CloudPlayer) player;
             }
         }
 
@@ -1567,18 +1568,51 @@ public class CloudServer implements Server {
         return this.banByIP;
     }
 
+    @Override
+    public boolean isBanned(Player player) {
+        return this.banByName.isBanned(player.getName().toLowerCase());
+    }
+
+    @Override
+    public boolean isIPBanned(Player player) {
+        return this.banByIP.isBanned(player.getName().toLowerCase());
+    }
+
+    @Override
+    public void setBanned(Player who, boolean banned, boolean byIP) {
+        if (banned) {
+            if (byIP)
+                this.banByIP.addBan(((CloudPlayer) who).getAddress());
+            else
+                this.banByName.addBan(who.getName().toLowerCase());
+        } else {
+            this.banByName.remove(who.getName());
+            this.banByIP.remove(((CloudPlayer) who).getAddress());
+        }
+    }
+
+    @Override
+    public void addOp(Player who) {
+        this.addOp(who.getName());
+    }
+
     public void addOp(String name) {
         this.operators.set(name.toLowerCase(), true);
-        Player player = this.getPlayerExact(name);
+        CloudPlayer player = this.getPlayerExact(name);
         if (player != null) {
             player.recalculatePermissions();
         }
         this.operators.save(true);
     }
 
+    @Override
+    public void removeOp(Player who) {
+        this.removeOp(who.getName());
+    }
+
     public void removeOp(String name) {
         this.operators.remove(name.toLowerCase());
-        Player player = this.getPlayerExact(name);
+        CloudPlayer player = this.getPlayerExact(name);
         if (player != null) {
             player.recalculatePermissions();
         }

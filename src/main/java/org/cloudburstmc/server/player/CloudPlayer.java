@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
@@ -51,6 +52,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
+import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
@@ -63,7 +65,9 @@ import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
 import org.cloudburstmc.api.permission.PermissionAttachmentInfo;
+import org.cloudburstmc.api.player.AdventureSetting;
 import org.cloudburstmc.api.player.GameMode;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.LoginChainData;
@@ -71,7 +75,9 @@ import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.server.blockentity.EnderChestBlockEntity;
+import org.cloudburstmc.server.blockentity.SignBlockEntity;
+import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
@@ -90,7 +96,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.metadata.MetadataValue;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.permission.PermissibleBase;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
@@ -121,7 +127,7 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
  * Nukkit Project
  */
 @Log4j2
-public class CloudPlayer extends EntityHuman implements CommandSender, InventoryHolder, ChunkLoader, org.cloudburstmc.api.player.Player {
+public class CloudPlayer extends EntityHuman implements CommandSender, InventoryHolder, ChunkLoader, Player {
 
     public static final float DEFAULT_SPEED = 0.1f;
     public static final float MAXIMUM_SPEED = 0.5f;
@@ -240,11 +246,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.perm = new PermissibleBase(this);
         this.server = CloudServer.getInstance();
         this.lastBreak = -1;
-        this.chunksPerTick = this.server.getConfig().getChunkSending().getPerTick();
-        this.spawnThreshold = this.server.getConfig().getChunkSending().getSpawnThreshold();
+        this.chunksPerTick = ((CloudServer) this.server).getConfig().getChunkSending().getPerTick();
+        this.spawnThreshold = ((CloudServer) this.server).getConfig().getChunkSending().getSpawnThreshold();
         this.spawnLocation = null;
         this.playerData.setGamemode(this.server.getGamemode());
-        this.viewDistance = this.server.getViewDistance();
+        this.viewDistance = ((CloudServer) this.server).getViewDistance();
         //this.newPosition = new Vector3(0, 0, 0);
         this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
         this.lastSkinChange = -1;
@@ -299,7 +305,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         if (chest == null && this.viewingEnderChest != null) {
             this.viewingEnderChest.getInventory().getViewers().remove(this);
         } else if (chest != null) {
-            chest.getInventory().getViewers().add(this);
+            ((EnderChestBlockEntity) chest).getInventory().getViewers().add(this);
         }
         this.viewingEnderChest = chest;
     }
@@ -325,30 +331,30 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     @Override
     public boolean isBanned() {
-        return this.server.getNameBans().isBanned(this.getName());
+        return this.server.isBanned(this);
     }
 
     @Override
     public void setBanned(boolean value) {
         if (value) {
-            this.server.getNameBans().addBan(this.getName(), null, null, null);
+            this.server.ban(this);
             this.kick(PlayerKickEvent.Reason.NAME_BANNED, "Banned by admin");
         } else {
-            this.server.getNameBans().remove(this.getName());
+            this.server.unban(this);
         }
     }
 
     @Override
     public boolean isWhitelisted() {
-        return this.server.isWhitelisted(this.getName().toLowerCase());
+        return ((CloudServer) this.server).isWhitelisted(this.getName().toLowerCase());
     }
 
     @Override
     public void setWhitelisted(boolean value) {
         if (value) {
-            this.server.addWhitelist(this.getName().toLowerCase());
+            this.server.addWhitelist(this);
         } else {
-            this.server.removeWhitelist(this.getName().toLowerCase());
+            this.server.removeWhitelist(this);
         }
     }
 
@@ -389,20 +395,20 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     @Deprecated
     public void setAllowFlight(boolean value) {
-        this.getAdventureSettings().set(CloudAdventureSettings.Type.ALLOW_FLIGHT, value);
+        this.getAdventureSettings().set(AdventureSetting.ALLOW_FLIGHT, value);
         this.getAdventureSettings().update();
     }
 
     @Deprecated
     public boolean getAllowFlight() {
-        return this.getAdventureSettings().get(CloudAdventureSettings.Type.ALLOW_FLIGHT);
+        return this.getAdventureSettings().get(AdventureSetting.ALLOW_FLIGHT);
     }
 
     public void setAllowModifyWorld(boolean value) {
-        this.getAdventureSettings().set(CloudAdventureSettings.Type.WORLD_IMMUTABLE, !value);
-        this.getAdventureSettings().set(CloudAdventureSettings.Type.BUILD, value);
-        this.getAdventureSettings().set(CloudAdventureSettings.Type.MINE, value);
-        this.getAdventureSettings().set(CloudAdventureSettings.Type.WORLD_BUILDER, value);
+        this.getAdventureSettings().set(AdventureSetting.WORLD_IMMUTABLE, !value);
+        this.getAdventureSettings().set(AdventureSetting.BUILD, value);
+        this.getAdventureSettings().set(AdventureSetting.MINE, value);
+        this.getAdventureSettings().set(AdventureSetting.WORLD_BUILDER, value);
         this.getAdventureSettings().update();
     }
 
@@ -411,21 +417,21 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     public void setAllowInteract(boolean value, boolean containers) {
-        this.getAdventureSettings().set(CloudAdventureSettings.Type.WORLD_IMMUTABLE, !value);
-        this.getAdventureSettings().set(CloudAdventureSettings.Type.DOORS_AND_SWITCHED, value);
-        this.getAdventureSettings().set(CloudAdventureSettings.Type.OPEN_CONTAINERS, containers);
+        this.getAdventureSettings().set(AdventureSetting.WORLD_IMMUTABLE, !value);
+        this.getAdventureSettings().set(AdventureSetting.DOORS_AND_SWITCHES, value);
+        this.getAdventureSettings().set(AdventureSetting.OPEN_CONTAINERS, containers);
         this.getAdventureSettings().update();
     }
 
     @Deprecated
     public void setAutoJump(boolean value) {
-        this.getAdventureSettings().set(CloudAdventureSettings.Type.AUTO_JUMP, value);
+        this.getAdventureSettings().set(AdventureSetting.AUTO_JUMP, value);
         this.getAdventureSettings().update();
     }
 
     @Deprecated
     public boolean hasAutoJump() {
-        return this.getAdventureSettings().get(CloudAdventureSettings.Type.AUTO_JUMP);
+        return this.getAdventureSettings().get(AdventureSetting.AUTO_JUMP);
     }
 
     @Override
@@ -435,7 +441,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     @Override
     public CloudServer getServer() {
-        return this.server;
+        return (CloudServer) this.server;
     }
 
     public boolean getRemoveFormat() {
@@ -506,7 +512,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     @Override
     public boolean isOp() {
-        return this.server.isOp(this.getName());
+        return this.server.isOp(this);
     }
 
     @Override
@@ -516,14 +522,19 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
 
         if (value) {
-            this.server.addOp(this.getName());
+            this.server.addOp(this);
         } else {
-            this.server.removeOp(this.getName());
+            this.server.removeOp(this);
         }
 
         this.recalculatePermissions();
         this.getAdventureSettings().update();
         this.sendCommandData();
+    }
+
+    @Override
+    public boolean isSpawned() {
+        return this.spawned;
     }
 
     @Override
@@ -655,7 +666,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
         if (this.spawned) {
-            this.server.updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSkin(), this.getXuid());
+            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSkin(), this.getXuid());
         }
     }
 
@@ -667,7 +678,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public void setSkin(SerializedSkin skin) {
         super.setSkin(skin);
         if (this.spawned) {
-            this.server.updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), skin, this.getXuid());
+            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), skin, this.getXuid());
         }
     }
 
@@ -722,7 +733,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         if (this.spawnLocation != null && this.spawnLocation.getLevel() != null) {
             return this.spawnLocation;
         } else {
-            return this.server.getDefaultLevel().getSafeSpawn();
+            return this.getServer().getDefaultLevel().getSafeSpawn();
         }
     }
 
@@ -931,7 +942,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             return false;
         }
 
-        if (log.isTraceEnabled() && !server.isIgnoredPacket(packet.getClass())) {
+        if (log.isTraceEnabled() && !this.getServer().isIgnoredPacket(packet.getClass())) {
             log.trace("Outbound {}: {}", this.getName(), packet);
         }
 
@@ -1120,12 +1131,12 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public void sendAttributes() {
         UpdateAttributesPacket pk = new UpdateAttributesPacket();
         pk.setRuntimeEntityId(this.getRuntimeId());
-        List<com.nukkitx.protocol.bedrock.data.AttributeData> attributes = pk.getAttributes();
-        attributes.add(Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0).toNetwork());
-        attributes.add(Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.getFoodData().getLevel()).toNetwork());
-        attributes.add(Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(this.getMovementSpeed()).toNetwork());
-        attributes.add(Attribute.getAttribute(Attribute.EXPERIENCE_LEVEL).setValue(this.getExperienceLevel()).toNetwork());
-        attributes.add(Attribute.getAttribute(Attribute.EXPERIENCE).setValue(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel())).toNetwork());
+        List<AttributeData> attributes = pk.getAttributes();
+        attributes.add(NetworkUtils.toNetwork(Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0)));
+        attributes.add(NetworkUtils.toNetwork(Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.getFoodData().getLevel())));
+        attributes.add(NetworkUtils.toNetwork(Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(this.getMovementSpeed())));
+        attributes.add(NetworkUtils.toNetwork(Attribute.getAttribute(Attribute.EXPERIENCE_LEVEL).setValue(this.getExperienceLevel())));
+        attributes.add(NetworkUtils.toNetwork(Attribute.getAttribute(Attribute.EXPERIENCE).setValue(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel()))));
         this.sendPacket(pk);
     }
 
@@ -1521,7 +1532,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setCommandsEnabled(this.isEnableClientCommand());
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        this.getLevel().getGameRules().toNetwork(startGamePacket.getGamerules());
+        NetworkUtils.toNetwork(this.getLevel().getGameRules(), startGamePacket.getGamerules());
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
         startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default level name
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
@@ -1608,13 +1619,13 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public void processLogin() {
         if (this.server.getOnlinePlayers().size() >= this.server.getMaxPlayers() && this.kick(PlayerKickEvent.Reason.SERVER_FULL, "disconnectionScreen.serverFull", false)) {
             return;
-        } else if (!this.server.isWhitelisted((this.getName()).toLowerCase())) {
+        } else if (!this.server.isWhitelisted(this)) {
             this.kick(PlayerKickEvent.Reason.NOT_WHITELISTED, "Server is white-listed");
             return;
         } else if (this.isBanned()) {
             this.kick(PlayerKickEvent.Reason.NAME_BANNED, "You are banned");
             return;
-        } else if (this.server.getIPBans().isBanned(this.getSocketAddress().getAddress().getHostAddress())) {
+        } else if (this.server.isIPBanned(this)) {
             this.kick(PlayerKickEvent.Reason.IP_BANNED, "You are banned");
             return;
         }
@@ -1627,7 +1638,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
 
         CloudPlayer oldPlayer = null;
-        for (CloudPlayer p : new ArrayList<>(this.server.getOnlinePlayers().values())) {
+        for (CloudPlayer p : new ArrayList<>(this.getServer().getOnlinePlayers().values())) {
             if (p != this && p.getName() != null && p.getName().equalsIgnoreCase(this.getName()) ||
                     this.getServerId().equals(p.getServerId())) {
                 oldPlayer = p;
@@ -1670,11 +1681,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
 
         this.adventureSettings = new CloudAdventureSettings(this)
-                .set(CloudAdventureSettings.Type.WORLD_IMMUTABLE, isAdventure() || isSpectator())
-                .set(CloudAdventureSettings.Type.WORLD_BUILDER, !isAdventure() && !isSpectator())
-                .set(CloudAdventureSettings.Type.AUTO_JUMP, true)
-                .set(CloudAdventureSettings.Type.ALLOW_FLIGHT, isCreative())
-                .set(CloudAdventureSettings.Type.NO_CLIP, isSpectator());
+                .set(AdventureSetting.WORLD_IMMUTABLE, isAdventure() || isSpectator())
+                .set(AdventureSetting.WORLD_BUILDER, !isAdventure() && !isSpectator())
+                .set(AdventureSetting.AUTO_JUMP, true)
+                .set(AdventureSetting.ALLOW_FLIGHT, isCreative())
+                .set(AdventureSetting.NO_CLIP, isSpectator());
 
         CloudLevel level;
         if ((level = this.server.getLevelByName(this.playerData.getLevel())) == null || !isAlive()) {
@@ -2098,7 +2109,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0);
         if (this.spawned) {
             UpdateAttributesPacket packet = new UpdateAttributesPacket();
-            packet.getAttributes().add(attr.toNetwork());
+            packet.getAttributes().add(NetworkUtils.toNetwork(attr));
             packet.setRuntimeEntityId(this.getRuntimeId());
             this.sendPacket(packet);
         }
@@ -2111,7 +2122,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0);
         if (this.spawned) {
             UpdateAttributesPacket packet = new UpdateAttributesPacket();
-            packet.getAttributes().add(attr.toNetwork());
+            packet.getAttributes().add(NetworkUtils.toNetwork(attr));
             packet.setRuntimeEntityId(this.getRuntimeId());
             this.sendPacket(packet);
         }
@@ -2185,9 +2196,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
     }
 
-    public void setAttribute(Attribute attribute) {
+    public void setAttribute(Attribute attr) {
         UpdateAttributesPacket packet = new UpdateAttributesPacket();
-        packet.getAttributes().add(attribute.toNetwork());
+        packet.getAttributes().add(NetworkUtils.toNetwork(attr));
         packet.setRuntimeEntityId(this.getRuntimeId());
         this.sendPacket(packet);
     }
@@ -2218,7 +2229,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         if (this.isSpectator() || (this.isCreative() && source.getCause() != EntityDamageEvent.DamageCause.SUICIDE)) {
             //source.setCancelled();
             return false;
-        } else if (this.getAdventureSettings().get(CloudAdventureSettings.Type.ALLOW_FLIGHT) && source.getCause() == EntityDamageEvent.DamageCause.FALL) {
+        } else if (this.getAdventureSettings().get(AdventureSetting.ALLOW_FLIGHT) && source.getCause() == EntityDamageEvent.DamageCause.FALL) {
             //source.setCancelled();
             return false;
         } else if (source.getCause() == EntityDamageEvent.DamageCause.FALL) {
@@ -2290,7 +2301,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.sendPosition(pos, yaw, pitch, mode, null);
     }
 
-    public void sendPosition(Vector3f pos, double yaw, double pitch, MovePlayerPacket.Mode mode, Collection<CloudPlayer> targets) {
+    public void sendPosition(Vector3f pos, double yaw, double pitch, MovePlayerPacket.Mode mode, Set<CloudPlayer> targets) {
         MovePlayerPacket packet = new MovePlayerPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
         packet.setPosition(pos.add(0, getEyeHeight(), 0));
@@ -2577,7 +2588,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
             if (!this.justCreated) {
 
-                Set<CloudPlayer> loaders = this.chunk.getPlayerLoaders();
+                Set<CloudPlayer> loaders = this.getChunk().getPlayerLoaders();
                 for (CloudPlayer player : this.hasSpawned) {
                     if (!loaders.contains(player)) {
                         this.despawnFrom(player);
@@ -2626,8 +2637,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             if (from.getLevel() != location.getLevel()) { //Different level, update compass position
                 SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
                 packet.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
-                Location spawn = location.getLevel().getSpawnLocation();
-                packet.setBlockPosition(spawn.getPosition().toInt());
+                Vector3f spawn = location.getLevel().getSpawnLocation();
+                packet.setBlockPosition(spawn.toInt());
                 sendPacket(packet);
             }
 
@@ -2781,6 +2792,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
     }
 
+    @Override
     public byte getWindowId(Inventory inventory) {
         if (this.windows.containsKey(inventory)) {
             return this.windows.get(inventory);
@@ -2944,7 +2956,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
     }
 
-    @Override
+/*    @Override
     public void setMetadata(String metadataKey, MetadataValue newMetadataValue) {
         this.server.getPlayerMetadata().setMetadata(this, metadataKey, newMetadataValue);
     }
@@ -2962,7 +2974,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     @Override
     public void removeMetadata(String metadataKey, PluginContainer owningPlugin) {
         this.server.getPlayerMetadata().removeMetadata(this, metadataKey, owningPlugin);
-    }
+    }*/
 
     protected boolean checkTeleportPosition() {
         if (this.teleportPosition != null) {
@@ -3071,11 +3083,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.sendPacketImmediately(packet);
     }
 
-    @Override
-    public void onChunkLoaded(CloudChunk chunk) {
-
-    }
-
     public synchronized void setLocale(Locale locale) {
         this.locale.set(locale);
     }
@@ -3112,8 +3119,13 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     @Override
-    public void onChunkUnloaded(CloudChunk chunk) {
+    public void onChunkUnloaded(Chunk chunk) {
         //this.sentChunks.remove(Chunk.key(chunk.getX(), chunk.getZ()));
+    }
+
+    @Override
+    public void onChunkLoaded(Chunk chunk) {
+
     }
 
     @Override
@@ -3162,7 +3174,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         if (!(blockEntity instanceof Sign)) {
             return;
         }
-        NbtMap tag = blockEntity.getChunkTag().toBuilder().putString("Text", String.join("\n", lines)).build();
+        NbtMap tag = ((SignBlockEntity) blockEntity).getChunkTag().toBuilder().putString("Text", String.join("\n", lines)).build();
         BlockEntityDataPacket blockEntityDataPacket = new BlockEntityDataPacket();
         blockEntityDataPacket.setBlockPosition(position);
         blockEntityDataPacket.setData(tag);
@@ -3206,8 +3218,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         if (super.switchLevel(level)) {
             SetSpawnPositionPacket spawnPosition = new SetSpawnPositionPacket();
             spawnPosition.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
-            Location spawn = level.getSpawnLocation();
-            spawnPosition.setBlockPosition(spawn.getPosition().toInt());
+            Vector3f spawn = level.getSpawnLocation();
+            spawnPosition.setBlockPosition(spawn.toInt());
             this.sendPacket(spawnPosition);
 
             this.getChunkManager().prepareRegion(this.getPosition());
@@ -3217,7 +3229,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             this.sendPacket(setTime);
 
             GameRulesChangedPacket gameRulesChanged = new GameRulesChangedPacket();
-            level.getGameRules().toNetwork(gameRulesChanged.getGameRules());
+            NetworkUtils.toNetwork(level.getGameRules(), gameRulesChanged.getGameRules());
             this.sendPacket(gameRulesChanged);
             return true;
         }
@@ -3232,7 +3244,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         if (near) {
             if (entity instanceof Arrow && entity.getMotion().lengthSquared() == 0) {
-                ItemStack item = ItemStack.get(ItemTypes.ARROW);
+                ItemStack item = CloudItemRegistry.get().getItem(ItemTypes.ARROW);
                 if (this.isSurvival() && !this.getInventory().canAddItem(item)) {
                     return false;
                 }
@@ -3252,7 +3264,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                 TakeItemEntityPacket packet = new TakeItemEntityPacket();
                 packet.setRuntimeEntityId(this.getRuntimeId());
                 packet.setItemRuntimeEntityId(entity.getRuntimeId());
-                CloudServer.broadcastPacket(entity.getViewers(), packet);
+                CloudServer.broadcastPacket(((BaseEntity) entity).getViewers(), packet);
                 this.sendPacket(packet);
 
                 if (!this.isCreative()) {
@@ -3269,7 +3281,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                 TakeItemEntityPacket packet = new TakeItemEntityPacket();
                 packet.setRuntimeEntityId(this.getRuntimeId());
                 packet.setItemRuntimeEntityId(entity.getRuntimeId());
-                CloudServer.broadcastPacket(entity.getViewers(), packet);
+                CloudServer.broadcastPacket(((BaseEntity) entity).getViewers(), packet);
                 this.sendPacket(packet);
 
                 if (!this.isCreative()) {
@@ -3301,7 +3313,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                         TakeItemEntityPacket packet = new TakeItemEntityPacket();
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setItemRuntimeEntityId(entity.getRuntimeId());
-                        CloudServer.broadcastPacket(entity.getViewers(), packet);
+                        CloudServer.broadcastPacket(((BaseEntity) entity).getViewers(), packet);
                         this.sendPacket(packet);
 
                         entity.close();
