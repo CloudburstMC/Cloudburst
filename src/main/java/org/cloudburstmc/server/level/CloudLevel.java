@@ -65,6 +65,7 @@ import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorRedstoneDiode;
 import org.cloudburstmc.server.block.util.BlockUtils;
+import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.ItemStacks;
@@ -148,7 +149,7 @@ public class CloudLevel implements Level {
 
     private final Set<BlockEntity> blockEntities = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    private final Long2ObjectOpenHashMap<Player> players = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectOpenHashMap<CloudPlayer> players = new Long2ObjectOpenHashMap<>();
 
     private final Long2ObjectOpenHashMap<Entity> entities = new Long2ObjectOpenHashMap<>();
     private static final RemovalListener<Long, ByteBuf> cacheRemover = notification -> notification.getValue().release();
@@ -367,7 +368,7 @@ public class CloudLevel implements Level {
         if (players == null || players.length == 0) {
             addChunkPacket(pos, packet);
         } else {
-            CloudServer.broadcastPacket(players, packet);
+            CloudServer.broadcastPacket((CloudPlayer[]) players, packet);
         }
     }
 
@@ -422,7 +423,7 @@ public class CloudLevel implements Level {
             }
         } else {
             if (packets != null) {
-                CloudServer.broadcastPackets(players, packets);
+                CloudServer.broadcastPackets((CloudPlayer[]) players, packets);
             }
         }
     }
@@ -457,7 +458,7 @@ public class CloudLevel implements Level {
         if (players == null || players.length == 0) {
             addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, packet);
         } else {
-            CloudServer.broadcastPacket(players, packet);
+            CloudServer.broadcastPacket((CloudPlayer[]) players, packet);
         }
     }
 
@@ -507,13 +508,15 @@ public class CloudLevel implements Level {
         return true;
     }
 
-    public Set<Player> getChunkPlayers(int chunkX, int chunkZ) {
-        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+    @Override
+    public Set<CloudPlayer> getChunkPlayers(int chunkX, int chunkZ) {
+        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         return chunk == null ? ImmutableSet.of() : chunk.getPlayerLoaders();
     }
 
+    @Override
     public Set<ChunkLoader> getChunkLoaders(int chunkX, int chunkZ) {
-        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         return chunk == null ? ImmutableSet.of() : chunk.getLoaders();
     }
 
@@ -552,7 +555,7 @@ public class CloudLevel implements Level {
         SetTimePacket pk = new SetTimePacket();
         pk.setTime(this.getTime());
 
-        CloudServer.broadcastPacket(players, pk);
+        CloudServer.broadcastPacket((CloudPlayer[]) players, pk);
     }
 
     public void sendTime() {
@@ -671,7 +674,7 @@ public class CloudLevel implements Level {
                                         }
                                     }
                                 } else {
-                                    Collection<Player> toSend = this.getChunkPlayers(chunkX, chunkZ);
+                                    Collection<CloudPlayer> toSend = this.getChunkPlayers(chunkX, chunkZ);
                                     Player[] playerArray = toSend.toArray(new Player[0]);
                                     Block[] blocksArray = new Block[blocks.size()];
                                     int i = 0;
@@ -694,11 +697,9 @@ public class CloudLevel implements Level {
 
                 synchronized (chunkPackets) {
                     for (long index : this.chunkPackets.keySet()) {
-                        int chunkX = CloudChunk.fromKeyX(index);
-                        int chunkZ = CloudChunk.fromKeyZ(index);
-                        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+                        CloudChunk chunk = this.getLoadedChunk(index);
 
-                        Set<Player> playerLoaders;
+                        Set<CloudPlayer> playerLoaders;
                         if (chunk == null || (playerLoaders = chunk.getPlayerLoaders()).isEmpty()) {
                             // Chunk is unloaded.
                             continue;
@@ -717,7 +718,7 @@ public class CloudLevel implements Level {
                     this.levelData.getGameRules().forEach((gameRule, o) -> {
                         packet.getGameRules().add(new GameRuleData<>(gameRule.getName(), o));
                     });
-                    CloudServer.broadcastPacket(players.values().toArray(new Player[0]), packet);
+                    CloudServer.broadcastPacket(players.values().toArray(new CloudPlayer[0]), packet);
                     this.levelData.getGameRules().refresh();
                 }
             }
@@ -850,7 +851,7 @@ public class CloudLevel implements Level {
             packets[i] = updateBlockPacket;
             packets[i + 1] = updateBlockPacket2;
         }
-        CloudServer.broadcastPackets(target, packets);
+        CloudServer.broadcastPackets((CloudPlayer[]) target, packets);
     }
 
     public boolean save() {
@@ -1656,7 +1657,7 @@ public class CloudLevel implements Level {
         if (createParticles) {
             Chunk chunk = this.getLoadedChunk(target.getPosition());
             if (chunk != null) {
-                this.addParticle(new DestroyBlockParticle(target.getPosition().toFloat().add(0.5, 0.5, 0.5), target.getState()), chunk.getPlayerLoaders());
+                this.addParticle(new DestroyBlockParticle(target.getPosition().toFloat().add(0.5, 0.5, 0.5), target.getState()), (Collection<Player>) chunk.getPlayerLoaders());
             }
         }
 
@@ -1989,7 +1990,8 @@ public class CloudLevel implements Level {
         return blockEntities;
     }
 
-    public Map<Long, Player> getPlayers() {
+    @Override
+    public Map<Long, CloudPlayer> getPlayers() {
         return players;
     }
 
@@ -2113,7 +2115,7 @@ public class CloudLevel implements Level {
 
     @Override
     public CloudChunk getChunk(long chunkKey) {
-        return getChunk(CloudChunk.fromKeyX(chunkKey), CloudChunk.fromKeyZ(chunkKey);
+        return getChunk(CloudChunk.fromKeyX(chunkKey), CloudChunk.fromKeyZ(chunkKey));
     }
 
     @Override
@@ -2177,7 +2179,7 @@ public class CloudLevel implements Level {
         SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
         packet.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
         packet.setBlockPosition(blockPos);
-        CloudServer.broadcastPacket(this.players.values(), packet);
+        CloudServer.broadcastPacket(this.players.values().toArray(new CloudPlayer[0]), packet);
     }
 
     public void scheduleEntityUpdate(Entity entity) {
@@ -2357,7 +2359,7 @@ public class CloudLevel implements Level {
         packet.setPosition(Vector3f.from(x, y, z));
         packet.setRotation(Vector3f.from(pitch, yaw, headYaw));
 
-        CloudServer.broadcastPacket(entity.getViewers(), packet);
+        CloudServer.broadcastPacket(((BaseEntity) entity).getViewers(), packet);
     }
 
     public boolean isRaining() {
@@ -2387,7 +2389,7 @@ public class CloudLevel implements Level {
         }
         packet.setPosition(Vector3f.ZERO);
 
-        CloudServer.broadcastPacket(this.getPlayers().values(), packet);
+        CloudServer.broadcastPacket(this.getPlayers().values().toArray(new CloudPlayer[0]), packet);
 
         return true;
     }
@@ -2430,7 +2432,7 @@ public class CloudLevel implements Level {
         }
         packet.setPosition(Vector3f.ZERO);
 
-        CloudServer.broadcastPacket(this.getPlayers().values(), packet);
+        CloudServer.broadcastPacket(this.getPlayers().values().toArray(new CloudPlayer[0]), packet);
 
         return true;
     }
@@ -2456,7 +2458,7 @@ public class CloudLevel implements Level {
             rainEvent.setType(LevelEventType.STOP_RAINING);
         }
         rainEvent.setPosition(Vector3f.ZERO);
-        CloudServer.broadcastPacket(players, rainEvent);
+        CloudServer.broadcastPacket((CloudPlayer[]) players, rainEvent);
 
         LevelEventPacket thunderEvent = new LevelEventPacket();
         if (this.isThundering()) {
@@ -2466,7 +2468,7 @@ public class CloudLevel implements Level {
             thunderEvent.setType(LevelEventType.STOP_THUNDERSTORM);
         }
         thunderEvent.setPosition(Vector3f.ZERO);
-        CloudServer.broadcastPacket(players, thunderEvent);
+        CloudServer.broadcastPacket((CloudPlayer[]) players, thunderEvent);
     }
 
     public void sendWeather(Player player) {
@@ -2477,7 +2479,7 @@ public class CloudLevel implements Level {
 
     public void sendWeather(Collection<Player> players) {
         if (players == null) {
-            players = this.getPlayers().values();
+            this.sendWeather(this.getPlayers().values().toArray(new CloudPlayer[0]));
         }
         this.sendWeather(players.toArray(new Player[0]));
     }
