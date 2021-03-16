@@ -364,14 +364,14 @@ public final class LevelChunkManager {
             this.generate();
             if ((this.chunk == null || !this.chunk.isPopulated()) && POPULATION_RUNNING_UPDATER.compareAndSet(this, 0, 1)) {
                 // Load and generate chunks around the chunk to be populated.
-                List<CompletableFuture<Chunk>> chunksToLoad = new ArrayList<>(8);
+                List<CompletableFuture<CloudChunk>> chunksToLoad = new ArrayList<>(8);
                 for (int z = this.z - 1, maxZ = this.z + 1; z <= maxZ; z++) {
                     for (int x = this.x - 1, maxX = this.x + 1; x <= maxX; x++) {
                         if (x == this.x && z == this.z) continue;
                         chunksToLoad.add(LevelChunkManager.this.getChunkFuture(x, z, true, false, false));
                     }
                 }
-                CompletableFuture<List<Chunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
+                CompletableFuture<List<CloudChunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
 
                 future = future.thenCombineAsync(aroundFuture, PopulationTask.INSTANCE, LevelChunkManager.this.executor);
                 future.thenRun(() -> POPULATION_RUNNING_UPDATER.compareAndSet(this, 1, 0));
@@ -381,14 +381,14 @@ public final class LevelChunkManager {
         private void finish() {
             this.populate();
             if ((this.chunk == null || !this.chunk.isFinished()) && FINISH_RUNNING_UPDATER.compareAndSet(this, 0, 1)) {
-                List<CompletableFuture<Chunk>> chunksToLoad = new ArrayList<>(8);
+                List<CompletableFuture<CloudChunk>> chunksToLoad = new ArrayList<>(8);
                 for (int z = this.z - 1, maxZ = this.z + 1; z <= maxZ; z++) {
                     for (int x = this.x - 1, maxX = this.x + 1; x <= maxX; x++) {
                         if (x == this.x && z == this.z) continue;
                         chunksToLoad.add(LevelChunkManager.this.getChunkFuture(x, z, true, true, false));
                     }
                 }
-                CompletableFuture<List<Chunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
+                CompletableFuture<List<CloudChunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
 
                 future = future.thenCombineAsync(aroundFuture, FinishingTask.INSTANCE, LevelChunkManager.this.executor);
                 future.thenRun(() -> FINISH_RUNNING_UPDATER.compareAndSet(this, 1, 0));
