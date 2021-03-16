@@ -3,9 +3,9 @@ package org.cloudburstmc.server.block.trait.serializer;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.util.Direction.Axis;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
-import org.cloudburstmc.server.math.Direction.Axis;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;

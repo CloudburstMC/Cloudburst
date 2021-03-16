@@ -4,9 +4,9 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.CloudPlayer.CraftingType;
-import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorCraftingTable extends BlockBehaviorSolid {
 

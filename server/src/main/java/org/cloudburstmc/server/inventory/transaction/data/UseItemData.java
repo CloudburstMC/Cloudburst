@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.ToString;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.api.util.Direction;
 
 /**
  * @author CreeperFace

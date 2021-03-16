@@ -4,21 +4,19 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.DyeColor;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -28,7 +26,7 @@ import static org.cloudburstmc.server.item.ItemTypes.DYE;
 public class BlockBehaviorSapling extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val type = block.down().getState().getType();
         if (type == GRASS || type == DIRT || type == FARMLAND || type == PODZOL) {
             placeBlock(block, item);
@@ -49,7 +47,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
                 player.getInventory().decrementHandCount();
             }
 
-            block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+            ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
             if (ThreadLocalRandom.current().nextFloat() >= 0.45) {
                 return true;
             }
@@ -91,7 +89,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
 
         val state = block.getState();
         val level = block.getLevel();
-        GenerationTreeSpecies species = GenerationTreeSpecies.fromItem(state.getId(), BlockStateMetaMappings.getMetaFromState(state));
+        GenerationTreeSpecies species = GenerationTreeSpecies.fromItem(state.getType().getId(), BlockStateMetaMappings.getMetaFromState(state));
         WorldFeature feature = species.getHugeGenerator();
         BIG_TREE:
         if (bigTree = feature != null) {
@@ -108,10 +106,10 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
         }
 
         if (bigTree) {
-            level.setBlock(block.getPosition().add(x, 0, z), BlockStates.AIR, true, false);
-            level.setBlock(block.getPosition().add(x + 1, 0, z), BlockStates.AIR, true, false);
-            level.setBlock(block.getPosition().add(x, 0, z + 1), BlockStates.AIR, true, false);
-            level.setBlock(block.getPosition().add(x + 1, 0, z + 1), BlockStates.AIR, true, false);
+            level.setBlockState(block.getPosition().add(x, 0, z), BlockStates.AIR, true, false);
+            level.setBlockState(block.getPosition().add(x + 1, 0, z), BlockStates.AIR, true, false);
+            level.setBlockState(block.getPosition().add(x, 0, z + 1), BlockStates.AIR, true, false);
+            level.setBlockState(block.getPosition().add(x + 1, 0, z + 1), BlockStates.AIR, true, false);
         } else {
             feature = species.getDefaultGenerator();
             if (feature == null) {
@@ -123,12 +121,12 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
 
         if (!feature.place(level, ThreadLocalPRandom.current(), block.getX() + x, block.getY(), block.getZ() + z)) {
             if (bigTree) {
-                level.setBlock(block.getPosition().add(x, 0, z), state, true, false);
-                level.setBlock(block.getPosition().add(x + 1, 0, z), state, true, false);
-                level.setBlock(block.getPosition().add(x, 0, z + 1), state, true, false);
-                level.setBlock(block.getPosition().add(x + 1, 0, z + 1), state, true, false);
+                level.setBlockState(block.getPosition().add(x, 0, z), state, true, false);
+                level.setBlockState(block.getPosition().add(x + 1, 0, z), state, true, false);
+                level.setBlockState(block.getPosition().add(x, 0, z + 1), state, true, false);
+                level.setBlockState(block.getPosition().add(x + 1, 0, z + 1), state, true, false);
             } else {
-                level.setBlock(block.getPosition(), state, true, false);
+                level.setBlockState(block.getPosition(), state, true, false);
             }
         }
     }
@@ -149,7 +147,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().resetTrait(BlockTraits.HAS_AGE));
+        return CloudItemRegistry.get().getItem(block.getState().withTrait(BlockTraits.HAS_AGE, BlockTraits.HAS_AGE.getDefaultValue()));
     }
 
     @Override

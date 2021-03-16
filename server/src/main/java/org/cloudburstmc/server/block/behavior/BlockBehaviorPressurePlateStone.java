@@ -3,8 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.utils.BlockColor;
 
 public class BlockBehaviorPressurePlateStone extends BlockBehaviorPressurePlateBase {
 
