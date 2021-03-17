@@ -11,18 +11,18 @@ public class BlockBehaviorPotato extends BlockBehaviorCrops {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.POTATO);
+        return CloudItemRegistry.get().getItem(ItemTypes.POTATO);
     }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.GROWTH) == 7) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.POTATO, new Random().nextInt(3) + 1)
+                    CloudItemRegistry.get().getItem(ItemTypes.POTATO, new Random().nextInt(3) + 1)
             };
         } else {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.POTATO)
+                    CloudItemRegistry.get().getItem(ItemTypes.POTATO)
             };
         }
     }

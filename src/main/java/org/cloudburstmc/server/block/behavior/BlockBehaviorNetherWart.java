@@ -64,18 +64,18 @@ public class BlockBehaviorNetherWart extends FloodableBlockBehavior {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.AGE) == 3) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.NETHER_WART, 2 + (int) (Math.random() * ((4 - 2) + 1)))
+                    CloudItemRegistry.get().getItem(ItemTypes.NETHER_WART, 2 + (int) (Math.random() * ((4 - 2) + 1)))
             };
         } else {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.NETHER_WART)
+                    CloudItemRegistry.get().getItem(ItemTypes.NETHER_WART)
             };
         }
     }
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.NETHER_WART);
+        return CloudItemRegistry.get().getItem(ItemTypes.NETHER_WART);
     }
 }
 

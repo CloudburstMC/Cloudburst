@@ -8,9 +8,9 @@ import lombok.val;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
 import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.utils.data.SlabSlot;
 
 import java.util.List;
 import java.util.Map;

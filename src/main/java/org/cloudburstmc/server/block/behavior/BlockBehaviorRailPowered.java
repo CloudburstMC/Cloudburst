@@ -5,9 +5,9 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.utils.Rail;
-import org.cloudburstmc.server.utils.data.RailDirection;
 
 import static org.cloudburstmc.api.block.BlockTypes.GOLDEN_RAIL;
 
@@ -169,7 +169,7 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(GOLDEN_RAIL)
+                CloudItemRegistry.get().getItem(GOLDEN_RAIL)
         };
     }
 }

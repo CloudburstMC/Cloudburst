@@ -38,6 +38,6 @@ public class EntityVindicator extends EntityHostile implements Vindicator {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.IRON_AXE)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.IRON_AXE)};
     }
 }

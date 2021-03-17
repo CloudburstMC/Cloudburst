@@ -10,13 +10,19 @@ import org.cloudburstmc.api.blockentity.Cauldron;
 import org.cloudburstmc.api.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.api.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.Bucket;
+import org.cloudburstmc.server.blockentity.CauldronBlockEntity;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.data.Bucket;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.blockentity.BlockEntityTypes.CAULDRON;
 
@@ -47,7 +53,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
             return false;
         }
 
-        Cauldron cauldron = (Cauldron) be;
+        CauldronBlockEntity cauldron = (CauldronBlockEntity) be;
 
         val itemType = item.getType();
 
@@ -65,11 +71,11 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 PlayerBucketFillEvent ev = new PlayerBucketFillEvent(player, block, null, item, bucketItem);
                 block.getLevel().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
-                    replaceBucket(item, player, ev.getItem());
+                    replaceBucket(item, (CloudPlayer) player, ev.getItem());
 
                     block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, 0), true);
                     cauldron.setCustomColor(null);
-                    block.getLevel().addSound(block.getPosition().toFloat().add(0.5, 1, 0.5), Sound.CAULDRON_TAKEWATER);
+                    ((CloudLevel) block.getLevel()).addSound(block.getPosition().toFloat().add(0.5, 1, 0.5), Sound.CAULDRON_TAKEWATER);
                 }
             } else if (bucket == Bucket.WATER || bucket == Bucket.LAVA) {//water bucket
                 if (isFull(block) && !cauldron.hasCustomColor() && cauldron.getPotionId() == 0) {
@@ -82,18 +88,18 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, block, null, item, bucketItem);
                 block.getLevel().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
-                    replaceBucket(item, player, ev.getItem());
+                    replaceBucket(item, (CloudPlayer) player, ev.getItem());
 
                     if (cauldron.getPotionId() != 0 || block.getState().ensureTrait(BlockTraits.CAULDRON_TYPE) != bucket) { //if has potion
                         cauldron.setPotionId(0xffff);//reset potion
                         cauldron.setSplash(false);
                         cauldron.setCustomColor(null);
                         block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, 0), true);
-                        block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_EXPLODE);
+                        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.CAULDRON_EXPLODE);
                     } else {
                         cauldron.setCustomColor(null);
                         block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, 6), true);
-                        block.getLevel().addLevelSoundEvent(block.getPosition().toFloat().add(0.5, 1, 0.5), SoundEvent.BUCKET_FILL_WATER);
+                        ((CloudLevel) block.getLevel()).addLevelSoundEvent(block.getPosition().toFloat().add(0.5, 1, 0.5), SoundEvent.BUCKET_FILL_WATER);
                     }
                     //this.update();
                 }
@@ -109,11 +115,11 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
             }
 
             if (item.getAmount() == 1) {
-                player.getInventory().clear(player.getInventory().getHeldItemIndex());
+                player.getInventory().clear(((PlayerInventory) player.getInventory()).getHeldItemIndex());
             } else if (item.getAmount() > 1) {
-                player.getInventory().decrementHandCount();
+                ((PlayerInventory) player.getInventory()).decrementHandCount();
 
-                ItemStack bottle = ItemStack.get(ItemTypes.GLASS_BOTTLE);
+                ItemStack bottle = CloudItemRegistry.get().getItem(ItemTypes.GLASS_BOTTLE);
                 if (player.getInventory().canAddItem(bottle)) {
                     player.getInventory().addItem(bottle);
                 } else {
@@ -121,19 +127,19 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 }
             }
 
-            block.set(block.getState().incrementTrait(BlockTraits.FILL_LEVEL));
-            block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_FILLPOTION);
+            block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, Math.min(BlockTraits.FILL_LEVEL.getRange().getEnd(), block.getState().ensureTrait(BlockTraits.FILL_LEVEL) + 1)));
+            ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.CAULDRON_FILLPOTION);
         } else if (itemType == ItemTypes.GLASS_BOTTLE) {
             if (isEmpty(block)) {
                 return true;
             }
 
             if (item.getAmount() == 1) {
-                player.getInventory().setItemInHand(ItemStack.get(ItemTypes.POTION));
+                ((PlayerInventory) player.getInventory()).setItemInHand(CloudItemRegistry.get().getItem(ItemTypes.POTION));
             } else if (item.getAmount() > 1) {
-                player.getInventory().decrementHandCount();
+                ((PlayerInventory) player.getInventory()).decrementHandCount();
 
-                ItemStack potion = ItemStack.get(ItemTypes.POTION);
+                ItemStack potion = CloudItemRegistry.get().getItem(ItemTypes.POTION);
                 if (player.getInventory().canAddItem(potion)) {
                     player.getInventory().addItem(potion);
                 } else {
@@ -141,13 +147,13 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 }
             }
 
-            block.set(block.getState().decrementTrait(BlockTraits.FILL_LEVEL));
-            block.getLevel().addSound(block.getPosition(), Sound.CAULDRON_TAKEPOTION);
+            block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, Math.max(BlockTraits.FILL_LEVEL.getRange().getStart(), block.getState().ensureTrait(BlockTraits.FILL_LEVEL) -1)));
+            ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.CAULDRON_TAKEPOTION);
         } else {
             return true;
         }
 
-        block.getLevel().updateComparatorOutputLevel(block.getPosition());
+        ((CloudLevel) block.getLevel()).updateComparatorOutputLevel(block.getPosition());
         return true;
     }
 
@@ -168,7 +174,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        Cauldron cauldron = BlockEntityRegistry.get().newEntity(CAULDRON, block.getChunk(), block.getPosition());
+        CauldronBlockEntity cauldron = (CauldronBlockEntity) BlockEntityRegistry.get().newEntity(CAULDRON, (CloudChunk) block.getChunk(), block.getPosition());
         cauldron.loadAdditionalData(((CloudItemStack) item).getDataTag());
         cauldron.setPotionId(0xffff);
 
@@ -178,7 +184,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (checkTool(block.getState(), hand)) {
-            return new ItemStack[]{ItemStack.get(ItemTypes.CAULDRON)};
+            return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.CAULDRON)};
         }
 
         return new ItemStack[0];
@@ -186,7 +192,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.CAULDRON);
+        return CloudItemRegistry.get().getItem(ItemTypes.CAULDRON);
     }
 
     public int getComparatorInputOverride(Block block) {

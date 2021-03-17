@@ -17,7 +17,7 @@ public class EntityMule extends Animal implements Mule {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.LEATHER)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.LEATHER)};
     }
 
     @Override

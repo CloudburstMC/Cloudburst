@@ -36,6 +36,6 @@ public class EntitySquid extends EntityWaterAnimal implements Squid {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.DYE, DyeColor.BLACK.getDyeData())};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.DYE, DyeColor.BLACK.getDyeData())};
     }
 }

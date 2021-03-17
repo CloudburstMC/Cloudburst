@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
@@ -24,7 +23,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
             return false;
         }
 
-        placeBlock(block, BlockState.get(BlockTypes.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
+        placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
 
         Skull skull = BlockEntityRegistry.get().newEntity(BlockEntityTypes.SKULL, block);
         skull.loadAdditionalData(((CloudItemStack) item).getDataTag());
@@ -45,7 +44,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
             meta = ((Skull) be).getSkullType();
         }
 
-        return ItemStack.get(ItemTypes.SKULL); //TODO: skull type
+        return CloudItemRegistry.get().getItem(ItemTypes.SKULL); //TODO: skull type
     }
 
 

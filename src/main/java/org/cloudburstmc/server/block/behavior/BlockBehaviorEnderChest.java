@@ -88,7 +88,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (checkTool(block.getState(), hand)) {
             return new ItemStack[]{
-                    ItemStack.get(OBSIDIAN, 8)
+                    CloudItemRegistry.get().getItem(OBSIDIAN, 8)
             };
         } else {
             return new ItemStack[0];

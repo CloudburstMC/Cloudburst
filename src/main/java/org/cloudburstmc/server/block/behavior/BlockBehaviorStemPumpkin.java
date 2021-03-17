@@ -45,7 +45,7 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
                     Block side = block.getSide(Direction.Plane.HORIZONTAL.random(random));
                     BlockState d = side.down().getState();
                     if (side.getState().getType() == AIR && (d.getType() == FARMLAND || d.getType() == GRASS || d.getType() == DIRT)) {
-                        BlockGrowEvent ev = new BlockGrowEvent(side, BlockState.get(PUMPKIN));
+                        BlockGrowEvent ev = new BlockGrowEvent(side, BlockRegistry.get().getBlock(PUMPKIN));
                         CloudServer.getInstance().getEventManager().fire(ev);
                         if (!ev.isCancelled()) {
                             side.set(ev.getNewState(), true);
@@ -60,13 +60,13 @@ public class BlockBehaviorStemPumpkin extends BlockBehaviorCrops {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.PUMPKIN_SEEDS);
+        return CloudItemRegistry.get().getItem(ItemTypes.PUMPKIN_SEEDS);
     }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.PUMPKIN_SEEDS, ThreadLocalRandom.current().nextInt(0, 4))
+                CloudItemRegistry.get().getItem(ItemTypes.PUMPKIN_SEEDS, ThreadLocalRandom.current().nextInt(0, 4))
         };
     }
 }

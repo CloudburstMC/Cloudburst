@@ -8,11 +8,15 @@ import org.cloudburstmc.api.blockentity.Barrel;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.blockentity.BarrelBlockEntity;
 import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.BARREL;
@@ -21,7 +25,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        BlockState newState = BlockState.get(BARREL);
+        BlockState newState = BlockRegistry.get().getBlock(BARREL);
         Direction facing;
 
         if (Math.abs(player.getX() - block.getX()) < 2 && Math.abs(player.getZ() - block.getZ()) < 2) {
@@ -41,7 +45,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
         newState = newState.withTrait(BlockTraits.FACING_DIRECTION, facing);
         block.set(newState, true, false);
 
-        Barrel barrel = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, block.getChunk(), block.getPosition());
+        BarrelBlockEntity barrel = (BarrelBlockEntity) BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, (CloudChunk) block.getChunk(), block.getPosition());
         barrel.loadAdditionalData(((CloudItemStack) item).getDataTag());
 
         return true;
@@ -58,7 +62,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
         if (blockEntity instanceof Barrel) {
             barrel = (Barrel) blockEntity;
         } else {
-            barrel = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, block.getChunk(), block.getPosition());
+            barrel = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BARREL, (CloudChunk) block.getChunk(), block.getPosition());
         }
 
         player.addWindow(barrel.getInventory());
@@ -79,7 +83,7 @@ public class BlockBehaviorBarrel extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState().defaultState());
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
 

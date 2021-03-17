@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.item.food;
 
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
 
@@ -15,7 +14,7 @@ public class FoodHoney extends Food {
     @Override
     protected boolean onEatenBy(CloudPlayer player) {
         super.onEatenBy(player);
-        player.getInventory().addItem(ItemStack.get(GLASS_BOTTLE));
+        player.getInventory().addItem(CloudItemRegistry.get().getItem(GLASS_BOTTLE));
         player.removeEffect(CloudEffect.POISON);
         return true;
     }

@@ -10,7 +10,7 @@ public class BlockBehaviorObsidianGlowing extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(OBSIDIAN);
+        return CloudItemRegistry.get().getItem(OBSIDIAN);
     }
 
     @Override

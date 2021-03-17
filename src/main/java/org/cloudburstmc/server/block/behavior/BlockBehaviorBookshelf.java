@@ -11,7 +11,7 @@ public class BlockBehaviorBookshelf extends BlockBehaviorSolid {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.BOOK, 3)
+                CloudItemRegistry.get().getItem(ItemTypes.BOOK, 3)
         };
     }
 

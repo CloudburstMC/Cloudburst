@@ -26,7 +26,7 @@ public class BlockBehaviorOreQuartz extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.QUARTZ, count)
+                    CloudItemRegistry.get().getItem(ItemTypes.QUARTZ, count)
             };
         } else {
             return new ItemStack[0];

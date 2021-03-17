@@ -24,7 +24,7 @@ public class ItemGlassBottleBehavior extends CloudItemBehavior {
     public ItemStack onActivate(ItemStack item, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level) {
         val targetType = target.getState().getType();
         if (targetType == WATER || targetType == FLOWING_WATER) {
-            ItemStack potion = ItemStack.get(POTION);
+            ItemStack potion = CloudItemRegistry.get().getItem(POTION);
 
             if (item.getAmount() == 1) {
                 player.getInventory().setItemInHand(potion);

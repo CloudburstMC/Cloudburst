@@ -80,12 +80,12 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
         if (dropInside) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.FLOWER_POT),
-                    ItemStack.get(blockState)
+                    CloudItemRegistry.get().getItem(ItemTypes.FLOWER_POT),
+                    CloudItemRegistry.get().getItem(blockState)
             };
         } else {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.FLOWER_POT)
+                    CloudItemRegistry.get().getItem(ItemTypes.FLOWER_POT)
             };
         }
     }
@@ -122,6 +122,6 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.FLOWER_POT);
+        return CloudItemRegistry.get().getItem(ItemTypes.FLOWER_POT);
     }
 }

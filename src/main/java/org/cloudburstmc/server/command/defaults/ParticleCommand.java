@@ -3,7 +3,6 @@ package org.cloudburstmc.server.command.defaults;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.command.Command;
@@ -165,17 +164,17 @@ public class ParticleCommand extends Command {
             case "reddust":
                 return new RedstoneParticle(pos, data != -1 ? data : 1);
             case "snowballpoof":
-                return new ItemBreakParticle(pos, ItemStack.get(ItemTypes.SNOWBALL));
+                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.SNOWBALL));
             case "slime":
-                return new ItemBreakParticle(pos, ItemStack.get(ItemTypes.SLIME_BALL));
+                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.SLIME_BALL));
             case "itembreak":
                 if (data != -1 && data != 0) {
-//                    return new ItemBreakParticle(pos, ItemStack.get(data)); //TODO: item name
+//                    return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(data)); //TODO: item name
                 }
                 break;
             case "terrain":
                 if (data != -1 && data != 0) {
-//                    return new TerrainParticle(pos, BlockState.get(data)); //TODO: block name
+//                    return new TerrainParticle(pos, BlockRegistry.get().getBlock(data)); //TODO: block name
                 }
                 break;
             case "heart":
@@ -197,7 +196,7 @@ public class ParticleCommand extends Command {
         if (name.startsWith("iconcrack_")) {
             String[] d = name.split("_");
             if (d.length == 3) {
-                return new ItemBreakParticle(pos, ItemStack.get(ItemTypes.byId(Identifier.fromString(d[1])), Integer.parseInt(d[2])));
+                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.byId(Identifier.fromString(d[1])), Integer.parseInt(d[2])));
             }
         } else if (name.startsWith("blockcrack_")) {
             String[] d = name.split("_");

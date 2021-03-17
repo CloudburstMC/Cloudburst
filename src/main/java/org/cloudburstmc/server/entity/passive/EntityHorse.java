@@ -39,6 +39,6 @@ public class EntityHorse extends Animal implements Horse {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.LEATHER)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.LEATHER)};
     }
 }

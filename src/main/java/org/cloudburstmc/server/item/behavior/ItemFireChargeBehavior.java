@@ -3,7 +3,6 @@ package org.cloudburstmc.server.item.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockIgniteEvent;
@@ -37,7 +36,7 @@ public class ItemFireChargeBehavior extends CloudItemBehavior {
                 block.getLevel().getServer().getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
-                    val fire = BlockState.get(FIRE);
+                    val fire = BlockRegistry.get().getBlock(FIRE);
                     block.set(fire);
 
                     level.addSound(block.getPosition(), Sound.MOB_GHAST_FIREBALL);

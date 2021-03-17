@@ -10,9 +10,9 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.data.DoublePlantType;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
-import org.cloudburstmc.server.utils.data.DoublePlantType;
 
 import java.util.Objects;
 

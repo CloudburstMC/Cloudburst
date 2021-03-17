@@ -4,10 +4,10 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.Minecart;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.MinecartType;
 
 /**
  * Created by Snake1999 on 2016/1/30.

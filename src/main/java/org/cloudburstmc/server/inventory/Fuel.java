@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
+import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.item.ItemIds;
 
 import java.util.Map;

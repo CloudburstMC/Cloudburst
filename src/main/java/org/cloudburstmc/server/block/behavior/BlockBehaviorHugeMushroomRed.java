@@ -28,7 +28,7 @@ public class BlockBehaviorHugeMushroomRed extends BlockBehaviorSolid {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (ThreadLocalRandom.current().nextInt(0, 20) == 0) {
             return new ItemStack[]{
-                    ItemStack.get(RED_MUSHROOM)
+                    CloudItemRegistry.get().getItem(RED_MUSHROOM)
             };
         } else {
             return new ItemStack[0];

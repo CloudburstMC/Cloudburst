@@ -34,7 +34,7 @@ public class EntitySkeletonHorse extends Animal implements SkeletonHorse, Smitea
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.BONE)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.BONE)};
     }
 
     @Override

@@ -142,7 +142,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.BED, 1, this.getDyeColor(block));
+        return CloudItemRegistry.get().getItem(ItemTypes.BED, 1, this.getDyeColor(block));
     }
 
     @Override

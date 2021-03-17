@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.item.food;
 
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.server.item.ItemTypes.BOWL;
@@ -19,7 +18,7 @@ public class FoodInBowl extends Food {
     @Override
     protected boolean onEatenBy(CloudPlayer player) {
         super.onEatenBy(player);
-        player.getInventory().addItem(ItemStack.get(BOWL));
+        player.getInventory().addItem(CloudItemRegistry.get().getItem(BOWL));
         return true;
     }
 

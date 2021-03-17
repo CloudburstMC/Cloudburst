@@ -22,7 +22,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().getType());
+        return CloudItemRegistry.get().getItem(block.getState().getType());
     }
 
     @Override

@@ -1,16 +1,17 @@
 package org.cloudburstmc.server.entity.vehicle;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.ChestMinecart;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.MinecartType;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Created by Snake1999 on 2016/1/30.
@@ -26,7 +27,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
     public void initEntity() {
         super.initEntity();
 
-        this.setDisplayBlock(BlockState.get(BlockTypes.CHEST));
+        this.setDisplayBlock(BlockRegistry.get().getBlock(BlockTypes.CHEST));
         this.setDisplay(true);
     }
 
@@ -44,7 +45,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemTypes.CHEST_MINECART));
+        this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.CHEST_MINECART));
     }
 
     @Override
@@ -58,7 +59,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
     }
 
     @Override
-    public boolean onInteract(CloudPlayer p, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(Player p, ItemStack item, Vector3f clickedPos) {
         return false;
     }
 }

@@ -197,7 +197,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.REDSTONE);
+        return CloudItemRegistry.get().getItem(ItemTypes.REDSTONE);
     }
 
     public int getStrongPower(Block block, Direction side) {

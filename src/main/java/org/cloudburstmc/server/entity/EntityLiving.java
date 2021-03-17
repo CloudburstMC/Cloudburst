@@ -16,7 +16,7 @@ import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.event.entity.EntityDamageByChildEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -24,12 +24,12 @@ import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.potion.CloudEffect;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -221,11 +221,11 @@ public abstract class EntityLiving extends BaseEntity implements Damageable, Liv
 
                 val block = this.getLevel().getBlockState(this.getPosition().toInt()).getType();
                 boolean ignore = block == BlockTypes.LADDER || block == BlockTypes.VINE || block == BlockTypes.WEB;
-                if (ignore || this.hasEffect(CloudEffect.LEVITATION)) {
+                if (ignore || this.hasEffect(EffectTypes.LEVITATION)) {
                     this.resetFallDistance();
                 }
 
-                if (!this.hasEffect(CloudEffect.WATER_BREATHING) && this.isInsideOfWater()) {
+                if (!this.hasEffect(EffectTypes.WATER_BREATHING) && this.isInsideOfWater()) {
                     if (this instanceof EntityWaterAnimal || (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator()))) {
                         this.setAirTicks(400);
                     } else {
