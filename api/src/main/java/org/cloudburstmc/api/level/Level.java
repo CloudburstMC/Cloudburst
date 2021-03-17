@@ -6,12 +6,14 @@ import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Set;
 
@@ -180,4 +182,26 @@ public interface Level extends ChunkManager {
     BlockEntity getBlockEntity(Vector3i position);
 
     boolean canBlockSeeSky(Vector3i position);
+
+    @Nonnull
+    default DroppedItem dropItem(Vector3i position, ItemStack item) {
+        return dropItem(position.toFloat().add(0.5f, 0f, 0.5f), item);
+    }
+
+    @Nonnull
+    default DroppedItem dropItem(Vector3f position, ItemStack item) {
+        return dropItem(position, item, null);
+    }
+
+    @Nonnull
+    default DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion) {
+        return dropItem(position, item, motion, false);
+    }
+
+    @Nonnull
+    default DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion, boolean dropAround) {
+        return dropItem(position, item, motion, dropAround, 10);
+    }
+
+    DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion, boolean dropAround, int delay);
 }

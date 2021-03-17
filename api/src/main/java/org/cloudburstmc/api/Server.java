@@ -97,4 +97,5 @@ public interface Server {
     @Nullable
     Player getPlayer(String name);
 
+    void setAutoSave(boolean autoSave);
 }

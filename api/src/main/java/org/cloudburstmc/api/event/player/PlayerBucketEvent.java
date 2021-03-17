@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.player;
 
-import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
@@ -8,7 +8,7 @@ import org.cloudburstmc.api.util.Direction;
 
 public abstract class PlayerBucketEvent extends PlayerEvent implements Cancellable {
 
-    private final Block blockStateClicked;
+    private final BlockState blockStateClicked;
 
     private final Direction direction;
 
@@ -17,7 +17,8 @@ public abstract class PlayerBucketEvent extends PlayerEvent implements Cancellab
     private ItemStack item;
 
 
-    public PlayerBucketEvent(Player player, Block blockStateClicked, Direction direction, ItemStack bucket, ItemStack itemInHand) {
+    public PlayerBucketEvent(Player player, BlockState
+            blockStateClicked, Direction direction, ItemStack bucket, ItemStack itemInHand) {
         super(player);
         this.blockStateClicked = blockStateClicked;
         this.direction = direction;
@@ -47,7 +48,7 @@ public abstract class PlayerBucketEvent extends PlayerEvent implements Cancellab
         this.item = item;
     }
 
-    public Block getBlockClicked() {
+    public BlockState getBlockClicked() {
         return this.blockStateClicked;
     }
 

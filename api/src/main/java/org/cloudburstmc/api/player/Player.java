@@ -162,4 +162,6 @@ public interface Player extends Entity {
     void save(boolean async);
 
     CardinalDirection getCardinalDirection();
+
+    boolean isAdventure();
 }

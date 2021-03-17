@@ -170,7 +170,7 @@ public abstract class BlockBehavior {
         return removeBlock(block, true);
     }
 
-    final protected boolean removeBlock(Block block, boolean update) {
+    final public boolean removeBlock(Block block, boolean update) {
         BlockState state;
 
         if (block.isWaterlogged()) {
