@@ -115,7 +115,7 @@ public interface Chunk extends Comparable<Chunk> {
      * @return player set
      */
     @Nonnull
-    Set<Player> getPlayers();
+    Set<? extends Player> getPlayers();
 
     /**
      * Gets an immutable copy of entities currently in this chunk
