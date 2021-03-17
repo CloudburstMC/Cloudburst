@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.level.generator.standard.misc.filter;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
 
 import java.util.function.Predicate;
 

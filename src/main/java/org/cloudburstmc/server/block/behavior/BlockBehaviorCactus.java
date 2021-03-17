@@ -2,6 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
@@ -11,10 +13,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
@@ -109,7 +108,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Block down = block.down();
         if (!block.isWaterlogged() && (down.getState().getType() == SAND || down.getState().getType() == CACTUS)) {
             for (Direction direction : Plane.HORIZONTAL) {

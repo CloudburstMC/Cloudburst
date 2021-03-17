@@ -3,18 +3,17 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.FlowerPot;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
@@ -27,7 +26,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.UP) return false;
 
         FlowerPot flowerPot = BlockEntityRegistry.get().newEntity(BlockEntityTypes.FLOWER_POT, block);
@@ -43,7 +42,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
         BlockEntity blockEntity = level.getBlockEntity(block.getPosition());
         if (!(blockEntity instanceof FlowerPot)) return false;

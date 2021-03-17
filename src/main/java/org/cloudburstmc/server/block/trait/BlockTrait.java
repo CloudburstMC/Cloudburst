@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.trait;
 
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockTraits;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;

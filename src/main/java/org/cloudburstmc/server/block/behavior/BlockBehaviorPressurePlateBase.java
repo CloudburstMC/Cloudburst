@@ -5,6 +5,8 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
@@ -13,8 +15,6 @@ import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent.Action;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -76,7 +76,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
             return false;
         }

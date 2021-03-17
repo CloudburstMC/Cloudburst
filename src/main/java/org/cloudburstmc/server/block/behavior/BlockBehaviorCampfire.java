@@ -2,6 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
@@ -12,13 +14,10 @@ import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.behavior.ItemEdibleBehavior;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
@@ -44,7 +43,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState state = block.getState();
         if (!state.getBehavior().canBeReplaced(block)) return false;
         if (block.down().getState().getType() == BlockTypes.CAMPFIRE) {
@@ -87,7 +86,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == ItemTypes.FLINT_AND_STEEL
                 || item.getEnchantment(EnchantmentTypes.FIRE_ASPECT) != null) {
             if (!(this.isLit(block))) {

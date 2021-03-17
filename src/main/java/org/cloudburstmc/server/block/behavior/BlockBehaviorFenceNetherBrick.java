@@ -2,10 +2,10 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
 
 public class BlockBehaviorFenceNetherBrick extends BlockBehaviorFence {
 

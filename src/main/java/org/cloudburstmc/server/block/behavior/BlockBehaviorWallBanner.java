@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
 
 public class BlockBehaviorWallBanner extends BlockBehaviorBanner {

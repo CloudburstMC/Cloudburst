@@ -2,17 +2,18 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.PrimedTnt;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -46,12 +47,12 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
         primedTnt.setSource(source);
         primedTnt.spawnToAll();
 
-        block.getLevel().addSound(block.getPosition(), Sound.RANDOM_FUSE);
+        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.RANDOM_FUSE);
     }
 
     @Override
     public int onUpdate(Block block, int type) {
-        if ((type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE) && block.getLevel().isBlockPowered(block.getPosition())) {
+        if ((type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE) && ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition())) {
             this.prime(block);
         }
 
@@ -59,15 +60,16 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == ItemTypes.FLINT_AND_STEEL) {
-            item.getBehavior().useOn(item, block);
+            item.getBehavior().useOn(item, block.getState());
             this.prime(block, 80, player);
             return true;
         }
         if (item.getType() == ItemTypes.FIREBALL) {
-            if (!player.isCreative()) player.getInventory().removeItem(ItemStack.get(ItemTypes.FIREBALL));
-            block.getLevel().addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
+            if (!player.isCreative())
+                player.getInventory().removeItem(CloudItemRegistry.get().getItem(ItemTypes.FIREBALL));
+            ((CloudLevel) block.getLevel()).addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
             this.prime(block, 80, player);
             return true;
         }

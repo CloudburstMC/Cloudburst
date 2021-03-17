@@ -5,21 +5,20 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Banner;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.data.CardinalDirection;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.WALL_BANNER;
@@ -28,7 +27,7 @@ import static org.cloudburstmc.api.blockentity.BlockEntityTypes.BANNER;
 public class BlockBehaviorBanner extends BlockBehaviorTransparent {
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.DOWN) {
             BlockState banner;
             if (face == Direction.UP) {

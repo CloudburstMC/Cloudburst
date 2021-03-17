@@ -5,10 +5,10 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.experimental.UtilityClass;
 import lombok.val;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Axis;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.trait.serializer.*;
 import org.cloudburstmc.server.utils.data.*;
 

@@ -3,18 +3,17 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.data.DoublePlantType;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -49,7 +48,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
         Block up = block.up();
 
@@ -116,7 +115,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bone meal
             switch (block.getState().ensureTrait(BlockTraits.DOUBLE_PLANT_TYPE)) {
                 case SUNFLOWER:

@@ -3,16 +3,15 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -52,7 +51,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         int[] faces = {2, 5, 3, 4};
 
         placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
@@ -66,7 +65,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockState top = block.up().getState();
             if (!top.inCategory(BlockCategory.TRANSPARENT)) {

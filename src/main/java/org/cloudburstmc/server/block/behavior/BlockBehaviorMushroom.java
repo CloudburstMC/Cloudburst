@@ -5,19 +5,18 @@ import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -35,7 +34,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (canStay(block)) {
             placeBlock(block, item);
             return true;
@@ -49,7 +48,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (player != null && player.getGamemode().isSurvival()) {
                 player.getInventory().decrementHandCount();

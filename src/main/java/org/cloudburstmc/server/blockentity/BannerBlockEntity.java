@@ -9,9 +9,9 @@ import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Banner;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.utils.data.BannerPattern;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.ArrayList;
 import java.util.List;

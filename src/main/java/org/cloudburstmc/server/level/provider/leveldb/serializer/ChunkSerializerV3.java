@@ -7,13 +7,13 @@ import it.unimi.dsi.fastutil.ints.Int2ShortMap;
 import it.unimi.dsi.fastutil.ints.Int2ShortOpenHashMap;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.cloudburstmc.api.level.chunk.ChunkException;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.ChunkException;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.WriteBatch;
 

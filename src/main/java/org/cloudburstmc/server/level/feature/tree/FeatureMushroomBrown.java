@@ -2,10 +2,10 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.level.ChunkManager;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomBrown;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 

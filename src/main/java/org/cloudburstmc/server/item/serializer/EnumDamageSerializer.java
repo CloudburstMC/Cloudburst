@@ -4,9 +4,9 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.val;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 public class EnumDamageSerializer extends DefaultItemSerializer {
 
