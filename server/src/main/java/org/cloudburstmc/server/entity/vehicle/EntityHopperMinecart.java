@@ -1,16 +1,17 @@
 package org.cloudburstmc.server.entity.vehicle;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.HopperMinecart;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.MinecartType;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class EntityHopperMinecart extends EntityAbstractMinecart implements HopperMinecart {
 
@@ -24,7 +25,7 @@ public class EntityHopperMinecart extends EntityAbstractMinecart implements Hopp
     public void initEntity() {
         super.initEntity();
 
-        this.setDisplayBlock(BlockState.get(BlockTypes.HOPPER));
+        this.setDisplayBlock(BlockRegistry.get().getBlock(BlockTypes.HOPPER));
         this.setDisplay(true);
     }
 
@@ -42,7 +43,7 @@ public class EntityHopperMinecart extends EntityAbstractMinecart implements Hopp
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemTypes.HOPPER_MINECART));
+        this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.HOPPER_MINECART));
     }
 
     @Override
@@ -56,7 +57,7 @@ public class EntityHopperMinecart extends EntityAbstractMinecart implements Hopp
     }
 
     @Override
-    public boolean onInteract(CloudPlayer p, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(Player p, ItemStack item, Vector3f clickedPos) {
         return false;
     }
 }

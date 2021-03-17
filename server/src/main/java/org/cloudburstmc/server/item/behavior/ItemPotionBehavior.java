@@ -73,7 +73,7 @@ public class ItemPotionBehavior extends CloudItemBehavior {
 
         if (player.getGamemode() == GameMode.SURVIVAL) {
             player.getInventory().decrementHandCount();
-            player.getInventory().addItem(ItemStack.get(ItemTypes.GLASS_BOTTLE));
+            player.getInventory().addItem(CloudItemRegistry.get().getItem(ItemTypes.GLASS_BOTTLE));
         }
 
         return null;

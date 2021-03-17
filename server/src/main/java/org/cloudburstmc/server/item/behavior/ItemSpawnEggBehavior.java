@@ -36,7 +36,7 @@ public class ItemSpawnEggBehavior extends CloudItemBehavior {
 
         Location location = Location.from(block.getPosition().toFloat().add(0.5, 0, 0.5),
                 ThreadLocalRandom.current().nextFloat() * 360, 0, level);
-        CreatureSpawnEvent ev = new CreatureSpawnEvent(itemStack.getMetadata(EntityType.class), // FIXME: 04/01/2020 Use string identifier in NBT
+        CreatureSpawnEvent ev = new CreatureSpawnEvent(CloudItemRegistry.get().getItemMetadata(EntityType.class), // FIXME: 04/01/2020 Use string identifier in NBT
                 location, CreatureSpawnEvent.SpawnReason.SPAWN_EGG);
         level.getServer().getEventManager().fire(ev);
 
@@ -47,7 +47,7 @@ public class ItemSpawnEggBehavior extends CloudItemBehavior {
         Entity entity = EntityRegistry.get().newEntity(ev.getEntityType(), ev.getLocation());
 
         if (itemStack.hasName()) {
-            entity.setNameTag(itemStack.getName());
+            entity.setNameTag(CloudItemRegistry.get().getItemName());
         }
 
         entity.spawnToAll();

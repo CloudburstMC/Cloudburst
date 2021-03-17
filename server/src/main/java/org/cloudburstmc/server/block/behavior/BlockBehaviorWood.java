@@ -8,7 +8,7 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
+import org.cloudburstmc.api.util.data.TreeSpecies;
 
 //Block state information: https://hastebin.com/emuvawasoj.js
 public class BlockBehaviorWood extends BlockBehaviorSolid {
@@ -26,7 +26,7 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().resetTrait(BlockTraits.AXIS));
+        return CloudItemRegistry.get().getItem(block.getState().resetTrait(BlockTraits.AXIS));
     }
 
 

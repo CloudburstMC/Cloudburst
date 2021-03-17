@@ -13,16 +13,16 @@ public class BlockBehaviorCarrot extends BlockBehaviorCrops {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.GROWTH) >= 0x07) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.CARROT, new Random().nextInt(3) + 1)
+                    CloudItemRegistry.get().getItem(ItemTypes.CARROT, new Random().nextInt(3) + 1)
             };
         }
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.CARROT)
+                CloudItemRegistry.get().getItem(ItemTypes.CARROT)
         };
     }
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.CARROT);
+        return CloudItemRegistry.get().getItem(ItemTypes.CARROT);
     }
 }

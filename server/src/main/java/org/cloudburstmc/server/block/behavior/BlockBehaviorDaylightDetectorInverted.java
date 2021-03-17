@@ -9,7 +9,7 @@ public class BlockBehaviorDaylightDetectorInverted extends BlockBehaviorDaylight
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(DAYLIGHT_DETECTOR);
+        return CloudItemRegistry.get().getItem(DAYLIGHT_DETECTOR);
     }
 
     protected boolean invertDetect() {

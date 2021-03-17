@@ -13,7 +13,7 @@ public class BlockBehaviorGravel extends BlockBehaviorFallable {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (new Random().nextInt(9) == 0) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.FLINT)
+                    CloudItemRegistry.get().getItem(ItemTypes.FLINT)
             };
         } else {
             return new ItemStack[]{

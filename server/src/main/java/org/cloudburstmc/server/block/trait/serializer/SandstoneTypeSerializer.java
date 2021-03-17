@@ -2,9 +2,9 @@ package org.cloudburstmc.server.block.trait.serializer;
 
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.util.data.SandStoneType;
 import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
-import org.cloudburstmc.server.utils.data.SandStoneType;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;

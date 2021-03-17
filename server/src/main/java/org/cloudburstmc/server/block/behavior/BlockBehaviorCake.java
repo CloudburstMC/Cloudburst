@@ -79,7 +79,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.CAKE);
+        return CloudItemRegistry.get().getItem(ItemTypes.CAKE);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
             if (counter >= 6) {
                 removeBlock(block, true);
             } else {
-                Food.getByRelative(ItemStack.get(block.getState())).eatenBy(player);
+                Food.getByRelative(CloudItemRegistry.get().getItem(block.getState())).eatenBy(player);
                 block.set(block.getState().withTrait(BlockTraits.BITE_COUNTER, counter), true);
             }
 

@@ -1496,26 +1496,7 @@ public class CloudLevel implements Level {
     }
 
     @Nonnull
-    public DroppedItem dropItem(Vector3i source, ItemStack item) {
-        return this.dropItem(source.toFloat().add(0.5, 0.5, 0.5), item);
-    }
-
-    @Nonnull
-    public DroppedItem dropItem(Vector3f source, ItemStack item) {
-        return this.dropItem(source, item, null);
-    }
-
-    @Nonnull
-    public DroppedItem dropItem(Vector3f source, ItemStack item, Vector3f motion) {
-        return this.dropItem(source, item, motion, 10);
-    }
-
-    @Nonnull
-    public DroppedItem dropItem(Vector3f source, ItemStack item, Vector3f motion, int delay) {
-        return this.dropItem(source, item, motion, false, delay);
-    }
-
-    @Nonnull
+    @Override
     public DroppedItem dropItem(Vector3f source, ItemStack item, Vector3f motion, boolean dropAround, int delay) {
         checkNotNull(source, "source");
         checkNotNull(item, "item");
@@ -1686,7 +1667,7 @@ public class CloudLevel implements Level {
             if (player == null || player.isSurvival()) {
                 for (ItemStack drop : drops) {
                     if (drop.getAmount() > 0) {
-                        this.dropItem(pos.add(0.5, 0.5, 0.5), drop);
+                        this.dropItem(pos.toFloat().add(0.5, 0.5, 0.5), drop);
                     }
                 }
             }

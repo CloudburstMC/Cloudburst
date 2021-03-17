@@ -5,7 +5,6 @@ import lombok.val;
 import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
-import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
@@ -90,7 +89,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().inCategory(BlockCategory.SOLID) && face.getAxis().isHorizontal()) {
-            var state = BlockState.get(BlockTypes.VINE)
+            var state = BlockRegistry.get().getBlock(BlockTypes.VINE)
                     .withTrait(BlockTraits.VINE_DIRECTION_BITS, 1 << face.getOpposite().getHorizontalIndex());
 
             placeBlock(block, state);
@@ -113,7 +112,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().defaultState());
+        return CloudItemRegistry.get().getItem(block.getState().defaultState());
     }
 
     @Override

@@ -26,7 +26,7 @@ public class BlockBehaviorOreDiamond extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.DIAMOND, count)
+                    CloudItemRegistry.get().getItem(ItemTypes.DIAMOND, count)
             };
         } else {
             return new ItemStack[0];

@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
-import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.data.BlockColor;
@@ -26,7 +25,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
             }
 
             if (up.getState().inCategory(BlockCategory.SOLID)) {
-                block.set(BlockState.get(BlockTypes.DIRT));
+                block.set(BlockRegistry.get().getBlock(BlockTypes.DIRT));
                 return CloudLevel.BLOCK_UPDATE_RANDOM;
             }
 
@@ -65,7 +64,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
             if (state.ensureTrait(BlockTraits.MOISTURIZED_AMOUNT) > 0) {
                 block.set(state.decrementTrait(BlockTraits.MOISTURIZED_AMOUNT));
             } else {
-                block.set(BlockState.get(BlockTypes.DIRT));
+                block.set(BlockRegistry.get().getBlock(BlockTypes.DIRT));
             }
 
             return CloudLevel.BLOCK_UPDATE_RANDOM;
@@ -76,7 +75,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(BlockTypes.DIRT);
+        return CloudItemRegistry.get().getItem(BlockTypes.DIRT);
     }
 
     @Override

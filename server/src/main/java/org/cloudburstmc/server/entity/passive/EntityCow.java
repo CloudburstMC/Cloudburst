@@ -38,7 +38,7 @@ public class EntityCow extends Animal implements Cow {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.LEATHER), ItemStack.get(ItemTypes.BEEF)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.LEATHER), CloudItemRegistry.get().getItem(ItemTypes.BEEF)};
     }
 
     @Override

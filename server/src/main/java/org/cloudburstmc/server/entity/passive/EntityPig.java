@@ -47,7 +47,7 @@ public class EntityPig extends Animal implements Pig {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.PORKCHOP)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.PORKCHOP)};
     }
 
     @Override

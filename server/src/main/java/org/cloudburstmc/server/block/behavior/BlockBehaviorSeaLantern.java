@@ -13,7 +13,7 @@ public class BlockBehaviorSeaLantern extends BlockBehaviorTransparent {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.PRISMARINE_CRYSTALS, ThreadLocalRandom.current().nextInt(2, 4))
+                CloudItemRegistry.get().getItem(ItemTypes.PRISMARINE_CRYSTALS, ThreadLocalRandom.current().nextInt(2, 4))
         };
     }
 

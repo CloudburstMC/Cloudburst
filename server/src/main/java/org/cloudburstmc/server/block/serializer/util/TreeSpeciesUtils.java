@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.serializer.util;
 
 import lombok.Getter;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
+import org.cloudburstmc.api.util.data.TreeSpecies;
 
 import java.util.EnumMap;
 

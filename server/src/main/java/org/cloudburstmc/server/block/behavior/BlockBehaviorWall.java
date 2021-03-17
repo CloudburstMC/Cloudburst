@@ -9,9 +9,9 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Plane;
+import org.cloudburstmc.api.util.data.WallConnectionType;
 import org.cloudburstmc.server.block.trait.EnumBlockTrait;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.utils.data.WallConnectionType;
 
 import java.util.EnumMap;
 import java.util.Map;

@@ -82,7 +82,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(DETECTOR_RAIL)
+                CloudItemRegistry.get().getItem(DETECTOR_RAIL)
         };
     }
 }

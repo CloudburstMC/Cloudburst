@@ -9,19 +9,19 @@ public class BlockBehaviorWheat extends BlockBehaviorCrops {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.WHEAT);
+        return CloudItemRegistry.get().getItem(ItemTypes.WHEAT);
     }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.GROWTH) >= 0x07) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.WHEAT),
-                    ItemStack.get(ItemTypes.WHEAT, (int) (4f * Math.random()))
+                    CloudItemRegistry.get().getItem(ItemTypes.WHEAT),
+                    CloudItemRegistry.get().getItem(ItemTypes.WHEAT, (int) (4f * Math.random()))
             };
         } else {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.WHEAT)
+                    CloudItemRegistry.get().getItem(ItemTypes.WHEAT)
             };
         }
     }

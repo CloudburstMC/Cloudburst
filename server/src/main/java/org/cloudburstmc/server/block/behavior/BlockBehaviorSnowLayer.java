@@ -18,7 +18,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
         if (down.inCategory(BlockCategory.SOLID)) {
-            placeBlock(block, BlockState.get(BlockTypes.SNOW_LAYER));
+            placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.SNOW_LAYER));
             return true;
         }
         return false;
@@ -42,7 +42,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.SNOWBALL);
+        return CloudItemRegistry.get().getItem(ItemTypes.SNOWBALL);
     }
 
     @Override

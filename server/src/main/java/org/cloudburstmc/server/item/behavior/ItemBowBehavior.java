@@ -44,12 +44,12 @@ public class ItemBowBehavior extends ItemToolBehavior {
 
     @Override
     public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
-        return player.getInventory().contains(ItemStack.get(ARROW)) || player.isCreative();
+        return player.getInventory().contains(CloudItemRegistry.get().getItem(ARROW)) || player.isCreative();
     }
 
     @Override
     public ItemStack onRelease(ItemStack item, int ticksUsed, CloudPlayer player) {
-        ItemStack itemArrow = ItemStack.get(ARROW);
+        ItemStack itemArrow = CloudItemRegistry.get().getItem(ARROW);
 
         if ((player.isAdventure() || player.isSurvival()) && !player.getInventory().contains(itemArrow)) {
             player.getInventory().sendContents(player);

@@ -13,11 +13,15 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
@@ -43,7 +47,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
 
     private final CloudChunkSection[] sections;
 
-    private final Set<Player> players = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<CloudPlayer> players = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private final Set<Entity> entities = Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -247,7 +251,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     public void addEntity(@Nonnull Entity entity) {
         Preconditions.checkNotNull(entity, "entity");
         if (entity instanceof Player) {
-            this.players.add((Player) entity);
+            this.players.add((CloudPlayer) entity);
         } else if (this.entities.add(entity) && this.initialized == 1) {
             this.setDirty();
         }
@@ -324,7 +328,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
      */
     @Nonnull
     @Override
-    public Set<Player> getPlayers() {
+    public Set<CloudPlayer> getPlayers() {
         return players;
     }
 
@@ -346,8 +350,8 @@ public final class UnsafeChunk implements Chunk, Closeable {
      */
     @Nonnull
     @Override
-    public Collection<BlockEntity> getBlockEntities() {
-        return this.tiles.values();
+    public Set<BlockEntity> getBlockEntities() {
+        return (Set<BlockEntity>) this.tiles.values();
     }
 
     @Override
@@ -417,6 +421,16 @@ public final class UnsafeChunk implements Chunk, Closeable {
             ImmutableList.copyOf(this.tiles.values()).forEach(BlockEntity::close);
             clear();
         }
+    }
+
+    @Override
+    public Set<CloudPlayer> getLoaders() {
+        return players;
+    }
+
+    @Override
+    public Set<CloudPlayer> getPlayerLoaders() {
+        return players;
     }
 
     @Override

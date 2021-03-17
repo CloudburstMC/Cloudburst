@@ -6,6 +6,7 @@ import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.TierType;
 import org.cloudburstmc.api.item.ToolType;
@@ -14,7 +15,6 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.block.CloudBlockState;
 import org.cloudburstmc.server.item.BlockItemStack;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
@@ -48,7 +48,7 @@ public abstract class CloudItemBehavior implements ItemBehavior {
             return false;
         }
 
-        BlockBehavior behavior = ((CloudBlockState)state).getBehavior();
+        BlockBehavior behavior = state.getBehavior();
         return behavior.canBePlaced();
     }
 

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 public class BlockBehaviorLog2 extends BlockBehaviorLog {

@@ -32,7 +32,7 @@ public class BlockBehaviorPurpur extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().resetTrait(BlockTraits.AXIS));
+        return CloudItemRegistry.get().getItem(block.getState().resetTrait(BlockTraits.AXIS));
     }
 
     @Override

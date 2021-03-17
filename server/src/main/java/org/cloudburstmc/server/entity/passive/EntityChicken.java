@@ -39,7 +39,7 @@ public class EntityChicken extends Animal implements Chicken {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.CHICKEN), ItemStack.get(ItemTypes.FEATHER)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.CHICKEN), CloudItemRegistry.get().getItem(ItemTypes.FEATHER)};
     }
 
     @Override

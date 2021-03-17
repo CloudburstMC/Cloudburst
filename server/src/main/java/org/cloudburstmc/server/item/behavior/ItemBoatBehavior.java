@@ -7,11 +7,11 @@ import org.cloudburstmc.api.entity.vehicle.Boat;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 /**
  * Created by yescallop on 2016/2/13.

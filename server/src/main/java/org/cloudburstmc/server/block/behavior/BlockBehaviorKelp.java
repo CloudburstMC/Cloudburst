@@ -45,7 +45,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
         }
 
 //        if (waterDamage == 8) { //TODO: check
-//            block.getLevel().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
+//            block.getLevel().setBlock(block.getPosition(), 1, BlockRegistry.get().getBlock(FLOWING_WATER), true, false);
 //        }
 
         if (downState.getType() == KELP && downState.ensureTrait(KELP_AGE) != 24) {
@@ -76,7 +76,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
             }
 
 //            if (waterDamage == 8) { //TODO: check
-//                block.getLevel().setBlock(block.getPosition(), 1, BlockState.get(FLOWING_WATER), true, false);
+//                block.getLevel().setBlock(block.getPosition(), 1, BlockRegistry.get().getBlock(FLOWING_WATER), true, false);
 //            }
             return type;
         } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
@@ -164,7 +164,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.KELP);
+        return CloudItemRegistry.get().getItem(ItemTypes.KELP);
     }
 
 

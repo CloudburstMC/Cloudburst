@@ -89,7 +89,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
                     for (int y = 1; y < 3; ++y) {
                         Block b = block.getLevel().getBlock(block.getX(), block.getY() + y, block.getZ());
                         if (b.getState().getType() == AIR) {
-                            BlockGrowEvent event = new BlockGrowEvent(b, BlockState.get(CACTUS));
+                            BlockGrowEvent event = new BlockGrowEvent(b, BlockRegistry.get().getBlock(CACTUS));
                             CloudServer.getInstance().getEventManager().fire(event);
                             if (!event.isCancelled()) {
                                 block.set(event.getNewState(), true);
@@ -133,7 +133,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(CACTUS, 1)
+                CloudItemRegistry.get().getItem(CACTUS, 1)
         };
     }
 
