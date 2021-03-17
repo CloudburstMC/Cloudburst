@@ -5,7 +5,6 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.CloudPlayer.CraftingType;
 
 public class BlockBehaviorCraftingTable extends BlockBehaviorSolid {
@@ -17,7 +16,7 @@ public class BlockBehaviorCraftingTable extends BlockBehaviorSolid {
 
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             player.craftingType = CraftingType.BIG;
             player.setCraftingGrid(player.getUIInventory().getBigCraftingGrid());

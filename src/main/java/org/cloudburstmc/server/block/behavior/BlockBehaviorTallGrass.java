@@ -4,17 +4,19 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.api.util.data.TallGrassType;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.DyeColor;
-import org.cloudburstmc.server.utils.data.TallGrassType;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -29,7 +31,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         // Prevents from placing the same plant block on itself
         val itemBlock = item.getBehavior().getBlock(item);
         if (itemBlock.getType() == target.getState().getType() && itemBlock.ensureTrait(BlockTraits.TALL_GRASS_TYPE) == block.getState().ensureTrait(BlockTraits.TALL_GRASS_TYPE)) {
@@ -55,7 +57,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             val up = block.up();
 
@@ -63,12 +65,12 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
                 val type = block.getState().ensureTrait(BlockTraits.TALL_GRASS_TYPE);
                 if (type == TallGrassType.DEFAULT) {
                     if (player != null && player.getGamemode().isSurvival()) {
-                        player.getInventory().decrementHandCount();
+                        ((CloudPlayer) player).getInventory().decrementHandCount();
                     }
 
-                    block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+                    ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
 
-                    val dp = BlockState.get(DOUBLE_PLANT).withTrait(BlockTraits.TALL_GRASS_TYPE, type);
+                    val dp = BlockRegistry.get().getBlock(DOUBLE_PLANT).withTrait(BlockTraits.TALL_GRASS_TYPE, type);
                     block.set(dp, true);
                     up.set(dp.withTrait(BlockTraits.IS_UPPER_BLOCK, true), true);
                 }
@@ -86,13 +88,13 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
         if (hand.getBehavior().isShears()) {
             //todo enchantment
             return new ItemStack[]{
-                    ItemStack.get(block.getState().resetTrait(BlockTraits.IS_UPPER_BLOCK))
+                    CloudItemRegistry.get().getItem(block.getState().withTrait(BlockTraits.IS_UPPER_BLOCK, BlockTraits.IS_UPPER_BLOCK.getDefaultValue()))
             };
         }
 
         if (dropSeeds) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.WHEAT_SEEDS)
+                    CloudItemRegistry.get().getItem(ItemTypes.WHEAT_SEEDS)
             };
         } else {
             return new ItemStack[0];

@@ -4,13 +4,13 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.Cauldron;
 import org.cloudburstmc.api.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.api.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
@@ -40,7 +40,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         BlockEntity be = block.getLevel().getBlockEntity(block.getPosition());
 
         if (!(be instanceof Cauldron)) {
@@ -167,7 +167,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Cauldron cauldron = BlockEntityRegistry.get().newEntity(CAULDRON, block.getChunk(), block.getPosition());
         cauldron.loadAdditionalData(((CloudItemStack) item).getDataTag());
         cauldron.setPotionId(0xffff);

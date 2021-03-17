@@ -2802,15 +2802,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         return this.windowIndex.get((byte) id);
     }
 
-    public int addWindow(Inventory inventory) {
-        return this.addWindow(inventory, null);
-    }
-
-    public int addWindow(Inventory inventory, Byte forceId) {
-        return addWindow(inventory, forceId, false);
-    }
-
-    public int addWindow(Inventory inventory, Byte forceId, boolean isPermanent) {
+    public byte addWindow(Inventory inventory, Byte forceId, boolean isPermanent) {
         if (this.windows.containsKey(inventory)) {
             return this.windows.get(inventory);
         }

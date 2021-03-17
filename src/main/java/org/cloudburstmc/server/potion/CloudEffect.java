@@ -179,4 +179,28 @@ public class CloudEffect extends Effect {
                 .putInt(TAG_DURATION, getDuration())
                 .build();
     }
+
+    @Override
+    public CloudEffect setDuration(int ticks) {
+        super.setDuration(ticks);
+        return this;
+    }
+
+    @Override
+    public CloudEffect setAmplifier(int amplifier) {
+        super.setAmplifier(amplifier);
+        return this;
+    }
+
+    @Override
+    public CloudEffect setVisible(boolean visible) {
+        super.setVisible(visible);
+        return this;
+    }
+
+    @Override
+    public CloudEffect setAmbient(boolean ambient) {
+        super.setAmbient(ambient);
+        return this;
+    }
 }

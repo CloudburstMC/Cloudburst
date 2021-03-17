@@ -2,15 +2,14 @@ package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.data.DirtType;
 
+import static org.cloudburstmc.api.block.BlockTraits.DIRT_TYPE;
 import static org.cloudburstmc.api.block.BlockTypes.DIRT;
 import static org.cloudburstmc.api.block.BlockTypes.FARMLAND;
-import static org.cloudburstmc.server.block.BlockTraits.DIRT_TYPE;
 
 public class BlockBehaviorDirt extends BlockBehaviorSolid {
 
@@ -21,7 +20,7 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
 
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val behavior = item.getBehavior();
         if (behavior.isHoe()) {
             behavior.useOn(item, block);

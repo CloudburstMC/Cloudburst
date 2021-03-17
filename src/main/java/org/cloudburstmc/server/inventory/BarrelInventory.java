@@ -3,10 +3,10 @@ package org.cloudburstmc.server.inventory;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Barrel;
 import org.cloudburstmc.api.inventory.InventoryType;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 

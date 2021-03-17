@@ -4,22 +4,23 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
-        val level = block.getLevel();
-        var state = BlockState.get(BlockTypes.REDSTONE_LAMP);
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        val level = (CloudLevel) block.getLevel();
+        var state = BlockRegistry.get().getBlock(BlockTypes.REDSTONE_LAMP);
         if (level.isBlockPowered(block.getPosition())) {
             state = state.withTrait(BlockTraits.IS_POWERED, true);
         }
@@ -38,7 +39,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
                 return 0;
             }
 
-            boolean powered = block.getLevel().isBlockPowered(block.getPosition());
+            boolean powered = ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition());
             val state = block.getState();
 
             if (state.ensureTrait(BlockTraits.IS_POWERED) != powered) {
@@ -53,7 +54,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(BlockTypes.REDSTONE_LAMP)
+                CloudItemRegistry.get().getItem(BlockTypes.REDSTONE_LAMP)
         };
     }
 

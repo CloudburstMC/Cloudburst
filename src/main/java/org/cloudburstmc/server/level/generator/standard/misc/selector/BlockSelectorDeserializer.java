@@ -10,8 +10,8 @@ import com.google.common.base.Preconditions;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PValidation;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 

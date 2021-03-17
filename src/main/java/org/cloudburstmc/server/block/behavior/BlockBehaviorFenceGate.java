@@ -4,14 +4,14 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.block.DoorToggleEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 
@@ -71,12 +71,12 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         return placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player == null) {
             return false;
         }
@@ -85,7 +85,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
             return false;
         }
 
-        block.getLevel().addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
+        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
         return true;
     }
 
@@ -94,7 +94,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
-    public boolean toggle(Block block, CloudPlayer player) {
+    public boolean toggle(Block block, Player player) {
         DoorToggleEvent event = new DoorToggleEvent(block, player);
         block.getLevel().getServer().getEventManager().fire(event);
 
@@ -127,7 +127,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
             val level = block.getLevel();
-            if ((!isOpen(block) && level.isBlockPowered(block.getPosition())) || (isOpen(block) && !level.isBlockPowered(block.getPosition()))) {
+            if ((!isOpen(block) && ((CloudLevel) level).isBlockPowered(block.getPosition())) || (isOpen(block) && !((CloudLevel) level).isBlockPowered(block.getPosition()))) {
                 this.toggle(block, null);
                 return type;
             }

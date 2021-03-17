@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.inventory.AnvilInventory;
 import org.cloudburstmc.server.inventory.BeaconInventory;
 import org.cloudburstmc.server.inventory.EnchantInventory;
@@ -15,7 +16,6 @@ import org.cloudburstmc.server.inventory.transaction.action.*;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.Optional;
 

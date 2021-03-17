@@ -4,15 +4,14 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 import java.util.Random;
@@ -40,7 +39,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
         BlockEntity blockEntity = level.getBlockEntity(block.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
@@ -59,7 +58,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!target.getState().inCategory(BlockCategory.TRANSPARENT) && face.getIndex() > 1 && !block.getState().inCategory(BlockCategory.SOLID)) {
             placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, face));
 

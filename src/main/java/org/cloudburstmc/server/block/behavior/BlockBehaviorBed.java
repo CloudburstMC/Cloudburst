@@ -3,6 +3,8 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.blockentity.Bed;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -12,16 +14,13 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
@@ -32,7 +31,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         BlockState state = block.getState();
 
         BlockState head = null;
@@ -85,7 +84,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
         BlockRegistry registry = BlockRegistry.get();
 

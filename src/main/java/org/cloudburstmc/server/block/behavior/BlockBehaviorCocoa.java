@@ -2,21 +2,20 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.data.DyeColor;
 import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -103,7 +102,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().getType() == BlockTypes.LOG && target.getState().ensureTrait(BlockTraits.TREE_SPECIES) == TreeSpecies.JUNGLE) {
             if (face != Direction.DOWN && face != Direction.UP) {
                 placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.COCOA)
@@ -142,7 +141,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (grow(block)) {
                 block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));

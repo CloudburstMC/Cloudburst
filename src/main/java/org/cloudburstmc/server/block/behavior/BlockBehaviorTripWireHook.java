@@ -6,13 +6,15 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import lombok.var;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
@@ -35,7 +37,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!_isNormalBlock(block.getSide(face.getOpposite())) || face.getAxis().isVertical()) {
             return false;
         }
@@ -60,8 +62,8 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         }
 
         if (powered) {
-            block.getLevel().updateAroundRedstone(block.getPosition(), null);
-            block.getLevel().updateAroundRedstone(state.ensureTrait(BlockTraits.DIRECTION).getOpposite().getOffset(block.getPosition()), null);
+            ((CloudLevel) block.getLevel()).updateAroundRedstone(block.getPosition(), null);
+            ((CloudLevel) block.getLevel()).updateAroundRedstone(state.ensureTrait(BlockTraits.DIRECTION).getOpposite().getOffset(block.getPosition()), null);
         }
 
         return true;
@@ -107,7 +109,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
                     nextPowered |= disarmed && wirePowered;
 
                     if (i == pos) {
-                        level.scheduleUpdate(block, 10);
+                        level.scheduleUpdate(block.getPosition(), 10);
                         canConnect &= disarmed;
                     }
                 }
@@ -118,7 +120,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         canConnect = canConnect & distance > 1;
         nextPowered = nextPowered & canConnect;
 
-        var hook = BlockState.get(TRIPWIRE_HOOK)
+        var hook = BlockRegistry.get().getBlock(TRIPWIRE_HOOK)
                 .withTrait(BlockTraits.IS_ATTACHED, canConnect)
                 .withTrait(BlockTraits.IS_POWERED, nextPowered);
 
@@ -127,20 +129,20 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
             Vector3i vec = v.add(facing.getUnitVector().mul(distance));
             Direction face = facing.getOpposite();
 
-            level.setBlock(vec, hook.withTrait(BlockTraits.DIRECTION, face), true, false);
-            level.updateAroundRedstone(vec, null);
-            level.updateAroundRedstone(face.getOpposite().getOffset(vec), null);
+            level.setBlockState(vec, hook.withTrait(BlockTraits.DIRECTION, face), true, false);
+            ((CloudLevel) level).updateAroundRedstone(vec, null);
+            ((CloudLevel) level).updateAroundRedstone(face.getOpposite().getOffset(vec), null);
             this.addSound(block, vec.toFloat(), canConnect, nextPowered, attached, powered);
         }
 
         this.addSound(block, v.toFloat(), canConnect, nextPowered, attached, powered);
 
         if (!onBreak) {
-            level.setBlock(v, hook.withTrait(BlockTraits.DIRECTION, facing), true, false);
+            level.setBlockState(v, hook.withTrait(BlockTraits.DIRECTION, facing), true, false);
 
             if (updateAround) {
-                level.updateAroundRedstone(v, null);
-                level.updateAroundRedstone(facing.getOpposite().getOffset(v), null);
+                ((CloudLevel) level).updateAroundRedstone(v, null);
+                ((CloudLevel) level).updateAroundRedstone(facing.getOpposite().getOffset(v), null);
             }
         }
 
@@ -150,7 +152,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
                 blockState = blockStates[i];
 
                 if (blockState != null && level.getBlockState(vc).getType() != AIR) {
-                    level.setBlock(vc, blockState.withTrait(BlockTraits.IS_ATTACHED, canConnect), true, false);
+                    level.setBlockState(vc, blockState.withTrait(BlockTraits.IS_ATTACHED, canConnect), true, false);
                 }
             }
         }
@@ -159,15 +161,15 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     private void addSound(Block block, Vector3f pos, boolean canConnect, boolean nextPowered, boolean attached, boolean powered) {
         val level = block.getLevel();
         if (nextPowered && !powered) {
-            level.addLevelSoundEvent(pos, SoundEvent.POWER_ON);
+            ((CloudLevel) level).addLevelSoundEvent(pos, SoundEvent.POWER_ON);
             level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
         } else if (!nextPowered && powered) {
-            level.addLevelSoundEvent(pos, SoundEvent.POWER_OFF);
+            ((CloudLevel) level).addLevelSoundEvent(pos, SoundEvent.POWER_OFF);
             level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
         } else if (canConnect && !attached) {
-            level.addLevelSoundEvent(pos, SoundEvent.ATTACH);
+            ((CloudLevel) level).addLevelSoundEvent(pos, SoundEvent.ATTACH);
         } else if (!canConnect && attached) {
-            level.addLevelSoundEvent(pos, SoundEvent.DETACH);
+            ((CloudLevel) level).addLevelSoundEvent(pos, SoundEvent.DETACH);
         }
     }
 
@@ -193,7 +195,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().defaultState());
+        return CloudItemRegistry.get().getItem(block.getState());
     }
 
 

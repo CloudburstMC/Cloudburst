@@ -5,9 +5,9 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import lombok.val;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 public class BannerSerializer extends DefaultItemSerializer {
 

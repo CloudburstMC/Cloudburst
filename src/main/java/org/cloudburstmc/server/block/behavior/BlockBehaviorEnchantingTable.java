@@ -10,7 +10,6 @@ import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.inventory.EnchantInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 import static org.cloudburstmc.api.blockentity.BlockEntityTypes.ENCHANTING_TABLE;
@@ -35,7 +34,7 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         placeBlock(block, item);
 
         EnchantingTable enchantingTable = BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, block);
@@ -47,7 +46,7 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             if (!(blockEntity instanceof EnchantingTable)) {

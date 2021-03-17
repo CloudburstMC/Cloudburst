@@ -10,7 +10,6 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.inventory.BeaconInventory;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
@@ -22,7 +21,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             if (!(t instanceof Beacon)) {
@@ -36,7 +35,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         boolean blockSuccess = super.place(item, block, target, face, clickPos, player);
 
         if (blockSuccess) {
