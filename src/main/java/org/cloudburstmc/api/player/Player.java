@@ -147,6 +147,8 @@ public interface Player extends Entity {
 
     byte addWindow(Inventory window, Byte forceId, boolean isPermanent);
 
+    void removeWindow(Inventory inventory);
+
     String getDisplayName();
 
     String getXuid();
