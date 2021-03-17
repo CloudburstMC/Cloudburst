@@ -5,10 +5,10 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.TierType;
+import org.cloudburstmc.api.item.ToolType;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.TierType;
-import org.cloudburstmc.server.item.ToolType;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 

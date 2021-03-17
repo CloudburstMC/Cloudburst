@@ -7,11 +7,15 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.enchantment.EnchantmentTypes.CloudEnchantmentType;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
-import org.cloudburstmc.server.item.*;
+import org.cloudburstmc.server.item.BlockItemStack;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.CloudItemStackBuilder;
+import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
@@ -76,7 +80,7 @@ public class DefaultItemSerializer implements ItemSerializer {
             List<NbtMap> enchantments = new ArrayList<>(item.getEnchantments().size());
             for (EnchantmentInstance enchantment : item.getEnchantments().values()) {
                 enchantments.add(NbtMap.builder()
-                        .putShort("id", ((CloudEnchantmentType) enchantment.getType()).getId())
+                        .putShort("id", (enchantment.getType()).getId())
                         .putShort("lvl", (short) enchantment.getLevel())
                         .build()
                 );
