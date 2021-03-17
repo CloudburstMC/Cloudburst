@@ -5,12 +5,12 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.DaylightDetector;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 public class DaylightDetectorBlockEntity extends BaseBlockEntity implements DaylightDetector {
 
 
-    public DaylightDetectorBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public DaylightDetectorBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

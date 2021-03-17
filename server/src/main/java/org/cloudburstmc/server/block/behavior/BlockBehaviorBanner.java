@@ -10,15 +10,20 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Banner;
 import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.server.blockentity.BannerBlockEntity;
 import org.cloudburstmc.server.item.*;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.data.CardinalDirection;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.WALL_BANNER;
@@ -44,7 +49,7 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
             block.set(banner, true);
 
             NbtMap tag = ((CloudItemStack) item).getDataTag();
-            BlockEntityRegistry.get().newEntity(BANNER, block.getChunk(), block.getPosition()).loadAdditionalData(tag);
+            ((BannerBlockEntity) BlockEntityRegistry.get().newEntity(BANNER, (CloudChunk) block.getChunk(), block.getPosition())).loadAdditionalData(tag);
 
             return true;
         }
@@ -70,14 +75,14 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
         val builder = new CloudItemStackBuilder();
         builder.itemType(ItemTypes.BANNER);
         if (blockEntity instanceof Banner) {
-            Banner banner = (Banner) blockEntity;
+            BannerBlockEntity banner = (BannerBlockEntity) blockEntity;
 
             NbtMapBuilder tag = NbtMap.builder();
             banner.saveAdditionalData(tag);
 
             return ItemUtils.deserializeItem(ItemIds.BANNER, (short) banner.getBase().getDyeData(), 1, tag.build());
         } else {
-            return ItemStack.get(ItemTypes.BANNER);
+            return CloudItemRegistry.get().getItem(ItemTypes.BANNER);
         }
     }
 

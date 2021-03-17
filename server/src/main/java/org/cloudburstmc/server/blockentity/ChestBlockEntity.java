@@ -10,11 +10,11 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.inventory.ChestInventory;
 import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.inventory.DoubleChestInventory;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
     private boolean pairlead;
     private boolean findable;
 
-    public ChestBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public ChestBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

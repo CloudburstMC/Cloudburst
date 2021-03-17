@@ -9,9 +9,9 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ShulkerBox;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.inventory.ShulkerBoxInventory;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
     private final ShulkerBoxInventory inventory = new ShulkerBoxInventory(this);
     private byte facing;
 
-    public ShulkerBoxBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public ShulkerBoxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

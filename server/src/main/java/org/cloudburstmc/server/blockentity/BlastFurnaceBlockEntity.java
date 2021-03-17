@@ -6,11 +6,11 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlastFurnace;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.inventory.InventoryType;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 public class BlastFurnaceBlockEntity extends FurnaceBlockEntity implements BlastFurnace {
 
-    public BlastFurnaceBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public BlastFurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position, InventoryType.BLAST_FURNACE);
     }
 
@@ -26,11 +26,11 @@ public class BlastFurnaceBlockEntity extends FurnaceBlockEntity implements Blast
 
     @Override
     protected void extinguishFurnace() {
-        this.getLevel().setBlock(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, true), true);
+        this.getLevel().setBlockState(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, true), true);
     }
 
     @Override
     protected void lightFurnace() {
-        this.getLevel().setBlock(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, false), true);
+        this.getLevel().setBlockState(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, false), true);
     }
 }

@@ -275,6 +275,26 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         return null;
     }
 
+    public FurnaceRecipe matchFurnaceRecipe(ItemStack input, Identifier craftingBlock) {
+        if (craftingBlock == BlockIds.LIT_SMOKER) {
+            craftingBlock = BlockIds.SMOKER;
+        } else if (craftingBlock == LIT_BLAST_FURNACE) {
+            craftingBlock = BlockIds.BLAST_FURNACE;
+        } else if (craftingBlock == BlockIds.LIT_FURNACE) {
+            craftingBlock = BlockIds.FURNACE;
+        }
+
+        for(Recipe recipe : this.recipeMap.values()) {
+            if(recipe.getBlock() != craftingBlock)
+                continue;
+
+            if(recipe instanceof FurnaceRecipe && ((FurnaceRecipe) recipe).getInput().equals(input)) {
+                return (FurnaceRecipe) recipe;
+            }
+        }
+        return null;
+    }
+
     public MixRecipe matchBrewingRecipe(ItemStack input, ItemStack potion) {
         int hash = ItemUtils.getItemHash((CloudItemStack) potion);
         if(!recipeHashMap.containsKey(hash)) return null;

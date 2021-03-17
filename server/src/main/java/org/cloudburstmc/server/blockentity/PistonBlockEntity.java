@@ -7,10 +7,10 @@ import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Piston;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ public class PistonBlockEntity extends BaseBlockEntity implements Piston {
     private byte newState = 1;
     private boolean sticky = false;
 
-    public PistonBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public PistonBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

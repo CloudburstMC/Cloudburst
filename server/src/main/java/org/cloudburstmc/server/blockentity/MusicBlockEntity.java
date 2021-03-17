@@ -6,14 +6,14 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Noteblock;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
 
     private byte note;
     private boolean powered;
 
-    public MusicBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public MusicBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
