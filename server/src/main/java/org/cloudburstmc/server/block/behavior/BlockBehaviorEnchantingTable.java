@@ -5,11 +5,14 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnchantingTable;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.blockentity.EnchantingTableBlockEntity;
 import org.cloudburstmc.server.inventory.EnchantInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 import static org.cloudburstmc.api.blockentity.BlockEntityTypes.ENCHANTING_TABLE;
@@ -37,7 +40,7 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         placeBlock(block, item);
 
-        EnchantingTable enchantingTable = BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, block);
+        EnchantingTableBlockEntity enchantingTable = (EnchantingTableBlockEntity) BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, block);
         enchantingTable.loadAdditionalData(((CloudItemStack) item).getDataTag());
         if (item.hasName()) {
             enchantingTable.setCustomName(item.getName());
@@ -53,7 +56,7 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
                 BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, block);
             }
 
-            player.addWindow(new EnchantInventory(player.getUIInventory(), block), ContainerIds.ENCHANTING_TABLE);
+            player.addWindow(new EnchantInventory(((CloudPlayer) player).getUIInventory(), block), ContainerIds.ENCHANTING_TABLE);
         }
 
         return true;

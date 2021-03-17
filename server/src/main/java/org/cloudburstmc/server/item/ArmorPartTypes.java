@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.item;
 
 import lombok.Value;
+import org.cloudburstmc.api.item.ArmorPartType;
 
 public class ArmorPartTypes {
 

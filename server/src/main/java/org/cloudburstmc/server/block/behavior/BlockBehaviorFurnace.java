@@ -7,10 +7,13 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Furnace;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.blockentity.FurnaceBlockEntity;
 import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorFurnace extends BlockBehaviorSolid {
 
@@ -38,7 +41,7 @@ public class BlockBehaviorFurnace extends BlockBehaviorSolid {
                         .withTrait(BlockTraits.IS_EXTINGUISHED, true)
         );
 
-        Furnace furnace = BlockEntityRegistry.get().newEntity(furnaceEntity, block);
+        FurnaceBlockEntity furnace = (FurnaceBlockEntity) BlockEntityRegistry.get().newEntity(furnaceEntity, block);
         furnace.loadAdditionalData(((CloudItemStack) item).getDataTag());
         if (item.hasName()) {
             furnace.setCustomName(item.getName());
@@ -66,7 +69,7 @@ public class BlockBehaviorFurnace extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState().defaultState());
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
     @Override
