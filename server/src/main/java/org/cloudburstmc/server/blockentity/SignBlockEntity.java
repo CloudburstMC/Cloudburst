@@ -8,7 +8,7 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.event.block.SignChangeEvent;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
@@ -26,7 +26,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     private String[] text = {"", "", "", ""};
     private String textOwner = "";
 
-    public SignBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public SignBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

@@ -8,10 +8,10 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.WrittenBook;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
@@ -27,7 +27,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     private int page;
     private int totalPages;
 
-    public LecternBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public LecternBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

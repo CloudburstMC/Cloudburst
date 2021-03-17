@@ -6,7 +6,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Comparator;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 /**
  * @author CreeperFace
@@ -15,7 +15,7 @@ public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator
 
     private int outputSignal;
 
-    public ComparatorBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public ComparatorBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
