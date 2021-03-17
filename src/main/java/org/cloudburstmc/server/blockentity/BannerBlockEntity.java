@@ -9,9 +9,9 @@ import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Banner;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.utils.data.BannerPattern;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
     private DyeColor base = DyeColor.WHITE;
     private int type;
 
-    public BannerBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public BannerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

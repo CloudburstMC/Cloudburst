@@ -17,8 +17,7 @@ import javax.annotation.Nonnull;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 
 public class BlockEntityRegistry implements Registry {
     private static final BlockEntityRegistry INSTANCE = new BlockEntityRegistry();
@@ -69,7 +68,7 @@ public class BlockEntityRegistry implements Registry {
     }
 
     public <T extends BlockEntity> T newEntity(BlockEntityType<T> type, Block block) {
-        return newEntity(type, block.getChunk(), block.getPosition());
+        return newEntity(type, (CloudChunk) block.getChunk(), block.getPosition());
     }
 
     /**

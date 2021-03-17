@@ -13,17 +13,19 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Furnace;
 import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
+import org.cloudburstmc.api.inventory.FurnaceInventory;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.inventory.FurnaceInventory;
+import org.cloudburstmc.server.inventory.CloudFurnaceInventory;
 import org.cloudburstmc.server.inventory.FurnaceRecipe;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.Bucket;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -42,12 +44,12 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     protected short cookTime = 0;
     protected short burnDuration = 0;
 
-    protected FurnaceBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position, InventoryType inventoryType) {
+    protected FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, InventoryType inventoryType) {
         super(type, chunk, position);
-        this.inventory = new FurnaceInventory(this, inventoryType);
+        this.inventory = new CloudFurnaceInventory(this, inventoryType);
     }
 
-    public FurnaceBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         this(type, chunk, position, InventoryType.FURNACE);
     }
 
@@ -102,8 +104,8 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     @Override
-    public FurnaceInventory getInventory() {
-        return inventory;
+    public CloudFurnaceInventory getInventory() {
+        return (CloudFurnaceInventory) inventory;
     }
 
     protected float getBurnRate() {
@@ -162,7 +164,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         ItemStack product = this.inventory.getResult();
         BlockState state = getBlockState();
         BlockType blockType = state.getType();
-        FurnaceRecipe smelt = this.server.getCraftingManager().matchFurnaceRecipe(raw, state.getId());
+        FurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
         boolean canSmelt = (smelt != null && raw.getAmount() > 0 && ((smelt.getResult().equals(product)
                 && product.getAmount() < product.getBehavior().getMaxStackSize(product)) || product.isNull()));
 
@@ -232,11 +234,11 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     protected void extinguishFurnace() {
-        this.getLevel().setBlock(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, true), true);
+        this.getLevel().setBlockState(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, true), true);
     }
 
     protected void lightFurnace() {
-        this.getLevel().setBlock(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, false), true);
+        this.getLevel().setBlockState(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, false), true);
     }
 
     public int getBurnTime() {
@@ -273,11 +275,11 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
     @Override
     public int[] getHopperPullSlots() {
-        return new int[]{FurnaceInventory.SLOT_RESULT};
+        return new int[]{CloudFurnaceInventory.SLOT_RESULT};
     }
 
     @Override
     public int[] getHopperPushSlots(Direction direction, ItemStack item) {
-        return new int[]{direction == Direction.DOWN ? FurnaceInventory.SLOT_SMELTING : FurnaceInventory.SLOT_FUEL};
+        return new int[]{direction == Direction.DOWN ? CloudFurnaceInventory.SLOT_SMELTING : CloudFurnaceInventory.SLOT_FUEL};
     }
 }
