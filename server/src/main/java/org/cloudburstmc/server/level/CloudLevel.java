@@ -45,6 +45,7 @@ import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.LevelException;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
@@ -88,7 +89,6 @@ import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.timings.LevelTimings;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 import org.cloudburstmc.server.utils.Hash;
-import org.cloudburstmc.server.utils.LevelException;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import javax.annotation.Nonnull;

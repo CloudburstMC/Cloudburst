@@ -4,7 +4,6 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
 
@@ -36,7 +35,7 @@ public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         return false;
     }
 

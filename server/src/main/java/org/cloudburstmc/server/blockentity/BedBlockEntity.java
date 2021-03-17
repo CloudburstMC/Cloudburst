@@ -6,8 +6,8 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Bed;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 /**
  * Created by CreeperFace on 2.6.2017.

@@ -5,20 +5,19 @@ import lombok.val;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.block.BlockSpreadEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.data.DirtType;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -28,7 +27,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
 
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
         val behavior = item.getBehavior();
 

@@ -4,6 +4,8 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -62,10 +64,10 @@ public class DummyBossBar {
             return this;
         }
 
-        public Builder color(int red, int green, int blue) {
-            return color(new BlockColor(red, green, blue));
-        }
-
+        /* public Builder color(int red, int green, int blue) {
+             return color(new BlockColor(red, green, blue));
+         }
+ */
         public DummyBossBar build() {
             return new DummyBossBar(this);
         }
@@ -115,9 +117,9 @@ public class DummyBossBar {
         }
     }
 
-    public void setColor(int red, int green, int blue) {
+    /*public void setColor(int red, int green, int blue) {
         this.setColor(new BlockColor(red, green, blue));
-    }
+    }*/
 
     public int getMixedColor() {
         return this.color.getRGB();//(this.color.getRed() << 16 | this.color.getGreen() << 8 | this.color.getBlue()) & 0xffffff;
@@ -151,7 +153,7 @@ public class DummyBossBar {
         Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH);
         attr.setMaxValue(100); // Max value - We need to change the max value first, or else the "setValue" will return a IllegalArgumentException
         attr.setValue(length); // Entity health
-        pkAttributes.getAttributes().add(attr.toNetwork());
+        pkAttributes.getAttributes().add(NetworkUtils.toNetwork(attr));
         this.player.sendPacket(pkAttributes);
     }
 

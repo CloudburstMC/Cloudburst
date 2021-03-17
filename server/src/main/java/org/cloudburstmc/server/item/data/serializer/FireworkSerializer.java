@@ -7,10 +7,10 @@ import com.nukkitx.nbt.NbtType;
 import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.api.util.data.FireworkData.FireworkExplosion;
 import org.cloudburstmc.api.util.data.FireworkData.FireworkExplosion.ExplosionType;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.ArrayList;
 import java.util.List;

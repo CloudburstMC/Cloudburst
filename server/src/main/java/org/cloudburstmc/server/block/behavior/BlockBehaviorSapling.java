@@ -41,10 +41,10 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
         return true;
     }
 
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //BoneMeal
             if (player != null && player.getGamemode().isSurvival()) {
-                player.getInventory().decrementHandCount();
+                ((CloudPlayer) player).getInventory().decrementHandCount();
             }
 
             ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));

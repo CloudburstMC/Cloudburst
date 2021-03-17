@@ -1,9 +1,10 @@
 package org.cloudburstmc.server.scheduler;
 
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginException;
 import org.cloudburstmc.api.plugin.PluginManager;
-import org.cloudburstmc.server.utils.PluginException;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -241,6 +242,7 @@ public class ServerScheduler {
         return addTask(task instanceof PluginTask ? ((PluginTask<?>) task).getOwner() : null, task, delay, period, asynchronous);
     }
 
+    @SneakyThrows
     private TaskHandler addTask(Object plugin, Runnable task, int delay, int period, boolean asynchronous) {
         PluginContainer container = plugin != null ? ensurePlugin(plugin) : null;
         if (delay < 0 || period < 0) {

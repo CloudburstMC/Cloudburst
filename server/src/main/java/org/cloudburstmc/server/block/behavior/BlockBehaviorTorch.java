@@ -4,13 +4,12 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.api.block.BlockTypes.STONE_WALL;
 
@@ -35,7 +34,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState below = block.down().getState();
 
         if (block.getState().inCategory(BlockCategory.LIQUID)) {

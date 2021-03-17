@@ -3,20 +3,22 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.util.data.CardinalDirection;
+import org.cloudburstmc.api.util.data.TreeSpecies;
+import org.cloudburstmc.server.blockentity.SignBlockEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.data.CardinalDirection;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
@@ -36,7 +38,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.DOWN) {
             TreeSpecies woodType = item.getMetadata(TreeSpecies.class);
 
@@ -56,7 +58,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
                     sign.setTextOwner(player.getXuid());
                 }
             } else {
-                sign.loadAdditionalData(cloudItem.getDataTag());
+                ((SignBlockEntity) sign).loadAdditionalData(cloudItem.getDataTag());
             }
 
             return true;
@@ -73,7 +75,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.SIGN).withData(block.getState().ensureTrait(BlockTraits.TREE_SPECIES));
+        return CloudItemRegistry.get().getItem(ItemTypes.SIGN).withData(block.getState().ensureTrait(BlockTraits.TREE_SPECIES));
     }
 
 

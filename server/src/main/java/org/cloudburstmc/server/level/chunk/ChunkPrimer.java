@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.chunk;
 
 import com.google.common.base.Preconditions;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import java.util.Arrays;

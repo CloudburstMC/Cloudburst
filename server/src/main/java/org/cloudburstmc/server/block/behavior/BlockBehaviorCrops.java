@@ -3,17 +3,18 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -27,7 +28,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (block.down().getState().getType() == FARMLAND) {
             placeBlock(block, item);
             return true;
@@ -36,11 +37,11 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         //Bone meal
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (block.getState().ensureTrait(BlockTraits.GROWTH) < 7) {
-                BlockGrowEvent ev = new BlockGrowEvent(block, block.getState().incrementTrait(BlockTraits.GROWTH));
+                BlockGrowEvent ev = new BlockGrowEvent(block, block.getState().withTrait(BlockTraits.GROWTH, Math.min(BlockTraits.GROWTH.getRange().getEnd(), block.getState().ensureTrait(BlockTraits.GROWTH) + 1)));
                 CloudServer.getInstance().getEventManager().fire(ev);
 
                 if (ev.isCancelled()) {
@@ -48,10 +49,10 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
                 }
 
                 block.set(ev.getNewState(), false);
-                block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+                ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
 
                 if (player != null && player.getGamemode().isSurvival()) {
-                    player.getInventory().decrementHandCount();
+                    ((CloudPlayer) player).getInventory().decrementHandCount();
                 }
             }
 
@@ -72,7 +73,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
             if (ThreadLocalRandom.current().nextInt(2) == 1) {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 0x07) {
-                    BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
+                    BlockGrowEvent ev = new BlockGrowEvent(block, state.withTrait(BlockTraits.GROWTH, Math.min(BlockTraits.GROWTH.getRange().getEnd(), block.getState().ensureTrait(BlockTraits.GROWTH) + 1)));
                     CloudServer.getInstance().getEventManager().fire(ev);
 
                     if (!ev.isCancelled()) {

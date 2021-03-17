@@ -7,9 +7,9 @@ import org.cloudburstmc.api.entity.passive.Sheep;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 

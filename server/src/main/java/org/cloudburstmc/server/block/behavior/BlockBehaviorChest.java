@@ -4,6 +4,8 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.Chest;
@@ -12,11 +14,8 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Axis;
 import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -64,7 +63,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Direction chestFace = player.getHorizontalDirection().getOpposite();
         Axis axis = chestFace.getAxis() == Axis.X ? Axis.Z : Axis.X;
 
@@ -112,7 +111,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             Block top = block.up();
             if (!top.getState().inCategory(BlockCategory.TRANSPARENT)) {

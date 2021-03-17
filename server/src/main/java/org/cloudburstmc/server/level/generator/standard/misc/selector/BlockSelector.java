@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.generator.standard.misc.selector;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 
 import java.util.stream.Stream;

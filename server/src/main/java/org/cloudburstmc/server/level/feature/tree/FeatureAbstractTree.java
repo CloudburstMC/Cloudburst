@@ -2,8 +2,8 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.ChunkManager;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.feature.ReplacingWorldFeature;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;

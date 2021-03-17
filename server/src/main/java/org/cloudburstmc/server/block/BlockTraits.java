@@ -9,8 +9,8 @@ import org.cloudburstmc.api.block.trait.EnumBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Axis;
+import org.cloudburstmc.api.util.data.LeverDirection;
 import org.cloudburstmc.server.item.data.Bucket;
-import org.cloudburstmc.server.math.LeverDirection;
 import org.cloudburstmc.server.utils.Utils;
 import org.cloudburstmc.server.utils.data.*;
 

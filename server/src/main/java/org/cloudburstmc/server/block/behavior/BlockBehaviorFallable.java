@@ -2,11 +2,11 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.EntityRegistry;
 

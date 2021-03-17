@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
