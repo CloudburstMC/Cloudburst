@@ -4,7 +4,7 @@ import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.EnchantingTable;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 /**
  * author: MagicDroidX
@@ -12,7 +12,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
  */
 public class EnchantingTableBlockEntity extends BaseBlockEntity implements EnchantingTable {
 
-    public EnchantingTableBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public EnchantingTableBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

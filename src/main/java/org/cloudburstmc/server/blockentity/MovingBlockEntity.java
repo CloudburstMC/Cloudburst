@@ -8,8 +8,8 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.MovingBlock;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
@@ -20,10 +20,10 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
 
     private BlockState blockState = BlockStates.AIR;
     private BlockState extraBlockState = BlockStates.AIR;
-    private BlockEntity blockEntity;
+    private BaseBlockEntity blockEntity;
     private Vector3i piston;
 
-    public MovingBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public MovingBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
@@ -52,7 +52,7 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
 
         tag.listenForCompound("movingEntity", entityTag -> {
             BlockEntityType<?> type = BlockEntityRegistry.get().getBlockEntityType(entityTag.getString("id"));
-            this.blockEntity = BlockEntityRegistry.get().newEntity(type, this.getChunk(), this.getPosition());
+            this.blockEntity = (BaseBlockEntity) BlockEntityRegistry.get().newEntity(type, this.getChunk(), this.getPosition());
             this.blockEntity.loadAdditionalData(entityTag);
         });
 
@@ -103,7 +103,7 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     }
 
     public void setBlockEntity(BlockEntity blockEntity) {
-        this.blockEntity = blockEntity;
+        this.blockEntity = (BaseBlockEntity) blockEntity;
     }
 
     public Vector3i getPiston() {

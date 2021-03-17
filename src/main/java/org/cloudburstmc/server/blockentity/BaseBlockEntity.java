@@ -13,6 +13,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -53,17 +54,17 @@ public abstract class BaseBlockEntity implements BlockEntity {
     private String customName;
     private boolean justCreated = true;
 
-    public BaseBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public BaseBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         checkNotNull(type, "type");
         checkNotNull(chunk, "chunk");
         checkNotNull(position, "position");
 
         this.type = type;
         this.timing = Timings.getBlockEntityTiming(this);
-        this.server = chunk.getLevel().getServer();
+        this.server = (CloudServer) chunk.getLevel().getServer();
         this.position = position;
-        this.chunk = chunk;
-        this.level = chunk.getLevel();
+        this.chunk = (CloudChunk) chunk;
+        this.level = (CloudLevel) chunk.getLevel();
         this.lastUpdate = System.currentTimeMillis();
         this.id = ID_ALLOCATOR.getAndIncrement();
 
@@ -77,6 +78,10 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     public NbtMap getTag() {
         return tag;
+    }
+
+    public CloudServer getServer() {
+        return this.server;
     }
 
     @Override
@@ -143,17 +148,14 @@ public abstract class BaseBlockEntity implements BlockEntity {
         return this.getTag(false, false, true);
     }
 
-    @Override
     public final NbtMap getServerTag() {
         return getTag(true, true, true);
     }
 
-    @Override
     public final NbtMap getClientTag() {
         return getTag(true, false, false);
     }
 
-    @Override
     public final NbtMap getChunkTag() {
         return getTag(true, true, false);
     }

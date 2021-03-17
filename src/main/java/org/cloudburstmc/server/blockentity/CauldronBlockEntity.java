@@ -6,8 +6,8 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Cauldron;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 /**
  * author: CreeperFace
@@ -20,7 +20,7 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
     private boolean splash;
     private BlockColor customColor = BlockColor.WHITE_BLOCK_COLOR;
 
-    public CauldronBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public CauldronBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

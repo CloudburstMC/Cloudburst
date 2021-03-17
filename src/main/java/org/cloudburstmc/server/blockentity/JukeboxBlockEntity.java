@@ -8,11 +8,11 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Jukebox;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.Record;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -43,7 +43,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
 
     private ItemStack recordItem;
 
-    public JukeboxBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public JukeboxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

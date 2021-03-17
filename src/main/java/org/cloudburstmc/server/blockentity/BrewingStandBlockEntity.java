@@ -17,16 +17,16 @@ import org.cloudburstmc.api.blockentity.BrewingStand;
 import org.cloudburstmc.api.event.inventory.BrewFinishEvent;
 import org.cloudburstmc.api.event.inventory.BrewStartEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.inventory.BrewingInventory;
 import org.cloudburstmc.server.inventory.BrewingRecipe;
+import org.cloudburstmc.server.inventory.CloudBrewingInventory;
 import org.cloudburstmc.server.inventory.ContainerRecipe;
-import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,12 +41,12 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             ItemTypes.GOLDEN_CARROT, ItemTypes.SPIDER_EYE, ItemTypes.FERMENTED_SPIDER_EYE, ItemTypes.SPECKLED_MELON, ItemTypes.SUGAR, ItemTypes.FISH, ItemTypes.RABBIT_FOOT, ItemTypes.PUFFERFISH,
             ItemTypes.TURTLE_SHELL_PIECE, ItemTypes.PHANTOM_MEMBRANE, ItemTypes.DRAGON_BREATH
     );
-    protected final BrewingInventory inventory = new BrewingInventory(this);
+    protected final CloudBrewingInventory inventory = new CloudBrewingInventory(this);
     public short cookTime = MAX_COOK_TIME;
     public short fuelTotal;
     public short fuelAmount;
 
-    public BrewingStandBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public BrewingStandBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
@@ -109,7 +109,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     @Override
-    public BrewingInventory getInventory() {
+    public CloudBrewingInventory getInventory() {
         return inventory;
     }
 
@@ -152,7 +152,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             this.fuelAmount = 20;
             this.fuelTotal = 20;
 
-            this.inventory.decrementCount(BrewingInventory.SLOT_FUEL);
+            this.inventory.decrementCount(CloudBrewingInventory.SLOT_FUEL);
             this.sendFuel();
         }
 
@@ -193,20 +193,20 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
                     for (int i = 1; i <= 3; i++) {
                         ItemStack potion = this.inventory.getItem(i);
 
-                        ContainerRecipe containerRecipe = CloudServer.getInstance().getCraftingManager().matchContainerRecipe(ingredient, potion);
+                        ContainerRecipe containerRecipe = (ContainerRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
                         if (containerRecipe != null) {
                             ItemStack result = containerRecipe.getResult();
 //                            result.setMeta(potion.getMeta()); //TODO: check
                             this.inventory.setItem(i, result);
                         } else {
-                            BrewingRecipe recipe = CloudServer.getInstance().getCraftingManager().matchBrewingRecipe(ingredient, potion);
+                            BrewingRecipe recipe = (BrewingRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
                             if (recipe != null) {
                                 this.inventory.setItem(i, recipe.getResult());
                             }
                         }
                     }
                     this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.POTION_BREWED);
-                    this.inventory.decrementCount(BrewingInventory.SLOT_INGREDIENT);
+                    this.inventory.decrementCount(CloudBrewingInventory.SLOT_INGREDIENT);
 
                     this.fuelAmount--;
                     this.sendFuel();
@@ -291,7 +291,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         }
 
         if (blockState != state) {
-            this.getLevel().setBlock(this.getPosition(), state, false, false);
+            this.getLevel().setBlockState(this.getPosition(), state, false, false);
         }
     }
 
@@ -309,11 +309,11 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
         if (direction.getAxis().isHorizontal()) {
             if (id == ItemTypes.BLAZE_POWDER) {
-                return new int[]{BrewingInventory.SLOT_FUEL};
+                return new int[]{CloudBrewingInventory.SLOT_FUEL};
             }
         } else {
             if (id == ItemTypes.NETHER_WART || id == ItemTypes.REDSTONE || id == ItemTypes.GLOWSTONE_DUST || id == ItemTypes.FERMENTED_SPIDER_EYE || id == ItemTypes.GUNPOWDER || id == ItemTypes.DRAGON_BREATH) {
-                return new int[]{BrewingInventory.SLOT_INGREDIENT};
+                return new int[]{CloudBrewingInventory.SLOT_INGREDIENT};
             }
         }
 

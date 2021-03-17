@@ -6,7 +6,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Skull;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 /**
  * Created by Snake1999 on 2016/2/3.
@@ -18,7 +18,7 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
     private boolean mouthMoving;
     private int mouthTickCount;
 
-    public SkullBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public SkullBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 

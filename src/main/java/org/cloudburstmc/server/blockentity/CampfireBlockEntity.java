@@ -9,10 +9,11 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Campfire;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.ItemEdibleBehavior;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 /**
  * @author Sleepybear
@@ -25,7 +26,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     private final ItemStack[] items = new ItemStack[4];
     private final int[] itemTimes = new int[4];
 
-    public CampfireBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public CampfireBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
@@ -78,10 +79,12 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
         val state = getBlockState();
 
+/*
         if (state.getTrait(BlockTraits.IS_EXTINGUISHED) == null) {
             this.close();
             return false;
         }
+*/
 
         if (state.ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
             return false;
@@ -92,7 +95,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         for (int i = 0; i < items.length; i++) {
             if (items[i] != null) {
                 if (++itemTimes[i] >= 600) {
-                    ItemStack output = getLevel().getServer().getCraftingManager().matchFurnaceRecipe(items[i], BlockIds.CAMPFIRE).getResult();
+                    ItemStack output = CloudRecipeRegistry.get().matchFurnaceRecipe(items[i], BlockIds.CAMPFIRE).getResult();
                     this.getLevel().dropItem(this.getPosition(), output);
                     items[i] = null;
                     itemTimes[i] = 0;
@@ -126,7 +129,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     public boolean putItemInFire(ItemStack item) {
         if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
 
-        if (this.getLevel().getServer().getCraftingManager().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
+        if (CloudRecipeRegistry.get().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
             for (int i = 0; i < items.length; i++) {
                 if (items[i] == null) {
                     items[i] = item.withAmount(1);

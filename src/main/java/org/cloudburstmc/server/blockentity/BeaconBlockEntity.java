@@ -9,8 +9,10 @@ import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Beacon;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.potion.EffectType;
+import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.inventory.BeaconInventory;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
@@ -24,11 +26,11 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
  */
 public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
 
-    private int primaryEffect;
-    private int secondaryEffect;
+    private EffectType primaryEffect;
+    private EffectType secondaryEffect;
     private int powerLevel;
 
-    public BeaconBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public BeaconBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
@@ -43,8 +45,8 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
-        tag.putInt("primary", this.getPrimaryEffect());
-        tag.putInt("secondary", this.getSecondaryEffect());
+        tag.putInt("primary", this.getPrimaryEffect().getNetworkId());
+        tag.putInt("secondary", this.getSecondaryEffect().getNetworkId());
     }
 
     @Override
@@ -92,12 +94,11 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
             if (p.getPosition().distance(this.getPosition().toFloat()) < range) {
                 CloudEffect e;
 
-                if (getPrimaryEffect() != 0) {
+                if (getPrimaryEffect() != null) {
                     //Apply the primary power
-                    e = CloudEffect.fromNBT(getPrimaryEffect());
-
-                    //Set duration
-                    e.setDuration(duration * 20);
+                    e = new CloudEffect(getPrimaryEffect())
+                            .setDuration(duration * 20)
+                            .setVisible(false);
 
                     //If secondary is selected as the primary too, apply 2 amplification
                     if (getSecondaryEffect() == getPrimaryEffect()) {
@@ -106,26 +107,17 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
                         e.setAmplifier(0);
                     }
 
-                    //Hide particles
-                    e.setVisible(false);
-
                     //Add the effect
                     p.addEffect(e);
                 }
 
                 //If we have a secondary power as regen, apply it
-                if (getSecondaryEffect() == CloudEffect.REGENERATION) {
+                if (getSecondaryEffect() == EffectTypes.REGENERATION) {
                     //Get the regen effect
-                    e = CloudEffect.fromNBT(CloudEffect.REGENERATION);
-
-                    //Set duration
-                    e.setDuration(duration * 20);
-
-                    //Regen I
-                    e.setAmplifier(0);
-
-                    //Hide particles
-                    e.setVisible(false);
+                    e = new CloudEffect(EffectTypes.REGENERATION)
+                            .setDuration(duration * 20)
+                            .setAmplifier(0)
+                            .setVisible(false);
 
                     //Add effect
                     p.addEffect(e);
@@ -175,11 +167,11 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         return POWER_LEVEL_MAX;
     }
 
-    public int getPrimaryEffect() {
+    public EffectType getPrimaryEffect() {
         return primaryEffect;
     }
 
-    public void setPrimaryEffect(int primaryEfect) {
+    public void setPrimaryEffect(EffectType primaryEfect) {
         if (primaryEfect != this.primaryEffect) {
             this.primaryEffect = primaryEfect;
             setDirty();
@@ -187,11 +179,11 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         }
     }
 
-    public int getSecondaryEffect() {
+    public EffectType getSecondaryEffect() {
         return secondaryEffect;
     }
 
-    public void setSecondaryEffect(int secondaryEffect) {
+    public void setSecondaryEffect(EffectType secondaryEffect) {
         if (secondaryEffect != this.secondaryEffect) {
             this.secondaryEffect = secondaryEffect;
             setDirty();
@@ -199,10 +191,18 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         }
     }
 
+    public void setPrimaryEffect(int legacyId) {
+        this.setPrimaryEffect(EffectType.fromLegacy((byte) legacyId));
+    }
+
+    public void setSecondaryEffect(int legacyId) {
+        this.setSecondaryEffect(EffectType.fromLegacy((byte) legacyId));
+    }
+
     @Override
     public boolean updateNbtMap(NbtMap nbt, CloudPlayer player) {
-        this.setPrimaryEffect(nbt.getInt("primary"));
-        this.setSecondaryEffect(nbt.getInt("secondary"));
+        this.setPrimaryEffect(EffectType.fromLegacy((byte) nbt.getInt("primary")));
+        this.setSecondaryEffect(EffectType.fromLegacy((byte) nbt.getInt("secondary")));
 
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_POWER);
 

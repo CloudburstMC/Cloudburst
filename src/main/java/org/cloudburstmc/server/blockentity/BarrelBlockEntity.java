@@ -7,11 +7,12 @@ import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Barrel;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.inventory.BarrelInventory;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.inventory.BarrelInventory;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.inventory.CloudBarrelInventory;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,9 +21,9 @@ import java.util.Map;
 
 public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
 
-    private final BarrelInventory inventory = new BarrelInventory(this);
+    private final BarrelInventory inventory = new CloudBarrelInventory(this);
 
-    public BarrelBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public BarrelBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
@@ -52,7 +53,7 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
     @Override
     public void close() {
         if (!closed) {
-            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
+            for (Player player : new HashSet<>(this.getInventory().getViewers())) {
                 player.removeWindow(this.getInventory());
             }
             super.close();

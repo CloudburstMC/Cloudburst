@@ -9,8 +9,8 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.FlowerPot;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
@@ -23,7 +23,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
 
     private BlockState plant = BlockRegistry.get().getBlock(AIR);
 
-    public FlowerPotBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
+    public FlowerPotBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
