@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item;
 
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.block.BlockState;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;

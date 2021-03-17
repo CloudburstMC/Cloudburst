@@ -7,6 +7,8 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.player.PlayerEatFoodEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
@@ -21,19 +23,19 @@ import static org.cloudburstmc.server.item.ItemTypes.*;
  * Package cn.nukkit.item.food in project nukkit.
  */
 @ParametersAreNonnullByDefault
-public abstract class Food {
+public abstract class Food implements org.cloudburstmc.api.item.Food {
 
     private static final Map<ItemType, Food> registryDefault = new LinkedHashMap<>();
 
     public static final Food apple = registerFood(APPLE, new FoodNormal(4, 2.4F));
     public static final Food apple_golden = registerFood(GOLDEN_APPLE, new FoodEffective(4, 9.6F)
-            .addEffect(CloudEffect.fromNBT(CloudEffect.REGENERATION).setAmplifier(1).setDuration(5 * 20))
-            .addEffect(CloudEffect.fromNBT(CloudEffect.ABSORPTION).setDuration(2 * 60 * 20)));
+            .addEffect(new CloudEffect(EffectTypes.REGENERATION).setAmplifier(1).setDuration(5 * 20))
+            .addEffect(new CloudEffect(EffectTypes.ABSORPTION).setDuration(2 * 60 * 20)));
     public static final Food apple_golden_enchanted = registerFood(APPLE_ENCHANTED, new FoodEffective(4, 9.6F)
-            .addEffect(CloudEffect.fromNBT(CloudEffect.REGENERATION).setAmplifier(4).setDuration(30 * 20))
-            .addEffect(CloudEffect.fromNBT(CloudEffect.ABSORPTION).setDuration(2 * 60 * 20).setAmplifier(3))
-            .addEffect(CloudEffect.fromNBT(CloudEffect.DAMAGE_RESISTANCE).setDuration(5 * 60 * 20))
-            .addEffect(CloudEffect.fromNBT(CloudEffect.FIRE_RESISTANCE).setDuration(5 * 60 * 20)));
+            .addEffect(new CloudEffect(EffectTypes.REGENERATION).setAmplifier(4).setDuration(30 * 20))
+            .addEffect(new CloudEffect(EffectTypes.ABSORPTION).setDuration(2 * 60 * 20).setAmplifier(3))
+            .addEffect(new CloudEffect(EffectTypes.DAMAGE_RESISTANCE).setDuration(5 * 60 * 20))
+            .addEffect(new CloudEffect(EffectTypes.FIRE_RESISTANCE).setDuration(5 * 60 * 20)));
     public static final Food beef_raw = registerFood(BEEF, new FoodNormal(3, 1.8F));
     public static final Food beetroot = registerFood(BEETROOT, new FoodNormal(1, 1.2F));
     public static final Food beetroot_soup = registerFood(BEETROOT_SOUP, new FoodInBowl(6, 7.2F));
@@ -42,7 +44,7 @@ public abstract class Food {
     public static final Food carrot = registerFood(CARROT, new FoodNormal(3, 4.8F));
     public static final Food carrot_golden = registerFood(GOLDEN_CARROT, new FoodNormal(6, 14.4F));
     public static final Food chicken_raw = registerFood(CHICKEN, new FoodEffective(2, 1.2F)
-            .addChanceEffect(0.3F, CloudEffect.fromNBT(CloudEffect.HUNGER).setDuration(30 * 20)));
+            .addChanceEffect(0.3F, new CloudEffect(EffectTypes.HUNGER).setDuration(30 * 20)));
     public static final Food chicken_cooked = registerFood(COOKED_CHICKEN, new FoodNormal(6, 7.2F));
     public static final Food chorus_fruit = registerFood(CHORUS_FRUIT, new FoodChorusFruit());
     public static final Food cookie = registerFood(COOKIE, new FoodNormal(2, 0.4F));
@@ -56,15 +58,15 @@ public abstract class Food {
     public static final Food potato_raw = registerFood(POTATO, new FoodNormal(1, 0.6F));
     public static final Food potato_baked = registerFood(BAKED_POTATO, new FoodNormal(5, 7.2F));
     public static final Food potato_poisonous = registerFood(POISONOUS_POTATO, new FoodEffective(2, 1.2F)
-            .addChanceEffect(0.6F, CloudEffect.fromNBT(CloudEffect.POISON).setDuration(4 * 20)));
+            .addChanceEffect(0.6F, new CloudEffect(EffectTypes.POISON).setDuration(4 * 20)));
     public static final Food pumpkin_pie = registerFood(PUMPKIN_PIE, new FoodNormal(8, 4.8F));
     public static final Food rabbit_cooked = registerFood(COOKED_RABBIT, new FoodNormal(5, 6F));
     public static final Food rabbit_raw = registerFood(RABBIT, new FoodNormal(3, 1.8F));
     public static final Food rabbit_stew = registerFood(RABBIT_STEW, new FoodInBowl(10, 12F));
     public static final Food rotten_flesh = registerFood(ROTTEN_FLESH, new FoodEffective(4, 0.8F)
-            .addChanceEffect(0.8F, CloudEffect.fromNBT(CloudEffect.HUNGER).setDuration(30 * 20)));
+            .addChanceEffect(0.8F, new CloudEffect(EffectTypes.HUNGER).setDuration(30 * 20)));
     public static final Food spider_eye = registerFood(SPIDER_EYE, new FoodEffective(2, 3.2F)
-            .addEffect(CloudEffect.fromNBT(CloudEffect.POISON).setDuration(4 * 20)));
+            .addEffect(new CloudEffect(EffectTypes.POISON).setDuration(4 * 20)));
     public static final Food steak = registerFood(COOKED_BEEF, new FoodNormal(8, 12.8F));
     //different kinds of fishes
     public static final Food clownfish = registerFood(CLOWNFISH, new FoodNormal(1, 0.2F));
@@ -73,9 +75,9 @@ public abstract class Food {
     public static final Food salmon_cooked = registerFood(COOKED_SALMON, new FoodNormal(6, 9.6F));
     public static final Food salmon_raw = registerFood(SALMON, new FoodNormal(2, 0.4F));
     public static final Food pufferfish = registerFood(PUFFERFISH, new FoodEffective(1, 0.2F)
-            .addEffect(CloudEffect.fromNBT(CloudEffect.HUNGER).setAmplifier(2).setDuration(15 * 20))
-            .addEffect(CloudEffect.fromNBT(CloudEffect.NAUSEA).setAmplifier(1).setDuration(15 * 20))
-            .addEffect(CloudEffect.fromNBT(CloudEffect.POISON).setAmplifier(4).setDuration(60 * 20)));
+            .addEffect(new CloudEffect(EffectTypes.HUNGER).setAmplifier(2).setDuration(15 * 20))
+            .addEffect(new CloudEffect(EffectTypes.NAUSEA).setAmplifier(1).setDuration(15 * 20))
+            .addEffect(new CloudEffect(EffectTypes.POISON).setAmplifier(4).setDuration(60 * 20)));
     public static final Food dried_kelp = registerFood(DRIED_KELP, new FoodNormal(1, 0.6F));
     public static final Food sweet_berries = registerFood(SWEET_BERRIES, new FoodNormal(2, 0.4F));
     public static final Food honey = registerFood(HONEY_BOTTLE, new FoodHoney(6, 2.4F));
@@ -112,16 +114,16 @@ public abstract class Food {
     protected float restoreSaturation = 0;
     protected final List<Set<Object>> metadata = new ArrayList<>();
 
-    public final boolean eatenBy(CloudPlayer player) {
+    public final boolean eatenBy(Player player) {
         PlayerEatFoodEvent event = new PlayerEatFoodEvent(player, this);
         player.getServer().getEventManager().fire(event);
         if (event.isCancelled()) return false;
         return event.getFood().onEatenBy(player);
     }
 
-    protected boolean onEatenBy(CloudPlayer player) {
+    public boolean onEatenBy(Player player) {
         Preconditions.checkNotNull(player, "player");
-        player.getFoodData().addFoodLevel(this);
+        ((CloudPlayer) player).getFoodData().addFoodLevel(this);
         return true;
     }
 

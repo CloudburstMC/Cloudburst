@@ -2,18 +2,17 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.util.data.LeverDirection;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.LeverDirection;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorLever extends FloodableBlockBehavior {
 
@@ -25,7 +24,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().defaultState());
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
     @Override
@@ -38,8 +37,8 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
-        val level = block.getLevel();
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        val level = (CloudLevel) block.getLevel();
         val state = block.getState();
 
         boolean powerOn = isPowerOn(state);
@@ -67,9 +66,9 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().getBehavior().isNormalBlock(target)) {
-            return placeBlock(block, BlockState.get(BlockTypes.LEVER)
+            return placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.LEVER)
                     .withTrait(
                             BlockTraits.LEVER_DIRECTION,
                             LeverDirection.forDirection(face, player.getHorizontalDirection())

@@ -21,6 +21,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.level.chunk.ChunkException;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
@@ -29,7 +30,6 @@ import org.cloudburstmc.server.level.BlockUpdate;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.ChunkException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockTraits;
 
 import static org.cloudburstmc.api.block.BlockTypes.WOODEN_SLAB;
 

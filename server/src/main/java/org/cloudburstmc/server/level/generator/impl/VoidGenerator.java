@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.level.generator.impl;
 
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.generator.Generator;
 
 /**

@@ -3,15 +3,17 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.TRIPWIRE;
 
@@ -19,7 +21,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.STRING);
+        return CloudItemRegistry.get().getItem(ItemTypes.STRING);
     }
 
     public boolean isPowered(BlockState state) {
@@ -48,7 +50,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
             block.set(bs, true, false);
             this.updateHook(block, bs, false);
 
-            block.getLevel().scheduleUpdate(block.refresh(), 10);
+            block.getLevel().scheduleUpdate(block.refresh().getPosition(), 10);
         }
     }
 
@@ -93,7 +95,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
             }
 
             if (found) {
-                block.getLevel().scheduleUpdate(block, 10);
+                block.getLevel().scheduleUpdate(block.getPosition(), 10);
             } else {
                 val state = block.getState().withTrait(BlockTraits.IS_POWERED, false);
                 block.set(state, true, false);
@@ -106,8 +108,8 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
-        val state = BlockState.get(TRIPWIRE);
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        val state = BlockRegistry.get().getBlock(TRIPWIRE);
         placeBlock(block, state);
         this.updateHook(block, state, false);
 

@@ -3,19 +3,16 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
+import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.api.util.data.FlowerType;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.DyeColor;
-import org.cloudburstmc.server.utils.data.FlowerType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -25,7 +22,7 @@ import static org.cloudburstmc.server.item.ItemTypes.DYE;
 public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val down = block.down().getState().getType();
         if (down == GRASS || down == DIRT || down == FARMLAND || down == PODZOL) {
             placeBlock(block, item.getBehavior().getBlock(item));
@@ -58,11 +55,11 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bone meal
-            val level = block.getLevel();
+            CloudLevel level = (CloudLevel) block.getLevel();
             if (player != null && player.getGamemode().isSurvival()) {
-                player.getInventory().decrementHandCount();
+                ((CloudPlayer) player).getInventory().decrementHandCount();
             }
 
             level.addParticle(new BoneMealParticle(block.getPosition()));
@@ -75,9 +72,9 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
                 if (level.getBlock(vec).getState() == BlockStates.AIR && level.getBlock(vec.down()).getState().getType() == GRASS && vec.getY() >= 0 && vec.getY() < 256) {
                     if (ThreadLocalRandom.current().nextInt(10) == 0) {
-                        level.setBlock(vec, this.getUncommonFlower(block.getState()), true);
+                        level.setBlockState(vec, this.getUncommonFlower(block.getState()), true);
                     } else {
-                        level.setBlock(vec, block.getState(), true);
+                        level.setBlockState(vec, block.getState(), true);
                     }
                 }
             }

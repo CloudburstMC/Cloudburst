@@ -2,17 +2,16 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Rail;
 
 import java.util.*;
@@ -65,7 +64,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
 
     //Information from http://minecraft.gamepedia.com/Rail
     @Override
-    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, CloudPlayer player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val down = block.down().getState();
         if (down.inCategory(BlockCategory.TRANSPARENT)) {
             return false;
@@ -111,7 +110,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
             direction = RailDirection.NORTH_SOUTH;
         }
 
-        placeBlock(block, BlockState.get(this.type).withTrait(directionTrait, direction));
+        placeBlock(block, BlockRegistry.get().getBlock(this.type).withTrait(directionTrait, direction));
         if (!isAbstract()) {
             block.getLevel().scheduleUpdate(block.getPosition(), 0);
         }
@@ -209,12 +208,12 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     }
 
     public boolean isActive(BlockState state) {
-        return state.getTrait(BlockTraits.IS_POWERED) == Boolean.TRUE;
+        return state.ensureTrait(BlockTraits.IS_POWERED) == Boolean.TRUE;
     }
 
     public void setActive(Block block, boolean active) {
         val state = block.getState();
-        val current = state.getTrait(BlockTraits.IS_POWERED);
+        val current = state.ensureTrait(BlockTraits.IS_POWERED);
         if (current != null && current != active) {
             block.set(state.toggleTrait(BlockTraits.IS_POWERED), true);
         }
@@ -222,13 +221,13 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().defaultState());
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(RAIL)
+                CloudItemRegistry.get().getItem(RAIL)
         };
     }
 }

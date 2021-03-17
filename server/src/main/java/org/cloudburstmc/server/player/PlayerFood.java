@@ -5,9 +5,9 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerFoodLevelChangeEvent;
 import org.cloudburstmc.api.level.Difficulty;
+import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.item.food.Food;
-import org.cloudburstmc.server.potion.CloudEffect;
 
 /**
  * Created by funcraft on 2015/11/11.
@@ -165,7 +165,7 @@ public class PlayerFood {
                     this.foodTickTimer = 0;
                 }
             }
-            if (this.getPlayer().hasEffect(CloudEffect.HUNGER)) {
+            if (this.getPlayer().hasEffect(EffectTypes.HUNGER)) {
                 this.updateFoodExpLevel(0.025);
             }
         }
@@ -174,7 +174,7 @@ public class PlayerFood {
     public void updateFoodExpLevel(double use) {
         if (!this.getPlayer().isFoodEnabled()) return;
         if (CloudServer.getInstance().getDifficulty() == Difficulty.PEACEFUL) return;
-        if (this.getPlayer().hasEffect(CloudEffect.SATURATION)) return;
+        if (this.getPlayer().hasEffect(EffectTypes.SATURATION)) return;
         this.foodExpLevel += use;
         if (this.foodExpLevel > 4) {
             this.useHunger(1);

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.particle;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import org.cloudburstmc.server.block.BlockState;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 /**

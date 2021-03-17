@@ -4,12 +4,12 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.FlowerPot;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
@@ -21,7 +21,7 @@ import static org.cloudburstmc.api.block.BlockTypes.AIR;
  */
 public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
 
-    private BlockState plant = BlockState.get(AIR);
+    private BlockState plant = BlockRegistry.get().getBlock(AIR);
 
     public FlowerPotBlockEntity(BlockEntityType<?> type, CloudChunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -64,7 +64,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     public void setPlant(BlockState blockState) {
-        this.plant = blockState == null ? BlockState.get(AIR) : blockState;
+        this.plant = blockState == null ? BlockRegistry.get().getBlock(AIR) : blockState;
     }
 
     @Override
