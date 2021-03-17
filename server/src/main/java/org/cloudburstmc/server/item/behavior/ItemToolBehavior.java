@@ -3,13 +3,13 @@ package org.cloudburstmc.server.item.behavior;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.var;
-import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.item.TierType;
-import org.cloudburstmc.server.item.ToolType;
+import org.cloudburstmc.api.item.TierType;
+import org.cloudburstmc.api.item.ToolType;
 import org.cloudburstmc.server.item.ToolTypes;
 import org.cloudburstmc.server.item.data.Damageable;
 
@@ -58,12 +58,11 @@ public abstract class ItemToolBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public ItemStack useOn(ItemStack item, Block block) {
+    public ItemStack useOn(ItemStack item, BlockState state) {
         if (this.isUnbreakable(item) || isDurable(item)) {
             return item;
         }
 
-        val state = block.getState();
         val behavior = state.getBehavior();
         var damage = item.getMetadata(Damageable.class);
 

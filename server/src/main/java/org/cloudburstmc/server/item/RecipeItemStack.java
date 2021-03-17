@@ -2,8 +2,13 @@ package org.cloudburstmc.server.item;
 
 import lombok.Getter;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.behavior.ItemBehavior;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.behavior.ItemBehavior;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -16,12 +21,12 @@ import java.util.Map;
 @Immutable
 public class RecipeItemStack extends CloudItemStack {
 
-    private final ItemStack item;
+    private final CloudItemStack item;
     private final boolean hasMeta;
 
-    public RecipeItemStack(CloudItemStack item, boolean hasMeta) {
-        super(item.getId(), item.getType());
-        this.item = item;
+    public RecipeItemStack(ItemStack item, boolean hasMeta) {
+        super(item.getType().getId(), item.getType());
+        this.item = (CloudItemStack) item;
         this.hasMeta = hasMeta;
     }
 
