@@ -228,7 +228,7 @@ public class InventoryTransactionUtils {
                                 // Outputs should only be in slot 0.
                                 return null;
                             }
-                            if (ItemStack.get(ItemTypes.DYE, 1, DyeColor.BLUE).equals(newItem, true, false)) {
+                            if (CloudItemRegistry.get().getItem(ItemTypes.DYE, 1, DyeColor.BLUE).equals(newItem, true, false)) {
                                 slot = 2; // Fake slot to store used material
                                 if (newItem.getAmount() < 1 || newItem.getAmount() > 3) {
                                     // Invalid material

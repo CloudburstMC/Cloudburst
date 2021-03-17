@@ -17,17 +17,18 @@ import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.data.MinecartType;
+import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.MathHelper;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Rail;
-import org.cloudburstmc.server.utils.data.MinecartType;
-import org.cloudburstmc.server.utils.data.RailDirection;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -292,7 +293,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemTypes.MINECART));
+        this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.MINECART));
     }
 
     @Override
@@ -317,7 +318,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    public boolean onInteract(CloudPlayer p, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(Player p, ItemStack item, Vector3f clickedPos) {
         if (!passengers.isEmpty() && isRideable()) {
             return false;
         }
@@ -450,7 +451,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         int y = dy;
 
         val state = block.getState();
-        Boolean powered = state.getTrait(BlockTraits.IS_POWERED);
+        Boolean powered = state.ensureTrait(BlockTraits.IS_POWERED);
         boolean isPowered = powered != null ? powered : false;
         boolean isSlowed = !isPowered;
 
@@ -460,8 +461,8 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         float motionY = this.motion.getY();
         float motionZ = this.motion.getZ();
 
-        RailDirection railDirection = state.getTrait(BlockTraits.RAIL_DIRECTION);
-        if (railDirection == null) railDirection = state.getTrait(BlockTraits.SIMPLE_RAIL_DIRECTION);
+        RailDirection railDirection = state.ensureTrait(BlockTraits.RAIL_DIRECTION);
+        if (railDirection == null) railDirection = state.ensureTrait(BlockTraits.SIMPLE_RAIL_DIRECTION);
         if (railDirection == null) return;
 
         switch (railDirection) { //TODO: errors

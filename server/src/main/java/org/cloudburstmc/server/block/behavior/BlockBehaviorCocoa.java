@@ -7,16 +7,19 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -144,10 +147,10 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (grow(block)) {
-                block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+                ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
 
                 if (player != null && player.getGamemode().isSurvival()) {
-                    player.getInventory().decrementHandCount();
+                    ((PlayerInventory) player.getInventory()).decrementHandCount();
                 }
             }
 
@@ -160,7 +163,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     public boolean grow(Block block) {
         int age = block.getState().ensureTrait(BlockTraits.AGE);
         if (age < 2) {
-            BlockState cocoa = block.getState().incrementTrait(BlockTraits.AGE);
+            BlockState cocoa = block.getState().withTrait(BlockTraits.AGE, Math.min(BlockTraits.AGE.getRange().getEnd(), block.getState().ensureTrait(BlockTraits.AGE) + 1));
 
             BlockGrowEvent ev = new BlockGrowEvent(block, cocoa);
             CloudServer.getInstance().getEventManager().fire(ev);
@@ -177,18 +180,18 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.DYE, DyeColor.BROWN.getDyeData());
+        return CloudItemRegistry.get().getItem(ItemTypes.DYE, DyeColor.BROWN.getDyeData());
     }
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.AGE) >= 2) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.DYE, 3, DyeColor.BROWN)
+                    CloudItemRegistry.get().getItem(ItemTypes.DYE, 3, DyeColor.BROWN)
             };
         } else {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.DYE, 1, DyeColor.BROWN)
+                    CloudItemRegistry.get().getItem(ItemTypes.DYE, 1, DyeColor.BROWN)
             };
         }
     }

@@ -6,14 +6,16 @@ import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DoublePlantType;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.utils.data.DoublePlantType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -85,13 +87,13 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                     if (hand.getBehavior().isShears()) {
                         //todo enchantment
                         return new ItemStack[]{
-                                ItemStack.get(block.getState(), 2)
+                                CloudItemRegistry.get().getItem(block.getState(), 2)
                         };
                     }
 
                     if (dropSeeds) {
                         return new ItemStack[]{
-                                ItemStack.get(ItemTypes.WHEAT_SEEDS)
+                                CloudItemRegistry.get().getItem(ItemTypes.WHEAT_SEEDS)
                         };
                     } else {
                         return new ItemStack[0];
@@ -123,9 +125,9 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                 case ROSE:
                 case PAEONIA:
                     if (player != null && player.getGamemode().isSurvival()) {
-                        player.getInventory().decrementHandCount();
+                        ((PlayerInventory) player.getInventory()).decrementHandCount();
                     }
-                    block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+                    ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
                     block.getLevel().dropItem(block.getPosition(), CloudItemRegistry.get().getItem(block.getState()));
             }
 

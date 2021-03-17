@@ -103,7 +103,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().resetTrait(BlockTraits.FACING_DIRECTION).resetTrait(BlockTraits.IS_BUTTON_PRESSED));
+        return CloudItemRegistry.get().getItem(block.getState().resetTrait(BlockTraits.FACING_DIRECTION).resetTrait(BlockTraits.IS_BUTTON_PRESSED));
     }
 
 

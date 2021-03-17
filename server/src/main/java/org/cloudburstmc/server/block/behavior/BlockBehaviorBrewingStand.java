@@ -67,7 +67,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.BREWING_STAND);
+        return CloudItemRegistry.get().getItem(ItemTypes.BREWING_STAND);
     }
 
     @Override

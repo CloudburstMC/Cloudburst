@@ -6,10 +6,13 @@ import org.cloudburstmc.api.blockentity.Beacon;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.inventory.BeaconInventory;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 
 public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
@@ -26,10 +29,10 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
             BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             if (!(t instanceof Beacon)) {
                 t.close();
-                BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, block.getChunk(), block.getPosition());
+                BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, (CloudChunk) block.getChunk(), block.getPosition());
             }
 
-            player.addWindow(new BeaconInventory(player.getUIInventory(), block), ContainerIds.BEACON);
+            player.addWindow(new BeaconInventory(((CloudPlayer)player).getUIInventory(), block), ContainerIds.BEACON);
         }
         return true;
     }
@@ -39,7 +42,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
         boolean blockSuccess = super.place(item, block, target, face, clickPos, player);
 
         if (blockSuccess) {
-            BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, block.getChunk(), block.getPosition());
+            BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, (CloudChunk) block.getChunk(), block.getPosition());
         }
 
         return blockSuccess;

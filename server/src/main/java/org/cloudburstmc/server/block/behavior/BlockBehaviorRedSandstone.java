@@ -8,7 +8,7 @@ public class BlockBehaviorRedSandstone extends BlockBehaviorSandstone {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState());
+        return CloudItemRegistry.get().getItem(block.getState());
     }
 
 

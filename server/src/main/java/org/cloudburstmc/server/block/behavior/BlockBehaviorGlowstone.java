@@ -23,7 +23,7 @@ public class BlockBehaviorGlowstone extends BlockBehaviorTransparent {
         }
 
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.GLOWSTONE_DUST, MathHelper.clamp(count, 1, 4))
+                CloudItemRegistry.get().getItem(ItemTypes.GLOWSTONE_DUST, MathHelper.clamp(count, 1, 4))
         };
     }
 

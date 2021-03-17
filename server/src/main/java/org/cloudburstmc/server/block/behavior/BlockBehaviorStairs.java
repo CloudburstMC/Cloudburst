@@ -49,7 +49,7 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().resetTrait(BlockTraits.IS_UPSIDE_DOWN));
+        return CloudItemRegistry.get().getItem(block.getState().resetTrait(BlockTraits.IS_UPSIDE_DOWN));
     }
 
 //    @Override //TODO: bounding box

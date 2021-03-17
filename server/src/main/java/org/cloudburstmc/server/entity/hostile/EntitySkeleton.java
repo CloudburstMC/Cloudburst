@@ -39,7 +39,7 @@ public class EntitySkeleton extends EntityHostile implements Skeleton, Smiteable
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.BONE), ItemStack.get(ItemTypes.ARROW)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.BONE), CloudItemRegistry.get().getItem(ItemTypes.ARROW)};
     }
 
     @Override

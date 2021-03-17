@@ -10,11 +10,11 @@ import org.cloudburstmc.api.entity.vehicle.Minecart;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.Rail;
-import org.cloudburstmc.server.utils.data.RailDirection;
 
 /**
  * author: MagicDroidX

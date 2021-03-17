@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
-import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockFadeEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -23,7 +22,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
         }
 
         if (block.down().getState().inCategory(BlockCategory.SOLID)) {
-            block.set(BlockState.get(BlockTypes.WATER));
+            block.set(BlockRegistry.get().getBlock(BlockTypes.WATER));
         } else {
             return removeBlock(block);
         }
@@ -35,7 +34,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             if (block.getLevel().getBlockLightAt(block.getX(), block.getY(), block.getZ()) >= 12) {
-                BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockTypes.WATER));
+                BlockFadeEvent event = new BlockFadeEvent(block, BlockRegistry.get().getBlock(BlockTypes.WATER));
                 block.getLevel().getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
                     block.getLevel().setBlock(block.getPosition(), event.getNewState(), true);

@@ -4,18 +4,22 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.val;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.api.event.player.PlayerBucketFillEvent;
 import org.cloudburstmc.api.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.block.*;
+import org.cloudburstmc.server.block.CloudBlock;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
@@ -77,26 +81,26 @@ public class ItemBucketBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public ItemStack onActivate(ItemStack itemStack, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level) {
-        if (player.isAdventure()) {
+    //TODO review and fix - functionallity probably broken
+    public ItemStack onActivate(ItemStack itemStack, Player p, BlockState blockstate, BlockState targetState, Direction face, Vector3f clickPos, Level l) {
+        if (p.isAdventure()) {
             return null;
         }
 
-        BlockState bucketContents = BlockState.get(getBlockIdFromDamage(itemStack.getMetadata(Bucket.class)));
+        CloudLevel level = (CloudLevel) l;
+        CloudPlayer player = (CloudPlayer) p;
+        Block target = level.getBlock(clickPos);
+
+
+        BlockState bucketContents = BlockRegistry.get().getBlock(getBlockIdFromDamage(itemStack.getMetadata(Bucket.class)));
 
         if (bucketContents == BlockStates.AIR) {
-            BlockState liquid;
-
-            if (target.isWaterlogged()) {
-                liquid = target.getExtra();
-            } else {
-                liquid = target.getState();
-            }
+            BlockState liquid = level.getBlock(clickPos).getLiquid();;
 
             if (liquid.inCategory(BlockCategory.LIQUID) && liquid.ensureTrait(BlockTraits.FLUID_LEVEL) == 0) {
-                ItemStack result = ItemStack.get(ItemTypes.BUCKET, 1, this.getDamageFromIdentifier(liquid.getType()));
+                ItemStack result = CloudItemRegistry.get().getItem(ItemTypes.BUCKET, 1, this.getDamageFromIdentifier(liquid.getType()));
                 PlayerBucketFillEvent ev;
-                player.getServer().getEventManager().fire(ev = new PlayerBucketFillEvent(player, block, face, itemStack, result));
+                player.getServer().getEventManager().fire(ev = new PlayerBucketFillEvent(player, blockstate, face, itemStack, result));
                 if (!ev.isCancelled()) {
                     target.set(BlockStates.AIR, true);
 
@@ -106,9 +110,9 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                         Block b = target.getSide(side);
 
                         if (b.getState().getType() == WATER) {
-                            b.set(BlockState.get(FLOWING_WATER));
+                            b.set(BlockRegistry.get().getBlock(FLOWING_WATER));
                         } else if (b.getExtra().getType() == WATER) {
-                            b.set(BlockState.get(FLOWING_WATER), 1, true, false);
+                            b.set(BlockRegistry.get().getBlock(FLOWING_WATER), 1, true, false);
                         }
                     }
 
@@ -125,9 +129,9 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                     }
 
                     if (liquid.getType() == LAVA) {
-                        level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_FILL_LAVA);
+                        level.addLevelSoundEvent(clickPos, SoundEvent.BUCKET_FILL_LAVA);
                     } else {
-                        level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_FILL_WATER);
+                        level.addLevelSoundEvent(clickPos, SoundEvent.BUCKET_FILL_WATER);
                     }
 
                     return null;
@@ -136,9 +140,9 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                 }
             }
         } else if (bucketContents.inCategory(BlockCategory.LIQUID)) {
-            ItemStack result = ItemStack.get(ItemTypes.BUCKET);
-            Block emptyTarget = block;
-            val targetState = target.getState();
+            ItemStack result = CloudItemRegistry.get().getItem(ItemTypes.BUCKET);
+            Block emptyTarget = level.getBlock(clickPos);
+            //val targetState = target.getState();
             val behavior = targetState.getBehavior();
 
             if (behavior.canWaterlogSource(targetState) && bucketContents.getType() == FLOWING_WATER) {
@@ -160,7 +164,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
 
             if (!ev.isCancelled()) {
                 int layer = behavior.canWaterlogSource(targetState) ? 1 : 0;
-                if (target.getLevel().setBlock(emptyTarget.getPosition(), layer, bucketContents, true, true)) {
+                if (target.getLevel().setBlockState(emptyTarget.getPosition(), layer, bucketContents, true, true)) {
                     target.getLevel().scheduleUpdate(emptyTarget.getPosition(), bucketContents.getBehavior().tickRate());
                 }
                 if (player.isSurvival()) {
@@ -176,15 +180,15 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                 }
 
                 if (itemStack.getMetadata(Bucket.class) == Bucket.LAVA) {
-                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_EMPTY_LAVA);
+                    level.addLevelSoundEvent(clickPos, SoundEvent.BUCKET_EMPTY_LAVA);
                 } else {
-                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.BUCKET_EMPTY_WATER);
+                    level.addLevelSoundEvent(clickPos, SoundEvent.BUCKET_EMPTY_WATER);
                 }
 
                 return null;
             } else {
                 player.getLevel().sendBlocks(new CloudPlayer[]{player},
-                        new Block[]{new CloudBlock(block.getLevel(), block.getPosition(), CloudBlock.EMPTY)},
+                        new Block[]{new CloudBlock(level, clickPos.toInt(), CloudBlock.EMPTY)},
                         UpdateBlockPacket.FLAG_ALL_PRIORITY);
                 player.getInventory().sendContents(player);
             }
@@ -194,12 +198,12 @@ public class ItemBucketBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
         return item.getMetadata(Bucket.class) == Bucket.MILK;
     }
 
     @Override
-    public ItemStack onUse(ItemStack item, int ticksUsed, CloudPlayer player) {
+    public ItemStack onUse(ItemStack item, int ticksUsed, Player player) {
         if (player.isSpectator()) {
             return null;
         }
@@ -213,8 +217,8 @@ public class ItemBucketBehavior extends CloudItemBehavior {
         }
 
         if (!player.isCreative()) {
-            player.getInventory().decrementHandCount();
-            player.getInventory().addItem(ItemStack.get(ItemTypes.BUCKET));
+            ((PlayerInventory) player.getInventory()).decrementHandCount();
+            player.getInventory().addItem(CloudItemRegistry.get().getItem(ItemTypes.BUCKET));
         }
 
         player.removeAllEffects();

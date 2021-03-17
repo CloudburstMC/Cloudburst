@@ -39,6 +39,6 @@ public class EntitySpider extends EntityHostile implements Spider, Arthropod {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.STRING), ItemStack.get(ItemTypes.SPIDER_EYE)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.STRING), CloudItemRegistry.get().getItem(ItemTypes.SPIDER_EYE)};
     }
 }

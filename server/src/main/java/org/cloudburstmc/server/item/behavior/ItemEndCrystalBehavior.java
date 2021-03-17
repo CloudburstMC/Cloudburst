@@ -38,7 +38,7 @@ public class ItemEndCrystalBehavior extends CloudItemBehavior {
         EnderCrystal enderCrystal = EntityRegistry.get().newEntity(EntityTypes.ENDER_CRYSTAL, Location.from(position, level));
         enderCrystal.setRotation(ThreadLocalRandom.current().nextFloat() * 360, 0);
         if (itemStack.hasName()) {
-            enderCrystal.setNameTag(itemStack.getName());
+            enderCrystal.setNameTag(CloudItemRegistry.get().getItemName());
         }
 
         enderCrystal.spawnToAll();

@@ -67,7 +67,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     public boolean grow(Block block) {
         block.set(BlockStates.AIR, true, false);
 
-        val item = (CloudItemStack) ItemStack.get(block.getState());
+        val item = (CloudItemStack) CloudItemRegistry.get().getItem(block.getState());
         WorldFeature feature = GenerationTreeSpecies.fromItem(item.getId(), item.getNetworkData().getDamage()).getDefaultGenerator();
 
         if (feature.place(block.getLevel(), ThreadLocalPRandom.current(), block.getX(), block.getY(), block.getZ())) {

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block;
 
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.util.Identifier;
 
 @FunctionalInterface

@@ -39,7 +39,7 @@ public class EntityDrowned extends EntityHostile implements Drowned, Smiteable {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.ROTTEN_FLESH)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.ROTTEN_FLESH)};
     }
 
     @Override

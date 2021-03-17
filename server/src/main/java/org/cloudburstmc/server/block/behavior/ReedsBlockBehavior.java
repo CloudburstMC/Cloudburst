@@ -18,7 +18,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.REEDS);
+        return CloudItemRegistry.get().getItem(ItemTypes.REEDS);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
                 for (int i = 1; i <= toGrow; i++) {
                     Block b = block.up(i);
                     if (b.getState() == BlockStates.AIR) {
-                        BlockGrowEvent ev = new BlockGrowEvent(b, BlockState.get(BlockTypes.REEDS));
+                        BlockGrowEvent ev = new BlockGrowEvent(b, BlockRegistry.get().getBlock(BlockTypes.REEDS));
                         CloudServer.getInstance().getEventManager().fire(ev);
 
                         if (!ev.isCancelled()) {
@@ -89,7 +89,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
                     for (int y = 1; y < 3; ++y) {
                         Block b = block.up(y);
                         if (b.getState() == BlockStates.AIR) {
-                            b.set(BlockState.get(BlockTypes.REEDS));
+                            b.set(BlockRegistry.get().getBlock(BlockTypes.REEDS));
                             break;
                         }
                     }
@@ -113,13 +113,13 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
         val downType = down.getState().getType();
 
         if (downType == BlockTypes.REEDS) {
-            return placeBlock(block, BlockState.get(BlockTypes.REEDS));
+            return placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.REEDS));
         } else if (downType == BlockTypes.GRASS || downType == BlockTypes.DIRT || downType == BlockTypes.SAND) {
             for (Direction direction : Plane.HORIZONTAL) {
                 val sideType = down.getSideState(direction).getType();
 
                 if (sideType == BlockTypes.WATER || sideType == BlockTypes.FLOWING_WATER) {
-                    return placeBlock(block, BlockState.get(BlockTypes.REEDS));
+                    return placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.REEDS));
                 }
             }
         }

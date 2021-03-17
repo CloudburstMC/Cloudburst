@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.level.feature;
 
+import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.registry.BlockRegistry;
 

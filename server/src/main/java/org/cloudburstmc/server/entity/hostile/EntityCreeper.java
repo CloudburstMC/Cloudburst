@@ -90,7 +90,7 @@ public class EntityCreeper extends EntityHostile implements Creeper {
     @Override
     public ItemStack[] getDrops() {
         if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
-            return new ItemStack[]{ItemStack.get(ItemTypes.GUNPOWDER, ThreadLocalRandom.current().nextInt(2) + 1)};
+            return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.GUNPOWDER, ThreadLocalRandom.current().nextInt(2) + 1)};
         }
         return new ItemStack[0];
     }

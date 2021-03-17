@@ -416,7 +416,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         super.kill();
 
         if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-            this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemTypes.BOAT));
+            this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.BOAT));
         }
     }
 

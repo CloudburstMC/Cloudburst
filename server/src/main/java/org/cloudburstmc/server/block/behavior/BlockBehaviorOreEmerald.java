@@ -26,7 +26,7 @@ public class BlockBehaviorOreEmerald extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.EMERALD, count)
+                    CloudItemRegistry.get().getItem(ItemTypes.EMERALD, count)
             };
         } else {
             return new ItemStack[0];

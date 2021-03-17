@@ -3,11 +3,11 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 public class BlockBehaviorLog extends BlockBehaviorSolid {
@@ -76,6 +76,6 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().resetTrait(BlockTraits.AXIS));
+        return CloudItemRegistry.get().getItem(block.getState().resetTrait(BlockTraits.AXIS));
     }
 }

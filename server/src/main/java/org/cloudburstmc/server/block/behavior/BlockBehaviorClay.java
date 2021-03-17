@@ -11,7 +11,7 @@ public class BlockBehaviorClay extends BlockBehaviorSolid {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.CLAY_BALL, 4)
+                CloudItemRegistry.get().getItem(ItemTypes.CLAY_BALL, 4)
         };
     }
 

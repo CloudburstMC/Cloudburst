@@ -160,7 +160,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.COMPARATOR);
+        return CloudItemRegistry.get().getItem(ItemTypes.COMPARATOR);
     }
 
     public enum Mode {

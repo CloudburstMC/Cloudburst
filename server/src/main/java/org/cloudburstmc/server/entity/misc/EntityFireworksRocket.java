@@ -164,7 +164,7 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
 
     @Override
     public void setFireworkData(FireworkData data) {
-        this.firework = ItemStack.get(ItemTypes.FIREWORKS, 1, data);
+        this.firework = CloudItemRegistry.get().getItem(ItemTypes.FIREWORKS, 1, data);
         this.data.setTag(DISPLAY_ITEM, ((CloudItemStack) this.firework).getNbt());
     }
 

@@ -39,7 +39,7 @@ public class EntityPhantom extends EntityHostile implements Phantom, Smiteable {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.PHANTOM_MEMBRANE)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.PHANTOM_MEMBRANE)};
     }
 
     @Override
