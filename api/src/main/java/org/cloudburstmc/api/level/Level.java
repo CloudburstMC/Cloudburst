@@ -165,7 +165,11 @@ public interface Level extends ChunkManager {
 
     Block[] getCollisionBlocks(AxisAlignedBB bb);
 
-    Set<Entity> getCollidingEntities(AxisAlignedBB bb, Entity target);
+    default Set<? extends Entity> getCollidingEntities(AxisAlignedBB bb) {
+        return getCollidingEntities(bb, null);
+    }
+
+    Set<? extends Entity> getCollidingEntities(AxisAlignedBB bb, Entity target);
 
     int getTickRate();
 

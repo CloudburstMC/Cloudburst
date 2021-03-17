@@ -5,6 +5,7 @@ import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.util.data.CardinalDirection;
 
 import java.util.OptionalLong;
 import java.util.UUID;
@@ -136,6 +137,16 @@ public interface Player extends Entity {
 
     byte getWindowId(Inventory inventory);
 
+    default byte addWindow(Inventory window) {
+        return addWindow(window, null, false);
+    }
+
+    default byte addWindow(Inventory window, Byte forceId) {
+        return addWindow(window, forceId, false);
+    }
+
+    byte addWindow(Inventory window, Byte forceId, boolean isPermanent);
+
     String getDisplayName();
 
     String getXuid();
@@ -148,5 +159,5 @@ public interface Player extends Entity {
 
     void save(boolean async);
 
-
+    CardinalDirection getCardinalDirection();
 }
