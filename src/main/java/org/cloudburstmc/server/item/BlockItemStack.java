@@ -5,6 +5,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 
 import javax.annotation.Nullable;

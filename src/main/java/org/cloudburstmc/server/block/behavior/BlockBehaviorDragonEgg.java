@@ -7,6 +7,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
 
@@ -48,7 +49,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
                 pk.setData((((((Math.abs(diffX) << 16) | (Math.abs(diffY) << 8)) | Math.abs(diffZ)) |
                         ((diffX < 0 ? 1 : 0) << 24)) | ((diffY < 0 ? 1 : 0) << 25)) | ((diffZ < 0 ? 1 : 0) << 26));
                 pk.setPosition(block.getPosition().toFloat().add(0.5f, 0.5f, 0.5f));
-                block.getLevel().addChunkPacket(block.getPosition(), pk);
+                ((CloudLevel) block.getLevel()).addChunkPacket(block.getPosition(), pk);
                 removeBlock(block, true);
 
                 placeBlock(t, block.getState());

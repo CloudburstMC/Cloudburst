@@ -6,13 +6,14 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.cloudburstmc.api.item.ArmorPartType;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.item.ArmorPartType;
+import org.cloudburstmc.api.item.TierType;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.item.ArmorPartTypes;
-import org.cloudburstmc.server.item.TierType;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import static org.cloudburstmc.server.item.TierTypes.*;
+import static org.cloudburstmc.api.item.TierTypes.*;
 
 /**
  * author: MagicDroidX
@@ -61,7 +62,8 @@ abstract public class ItemArmorBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player p) {
+        CloudPlayer player = (CloudPlayer) p;
         boolean equip = false;
         if (this.isHelmet() && player.getInventory().getHelmet().isNull()) {
             if (player.getInventory().setHelmet(item)) {

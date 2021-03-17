@@ -2,19 +2,20 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.FlowerPot;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.blockentity.FlowerPotBlockEntity;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.ItemType;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
@@ -29,7 +30,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (face != Direction.UP) return false;
 
-        FlowerPot flowerPot = BlockEntityRegistry.get().newEntity(BlockEntityTypes.FLOWER_POT, block);
+        FlowerPotBlockEntity flowerPot = (FlowerPotBlockEntity) BlockEntityRegistry.get().newEntity(BlockEntityTypes.FLOWER_POT, block);
         flowerPot.loadAdditionalData(((CloudItemStack) item).getDataTag());
 
         placeBlock(block, item.getBehavior().getBlock(item));
@@ -63,7 +64,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
         blockEntity.spawnToAll();
 
         if (player.isSurvival()) {
-            player.getInventory().decrementHandCount();
+            ((PlayerInventory) player.getInventory()).decrementHandCount();
         }
         return true;
     }
