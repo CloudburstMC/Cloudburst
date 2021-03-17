@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.RecipeRegistry;
@@ -22,7 +23,6 @@ import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.block.BlockIds;
 import org.cloudburstmc.server.inventory.*;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockIds.LIT_BLAST_FURNACE;
+import static org.cloudburstmc.api.block.BlockIds.LIT_BLAST_FURNACE;
 
 @Log4j2
 public class CloudRecipeRegistry implements RecipeRegistry {

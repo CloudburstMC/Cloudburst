@@ -9,7 +9,7 @@ public class BlockBehaviorIronBars extends BlockBehaviorThin {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(block.getState().defaultState());
+        return CloudItemRegistry.get().getItem(block.getState().defaultState());
     }
 
     @Override

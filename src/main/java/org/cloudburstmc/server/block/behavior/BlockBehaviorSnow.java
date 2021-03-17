@@ -12,7 +12,7 @@ public class BlockBehaviorSnow extends BlockBehaviorSolid {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (checkTool(block.getState(), hand)) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.SNOWBALL, 4)
+                    CloudItemRegistry.get().getItem(ItemTypes.SNOWBALL, 4)
             };
         } else {
             return new ItemStack[0];

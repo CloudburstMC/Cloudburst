@@ -121,7 +121,7 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return new ItemStack[]{
-                ItemStack.get(block.getState().defaultState())
+                CloudItemRegistry.get().getItem(block.getState().defaultState())
         };
     }
 

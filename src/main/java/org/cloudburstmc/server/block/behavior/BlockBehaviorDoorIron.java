@@ -2,8 +2,10 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
 
@@ -26,7 +28,7 @@ public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.IRON_DOOR);
+        return CloudItemRegistry.get().getItem(ItemTypes.IRON_DOOR);
     }
 
     @Override

@@ -28,7 +28,7 @@ public class BlockBehaviorOreLapis extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.DYE, new Random().nextInt(4) + 4, DyeColor.BLUE)
+                    CloudItemRegistry.get().getItem(ItemTypes.DYE, new Random().nextInt(4) + 4, DyeColor.BLUE)
             };
         } else {
             return new ItemStack[0];

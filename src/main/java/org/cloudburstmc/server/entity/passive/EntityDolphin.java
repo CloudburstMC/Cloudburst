@@ -37,6 +37,6 @@ public class EntityDolphin extends Animal implements Dolphin {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.FISH)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.FISH)};
     }
 }

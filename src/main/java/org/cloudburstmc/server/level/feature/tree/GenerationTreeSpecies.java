@@ -3,18 +3,18 @@ package org.cloudburstmc.server.level.feature.tree;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomBrown;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomRed;
 import org.cloudburstmc.server.level.feature.FeatureChorusTree;
 import org.cloudburstmc.server.level.feature.FeatureFallenTree;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 /**
  * The different tree varieties in Minecraft.

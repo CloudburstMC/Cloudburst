@@ -27,7 +27,7 @@ public class BlockBehaviorOreCoal extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.COAL, count)
+                    CloudItemRegistry.get().getItem(ItemTypes.COAL, count)
             };
         } else {
             return new ItemStack[0];

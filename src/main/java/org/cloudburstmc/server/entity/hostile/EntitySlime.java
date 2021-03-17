@@ -38,6 +38,6 @@ public class EntitySlime extends EntityHostile implements Slime {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.SLIME_BALL)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.SLIME_BALL)};
     }
 }

@@ -1,18 +1,15 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.event.block.DoorToggleEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
@@ -192,7 +189,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
         if (type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
             boolean open = isOpen(block);
-            if ((!open && block.getLevel().isBlockPowered(block.getPosition())) || (open && !block.getLevel().isBlockPowered(block.getPosition()))) {
+            if ((!open && ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition())) || (open && !((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition()))) {
                 block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
 
                 this.toggle(block, null);
@@ -231,7 +228,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
             placeBlock(blockUp, door);
 
             Block newBlock = block.refresh();
-            if (!this.isOpen(newBlock) && block.getLevel().isBlockPowered(block.getPosition())) {
+            if (!this.isOpen(newBlock) && ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition())) {
                 this.toggle(newBlock, null);
             }
 
@@ -266,11 +263,11 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
             return false;
         }
 
-        block.getLevel().addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
+        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
         return true;
     }
 
-    public boolean toggle(Block block, CloudPlayer player) {
+    public boolean toggle(Block block, Player player) {
         DoorToggleEvent event = new DoorToggleEvent(block, player);
         block.getLevel().getServer().getEventManager().fire(event);
 

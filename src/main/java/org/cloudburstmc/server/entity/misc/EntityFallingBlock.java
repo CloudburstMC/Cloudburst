@@ -11,7 +11,6 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
 import org.cloudburstmc.api.event.entity.EntityBlockChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -146,7 +145,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
                 BlockState blockState = b.getState();
                 if (blockState.getType() != AIR && blockState.inCategory(BlockCategory.TRANSPARENT) && !blockState.getBehavior().canBeReplaced(b)) {
                     if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-                        getLevel().dropItem(this.getPosition(), ItemStack.get(this.getBlock()));
+                        getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(this.getBlock()));
                     }
                 } else {
                     EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, b, this.getBlock());

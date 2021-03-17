@@ -2,7 +2,6 @@ package org.cloudburstmc.server.entity.vehicle;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -12,10 +11,12 @@ import org.cloudburstmc.api.event.entity.EntityExplosionPrimeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.data.MinecartType;
+import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.data.MinecartType;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -112,7 +113,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), ItemStack.get(ItemTypes.TNT_MINECART));
+        this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.TNT_MINECART));
     }
 
     @Override
@@ -121,7 +122,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
-    public boolean onInteract(CloudPlayer player, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         boolean interact = super.onInteract(player, item, clickedPos);
         if (item.getType() == ItemTypes.FLINT_AND_STEEL || item.getType() == ItemTypes.FIREBALL) {
             this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.IGNITE);
@@ -133,7 +134,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
-    public boolean mount(Entity entity, EntityLinkData.Type mode) {
+    public boolean mount(Entity entity, MountType mode) {
         return false;
     }
 }

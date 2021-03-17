@@ -164,7 +164,7 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlock(Vector3i.from(scanX - width, scanY + height, scanZ), BlockState.get(BlockTypes.PORTAL));
+                            level.setBlock(Vector3i.from(scanX - width, scanY + height, scanZ), BlockRegistry.get().getBlock(BlockTypes.PORTAL));
                         }
                     }
 
@@ -243,7 +243,7 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlock(Vector3i.from(scanX, scanY + height, scanZ - width), BlockState.get(BlockTypes.PORTAL));
+                            level.setBlock(Vector3i.from(scanX, scanY + height, scanZ - width), BlockRegistry.get().getBlock(BlockTypes.PORTAL));
                         }
                     }
 
@@ -251,7 +251,7 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
                     return null;
                 }
             }
-            BlockState fire = BlockState.get(BlockTypes.FIRE);
+            BlockState fire = BlockRegistry.get().getBlock(BlockTypes.FIRE);
             BlockBehaviorFire fireBehavior = (BlockBehaviorFire) BlockRegistry.get().getBehavior(BlockTypes.FIRE);
 
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {

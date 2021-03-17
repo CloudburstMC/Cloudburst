@@ -8,6 +8,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -19,8 +20,8 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
-import static org.cloudburstmc.server.utils.data.SpongeType.DRY;
-import static org.cloudburstmc.server.utils.data.SpongeType.WET;
+import static org.cloudburstmc.api.util.data.SpongeType.DRY;
+import static org.cloudburstmc.api.util.data.SpongeType.WET;
 
 public class BlockBehaviorSponge extends BlockBehaviorSolid {
 
@@ -32,7 +33,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        CloudLevel level = block.getLevel();
+        CloudLevel level = (CloudLevel) block.getLevel();
 
         val state = item.getBehavior().getBlock(item);
         boolean blockSet = placeBlock(block, state);
@@ -42,11 +43,11 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
             if (type == WET && level.getDimension() == CloudLevel.DIMENSION_NETHER) {
                 block.set(state.withTrait(BlockTraits.SPONGE_TYPE, DRY));
 
-                block.getLevel().addSound(block.getPosition(), Sound.RANDOM_FIZZ);
+                ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.RANDOM_FIZZ);
 
                 for (int i = 0; i < 8; ++i) {
                     //TODO: Use correct smoke particle
-                    block.getLevel().addParticle(new SmokeParticle(block.getPosition().add(Math.random(), 1, Math.random())));
+                    ((CloudLevel) block.getLevel()).addParticle(new SmokeParticle(block.getPosition().add(Math.random(), 1, Math.random())));
                 }
             } else if (type == DRY && performWaterAbsorb(block.refresh())) {
                 block.set(state.withTrait(BlockTraits.SPONGE_TYPE, WET));

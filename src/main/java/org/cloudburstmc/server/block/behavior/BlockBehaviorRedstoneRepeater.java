@@ -16,7 +16,7 @@ public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStack.get(ItemTypes.REPEATER);
+        return CloudItemRegistry.get().getItem(ItemTypes.REPEATER);
     }
 
     @Override

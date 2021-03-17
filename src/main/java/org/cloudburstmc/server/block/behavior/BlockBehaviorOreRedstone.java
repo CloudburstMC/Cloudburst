@@ -24,7 +24,7 @@ public class BlockBehaviorOreRedstone extends BlockBehaviorSolid {
             }
 
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.REDSTONE, count)
+                    CloudItemRegistry.get().getItem(ItemTypes.REDSTONE, count)
             };
         } else {
             return new ItemStack[0];

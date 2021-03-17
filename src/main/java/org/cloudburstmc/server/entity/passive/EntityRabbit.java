@@ -38,7 +38,7 @@ public class EntityRabbit extends Animal implements Rabbit {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.RABBIT), ItemStack.get(ItemTypes.RABBIT_HIDE), ItemStack.get(ItemTypes.RABBIT_FOOT)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.RABBIT), CloudItemRegistry.get().getItem(ItemTypes.RABBIT_HIDE), CloudItemRegistry.get().getItem(ItemTypes.RABBIT_FOOT)};
     }
 
     @Override

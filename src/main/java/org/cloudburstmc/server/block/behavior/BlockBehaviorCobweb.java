@@ -20,7 +20,7 @@ public class BlockBehaviorCobweb extends FloodableBlockBehavior {
         val behavior = hand.getBehavior();
         if (behavior.isShears() || behavior.isSword()) {
             return new ItemStack[]{
-                    ItemStack.get(ItemTypes.STRING)
+                    CloudItemRegistry.get().getItem(ItemTypes.STRING)
             };
         } else {
             return new ItemStack[0];

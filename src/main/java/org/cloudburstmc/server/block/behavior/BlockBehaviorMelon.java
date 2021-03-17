@@ -22,7 +22,7 @@ public class BlockBehaviorMelon extends BlockBehaviorSolid {
         }
 
         return new ItemStack[]{
-                ItemStack.get(ItemTypes.MELON, Math.min(9, count))
+                CloudItemRegistry.get().getItem(ItemTypes.MELON, Math.min(9, count))
         };
     }
 

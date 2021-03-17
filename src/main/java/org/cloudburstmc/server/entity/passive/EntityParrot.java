@@ -37,6 +37,6 @@ public class EntityParrot extends Animal implements Parrot {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.FEATHER)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.FEATHER)};
     }
 }

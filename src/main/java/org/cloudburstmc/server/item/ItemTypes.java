@@ -11,12 +11,12 @@ import org.cloudburstmc.api.item.ToolType;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.item.data.Coal;
 import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
 
 import javax.annotation.Nullable;
 

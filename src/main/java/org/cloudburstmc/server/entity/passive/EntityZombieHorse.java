@@ -34,7 +34,7 @@ public class EntityZombieHorse extends Animal implements ZombieHorse, Smiteable 
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.get(ItemTypes.ROTTEN_FLESH)};
+        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.ROTTEN_FLESH)};
     }
 
     @Override
