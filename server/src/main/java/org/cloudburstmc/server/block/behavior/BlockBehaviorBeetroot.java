@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.server.item.ItemTypes.BEETROOT;
 import static org.cloudburstmc.server.item.ItemTypes.BEETROOT_SEEDS;

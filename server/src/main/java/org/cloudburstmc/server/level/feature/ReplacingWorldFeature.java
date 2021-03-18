@@ -17,12 +17,12 @@ import org.cloudburstmc.server.registry.BlockRegistry;
 public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter {
     @Override
     public boolean test(BlockState state) {
-        Identifier id = state.getId();
+        Identifier id = state.getType().getId();
         return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || (!state.getBehavior().isLiquid() && state.getType().isReplaceable());
     }
 
     public boolean testOrLiquid(BlockState state) {
-        Identifier id = state.getId();
+        Identifier id = state.getType().getId();
         return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || state.getType().isReplaceable();
     }
 
@@ -40,9 +40,9 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      */
     public void replaceGrassWithDirt(ChunkManager level, int x, int y, int z) {
         if (y >= 0 && y < 256) {
-            Identifier id = level.getBlockState(x, y, z).getId();
+            Identifier id = level.getBlockState(x, y, z).getType().getId();
             if (id == BlockIds.GRASS || id == BlockIds.MYCELIUM || id == BlockIds.PODZOL) {
-                level.setBlockAt(x, y, z, BlockStates.DIRT);
+                level.setBlockState(x, y, z, BlockStates.DIRT);
             }
         }
     }

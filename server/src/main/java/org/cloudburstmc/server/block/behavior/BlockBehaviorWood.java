@@ -6,9 +6,11 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.TreeSpecies;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 //Block state information: https://hastebin.com/emuvawasoj.js
 public class BlockBehaviorWood extends BlockBehaviorSolid {
@@ -26,7 +28,7 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState().resetTrait(BlockTraits.AXIS));
+        return CloudItemRegistry.get().getItem(block.getState().withTrait(BlockTraits.AXIS, BlockTraits.AXIS.getDefaultValue()));
     }
 
 
@@ -38,7 +40,7 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
         val behavior = item.getBehavior();
-        if (!behavior.isAxe() || !player.isCreative() && behavior.useOn(item, block) == item) {
+        if (!behavior.isAxe() || !player.isCreative() && behavior.useOn(item, block.getState()) == item) {
             return false;
         }
 

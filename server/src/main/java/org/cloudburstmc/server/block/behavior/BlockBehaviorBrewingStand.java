@@ -8,14 +8,18 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BrewingStand;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.TierTypes;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.blockentity.BrewingStandBlockEntity;
 import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.item.TierTypes;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.blockentity.BlockEntityTypes.BREWING_STAND;
 
@@ -33,7 +37,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
         if (!state.getBehavior().isTransparent(state)) {
             placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.BREWING_STAND));
 
-            BrewingStand brewingStand = BlockEntityRegistry.get().newEntity(BREWING_STAND, block.getChunk(), block.getPosition());
+            BrewingStandBlockEntity brewingStand = (BrewingStandBlockEntity) BlockEntityRegistry.get().newEntity(BREWING_STAND, (CloudChunk) block.getChunk(), block.getPosition());
             brewingStand.loadAdditionalData(((CloudItemStack) item).getDataTag());
             if (item.hasName()) {
                 brewingStand.setCustomName(item.getName());
@@ -56,7 +60,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
                     blockEntity.close();
                 }
 
-                brewing = BlockEntityRegistry.get().newEntity(BREWING_STAND, block.getChunk(), block.getPosition());
+                brewing = BlockEntityRegistry.get().newEntity(BREWING_STAND, (CloudChunk) block.getChunk(), block.getPosition());
             }
 
             player.addWindow(brewing.getInventory());

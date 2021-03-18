@@ -4,15 +4,15 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.potion.CloudEffect;
 
 public class BlockBehaviorMagma extends BlockBehaviorSolid {
 
     @Override
     public void onEntityCollide(Block block, Entity entity) {
-        if (!entity.hasEffect(CloudEffect.FIRE_RESISTANCE)) {
+        if (!entity.hasEffect(EffectTypes.FIRE_RESISTANCE)) {
             if (entity instanceof CloudPlayer) {
                 CloudPlayer p = (CloudPlayer) entity;
                 if (!p.isCreative() && !p.isSpectator() && !p.isSneaking()) {

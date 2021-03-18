@@ -7,9 +7,11 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorButton extends FloodableBlockBehavior {
 
@@ -35,7 +37,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
             return false;
         }
 
-        CloudLevel level = block.getLevel();
+        CloudLevel level = (CloudLevel) block.getLevel();
         level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
 
         block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, true), true, false);
@@ -57,7 +59,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
             }
         } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             if (this.isActivated(block)) {
-                CloudLevel level = block.getLevel();
+                CloudLevel level = (CloudLevel) block.getLevel();
                 level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
 
                 block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, false),
@@ -103,7 +105,8 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState().resetTrait(BlockTraits.FACING_DIRECTION).resetTrait(BlockTraits.IS_BUTTON_PRESSED));
+        return CloudItemRegistry.get().getItem(block.getState().withTrait(BlockTraits.FACING_DIRECTION, BlockTraits.FACING_DIRECTION.getDefaultValue())
+                .withTrait(BlockTraits.IS_BUTTON_PRESSED, BlockTraits.IS_BUTTON_PRESSED.getDefaultValue()));
     }
 
 

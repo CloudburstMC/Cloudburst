@@ -31,7 +31,7 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
             if (random.nextBoolean()) {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 7) {
-                    BlockGrowEvent ev = new BlockGrowEvent(block, state.withTrait(BlockTraits.GROWTH, Math.min(BlockTraits.GROWTH.getRange().getEnd(), state.ensureTrait(BlockTraits.GROWTH) + 1)));
+                    BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
                     CloudServer.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), true);

@@ -5,6 +5,8 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockFadeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
 

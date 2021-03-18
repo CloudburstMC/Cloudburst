@@ -8,12 +8,15 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -60,7 +63,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             val liquid = block.getExtra();
-            Integer waterDamage = liquid.getTrait(FLUID_LEVEL);
+            Integer waterDamage = liquid.ensureTrait(FLUID_LEVEL);
 
             if (waterDamage == null || waterDamage != 0 || liquid.ensureTrait(BlockTraits.IS_FLOWING)) {
                 block.getLevel().useBreakOn(block.getPosition());
@@ -143,10 +146,10 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
                     if (waterData == 0 && !above.ensureTrait(BlockTraits.IS_FLOWING)) {
                         val highestKelp = level.getBlock(x, y - 1, z);
                         if (grow(highestKelp)) {
-                            level.addParticle(new BoneMealParticle(block.getPosition()));
+                            ((CloudLevel) level).addParticle(new BoneMealParticle(block.getPosition()));
 
                             if (player != null && !player.isCreative()) {
-                                player.getInventory().decrementHandCount();
+                                ((PlayerInventory) player.getInventory()).decrementHandCount();
                             }
                             return false;
                         }

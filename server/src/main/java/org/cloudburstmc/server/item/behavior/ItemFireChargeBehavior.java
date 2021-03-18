@@ -2,16 +2,18 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockIgniteEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.BlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -28,19 +30,19 @@ public class ItemFireChargeBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public ItemStack onActivate(ItemStack itemStack, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level) {
-        val targetState = target.getState();
-        if (block.getState() == BlockStates.AIR && (targetState.getBehavior().isSolid(targetState) || targetState.getType() == BlockTypes.LEAVES)) {
-            if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
-                BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
-                block.getLevel().getServer().getEventManager().fire(e);
+    public ItemStack onActivate(ItemStack itemStack, Player player, BlockState block, BlockState targetState, Direction face, Vector3f clickPos, Level level) {
+
+        if (block == BlockStates.AIR && (targetState.getBehavior().isSolid(targetState) || targetState.getType() == BlockTypes.LEAVES)) {
+            if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(level.getBlock(clickPos.toInt()).downState()) || BlockBehaviorFire.canNeighborBurn(level.getBlock(clickPos.toInt()))) {
+                BlockIgniteEvent e = new BlockIgniteEvent(level.getBlock(clickPos.toInt()), null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
+                level.getServer().getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
                     val fire = BlockRegistry.get().getBlock(FIRE);
-                    block.set(fire);
+                    level.setBlockState(clickPos.toInt(), fire);
 
-                    level.addSound(block.getPosition(), Sound.MOB_GHAST_FIREBALL);
-                    level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
+                    ((CloudLevel) level).addSound(clickPos, Sound.MOB_GHAST_FIREBALL);
+                    level.scheduleUpdate(clickPos.toInt(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
                 }
                 if (player.isSurvival()) {
                     return itemStack.decrementAmount();

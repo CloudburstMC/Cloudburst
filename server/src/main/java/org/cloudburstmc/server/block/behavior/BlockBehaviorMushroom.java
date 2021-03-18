@@ -8,15 +8,18 @@ import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -51,14 +54,14 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (player != null && player.getGamemode().isSurvival()) {
-                player.getInventory().decrementHandCount();
+                ((PlayerInventory) player.getInventory()).decrementHandCount();
             }
 
             if (ThreadLocalRandom.current().nextFloat() < 0.4) {
                 this.grow(block);
             }
 
-            block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+            ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
             return true;
         }
         return false;

@@ -75,7 +75,7 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public void set(BlockState state, int layer, boolean direct, boolean update) {
-        this.level.setBlock(this.position, layer, state, direct, update);
+        this.level.setBlockState(this.position, layer, state, direct, update);
     }
 
     @Override

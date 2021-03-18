@@ -11,6 +11,7 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.Noteblock;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -145,7 +146,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
 
         Instrument instrument = this.getInstrument(block);
 
-        val level = block.getLevel();
+        val level = (CloudLevel) block.getLevel();
         level.addLevelSoundEvent(block.getPosition(), SoundEvent.NOTE, instrument.ordinal() << 8 | this.getStrength(block));
 
         BlockEventPacket pk = new BlockEventPacket();
@@ -167,7 +168,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
         if (type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
             Noteblock blockEntity = this.getBlockEntity(block);
             if (blockEntity != null) {
-                if (block.getLevel().isBlockPowered(block.getPosition())) {
+                if (((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition())) {
                     if (!blockEntity.isPowered()) {
                         this.emitSound(block);
                     }

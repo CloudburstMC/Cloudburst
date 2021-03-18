@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 

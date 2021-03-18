@@ -2,20 +2,20 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Axis;
 import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.blockentity.ChestBlockEntity;
 import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -88,7 +88,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
 
         placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace));
 
-        Chest chest1 = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, block.getChunk(), block.getPosition());
+        ChestBlockEntity chest1 = (ChestBlockEntity) BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, (CloudChunk) block.getChunk(), block.getPosition());
         chest1.loadAdditionalData(((CloudItemStack) item).getDataTag());
         if (item.hasName()) {
             chest1.setCustomName(item.getName());
@@ -123,7 +123,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
             if (t instanceof Chest) {
                 chest = (Chest) t;
             } else {
-                chest = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, block.getChunk(), block.getPosition());
+                chest = BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, (CloudChunk) block.getChunk(), block.getPosition());
             }
 
             player.addWindow(chest.getInventory());

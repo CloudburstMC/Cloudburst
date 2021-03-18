@@ -41,7 +41,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
         //Bone meal
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (block.getState().ensureTrait(BlockTraits.GROWTH) < 7) {
-                BlockGrowEvent ev = new BlockGrowEvent(block, block.getState().withTrait(BlockTraits.GROWTH, Math.min(BlockTraits.GROWTH.getRange().getEnd(), block.getState().ensureTrait(BlockTraits.GROWTH) + 1)));
+                BlockGrowEvent ev = new BlockGrowEvent(block, block.getState().incrementTrait(BlockTraits.GROWTH));
                 CloudServer.getInstance().getEventManager().fire(ev);
 
                 if (ev.isCancelled()) {
@@ -73,7 +73,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
             if (ThreadLocalRandom.current().nextInt(2) == 1) {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 0x07) {
-                    BlockGrowEvent ev = new BlockGrowEvent(block, state.withTrait(BlockTraits.GROWTH, Math.min(BlockTraits.GROWTH.getRange().getEnd(), block.getState().ensureTrait(BlockTraits.GROWTH) + 1)));
+                    BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
                     CloudServer.getInstance().getEventManager().fire(ev);
 
                     if (!ev.isCancelled()) {

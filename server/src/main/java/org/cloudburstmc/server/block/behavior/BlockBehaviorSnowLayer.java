@@ -1,16 +1,16 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.event.block.BlockFadeEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
 
@@ -28,7 +28,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     public int onUpdate(Block block, int type) {
         super.onUpdate(block, type);
         if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
-            if (block.getLevel().getBlockLightAt(block.getX(), block.getY(), block.getZ()) >= 10) {
+            if (((CloudLevel) block.getLevel()).getBlockLightAt(block.getX(), block.getY(), block.getZ()) >= 10) {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockStates.AIR);
                 block.getLevel().getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {

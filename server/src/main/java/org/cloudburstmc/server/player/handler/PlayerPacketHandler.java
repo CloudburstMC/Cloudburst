@@ -11,6 +11,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.PlayerActionType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
@@ -27,6 +28,7 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.blockentity.Lectern;
+import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -37,14 +39,15 @@ import org.cloudburstmc.api.event.block.LecternPageChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
+import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLectern;
+import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
@@ -119,7 +122,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        PlayerChangeSkinEvent playerChangeSkinEvent = new PlayerChangeSkinEvent(player, skin);
+        PlayerChangeSkinEvent playerChangeSkinEvent = new PlayerChangeSkinEvent(player, /* skin*/ null); // TODO - need a SerializedSkin to Skin (api) parser
         playerChangeSkinEvent.setCancelled(TimeUnit.SECONDS.toMillis(player.getServer().getPlayerSkinChangeCooldown()) > System.currentTimeMillis() - player.lastSkinChange);
         player.getServer().getEventManager().fire(playerChangeSkinEvent);
         if (!playerChangeSkinEvent.isCancelled()) {
@@ -194,7 +197,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(AdventureSettingsPacket packet) {
         Set<AdventureSetting> flags = packet.getSettings();
-        if (!player.getServer().getAllowFlight() && flags.contains(AdventureSetting.FLYING) && !player.getAdventureSettings().get(CloudAdventureSettings.Type.ALLOW_FLIGHT)) {
+        if (!player.getServer().getAllowFlight() && flags.contains(AdventureSetting.FLYING) && !player.getAdventureSettings().get(org.cloudburstmc.api.player.AdventureSetting.ALLOW_FLIGHT)) {
             player.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on player server");
             return true;
         }
@@ -203,7 +206,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (playerToggleFlightEvent.isCancelled()) {
             player.getAdventureSettings().update();
         } else {
-            player.getAdventureSettings().set(CloudAdventureSettings.Type.FLYING, playerToggleFlightEvent.isFlying());
+            player.getAdventureSettings().set(org.cloudburstmc.api.player.AdventureSetting.FLYING, playerToggleFlightEvent.isFlying());
         }
         return true;
     }
@@ -255,8 +258,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(PlayerActionPacket packet) {
         if (!player.spawned || (!player.isAlive() &&
-                packet.getAction() != PlayerActionPacket.Action.RESPAWN &&
-                packet.getAction() != PlayerActionPacket.Action.DIMENSION_CHANGE_REQUEST)) {
+                packet.getAction() != PlayerActionType.RESPAWN &&
+                packet.getAction() != PlayerActionType.DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK)) {
             return true;
         }
 
@@ -413,7 +416,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     player.setSneaking(false);
                 }
                 break;
-            case DIMENSION_CHANGE_REQUEST:
+            case DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK:
                 player.sendPosition(player.getPosition(), player.getYaw(), player.getPitch(), MovePlayerPacket.Mode.NORMAL);
                 break; //TODO
             case START_GLIDE:
@@ -554,7 +557,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         ItemStack serverItem = block.getState().getBehavior().toItem(block);
 
         if (packet.isAddUserData()) {
-            BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(
+            BaseBlockEntity blockEntity = (BaseBlockEntity) player.getLevel().getLoadedBlockEntity(
                     Vector3i.from(pickPos.getX(), pickPos.getY(), pickPos.getZ()));
             if (blockEntity != null) {
                 NbtMap nbt = blockEntity.getItemTag();
@@ -695,7 +698,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         try (Timing ignored2 = Timings.playerCommandTimer.startTiming()) {
-            player.getServer().dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
+            player.getServer().dispatchCommand((CommandSender) playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
         }
         return true;
     }
@@ -754,7 +757,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockPos);
+        BaseBlockEntity blockEntity = (BaseBlockEntity) player.getLevel().getLoadedBlockEntity(blockPos);
         if (blockEntity != null && blockEntity.isSpawnable()) {
             if (!blockEntity.updateFromClient(packet.getData(), player)) {
                 blockEntity.spawnTo(player);

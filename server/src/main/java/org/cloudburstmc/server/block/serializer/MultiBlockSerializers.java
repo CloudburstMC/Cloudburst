@@ -120,7 +120,6 @@ public class MultiBlockSerializers {
                     Builder.combine(BedrockStateTags.TAG_NEW_LOG_TYPE, TreeSpecies.WARPED.name().toLowerCase(), true),
                     Builder.combine(BedrockStateTags.TAG_STRIPPED_BIT, true, true)
             )
-            .baseSerializer(DeprecatedSerializer.INSTANCE)
             .buildSerializer();
 
     public static final MultiBlockSerializer LEAVES = builder()
@@ -256,7 +255,6 @@ public class MultiBlockSerializers {
                     Builder.combine(BedrockStateTags.TAG_STRIPPED_BIT, true, true)
             )
             .defaultId(BlockIds.WOOD)
-            .baseSerializer(DeprecatedSerializer.INSTANCE)
             .buildSerializer();
 
     public static final MultiBlockSerializer WOODEN_SLAB = builder()

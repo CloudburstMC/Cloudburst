@@ -6,6 +6,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorCobweb extends FloodableBlockBehavior {
 

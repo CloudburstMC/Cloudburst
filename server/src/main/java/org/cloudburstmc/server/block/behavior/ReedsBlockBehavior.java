@@ -5,14 +5,18 @@ import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
@@ -61,10 +65,10 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
                 if (success) {
                     if (player != null && player.getGamemode().isSurvival()) {
-                        player.getInventory().decrementHandCount();
+                        ((PlayerInventory) player.getInventory()).decrementHandCount();
                     }
 
-                    level.addParticle(new BoneMealParticle(block.getPosition()));
+                    ((CloudLevel) level).addParticle(new BoneMealParticle(block.getPosition()));
                 }
             }
 

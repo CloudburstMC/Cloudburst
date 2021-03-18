@@ -7,15 +7,16 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockFadeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.GameMode;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.BlockRegistry;
 
 public class BlockBehaviorIce extends BlockBehaviorTransparent {
 
 
     @Override
-    public boolean onBreak(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onBreak(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
         if (player.getGamemode() == GameMode.CREATIVE) {
             return removeBlock(block);
@@ -33,11 +34,11 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
-            if (block.getLevel().getBlockLightAt(block.getX(), block.getY(), block.getZ()) >= 12) {
+            if (((CloudLevel) block.getLevel()).getBlockLightAt(block.getX(), block.getY(), block.getZ()) >= 12) {
                 BlockFadeEvent event = new BlockFadeEvent(block, BlockRegistry.get().getBlock(BlockTypes.WATER));
                 block.getLevel().getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
-                    block.getLevel().setBlock(block.getPosition(), event.getNewState(), true);
+                    block.getLevel().setBlockState(block.getPosition(), event.getNewState(), true);
                 }
                 return CloudLevel.BLOCK_UPDATE_NORMAL;
             }

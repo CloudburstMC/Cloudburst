@@ -9,10 +9,12 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Random;
 
@@ -107,7 +109,7 @@ public class ParticleCommand extends Command {
         Particle particle = this.getParticle(name, location, data);
 
         if (particle == null) {
-            location.getLevel().addParticleEffect(location.getPosition(), Identifier.fromString(args[0]), -1, location.getLevel().getDimension());
+            ((CloudLevel) location.getLevel()).addParticleEffect(location.getPosition(), Identifier.fromString(args[0]), -1, ((CloudLevel) location.getLevel()).getDimension());
             return true;
         }
 
@@ -118,7 +120,7 @@ public class ParticleCommand extends Command {
         for (int i = 0; i < count; i++) {
             particle.setPosition(location.getPosition()
                     .add(random.nextFloat() * 2 - 1, random.nextFloat() * 2 - 1, random.nextFloat() * 2 - 1));
-            location.getLevel().addParticle(particle);
+            ((CloudLevel) location.getLevel()).addParticle(particle);
         }
 
         return true;

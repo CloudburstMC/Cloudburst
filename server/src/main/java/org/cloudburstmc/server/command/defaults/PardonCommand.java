@@ -2,6 +2,7 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -35,7 +36,7 @@ public class PardonCommand extends Command {
             return false;
         }
 
-        sender.getServer().getNameBans().remove(args[0]);
+        ((CloudServer) sender.getServer()).getNameBans().remove(args[0]);
 
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.unban.success", args[0]));
 
