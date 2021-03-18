@@ -74,7 +74,6 @@ public class FurnaceRecipe implements CraftingRecipe {
         return 0;
     }
 
-    @Override
     public CraftingData toNetwork(int netId) {
         val ingredientData = ((CloudItemStack) ingredient).getNetworkData();
         val outputData = ((CloudItemStack) output).getNetworkData();

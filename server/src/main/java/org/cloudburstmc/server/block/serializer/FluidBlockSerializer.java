@@ -6,7 +6,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.server.block.trait.BlockTrait;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 
 import java.util.Map;
 

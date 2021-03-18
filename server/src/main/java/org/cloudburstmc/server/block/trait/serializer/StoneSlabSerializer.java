@@ -3,8 +3,8 @@ package org.cloudburstmc.server.block.trait.serializer;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.data.StoneSlabType;
-import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
 
 import javax.annotation.ParametersAreNonnullByDefault;

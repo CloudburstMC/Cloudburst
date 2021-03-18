@@ -62,12 +62,12 @@ public final class LevelChunkManager {
      * @return chunks
      */
     @Nonnull
-    public synchronized Set<Chunk> getLoadedChunks() {
-        ImmutableSet.Builder<Chunk> chunks = ImmutableSet.builder();
+    public synchronized Set<CloudChunk> getLoadedChunks() {
+        ImmutableSet.Builder<CloudChunk> chunks = ImmutableSet.builder();
         for (LoadingChunk loadingChunk : this.chunks.values()) {
             Chunk chunk = loadingChunk.getChunk();
             if (chunk != null) {
-                chunks.add(chunk);
+                chunks.add((CloudChunk) chunk);
             }
         }
         return chunks.build();

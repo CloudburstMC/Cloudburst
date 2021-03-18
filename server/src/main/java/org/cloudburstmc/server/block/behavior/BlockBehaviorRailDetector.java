@@ -9,6 +9,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.DETECTOR_RAIL;
 
@@ -76,7 +77,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
             level.scheduleUpdate(block.getPosition().down(), 0);
         }
 
-        level.updateComparatorOutputLevel(block.getPosition());
+        ((CloudLevel) level).updateComparatorOutputLevel(block.getPosition());
     }
 
     @Override

@@ -69,7 +69,7 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
                 .build());
 
         tag.putCompound("movingBlockExtra", NbtMap.builder()
-                .putString("name", this.extraBlockRegistry.get().getBlockType().toString())
+                .putString("name", this.extraBlockState.getType().toString())
                 .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(this.extraBlockState)) //TODO: check
                 .build());
 

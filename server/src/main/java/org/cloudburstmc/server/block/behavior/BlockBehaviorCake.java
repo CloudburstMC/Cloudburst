@@ -5,11 +5,14 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.food.Food;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorCake extends BlockBehaviorTransparent {
 
@@ -83,7 +86,8 @@ public class BlockBehaviorCake extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, ItemStack item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player p) {
+        CloudPlayer player = (CloudPlayer) p;
         if (player != null && player.getFoodData().getLevel() < player.getFoodData().getMaxLevel()) {
             int counter = block.getState().ensureTrait(BlockTraits.BITE_COUNTER);
 

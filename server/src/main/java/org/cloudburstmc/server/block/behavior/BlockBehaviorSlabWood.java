@@ -6,6 +6,7 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.SlabSlot;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
 
@@ -22,7 +23,7 @@ public class BlockBehaviorSlabWood extends BlockBehaviorSlab {
     public ItemStack toItem(Block block) {
         var state = block.getState();
         if (block.getState().ensureTrait(BlockTraits.SLAB_SLOT) == SlabSlot.TOP) {
-            state = state.resetTrait(BlockTraits.SLAB_SLOT);
+            state = state.withTrait(BlockTraits.SLAB_SLOT, BlockTraits.SLAB_SLOT.getDefaultValue());
         }
 
         return CloudItemRegistry.get().getItem(state);

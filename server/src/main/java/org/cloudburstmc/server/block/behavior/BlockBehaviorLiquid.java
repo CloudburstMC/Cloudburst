@@ -151,7 +151,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
             // This check exists because if water is at layer1 with air at layer0, the water gets invisible
             if (usesWaterLogging() && block.getExtra() != BlockStates.AIR) {
                 val mainBlockState = block.getState();
-//                val behavior = mainBlockRegistry.get().getBlockBehavior();
+//                val behavior = mainBlockState.getBehavior();
 
                 if (mainBlockState == BlockStates.AIR) {
                     val liquid = block.getExtra();
@@ -196,9 +196,9 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
                 if (adjacentSources >= 2 && isWater(currentState.getType())) {
                     BlockState bottomBlockState = block.down().getLiquid();
-                    if (bottomBlockRegistry.get().getBlockBehavior().isSolid(bottomBlockState)) {
+                    if (bottomBlockState.getBehavior().isSolid(bottomBlockState)) {
                         newDecay = 0;
-                    } else if (isWater(bottomBlockRegistry.get().getBlockType()) && bottomBlockState.ensureTrait(BlockTraits.FLUID_LEVEL) == 0 && !bottomBlockState.ensureTrait(BlockTraits.IS_FLOWING)) {
+                    } else if (isWater(bottomBlockState.getType()) && bottomBlockState.ensureTrait(BlockTraits.FLUID_LEVEL) == 0 && !bottomBlockState.ensureTrait(BlockTraits.IS_FLOWING)) {
                         newDecay = 0;
                     }
                 }

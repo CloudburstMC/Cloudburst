@@ -12,10 +12,9 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PorkUtil;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import java.util.*;
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.daporkchop.lib.common.util.PorkUtil.uncheckedCast;
 
 @UtilityClass
 public class BlockUtils {
@@ -62,7 +60,7 @@ public class BlockUtils {
         return Vector3i.from(x, y, z);
     }
 
-    public <T extends Comparable<T>> BlockTrait<T> findTrait(@NonNull BlockState state, @NonNull String traitName) {
+/*    public <T extends Comparable<T>> BlockTrait<T> findTrait(@NonNull BlockState state, @NonNull String traitName) {
         BlockTrait<?> trait = BlockTraits.from(traitName);
         if (trait == null) {
             //fall back to vanilla name
@@ -71,7 +69,7 @@ public class BlockUtils {
         checkArgument(trait != null, "unknown trait: \"%s\"", traitName);
         checkArgument(state.getTrait(trait) != null, "block %s doesn't contain trait \"%s\"!", state.getType(), traitName);
         return uncheckedCast(trait);
-    }
+    }*/
 
     public <T extends Comparable<T>> T parseTrait(@NonNull BlockTrait<T> trait, @NonNull String valueText) {
         for (T value : trait.getPossibleValues()) {
@@ -82,10 +80,10 @@ public class BlockUtils {
         throw new IllegalArgumentException(PStrings.fastFormat("trait %s (vanilla: %s) doesn't contain value \"%s\"", trait.getName(), PorkUtil.fallbackIfNull(trait.getVanillaName(), trait.getName()), valueText));
     }
 
-    public BlockState applyTrait(@NonNull BlockState state, @NonNull String traitName, @NonNull String valueText) {
+/*    public BlockState applyTrait(@NonNull BlockState state, @NonNull String traitName, @NonNull String valueText) {
         BlockTrait<?> trait = findTrait(state, traitName);
         return state.withTrait(trait, uncheckedCast(parseTrait(trait, valueText)));
-    }
+    }*/
 
     private void applyDefaultValues(Identifier id, Map<String, Object> traits) {
         val vanillaTraits = BlockPalette.INSTANCE.getVanillaTraitMap();

@@ -10,10 +10,12 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -56,7 +58,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         placeBlock(block, item.getBehavior().getBlock(item));
 
         this.updateSurroundingRedstone(block.refresh(), true);
-        val level = block.getLevel();
+        val level = (CloudLevel) block.getLevel();
         Vector3i pos = block.getPosition();
 
         for (Direction direction : Direction.Plane.VERTICAL) {
@@ -81,7 +83,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
     private void calculateCurrentChanges(Block block, boolean force) {
         Vector3i pos = block.getPosition();
-        val level = block.getLevel();
+        val level = (CloudLevel) block.getLevel();
 
         int meta = block.getState().ensureTrait(BlockTraits.REDSTONE_SIGNAL);
         int maxStrength = meta;
@@ -159,7 +161,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     public boolean onBreak(Block block, ItemStack item) {
         removeBlock(block);
 
-        val level = block.getLevel();
+        val level = (CloudLevel) block.getLevel();
         Vector3i pos = block.getPosition();
 
         this.updateSurroundingRedstone(block, false);
@@ -258,7 +260,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     private boolean isPowerSourceAt(Block block, Direction side) {
-        val level = block.getLevel();
+        val level = (CloudLevel) block.getLevel();
         Vector3i pos = block.getPosition();
         Vector3i v = side.getOffset(pos);
         Block b = level.getBlock(v);
@@ -282,7 +284,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         Vector3i pos = block.getPosition();
 
         for (Direction face : Direction.values()) {
-            int blockPower = this.getIndirectPower(block.getLevel(), face.getOffset(pos), face);
+            int blockPower = this.getIndirectPower((CloudLevel) block.getLevel(), face.getOffset(pos), face);
 
             if (blockPower >= 15) {
                 return 15;

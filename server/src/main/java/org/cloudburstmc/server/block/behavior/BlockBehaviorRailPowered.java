@@ -7,6 +7,7 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Rail;
 
 import static org.cloudburstmc.api.block.BlockTypes.GOLDEN_RAIL;
@@ -29,7 +30,7 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
                 return 0; // Already broken
             }
             boolean wasPowered = isActive(block.getState());
-            boolean isPowered = block.getLevel().isBlockPowered(block.getPosition())
+            boolean isPowered = ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition())
                     || checkSurrounding(block, block.getPosition(), true, 0)
                     || checkSurrounding(block, block.getPosition(), false, 0);
 
@@ -163,7 +164,7 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
                 || base != RailDirection.EAST_WEST
                 && base != RailDirection.ASCENDING_EAST
                 && base != RailDirection.ASCENDING_WEST)
-                && (block.getLevel().isBlockPowered(pos) || checkSurrounding(block, pos, relative, power + 1));
+                && (((CloudLevel) block.getLevel()).isBlockPowered(pos) || checkSurrounding(block, pos, relative, power + 1));
     }
 
     @Override

@@ -58,7 +58,7 @@ public class GiveCommand extends Command {
             return false;
         }
 
-        CloudPlayer player = sender.getServer().getPlayer(args[0]);
+        CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
         ItemStack item;
 
         try {

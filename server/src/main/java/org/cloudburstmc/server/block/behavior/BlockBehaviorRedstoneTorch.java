@@ -7,6 +7,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.redstone.RedstoneUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -64,7 +65,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
                 continue;
             }
 
-            block.getLevel().updateAroundRedstone(side.getOffset(pos), null);
+            ((CloudLevel) block.getLevel()).updateAroundRedstone(side.getOffset(pos), null);
         }
         return true;
     }
@@ -73,7 +74,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     public int onUpdate(Block block, int type) {
         if (super.onUpdate(block, type) == 0) {
             if (type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
-                block.getLevel().scheduleUpdate(block, tickRate());
+                block.getLevel().scheduleUpdate(block.getPosition(), tickRate());
             } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
                 RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
                 block.getLevel().getServer().getEventManager().fire(ev);
@@ -106,7 +107,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
                     continue;
                 }
 
-                block.getLevel().updateAroundRedstone(side.getOffset(pos), null);
+                ((CloudLevel) block.getLevel()).updateAroundRedstone(side.getOffset(pos), null);
             }
 
             return true;
@@ -117,7 +118,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
 
     protected boolean isPoweredFromSide(Block block) {
         Direction face = getBlockFace(block.getState()).getOpposite();
-        return block.getLevel().isSidePowered(face.getOffset(block.getPosition()), face);
+        return ((CloudLevel) block.getLevel()).isSidePowered(face.getOffset(block.getPosition()), face);
     }
 
     @Override

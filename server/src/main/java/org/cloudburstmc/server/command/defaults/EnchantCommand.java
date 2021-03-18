@@ -44,7 +44,7 @@ public class EnchantCommand extends Command {
         if (args.length < 2) {
             return false;
         }
-        CloudPlayer player = sender.getServer().getPlayer(args[0]);
+        CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
         if (player == null) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
             return true;

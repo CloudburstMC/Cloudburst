@@ -6,8 +6,8 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.block.trait.BlockTrait;
 import org.cloudburstmc.server.math.NukkitMath;
 
 import javax.annotation.Nonnull;
@@ -167,7 +167,7 @@ public class DirectionHelper {
 
     @SuppressWarnings("ConstantConditions")
     public void serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockState state, SeqType type) {
-        builder.putInt("direction", toMeta(state.getTrait(BlockTraits.DIRECTION), type));
+        builder.putInt("direction", toMeta(state.ensureTrait(BlockTraits.DIRECTION), type));
     }
 
     public enum SeqType {

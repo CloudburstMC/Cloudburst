@@ -6,6 +6,7 @@ import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.event.player.PlayerKickEvent;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -60,14 +61,14 @@ public class BanIpCommand extends Command {
             this.processIPBan(value, sender, reason.toString());
             CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.banip.success", value));
         } else {
-            CloudPlayer player = sender.getServer().getPlayer(value);
+            CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(value);
             if (player != null) {
                 this.processIPBan(player.getAddress(), sender, reason.toString());
 
                 CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.banip.success.players", player.getAddress(), player.getName()));
             } else {
                 String name = value.toLowerCase();
-                String path = sender.getServer().getDataPath() + "players/";
+                String path = ((CloudServer) sender.getServer()).getDataPath() + "players/";
                 File file = new File(path + name + ".dat");
                 NbtMap nbt = NbtMap.EMPTY;
                 if (file.exists()) {
@@ -94,16 +95,16 @@ public class BanIpCommand extends Command {
     }
 
     private void processIPBan(String ip, CommandSender sender, String reason) {
-        sender.getServer().getIPBans().addBan(ip, reason, null, sender.getName());
+        ((CloudServer) sender.getServer()).getIPBans().addBan(ip, reason, null, sender.getName());
 
-        for (CloudPlayer player : new ArrayList<>(sender.getServer().getOnlinePlayers().values())) {
+        for (CloudPlayer player : new ArrayList<>(((CloudServer) sender.getServer()).getOnlinePlayers().values())) {
             if (player.getAddress().equals(ip)) {
                 player.kick(PlayerKickEvent.Reason.IP_BANNED, !reason.isEmpty() ? reason : "IP banned");
             }
         }
 
         try {
-            sender.getServer().getNetwork().blockAddress(InetAddress.getByName(ip));
+            ((CloudServer) sender.getServer()).getNetwork().blockAddress(InetAddress.getByName(ip));
         } catch (UnknownHostException e) {
             // ignore
         }

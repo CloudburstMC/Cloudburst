@@ -8,11 +8,15 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.blockentity.ItemFrameBlockEntity;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Random;
 
@@ -40,12 +44,12 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val level = block.getLevel();
+        val level = (CloudLevel) block.getLevel();
         BlockEntity blockEntity = level.getBlockEntity(block.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         if (itemFrame.getItem() == null || itemFrame.getItem().getType() == AIR) {
             if (player != null && player.isSurvival()) {
-                player.getInventory().decrementHandCount();
+                ((PlayerInventory) player.getInventory()).decrementHandCount();
             }
 
             itemFrame.setItem(item.withAmount(1));
@@ -62,10 +66,10 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
         if (!target.getState().inCategory(BlockCategory.TRANSPARENT) && face.getIndex() > 1 && !block.getState().inCategory(BlockCategory.SOLID)) {
             placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, face));
 
-            ItemFrame frame = BlockEntityRegistry.get().newEntity(ITEM_FRAME, block);
+            ItemFrameBlockEntity frame = (ItemFrameBlockEntity) BlockEntityRegistry.get().newEntity(ITEM_FRAME, block);
             frame.loadAdditionalData(((CloudItemStack) item).getDataTag());
 
-            block.getLevel().addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_PLACE);
+            ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_PLACE);
             return true;
         }
         return false;
@@ -74,7 +78,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
     @Override
     public boolean onBreak(Block block, ItemStack item) {
         super.onBreak(block, item);
-        block.getLevel().addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
+        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
         return true;
     }
 
@@ -96,7 +100,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState().defaultState());
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
 
