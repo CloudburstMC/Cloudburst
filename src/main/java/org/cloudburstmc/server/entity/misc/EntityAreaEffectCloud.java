@@ -10,11 +10,11 @@ import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.potion.Potion;
+import org.cloudburstmc.api.potion.EffectType;
+import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.potion.InstantEffect;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -93,7 +93,7 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
             b = color & 0x000000FF;
         } else {
             a = 255;
-            CloudEffect effect = Potion.getEffect(getPotionId(), true);
+            CloudEffect effect = new CloudEffect(EffectType.fromLegacy((byte) getPotionId()));
             if (effect == null) {
                 r = 40;
                 g = 40;
@@ -219,7 +219,7 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
 
         tag.listenForList(TAG_MOB_EFFECTS, NbtType.COMPOUND, effectTags -> {
             for (NbtMap effectTag : effectTags) {
-                this.cloudEffects.add(CloudEffect.fromNBT(effectTag));
+                this.cloudEffects.add((CloudEffect) CloudEffect.fromNBT(effectTag));
             }
         });
 
@@ -298,9 +298,9 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
                         }
 
                         for (CloudEffect effect : cloudEffects) {
-                            if (effect instanceof InstantEffect) {
+                            if (effect.getType() == EffectTypes.HEALING || effect.getType() == EffectTypes.HARMING) {
                                 boolean damage = false;
-                                if (effect.getId() == CloudEffect.HARMING) {
+                                if (effect.getType() == EffectTypes.HARMING) {
                                     damage = true;
                                 }
                                 if (collidingEntity.isUndead()) {

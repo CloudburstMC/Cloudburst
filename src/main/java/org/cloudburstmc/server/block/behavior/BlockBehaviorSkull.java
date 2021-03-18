@@ -8,11 +8,15 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.Skull;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.blockentity.SkullBlockEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorSkull extends BlockBehaviorTransparent {
 
@@ -25,7 +29,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
 
         placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
 
-        Skull skull = BlockEntityRegistry.get().newEntity(BlockEntityTypes.SKULL, block);
+        SkullBlockEntity skull = (SkullBlockEntity) BlockEntityRegistry.get().newEntity(BlockEntityTypes.SKULL, block);
         skull.loadAdditionalData(((CloudItemStack) item).getDataTag());
 //        skull.setSkullType(item.getMeta()); //TODO: skull type
         skull.setRotation((player.getYaw() * 16 / 360) + 0.5f);

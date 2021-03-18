@@ -47,7 +47,7 @@ public class KickCommand extends Command {
             reason.add(args[i]);
         }
 
-        CloudPlayer player = sender.getServer().getPlayer(name);
+        CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(name);
         if (player != null) {
             player.kick(PlayerKickEvent.Reason.KICKED_BY_ADMIN, reason.toString());
             if (reason.length() >= 1) {

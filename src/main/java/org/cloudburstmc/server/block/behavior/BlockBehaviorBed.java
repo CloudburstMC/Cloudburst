@@ -1,25 +1,26 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.blockentity.Bed;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.locale.TranslationContainer;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
 public class BlockBehaviorBed extends BlockBehaviorTransparent {
@@ -51,7 +52,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
         if (head == null) {
             if (player != null) {
-                player.sendMessage(new TranslationContainer("tile.bed.notValid"));
+                ((CloudPlayer) player).sendMessage(new TranslationContainer("tile.bed.notValid"));
             }
 
             return true;
@@ -62,7 +63,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
             if (!player.getSpawn().equals(spawn)) {
                 player.setSpawn(spawn);
-                player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.respawnSet"));
+                ((CloudPlayer) player).sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.respawnSet"));
             }
         }
 
@@ -71,12 +72,12 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         boolean isNight = (time >= CloudLevel.TIME_NIGHT && time < CloudLevel.TIME_SUNRISE);
 
         if (player != null && !isNight) {
-            player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.noSleep"));
+            ((CloudPlayer) player).sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.noSleep"));
             return true;
         }
 
         if (player != null && !player.sleepOn(block.getPosition())) {
-            player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.occupied"));
+            ((CloudPlayer) player).sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.occupied"));
         }
 
 
@@ -136,7 +137,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     private void createBlockEntity(Block block, DyeColor color) {
-        Bed bed = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BED, block.getChunk(), block.getPosition());
+        Bed bed = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BED, (CloudChunk) block.getChunk(), block.getPosition());
         bed.setColor(color);
     }
 

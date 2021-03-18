@@ -5,7 +5,9 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
+import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.MovingObjectPosition;
@@ -21,7 +23,7 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class EntityProjectile extends BaseEntity {
+public abstract class EntityProjectile extends BaseEntity implements Projectile {
 
     protected float damage;
     public boolean hadCollision = false;

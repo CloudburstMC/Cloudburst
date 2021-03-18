@@ -9,11 +9,14 @@ import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
 

@@ -8,12 +8,14 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.Comparator;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.blockentity.BlockEntityTypes.COMPARATOR;
 
@@ -38,7 +40,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
     @Override
     public void updateState(Block block) {
         val state = block.getState();
-        if (!block.getLevel().isBlockTickPending(block.getPosition(), block)) {
+        if (!((CloudLevel) block.getLevel()).isBlockTickPending(block.getPosition(), block)) {
             int output = this.calculateOutput(block);
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             int power = blockEntity instanceof Comparator ? ((Comparator) blockEntity).getOutputSignal() : 0;
@@ -51,7 +53,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
                 }*/
 
                 //System.out.println("schedule update 0");
-                block.getLevel().scheduleUpdate(block, block.getPosition(), 2);
+                block.getLevel().scheduleUpdate(block.getPosition(), 2);
             }
         }
     }
@@ -98,7 +100,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
         val state = block.getState();
         boolean subtract = state.ensureTrait(BlockTraits.IS_OUTPUT_SUBTRACT);
         block.set(state.withTrait(BlockTraits.IS_OUTPUT_SUBTRACT, !subtract), true);
-        block.getLevel().addSound(block.getPosition(), Sound.RANDOM_CLICK, 1, subtract ? 0.5f : 0.55F);
+        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.RANDOM_CLICK, 1, subtract ? 0.5f : 0.55F);
         //bug?
 
         this.onChange(block.refresh());
@@ -137,7 +139,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
                 block.set(getPowered(state), true, false);
             }
 
-            block.getLevel().updateAroundRedstone(block.getPosition(), null);
+            ((CloudLevel) block.getLevel()).updateAroundRedstone(block.getPosition(), null);
         }
     }
 

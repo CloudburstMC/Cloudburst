@@ -14,9 +14,11 @@ import org.cloudburstmc.api.event.entity.EntityInteractEvent;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent.Action;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Created by Snake1999 on 2016/1/11.
@@ -115,7 +117,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
         boolean wasPowered = oldStrength > 0;
         boolean isPowered = strength > 0;
 
-        val level = block.getLevel();
+        val level = (CloudLevel) block.getLevel();
 
         if (oldStrength != strength) {
             block.set(block.getState().withTrait(BlockTraits.REDSTONE_SIGNAL, strength), false, false);
@@ -142,8 +144,8 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
         super.onBreak(block, item);
 
         if (this.getRedstonePower(block.getState()) > 0) {
-            block.getLevel().updateAroundRedstone(block.getPosition(), null);
-            block.getLevel().updateAroundRedstone(block.getPosition().down(), null);
+            ((CloudLevel) block.getLevel()).updateAroundRedstone(block.getPosition(), null);
+            ((CloudLevel) block.getLevel()).updateAroundRedstone(block.getPosition().down(), null);
         }
 
         return true;
@@ -164,18 +166,18 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     protected void playOnSound(Block block) {
-        block.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_ON);
+        ((CloudLevel) block.getLevel()).addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_ON);
     }
 
     protected void playOffSound(Block block) {
-        block.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_OFF);
+        ((CloudLevel) block.getLevel()).addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_OFF);
     }
 
     protected abstract int computeRedstoneStrength(Block block);
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState().defaultState());
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
 

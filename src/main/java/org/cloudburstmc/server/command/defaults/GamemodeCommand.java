@@ -58,7 +58,7 @@ public class GamemodeCommand extends Command {
         CommandSender target = sender;
         if (args.length > 1) {
             if (sender.hasPermission("cloudburst.command.gamemode.other")) {
-                target = sender.getServer().getPlayer(args[1]);
+                target = (CommandSender) sender.getServer().getPlayer(args[1]);
                 if (target == null) {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
                     return true;

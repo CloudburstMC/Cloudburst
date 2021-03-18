@@ -3,6 +3,7 @@ package org.cloudburstmc.server.command.defaults;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.event.player.PlayerKickEvent;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -47,9 +48,9 @@ public class BanCommand extends Command {
             reason.add(args[i]);
         }
 
-        sender.getServer().getNameBans().addBan(name, reason.toString(), null, sender.getName());
+        ((CloudServer) sender.getServer()).getNameBans().addBan(name, reason.toString(), null, sender.getName());
 
-        CloudPlayer player = sender.getServer().getPlayerExact(name);
+        CloudPlayer player = ((CloudServer) sender.getServer()).getPlayerExact(name);
         if (player != null) {
             player.kick(PlayerKickEvent.Reason.NAME_BANNED, !reason.toString().isEmpty() ? "Banned by admin. Reason: " + reason : "Banned by admin");
         }

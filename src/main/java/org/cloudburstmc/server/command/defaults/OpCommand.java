@@ -3,11 +3,13 @@ package org.cloudburstmc.server.command.defaults;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Optional;
@@ -40,13 +42,13 @@ public class OpCommand extends Command {
         }
 
         String name = args[0];
-        Optional<UUID> uuid = sender.getServer().lookupName(name);
+        Optional<UUID> uuid = ((CloudServer) sender.getServer()).lookupName(name);
 
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.op.success", name));
         if (uuid.isPresent()) {
-            Player player = sender.getServer().getOfflinePlayer(uuid.get());
-            if (player instanceof Player) {
-                ((Player) player).sendMessage(new TranslationContainer(TextFormat.GRAY + "%commands.op.message"));
+            Player player = ((CloudServer) sender.getServer()).getOfflinePlayer(uuid.get());
+            if (player instanceof CloudPlayer) {
+                ((CloudPlayer) player).sendMessage(new TranslationContainer(TextFormat.GRAY + "%commands.op.message"));
             }
             player.setOp(true);
         } else {

@@ -6,8 +6,10 @@ import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.TierTypes;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.item.TierTypes;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
 
@@ -49,7 +51,7 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState().resetTrait(BlockTraits.IS_UPSIDE_DOWN));
+        return CloudItemRegistry.get().getItem(block.getState().withTrait(BlockTraits.IS_UPSIDE_DOWN, BlockTraits.IS_UPSIDE_DOWN.getDefaultValue()));
     }
 
 //    @Override //TODO: bounding box

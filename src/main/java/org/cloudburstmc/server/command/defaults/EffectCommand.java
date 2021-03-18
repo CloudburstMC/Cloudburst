@@ -3,6 +3,9 @@ package org.cloudburstmc.server.command.defaults;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.ServerException;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.potion.Effect;
+import org.cloudburstmc.api.potion.EffectType;
+import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -10,7 +13,6 @@ import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.potion.InstantEffect;
 import org.cloudburstmc.server.utils.TextFormat;
 
 /**
@@ -45,24 +47,24 @@ public class EffectCommand extends Command {
         if (args.length < 2) {
             return false;
         }
-        CloudPlayer player = sender.getServer().getPlayer(args[0]);
+        CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
         if (player == null) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
             return true;
         }
         if (args[1].equalsIgnoreCase("clear")) {
-            for (CloudEffect effect : player.getEffects().values()) {
-                player.removeEffect(effect.getId());
+            for (Effect effect : player.getEffects().values()) {
+                player.removeEffect(effect.getType());
             }
             sender.sendMessage(new TranslationContainer("%commands.effect.success.removed.all", player.getDisplayName()));
             return true;
         }
         CloudEffect effect;
         try {
-            effect = CloudEffect.fromNBT(Integer.parseInt(args[1]));
+            effect = new CloudEffect(EffectType.fromLegacy((byte) Integer.parseInt(args[1])));
         } catch (NumberFormatException | ServerException a) {
             try {
-                effect = CloudEffect.getEffectByName(args[1]);
+                effect = new CloudEffect(EffectType.byName(args[1]));
             } catch (Exception e) {
                 sender.sendMessage(new TranslationContainer("%commands.effect.notFound", args[1]));
                 return true;
@@ -76,11 +78,11 @@ public class EffectCommand extends Command {
             } catch (NumberFormatException a) {
                 return false;
             }
-            if (!(effect instanceof InstantEffect)) {
+            if(effect.getType() == EffectTypes.HEALING || effect.getType() == EffectTypes.HARMING) {
+                duration *= 1;
+            } else {
                 duration *= 20;
             }
-        } else if (effect instanceof InstantEffect) {
-            duration = 1;
         }
         if (args.length >= 4) {
             try {
@@ -96,7 +98,7 @@ public class EffectCommand extends Command {
             }
         }
         if (duration == 0) {
-            if (!player.hasEffect(effect.getId())) {
+            if (!player.hasEffect(effect.getType())) {
                 if (player.getEffects().size() == 0) {
                     sender.sendMessage(new TranslationContainer("%commands.effect.failure.notActive.all", player.getDisplayName()));
                 } else {
@@ -104,7 +106,7 @@ public class EffectCommand extends Command {
                 }
                 return true;
             }
-            player.removeEffect(effect.getId());
+            player.removeEffect(effect.getType());
             sender.sendMessage(new TranslationContainer("%commands.effect.success.removed", effect.getName(), player.getDisplayName()));
         } else {
             effect.setDuration(duration).setAmplifier(amplification);

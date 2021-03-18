@@ -10,6 +10,8 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 

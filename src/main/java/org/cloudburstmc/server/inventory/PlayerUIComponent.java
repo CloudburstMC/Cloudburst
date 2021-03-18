@@ -2,6 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Collections;
@@ -60,12 +61,12 @@ public class PlayerUIComponent extends BaseInventory {
 
 
     @Override
-    public void sendContents(CloudPlayer... players) {
+    public void sendContents(Player... players) {
         this.playerUI.sendContents(players);
     }
 
     @Override
-    public void sendSlot(int index, CloudPlayer... players) {
+    public void sendSlot(int index, Player... players) {
         playerUI.sendSlot(index + this.offset, players);
     }
 
@@ -80,22 +81,22 @@ public class PlayerUIComponent extends BaseInventory {
     }
 
     @Override
-    public void onOpen(CloudPlayer who) {
+    public void onOpen(Player who) {
 
     }
 
     @Override
-    public boolean open(CloudPlayer who) {
+    public boolean open(Player who) {
         return false;
     }
 
     @Override
-    public void close(CloudPlayer who) {
+    public void close(Player who) {
 
     }
 
     @Override
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player who) {
 
     }
 

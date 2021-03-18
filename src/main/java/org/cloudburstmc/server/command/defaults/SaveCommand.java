@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -29,11 +30,11 @@ public class SaveCommand extends Command {
 
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.save.start"));
 
-        for (CloudPlayer player : sender.getServer().getOnlinePlayers().values()) {
+        for (CloudPlayer player : ((CloudServer) sender.getServer()).getOnlinePlayers().values()) {
             player.save();
         }
 
-        for (CloudLevel level : sender.getServer().getLevels()) {
+        for (CloudLevel level : ((CloudServer) sender.getServer()).getLevels()) {
             level.save(true);
         }
 

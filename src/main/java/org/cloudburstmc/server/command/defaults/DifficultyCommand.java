@@ -10,8 +10,9 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
+import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * Created on 2015/11/12 by xtypr.
@@ -45,16 +46,16 @@ public class DifficultyCommand extends Command {
 
         Difficulty difficulty = Difficulty.fromString(args[0]);
 
-        if (sender.getServer().isHardcore()) {
+        if (((CloudServer)sender.getServer()).isHardcore()) {
             difficulty = Difficulty.HARD;
         }
 
         if (difficulty != null) {
-            sender.getServer().getConfig().setDifficulty(difficulty);
+            ((CloudServer)sender.getServer()).getConfig().setDifficulty(difficulty);
 
             SetDifficultyPacket packet = new SetDifficultyPacket();
             packet.setDifficulty(sender.getServer().getDifficulty().ordinal());
-            CloudServer.broadcastPacket(new ArrayList<>(sender.getServer().getOnlinePlayers().values()), packet);
+            CloudServer.broadcastPacket((Set<CloudPlayer>) ((CloudServer) sender.getServer()).getOnlinePlayers().values(), packet);
 
             CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.difficulty.success", String.valueOf(difficulty)));
         } else {

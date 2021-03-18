@@ -47,7 +47,7 @@ public class KillCommand extends Command {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                 return true;
             }
-            CloudPlayer player = sender.getServer().getPlayer(args[0]);
+            CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
             if (player != null) {
                 EntityDamageEvent ev = new EntityDamageEvent(player, EntityDamageEvent.DamageCause.SUICIDE, 1000);
                 sender.getServer().getEventManager().fire(ev);

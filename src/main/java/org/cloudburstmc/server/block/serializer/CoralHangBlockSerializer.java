@@ -4,8 +4,8 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.block.trait.BlockTrait;
 
 import java.util.Map;
 

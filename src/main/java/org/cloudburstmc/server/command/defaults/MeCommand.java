@@ -2,6 +2,7 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
@@ -45,7 +46,7 @@ public class MeCommand extends Command {
         }
 
         String msg = String.join(" ", args);
-        sender.getServer().broadcastMessage(new TranslationContainer("chat.type.emote", name, TextFormat.WHITE + msg));
+        ((CloudServer) sender.getServer()).broadcastMessage(new TranslationContainer("chat.type.emote", name, TextFormat.WHITE + msg));
 
         return true;
     }

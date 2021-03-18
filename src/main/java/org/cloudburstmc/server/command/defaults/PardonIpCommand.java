@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -41,10 +42,10 @@ public class PardonIpCommand extends Command {
         String value = args[0];
 
         if (Pattern.matches("^(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9])\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]{1}[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])$", value)) {
-            sender.getServer().getIPBans().remove(value);
+            ((CloudServer)sender.getServer()).getIPBans().remove(value);
 
             try {
-                sender.getServer().getNetwork().unblockAddress(InetAddress.getByName(value));
+                ((CloudServer) sender.getServer()).getNetwork().unblockAddress(InetAddress.getByName(value));
             } catch (UnknownHostException e) {
                 sender.sendMessage(new TranslationContainer("commands.unbanip.invalid"));
                 return true;

@@ -6,9 +6,11 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorLog extends BlockBehaviorSolid {
 
@@ -43,7 +45,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
         val behavior = item.getBehavior();
         val state = block.getState();
 
-        if (state.ensureTrait(BlockTraits.IS_STRIPPED) || !behavior.isAxe() || behavior.useOn(item, block) == null) {
+        if (state.ensureTrait(BlockTraits.IS_STRIPPED) || !behavior.isAxe() || behavior.useOn(item, state) == null) {
             return false;
         }
 
@@ -76,6 +78,6 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState().resetTrait(BlockTraits.AXIS));
+        return CloudItemRegistry.get().getItem(block.getState().withTrait(BlockTraits.AXIS, BlockTraits.AXIS.getDefaultValue()));
     }
 }
