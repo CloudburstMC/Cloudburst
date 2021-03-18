@@ -80,7 +80,11 @@ public interface Server {
 
     void addOp(Player who);
 
+    void addOp(String name);
+
     void removeOp(Player who);
+
+    void removeOp(String name);
 
     boolean isOp(Player who);
 

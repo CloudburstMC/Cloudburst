@@ -70,6 +70,18 @@ public class BlockState {
         return result;
     }
 
+    @Nonnull
+    public BlockState incrementTrait(IntegerBlockTrait trait) {
+        checkNotNull(trait, "trait");
+        return withTrait(trait, Math.min(trait.getRange().getEnd(), ensureTrait(trait) + 1));
+    }
+
+    @Nonnull
+    public BlockState decrementTrait(IntegerBlockTrait trait) {
+        checkNotNull(trait, "trait");
+        return withTrait(trait, Math.max(trait.getRange().getStart(), ensureTrait(trait) - 1));
+    }
+
     public boolean inCategory(BlockCategory category) {
         return BlockCategories.inCategory(this.getType(), category);
     }

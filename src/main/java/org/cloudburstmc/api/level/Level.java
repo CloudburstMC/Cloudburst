@@ -12,6 +12,7 @@ import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -198,10 +199,16 @@ public interface Level extends ChunkManager {
         return dropItem(position, item, motion, false);
     }
 
+    default DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion, int delay) {
+        return dropItem(position, item, motion, false, delay);
+    }
+
     @Nonnull
     default DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion, boolean dropAround) {
         return dropItem(position, item, motion, dropAround, 10);
     }
 
     DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion, boolean dropAround, int delay);
+
+    Entity[] getNearbyEntities(SimpleAxisAlignedBB bb);
 }

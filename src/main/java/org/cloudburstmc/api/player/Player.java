@@ -5,6 +5,7 @@ import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 
 import java.util.OptionalLong;
@@ -164,4 +165,8 @@ public interface Player extends Entity {
     CardinalDirection getCardinalDirection();
 
     boolean isAdventure();
+
+    Location getSpawn();
+
+    void setSpawn(Location spawn);
 }

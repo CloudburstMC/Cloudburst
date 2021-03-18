@@ -135,6 +135,9 @@ public final class QueryRegenerateEvent extends ServerEvent {
         this.extraData = extraData;
     }
 
+    public byte[] getShortQuery() {
+        return null; // TODO
+    }
     public byte[] getLongQuery() {
         ByteArrayOutputStream query = new ByteArrayOutputStream();
         try {

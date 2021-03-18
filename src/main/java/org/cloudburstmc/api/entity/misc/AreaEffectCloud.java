@@ -50,5 +50,5 @@ public interface AreaEffectCloud extends Entity {
 
     void setParticleId(int particleId);
 
-    List<Effect> getCloudEffects();
+    List<? extends Effect> getCloudEffects();
 }
