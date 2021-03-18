@@ -110,10 +110,10 @@ public class BedrockInterface implements AdvancedSourceInterface, BedrockServerE
 
         this.advertisement.setEdition("MCPE");
         this.advertisement.setMotd(motd);
-        this.advertisement.setSubMotd(subMotd);
+        this.advertisement.setSubMotd(subMotd.trim().isEmpty() ? "Cloudburst" : subMotd);
         this.advertisement.setPlayerCount(info.getPlayerCount());
         this.advertisement.setMaximumPlayerCount(info.getMaxPlayerCount());
-        this.advertisement.setVersion("");
+        this.advertisement.setVersion("1");
         this.advertisement.setProtocolVersion(0);
         this.advertisement.setGameType(gm.substring(0, 1).toUpperCase() + gm.substring(1));
         this.advertisement.setNintendoLimited(false);

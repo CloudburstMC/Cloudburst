@@ -97,7 +97,6 @@ public class BlockStorage {
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public void readFromStorage(ByteBuf buffer) {
         BitArrayVersion version = getVersionFromHeader(buffer.readByte());
 

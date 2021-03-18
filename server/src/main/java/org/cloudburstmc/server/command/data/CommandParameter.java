@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.command.data;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
+import com.nukkitx.protocol.bedrock.data.command.CommandParam;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamData;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import lombok.ToString;
@@ -81,7 +82,7 @@ public class CommandParameter {
     protected CommandParamData toNetwork() {
         return new CommandParamData(this.name, this.optional,
                 this.enumData != null ? new CommandEnumData(this.name, this.enumData.getValues().toArray(new String[0]), false) : null,
-                this.type, this.postFix, Collections.EMPTY_LIST);
+                new CommandParam(this.type), this.postFix, Collections.emptyList());
     }
 
     protected static CommandParamType fromString(String param) {

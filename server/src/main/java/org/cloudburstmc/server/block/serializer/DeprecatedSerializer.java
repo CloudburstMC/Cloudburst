@@ -21,10 +21,8 @@ public class DeprecatedSerializer implements BlockSerializer {
         boolean stripped = (Boolean) traits.get(BlockTraits.IS_STRIPPED);
         TreeSpecies type = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES);
 
-        if (!stripped || (type != TreeSpecies.CRIMSON && type != TreeSpecies.WARPED)) {
-            traits = new HashMap<>(traits);
-            traits.remove(BlockTraits.DEPRECATED);
-        }
+        traits = new HashMap<>(traits);
+        traits.remove(BlockTraits.DEPRECATED);
 
         DefaultBlockSerializer.INSTANCE.serialize(builder, blockType, traits);
     }

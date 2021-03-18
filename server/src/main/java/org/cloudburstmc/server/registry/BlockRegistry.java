@@ -321,7 +321,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(GOLD_ORE); //14
         this.registerVanilla(IRON_ORE); //15
         this.registerVanilla(COAL_ORE, new BlockBehaviorOreCoal()); //16
-        this.registerVanilla(LOG, new BlockBehaviorLog(), MultiBlockSerializers.LOG, BlockTraits.DEPRECATED, BlockTraits.AXIS, BlockTraits.TREE_SPECIES, BlockTraits.IS_STRIPPED); //17
+        this.registerVanilla(LOG, new BlockBehaviorLog(), MultiBlockSerializers.LOG, BlockTraits.AXIS, BlockTraits.TREE_SPECIES, BlockTraits.IS_STRIPPED); //17
         this.registerVanilla(LEAVES, new BlockBehaviorLeaves(), MultiBlockSerializers.LEAVES, BlockTraits.IS_PERSISTENT, BlockTraits.HAS_UPDATE, BlockTraits.TREE_SPECIES_OVERWORLD); //18
         this.registerVanilla(SPONGE, new BlockBehaviorSponge(), BlockTraits.SPONGE_TYPE); //19
         this.registerVanilla(GLASS, new BlockBehaviorGlass()); //20
@@ -542,7 +542,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(LANTERN, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.LANTERN, BlockTraits.IS_HANGING, BlockTraits.IS_SOUL);
         this.registerVanilla(CAMPFIRE, new BlockBehaviorCampfire(), MultiBlockSerializers.CAMPFIRE, BlockTraits.IS_EXTINGUISHED, BlockTraits.DIRECTION, BlockTraits.IS_SOUL);//464
         this.registerVanilla(JIGSAW, NoopBlockBehavior.INSTANCE, new JigsawSerializer(), BlockTraits.FACING_DIRECTION, BlockTraits.DIRECTION);//466
-        this.registerVanilla(WOOD, new BlockBehaviorWood(), MultiBlockSerializers.WOOD, BlockTraits.TREE_SPECIES, BlockTraits.IS_STRIPPED, BlockTraits.AXIS, BlockTraits.DEPRECATED); //467
+        this.registerVanilla(WOOD, new BlockBehaviorWood(), MultiBlockSerializers.WOOD, BlockTraits.TREE_SPECIES, BlockTraits.IS_STRIPPED, BlockTraits.AXIS); //467
         this.registerVanilla(COMPOSTER, NoopBlockBehavior.INSTANCE, BlockTraits.COMPOSTER_FILL_LEVEL);//468
         this.registerVanilla(LIGHT_BLOCK, new BlockBehaviorLight(), BlockTraits.LIGHT_LEVEL);//470
         this.registerVanilla(WITHER_ROSE, NoopBlockBehavior.INSTANCE);//471
