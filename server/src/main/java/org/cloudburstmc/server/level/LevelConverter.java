@@ -47,6 +47,7 @@ public class LevelConverter {
             }
         }).thenApply(aVoid -> {
             fakeLevel.close();
+            log.info("Conversion completed. {} chunks converted", converted.get());
             return null;
         });
     }
