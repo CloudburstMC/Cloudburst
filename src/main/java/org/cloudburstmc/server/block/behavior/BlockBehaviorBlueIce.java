@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.api.player.Player;
 
 public class BlockBehaviorBlueIce extends BlockBehaviorIce {
 
@@ -19,7 +19,7 @@ public class BlockBehaviorBlueIce extends BlockBehaviorIce {
     }
 
     @Override
-    public boolean onBreak(Block block, ItemStack item, CloudPlayer player) {
+    public boolean onBreak(Block block, ItemStack item, Player player) {
         return this.onBreak(block, item);
     }
 

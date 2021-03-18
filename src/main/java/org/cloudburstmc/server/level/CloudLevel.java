@@ -2076,7 +2076,7 @@ public class CloudLevel implements Level {
     }
 
     @Nonnull
-    public Set<Chunk> getChunks() {
+    public Set<CloudChunk> getChunks() {
         return this.chunkManager.getLoadedChunks();
     }
 

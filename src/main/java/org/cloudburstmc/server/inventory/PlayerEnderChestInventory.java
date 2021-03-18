@@ -7,6 +7,7 @@ import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -23,7 +24,7 @@ public class PlayerEnderChestInventory extends BaseInventory {
     }
 
     @Override
-    public void onOpen(CloudPlayer who) {
+    public void onOpen(Player who) {
         if (who != this.getHolder()) {
             return;
         }
@@ -31,14 +32,14 @@ public class PlayerEnderChestInventory extends BaseInventory {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setId(who.getWindowId(this));
         containerOpenPacket.setType(ContainerType.from(this.getType().getNetworkType()));
-        EnderChest chest = who.getViewingEnderChest();
+        EnderChest chest = ((CloudPlayer) who).getViewingEnderChest();
         if (chest != null) {
             containerOpenPacket.setBlockPosition(chest.getPosition());
         } else {
             containerOpenPacket.setBlockPosition(Vector3i.ZERO);
         }
 
-        who.sendPacket(containerOpenPacket);
+        ((CloudPlayer) who).sendPacket(containerOpenPacket);
 
         this.sendContents(who);
 
@@ -52,7 +53,8 @@ public class PlayerEnderChestInventory extends BaseInventory {
     }
 
     @Override
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player player) {
+        CloudPlayer who = (CloudPlayer)player;
         ContainerClosePacket containerClosePacket = new ContainerClosePacket();
         containerClosePacket.setId(who.getWindowId(this));
         who.sendPacket(containerClosePacket);

@@ -15,6 +15,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minidev.json.JSONObject;
 import org.cloudburstmc.api.util.LoginChainData;
+import org.cloudburstmc.api.util.Skin;
 import org.cloudburstmc.server.Bootstrap;
 
 import java.io.IOException;
@@ -360,8 +361,9 @@ public final class ClientChainData implements LoginChainData {
     }
 
     @Override
-    public SerializedSkin getSkin() {
-        return skin;
+    public Skin getSkin() {
+        //return skin;
+        return null; //TODO
     }
 
     private void decodeSkinData(String skinData) {

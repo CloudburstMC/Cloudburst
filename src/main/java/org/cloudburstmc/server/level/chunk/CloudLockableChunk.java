@@ -3,15 +3,16 @@ package org.cloudburstmc.server.level.chunk;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
@@ -149,7 +150,7 @@ public final class CloudLockableChunk extends LockableChunk {
 
     @Nonnull
     @Override
-    public Set<Player> getPlayers() {
+    public Set<CloudPlayer> getPlayers() {
         return this.unsafe.getPlayers();
     }
 
@@ -161,7 +162,7 @@ public final class CloudLockableChunk extends LockableChunk {
 
     @Nonnull
     @Override
-    public Collection<BlockEntity> getBlockEntities() {
+    public Set<BlockEntity> getBlockEntities() {
         return this.unsafe.getBlockEntities();
     }
 
@@ -208,6 +209,21 @@ public final class CloudLockableChunk extends LockableChunk {
     @Override
     public LockableChunk writeLockable() {
         return this;
+    }
+
+    @Override
+    public void close() {
+        this.unsafe.close();
+    }
+
+    @Override
+    public Set<? extends ChunkLoader> getLoaders() {
+        return unsafe.getLoaders();
+    }
+
+    @Override
+    public Set<? extends Player> getPlayerLoaders() {
+        return unsafe.getPlayerLoaders();
     }
 
 

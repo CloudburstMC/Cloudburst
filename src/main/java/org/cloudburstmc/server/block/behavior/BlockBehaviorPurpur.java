@@ -4,9 +4,11 @@ import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Axis;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorPurpur extends BlockBehaviorSolid {
 
@@ -32,7 +34,7 @@ public class BlockBehaviorPurpur extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState().resetTrait(BlockTraits.AXIS));
+        return CloudItemRegistry.get().getItem(block.getState().withTrait(BlockTraits.AXIS, BlockTraits.AXIS.getDefaultValue()));
     }
 
     @Override

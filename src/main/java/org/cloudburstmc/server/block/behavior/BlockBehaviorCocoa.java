@@ -163,7 +163,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     public boolean grow(Block block) {
         int age = block.getState().ensureTrait(BlockTraits.AGE);
         if (age < 2) {
-            BlockState cocoa = block.getState().withTrait(BlockTraits.AGE, Math.min(BlockTraits.AGE.getRange().getEnd(), block.getState().ensureTrait(BlockTraits.AGE) + 1));
+            BlockState cocoa = block.getState().incrementTrait(BlockTraits.AGE);
 
             BlockGrowEvent ev = new BlockGrowEvent(block, cocoa);
             CloudServer.getInstance().getEventManager().fire(ev);

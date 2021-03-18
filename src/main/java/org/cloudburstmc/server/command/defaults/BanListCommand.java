@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
@@ -28,23 +29,23 @@ public class BanListCommand extends Command {
         if (!this.testPermission(sender)) {
             return true;
         }
-
+        CloudServer server = (CloudServer) sender.getServer();
         BanList list;
         boolean ips = false;
         if (args.length > 0) {
             switch (args[0].toLowerCase()) {
                 case "ips":
-                    list = sender.getServer().getIPBans();
+                    list = server.getIPBans();
                     ips = true;
                     break;
                 case "players":
-                    list = sender.getServer().getNameBans();
+                    list = server.getNameBans();
                     break;
                 default:
                     return false;
             }
         } else {
-            list = sender.getServer().getNameBans();
+            list = server.getNameBans();
         }
 
         StringBuilder builder = new StringBuilder();

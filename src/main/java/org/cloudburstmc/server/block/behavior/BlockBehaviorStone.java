@@ -5,8 +5,10 @@ import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.TierTypes;
 import org.cloudburstmc.api.util.data.StoneType;
-import org.cloudburstmc.server.item.TierTypes;
+import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.COBBLESTONE;
 

@@ -68,7 +68,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 ItemStack bucketItem = item.toBuilder()
                         .amount(1).itemData(Bucket.WATER).build();
 
-                PlayerBucketFillEvent ev = new PlayerBucketFillEvent(player, block, null, item, bucketItem);
+                PlayerBucketFillEvent ev = new PlayerBucketFillEvent(player, block.getState(), null, item, bucketItem);
                 block.getLevel().getServer().getEventManager().fire(ev);
                 if (!ev.isCancelled()) {
                     replaceBucket(item, (CloudPlayer) player, ev.getItem());
@@ -127,7 +127,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 }
             }
 
-            block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, Math.min(BlockTraits.FILL_LEVEL.getRange().getEnd(), block.getState().ensureTrait(BlockTraits.FILL_LEVEL) + 1)));
+            block.set(block.getState().incrementTrait(BlockTraits.FILL_LEVEL));
             ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.CAULDRON_FILLPOTION);
         } else if (itemType == ItemTypes.GLASS_BOTTLE) {
             if (isEmpty(block)) {
@@ -147,7 +147,7 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
                 }
             }
 
-            block.set(block.getState().withTrait(BlockTraits.FILL_LEVEL, Math.max(BlockTraits.FILL_LEVEL.getRange().getStart(), block.getState().ensureTrait(BlockTraits.FILL_LEVEL) -1)));
+            block.set(block.getState().decrementTrait(BlockTraits.FILL_LEVEL));
             ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.CAULDRON_TAKEPOTION);
         } else {
             return true;

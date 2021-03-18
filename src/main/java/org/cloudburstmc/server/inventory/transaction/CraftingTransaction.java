@@ -11,6 +11,7 @@ import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.scheduler.Task;
 
 import java.util.Arrays;
@@ -136,7 +137,7 @@ public class CraftingTransaction extends InventoryTransaction {
     public boolean canExecute() {
         ItemStack[][] inputs = reindexInputs();
 
-        recipe = (CraftingRecipe) source.getServer().getRecipeRegistry().matchRecipe(inputs, this.primaryOutput, this.secondaryOutputs);
+        recipe = (CraftingRecipe) CloudRecipeRegistry.get().matchRecipe(inputs, this.primaryOutput, this.secondaryOutputs, null);
 
         return this.recipe != null && super.canExecute();
     }
@@ -144,7 +145,7 @@ public class CraftingTransaction extends InventoryTransaction {
     protected boolean callExecuteEvent() {
         CraftItemEvent ev;
 
-        this.source.getServer().getEventManager().fire(ev = new CraftItemEvent(this));
+        this.source.getServer().getEventManager().fire(ev = new CraftItemEvent(this.source, (ItemStack[]) Arrays.stream(this.inputs).toArray(), this.recipe ));
         return !ev.isCancelled();
     }
 

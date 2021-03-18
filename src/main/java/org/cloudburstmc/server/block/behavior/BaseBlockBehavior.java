@@ -49,7 +49,7 @@ public abstract class BaseBlockBehavior extends BlockBehavior {
                 efficiencyLoreLevel, hasteEffectLevel, insideOfWaterWithoutAquaAffinity, outOfWaterButNotOnGround);
     }
 
-    protected boolean placeBlock(Block block, BlockState newState, boolean update) {
+    public boolean placeBlock(Block block, BlockState newState, boolean update) {
         val state = block.getLiquid();
         BlockBehavior behavior = BlockRegistry.get().getBehavior(state.getType());
         if (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging()) {

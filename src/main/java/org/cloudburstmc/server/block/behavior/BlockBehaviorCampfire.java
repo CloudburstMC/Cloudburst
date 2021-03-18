@@ -13,11 +13,14 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.behavior.ItemEdibleBehavior;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
@@ -54,7 +57,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
                 .withTrait(BlockTraits.DIRECTION, player.getHorizontalDirection().getOpposite());
 
         if (placeBlock(block, campfire)) {
-            BlockEntityRegistry.get().newEntity(BlockEntityTypes.CAMPFIRE, block.getChunk(), block.getPosition());
+            BlockEntityRegistry.get().newEntity(BlockEntityTypes.CAMPFIRE, (CloudChunk) block.getChunk(), block.getPosition());
             return true;
         }
 
@@ -106,7 +109,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
 
                 if (fire.putItemInFire(item)) {
                     if (player != null && player.isSurvival()) {
-                        player.getInventory().decrementHandCount();
+                        ((PlayerInventory) player.getInventory()).decrementHandCount();
                     }
                 }
             }

@@ -5,10 +5,13 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.Jukebox;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.blockentity.BlockEntityTypes.JUKEBOX;
@@ -38,7 +41,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
         } else if (item.getType() == ItemTypes.RECORD) {
             jukebox.setRecordItem(item);
             jukebox.play();
-            player.getInventory().decrementCount(player.getInventory().getHeldItemIndex());
+            player.getInventory().decrementCount(((PlayerInventory) player.getInventory()).getHeldItemIndex());
         }
 
         return false;

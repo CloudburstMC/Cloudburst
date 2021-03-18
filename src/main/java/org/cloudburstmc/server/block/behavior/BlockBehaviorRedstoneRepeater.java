@@ -5,7 +5,9 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
 

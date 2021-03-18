@@ -4,9 +4,9 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.ShulkerBoxBlockEntity;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * Created by PetteriM1
@@ -23,7 +23,7 @@ public class ShulkerBoxInventory extends CloudContainer {
     }
 
     @Override
-    public void onOpen(CloudPlayer who) {
+    public void onOpen(Player who) {
         super.onOpen(who);
 
         if (this.getViewers().size() == 1) {
@@ -36,7 +36,7 @@ public class ShulkerBoxInventory extends CloudContainer {
     }
 
     @Override
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player who) {
         if (this.getViewers().size() == 1) {
             CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
@@ -58,7 +58,7 @@ public class ShulkerBoxInventory extends CloudContainer {
     }
 
     @Override
-    public void sendSlot(int index, CloudPlayer... players) {
+    public void sendSlot(int index, Player... players) {
         super.sendSlot(index, players);
     }
 }

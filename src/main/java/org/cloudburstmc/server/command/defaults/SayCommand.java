@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -48,7 +49,7 @@ public class SayCommand extends Command {
 
         String msg = String.join(" ", args);
 
-        sender.getServer().broadcastMessage(new TranslationContainer(
+        ((CloudServer) sender.getServer()).broadcastMessage(new TranslationContainer(
                 TextFormat.LIGHT_PURPLE + "%chat.type.announcement",
                 senderString, TextFormat.LIGHT_PURPLE + msg));
         return true;

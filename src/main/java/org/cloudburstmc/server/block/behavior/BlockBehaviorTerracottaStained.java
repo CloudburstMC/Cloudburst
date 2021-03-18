@@ -5,9 +5,9 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.TierTypes;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.item.TierTypes;
 
 public class BlockBehaviorTerracottaStained extends BlockBehaviorSolid {
 

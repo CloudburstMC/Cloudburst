@@ -9,9 +9,13 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.blockentity.EnderChestBlockEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -56,7 +60,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 
         placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH));
 
-        EnderChest enderChest = BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, block);
+        EnderChestBlockEntity enderChest = (EnderChestBlockEntity) BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, block);
         enderChest.loadAdditionalData(((CloudItemStack) item).getDataTag());
         if (item.hasName()) {
             enderChest.setCustomName(item.getName());
@@ -74,11 +78,11 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             if (!(blockEntity instanceof EnderChest)) {
-                blockEntity = BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, block.getChunk(), block.getPosition());
+                blockEntity = BlockEntityRegistry.get().newEntity(BlockEntityTypes.ENDER_CHEST, (CloudChunk) block.getChunk(), block.getPosition());
             }
 
-            player.setViewingEnderChest((EnderChest) blockEntity);
-            player.addWindow(player.getEnderChestInventory());
+            ((CloudPlayer) player).setViewingEnderChest((EnderChest) blockEntity);
+            player.addWindow(((CloudPlayer) player).getEnderChestInventory());
         }
 
         return true;
@@ -108,7 +112,7 @@ public class BlockBehaviorEnderChest extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState().defaultState());
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
 

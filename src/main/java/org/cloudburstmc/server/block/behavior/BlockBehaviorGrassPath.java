@@ -4,7 +4,9 @@ import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.registry.BlockRegistry;
 
 public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
 
@@ -29,7 +31,7 @@ public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
     public boolean onActivate(Block block, ItemStack item, Player player) {
         val behavior = item.getBehavior();
         if (behavior.isHoe()) {
-            behavior.useOn(item, block);
+            behavior.useOn(item, block.getState());
             block.set(BlockRegistry.get().getBlock(BlockTypes.FARMLAND), true);
             return true;
         }
