@@ -23,7 +23,7 @@ public final class CraftItemEvent extends Event implements Cancellable {
 
     //private CraftingTransaction transaction;
 
-    public CraftItemEvent(List<ItemStack> input, Recipe recipe, Player source) {
+    public CraftItemEvent(Player source, List<ItemStack> input, Recipe recipe) {
         this.player = source;
         this.input = input;
         this.recipe = recipe;

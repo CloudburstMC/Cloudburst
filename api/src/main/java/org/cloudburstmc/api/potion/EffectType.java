@@ -6,6 +6,7 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import org.cloudburstmc.api.util.Identifier;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 
 @Getter
@@ -33,5 +34,16 @@ public class EffectType {
 
     public static EffectType fromLegacy(byte id) {
         return effectMap.get(netIdMap.inverse().get(id));
+    }
+
+    @Nullable
+    public static EffectType byName(String arg) {
+        Identifier id = Identifier.fromString(arg);
+
+        for(EffectType type : effectMap.values()) {
+            if(type.getId().equals(id))
+                return type;
+        }
+        return null;
     }
 }
