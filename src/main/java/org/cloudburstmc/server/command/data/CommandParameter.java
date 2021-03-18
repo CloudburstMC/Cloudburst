@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.command.data;
 
+import com.google.common.collect.ImmutableMap;
 import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
 import com.nukkitx.protocol.bedrock.data.command.CommandParam;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamData;
@@ -29,6 +30,25 @@ public class CommandParameter {
     public static final String ENUM_TYPE_ENTITY_LIST = "entityType";
     public static final String ENUM_TYPE_EFFECT_LIST = "effectType";
     public static final String ENUM_TYPE_PARTICLE_LIST = "particleType";
+
+    private static final ImmutableMap<CommandParamType, CommandParam> PARAM_MAPPINGS = ImmutableMap.<CommandParamType, CommandParam>builder()
+            .put(CommandParamType.INT, CommandParam.INT)
+            .put(CommandParamType.FLOAT, CommandParam.FLOAT)
+            .put(CommandParamType.VALUE, CommandParam.VALUE)
+            .put(CommandParamType.WILDCARD_INT, CommandParam.WILDCARD_INT)
+            .put(CommandParamType.OPERATOR, CommandParam.OPERATOR)
+            .put(CommandParamType.TARGET, CommandParam.TARGET)
+            .put(CommandParamType.WILDCARD_TARGET, CommandParam.WILDCARD_TARGET)
+            .put(CommandParamType.FILE_PATH, CommandParam.FILE_PATH)
+            .put(CommandParamType.INT_RANGE, CommandParam.INT_RANGE)
+            .put(CommandParamType.STRING, CommandParam.STRING)
+            .put(CommandParamType.POSITION, CommandParam.POSITION)
+            .put(CommandParamType.BLOCK_POSITION, CommandParam.BLOCK_POSITION)
+            .put(CommandParamType.MESSAGE, CommandParam.MESSAGE)
+            .put(CommandParamType.TEXT, CommandParam.TEXT)
+            .put(CommandParamType.JSON, CommandParam.JSON)
+            .put(CommandParamType.COMMAND, CommandParam.COMMAND)
+            .build();
 
     public String name;
     public CommandParamType type;
@@ -82,7 +102,7 @@ public class CommandParameter {
     protected CommandParamData toNetwork() {
         return new CommandParamData(this.name, this.optional,
                 this.enumData != null ? new CommandEnumData(this.name, this.enumData.getValues().toArray(new String[0]), false) : null,
-                new CommandParam(this.type), this.postFix, Collections.emptyList());
+                PARAM_MAPPINGS.get(this.type), this.postFix, Collections.emptyList());
     }
 
     protected static CommandParamType fromString(String param) {
