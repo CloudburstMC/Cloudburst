@@ -400,6 +400,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
