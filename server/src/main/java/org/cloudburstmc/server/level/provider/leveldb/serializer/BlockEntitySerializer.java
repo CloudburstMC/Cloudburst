@@ -7,9 +7,9 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -22,8 +22,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Log4j2
 public class BlockEntitySerializer {
@@ -56,12 +56,12 @@ public class BlockEntitySerializer {
             return;
         }
 
-        Collection<BlockEntity> entities = chunk.getBlockEntities();
+        Set<BaseBlockEntity> entities = chunk.getBlockEntities();
 
         byte[] value;
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
              NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
-            for (BlockEntity entity : entities) {
+            for (BaseBlockEntity entity : entities) {
                 nbtOutputStream.writeTag(entity.getServerTag());
             }
             value = stream.toByteArray();
@@ -93,7 +93,7 @@ public class BlockEntitySerializer {
                     try {
                         BlockEntityType<?> type = REGISTRY.getBlockEntityType(tag.getString("id"));
 
-                        BlockEntity blockEntity = REGISTRY.newEntity(type, chunk, position);
+                        BaseBlockEntity blockEntity = (BaseBlockEntity) REGISTRY.newEntity(type, chunk, position);
                         if (blockEntity == null) {
                             dirty = true;
                             continue;

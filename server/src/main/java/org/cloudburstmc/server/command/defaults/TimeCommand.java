@@ -2,6 +2,7 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -53,7 +54,7 @@ public class TimeCommand extends Command {
 
                 return true;
             }
-            for (CloudLevel level : sender.getServer().getLevels()) {
+            for (CloudLevel level : ((CloudServer) sender.getServer()).getLevels()) {
                 level.checkTime();
                 level.startTime();
                 level.checkTime();
@@ -66,7 +67,7 @@ public class TimeCommand extends Command {
 
                 return true;
             }
-            for (CloudLevel level : sender.getServer().getLevels()) {
+            for (CloudLevel level : ((CloudServer) sender.getServer()).getLevels()) {
                 level.checkTime();
                 level.stopTime();
                 level.checkTime();
@@ -83,7 +84,7 @@ public class TimeCommand extends Command {
             if (sender instanceof CloudPlayer) {
                 level = ((CloudPlayer) sender).getLevel();
             } else {
-                level = sender.getServer().getDefaultLevel();
+                level = (CloudLevel) sender.getServer().getDefaultLevel();
             }
             sender.sendMessage(new TranslationContainer("commands.time.query.gametime", level.getTime()));
             return true;
@@ -122,7 +123,7 @@ public class TimeCommand extends Command {
                 }
             }
 
-            for (CloudLevel level : sender.getServer().getLevels()) {
+            for (CloudLevel level : ((CloudServer) sender.getServer()).getLevels()) {
                 level.checkTime();
                 level.setTime(value);
                 level.checkTime();
@@ -142,7 +143,7 @@ public class TimeCommand extends Command {
                 return false;
             }
 
-            for (CloudLevel level : sender.getServer().getLevels()) {
+            for (CloudLevel level : ((CloudServer) sender.getServer()).getLevels()) {
                 level.checkTime();
                 level.setTime(level.getTime() + value);
                 level.checkTime();

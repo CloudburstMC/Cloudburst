@@ -8,6 +8,8 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
+import java.util.Random;
+
 import static java.lang.Math.abs;
 
 /**
@@ -47,7 +49,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
         int dx = 0;
         int dz = 0;
 
-        Direction direction = Direction.Plane.HORIZONTAL.random(random);
+        Direction direction = Direction.Plane.HORIZONTAL.random((Random) random);
 
         for (int dy = 0; dy < height; dy++) {
             if (dy >= bendHeight && bendSize > 0) {
@@ -57,12 +59,12 @@ public class FeatureSavannaTree extends FeatureNormalTree {
             }
 
             if (this.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
-                level.setBlockAt(x + dx, y + dy, z + dz, 0, log);
+                level.setBlockState(x + dx, y + dy, z + dz, 0, log);
             }
         }
         this.placeLeaves(level, random, x + dx, y + height - 1, z + dz, height, log, leaves);
 
-        Direction secondDirection = Direction.Plane.HORIZONTAL.random(random);
+        Direction secondDirection = Direction.Plane.HORIZONTAL.random((Random) random);
         if (direction == secondDirection) {
             return true;
         }
@@ -77,7 +79,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
             dz += secondDirection.getZOffset();
 
             if (this.test(level.getBlockState(x + dx, y + secondBendHeight, z + dz, 0))) {
-                level.setBlockAt(x + dx, y + secondBendHeight, z + dz, 0, log);
+                level.setBlockState(x + dx, y + secondBendHeight, z + dz, 0, log);
                 lastPlacedY = y + secondBendHeight;
             }
         }
@@ -113,7 +115,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
         for (int dx = -3; dx <= 3; dx++) {
             for (int dz = -3; dz <= 3; dz++) {
                 if ((abs(dx) != 3 || abs(dz) != 3) && this.test(level.getBlockState(x + dx, y, z + dz, 0))) {
-                    level.setBlockAt(x + dx, y, z + dz, 0, leaves);
+                    level.setBlockState(x + dx, y, z + dz, 0, leaves);
                 }
             }
         }
@@ -123,7 +125,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
                 if ((abs(dx) != 2 || abs(dz) != 2) && this.test(level.getBlockState(x + dx, y, z + dz, 0))) {
-                    level.setBlockAt(x + dx, y, z + dz, 0, leaves);
+                    level.setBlockState(x + dx, y, z + dz, 0, leaves);
                 }
             }
         }

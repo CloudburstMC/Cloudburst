@@ -160,7 +160,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);
                         packet.setData(newAmount);
-                        CloudServer.broadcastPacket(this.getLevel().getPlayers().values(), packet);
+                        CloudServer.broadcastPacket(this.getLevel().getPlayers().values().toArray(new CloudPlayer[0]), packet);
                     }
                 }
             }

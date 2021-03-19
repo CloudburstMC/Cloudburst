@@ -60,31 +60,31 @@ public class FeatureMushroomBrown extends FeatureAbstractTree {
         int yy = y + height;
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
-                level.setBlockAt(x + dx, yy, z + dz, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP));
+                level.setBlockState(x + dx, yy, z + dz, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP));
             }
         }
         for (int dx = -1; dx <= 1; dx++) {
-            level.setBlockAt(x + dx, yy, z + 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_S));
-            level.setBlockAt(x + dx, yy, z - 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_N));
+            level.setBlockState(x + dx, yy, z + 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_S));
+            level.setBlockState(x + dx, yy, z - 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_N));
         }
         for (int dz = -1; dz <= 1; dz++) {
-            level.setBlockAt(x + 3, yy, z + dz, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_E));
-            level.setBlockAt(x - 3, yy, z + dz, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_W));
+            level.setBlockState(x + 3, yy, z + dz, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_E));
+            level.setBlockState(x - 3, yy, z + dz, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_W));
         }
-        level.setBlockAt(x + 2, yy, z + 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_SE));
-        level.setBlockAt(x - 2, yy, z + 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_SW));
-        level.setBlockAt(x + 2, yy, z - 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_NE));
-        level.setBlockAt(x - 2, yy, z - 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_NW));
-        level.setBlockAt(x + 3, yy, z + 2, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_SE));
-        level.setBlockAt(x + 3, yy, z - 2, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_NE));
-        level.setBlockAt(x - 3, yy, z + 2, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_SW));
-        level.setBlockAt(x - 3, yy, z - 2, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_NW));
+        level.setBlockState(x + 2, yy, z + 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_SE));
+        level.setBlockState(x - 2, yy, z + 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_SW));
+        level.setBlockState(x + 2, yy, z - 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_NE));
+        level.setBlockState(x - 2, yy, z - 3, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_NW));
+        level.setBlockState(x + 3, yy, z + 2, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_SE));
+        level.setBlockState(x + 3, yy, z - 2, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_NE));
+        level.setBlockState(x - 3, yy, z + 2, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_SW));
+        level.setBlockState(x - 3, yy, z - 2, BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.TOP_NW));
     }
 
     @Override
     protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dy = 0; dy < height; dy++) {
-            level.setBlockAt(x, y + dy, z, 0, log);
+            level.setBlockState(x, y + dy, z, 0, log);
         }
     }
 

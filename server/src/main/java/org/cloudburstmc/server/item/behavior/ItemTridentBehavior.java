@@ -4,14 +4,17 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
 import org.cloudburstmc.api.event.entity.EntityShootBowEvent;
 import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.projectile.EntityProjectile;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.inventory.PlayerInventory;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 /**
@@ -39,12 +42,12 @@ public class ItemTridentBehavior extends ItemToolBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
         return true;
     }
 
     @Override
-    public ItemStack onRelease(ItemStack item, int ticksUsed, CloudPlayer player) {
+    public ItemStack onRelease(ItemStack item, int ticksUsed, Player player) {
         val r = this.useOn(item, player);
 
         Vector3f motion = Vector3f.from(
@@ -64,7 +67,7 @@ public class ItemTridentBehavior extends ItemToolBehavior {
         trident.setMotion(motion);
         trident.setTrident(item);
 
-        EntityShootBowEvent entityShootBowEvent = new EntityShootBowEvent(player, item, trident, f);
+        EntityShootBowEvent entityShootBowEvent = new EntityShootBowEvent((Living) player, item, trident, f);
 
         if (f < 0.1 || ticksUsed < 5) {
             entityShootBowEvent.setCancelled();
@@ -82,9 +85,9 @@ public class ItemTridentBehavior extends ItemToolBehavior {
                     entityShootBowEvent.getProjectile().kill();
                 } else {
                     entityShootBowEvent.getProjectile().spawnToAll();
-                    player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.ITEM_TRIDENT_THROW);
+                    ((CloudLevel) player.getLevel()).addLevelSoundEvent(player.getPosition(), SoundEvent.ITEM_TRIDENT_THROW);
                     if (!player.isCreative()) {
-                        player.getInventory().decrementHandCount();
+                        ((PlayerInventory) player.getInventory()).decrementHandCount();
                     }
                 }
             }

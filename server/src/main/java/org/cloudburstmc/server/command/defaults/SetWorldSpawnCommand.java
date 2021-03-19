@@ -43,7 +43,7 @@ public class SetWorldSpawnCommand extends Command {
                 return true;
             }
         } else if (args.length == 3) {
-            level = sender.getServer().getDefaultLevel();
+            level = (CloudLevel) sender.getServer().getDefaultLevel();
             try {
                 pos = Vector3f.from(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]));
             } catch (NumberFormatException e1) {

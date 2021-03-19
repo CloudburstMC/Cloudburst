@@ -57,19 +57,19 @@ public class CocoaPopulator extends ChancePopulator {
 
             if (on.test(level.getBlockState(blockX - 1, y, blockZ, 0))) {
                 if (!avoidDouble || !on.test(level.getBlockState(blockX - 2, y, blockZ, 0))) {
-                    level.setBlockAt(blockX, y, blockZ, 0, BlockStates.COCOA.withTrait(BlockTraits.DIRECTION, Direction.EAST));
+                    level.setBlockState(blockX, y, blockZ, 0, BlockStates.COCOA.withTrait(BlockTraits.DIRECTION, Direction.EAST));
                 }
             } else if (on.test(level.getBlockState(blockX + 1, y, blockZ, 0))) {
                 if (!avoidDouble || !on.test(level.getBlockState(blockX + 2, y, blockZ, 0))) {
-                    level.setBlockAt(blockX, y, blockZ, 0, BlockStates.COCOA.withTrait(BlockTraits.DIRECTION, Direction.WEST));
+                    level.setBlockState(blockX, y, blockZ, 0, BlockStates.COCOA.withTrait(BlockTraits.DIRECTION, Direction.WEST));
                 }
             } else if (on.test(level.getBlockState(blockX, y, blockZ - 1, 0))) {
                 if (!avoidDouble || !on.test(level.getBlockState(blockX, y, blockZ - 2, 0))) {
-                    level.setBlockAt(blockX, y, blockZ, 0, BlockStates.COCOA.withTrait(BlockTraits.DIRECTION, Direction.SOUTH));
+                    level.setBlockState(blockX, y, blockZ, 0, BlockStates.COCOA.withTrait(BlockTraits.DIRECTION, Direction.SOUTH));
                 }
             } else if (on.test(level.getBlockState(blockX, y, blockZ + 1, 0))) {
                 if (!avoidDouble || !on.test(level.getBlockState(blockX, y, blockZ + 2, 0))) {
-                    level.setBlockAt(blockX, y, blockZ, 0, BlockStates.COCOA.withTrait(BlockTraits.DIRECTION, Direction.NORTH));
+                    level.setBlockState(blockX, y, blockZ, 0, BlockStates.COCOA.withTrait(BlockTraits.DIRECTION, Direction.NORTH));
                 }
             }
         }

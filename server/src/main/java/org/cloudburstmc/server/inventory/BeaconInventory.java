@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.inventory.InventoryType;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.api.player.Player;
 
 /**
  * author: Rover656
@@ -14,7 +14,7 @@ public class BeaconInventory extends FakeBlockUIComponent {
     }
 
     @Override
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player who) {
         super.onClose(who);
 
         //Drop item in slot

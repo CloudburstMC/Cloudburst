@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockIgniteEvent;
@@ -30,7 +30,9 @@ public class ItemFireChargeBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public ItemStack onActivate(ItemStack itemStack, Player player, BlockState block, BlockState targetState, Direction face, Vector3f clickPos, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
+
+        val targetState = target.getState();
 
         if (block == BlockStates.AIR && (targetState.getBehavior().isSolid(targetState) || targetState.getType() == BlockTypes.LEAVES)) {
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(level.getBlock(clickPos.toInt()).downState()) || BlockBehaviorFire.canNeighborBurn(level.getBlock(clickPos.toInt()))) {

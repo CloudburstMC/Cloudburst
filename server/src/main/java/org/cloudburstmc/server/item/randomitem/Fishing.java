@@ -3,7 +3,6 @@ package org.cloudburstmc.server.item.randomitem;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.potion.Potion;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.ItemTypes;
 
@@ -34,7 +33,7 @@ public final class Fishing {
     public static final Selector JUNK_ROTTEN_FLESH = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.ROTTEN_FLESH, JUNKS), 0.12F);
     public static final Selector JUNK_STICK = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.STICK, JUNKS), 0.06F);
     public static final Selector JUNK_STRING_ITEM = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.STRING, JUNKS), 0.06F);
-    public static final Selector JUNK_WATTER_BOTTLE = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.POTION, Potion.NO_EFFECTS, JUNKS), 0.12F);
+    public static final Selector JUNK_WATTER_BOTTLE = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.POTION, 0, JUNKS), 0.12F);
     public static final Selector JUNK_BONE = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.BONE, JUNKS), 0.12F);
     public static final Selector JUNK_INK_SAC = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.DYE, 10, JUNKS, DyeColor.BLACK.getDyeData()), 0.012F);
     public static final Selector JUNK_TRIPWIRE_HOOK = RandomItem.putSelector(new ConstantItemSelector(BlockTypes.TRIPWIRE_HOOK, JUNKS), 0.12F);

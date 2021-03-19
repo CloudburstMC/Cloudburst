@@ -7,9 +7,10 @@ import org.cloudburstmc.api.entity.passive.Sheep;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.ItemTypes;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -71,7 +72,7 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    public boolean onInteract(CloudPlayer player, ItemStack item) {
+    public boolean onInteract(Player player, ItemStack item) {
         if (item.getType() == ItemTypes.DYE) {
             this.setColor(item.getMetadata(DyeColor.class).getWoolData());
             return true;

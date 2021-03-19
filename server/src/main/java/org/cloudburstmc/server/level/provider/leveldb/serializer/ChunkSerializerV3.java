@@ -26,7 +26,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
     public void serialize(WriteBatch db, CloudChunk chunk) {
         // Write chunk sections
         for (int ySection = 0; ySection < CloudChunk.SECTION_COUNT; ySection++) {
-            CloudChunkSection section = chunk.getSection(ySection);
+            CloudChunkSection section = (CloudChunkSection) chunk.getSection(ySection);
             if (section == null) {
                 continue;
             }

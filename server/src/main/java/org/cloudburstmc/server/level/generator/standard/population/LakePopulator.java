@@ -157,7 +157,7 @@ public class LakePopulator extends ChancePopulator.Column {
                 for (int x = 0; x < 16; x++) {
                     for (int z = 0; z < 16; z++) {
                         if (points.get((y << 8) | (x << 4) | z)) {
-                            level.setBlockAt(blockX + x, blockY + y, blockZ + z, 0, y >= 4 ? BlockStates.AIR : block);
+                            level.setBlockState(blockX + x, blockY + y, blockZ + z, 0, y >= 4 ? BlockStates.AIR : block);
                         }
                     }
                 }
@@ -170,7 +170,7 @@ public class LakePopulator extends ChancePopulator.Column {
                     for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
                             if (points.get((y << 8) | (x << 4) | z) && replaceWithSurface.test(level.getBlockState(blockX + x, blockY + y - 1, blockZ + z, 0))) {
-                                level.setBlockAt(blockX + x, blockY + y - 1, blockZ + z, 0, surface);
+                                level.setBlockState(blockX + x, blockY + y - 1, blockZ + z, 0, surface);
                             }
                         }
                     }
@@ -195,7 +195,7 @@ public class LakePopulator extends ChancePopulator.Column {
                                     || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
                                     || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1))))
                                     && level.getBlockState(blockX + x, blockY + y, blockZ + z, 0).getType().isSolid()) {
-                                level.setBlockAt(blockX + x, blockY + y, blockZ + z, 0, border);
+                                level.setBlockState(blockX + x, blockY + y, blockZ + z, 0, border);
                             }
                         }
                     }
