@@ -10,6 +10,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.LevelData;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -122,7 +123,7 @@ class AnvilProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<Void> saveChunk(CloudChunk chunk) {
+    public CompletableFuture<Void> saveChunk(Chunk chunk) {
         checkForClosed();
 
         CompletableFuture<Void> savedFuture = new CompletableFuture<>();
@@ -136,7 +137,7 @@ class AnvilProvider implements LevelProvider {
 
         this.executor.execute(() -> {
             try {
-                NbtMap tag = AnvilConverter.convertToAnvil(chunk);
+                NbtMap tag = AnvilConverter.convertToAnvil((CloudChunk) chunk);
 
                 RegionFile file = this.regionFiles.get(regionPosition);
 

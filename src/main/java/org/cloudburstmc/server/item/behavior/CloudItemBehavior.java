@@ -3,6 +3,7 @@ package org.cloudburstmc.server.item.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
@@ -194,7 +195,7 @@ public abstract class CloudItemBehavior implements ItemBehavior {
 
 
     @Override
-    public ItemStack onActivate(ItemStack itemStack, Player player, BlockState blockState, BlockState blockState1, Direction direction, Vector3f vector3f, Level level) {
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block blockState, Block blockState1, Direction direction, Vector3f vector3f, Level level) {
         return null;
     }
 

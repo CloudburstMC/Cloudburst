@@ -16,6 +16,7 @@ import org.cloudburstmc.server.inventory.transaction.action.*;
 import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Optional;
 

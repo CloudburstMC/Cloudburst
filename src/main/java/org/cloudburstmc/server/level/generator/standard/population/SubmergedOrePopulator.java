@@ -67,7 +67,7 @@ public class SubmergedOrePopulator extends ChancePopulator.Column {
                 if (dx * dx + dz * dz <= radiusSq) {
                     for (int dy = -1; dy < 1; dy++) {
                         if (this.replace.test(level.getBlockState(blockX + dx, y + dy, blockZ + dz, 0))) {
-                            level.setBlockAt(blockX + dx, y + dy, blockZ + dz, 0, block);
+                            level.setBlockState(blockX + dx, y + dy, blockZ + dz, 0, block);
                         }
                     }
                 }

@@ -52,7 +52,7 @@ public class WeatherCommand extends Command {
         if (sender instanceof CloudPlayer) {
             level = ((CloudPlayer) sender).getLevel();
         } else {
-            level = sender.getServer().getDefaultLevel();
+            level = (CloudLevel) sender.getServer().getDefaultLevel();
         }
 
         switch (weather) {

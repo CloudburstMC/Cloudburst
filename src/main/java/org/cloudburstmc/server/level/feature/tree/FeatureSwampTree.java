@@ -54,7 +54,7 @@ public class FeatureSwampTree extends FeatureNormalTree {
         BlockState vine = BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, face.getOpposite());
         BlockState block;
         for (int dy = 0; dy < 4 && (block = level.getBlockState(x, y - dy, z, 0)) != leaves && this.test(block); dy++) {
-            level.setBlockAt(x, y - dy, z, 0, vine);
+            level.setBlockState(x, y - dy, z, 0, vine);
         }
     }
 }

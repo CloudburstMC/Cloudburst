@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.player.handler;
 
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackChunkDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
@@ -48,7 +49,7 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                     dataInfoPacket.setChunkCount(pack.getSize() / dataInfoPacket.getMaxChunkSize());
                     dataInfoPacket.setCompressedPackSize(pack.getSize());
                     dataInfoPacket.setHash(pack.getHash());
-                    dataInfoPacket.setType(pack.getType());
+                    dataInfoPacket.setType(ResourcePackType.values()[pack.getType().ordinal()]);
                     session.sendPacket(dataInfoPacket);
                 }
                 return true;

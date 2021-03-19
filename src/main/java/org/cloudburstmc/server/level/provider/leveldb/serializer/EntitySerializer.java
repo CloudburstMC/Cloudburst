@@ -4,11 +4,11 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -52,7 +52,7 @@ public class EntitySerializer {
 
     public static void saveEntities(WriteBatch db, CloudChunk chunk) {
         byte[] key = LevelDBKey.ENTITIES.getKey(chunk.getX(), chunk.getZ());
-        Set<Entity> entities = chunk.getEntities();
+        Set<BaseEntity> entities = chunk.getEntities();
         if (entities.isEmpty()) {
             db.delete(key);
             return;
@@ -61,7 +61,7 @@ public class EntitySerializer {
         byte[] value;
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
              NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
-            for (Entity entity : entities) {
+            for (BaseEntity entity : entities) {
                 NbtMapBuilder tag = NbtMap.builder();
                 entity.saveAdditionalData(tag);
                 nbtOutputStream.writeTag(tag.build());
@@ -111,7 +111,7 @@ public class EntitySerializer {
                         continue;
                     }
                     try {
-                        Entity entity = registry.newEntity(type, location);
+                        BaseEntity entity = (BaseEntity) registry.newEntity(type, location);
                         if (entity != null) {
                             entity.loadAdditionalData(entityTag);
                         }

@@ -66,6 +66,7 @@ import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorRedstoneDiode;
 import org.cloudburstmc.server.block.util.BlockUtils;
+import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.inventory.PlayerInventory;
@@ -1751,7 +1752,7 @@ public class CloudLevel implements Level {
                 }
 
                 if (itemBehavior.canBeActivated()) {
-                    val result = itemBehavior.onActivate(item, player, block.getState(), target.getState(), face, clickPos, this);
+                    val result = itemBehavior.onActivate(item, player, block, target, face, clickPos, this);
                     if (result != null) {
                         item = result;
                         if (item.getAmount() <= 0) {
@@ -1917,8 +1918,8 @@ public class CloudLevel implements Level {
 
             for (int x = minX; x <= maxX; ++x) {
                 for (int z = minZ; z <= maxZ; ++z) {
-                    Set<Entity> colliding = this.getLoadedChunkEntities(x, z);
-                    for (Entity ent : colliding) {
+                    Set<BaseEntity> colliding = this.getLoadedChunkEntities(x, z);
+                    for (BaseEntity ent : colliding) {
                         if ((entity == null || (ent != entity && entity.canCollideWith(ent)))
                                 && ent.getBoundingBox().intersectsWith(bb)) {
                             if (entities == null) {
@@ -1934,6 +1935,7 @@ public class CloudLevel implements Level {
         return entities == null ? ImmutableSet.of() : entities.build();
     }
 
+    @Override
     public Set<Entity> getNearbyEntities(AxisAlignedBB bb) {
         return this.getNearbyEntities(bb, null);
     }
@@ -1952,8 +1954,8 @@ public class CloudLevel implements Level {
 
         for (int x = minX; x <= maxX; ++x) {
             for (int z = minZ; z <= maxZ; ++z) {
-                Set<Entity> entitiesInRange = loadChunks ? this.getChunkEntities(x, z) : this.getLoadedChunkEntities(x, z);
-                for (Entity entityInRange : entitiesInRange) {
+                Set<BaseEntity> entitiesInRange = loadChunks ? this.getChunkEntities(x, z) : this.getLoadedChunkEntities(x, z);
+                for (BaseEntity entityInRange : entitiesInRange) {
                     if (entityInRange != entity && entityInRange.getBoundingBox().intersectsWith(bb)) {
                         if (entities == null) {
                             entities = ImmutableSet.builder();
@@ -1993,15 +1995,15 @@ public class CloudLevel implements Level {
     }
 
     @Nonnull
-    public Set<Entity> getChunkEntities(int chunkX, int chunkZ) {
+    public Set<BaseEntity> getChunkEntities(int chunkX, int chunkZ) {
         return this.getChunk(chunkX, chunkZ).getEntities();
     }
 
     @Nonnull
-    public Set<Entity> getLoadedChunkEntities(int chunkX, int chunkZ) {
-        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+    public Set<BaseEntity> getLoadedChunkEntities(int chunkX, int chunkZ) {
+        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         if (chunk != null) {
-            return ImmutableSet.<Entity>builder()
+            return ImmutableSet.<BaseEntity>builder()
                     .addAll(chunk.getEntities())
                     .addAll(chunk.getPlayers())
                     .build();
@@ -2011,13 +2013,13 @@ public class CloudLevel implements Level {
 
 
     @Nonnull
-    public Collection<BlockEntity> getChunkBlockEntities(int chunkX, int chunkZ) {
+    public Collection<BaseBlockEntity> getChunkBlockEntities(int chunkX, int chunkZ) {
         return this.getChunk(chunkX, chunkZ).getBlockEntities();
     }
 
     @Nonnull
-    public Collection<BlockEntity> getLoadedBlockEntities(int chunkX, int chunkZ) {
-        Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+    public Collection<BaseBlockEntity> getLoadedBlockEntities(int chunkX, int chunkZ) {
+        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         return chunk == null ? Collections.emptyList() : chunk.getBlockEntities();
     }
 

@@ -93,7 +93,7 @@ public class SpringPopulator extends AbstractReplacingPopulator {
         }
 
         if (this.neighborCount.contains(neighbors) && this.airCount.contains(air)) {
-            level.setBlockAt(blockX, blockY, blockZ, 0, this.block.selectWeighted(random));
+            level.setBlockState(blockX, blockY, blockZ, 0, this.block.selectWeighted(random));
             //TODO: request immediate block update
         }
     }
