@@ -16,6 +16,7 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;

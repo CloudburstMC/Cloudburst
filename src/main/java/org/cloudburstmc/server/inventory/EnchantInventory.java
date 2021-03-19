@@ -2,6 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.CloudPlayer.CraftingType;
 
@@ -17,13 +18,13 @@ public class EnchantInventory extends FakeBlockUIComponent {
     }
 
     @Override
-    public void onOpen(CloudPlayer who) {
+    public void onOpen(Player who) {
         super.onOpen(who);
-        who.craftingType = CraftingType.ENCHANT;
+        ((CloudPlayer) who).craftingType = CraftingType.ENCHANT;
     }
 
     @Override
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player who) {
         super.onClose(who);
         if (this.getViewers().size() == 0) {
             for (int i = 0; i < 2; ++i) {

@@ -45,7 +45,7 @@ public class FeatureNormalTree extends FeatureAbstractTree {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if ((abs(dx) != radius || abs(dz) != radius || random.nextBoolean() && dy != 0)
                             && this.test(level.getBlockState(x + dx, yy, z + dz, 0))) {
-                        level.setBlockAt(x + dx, yy, z + dz, 0, leaves);
+                        level.setBlockState(x + dx, yy, z + dz, 0, leaves);
                     }
                 }
             }
@@ -55,7 +55,7 @@ public class FeatureNormalTree extends FeatureAbstractTree {
     @Override
     protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dy = 0; dy < height; dy++) {
-            level.setBlockAt(x, y + dy, z, 0, log);
+            level.setBlockState(x, y + dy, z, 0, log);
         }
     }
 

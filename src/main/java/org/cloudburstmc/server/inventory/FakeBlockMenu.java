@@ -25,7 +25,7 @@ public class FakeBlockMenu implements InventoryHolder {
     }
 
     public CloudLevel getLevel() {
-        return blockState.getLevel();
+        return (CloudLevel) blockState.getLevel();
     }
 
     @Override

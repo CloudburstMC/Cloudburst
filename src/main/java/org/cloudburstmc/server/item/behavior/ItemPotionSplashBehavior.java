@@ -4,6 +4,7 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.potion.Potion;
+import org.cloudburstmc.server.entity.projectile.EntitySplashPotion;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.POTION_AUX_VALUE;
 
@@ -19,6 +20,6 @@ public class ItemPotionSplashBehavior extends ItemProjectileBehavior {
 
     @Override
     protected void onProjectileCreation(ItemStack item, Projectile entity) {
-        entity.getData().setShort(POTION_AUX_VALUE, item.getMetadata(Potion.class).getId());
+        ((EntitySplashPotion) entity).getData().setShort(POTION_AUX_VALUE, item.getMetadata(Potion.class).getNetworkId());
     }
 }

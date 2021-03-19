@@ -69,7 +69,7 @@ public class BlobPopulator extends ChancePopulator.Column {
                     }
                     for (int dz = -vz; dz <= vz; dz++) {
                         if (dx * dx + dy * dy + dz * dz <= g && replace.test(level.getBlockState(blockX + dx, y + dy, blockZ + dz, 0))) {
-                            level.setBlockAt(blockX + dx, y + dy, blockZ + dz, 0, block);
+                            level.setBlockState(blockX + dx, y + dy, blockZ + dz, 0, block);
                         }
                     }
                 }

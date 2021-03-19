@@ -8,15 +8,13 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.event.block.BlockIgniteEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockRegistry;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.api.block.BlockTypes.OBSIDIAN;
 
@@ -41,12 +39,12 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
     }
 
     @Override
-    public ItemStack onActivate(ItemStack itemStack, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level) {
+    public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         val targetState = target.getState();
         if (block.getState() == BlockStates.AIR && targetState.getBehavior().isSolid(targetState) || targetState.getType() == BlockTypes.LEAVES) {
             PORTAL:
-            if (target.getState().getType() == OBSIDIAN) {
-                final Vector3i pos = target.getPosition();
+            if (targetState.getType() == OBSIDIAN) {
+                final Vector3i pos = clickPos.toInt();
                 final int targX = pos.getX();
                 final int targY = pos.getY();
                 final int targZ = pos.getZ();
@@ -164,11 +162,11 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlock(Vector3i.from(scanX - width, scanY + height, scanZ), BlockRegistry.get().getBlock(BlockTypes.PORTAL));
+                            level.setBlockState(Vector3i.from(scanX - width, scanY + height, scanZ), BlockRegistry.get().getBlock(BlockTypes.PORTAL));
                         }
                     }
 
-                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.IGNITE);
+                    ((CloudLevel) level).addLevelSoundEvent(clickPos, SoundEvent.IGNITE);
                     return null;
                 } else if (sizeZ >= 2 && sizeZ <= MAX_PORTAL_SIZE) {
                     //start scan from 1 block above base
@@ -243,18 +241,18 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlock(Vector3i.from(scanX, scanY + height, scanZ - width), BlockRegistry.get().getBlock(BlockTypes.PORTAL));
+                            level.setBlockState(Vector3i.from(scanX, scanY + height, scanZ - width), BlockRegistry.get().getBlock(BlockTypes.PORTAL));
                         }
                     }
 
-                    level.addLevelSoundEvent(block.getPosition(), SoundEvent.IGNITE);
+                    ((CloudLevel) level).addLevelSoundEvent(clickPos, SoundEvent.IGNITE);
                     return null;
                 }
             }
             BlockState fire = BlockRegistry.get().getBlock(BlockTypes.FIRE);
             BlockBehaviorFire fireBehavior = (BlockBehaviorFire) BlockRegistry.get().getBehavior(BlockTypes.FIRE);
 
-            if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
+ /*           if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
                 block.getLevel().getServer().getEventManager().fire(e);
 
@@ -265,10 +263,10 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
                     level.scheduleUpdate(block, fireBehavior.tickRate() + ThreadLocalRandom.current().nextInt(10));
                 }
                 return null;
-            }
+            }*/ // TODO
 
             if (player.getGamemode().isSurvival()) {
-                return this.useOn(itemStack, block);
+                return this.useOn(itemStack, block.getState());
             }
         }
 

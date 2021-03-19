@@ -97,7 +97,7 @@ public class OrePopulator extends AbstractReplacingPopulator {
                             continue;
                         }
                         if (this.replace.test(level.getBlockState(dx, dy, dz, 0))) {
-                            level.setBlockAt(dx, dy, dz, 0, block);
+                            level.setBlockState(dx, dy, dz, 0, block);
                         }
                     }
                 }

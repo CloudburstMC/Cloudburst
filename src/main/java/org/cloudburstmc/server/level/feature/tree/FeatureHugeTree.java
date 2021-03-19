@@ -61,10 +61,10 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
     @Override
     protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dy = 0; dy < height - 2; dy++) {
-            level.setBlockAt(x, y + dy, z, 0, log);
-            level.setBlockAt(x + 1, y + dy, z, 0, log);
-            level.setBlockAt(x, y + dy, z + 1, 0, log);
-            level.setBlockAt(x + 1, y + dy, z + 1, 0, log);
+            level.setBlockState(x, y + dy, z, 0, log);
+            level.setBlockState(x + 1, y + dy, z, 0, log);
+            level.setBlockState(x, y + dy, z + 1, 0, log);
+            level.setBlockState(x + 1, y + dy, z + 1, 0, log);
         }
     }
 
@@ -87,7 +87,7 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
                 int dxSq = dx > 0 ? (dx - 1) * (dx - 1) : dx * dx;
                 int dzSq = dz > 0 ? (dz - 1) * (dz - 1) : dz * dz;
                 if (dxSq + dzSq <= radiusSq && this.test(level.getBlockState(x + dx, y, z + dz, 0))) {
-                    level.setBlockAt(x + dx, y, z + dz, 0, block);
+                    level.setBlockState(x + dx, y, z + dz, 0, block);
                 }
             }
         }

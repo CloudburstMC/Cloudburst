@@ -87,7 +87,7 @@ class LevelDBProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<Void> saveChunk(CloudChunk chunk) {
+    public CompletableFuture<Void> saveChunk(Chunk chunk) {
         final int x = chunk.getX();
         final int z = chunk.getZ();
 
@@ -101,14 +101,14 @@ class LevelDBProvider implements LevelProvider {
                 LockableChunk lockableChunk = chunk.readLockable();
                 lockableChunk.lock();
                 try {
-                    ChunkSerializers.serializeChunk(batch, chunk, 19);
-                    Data2dSerializer.serialize(batch, chunk);
+                    ChunkSerializers.serializeChunk(batch, (CloudChunk) chunk, 19);
+                    Data2dSerializer.serialize(batch, (CloudChunk) chunk);
 
                     batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{19});
                     batch.put(LevelDBKey.STATE_FINALIZATION.getKey(x, z), Unpooled.buffer(4).writeIntLE(lockableChunk.getState() - 1).array());
 
-                    BlockEntitySerializer.saveBlockEntities(batch, chunk);
-                    EntitySerializer.saveEntities(batch, chunk);
+                    BlockEntitySerializer.saveBlockEntities(batch, (CloudChunk) chunk);
+                    EntitySerializer.saveEntities(batch, (CloudChunk) chunk);
                 } finally {
                     lockableChunk.unlock();
                 }

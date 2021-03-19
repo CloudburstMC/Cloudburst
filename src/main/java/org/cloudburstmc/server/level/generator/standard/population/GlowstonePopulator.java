@@ -54,7 +54,7 @@ public class GlowstonePopulator extends AbstractReplacingPopulator {
         if (blockY >= 255 || !replace.test(level.getBlockState(blockX, blockY, blockZ, 0)) || level.getBlockState(blockX, blockY + 1, blockZ, 0) != ground) {
             return;
         }
-        level.setBlockAt(blockX, blockY, blockZ, 0, block);
+        level.setBlockState(blockX, blockY, blockZ, 0, block);
 
         for (int i = this.tries - 1; i >= 0; i--) {
             int x = blockX + random.nextInt(8) - random.nextInt(8);
@@ -83,7 +83,7 @@ public class GlowstonePopulator extends AbstractReplacingPopulator {
                 }
 
                 if (neighbors == 1) {
-                    level.setBlockAt(x, y, z, 0, block);
+                    level.setBlockState(x, y, z, 0, block);
                 }
             }
         }

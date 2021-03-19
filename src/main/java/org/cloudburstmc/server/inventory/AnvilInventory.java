@@ -3,6 +3,7 @@ package org.cloudburstmc.server.inventory;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.CloudPlayer.CraftingType;
 
@@ -118,10 +119,10 @@ public class AnvilInventory extends FakeBlockUIComponent {
     }
 
     @Override
-    public void onClose(CloudPlayer who) {
+    public void onClose(Player who) {
         super.onClose(who);
-        who.craftingType = CraftingType.SMALL;
-        who.resetCraftingGridType();
+        ((CloudPlayer) who).craftingType = CraftingType.SMALL;
+        ((CloudPlayer) who).resetCraftingGridType();
 
         for (int i = 0; i < 2; ++i) {
             this.getHolder().getLevel().dropItem(this.getHolder().getPosition().toFloat().add(0.5, 0.5, 0.5), this.getItem(i));
@@ -130,8 +131,8 @@ public class AnvilInventory extends FakeBlockUIComponent {
     }
 
     @Override
-    public void onOpen(CloudPlayer who) {
+    public void onOpen(Player who) {
         super.onOpen(who);
-        who.craftingType = CraftingType.ANVIL;
+        ((CloudPlayer) who).craftingType = CraftingType.ANVIL;
     }
 }

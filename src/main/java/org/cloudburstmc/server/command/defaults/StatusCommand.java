@@ -35,7 +35,7 @@ public class StatusCommand extends Command {
             return true;
         }
 
-        CloudServer server = sender.getServer();
+        CloudServer server = (CloudServer) sender.getServer();
         sender.sendMessage(TextFormat.GREEN + "---- " + TextFormat.WHITE + "Server status" + TextFormat.GREEN + " ----");
 
         long time = System.currentTimeMillis() - Bootstrap.START_TIME;

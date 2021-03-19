@@ -7,15 +7,19 @@ import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.event.entity.EntityShootBowEvent;
 import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
+import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.data.Damageable;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import java.util.Random;
@@ -43,12 +47,12 @@ public class ItemBowBehavior extends ItemToolBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
         return player.getInventory().contains(CloudItemRegistry.get().getItem(ARROW)) || player.isCreative();
     }
 
     @Override
-    public ItemStack onRelease(ItemStack item, int ticksUsed, CloudPlayer player) {
+    public ItemStack onRelease(ItemStack item, int ticksUsed, Player player) {
         ItemStack itemArrow = CloudItemRegistry.get().getItem(ARROW);
 
         if ((player.isAdventure() || player.isSurvival()) && !player.getInventory().contains(itemArrow)) {
@@ -86,7 +90,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
         arrow.setCritical(f == 2);
         arrow.setOwner(player);
 
-        EntityShootBowEvent entityShootBowEvent = new EntityShootBowEvent(player, item, arrow, f);
+        EntityShootBowEvent entityShootBowEvent = new EntityShootBowEvent((Living) player, item, arrow, f);
 
         if (f < 0.1 || ticksUsed < 3) {
             entityShootBowEvent.setCancelled();
@@ -118,7 +122,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
                             } else {
                                 item = item.withData(dmg.damage());
                             }
-                            player.getInventory().setItemInHand(item);
+                            ((PlayerInventory) player.getInventory()).setItemInHand(item);
                         }
                     }
                 }
@@ -130,7 +134,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
                     entityShootBowEvent.getProjectile().kill();
                 } else {
                     entityShootBowEvent.getProjectile().spawnToAll();
-                    player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.BOW);
+                    ((CloudLevel) player.getLevel()).addLevelSoundEvent(player.getPosition(), SoundEvent.BOW);
                 }
             }
         }

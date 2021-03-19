@@ -17,6 +17,7 @@ import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.VARIANT;
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
@@ -151,7 +152,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
                     EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, b, this.getBlock());
                     server.getEventManager().fire(event);
                     if (!event.isCancelled()) {
-                        getLevel().setBlock(pos, event.getTo(), true);
+                        getLevel().setBlockState(pos, event.getTo(), true);
 
                         if (event.getTo().getType() == ANVIL) {
                             getLevel().addSound(pos, Sound.RANDOM_ANVIL_LAND);

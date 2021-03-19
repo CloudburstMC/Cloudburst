@@ -7,6 +7,7 @@ import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.event.player.PlayerAsyncPreLoginEvent;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.player.PlayerPreLoginEvent;
 import org.cloudburstmc.server.network.BedrockInterface;
@@ -94,8 +95,8 @@ public class LoginPacketHandler implements BedrockPacketHandler {
 
             @Override
             public void onRun() {
-                e = new PlayerAsyncPreLoginEvent(loginDataInstance);
-                server.getEventManager().fire(e);
+               // e = new PlayerAsyncPreLoginEvent(loginDataInstance); // TODO figure out if LoginData needs to be moved to API?
+//                server.getEventManager().fire(e);
             }
 
             @Override
@@ -106,7 +107,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
                     } else if (loginDataInstance.isShouldLogin()) {
                         CloudPlayer player = loginDataInstance.initializePlayer();
 
-                        for (Consumer<CloudPlayer> action : e.getScheduledActions()) {
+                        for (Consumer<Player> action : e.getScheduledActions()) {
                             action.accept(player);
                         }
                     }
