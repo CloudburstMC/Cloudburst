@@ -123,7 +123,7 @@ public interface Chunk extends Comparable<Chunk> {
      * @return entity set
      */
     @Nonnull
-    Set<Entity> getEntities();
+    Set<? extends Entity> getEntities();
 
     /**
      * Gets an immutable copy of all block entities within the current chunk.
@@ -131,7 +131,7 @@ public interface Chunk extends Comparable<Chunk> {
      * @return block entity set
      */
     @Nonnull
-    Set<BlockEntity> getBlockEntities();
+    Set<? extends BlockEntity> getBlockEntities();
 
     /**
      * Gets this chunk's current state.

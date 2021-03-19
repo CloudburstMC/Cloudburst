@@ -102,4 +102,6 @@ public interface Server {
     Player getPlayer(String name);
 
     void setAutoSave(boolean autoSave);
+
+    String getApiVersion();
 }

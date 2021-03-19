@@ -40,6 +40,10 @@ public class Skin {
         return "{\"geometry\" : {\"default\" : \"" + geometryName + "\"}}";
     }
 
+    public boolean isValid() {
+        return true; //TODO
+    }
+
     @Data
     public class PersonaPieceTint {
         private final String pieceType;
