@@ -38,8 +38,9 @@ public abstract class Potion {
         return type.isSplash();
     }
 
-    public void setSplash(boolean splash) {
+    public Potion setSplash(boolean splash) {
         this.type.setSplash(splash);
+        return this;
     }
 
     public boolean isInstant() {

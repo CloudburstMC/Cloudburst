@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
@@ -74,7 +75,7 @@ public interface ItemBehavior {
 
     ItemStack onRelease(ItemStack item, int ticksUsed, Player player);
 
-    ItemStack onActivate(ItemStack itemStack, Player player, BlockState block, BlockState target, Direction face, Vector3f clickPos, Level level);
+    ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level);
 
     boolean onClickAir(ItemStack item, Vector3f directionVector, Player player);
 }
