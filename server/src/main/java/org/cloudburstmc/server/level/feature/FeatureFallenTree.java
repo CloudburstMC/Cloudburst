@@ -10,6 +10,8 @@ import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
+import java.util.Random;
+
 /**
  * @author DaPorkchop_
  */
@@ -28,7 +30,7 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
         }
 
         final int size = this.size.rand(random);
-        final Direction direction = Direction.Plane.HORIZONTAL.random(random);
+        final Direction direction = Direction.Plane.HORIZONTAL.random((Random) random);
         for (int i = 0; i < size; i++) {
             if (!this.test(level.getBlockState(x + direction.getXOffset() * i, y, z + direction.getZOffset() * i, 0))
                     || this.testOrLiquid(level.getBlockState(x + direction.getXOffset() * i, y - 1, z + direction.getZOffset() * i, 0))) {
@@ -36,14 +38,14 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
             }
         }
 
-        level.setBlockAt(x, y, z, 0, this.log);
+        level.setBlockState(x, y, z, 0, this.log);
 
         BlockState log = this.log.withTrait(BlockTraits.AXIS, direction.getAxis());
         for (int i = random.nextInt(2) + 2; i < size; i++) {
-            level.setBlockAt(x + direction.getXOffset() * i, y, z + direction.getZOffset() * i, 0, log);
+            level.setBlockState(x + direction.getXOffset() * i, y, z + direction.getZOffset() * i, 0, log);
 
             if (random.nextInt(10) == 0 && this.test(level.getBlockState(x + direction.getXOffset() * i, y + 1, z + direction.getZOffset() * i, 0))) {
-                level.setBlockAt(x + direction.getXOffset() * i, y + 1, z + direction.getZOffset() * i, 0, random.nextBoolean() ? BlockStates.BROWN_MUSHROOM : BlockStates.RED_MUSHROOM);
+                level.setBlockState(x + direction.getXOffset() * i, y + 1, z + direction.getZOffset() * i, 0, random.nextBoolean() ? BlockStates.BROWN_MUSHROOM : BlockStates.RED_MUSHROOM);
             }
 
             this.replaceGrassWithDirt(level, x + direction.getXOffset() * i, y - 1, z + direction.getZOffset() * i);
@@ -51,16 +53,16 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
 
         if (this.vineChance > 0.0d) {
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x - 1, y, z, 0))) {
-                level.setBlockAt(x - 1, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.EAST));
+                level.setBlockState(x - 1, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.EAST));
             }
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x + 1, y, z, 0))) {
-                level.setBlockAt(x + 1, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.WEST));
+                level.setBlockState(x + 1, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.WEST));
             }
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x, y, z - 1, 0))) {
-                level.setBlockAt(x, y, z - 1, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.SOUTH));
+                level.setBlockState(x, y, z - 1, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.SOUTH));
             }
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x, y, z + 1, 0))) {
-                level.setBlockAt(x, y, z + 1, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.NORTH));
+                level.setBlockState(x, y, z + 1, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.NORTH));
             }
         }
 

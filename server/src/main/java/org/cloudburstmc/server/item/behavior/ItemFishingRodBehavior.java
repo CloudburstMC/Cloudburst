@@ -3,6 +3,7 @@ package org.cloudburstmc.server.item.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -27,12 +28,13 @@ public class ItemFishingRodBehavior extends ItemToolBehavior {
     }
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
         return true;
     }
 
     @Override
-    public ItemStack onUse(ItemStack item, int ticksUsed, CloudPlayer player) {
+    public ItemStack onUse(ItemStack item, int ticksUsed, Player p) {
+        CloudPlayer player = (CloudPlayer) p;
         if (player.fishing != null) {
             player.stopFishing(true);
         } else {

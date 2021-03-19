@@ -11,11 +11,11 @@ import io.netty.buffer.ByteBufInputStream;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
-import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.chunk.*;
 import org.cloudburstmc.server.level.provider.LegacyBlockConverter;
 import org.cloudburstmc.server.level.provider.anvil.palette.BiomePalette;
@@ -207,7 +207,7 @@ public class AnvilConverter {
                     continue;
                 }
                 EntityType<?> type = registry.getEntityType(identifier);
-                Entity entity = registry.newEntity(type, location);
+                BaseEntity entity = (BaseEntity) registry.newEntity(type, location);
                 entity.loadAdditionalData(entityTag);
             }
             return dirty;

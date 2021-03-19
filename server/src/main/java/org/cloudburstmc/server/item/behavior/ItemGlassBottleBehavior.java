@@ -5,9 +5,11 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.inventory.PlayerInventory;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
 import static org.cloudburstmc.api.block.BlockTypes.WATER;
@@ -21,15 +23,15 @@ public class ItemGlassBottleBehavior extends CloudItemBehavior {
     }
 
     @Override
-    public ItemStack onActivate(ItemStack item, CloudPlayer player, Block block, Block target, Direction face, Vector3f clickPos, CloudLevel level) {
+    public ItemStack onActivate(ItemStack item, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
         val targetType = target.getState().getType();
         if (targetType == WATER || targetType == FLOWING_WATER) {
             ItemStack potion = CloudItemRegistry.get().getItem(POTION);
 
             if (item.getAmount() == 1) {
-                player.getInventory().setItemInHand(potion);
+                ((PlayerInventory) player.getInventory()).setItemInHand(potion);
             } else if (item.getAmount() > 1) {
-                player.getInventory().decrementHandCount();
+                ((PlayerInventory) player.getInventory()).decrementHandCount();
                 if (player.getInventory().canAddItem(potion)) {
                     player.getInventory().addItem(potion);
                 } else {

@@ -3,6 +3,7 @@ package org.cloudburstmc.server.inventory.transaction.action;
 import lombok.ToString;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -70,7 +71,7 @@ public class SlotChangeAction extends InventoryAction {
      * @param source player
      */
     public void onExecuteSuccess(CloudPlayer source) {
-        Set<CloudPlayer> viewers = new HashSet<>(this.inventory.getViewers());
+        Set<Player> viewers = new HashSet<>(this.inventory.getViewers());
         viewers.remove(source);
 
         this.inventory.sendSlot(this.inventorySlot, viewers);

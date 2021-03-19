@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.api.player.Player;
 
 /**
  * Created by Snake1999 on 2016/1/14.
@@ -11,7 +11,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 public class ItemAppleGoldEnchantedBehavior extends ItemEdibleBehavior {
 
     @Override
-    public boolean onClickAir(ItemStack item, Vector3f directionVector, CloudPlayer player) {
+    public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
         return true;
     }
 }

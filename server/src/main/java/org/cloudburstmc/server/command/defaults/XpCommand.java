@@ -42,7 +42,7 @@ public class XpCommand extends Command {
             }
             amountString = args[0];
             playerName = args[1];
-            player = sender.getServer().getPlayer(playerName);
+            player = (CloudPlayer) sender.getServer().getPlayer(playerName);
         } else {
             if (args.length == 1) {
                 amountString = args[0];
@@ -50,7 +50,7 @@ public class XpCommand extends Command {
             } else if (args.length == 2) {
                 amountString = args[0];
                 playerName = args[1];
-                player = sender.getServer().getPlayer(playerName);
+                player = (CloudPlayer) sender.getServer().getPlayer(playerName);
             } else {
                 return false;
             }

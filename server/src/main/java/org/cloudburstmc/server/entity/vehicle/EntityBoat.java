@@ -16,6 +16,7 @@ import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.api.util.data.TreeSpecies;
@@ -27,6 +28,7 @@ import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.ArrayList;
 
@@ -352,7 +354,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public boolean onInteract(CloudPlayer player, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         if (this.passengers.size() >= 2) {
             return false;
         }

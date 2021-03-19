@@ -26,6 +26,7 @@ import org.cloudburstmc.api.level.chunk.ChunkSection;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
+import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.BlockUpdate;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
@@ -335,7 +336,7 @@ public final class CloudChunk implements Chunk, Closeable {
 
     @Nonnull
     @Override
-    public Set<Player> getPlayers() {
+    public Set<CloudPlayer> getPlayers() {
         this.readLock.lock();
         try {
             return new HashSet<>(unsafe.getPlayers());
@@ -346,7 +347,7 @@ public final class CloudChunk implements Chunk, Closeable {
 
     @Nonnull
     @Override
-    public Set<Entity> getEntities() {
+    public Set<BaseEntity> getEntities() {
         this.readLock.lock();
         try {
             return new HashSet<>(unsafe.getEntities());
@@ -515,7 +516,7 @@ public final class CloudChunk implements Chunk, Closeable {
 
     @Nonnull
     @Override
-    public Set<BlockEntity> getBlockEntities() {
+    public Set<BaseBlockEntity> getBlockEntities() {
         this.readLock.lock();
         try {
             return new HashSet<>(unsafe.getBlockEntities());
@@ -590,7 +591,7 @@ public final class CloudChunk implements Chunk, Closeable {
                 // Extra Data length. Replaced by second block layer.
                 VarInts.writeUnsignedInt(buffer, 0);
 
-                Collection<BlockEntity> tiles = unsafe.getBlockEntities();
+                Set<BaseBlockEntity> tiles = unsafe.getBlockEntities();
                 // Block entities
                 if (!tiles.isEmpty()) {
                     try (ByteBufOutputStream stream = new ByteBufOutputStream(buffer);

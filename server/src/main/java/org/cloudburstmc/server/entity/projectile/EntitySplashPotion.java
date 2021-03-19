@@ -6,10 +6,11 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.SplashPotion;
 import org.cloudburstmc.api.event.potion.PotionCollideEvent;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.potion.Potion;
+import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.server.level.particle.Particle;
 import org.cloudburstmc.server.level.particle.SpellParticle;
 import org.cloudburstmc.server.potion.CloudEffect;
+import org.cloudburstmc.server.potion.CloudPotion;
 
 import java.util.Set;
 
@@ -19,6 +20,8 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityData.POTION_AUX_VAL
  * @author xtypr
  */
 public class EntitySplashPotion extends EntityProjectile implements SplashPotion {
+
+    private PotionType type;
 
     public EntitySplashPotion(EntityType<? extends SplashPotion> type, Location location) {
         super(type, location);
@@ -74,7 +77,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
     }
 
     protected void splash(Entity collidedWith) {
-        Potion potion = Potion.getPotion(this.getPotionId());
+        CloudPotion potion = new CloudPotion(this.getPotionType(), true);
         PotionCollideEvent event = new PotionCollideEvent(potion, this);
         this.server.getEventManager().fire(event);
 
@@ -84,7 +87,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
         this.close();
 
-        potion = event.getPotion();
+        potion = (CloudPotion) event.getPotion();
         if (potion == null) {
             return;
         }
@@ -96,7 +99,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
         int g;
         int b;
 
-        CloudEffect effect = Potion.getEffect(potion.getId(), true);
+        CloudEffect effect = (CloudEffect) potion.getEffect();
 
         if (effect == null) {
             r = 40;
@@ -153,5 +156,15 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
     public void setPotionId(int potionId) {
         this.data.setShort(POTION_AUX_VALUE, potionId);
+    }
+
+    @Override
+    public PotionType getPotionType() {
+        return this.type;
+    }
+
+    @Override
+    public void setPotionType(PotionType type) {
+        this.type = type;
     }
 }

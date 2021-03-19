@@ -2,6 +2,7 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -46,31 +47,33 @@ public class WhitelistCommand extends Command {
         if (args.length == 0 || args.length > 2) {
             return false;
         }
+        CloudServer server = (CloudServer) sender.getServer();
 
         if (args.length == 1) {
             if (this.badPerm(sender, args[0].toLowerCase())) {
                 return false;
             }
+
             switch (args[0].toLowerCase()) {
                 case "reload":
-                    sender.getServer().reloadWhitelist();
+                    server.reloadWhitelist();
                     CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.whitelist.reloaded"));
 
                     return true;
                 case "on":
-                    sender.getServer().getConfig().setWhitelist(true);
+                    server.getConfig().setWhitelist(true);
                     CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.whitelist.enabled"));
 
                     return true;
                 case "off":
-                    sender.getServer().getConfig().setWhitelist(false);
+                    server.getConfig().setWhitelist(false);
                     CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.whitelist.disabled"));
 
                     return true;
                 case "list":
                     StringJoiner result = new StringJoiner(", ");
                     int count = 0;
-                    for (String player : sender.getServer().getWhitelist().getAll().keySet()) {
+                    for (String player : server.getWhitelist().getAll().keySet()) {
                         result.add(player);
                         ++count;
                     }
@@ -88,12 +91,12 @@ public class WhitelistCommand extends Command {
             }
             switch (args[0].toLowerCase()) {
                 case "add":
-                    sender.getServer().getOfflinePlayer(args[1]).setWhitelisted(true);
+                    server.getOfflinePlayer(server.lookupName(args[1]).get()).setWhitelisted(true);
                     CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.whitelist.add.success", args[1]));
 
                     return true;
                 case "remove":
-                    sender.getServer().getOfflinePlayer(args[1]).setWhitelisted(false);
+                    server.getOfflinePlayer(server.lookupName(args[1]).get()).setWhitelisted(false);
                     CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.whitelist.remove.success", args[1]));
 
                     return true;

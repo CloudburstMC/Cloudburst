@@ -6,6 +6,7 @@ import org.cloudburstmc.api.entity.hostile.Phantom;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Created by PetteriM1

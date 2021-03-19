@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.item.food;
 
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.potion.CloudEffect;
 
 import java.util.LinkedHashMap;
@@ -33,11 +33,11 @@ public class FoodEffective extends Food {
     }
 
     @Override
-    protected boolean onEatenBy(CloudPlayer player) {
+    public boolean onEatenBy(Player player) {
         super.onEatenBy(player);
         List<CloudEffect> toApply = new LinkedList<>();
         effects.forEach((effect, chance) -> {
-            if (chance >= Math.random()) toApply.add(effect.clone());
+            if (chance >= Math.random()) toApply.add(effect);
         });
         toApply.forEach(player::addEffect);
         return true;
