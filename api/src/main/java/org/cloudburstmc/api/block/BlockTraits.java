@@ -144,6 +144,9 @@ public class BlockTraits {
     public static final BooleanBlockTrait HAS_UPDATE = BooleanBlockTrait.of("has_update", "update_bit");
     public static final BooleanBlockTrait HAS_MAP = BooleanBlockTrait.of("has_map", "item_frame_map_bit");
 
+    @Deprecated
+    public static final IntegerBlockTrait DEPRECATED = IntegerBlockTrait.from("deprecated", 4);
+
     @SuppressWarnings({"unchecked", "ConstantConditions"})
     private static <T extends Enum<T>> T[] getEnumValues(Class<T> value, T... except) {
         val set = Sets.newHashSet(except);
