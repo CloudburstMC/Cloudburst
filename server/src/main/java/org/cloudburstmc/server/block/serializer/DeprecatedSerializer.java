@@ -5,8 +5,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.data.TreeSpecies;
-import org.cloudburstmc.server.block.trait.BlockTrait;
 
 import java.util.HashMap;
 import java.util.Map;

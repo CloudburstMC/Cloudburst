@@ -8,7 +8,7 @@
     <version>0.0.3-SNAPSHOT</version>
 
     <properties>
-        <api-version>0.0.3-SNAPSHOT</api-version>
+        <api-version>0.0.1-SNAPSHOT</api-version>
         <protocol.version>2.6.3-SNAPSHOT</protocol.version>
         <protocol.number>428</protocol.number>
         <maven.compiler.source>1.8</maven.compiler.source>

@@ -12,7 +12,7 @@ import java.io.IOException;
 /**
  * @author DaPorkchop_
  */
-final class BlockStateDeserializer extends JsonDeserializer<BlockState> {
+public final class BlockStateDeserializer extends JsonDeserializer<BlockState> {
     @Override
     public BlockState deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         return BlockUtils.parseState(p.getText());
