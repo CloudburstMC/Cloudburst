@@ -1,9 +1,11 @@
 package org.cloudburstmc.server;
 
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.base.Preconditions;
@@ -20,6 +22,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.server.block.BlockStateDeserializer;
 import org.cloudburstmc.server.utils.ServerKiller;
 
 import java.io.IOException;
@@ -61,12 +65,22 @@ public class Bootstrap {
     public static boolean shortTitle = requiresShortTitle();
     public static int DEBUG = 1;
 
+    private static final BlockStateDeserializer BLOCKSTATE_DESERIALIZER = new BlockStateDeserializer();
+
     public static void main(String[] args) {
         Locale.setDefault(Locale.ENGLISH);
         System.setProperty("log4j.skipJansi", "false");
 
+        SimpleModule module = new SimpleModule("Cloudburst", new Version(0, 0, 1, null, null, null));
+        module.addDeserializer(BlockState.class, BLOCKSTATE_DESERIALIZER);
+
         YAML_MAPPER.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+
+        YAML_MAPPER.registerModule(module);
+        JSON_MAPPER.registerModule(module);
+        KEBAB_CASE_YAML_MAPPER.registerModule(module);
+        JAVA_PROPS_MAPPER.registerModule(module);
 
         // Force Mapped ByteBuffers for LevelDB till fixed.
         System.setProperty("leveldb.mmap", "true");
