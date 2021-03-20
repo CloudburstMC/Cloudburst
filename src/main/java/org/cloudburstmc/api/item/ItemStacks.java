@@ -1,13 +1,12 @@
 package org.cloudburstmc.api.item;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 
 @UtilityClass
 public class ItemStacks {
 
-    public static final ItemStack AIR = new BlockItemStack(BlockStates.AIR, 0);
+    public static final ItemStack AIR = BlockTypes.AIR.createItem();
     //blocks
     public static final ItemStack ACTIVATOR_RAIL = BlockTypes.ACTIVATOR_RAIL.createItem();
     public static final ItemStack ALLOW = BlockTypes.ALLOW.createItem();
