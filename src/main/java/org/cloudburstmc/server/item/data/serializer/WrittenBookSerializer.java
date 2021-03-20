@@ -5,8 +5,9 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.data.Page;
+import org.cloudburstmc.api.item.data.WrittenBook;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.data.WrittenBook;
 import org.cloudburstmc.server.utils.PageContent;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
         dataTag.putBoolean(TAG_RESOLVED, value.isResolved());
 
         List<NbtMap> pages = new ArrayList<>();
-        for (PageContent page : value.getPages()) {
+        for (PageContent page : value.getPages().toArray(new PageContent[0])) {
             pages.add(page.createTag());
         }
         dataTag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
@@ -44,7 +45,7 @@ public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
 
     @Override
     public WrittenBook deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
-        List<PageContent> pages;
+        List<Page> pages;
         List<NbtMap> pageTags = dataTag.getList(TAG_PAGES, NbtType.COMPOUND);
 
         if (pageTags == null) {

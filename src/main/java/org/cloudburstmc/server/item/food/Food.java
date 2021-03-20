@@ -7,16 +7,16 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.player.PlayerEatFoodEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
-import static org.cloudburstmc.server.item.ItemTypes.*;
+import static org.cloudburstmc.api.item.ItemTypes.*;
 
 /**
  * Created by Snake1999 on 2016/1/13.

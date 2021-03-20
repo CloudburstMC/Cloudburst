@@ -12,19 +12,19 @@ import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.event.entity.EntityShootBowEvent;
 import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.inventory.PlayerInventory;
-import org.cloudburstmc.server.item.data.Damageable;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import java.util.Random;
 
-import static org.cloudburstmc.server.item.ItemTypes.ARROW;
+import static org.cloudburstmc.api.item.ItemTypes.ARROW;
 
 /**
  * author: MagicDroidX

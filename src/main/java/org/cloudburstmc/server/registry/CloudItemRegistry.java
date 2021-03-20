@@ -19,9 +19,12 @@ import net.minidev.json.JSONArray;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.item.ItemIds;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.behavior.ItemBehavior;
+import org.cloudburstmc.api.item.data.*;
 import org.cloudburstmc.api.potion.Potion;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -29,11 +32,8 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
-import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.*;
-import org.cloudburstmc.server.item.data.*;
 import org.cloudburstmc.server.item.data.serializer.BannerSerializer;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
@@ -580,7 +580,7 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     private void registerVanillaDataSerializers() {
-        this.registerDataSerializer(Banner.class, new BannerSerializer());
+        this.registerDataSerializer(BannerData.class, new BannerSerializer());
         this.registerDataSerializer(Damageable.class, new DamageableSerializer());
         this.registerDataSerializer(FireworkData.class, new FireworkSerializer());
         this.registerDataSerializer(MapItem.class, new MapSerializer());

@@ -13,7 +13,7 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
 import static org.cloudburstmc.api.block.BlockTypes.WATER;
-import static org.cloudburstmc.server.item.ItemTypes.POTION;
+import static org.cloudburstmc.api.item.ItemTypes.POTION;
 
 public class ItemGlassBottleBehavior extends CloudItemBehavior {
 

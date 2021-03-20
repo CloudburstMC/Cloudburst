@@ -2,7 +2,7 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.item.ItemStacks;
+import org.cloudburstmc.api.item.ItemStacks;
 
 public class BlockBehaviorPistonHead extends BlockBehaviorTransparent {
 

@@ -14,11 +14,11 @@ import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.Nonnull;

@@ -16,14 +16,14 @@ import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.inventory.FurnaceInventory;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStacks;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.inventory.CloudFurnaceInventory;
 import org.cloudburstmc.server.inventory.FurnaceRecipe;
-import org.cloudburstmc.server.item.ItemStacks;
-import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.data.Bucket;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 

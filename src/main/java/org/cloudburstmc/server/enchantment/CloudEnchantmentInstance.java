@@ -8,8 +8,8 @@ import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.behavior.ItemBehavior;
-import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.behavior.ItemArmorBehavior;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
 

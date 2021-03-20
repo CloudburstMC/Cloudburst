@@ -9,12 +9,12 @@ import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.vehicle.TntMinecart;
 import org.cloudburstmc.api.event.entity.EntityExplosionPrimeEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.api.util.data.MountType;
-import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 

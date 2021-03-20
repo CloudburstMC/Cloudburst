@@ -17,7 +17,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
-import static org.cloudburstmc.server.item.ItemTypes.DYE;
+import static org.cloudburstmc.api.item.ItemTypes.DYE;
 
 public class BlockBehaviorFlower extends FloodableBlockBehavior {
 

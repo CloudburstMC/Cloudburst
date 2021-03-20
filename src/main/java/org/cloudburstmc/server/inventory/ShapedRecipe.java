@@ -5,8 +5,8 @@ import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
 import org.cloudburstmc.api.inventory.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;

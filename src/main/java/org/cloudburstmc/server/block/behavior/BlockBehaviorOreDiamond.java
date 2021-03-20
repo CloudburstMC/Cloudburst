@@ -4,7 +4,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.item.ItemTypes;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
