@@ -4,13 +4,12 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.item.data.Bucket;
+import org.cloudburstmc.api.item.data.Coal;
+import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.api.util.data.TreeSpecies;
-import org.cloudburstmc.server.item.data.Bucket;
-import org.cloudburstmc.server.item.data.Coal;
-import org.cloudburstmc.server.item.data.Damageable;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import javax.annotation.Nullable;
 
@@ -292,7 +291,8 @@ public class ItemTypes {
 
         @Override
         public ItemStack createItem(int amount, Object... metadata) {
-            return CloudItemRegistry.get().getItem(this, amount, metadata);
+            //return CloudItemRegistry.get().getItem(this, amount, metadata);
+            return null; //TODO SB - How to reference ItemRegistry statically?
         }
 
         @Override
