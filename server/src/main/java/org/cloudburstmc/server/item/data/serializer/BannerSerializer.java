@@ -6,18 +6,18 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.data.BannerData;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.item.data.Banner;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BannerSerializer implements ItemDataSerializer<Banner> {
+public class BannerSerializer implements ItemDataSerializer<BannerData> {
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, Banner value) {
+    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, BannerData value) {
         dataTag.putInt("Base", value.getBase().getDyeData());
         dataTag.putInt("Type", value.getType());
 
@@ -34,7 +34,7 @@ public class BannerSerializer implements ItemDataSerializer<Banner> {
     }
 
     @Override
-    public Banner deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
+    public BannerData deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
         val base = DyeColor.getByDyeData(dataTag.getInt("Base", 0));
         val bannerType = dataTag.getInt("Type", 0);
 
@@ -53,6 +53,6 @@ public class BannerSerializer implements ItemDataSerializer<Banner> {
             patterns = ImmutableList.of();
         }
 
-        return Banner.of(bannerType, base, patterns);
+        return BannerData.of(bannerType, base, patterns);
     }
 }

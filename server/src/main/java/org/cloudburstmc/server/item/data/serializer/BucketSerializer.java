@@ -8,8 +8,8 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.data.Bucket;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BucketSerializer implements ItemDataSerializer<Bucket> {

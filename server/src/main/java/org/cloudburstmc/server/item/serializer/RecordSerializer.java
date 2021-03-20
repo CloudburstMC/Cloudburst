@@ -2,11 +2,11 @@ package org.cloudburstmc.server.item.serializer;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.api.item.ItemIds;
+import org.cloudburstmc.api.item.data.Record;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
-import org.cloudburstmc.server.item.ItemIds;
-import org.cloudburstmc.server.item.data.Record;
 
 public class RecordSerializer extends DefaultItemSerializer {
 

@@ -4,8 +4,8 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 

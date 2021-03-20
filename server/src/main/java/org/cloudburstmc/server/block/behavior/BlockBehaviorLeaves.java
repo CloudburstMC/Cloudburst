@@ -20,8 +20,8 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
-import static org.cloudburstmc.server.item.ItemTypes.APPLE;
-import static org.cloudburstmc.server.item.ItemTypes.STICK;
+import static org.cloudburstmc.api.item.ItemTypes.APPLE;
+import static org.cloudburstmc.api.item.ItemTypes.STICK;
 
 public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 

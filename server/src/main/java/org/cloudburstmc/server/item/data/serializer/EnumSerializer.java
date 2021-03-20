@@ -5,8 +5,8 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.data.Coal;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.data.Coal;
 
 @RequiredArgsConstructor
 public class EnumSerializer<T extends Enum<T>> implements ItemDataSerializer<T> {

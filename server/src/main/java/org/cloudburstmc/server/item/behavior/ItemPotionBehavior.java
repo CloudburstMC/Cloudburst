@@ -3,11 +3,11 @@ package org.cloudburstmc.server.item.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.event.player.PlayerItemConsumeEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Potion;
 import org.cloudburstmc.server.inventory.PlayerInventory;
-import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class ItemPotionBehavior extends CloudItemBehavior {

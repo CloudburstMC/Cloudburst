@@ -7,10 +7,10 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.cloudburstmc.api.item.ArmorPartType;
+import org.cloudburstmc.api.item.ArmorPartTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.TierType;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.server.item.ArmorPartTypes;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.api.item.TierTypes.*;

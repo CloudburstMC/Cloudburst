@@ -6,12 +6,12 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.api.util.data.TallGrassType;
-import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -21,7 +21,7 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
-import static org.cloudburstmc.server.item.ItemTypes.DYE;
+import static org.cloudburstmc.api.item.ItemTypes.DYE;
 
 public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
 

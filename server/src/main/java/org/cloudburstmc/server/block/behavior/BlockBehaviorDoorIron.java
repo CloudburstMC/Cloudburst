@@ -2,9 +2,9 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorDoorIron extends BlockBehaviorDoor {

@@ -11,6 +11,7 @@ import org.cloudburstmc.api.event.entity.EntityCombustByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.potion.EffectTypes;
@@ -19,7 +20,6 @@ import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.item.ItemStacks;
 import org.cloudburstmc.server.registry.BlockRegistry;
 
 import java.util.Random;

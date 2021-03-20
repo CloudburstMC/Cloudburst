@@ -8,10 +8,10 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.data.WrittenBook;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.item.ItemTypes;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.data.WrittenBook;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;

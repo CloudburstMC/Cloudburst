@@ -9,10 +9,10 @@ import net.daporkchop.lib.common.misc.Tuple;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.trait.EnumBlockTrait;
+import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.*;
 import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
-import org.cloudburstmc.server.item.data.Bucket;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;

@@ -4,7 +4,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import static org.cloudburstmc.server.item.ItemTypes.GLASS_BOTTLE;
+import static org.cloudburstmc.api.item.ItemTypes.GLASS_BOTTLE;
 
 public class FoodHoney extends Food {
     public FoodHoney(int restoreFood, float restoreSaturation) {

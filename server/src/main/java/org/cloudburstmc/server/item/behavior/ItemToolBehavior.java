@@ -10,14 +10,14 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.TierType;
 import org.cloudburstmc.api.item.ToolType;
-import org.cloudburstmc.server.item.ToolTypes;
-import org.cloudburstmc.server.item.data.Damageable;
+import org.cloudburstmc.api.item.ToolTypes;
+import org.cloudburstmc.api.item.data.Damageable;
 
 import java.util.Random;
 
 import static org.cloudburstmc.api.block.BlockTypes.DIRT;
 import static org.cloudburstmc.api.block.BlockTypes.GRASS;
-import static org.cloudburstmc.server.item.ItemTypes.*;
+import static org.cloudburstmc.api.item.ItemTypes.*;
 
 /**
  * author: MagicDroidX

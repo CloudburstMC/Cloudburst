@@ -3,8 +3,8 @@ package org.cloudburstmc.server.item.randomitem;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.item.ItemTypes;
 
 /**
  * Created by Snake1999 on 2016/1/15.
