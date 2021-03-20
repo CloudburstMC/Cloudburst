@@ -11,7 +11,7 @@ public final class ToolTypes {
     public static final ToolType SHEARS = new IntTool(15f);
 
     @RequiredArgsConstructor
-    public static class IntTool implements ToolType {
+    private static class IntTool implements ToolType {
         private final float multiplier;
 
         public IntTool() {
