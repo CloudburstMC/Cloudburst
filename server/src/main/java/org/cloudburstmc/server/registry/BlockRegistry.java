@@ -350,7 +350,7 @@ public class BlockRegistry implements Registry {
         this.registerVanilla(BRICK_BLOCK, new BlockBehaviorBricks()); //45
         this.registerVanilla(TNT, new BlockBehaviorTNT(), BlockTraits.EXPLODE, BlockTraits.IS_ALLOWED_UNDERWATER); //46
         this.registerVanilla(BOOKSHELF, new BlockBehaviorBookshelf()); //47
-        this.registerVanilla(MOSSY_COBBLESTONE); //48
+        this.registerVanilla(MOSSY_COBBLESTONE, new BlockBehaviorCobblestone()); //48
         this.registerVanilla(OBSIDIAN, new BlockBehaviorObsidian()); //49
         this.registerVanilla(TORCH, new BlockBehaviorTorch(), MultiBlockSerializers.TORCH, BlockTraits.TORCH_DIRECTION, BlockTraits.IS_SOUL); //50
         this.registerVanilla(FIRE, new BlockBehaviorFire(), BlockTraits.AGE); //51

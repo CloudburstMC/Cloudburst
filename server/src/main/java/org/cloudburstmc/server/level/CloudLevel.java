@@ -556,7 +556,7 @@ public class CloudLevel implements Level {
         SetTimePacket pk = new SetTimePacket();
         pk.setTime(this.getTime());
 
-        CloudServer.broadcastPacket((CloudPlayer[]) players, pk);
+        CloudServer.broadcastPacket(Arrays.copyOf(players, players.length, CloudPlayer[].class), pk);
     }
 
     public void sendTime() {
