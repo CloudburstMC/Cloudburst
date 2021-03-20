@@ -8,7 +8,7 @@ import org.objectweb.asm.Opcodes;
 import java.util.Optional;
 
 public class PluginClassVisitor extends ClassVisitor {
-    private static final String PLUGIN_DESCRIPTOR = "Lorg/cloudburstmc/server/plugin/Plugin;";
+    private static final String PLUGIN_DESCRIPTOR = "Lorg/cloudburstmc/api/plugin/Plugin;";
 
     @Getter
     private String className;
