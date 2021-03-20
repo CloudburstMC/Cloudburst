@@ -77,6 +77,7 @@ public final class BlockType implements ItemType {
         BlockTrait<?>[] cleanedTraits = traitSet.toArray(new BlockTrait[traits.length]);
         checkArgument(Arrays.equals(traits, cleanedTraits), "%s defines duplicate block traits", id);
 
+
         return new BlockType(id, cleanedTraits);
     }
 
