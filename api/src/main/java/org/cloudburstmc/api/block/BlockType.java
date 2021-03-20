@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.block;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.item.ItemStack;
@@ -37,8 +38,9 @@ public final class BlockType implements ItemType {
             blockStateMap.put(state.getTraits(), state);
         }
 
-        this.defaultState = blockStateMap.get(Arrays.stream(traits)
-                .collect(Collectors.toMap(t -> t, BlockTrait::getDefaultValue)));
+        Map<BlockTrait<?>, Comparable<?>> key = Arrays.stream(traits)
+                .collect(Collectors.toMap(t -> t, BlockTrait::getDefaultValue));
+        this.defaultState = blockStateMap.get(key);
 
         for (BlockState state : this.states) {
             state.initialize(blockStateMap);
@@ -95,13 +97,13 @@ public final class BlockType implements ItemType {
 
         while (true) {
             // Generate BlockState
-            Map<BlockTrait<?>, Comparable<?>> values = new IdentityHashMap<>();
+            ImmutableMap.Builder<BlockTrait<?>, Comparable<?>> values = ImmutableMap.builder();
             for (int i = 0; i < size; i++) {
                 BlockTrait<?> trait = traits[i];
 
                 values.put(trait, trait.getPossibleValues().get(indices[i]));
             }
-            states.add(new BlockState(type, values));
+            states.add(new BlockState(type, values.build()));
 
             // find the rightmost array that has more
             // elements left after the current element
