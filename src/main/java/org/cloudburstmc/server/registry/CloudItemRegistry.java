@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.registry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -39,6 +40,7 @@ import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -53,6 +55,20 @@ public class CloudItemRegistry implements ItemRegistry {
 
     static {
         INSTANCE = new CloudItemRegistry(BlockRegistry.get()); // Needs to be initialized afterwards
+
+        try (InputStream in = RegistryUtils.getOrAssertResource("data/runtime_item_states.json")) {
+            JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
+            for (JsonNode item : json) {
+                int id = item.get("id").intValue();
+                if (id <= 255) continue;
+                VANILLA_LEGACY_IDS.put(Identifier.fromString(item.get("name").asText()), id);
+                System.out.println("registered legacy vanilla id " + id + " to " + item.get("name").asText());
+            }
+        } catch (IOException e) {
+            throw new RegistryException("Unable to load legacy IDs", e);
+        }
+
+
     }
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
@@ -78,17 +94,6 @@ public class CloudItemRegistry implements ItemRegistry {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
 
-        // register missing vanilla items.
-//        for (ItemData item : VANILLA_ITEMS) {
-//            if (item.id < 256) {
-//                continue;
-//            }
-//            Identifier identifier = Identifier.fromString(item.name);
-//            if (!this.typeMap.containsKey(identifier)) {
-//                log.debug("Non-implemented item found {}", identifier);
-//                registerVanilla(identifier, SimpleItem::new, item.id);
-//            }
-//        }
     }
 
     public static CloudItemRegistry get() {
@@ -132,19 +137,19 @@ public class CloudItemRegistry implements ItemRegistry {
         this.behaviorMap.put(type, behavior);
     }
 
-    private synchronized void registerVanilla(ItemType type, int legacyId) throws RegistryException {
-        registerVanilla(type, null, NoopItemBehavior.INSTANCE, legacyId);
+    private synchronized void registerVanilla(ItemType type /*,int legacyId*/) throws RegistryException {
+        registerVanilla(type, null, NoopItemBehavior.INSTANCE /*,legacyId*/);
     }
 
-    private synchronized void registerVanilla(ItemType type, ItemBehavior behavior, int legacyId) throws RegistryException {
-        registerVanilla(type, null, behavior, legacyId);
+    private synchronized void registerVanilla(ItemType type, ItemBehavior behavior/*, int legacyId*/) throws RegistryException {
+        registerVanilla(type, null, behavior/*, legacyId*/);
     }
 
-    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer, int legacyId) throws RegistryException {
-        registerVanilla(type, serializer, NoopItemBehavior.INSTANCE, legacyId);
+    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer/*, int legacyId*/) throws RegistryException {
+        registerVanilla(type, serializer, NoopItemBehavior.INSTANCE /*, legacyId*/);
     }
 
-    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer, ItemBehavior behavior, int legacyId) throws RegistryException {
+    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer, ItemBehavior behavior /*,int legacyId*/) throws RegistryException {
         Objects.requireNonNull(behavior, "type");
         Objects.requireNonNull(behavior, "behavior");
         checkClosed();
@@ -153,7 +158,7 @@ public class CloudItemRegistry implements ItemRegistry {
             this.serializers.put(type, serializer);
         }
 
-        this.registerType(type, type.getId(), legacyId);
+        this.registerType(type, type.getId()/*, legacyId*/);
         this.behaviorMap.put(type, behavior);
     }
 
@@ -299,246 +304,234 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     private void registerVanillaItems() throws RegistryException {
-        registerVanilla(ItemTypes.IRON_SHOVEL, 256);
-        registerVanilla(ItemTypes.IRON_PICKAXE, 257);
-        registerVanilla(ItemTypes.IRON_AXE, 258);
-        registerVanilla(ItemTypes.FLINT_AND_STEEL, new ItemFlintSteelBehavior(), 259);
-        registerVanilla(ItemTypes.APPLE, 260);
-        registerVanilla(ItemTypes.BOW, 261);
-        registerVanilla(ItemTypes.ARROW, 262);
-        registerVanilla(ItemTypes.COAL, 263);
-        registerVanilla(ItemTypes.DIAMOND, 264);
-        registerVanilla(ItemTypes.IRON_INGOT, 265);
-        registerVanilla(ItemTypes.GOLD_INGOT, 266);
-        registerVanilla(ItemTypes.IRON_SWORD, 267);
-        registerVanilla(ItemTypes.WOODEN_SWORD, 268);
-        registerVanilla(ItemTypes.WOODEN_SHOVEL, 269);
-        registerVanilla(ItemTypes.WOODEN_PICKAXE, 270);
-        registerVanilla(ItemTypes.WOODEN_AXE, 271);
-        registerVanilla(ItemTypes.STONE_SWORD, 272);
-        registerVanilla(ItemTypes.STONE_SHOVEL, 273);
-        registerVanilla(ItemTypes.STONE_PICKAXE, 274);
-        registerVanilla(ItemTypes.STONE_AXE, 275);
-        registerVanilla(ItemTypes.DIAMOND_SWORD, 276);
-        registerVanilla(ItemTypes.DIAMOND_SHOVEL, 277);
-        registerVanilla(ItemTypes.DIAMOND_PICKAXE, 278);
-        registerVanilla(ItemTypes.DIAMOND_AXE, 279);
-        registerVanilla(ItemTypes.STICK, 280);
-        registerVanilla(ItemTypes.BOWL, 281);
-        registerVanilla(ItemTypes.MUSHROOM_STEW, 282);
-        registerVanilla(ItemTypes.GOLDEN_SWORD, 283);
-        registerVanilla(ItemTypes.GOLDEN_SHOVEL, 284);
-        registerVanilla(ItemTypes.GOLDEN_PICKAXE, 285);
-        registerVanilla(ItemTypes.GOLDEN_AXE, 286);
-        registerVanilla(ItemTypes.STRING, 287);
-        registerVanilla(ItemTypes.FEATHER, 288);
-        registerVanilla(ItemTypes.GUNPOWDER, 289);
-        registerVanilla(ItemTypes.WOODEN_HOE, 290);
-        registerVanilla(ItemTypes.STONE_HOE, 291);
-        registerVanilla(ItemTypes.IRON_HOE, 292);
-        registerVanilla(ItemTypes.DIAMOND_HOE, 293);
-        registerVanilla(ItemTypes.GOLDEN_HOE, 294);
-        registerVanilla(ItemTypes.WHEAT_SEEDS, 295);
-        registerVanilla(ItemTypes.WHEAT, 296);
-        registerVanilla(ItemTypes.BREAD, 297);
-        registerVanilla(ItemTypes.LEATHER_HELMET, 298);
-        registerVanilla(ItemTypes.LEATHER_CHESTPLATE, 299);
-        registerVanilla(ItemTypes.LEATHER_LEGGINGS, 300);
-        registerVanilla(ItemTypes.LEATHER_BOOTS, 301);
-        registerVanilla(ItemTypes.CHAINMAIL_HELMET, 302);
-        registerVanilla(ItemTypes.CHAINMAIL_CHESTPLATE, 303);
-        registerVanilla(ItemTypes.CHAINMAIL_LEGGINGS, 304);
-        registerVanilla(ItemTypes.CHAINMAIL_BOOTS, 305);
-        registerVanilla(ItemTypes.IRON_HELMET, 306);
-        registerVanilla(ItemTypes.IRON_CHESTPLATE, 307);
-        registerVanilla(ItemTypes.IRON_LEGGINGS, 308);
-        registerVanilla(ItemTypes.IRON_BOOTS, 309);
-        registerVanilla(ItemTypes.DIAMOND_HELMET, 310);
-        registerVanilla(ItemTypes.DIAMOND_CHESTPLATE, 311);
-        registerVanilla(ItemTypes.DIAMOND_LEGGINGS, 312);
-        registerVanilla(ItemTypes.DIAMOND_BOOTS, 313);
-        registerVanilla(ItemTypes.GOLDEN_HELMET, 314);
-        registerVanilla(ItemTypes.GOLDEN_CHESTPLATE, 315);
-        registerVanilla(ItemTypes.GOLDEN_LEGGINGS, 316);
-        registerVanilla(ItemTypes.GOLDEN_BOOTS, 317);
-        registerVanilla(ItemTypes.FLINT, 318);
-        registerVanilla(ItemTypes.PORKCHOP, 319);
-        registerVanilla(ItemTypes.COOKED_PORKCHOP, 320);
-        registerVanilla(ItemTypes.PAINTING, new ItemPaintingBehavior(), 321);
-        registerVanilla(ItemTypes.GOLDEN_APPLE, new ItemAppleGoldBehavior(), 322);
-        registerVanilla(ItemTypes.SIGN, TreeSpeciesSerializer.SIGN, 323);
-        registerVanilla(ItemTypes.WOODEN_DOOR, TreeSpeciesSerializer.DOOR, 324);
-        registerVanilla(ItemTypes.BUCKET, new ItemBucketBehavior(), 325);
+        registerVanilla(ItemTypes.IRON_SHOVEL);
+        registerVanilla(ItemTypes.IRON_PICKAXE);
+        registerVanilla(ItemTypes.IRON_AXE);
+        registerVanilla(ItemTypes.FLINT_AND_STEEL, new ItemFlintSteelBehavior());
+        registerVanilla(ItemTypes.APPLE);
+        registerVanilla(ItemTypes.BOW);
+        registerVanilla(ItemTypes.ARROW);
+        registerVanilla(ItemTypes.COAL);
+        registerVanilla(ItemTypes.DIAMOND);
+        registerVanilla(ItemTypes.IRON_INGOT);
+        registerVanilla(ItemTypes.GOLD_INGOT);
+        registerVanilla(ItemTypes.IRON_SWORD);
+        registerVanilla(ItemTypes.WOODEN_SWORD);
+        registerVanilla(ItemTypes.WOODEN_SHOVEL);
+        registerVanilla(ItemTypes.WOODEN_PICKAXE);
+        registerVanilla(ItemTypes.WOODEN_AXE);
+        registerVanilla(ItemTypes.STONE_SWORD);
+        registerVanilla(ItemTypes.STONE_SHOVEL);
+        registerVanilla(ItemTypes.STONE_PICKAXE);
+        registerVanilla(ItemTypes.STONE_AXE);
+        registerVanilla(ItemTypes.DIAMOND_SWORD);
+        registerVanilla(ItemTypes.DIAMOND_SHOVEL);
+        registerVanilla(ItemTypes.DIAMOND_PICKAXE);
+        registerVanilla(ItemTypes.DIAMOND_AXE);
+        registerVanilla(ItemTypes.STICK);
+        registerVanilla(ItemTypes.BOWL);
+        registerVanilla(ItemTypes.MUSHROOM_STEW);
+        registerVanilla(ItemTypes.GOLDEN_SWORD);
+        registerVanilla(ItemTypes.GOLDEN_SHOVEL);
+        registerVanilla(ItemTypes.GOLDEN_PICKAXE);
+        registerVanilla(ItemTypes.GOLDEN_AXE);
+        registerVanilla(ItemTypes.STRING);
+        registerVanilla(ItemTypes.FEATHER);
+        registerVanilla(ItemTypes.GUNPOWDER);
+        registerVanilla(ItemTypes.WOODEN_HOE);
+        registerVanilla(ItemTypes.STONE_HOE);
+        registerVanilla(ItemTypes.IRON_HOE);
+        registerVanilla(ItemTypes.DIAMOND_HOE);
+        registerVanilla(ItemTypes.GOLDEN_HOE);
+        registerVanilla(ItemTypes.WHEAT_SEEDS);
+        registerVanilla(ItemTypes.WHEAT);
+        registerVanilla(ItemTypes.BREAD);
+        registerVanilla(ItemTypes.LEATHER_HELMET);
+        registerVanilla(ItemTypes.LEATHER_CHESTPLATE);
+        registerVanilla(ItemTypes.LEATHER_LEGGINGS);
+        registerVanilla(ItemTypes.LEATHER_BOOTS);
+        registerVanilla(ItemTypes.CHAINMAIL_HELMET);
+        registerVanilla(ItemTypes.CHAINMAIL_CHESTPLATE);
+        registerVanilla(ItemTypes.CHAINMAIL_LEGGINGS);
+        registerVanilla(ItemTypes.CHAINMAIL_BOOTS);
+        registerVanilla(ItemTypes.IRON_HELMET);
+        registerVanilla(ItemTypes.IRON_CHESTPLATE);
+        registerVanilla(ItemTypes.IRON_LEGGINGS);
+        registerVanilla(ItemTypes.IRON_BOOTS);
+        registerVanilla(ItemTypes.DIAMOND_HELMET);
+        registerVanilla(ItemTypes.DIAMOND_CHESTPLATE);
+        registerVanilla(ItemTypes.DIAMOND_LEGGINGS);
+        registerVanilla(ItemTypes.DIAMOND_BOOTS);
+        registerVanilla(ItemTypes.GOLDEN_HELMET);
+        registerVanilla(ItemTypes.GOLDEN_CHESTPLATE);
+        registerVanilla(ItemTypes.GOLDEN_LEGGINGS);
+        registerVanilla(ItemTypes.GOLDEN_BOOTS);
+        registerVanilla(ItemTypes.FLINT);
+        registerVanilla(ItemTypes.PORKCHOP);
+        registerVanilla(ItemTypes.COOKED_PORKCHOP);
+        registerVanilla(ItemTypes.PAINTING, new ItemPaintingBehavior());
+        registerVanilla(ItemTypes.GOLDEN_APPLE, new ItemAppleGoldBehavior());
+        registerVanilla(ItemTypes.SIGN, TreeSpeciesSerializer.SIGN);
+        registerVanilla(ItemTypes.WOODEN_DOOR, TreeSpeciesSerializer.DOOR);
+        registerVanilla(ItemTypes.BUCKET, new ItemBucketBehavior());
 
-        registerVanilla(ItemTypes.MINECART, new ItemMinecartBehavior(EntityTypes.MINECART), 328);
-        registerVanilla(ItemTypes.SADDLE, 329);
-        registerVanilla(ItemTypes.IRON_DOOR, 330);
-        registerVanilla(ItemTypes.REDSTONE, 331);
-        registerVanilla(ItemTypes.SNOWBALL, new ItemProjectileBehavior(EntityTypes.SNOWBALL, 1.5f), 332);
-        registerVanilla(ItemTypes.BOAT, TreeSpeciesSerializer.BOAT, new ItemBoatBehavior(), 333);
-        registerVanilla(ItemTypes.LEATHER, 334);
-        registerVanilla(ItemTypes.KELP, 335);
-        registerVanilla(ItemTypes.BRICK, 336);
-        registerVanilla(ItemTypes.CLAY_BALL, 337);
-        registerVanilla(ItemTypes.REEDS, 338);
-        registerVanilla(ItemTypes.PAPER, 339);
-        registerVanilla(ItemTypes.BOOK, 340);
-        registerVanilla(ItemTypes.SLIME_BALL, 341);
-        registerVanilla(ItemTypes.CHEST_MINECART, new ItemMinecartBehavior(EntityTypes.CHEST_MINECART), 342);
+        registerVanilla(ItemTypes.MINECART, new ItemMinecartBehavior(EntityTypes.MINECART));
+        registerVanilla(ItemTypes.SADDLE);
+        registerVanilla(ItemTypes.IRON_DOOR);
+        registerVanilla(ItemTypes.REDSTONE);
+        registerVanilla(ItemTypes.SNOWBALL, new ItemProjectileBehavior(EntityTypes.SNOWBALL, 1.5f));
+        registerVanilla(ItemTypes.BOAT, TreeSpeciesSerializer.BOAT, new ItemBoatBehavior());
+        registerVanilla(ItemTypes.LEATHER);
+        registerVanilla(ItemTypes.KELP);
+        registerVanilla(ItemTypes.BRICK);
+        registerVanilla(ItemTypes.CLAY_BALL);
+        registerVanilla(ItemTypes.REEDS);
+        registerVanilla(ItemTypes.PAPER);
+        registerVanilla(ItemTypes.BOOK);
+        registerVanilla(ItemTypes.SLIME_BALL);
+        registerVanilla(ItemTypes.CHEST_MINECART, new ItemMinecartBehavior(EntityTypes.CHEST_MINECART));
 
-        registerVanilla(ItemTypes.EGG, new ItemProjectileBehavior(EntityTypes.EGG, 1.5f), 344);
-        registerVanilla(ItemTypes.COMPASS, 345);
-        registerVanilla(ItemTypes.FISHING_ROD, 346);
-        registerVanilla(ItemTypes.CLOCK, 347);
-        registerVanilla(ItemTypes.GLOWSTONE_DUST, 348);
-        registerVanilla(ItemTypes.FISH, 349);
-        registerVanilla(ItemTypes.COOKED_FISH, 350);
-        registerVanilla(ItemTypes.DYE, new DyeSerializer(), 351); // TODO
-        registerVanilla(ItemTypes.BONE, 352);
-        registerVanilla(ItemTypes.SUGAR, 353);
-        registerVanilla(ItemTypes.CAKE, 354);
-        registerVanilla(ItemTypes.BED, EnumDamageSerializer.DYE_COLOR, 355);
-        registerVanilla(ItemTypes.REPEATER, 356);
-        registerVanilla(ItemTypes.COOKIE, 357);
-        registerVanilla(ItemTypes.MAP, new ItemMapBehavior(), 358);
-        registerVanilla(ItemTypes.SHEARS, 359);
-        registerVanilla(ItemTypes.MELON, 360);
-        registerVanilla(ItemTypes.PUMPKIN_SEEDS, 361);
-        registerVanilla(ItemTypes.MELON_SEEDS, 362);
-        registerVanilla(ItemTypes.BEEF, 363);
-        registerVanilla(ItemTypes.COOKED_BEEF, 364);
-        registerVanilla(ItemTypes.CHICKEN, 365);
-        registerVanilla(ItemTypes.COOKED_CHICKEN, 366);
-        registerVanilla(ItemTypes.ROTTEN_FLESH, 367);
-        registerVanilla(ItemTypes.ENDER_PEARL, new ItemProjectileBehavior(EntityTypes.ENDER_PEARL, 1.5f), 368);
-        registerVanilla(ItemTypes.BLAZE_ROD, 369);
-        registerVanilla(ItemTypes.GHAST_TEAR, 370);
-        registerVanilla(ItemTypes.GOLD_NUGGET, 371);
-        registerVanilla(ItemTypes.NETHER_WART, 372);
-        registerVanilla(ItemTypes.POTION, new ItemPotionBehavior(), 373);
-        registerVanilla(ItemTypes.GLASS_BOTTLE, new ItemGlassBottleBehavior(), 374);
-        registerVanilla(ItemTypes.SPIDER_EYE, 375);
-        registerVanilla(ItemTypes.FERMENTED_SPIDER_EYE, 376);
-        registerVanilla(ItemTypes.BLAZE_POWDER, 377);
-        registerVanilla(ItemTypes.MAGMA_CREAM, 378);
-        registerVanilla(ItemTypes.BREWING_STAND, 379);
-        registerVanilla(ItemTypes.CAULDRON, 380);
-        registerVanilla(ItemTypes.ENDER_EYE, 381);
-        registerVanilla(ItemTypes.SPECKLED_MELON, 382);
+        registerVanilla(ItemTypes.EGG, new ItemProjectileBehavior(EntityTypes.EGG, 1.5f));
+        registerVanilla(ItemTypes.COMPASS);
+        registerVanilla(ItemTypes.FISHING_ROD);
+        registerVanilla(ItemTypes.CLOCK);
+        registerVanilla(ItemTypes.GLOWSTONE_DUST);
+        registerVanilla(ItemTypes.FISH);
+        registerVanilla(ItemTypes.COOKED_FISH);
+        registerVanilla(ItemTypes.DYE, new DyeSerializer());
+        registerVanilla(ItemTypes.BONE);
+        registerVanilla(ItemTypes.SUGAR);
+        registerVanilla(ItemTypes.CAKE);
+        registerVanilla(ItemTypes.BED, EnumDamageSerializer.DYE_COLOR);
+        registerVanilla(ItemTypes.REPEATER);
+        registerVanilla(ItemTypes.COOKIE);
+        registerVanilla(ItemTypes.MAP, new ItemMapBehavior());
+        registerVanilla(ItemTypes.SHEARS);
+        registerVanilla(ItemTypes.MELON);
+        registerVanilla(ItemTypes.PUMPKIN_SEEDS);
+        registerVanilla(ItemTypes.MELON_SEEDS);
+        registerVanilla(ItemTypes.BEEF);
+        registerVanilla(ItemTypes.COOKED_BEEF);
+        registerVanilla(ItemTypes.CHICKEN);
+        registerVanilla(ItemTypes.COOKED_CHICKEN);
+        registerVanilla(ItemTypes.ROTTEN_FLESH);
+        registerVanilla(ItemTypes.ENDER_PEARL, new ItemProjectileBehavior(EntityTypes.ENDER_PEARL, 1.5f));
+        registerVanilla(ItemTypes.BLAZE_ROD);
+        registerVanilla(ItemTypes.GHAST_TEAR);
+        registerVanilla(ItemTypes.GOLD_NUGGET);
+        registerVanilla(ItemTypes.NETHER_WART);
+        registerVanilla(ItemTypes.POTION, new ItemPotionBehavior());
+        registerVanilla(ItemTypes.GLASS_BOTTLE, new ItemGlassBottleBehavior());
+        registerVanilla(ItemTypes.SPIDER_EYE);
+        registerVanilla(ItemTypes.FERMENTED_SPIDER_EYE);
+        registerVanilla(ItemTypes.BLAZE_POWDER);
+        registerVanilla(ItemTypes.MAGMA_CREAM);
+        registerVanilla(ItemTypes.BREWING_STAND);
+        registerVanilla(ItemTypes.CAULDRON);
+        registerVanilla(ItemTypes.ENDER_EYE);
+        registerVanilla(ItemTypes.SPECKLED_MELON);
         //TODO registerVanilla(ItemTypes.SPAWN_EGG, new ItemSpawnEggBehavior(), 383);
-        registerVanilla(ItemTypes.EXPERIENCE_BOTTLE, new ItemProjectileBehavior(EntityTypes.XP_BOTTLE, 1f), 384);
-        registerVanilla(ItemTypes.FIREBALL, new ItemFireChargeBehavior(), 385);
-        registerVanilla(ItemTypes.WRITABLE_BOOK, 386);
-        registerVanilla(ItemTypes.WRITTEN_BOOK, 387);
-        registerVanilla(ItemTypes.EMERALD, 388);
-        registerVanilla(ItemTypes.FRAME, 389);
-        registerVanilla(ItemTypes.FLOWER_POT, 390);
-        registerVanilla(ItemTypes.CARROT, 391);
-        registerVanilla(ItemTypes.POTATO, 392);
-        registerVanilla(ItemTypes.BAKED_POTATO, 393);
-        registerVanilla(ItemTypes.POISONOUS_POTATO, 394);
-        registerVanilla(ItemTypes.EMPTY_MAP, 395);
-        registerVanilla(ItemTypes.GOLDEN_CARROT, 396);
-        registerVanilla(ItemTypes.SKULL, 397);
-        registerVanilla(ItemTypes.CARROT_ON_A_STICK, 398);
-        registerVanilla(ItemTypes.NETHER_STAR, 399);
-        registerVanilla(ItemTypes.PUMPKIN_PIE, 400);
-        registerVanilla(ItemTypes.FIREWORKS, new ItemFireworkBehavior(), 401);
+        registerVanilla(ItemTypes.EXPERIENCE_BOTTLE, new ItemProjectileBehavior(EntityTypes.XP_BOTTLE, 1f));
+        registerVanilla(ItemTypes.FIREBALL, new ItemFireChargeBehavior());
+        registerVanilla(ItemTypes.WRITABLE_BOOK);
+        registerVanilla(ItemTypes.WRITTEN_BOOK);
+        registerVanilla(ItemTypes.EMERALD);
+        registerVanilla(ItemTypes.FRAME);
+        registerVanilla(ItemTypes.FLOWER_POT);
+        registerVanilla(ItemTypes.CARROT);
+        registerVanilla(ItemTypes.POTATO);
+        registerVanilla(ItemTypes.BAKED_POTATO);
+        registerVanilla(ItemTypes.POISONOUS_POTATO);
+        registerVanilla(ItemTypes.EMPTY_MAP);
+        registerVanilla(ItemTypes.GOLDEN_CARROT);
+        registerVanilla(ItemTypes.SKULL);
+        registerVanilla(ItemTypes.CARROT_ON_A_STICK);
+        registerVanilla(ItemTypes.NETHER_STAR);
+        registerVanilla(ItemTypes.PUMPKIN_PIE);
+        registerVanilla(ItemTypes.FIREWORKS, new ItemFireworkBehavior());
 
-        registerVanilla(ItemTypes.ENCHANTED_BOOK, 403);
-        registerVanilla(ItemTypes.COMPARATOR, 404);
-        registerVanilla(ItemTypes.NETHERBRICK, 405);
-        registerVanilla(ItemTypes.QUARTZ, 406);
-        registerVanilla(ItemTypes.TNT_MINECART, new ItemMinecartBehavior(EntityTypes.TNT_MINECART), 407);
-        registerVanilla(ItemTypes.HOPPER_MINECART, new ItemMinecartBehavior(EntityTypes.HOPPER_MINECART), 408);
-        registerVanilla(ItemTypes.PRISMARINE_SHARD, 409);
-        registerVanilla(ItemTypes.HOPPER, 410);
-        registerVanilla(ItemTypes.RABBIT, 411);
-        registerVanilla(ItemTypes.COOKED_RABBIT, 412);
-        registerVanilla(ItemTypes.RABBIT_STEW, 413);
-        registerVanilla(ItemTypes.RABBIT_FOOT, 414);
-        registerVanilla(ItemTypes.RABBIT_HIDE, 415);
-        registerVanilla(ItemTypes.HORSE_ARMOR_LEATHER, 416);
-        registerVanilla(ItemTypes.HORSE_ARMOR_IRON, 417);
-        registerVanilla(ItemTypes.HORSE_ARMOR_GOLD, 418);
-        registerVanilla(ItemTypes.HORSE_ARMOR_DIAMOND, 419);
-        registerVanilla(ItemTypes.LEAD, 420);
-        registerVanilla(ItemTypes.NAME_TAG, 421);
-        registerVanilla(ItemTypes.PRISMARINE_CRYSTALS, 422);
-        registerVanilla(ItemTypes.MUTTON_RAW, 423);
-        registerVanilla(ItemTypes.MUTTON_COOKED, 424);
+        registerVanilla(ItemTypes.ENCHANTED_BOOK);
+        registerVanilla(ItemTypes.COMPARATOR);
+        registerVanilla(ItemTypes.NETHERBRICK);
+        registerVanilla(ItemTypes.QUARTZ);
+        registerVanilla(ItemTypes.TNT_MINECART, new ItemMinecartBehavior(EntityTypes.TNT_MINECART));
+        registerVanilla(ItemTypes.HOPPER_MINECART, new ItemMinecartBehavior(EntityTypes.HOPPER_MINECART));
+        registerVanilla(ItemTypes.PRISMARINE_SHARD);
+        registerVanilla(ItemTypes.HOPPER);
+        registerVanilla(ItemTypes.RABBIT);
+        registerVanilla(ItemTypes.COOKED_RABBIT);
+        registerVanilla(ItemTypes.RABBIT_STEW);
+        registerVanilla(ItemTypes.RABBIT_FOOT);
+        registerVanilla(ItemTypes.RABBIT_HIDE);
+        registerVanilla(ItemTypes.HORSE_ARMOR_LEATHER);
+        registerVanilla(ItemTypes.HORSE_ARMOR_IRON);
+        registerVanilla(ItemTypes.HORSE_ARMOR_GOLD);
+        registerVanilla(ItemTypes.HORSE_ARMOR_DIAMOND);
+        registerVanilla(ItemTypes.LEAD);
+        registerVanilla(ItemTypes.NAME_TAG);
+        registerVanilla(ItemTypes.PRISMARINE_CRYSTALS);
+        registerVanilla(ItemTypes.MUTTON_RAW);
+        registerVanilla(ItemTypes.MUTTON_COOKED);
 
-        registerVanilla(ItemTypes.ARMOR_STAND, 425);
-        registerVanilla(ItemTypes.END_CRYSTAL, new ItemEndCrystalBehavior(), 426);
-        registerVanilla(ItemTypes.CHORUS_FRUIT, new ItemChorusFruitBehavior(), 432);
-        registerVanilla(ItemTypes.CHORUS_FRUIT_POPPED, 433);
+        registerVanilla(ItemTypes.ARMOR_STAND);
+        registerVanilla(ItemTypes.END_CRYSTAL, new ItemEndCrystalBehavior());
+        registerVanilla(ItemTypes.CHORUS_FRUIT, new ItemChorusFruitBehavior());
+        registerVanilla(ItemTypes.CHORUS_FRUIT_POPPED);
 
-        registerVanilla(ItemTypes.DRAGON_BREATH, 437);
-        registerVanilla(ItemTypes.SPLASH_POTION, new ItemPotionSplashBehavior(), 438);
+        registerVanilla(ItemTypes.DRAGON_BREATH);
+        registerVanilla(ItemTypes.SPLASH_POTION, new ItemPotionSplashBehavior());
 
-        registerVanilla(ItemTypes.LINGERING_POTION, new ItemPotionLingeringBehavior(), 441);
+        registerVanilla(ItemTypes.LINGERING_POTION, new ItemPotionLingeringBehavior());
 
-        registerVanilla(ItemTypes.COMMAND_BLOCK_MINECART, new ItemMinecartBehavior(EntityTypes.COMMAND_BLOCK_MINECART), 443);
-        registerVanilla(ItemTypes.ELYTRA, 444);
+        registerVanilla(ItemTypes.COMMAND_BLOCK_MINECART, new ItemMinecartBehavior(EntityTypes.COMMAND_BLOCK_MINECART));
+        registerVanilla(ItemTypes.ELYTRA);
 
-        registerVanilla(ItemTypes.SHULKER_SHELL, 445);
-        registerVanilla(ItemTypes.BANNER, new org.cloudburstmc.server.item.serializer.BannerSerializer(), 446);
+        registerVanilla(ItemTypes.SHULKER_SHELL);
+        registerVanilla(ItemTypes.BANNER, new org.cloudburstmc.server.item.serializer.BannerSerializer());
 
-        registerVanilla(ItemTypes.IRON_NUGGET, 452);
-        registerVanilla(ItemTypes.TRIDENT, new ItemTridentBehavior(), 455);
+        registerVanilla(ItemTypes.IRON_NUGGET);
+        registerVanilla(ItemTypes.TRIDENT, new ItemTridentBehavior());
 
-        registerVanilla(ItemTypes.BEETROOT, 457);
-        registerVanilla(ItemTypes.BEETROOT_SEEDS, 458);
-        registerVanilla(ItemTypes.BEETROOT_SOUP, 459);
-        registerVanilla(ItemTypes.SALMON, 460);
-        registerVanilla(ItemTypes.CLOWNFISH, 461);
-        registerVanilla(ItemTypes.PUFFERFISH, 462);
-        registerVanilla(ItemTypes.COOKED_SALMON, 463);
-        registerVanilla(ItemTypes.DRIED_KELP, 464);
+        registerVanilla(ItemTypes.BEETROOT);
+        registerVanilla(ItemTypes.BEETROOT_SEEDS);
+        registerVanilla(ItemTypes.BEETROOT_SOUP);
+        registerVanilla(ItemTypes.SALMON);
+        registerVanilla(ItemTypes.CLOWNFISH);
+        registerVanilla(ItemTypes.PUFFERFISH);
+        registerVanilla(ItemTypes.COOKED_SALMON);
+        registerVanilla(ItemTypes.DRIED_KELP);
 
-        registerVanilla(ItemTypes.APPLE_ENCHANTED, new ItemAppleGoldEnchantedBehavior(), 466);
+        registerVanilla(ItemTypes.APPLE_ENCHANTED, new ItemAppleGoldEnchantedBehavior());
 
-        registerVanilla(ItemTypes.TURTLE_HELMET, 469);
-        registerVanilla(ItemTypes.SWEET_BERRIES, 477);
+        registerVanilla(ItemTypes.TURTLE_HELMET);
+        registerVanilla(ItemTypes.SWEET_BERRIES);
 
-        registerVanilla(ItemTypes.RECORD, new RecordSerializer(), 500);
-//        registerVanilla(ItemTypes.RECORD_CAT, RecordItem.factory("record.cat"), 500);
-//        registerVanilla(ItemTypes.RECORD_13, RecordItem.factory("record.13"), 501);
-//        registerVanilla(ItemTypes.RECORD_BLOCKS, RecordItem.factory("record.blocks"), 502);
-//        registerVanilla(ItemTypes.RECORD_CHIRP, RecordItem.factory("record.chirp"), 503);
-//        registerVanilla(ItemTypes.RECORD_FAR, RecordItem.factory("record.far"), 504);
-//        registerVanilla(ItemTypes.RECORD_MALL, RecordItem.factory("record.mall"), 505);
-//        registerVanilla(ItemTypes.RECORD_MELLOHI, RecordItem.factory("record.mellohi"), 506);
-//        registerVanilla(ItemTypes.RECORD_STAL, RecordItem.factory("record.stal"), 507);
-//        registerVanilla(ItemTypes.RECORD_STRAD, RecordItem.factory("record.strad"), 508);
-//        registerVanilla(ItemTypes.RECORD_WARD, RecordItem.factory("record.ward"), 509);
-//        registerVanilla(ItemTypes.RECORD_11, RecordItem.factory("record.11"), 510);
-//        registerVanilla(ItemTypes.RECORD_WAIT, RecordItem.factory("record.wait"), 511);
+        registerVanilla(ItemTypes.RECORD, new RecordSerializer());
 
-        registerVanilla(ItemTypes.SHIELD, 513);
+        registerVanilla(ItemTypes.SHIELD);
 
-        registerVanilla(ItemTypes.CAMPFIRE, 720);
+        registerVanilla(ItemTypes.CAMPFIRE);
 
-        registerVanilla(ItemTypes.HONEYCOMB, 736);
-        registerVanilla(ItemTypes.HONEY_BOTTLE, 737);
+        registerVanilla(ItemTypes.HONEYCOMB);
+        registerVanilla(ItemTypes.HONEY_BOTTLE);
 
-        registerVanilla(ItemTypes.NETHERITE_SWORD, 743);
-        registerVanilla(ItemTypes.NETHERITE_SHOVEL, 744);
-        registerVanilla(ItemTypes.NETHERITE_PICKAXE, 745);
-        registerVanilla(ItemTypes.NETHERITE_AXE, 746);
-        registerVanilla(ItemTypes.NETHERITE_HOE, 747);
-        registerVanilla(ItemTypes.NETHERITE_HELMET, 748);
-        registerVanilla(ItemTypes.NETHERITE_CHESTPLATE, 749);
-        registerVanilla(ItemTypes.NETHERITE_LEGGINGS, 750);
-        registerVanilla(ItemTypes.NETHERITE_BOOTS, 751);
+        registerVanilla(ItemTypes.NETHERITE_SWORD);
+        registerVanilla(ItemTypes.NETHERITE_SHOVEL);
+        registerVanilla(ItemTypes.NETHERITE_PICKAXE);
+        registerVanilla(ItemTypes.NETHERITE_AXE);
+        registerVanilla(ItemTypes.NETHERITE_HOE);
+        registerVanilla(ItemTypes.NETHERITE_HELMET);
+        registerVanilla(ItemTypes.NETHERITE_CHESTPLATE);
+        registerVanilla(ItemTypes.NETHERITE_LEGGINGS);
+        registerVanilla(ItemTypes.NETHERITE_BOOTS);
     }
 
-    private void registerType(ItemType type, Identifier id, int legacyId) {
+    private void registerType(ItemType type, Identifier id/*, int legacyId*/) {
         this.typeMap.put(id, type);
         ItemTypes.addType(id, type);
         int runtime = this.runtimeIdAllocator.getAndIncrement();
         this.runtimeIdMap.put(runtime, id);
-        this.VANILLA_LEGACY_IDS.put(id, legacyId);
+
 
     }
 
@@ -552,61 +545,61 @@ public class CloudItemRegistry implements ItemRegistry {
      * register additional vanilla identifiers not used as a separate ItemType
      */
     private void registerVanillaIdentifiers() {
-        registerType(ItemTypes.SIGN, ItemIds.SPRUCE_SIGN, 472);
-        registerType(ItemTypes.SIGN, ItemIds.BIRCH_SIGN, 473);
-        registerType(ItemTypes.SIGN, ItemIds.JUNGLE_SIGN, 474);
-        registerType(ItemTypes.SIGN, ItemIds.ACACIA_SIGN, 475);
-        registerType(ItemTypes.SIGN, ItemIds.DARK_OAK_SIGN, 476);
-        registerType(ItemTypes.SIGN, ItemIds.CRIMSON_SIGN, 753);
-        registerType(ItemTypes.SIGN, ItemIds.WARPED_SIGN, 754);
+        registerType(ItemTypes.SIGN, ItemIds.SPRUCE_SIGN);
+        registerType(ItemTypes.SIGN, ItemIds.BIRCH_SIGN);
+        registerType(ItemTypes.SIGN, ItemIds.JUNGLE_SIGN);
+        registerType(ItemTypes.SIGN, ItemIds.ACACIA_SIGN);
+        registerType(ItemTypes.SIGN, ItemIds.DARK_OAK_SIGN);
+        registerType(ItemTypes.SIGN, ItemIds.CRIMSON_SIGN);
+        registerType(ItemTypes.SIGN, ItemIds.WARPED_SIGN);
 
-        registerType(ItemTypes.WOODEN_DOOR, ItemIds.SPRUCE_DOOR, 427);
-        registerType(ItemTypes.WOODEN_DOOR, ItemIds.BIRCH_DOOR, 428);
-        registerType(ItemTypes.WOODEN_DOOR, ItemIds.JUNGLE_DOOR, 429);
-        registerType(ItemTypes.WOODEN_DOOR, ItemIds.ACACIA_DOOR, 430);
-        registerType(ItemTypes.WOODEN_DOOR, ItemIds.DARK_OAK_DOOR, 431);
-        registerType(ItemTypes.WOODEN_DOOR, ItemIds.CRIMSON_DOOR, 755);
-        registerType(ItemTypes.WOODEN_DOOR, ItemIds.WARPED_DOOR, 756);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.SPRUCE_DOOR);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.BIRCH_DOOR);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.JUNGLE_DOOR);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.ACACIA_DOOR);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.DARK_OAK_DOOR);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.CRIMSON_DOOR);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.WARPED_DOOR);
 
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_BLOCKS, 502);
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_CHIRP, 503);
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_FAR, 504);
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_MALL, 505);
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_MELLOHI, 506);
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_STAL, 507);
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_STRAD, 508);
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_WARD, 509);
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_11, 510);
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_WAIT, 511);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_BLOCKS);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_CHIRP);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_FAR);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_MALL);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_MELLOHI);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_STAL);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_STRAD);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_WARD);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_11);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_WAIT);
 
-        registerType(ItemTypes.COAL, ItemIds.CHARCOAL, 700);
+        registerType(ItemTypes.COAL, ItemIds.CHARCOAL);
 
-        registerType(ItemTypes.DYE, ItemIds.RED_DYE, 701);
-        registerType(ItemTypes.DYE, ItemIds.GREEN_DYE, 702);
-        registerType(ItemTypes.DYE, ItemIds.COCOA_BEANS, 703);
-        registerType(ItemTypes.DYE, ItemIds.LAPIS_LAZULI, 704);
-        registerType(ItemTypes.DYE, ItemIds.PURPLE_DYE, 705);
-        registerType(ItemTypes.DYE, ItemIds.CYAN_DYE, 706);
-        registerType(ItemTypes.DYE, ItemIds.LIGHT_GRAY_DYE, 707);
-        registerType(ItemTypes.DYE, ItemIds.GRAY_DYE, 708);
-        registerType(ItemTypes.DYE, ItemIds.PINK_DYE, 709);
-        registerType(ItemTypes.DYE, ItemIds.LIME_DYE, 710);
-        registerType(ItemTypes.DYE, ItemIds.YELLOW_DYE, 711);
-        registerType(ItemTypes.DYE, ItemIds.LIGHT_BLUE_DYE, 712);
-        registerType(ItemTypes.DYE, ItemIds.MAGENTA_DYE, 713);
-        registerType(ItemTypes.DYE, ItemIds.ORANGE_DYE, 714);
-        registerType(ItemTypes.DYE, ItemIds.BONE_MEAL, 715);
-        registerType(ItemTypes.DYE, ItemIds.BLACK_DYE, 716);
-        registerType(ItemTypes.DYE, ItemIds.BROWN_DYE, 717);
-        registerType(ItemTypes.DYE, ItemIds.WHITE_DYE, 718);
-        registerType(ItemTypes.DYE, ItemIds.BLUE_DYE, 719);
+        registerType(ItemTypes.DYE, ItemIds.RED_DYE);
+        registerType(ItemTypes.DYE, ItemIds.GREEN_DYE);
+        registerType(ItemTypes.DYE, ItemIds.COCOA_BEANS);
+        registerType(ItemTypes.DYE, ItemIds.LAPIS_LAZULI);
+        registerType(ItemTypes.DYE, ItemIds.PURPLE_DYE);
+        registerType(ItemTypes.DYE, ItemIds.CYAN_DYE);
+        registerType(ItemTypes.DYE, ItemIds.LIGHT_GRAY_DYE);
+        registerType(ItemTypes.DYE, ItemIds.GRAY_DYE);
+        registerType(ItemTypes.DYE, ItemIds.PINK_DYE);
+        registerType(ItemTypes.DYE, ItemIds.LIME_DYE);
+        registerType(ItemTypes.DYE, ItemIds.YELLOW_DYE);
+        registerType(ItemTypes.DYE, ItemIds.LIGHT_BLUE_DYE);
+        registerType(ItemTypes.DYE, ItemIds.MAGENTA_DYE);
+        registerType(ItemTypes.DYE, ItemIds.ORANGE_DYE);
+        registerType(ItemTypes.DYE, ItemIds.BONE_MEAL);
+        registerType(ItemTypes.DYE, ItemIds.BLACK_DYE);
+        registerType(ItemTypes.DYE, ItemIds.BROWN_DYE);
+        registerType(ItemTypes.DYE, ItemIds.WHITE_DYE);
+        registerType(ItemTypes.DYE, ItemIds.BLUE_DYE);
 
-        registerType(ItemTypes.BOAT, ItemIds.OAK_BOAT, 720);
-        registerType(ItemTypes.BOAT, ItemIds.SPRUCE_BOAT, 721);
-        registerType(ItemTypes.BOAT, ItemIds.BIRCH_BOAT, 722);
-        registerType(ItemTypes.BOAT, ItemIds.JUNGLE_BOAT, 723);
-        registerType(ItemTypes.BOAT, ItemIds.ACACIA_BOAT, 724);
-        registerType(ItemTypes.BOAT, ItemIds.DARK_OAK_BOAT, 725);
+        registerType(ItemTypes.BOAT, ItemIds.OAK_BOAT);
+        registerType(ItemTypes.BOAT, ItemIds.SPRUCE_BOAT);
+        registerType(ItemTypes.BOAT, ItemIds.BIRCH_BOAT);
+        registerType(ItemTypes.BOAT, ItemIds.JUNGLE_BOAT);
+        registerType(ItemTypes.BOAT, ItemIds.ACACIA_BOAT);
+        registerType(ItemTypes.BOAT, ItemIds.DARK_OAK_BOAT);
     }
 
     private void registerVanillaDataSerializers() {
