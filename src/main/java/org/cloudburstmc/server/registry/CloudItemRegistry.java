@@ -393,7 +393,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.GLOWSTONE_DUST, 348);
         registerVanilla(ItemTypes.FISH, 349);
         registerVanilla(ItemTypes.COOKED_FISH, 350);
-        registerVanilla(ItemTypes.DYE, 351);
+        //registerVanilla(ItemTypes.DYE, 351); // TODO
         registerVanilla(ItemTypes.BONE, 352);
         registerVanilla(ItemTypes.SUGAR, 353);
         registerVanilla(ItemTypes.CAKE, 354);
@@ -425,7 +425,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.CAULDRON, 380);
         registerVanilla(ItemTypes.ENDER_EYE, 381);
         registerVanilla(ItemTypes.SPECKLED_MELON, 382);
-        registerVanilla(ItemTypes.SPAWN_EGG, new ItemSpawnEggBehavior(), 383);
+        //TODO registerVanilla(ItemTypes.SPAWN_EGG, new ItemSpawnEggBehavior(), 383);
         registerVanilla(ItemTypes.EXPERIENCE_BOTTLE, new ItemProjectileBehavior(EntityTypes.XP_BOTTLE, 1f), 384);
         registerVanilla(ItemTypes.FIREBALL, new ItemFireChargeBehavior(), 385);
         registerVanilla(ItemTypes.WRITABLE_BOOK, 386);
@@ -535,6 +535,7 @@ public class CloudItemRegistry implements ItemRegistry {
 
     private void registerType(ItemType type, Identifier id, int legacyId) {
         this.typeMap.put(id, type);
+        ItemTypes.addType(id, type);
         int runtime = this.runtimeIdAllocator.getAndIncrement();
         this.runtimeIdMap.put(runtime, id);
         this.VANILLA_LEGACY_IDS.put(id, legacyId);
@@ -577,6 +578,8 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WARD, 509);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_11, 510);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WAIT, 511);
+
+        registerType(ItemTypes.COAL, ItemIds.CHARCOAL, 700);
     }
 
     private void registerVanillaDataSerializers() {
