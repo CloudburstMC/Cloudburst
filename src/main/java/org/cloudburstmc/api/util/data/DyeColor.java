@@ -3,7 +3,7 @@ package org.cloudburstmc.api.util.data;
 public enum DyeColor {
 
 
-    BLACK(0, 15, "Black", "Ink Sack", BlockColor.BLACK_BLOCK_COLOR),
+    BLACK(0, 15, "Black", "Ink Sac", BlockColor.BLACK_BLOCK_COLOR),
     RED(1, 14, "Red", "Rose Red", BlockColor.RED_BLOCK_COLOR),
     GREEN(2, 13, "Green", "Cactus Green", BlockColor.GREEN_BLOCK_COLOR),
     BROWN(3, 12, "Brown", "Cocoa Beans", BlockColor.BROWN_BLOCK_COLOR),

@@ -465,7 +465,7 @@ public class ItemStacks {
     public static final ItemStack SKULL_ITEM = ItemTypes.SKULL.createItem();
     public static final ItemStack SLIME_BALL = ItemTypes.SLIME_BALL.createItem();
     public static final ItemStack SNOWBALL = ItemTypes.SNOWBALL.createItem();
-    public static final ItemStack SPAWN_EGG = ItemTypes.SPAWN_EGG.createItem();
+    //public static final ItemStack SPAWN_EGG = ItemTypes.SPAWN_EGG.createItem();
     public static final ItemStack SPECKLED_MELON = ItemTypes.SPECKLED_MELON.createItem();
     public static final ItemStack SPIDER_EYE = ItemTypes.SPIDER_EYE.createItem();
     public static final ItemStack SPLASH_POTION = ItemTypes.SPLASH_POTION.createItem();

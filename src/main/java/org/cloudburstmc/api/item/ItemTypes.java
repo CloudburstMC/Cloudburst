@@ -113,7 +113,7 @@ public class ItemTypes {
     public static final ItemType GLOWSTONE_DUST = IntItem.builder().id(ItemIds.GLOWSTONE_DUST).maxStackSize(64).build();
     public static final ItemType FISH = IntItem.builder().id(ItemIds.COD).maxStackSize(64).build();
     public static final ItemType COOKED_FISH = IntItem.builder().id(ItemIds.COOKED_COD).maxStackSize(64).build();
-    //public static final ItemType DYE = IntItem.builder().id(ItemIds.DYE).maxStackSize(64).data(DyeColor.class).build();
+    public static final ItemType DYE = IntItem.builder().id(ItemIds.INK_SAC).maxStackSize(64).data(DyeColor.class).build();
     public static final ItemType BONE = IntItem.builder().id(ItemIds.BONE).maxStackSize(64).build();
     public static final ItemType SUGAR = IntItem.builder().id(ItemIds.SUGAR).maxStackSize(64).build();
     public static final ItemType CAKE = IntItem.builder().id(ItemIds.CAKE).maxStackSize(1).build();
@@ -145,7 +145,7 @@ public class ItemTypes {
     public static final ItemType CAULDRON = IntItem.builder().id(ItemIds.CAULDRON).maxStackSize(64).blockType(BlockTypes.CAULDRON).build();
     public static final ItemType ENDER_EYE = IntItem.builder().id(ItemIds.ENDER_EYE).maxStackSize(64).build();
     public static final ItemType SPECKLED_MELON = IntItem.builder().id(ItemIds.SPECKLED_MELON).maxStackSize(64).build();
-    //public static final ItemType SPAWN_EGG = IntItem.builder().id(ItemIds.SPAWN_EGG).maxStackSize(64).build();
+    //public static final ItemType SPAWN_EGG = IntItem.builder().id(ItemIds.SPAWN_EGG).maxStackSize(64).build(); // TODO - egg types
     public static final ItemType EXPERIENCE_BOTTLE = IntItem.builder().id(ItemIds.EXPERIENCE_BOTTLE).maxStackSize(64).build();
     public static final ItemType FIREBALL = IntItem.builder().id(ItemIds.FIRE_CHARGE).maxStackSize(64).build();
     public static final ItemType WRITABLE_BOOK = IntItem.builder().id(ItemIds.WRITABLE_BOOK).maxStackSize(1).build();
