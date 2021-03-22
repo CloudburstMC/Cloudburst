@@ -84,6 +84,13 @@ public final class ItemIds {
     public static final Identifier REDSTONE = Identifier.fromString("redstone");
     public static final Identifier SNOWBALL = Identifier.fromString("snowball");
     public static final Identifier BOAT = Identifier.fromString("boat");
+    public static final Identifier OAK_BOAT = Identifier.fromString("oak_boat");
+    public static final Identifier BIRCH_BOAT = Identifier.fromString("birch_boat");
+    public static final Identifier DARK_OAK_BOAT = Identifier.fromString("dark_oak_boat");
+    public static final Identifier JUNGLE_BOAT = Identifier.fromString("jungle_boat");
+    public static final Identifier SPRUCE_BOAT = Identifier.fromString("spruce_boat");
+    public static final Identifier ACACIA_BOAT = Identifier.fromString("acacia_boat");
+
     public static final Identifier LEATHER = Identifier.fromString("leather");
     public static final Identifier KELP = Identifier.fromString("kelp");
     public static final Identifier BRICK = Identifier.fromString("brick");
