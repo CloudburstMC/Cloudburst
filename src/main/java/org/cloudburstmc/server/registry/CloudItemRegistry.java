@@ -393,7 +393,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.GLOWSTONE_DUST, 348);
         registerVanilla(ItemTypes.FISH, 349);
         registerVanilla(ItemTypes.COOKED_FISH, 350);
-        //registerVanilla(ItemTypes.DYE, 351); // TODO
+        registerVanilla(ItemTypes.DYE, new DyeSerializer(), 351); // TODO
         registerVanilla(ItemTypes.BONE, 352);
         registerVanilla(ItemTypes.SUGAR, 353);
         registerVanilla(ItemTypes.CAKE, 354);
@@ -580,6 +580,27 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WAIT, 511);
 
         registerType(ItemTypes.COAL, ItemIds.CHARCOAL, 700);
+
+        registerType(ItemTypes.DYE, ItemIds.RED_DYE, 701);
+        registerType(ItemTypes.DYE, ItemIds.GREEN_DYE, 702);
+        registerType(ItemTypes.DYE, ItemIds.COCOA_BEANS, 703);
+        registerType(ItemTypes.DYE, ItemIds.LAPIS_LAZULI, 704);
+        registerType(ItemTypes.DYE, ItemIds.PURPLE_DYE, 705);
+        registerType(ItemTypes.DYE, ItemIds.CYAN_DYE, 706);
+        registerType(ItemTypes.DYE, ItemIds.LIGHT_GRAY_DYE, 707);
+        registerType(ItemTypes.DYE, ItemIds.GRAY_DYE, 708);
+        registerType(ItemTypes.DYE, ItemIds.PINK_DYE, 709);
+        registerType(ItemTypes.DYE, ItemIds.LIME_DYE, 710);
+        registerType(ItemTypes.DYE, ItemIds.YELLOW_DYE, 711);
+        registerType(ItemTypes.DYE, ItemIds.LIGHT_BLUE_DYE, 712);
+        registerType(ItemTypes.DYE, ItemIds.MAGENTA_DYE, 713);
+        registerType(ItemTypes.DYE, ItemIds.ORANGE_DYE, 714);
+        registerType(ItemTypes.DYE, ItemIds.BONE_MEAL, 715);
+        registerType(ItemTypes.DYE, ItemIds.BLACK_DYE, 716);
+        registerType(ItemTypes.DYE, ItemIds.BROWN_DYE, 717);
+        registerType(ItemTypes.DYE, ItemIds.WHITE_DYE, 718);
+        registerType(ItemTypes.DYE, ItemIds.BLUE_DYE, 719);
+
     }
 
     private void registerVanillaDataSerializers() {
