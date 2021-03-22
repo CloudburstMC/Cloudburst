@@ -31,7 +31,9 @@ import org.cloudburstmc.server.utils.TextFormat;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static org.cloudburstmc.api.block.BlockIds.LIT_BLAST_FURNACE;
@@ -43,24 +45,37 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private static final String UNLABELED_CONTAINER_PREFIX = "minecraft:container_";
 
     private static final CloudRecipeRegistry INSTANCE = new CloudRecipeRegistry();
-    public static final Comparator<ItemStack> recipeComparator = Comparator.comparing((ItemStack i) -> i.getType().getId() )
-            .thenComparingInt( i -> ((CloudItemStack) i).getNetworkData().getDamage()).thenComparingInt(ItemStack::getAmount);
+    public static final Comparator<ItemStack> recipeComparator = Comparator.comparing((ItemStack i) -> i.getType().getId())
+            .thenComparingInt(i -> ((CloudItemStack) i).getNetworkData().getDamage()).thenComparingInt(ItemStack::getAmount);
 
     private final Map<Identifier, Recipe> recipeMap = new Object2ReferenceOpenHashMap<>();
-    private final Int2ReferenceMap<Map<UUID,Identifier>> recipeHashMap = new Int2ReferenceOpenHashMap<>();
+    private final Int2ReferenceMap<Map<UUID, Identifier>> recipeHashMap = new Int2ReferenceOpenHashMap<>();
 
     private CraftingDataPacket cached;
 
-    public static CloudRecipeRegistry get() { return INSTANCE; }
+    public static CloudRecipeRegistry get() {
+        return INSTANCE;
+    }
+
+    public CloudRecipeRegistry() {
+        try {
+            loadFromFile(Paths.get(Thread.currentThread().getContextClassLoader().getResource("data/recipes.json").toURI()));
+        } catch (URISyntaxException e) {
+            throw new RegistryException("Unable to load recipes.json", e);
+        }
+
+    }
+
     @Override
     public void close() throws RegistryException {
 
         log.info("Loaded {}{}{} recipies.", TextFormat.GREEN, recipeMap.size(), TextFormat.RESET);
+        this.rebuildPacket();
     }
 
     @Override
     public void register(Recipe recipe) throws RegistryException {
-        if(recipeMap.containsKey(recipe.getId())) {
+        if (recipeMap.containsKey(recipe.getId())) {
             log.warn("Recipe with Identifier {} already registered! Skipping.", recipe.getId());
         }
 
@@ -97,7 +112,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private void register0(Identifier id, UUID uuid, int outputHash, Recipe recipe) {
         Map<UUID, Identifier> map = recipeHashMap.computeIfAbsent(outputHash, HashMap::new);
         map.put(uuid, id);
-        this.recipeMap.put(id, (CraftingRecipe) recipe);
+        this.recipeMap.put(id, recipe);
     }
 
     public void loadFromFile(Path file) {
@@ -117,9 +132,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
 
         //Load Recipes
-        for( JsonNode recipe : json.get("recipies")) {
+        for (JsonNode recipe : json.get("recipes")) {
             Identifier id;
-            if(recipe.has("id")) {
+            if (recipe.has("id")) {
                 id = Identifier.fromString(recipe.get("id").asText());
             } else {
                 id = Identifier.fromString(UNLABELED_PREFIX + (++unlabeled));
@@ -170,7 +185,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
                     this.register(new FurnaceRecipe(id,createRecipeItem(outputData),createRecipeItem(inputData),block));
                 default:
-                    log.warn("Skipping recipie with unimplemented type");
+                    log.debug("Skipping recipie with unimplemented type");
                     break; // unsupported type
             }
         }
@@ -201,7 +216,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private RecipeItemStack createRecipeItem(Map<String, Object> json) {
         int damage = Utils.toInt(json.getOrDefault("damage", 0));
         if ((damage & 0x7FFF) == 0x7FFF) damage = -1;
-        return new RecipeItemStack((CloudItemStack) ItemUtils.fromJson(json), damage != -1);
+        return new RecipeItemStack(ItemUtils.fromJson(json), damage != -1);
     }
 
     @Override
