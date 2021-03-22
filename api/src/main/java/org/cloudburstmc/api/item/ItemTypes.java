@@ -145,7 +145,7 @@ public class ItemTypes {
     public static final ItemType CAULDRON = IntItem.builder().id(ItemIds.CAULDRON).maxStackSize(64).blockType(BlockTypes.CAULDRON).build();
     public static final ItemType ENDER_EYE = IntItem.builder().id(ItemIds.ENDER_EYE).maxStackSize(64).build();
     public static final ItemType SPECKLED_MELON = IntItem.builder().id(ItemIds.SPECKLED_MELON).maxStackSize(64).build();
-    //public static final ItemType SPAWN_EGG = IntItem.builder().id(ItemIds.SPAWN_EGG).maxStackSize(64).build(); // TODO - egg types
+    public static final ItemType SPAWN_EGG = IntItem.builder().id(ItemIds.SPAWN_EGG).maxStackSize(64).build();
     public static final ItemType EXPERIENCE_BOTTLE = IntItem.builder().id(ItemIds.EXPERIENCE_BOTTLE).maxStackSize(64).build();
     public static final ItemType FIREBALL = IntItem.builder().id(ItemIds.FIRE_CHARGE).maxStackSize(64).build();
     public static final ItemType WRITABLE_BOOK = IntItem.builder().id(ItemIds.WRITABLE_BOOK).maxStackSize(1).build();
@@ -198,6 +198,7 @@ public class ItemTypes {
     public static final ItemType ELYTRA = IntItem.builder().id(ItemIds.ELYTRA).maxStackSize(1).build();
     public static final ItemType SHULKER_SHELL = IntItem.builder().id(ItemIds.SHULKER_SHELL).maxStackSize(64).build();
     public static final ItemType BANNER = IntItem.builder().id(ItemIds.BANNER).maxStackSize(16).fuelTime((short) 300).build();
+    public static final ItemType BANNER_PATTERN = IntItem.builder().id(ItemIds.BANNER_PATTERN).maxStackSize(1).build();
     public static final ItemType TOTEM = IntItem.builder().id(ItemIds.TOTEM).maxStackSize(1).build();
     public static final ItemType IRON_NUGGET = IntItem.builder().id(ItemIds.IRON_NUGGET).maxStackSize(64).build();
     public static final ItemType BOARD = IntItem.builder().id(ItemIds.BOARD).maxStackSize(16).build();
