@@ -163,7 +163,7 @@ public class ItemTypes {
     public static final ItemType CARROT_ON_A_STICK = IntItem.builder().id(ItemIds.CARROT_ON_A_STICK).maxStackSize(1).build();
     public static final ItemType NETHER_STAR = IntItem.builder().id(ItemIds.NETHER_STAR).maxStackSize(64).build();
     public static final ItemType PUMPKIN_PIE = IntItem.builder().id(ItemIds.PUMPKIN_PIE).maxStackSize(64).build();
-    public static final ItemType FIREWORKS = IntItem.builder().id(ItemIds.FIREWORKS).maxStackSize(64).build();
+    public static final ItemType FIREWORKS = IntItem.builder().id(ItemIds.FIREWORK_ROCKET).maxStackSize(64).build();
     public static final ItemType FIREWORKS_CHARGE = IntItem.builder().id(ItemIds.FIREWORKS_CHARGE).maxStackSize(64).build();
     public static final ItemType ENCHANTED_BOOK = IntItem.builder().id(ItemIds.ENCHANTED_BOOK).maxStackSize(1).build();
     public static final ItemType COMPARATOR = IntItem.builder().id(ItemIds.COMPARATOR).maxStackSize(64).blockType(BlockTypes.COMPARATOR).build();

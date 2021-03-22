@@ -245,8 +245,8 @@ public final class ItemIds {
     public static final Identifier CARROT_ON_A_STICK = Identifier.fromString("carrot_on_a_stick");
     public static final Identifier NETHER_STAR = Identifier.fromString("nether_star");
     public static final Identifier PUMPKIN_PIE = Identifier.fromString("pumpkin_pie");
-    public static final Identifier FIREWORKS = Identifier.fromString("fireworks");
-    public static final Identifier FIREWORKS_CHARGE = Identifier.fromString("fireworkscharge");
+    public static final Identifier FIREWORK_ROCKET = Identifier.fromString("firework_rocket");
+    public static final Identifier FIREWORKS_CHARGE = Identifier.fromString("firework_star");
     public static final Identifier ENCHANTED_BOOK = Identifier.fromString("enchanted_book");
     public static final Identifier COMPARATOR = Identifier.fromString("comparator");
     public static final Identifier NETHERBRICK = Identifier.fromString("netherbrick");
