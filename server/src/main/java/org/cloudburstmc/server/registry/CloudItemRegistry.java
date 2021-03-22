@@ -375,7 +375,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.IRON_DOOR, 330);
         registerVanilla(ItemTypes.REDSTONE, 331);
         registerVanilla(ItemTypes.SNOWBALL, new ItemProjectileBehavior(EntityTypes.SNOWBALL, 1.5f), 332);
-        registerVanilla(ItemTypes.BOAT, new ItemBoatBehavior(), 333);
+        registerVanilla(ItemTypes.BOAT, TreeSpeciesSerializer.BOAT, new ItemBoatBehavior(), 333);
         registerVanilla(ItemTypes.LEATHER, 334);
         registerVanilla(ItemTypes.KELP, 335);
         registerVanilla(ItemTypes.BRICK, 336);
@@ -601,6 +601,12 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.DYE, ItemIds.WHITE_DYE, 718);
         registerType(ItemTypes.DYE, ItemIds.BLUE_DYE, 719);
 
+        registerType(ItemTypes.BOAT, ItemIds.OAK_BOAT, 720);
+        registerType(ItemTypes.BOAT, ItemIds.SPRUCE_BOAT, 721);
+        registerType(ItemTypes.BOAT, ItemIds.BIRCH_BOAT, 722);
+        registerType(ItemTypes.BOAT, ItemIds.JUNGLE_BOAT, 723);
+        registerType(ItemTypes.BOAT, ItemIds.ACACIA_BOAT, 724);
+        registerType(ItemTypes.BOAT, ItemIds.DARK_OAK_BOAT, 725);
     }
 
     private void registerVanillaDataSerializers() {
