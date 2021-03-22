@@ -20,7 +20,7 @@ import java.util.Map;
 @Nonnull
 @Immutable
 @ParametersAreNonnullByDefault
-public interface ItemStack {
+public interface ItemStack extends Comparable<ItemStack> {
 
     @Inject
     ItemRegistry registry = null; //does that work?
@@ -147,4 +147,12 @@ public interface ItemStack {
     static ItemStack get(ItemType type, int amount, Object... metadata) {
         return ItemRegistry.get().getItem(type, amount, metadata);
     }*/
+
+    @Override
+    default int compareTo(ItemStack other) {
+        if (other.getType().equals(this.getType())) {
+            return this.getAmount() - other.getAmount();
+        }
+        return this.getType().getId().compareTo(other.getType().getId());
+    }
 }

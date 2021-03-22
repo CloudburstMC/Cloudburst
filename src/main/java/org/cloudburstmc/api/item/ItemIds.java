@@ -143,7 +143,7 @@ public final class ItemIds {
     public static final Identifier POTATO = Identifier.fromString("potato");
     public static final Identifier BAKED_POTATO = Identifier.fromString("baked_potato");
     public static final Identifier POISONOUS_POTATO = Identifier.fromString("poisonous_potato");
-    public static final Identifier EMPTY_MAP = Identifier.fromString("emptymap");
+    public static final Identifier EMPTY_MAP = Identifier.fromString("empty_map");
     public static final Identifier GOLDEN_CARROT = Identifier.fromString("golden_carrot");
     public static final Identifier SKULL = Identifier.fromString("skull");
     public static final Identifier CARROT_ON_A_STICK = Identifier.fromString("carrotonastick");
