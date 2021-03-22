@@ -35,7 +35,6 @@ import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.*;
-import org.cloudburstmc.server.item.data.serializer.BannerSerializer;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
 
@@ -430,7 +429,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.CAULDRON);
         registerVanilla(ItemTypes.ENDER_EYE);
         registerVanilla(ItemTypes.SPECKLED_MELON);
-        //TODO registerVanilla(ItemTypes.SPAWN_EGG, new ItemSpawnEggBehavior(), 383);
+        registerVanilla(ItemTypes.SPAWN_EGG, new ItemSpawnEggBehavior());
         registerVanilla(ItemTypes.EXPERIENCE_BOTTLE, new ItemProjectileBehavior(EntityTypes.XP_BOTTLE, 1f));
         registerVanilla(ItemTypes.FIREBALL, new ItemFireChargeBehavior());
         registerVanilla(ItemTypes.WRITABLE_BOOK);
@@ -488,6 +487,7 @@ public class CloudItemRegistry implements ItemRegistry {
 
         registerVanilla(ItemTypes.SHULKER_SHELL);
         registerVanilla(ItemTypes.BANNER, new org.cloudburstmc.server.item.serializer.BannerSerializer());
+        registerVanilla(ItemTypes.BANNER_PATTERN);
 
         registerVanilla(ItemTypes.IRON_NUGGET);
         registerVanilla(ItemTypes.TRIDENT, new ItemTridentBehavior());
@@ -600,10 +600,83 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.BOAT, ItemIds.JUNGLE_BOAT);
         registerType(ItemTypes.BOAT, ItemIds.ACACIA_BOAT);
         registerType(ItemTypes.BOAT, ItemIds.DARK_OAK_BOAT);
+
+        registerType(ItemTypes.BANNER_PATTERN, ItemIds.CREEPER_BANNER_PATTERN);
+        registerType(ItemTypes.BANNER_PATTERN, ItemIds.SKULL_BANNER_PATTERN);
+        registerType(ItemTypes.BANNER_PATTERN, ItemIds.FLOWER_BANNER_PATTERN);
+        registerType(ItemTypes.BANNER_PATTERN, ItemIds.MOJANG_BANNER_PATTERN);
+        registerType(ItemTypes.BANNER_PATTERN, ItemIds.FIELD_MASONED_BANNER_PATTERN);
+        registerType(ItemTypes.BANNER_PATTERN, ItemIds.BORDURE_INDENTED_BANNER_PATTERN);
+        registerType(ItemTypes.BANNER_PATTERN, ItemIds.PIGLIN_BANNER_PATTERN);
+
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.CHICKEN_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.BEE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.COW_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.PIG_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.SHEEP_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.WOLF_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.POLAR_BEAR_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.OCELOT_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.CAT_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.MOOSHROOM_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.BAT_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.PARROT_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.RABBIT_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.LLAMA_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.HORSE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.DONKEY_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.MULE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.SKELETON_HORSE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.ZOMBIE_HORSE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.TROPICAL_FISH_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.COD_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.PUFFERFISH_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.SALMON_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.DOLPHIN_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.TURTLE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.PANDA_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.FOX_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.CREEPER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.ENDERMAN_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.SILVERFISH_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.SKELETON_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.WITHER_SKELETON_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.STRAY_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.SLIME_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.SPIDER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.ZOMBIE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.ZOMBIE_PIGMAN_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.HUSK_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.DROWNED_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.SQUID_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.CAVE_SPIDER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.WITCH_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.GUARDIAN_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.ELDER_GUARDIAN_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.ENDERMITE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.MAGMA_CUBE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.STRIDER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.HOGLIN_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.PIGLIN_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.ZOGLIN_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.PIGLIN_BRUTE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.GHAST_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.BLAZE_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.SHULKER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.VINDICATOR_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.EVOKER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.VEX_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.VILLAGER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.WANDERING_TRADER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.ZOMBIE_VILLAGER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.PHANTOM_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.PILLAGER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.RAVAGER_SPAWN_EGG);
+
     }
 
     private void registerVanillaDataSerializers() {
-        this.registerDataSerializer(BannerData.class, new BannerSerializer());
+        this.registerDataSerializer(BannerData.class, new BannerDataSerializer());
         this.registerDataSerializer(Damageable.class, new DamageableSerializer());
         this.registerDataSerializer(FireworkData.class, new FireworkSerializer());
         this.registerDataSerializer(MapItem.class, new MapSerializer());

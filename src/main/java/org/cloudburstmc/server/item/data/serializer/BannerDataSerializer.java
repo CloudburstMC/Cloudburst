@@ -14,7 +14,7 @@ import org.cloudburstmc.api.util.data.DyeColor;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BannerSerializer implements ItemDataSerializer<BannerData> {
+public class BannerDataSerializer implements ItemDataSerializer<BannerData> {
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, BannerData value) {
