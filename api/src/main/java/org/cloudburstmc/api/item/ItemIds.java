@@ -113,7 +113,7 @@ public final class ItemIds {
     public static final Identifier LIME_DYE = Identifier.fromString("lime_dye");
     public static final Identifier GREEN_DYE = Identifier.fromString("green_dye");
     public static final Identifier CYAN_DYE = Identifier.fromString("cyan_dye");
-    public static final Identifier LIGHT_BLUE__DYE = Identifier.fromString("light_blue_dye");
+    public static final Identifier LIGHT_BLUE_DYE = Identifier.fromString("light_blue_dye");
     public static final Identifier BLUE_DYE = Identifier.fromString("blue_dye");
     public static final Identifier PURPLE_DYE = Identifier.fromString("purple_dye");
     public static final Identifier MAGENTA_DYE = Identifier.fromString("magenta_dye");
