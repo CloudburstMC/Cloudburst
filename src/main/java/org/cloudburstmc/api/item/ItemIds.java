@@ -163,7 +163,7 @@ public final class ItemIds {
     public static final Identifier ENDER_EYE = Identifier.fromString("ender_eye");
     public static final Identifier SPECKLED_MELON = Identifier.fromString("glistering_melon_slice");
 
-    //public static final Identifier SPAWN_EGG = Identifier.fromString("spawn_egg");
+    public static final Identifier SPAWN_EGG = Identifier.fromString("spawn_egg");
     public static final Identifier CHICKEN_SPAWN_EGG = Identifier.fromString("chicken_spawn_egg");
     public static final Identifier BEE_SPAWN_EGG = Identifier.fromString("bee_spawn_egg");
     public static final Identifier COW_SPAWN_EGG = Identifier.fromString("cow_spawn_egg");
@@ -278,7 +278,16 @@ public final class ItemIds {
     public static final Identifier DARK_OAK_DOOR = Identifier.fromString("dark_oak_door");
     public static final Identifier CHORUS_FRUIT = Identifier.fromString("chorus_fruit");
     public static final Identifier CHORUS_FRUIT_POPPED = Identifier.fromString("popped_chorus_fruit");
+
     public static final Identifier BANNER_PATTERN = Identifier.fromString("banner_pattern");
+    public static final Identifier CREEPER_BANNER_PATTERN = Identifier.fromString("creeper_banner_pattern");
+    public static final Identifier SKULL_BANNER_PATTERN = Identifier.fromString("skull_banner_pattern");
+    public static final Identifier FLOWER_BANNER_PATTERN = Identifier.fromString("flower_banner_pattern");
+    public static final Identifier MOJANG_BANNER_PATTERN = Identifier.fromString("mojang_banner_pattern");
+    public static final Identifier FIELD_MASONED_BANNER_PATTERN = Identifier.fromString("field_masoned_banner_pattern");
+    public static final Identifier BORDURE_INDENTED_BANNER_PATTERN = Identifier.fromString("bordure_indented_banner_pattern");
+    public static final Identifier PIGLIN_BANNER_PATTERN = Identifier.fromString("piglin_banner_pattern");
+
     public static final Identifier DRAGON_BREATH = Identifier.fromString("dragon_breath");
     public static final Identifier SPLASH_POTION = Identifier.fromString("splash_potion");
     public static final Identifier LINGERING_POTION = Identifier.fromString("lingering_potion");
