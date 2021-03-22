@@ -110,7 +110,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     private void register0(Identifier id, UUID uuid, int outputHash, Recipe recipe) {
-        Map<UUID, Identifier> map = recipeHashMap.computeIfAbsent(outputHash, HashMap::new);
+        Map<UUID, Identifier> map = recipeHashMap.computeIfAbsent(outputHash, (x) -> new HashMap<>());
         map.put(uuid, id);
         this.recipeMap.put(id, recipe);
     }

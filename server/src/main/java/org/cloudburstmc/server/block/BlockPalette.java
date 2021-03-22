@@ -15,6 +15,7 @@ import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 
@@ -72,6 +73,7 @@ public class BlockPalette {
                 sortedPalette.put(id, new ArrayList<>());
             }
             sortedPalette.get(id).add(state);
+            ItemTypes.addType(state.getId(), state.getType());
 
             if (!state.isInitialized()) {
                 state.initialize(defaultState, map);

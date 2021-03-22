@@ -171,7 +171,8 @@ public class ItemUtils {
     public static UUID getMultiItemHash(List<ItemStack> items) {
         ByteBuffer buffer = ByteBuffer.allocate(items.size() * 8);
         for (ItemStack item : items) {
-            buffer.putInt(getItemHash((CloudItemStack) item));
+            if (item != null)
+                buffer.putInt(getItemHash((CloudItemStack) item));
         }
         return UUID.nameUUIDFromBytes(buffer.array());
     }
