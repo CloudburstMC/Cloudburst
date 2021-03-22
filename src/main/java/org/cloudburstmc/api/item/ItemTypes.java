@@ -101,7 +101,7 @@ public class ItemTypes {
     public static final ItemType KELP = IntItem.builder().id(ItemIds.KELP).maxStackSize(64).blockType(BlockTypes.KELP).build();
     public static final ItemType BRICK = IntItem.builder().id(ItemIds.BRICK).maxStackSize(64).build();
     public static final ItemType CLAY_BALL = IntItem.builder().id(ItemIds.CLAY_BALL).maxStackSize(64).build();
-    public static final ItemType REEDS = IntItem.builder().id(ItemIds.REEDS).maxStackSize(64).blockType(BlockTypes.REEDS).build();
+    public static final ItemType REEDS = IntItem.builder().id(ItemIds.SUGAR_CANE).maxStackSize(64).blockType(BlockTypes.REEDS).build();
     public static final ItemType PAPER = IntItem.builder().id(ItemIds.PAPER).maxStackSize(64).build();
     public static final ItemType BOOK = IntItem.builder().id(ItemIds.BOOK).maxStackSize(64).build();
     public static final ItemType SLIME_BALL = IntItem.builder().id(ItemIds.SLIME_BALL).maxStackSize(64).build();
@@ -111,9 +111,9 @@ public class ItemTypes {
     public static final ItemType FISHING_ROD = IntItem.builder().id(ItemIds.FISHING_ROD).maxStackSize(1).fuelTime((short) 300).build();
     public static final ItemType CLOCK = IntItem.builder().id(ItemIds.CLOCK).maxStackSize(64).build();
     public static final ItemType GLOWSTONE_DUST = IntItem.builder().id(ItemIds.GLOWSTONE_DUST).maxStackSize(64).build();
-    public static final ItemType FISH = IntItem.builder().id(ItemIds.FISH).maxStackSize(64).build();
-    public static final ItemType COOKED_FISH = IntItem.builder().id(ItemIds.COOKED_FISH).maxStackSize(64).build();
-    public static final ItemType DYE = IntItem.builder().id(ItemIds.DYE).maxStackSize(64).data(DyeColor.class).build();
+    public static final ItemType FISH = IntItem.builder().id(ItemIds.COD).maxStackSize(64).build();
+    public static final ItemType COOKED_FISH = IntItem.builder().id(ItemIds.COOKED_COD).maxStackSize(64).build();
+    //public static final ItemType DYE = IntItem.builder().id(ItemIds.DYE).maxStackSize(64).data(DyeColor.class).build();
     public static final ItemType BONE = IntItem.builder().id(ItemIds.BONE).maxStackSize(64).build();
     public static final ItemType SUGAR = IntItem.builder().id(ItemIds.SUGAR).maxStackSize(64).build();
     public static final ItemType CAKE = IntItem.builder().id(ItemIds.CAKE).maxStackSize(1).build();
@@ -145,9 +145,9 @@ public class ItemTypes {
     public static final ItemType CAULDRON = IntItem.builder().id(ItemIds.CAULDRON).maxStackSize(64).blockType(BlockTypes.CAULDRON).build();
     public static final ItemType ENDER_EYE = IntItem.builder().id(ItemIds.ENDER_EYE).maxStackSize(64).build();
     public static final ItemType SPECKLED_MELON = IntItem.builder().id(ItemIds.SPECKLED_MELON).maxStackSize(64).build();
-    public static final ItemType SPAWN_EGG = IntItem.builder().id(ItemIds.SPAWN_EGG).maxStackSize(64).build();
+    //public static final ItemType SPAWN_EGG = IntItem.builder().id(ItemIds.SPAWN_EGG).maxStackSize(64).build();
     public static final ItemType EXPERIENCE_BOTTLE = IntItem.builder().id(ItemIds.EXPERIENCE_BOTTLE).maxStackSize(64).build();
-    public static final ItemType FIREBALL = IntItem.builder().id(ItemIds.FIREBALL).maxStackSize(64).build();
+    public static final ItemType FIREBALL = IntItem.builder().id(ItemIds.FIRE_CHARGE).maxStackSize(64).build();
     public static final ItemType WRITABLE_BOOK = IntItem.builder().id(ItemIds.WRITABLE_BOOK).maxStackSize(1).build();
     public static final ItemType WRITTEN_BOOK = IntItem.builder().id(ItemIds.WRITTEN_BOOK).maxStackSize(16).build();
     public static final ItemType EMERALD = IntItem.builder().id(ItemIds.EMERALD).maxStackSize(64).build();
@@ -207,7 +207,7 @@ public class ItemTypes {
     public static final ItemType BEETROOT_SEEDS = IntItem.builder().id(ItemIds.BEETROOT_SEEDS).maxStackSize(64).build();
     public static final ItemType BEETROOT_SOUP = IntItem.builder().id(ItemIds.BEETROOT_SOUP).maxStackSize(1).build();
     public static final ItemType SALMON = IntItem.builder().id(ItemIds.SALMON).maxStackSize(64).build();
-    public static final ItemType CLOWNFISH = IntItem.builder().id(ItemIds.CLOWNFISH).maxStackSize(64).build();
+    public static final ItemType CLOWNFISH = IntItem.builder().id(ItemIds.TROPICAL_FISH).maxStackSize(64).build();
     public static final ItemType PUFFERFISH = IntItem.builder().id(ItemIds.PUFFERFISH).maxStackSize(64).build();
     public static final ItemType COOKED_SALMON = IntItem.builder().id(ItemIds.COOKED_SALMON).maxStackSize(64).build();
     public static final ItemType NAUTILUS_SHELL = IntItem.builder().id(ItemIds.NAUTILUS_SHELL).maxStackSize(64).build();
@@ -492,6 +492,10 @@ public class ItemTypes {
     }
 
     public static void addType(Identifier id, BlockType type) {
-        BLOCKS_BY_ID.put(id, type);
+        BLOCKS_BY_ID.putIfAbsent(id, type);
+    }
+
+    public static void addType(Identifier id, ItemType type) {
+        BY_ID.putIfAbsent(id, type);
     }
 }
