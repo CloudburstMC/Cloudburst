@@ -18,6 +18,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -44,10 +45,16 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private static final String UNLABELED_POTION_PREFIX = "minecraft:potion_";
     private static final String UNLABELED_CONTAINER_PREFIX = "minecraft:container_";
 
-    private static final CloudRecipeRegistry INSTANCE = new CloudRecipeRegistry();
+    private static final CloudRecipeRegistry INSTANCE;
+
+    static {
+        INSTANCE = new CloudRecipeRegistry(CloudItemRegistry.get()); // forces item registry to init first
+    }
+
     public static final Comparator<ItemStack> recipeComparator = Comparator.comparing((ItemStack i) -> i.getType().getId())
             .thenComparingInt(i -> ((CloudItemStack) i).getNetworkData().getDamage()).thenComparingInt(ItemStack::getAmount);
 
+    private final ItemRegistry itemRegistry;
     private final Map<Identifier, Recipe> recipeMap = new Object2ReferenceOpenHashMap<>();
     private final Int2ReferenceMap<Map<UUID, Identifier>> recipeHashMap = new Int2ReferenceOpenHashMap<>();
 
@@ -57,7 +64,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         return INSTANCE;
     }
 
-    public CloudRecipeRegistry() {
+    public CloudRecipeRegistry(ItemRegistry registry) {
+        this.itemRegistry = registry;
         try {
             loadFromFile(Paths.get(Thread.currentThread().getContextClassLoader().getResource("data/recipes.json").toURI()));
         } catch (URISyntaxException e) {
@@ -367,6 +375,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                                 recipe.getBlock().getName(),
                                 ((ShapedRecipe) recipe).getPriority(),
                                 ++recipeId));
+                        break;
                     case FURNACE:
                         assert recipe instanceof FurnaceRecipe;
                         ItemData inputData = ((CloudItemStack) ((FurnaceRecipe) recipe).getInput()).getNetworkData();
@@ -377,6 +386,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                                 outputData,
                                 recipe.getBlock().getName(),
                                 ++recipeId));
+                        break;
                     case FURNACE_DATA:
                         assert recipe instanceof FurnaceRecipe;
                         inputData = ((CloudItemStack) ((FurnaceRecipe) recipe).getInput()).getNetworkData();
