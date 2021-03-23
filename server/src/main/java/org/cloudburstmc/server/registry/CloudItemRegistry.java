@@ -53,21 +53,17 @@ public class CloudItemRegistry implements ItemRegistry {
     private static final BiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create();
 
     static {
-        INSTANCE = new CloudItemRegistry(BlockRegistry.get()); // Needs to be initialized afterwards
-
         try (InputStream in = RegistryUtils.getOrAssertResource("data/runtime_item_states.json")) {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
             for (JsonNode item : json) {
                 int id = item.get("id").intValue();
                 if (id <= 255) continue;
                 VANILLA_LEGACY_IDS.put(Identifier.fromString(item.get("name").asText()), id);
-                System.out.println("registered legacy vanilla id " + id + " to " + item.get("name").asText());
             }
         } catch (IOException e) {
             throw new RegistryException("Unable to load legacy IDs", e);
         }
-
-
+        INSTANCE = new CloudItemRegistry(BlockRegistry.get()); // Needs to be initialized afterwards
     }
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
@@ -89,6 +85,13 @@ public class CloudItemRegistry implements ItemRegistry {
             this.registerVanillaItems();
             this.registerVanillaIdentifiers();
             this.registerVanillaDataSerializers();
+
+            for (Identifier id : VANILLA_LEGACY_IDS.keySet()) {
+                if (!runtimeIdMap.inverse().containsKey(id)) {
+                    System.out.println("Unimplemented item found: " + id.getName());
+                    registerType(ItemTypes.UNKNOWN, id);
+                }
+            }
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
@@ -490,6 +493,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.BANNER_PATTERN);
 
         registerVanilla(ItemTypes.IRON_NUGGET);
+        registerVanilla(ItemTypes.NAUTILUS_SHELL);
         registerVanilla(ItemTypes.TRIDENT, new ItemTridentBehavior());
 
         registerVanilla(ItemTypes.BEETROOT);
@@ -524,6 +528,8 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.NETHERITE_CHESTPLATE);
         registerVanilla(ItemTypes.NETHERITE_LEGGINGS);
         registerVanilla(ItemTypes.NETHERITE_BOOTS);
+
+        registerVanilla(ItemTypes.UNKNOWN);
     }
 
     private void registerType(ItemType type, Identifier id/*, int legacyId*/) {
@@ -672,6 +678,14 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.SPAWN_EGG, ItemIds.PHANTOM_SPAWN_EGG);
         registerType(ItemTypes.SPAWN_EGG, ItemIds.PILLAGER_SPAWN_EGG);
         registerType(ItemTypes.SPAWN_EGG, ItemIds.RAVAGER_SPAWN_EGG);
+
+        registerType(ItemTypes.BUCKET, ItemIds.MILK_BUCKET);
+        registerType(ItemTypes.BUCKET, ItemIds.COD_BUCKET);
+        registerType(ItemTypes.BUCKET, ItemIds.SALMON_BUCKET);
+        registerType(ItemTypes.BUCKET, ItemIds.TROPICAL_FISH_BUCKET);
+        registerType(ItemTypes.BUCKET, ItemIds.PUFFERFISH_BUCKET);
+        registerType(ItemTypes.BUCKET, ItemIds.WATER_BUCKET);
+        registerType(ItemTypes.BUCKET, ItemIds.LAVA_BUCKET);
 
     }
 

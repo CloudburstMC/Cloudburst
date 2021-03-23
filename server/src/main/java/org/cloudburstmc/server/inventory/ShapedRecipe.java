@@ -114,7 +114,8 @@ public class ShapedRecipe implements CraftingRecipe {
         List<ItemStack> items = new ArrayList<>();
         for (int y = 0, y2 = getHeight(); y < y2; ++y) {
             for (int x = 0, x2 = getWidth(); x < x2; ++x) {
-                items.add(getIngredient(x, y));
+                if (getIngredient(x, y) != null)
+                    items.add(getIngredient(x, y));
             }
         }
         return items;
