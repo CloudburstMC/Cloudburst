@@ -18,4 +18,8 @@ public interface RecipeRegistry extends Registry {
     Recipe matchRecipe(ItemStack[][] inputMap, ItemStack output, ItemStack[][] extraOutputMap, Identifier craftingBlock);
 
     Collection<Recipe> getRecipes();
+
+    void unregister(Identifier id);
+
+    void unregister(Recipe recipe);
 }
