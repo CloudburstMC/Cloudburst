@@ -77,7 +77,16 @@ public final class ItemIds {
     public static final Identifier GOLDEN_APPLE = Identifier.fromString("golden_apple");
     public static final Identifier SIGN = Identifier.fromString("oak_sign");
     public static final Identifier WOODEN_DOOR = Identifier.fromString("wooden_door");
+
     public static final Identifier BUCKET = Identifier.fromString("bucket");
+    public static final Identifier MILK_BUCKET = Identifier.fromString("milk_bucket");
+    public static final Identifier COD_BUCKET = Identifier.fromString("cod_bucket");
+    public static final Identifier SALMON_BUCKET = Identifier.fromString("salmon_bucket");
+    public static final Identifier TROPICAL_FISH_BUCKET = Identifier.fromString("tropical_fish_bucket");
+    public static final Identifier PUFFERFISH_BUCKET = Identifier.fromString("pufferfish_bucket");
+    public static final Identifier WATER_BUCKET = Identifier.fromString("water_bucket");
+    public static final Identifier LAVA_BUCKET = Identifier.fromString("lava_bucket");
+
     public static final Identifier MINECART = Identifier.fromString("minecart");
     public static final Identifier SADDLE = Identifier.fromString("saddle");
     public static final Identifier IRON_DOOR = Identifier.fromString("iron_door");

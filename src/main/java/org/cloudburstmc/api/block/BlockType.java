@@ -4,10 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.cloudburstmc.api.block.trait.BlockTrait;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemType;
-import org.cloudburstmc.api.item.TierType;
-import org.cloudburstmc.api.item.ToolType;
+import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Identifier;
 
@@ -45,6 +42,7 @@ public final class BlockType implements ItemType {
         for (BlockState state : this.states) {
             state.initialize(blockStateMap);
         }
+        ItemTypes.addType(id, this);
     }
 
     public Identifier getId() {
@@ -76,7 +74,6 @@ public final class BlockType implements ItemType {
         Collections.addAll(traitSet, traits);
         BlockTrait<?>[] cleanedTraits = traitSet.toArray(new BlockTrait[traits.length]);
         checkArgument(Arrays.equals(traits, cleanedTraits), "%s defines duplicate block traits", id);
-
 
         return new BlockType(id, cleanedTraits);
     }
