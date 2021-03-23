@@ -4,6 +4,8 @@ import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.CardinalDirection;
@@ -11,7 +13,7 @@ import org.cloudburstmc.api.util.data.CardinalDirection;
 import java.util.OptionalLong;
 import java.util.UUID;
 
-public interface Player extends Entity {
+public interface Player extends Entity, InventoryHolder {
     /**
      * Checks if this player is currently online.
      *
@@ -112,7 +114,7 @@ public interface Player extends Entity {
 
     boolean isOnGround();
 
-    Inventory getInventory();
+    PlayerInventory getInventory();
 
     void setOp(boolean value);
 
