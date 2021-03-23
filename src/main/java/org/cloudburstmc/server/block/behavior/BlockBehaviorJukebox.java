@@ -9,7 +9,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -41,7 +40,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
         } else if (item.getType() == ItemTypes.RECORD) {
             jukebox.setRecordItem(item);
             jukebox.play();
-            player.getInventory().decrementCount(((PlayerInventory) player.getInventory()).getHeldItemIndex());
+            player.getInventory().decrementCount(player.getInventory().getHeldItemIndex());
         }
 
         return false;

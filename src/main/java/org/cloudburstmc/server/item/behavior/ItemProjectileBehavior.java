@@ -11,7 +11,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.entity.projectile.EntityEnderPearl;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -53,7 +52,7 @@ public class ItemProjectileBehavior extends CloudItemBehavior {
             projectile.kill();
         } else {
             if (!player.isCreative()) {
-                ((PlayerInventory) player.getInventory()).decrementHandCount();
+                player.getInventory().decrementHandCount();
             }
             if (projectile instanceof EntityEnderPearl) {
                 ((CloudPlayer) player).onThrowEnderPearl();

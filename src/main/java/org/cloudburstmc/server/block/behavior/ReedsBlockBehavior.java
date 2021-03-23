@@ -12,7 +12,6 @@ import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -65,7 +64,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
                 if (success) {
                     if (player != null && player.getGamemode().isSurvival()) {
-                        ((PlayerInventory) player.getInventory()).decrementHandCount();
+                        player.getInventory().decrementHandCount();
                     }
 
                     ((CloudLevel) level).addParticle(new BoneMealParticle(block.getPosition()));

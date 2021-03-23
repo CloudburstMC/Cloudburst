@@ -11,7 +11,6 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.FireworkData;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -41,7 +40,7 @@ public class ItemFireworkBehavior extends CloudItemBehavior {
 
     @Override
     public boolean onClickAir(ItemStack item, Vector3f directionVector, Player player) {
-        if (((PlayerInventory) player.getInventory()).getChestplate().getType() == ItemTypes.ELYTRA && ((CloudPlayer) player).isGliding()) {
+        if (player.getInventory().getChestplate().getType() == ItemTypes.ELYTRA && ((CloudPlayer) player).isGliding()) {
             this.spawnFirework(item, (CloudLevel) player.getLevel(), player.getPosition());
 
             player.setMotion(Vector3f.from(
@@ -50,7 +49,7 @@ public class ItemFireworkBehavior extends CloudItemBehavior {
                     Math.cos(Math.toRadians(player.getYaw())) * Math.cos(Math.toRadians(player.getPitch())) * 2));
 
             if (!player.isCreative()) {
-                ((PlayerInventory) player.getInventory()).decrementHandCount();
+                player.getInventory().decrementHandCount();
             }
 
             return true;

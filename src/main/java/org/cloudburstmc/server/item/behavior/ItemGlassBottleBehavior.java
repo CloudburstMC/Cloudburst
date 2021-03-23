@@ -8,7 +8,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
@@ -29,9 +28,9 @@ public class ItemGlassBottleBehavior extends CloudItemBehavior {
             ItemStack potion = CloudItemRegistry.get().getItem(POTION);
 
             if (item.getAmount() == 1) {
-                ((PlayerInventory) player.getInventory()).setItemInHand(potion);
+                player.getInventory().setItemInHand(potion);
             } else if (item.getAmount() > 1) {
-                ((PlayerInventory) player.getInventory()).decrementHandCount();
+                player.getInventory().decrementHandCount();
                 if (player.getInventory().canAddItem(potion)) {
                     player.getInventory().addItem(potion);
                 } else {

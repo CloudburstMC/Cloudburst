@@ -7,7 +7,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Potion;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class ItemPotionBehavior extends CloudItemBehavior {
@@ -36,7 +35,7 @@ public class ItemPotionBehavior extends CloudItemBehavior {
         }
 
         if (player.getGamemode() == GameMode.SURVIVAL) {
-            ((PlayerInventory) player.getInventory()).decrementHandCount();
+            player.getInventory().decrementHandCount();
             player.getInventory().addItem(CloudItemRegistry.get().getItem(ItemTypes.GLASS_BOTTLE));
         }
 

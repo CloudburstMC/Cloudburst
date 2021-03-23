@@ -13,7 +13,6 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.projectile.EntityProjectile;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
@@ -87,7 +86,7 @@ public class ItemTridentBehavior extends ItemToolBehavior {
                     entityShootBowEvent.getProjectile().spawnToAll();
                     ((CloudLevel) player.getLevel()).addLevelSoundEvent(player.getPosition(), SoundEvent.ITEM_TRIDENT_THROW);
                     if (!player.isCreative()) {
-                        ((PlayerInventory) player.getInventory()).decrementHandCount();
+                        player.getInventory().decrementHandCount();
                     }
                 }
             }

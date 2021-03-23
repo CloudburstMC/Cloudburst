@@ -2857,8 +2857,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         for (Inventory inv : this.windows.keySet()) {
             inv.sendContents(this);
 
-            if (inv instanceof PlayerInventory) {
-                ((PlayerInventory) inv).sendArmorContents(this);
+            if (inv instanceof CloudPlayerInventory) {
+                ((CloudPlayerInventory) inv).sendArmorContents(this);
             }
         }
     }

@@ -17,7 +17,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -84,7 +83,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
             if (currentBook != null && currentBook.isNull()) {
                 if (item.getType() == ItemTypes.WRITTEN_BOOK || item.getType() == ItemTypes.WRITABLE_BOOK) {
                     if (player.isSurvival()) {
-                        ((PlayerInventory)player.getInventory()).decrementHandCount();
+                        player.getInventory().decrementHandCount();
                     }
 
                     lectern.setBook(item.withAmount(1));

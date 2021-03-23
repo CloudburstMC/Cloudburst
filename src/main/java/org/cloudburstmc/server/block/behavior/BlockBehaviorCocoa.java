@@ -15,7 +15,6 @@ import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -150,7 +149,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
                 ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
 
                 if (player != null && player.getGamemode().isSurvival()) {
-                    ((PlayerInventory) player.getInventory()).decrementHandCount();
+                    player.getInventory().decrementHandCount();
                 }
             }
 
