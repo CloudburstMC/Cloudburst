@@ -6,7 +6,7 @@ import lombok.var;
 import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.inventory.PlayerInventory;
+import org.cloudburstmc.server.inventory.CloudPlayerInventory;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.inventory.transaction.action.SlotChangeAction;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -133,8 +133,8 @@ public class InventoryTransaction {
     protected void sendInventories() {
         for (Inventory inventory : this.inventories) {
             inventory.sendContents(this.source);
-            if (inventory instanceof PlayerInventory) {
-                ((PlayerInventory) inventory).sendArmorContents(this.source);
+            if (inventory instanceof CloudPlayerInventory) {
+                ((CloudPlayerInventory) inventory).sendArmorContents(this.source);
             }
         }
     }
@@ -258,7 +258,7 @@ public class InventoryTransaction {
             }
             SlotChangeAction slotChange = (SlotChangeAction) action;
 
-            if (slotChange.getInventory() instanceof PlayerInventory) {
+            if (slotChange.getInventory() instanceof CloudPlayerInventory) {
                 who = (CloudPlayer) slotChange.getInventory().getHolder();
             }
 

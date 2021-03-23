@@ -13,7 +13,6 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -149,7 +148,7 @@ public class BlockBehaviorKelp extends FloodableBlockBehavior {
                             ((CloudLevel) level).addParticle(new BoneMealParticle(block.getPosition()));
 
                             if (player != null && !player.isCreative()) {
-                                ((PlayerInventory) player.getInventory()).decrementHandCount();
+                                player.getInventory().decrementHandCount();
                             }
                             return false;
                         }

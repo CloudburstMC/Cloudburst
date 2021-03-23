@@ -12,7 +12,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.blockentity.FlowerPotBlockEntity;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -64,7 +63,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
         blockEntity.spawnToAll();
 
         if (player.isSurvival()) {
-            ((PlayerInventory) player.getInventory()).decrementHandCount();
+            player.getInventory().decrementHandCount();
         }
         return true;
     }

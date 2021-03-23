@@ -73,7 +73,6 @@ import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
@@ -1744,7 +1743,7 @@ public class CloudLevel implements Level {
             this.server.getEventManager().fire(ev);
             if (!ev.isCancelled()) {
                 targetBehavior.onUpdate(target, BLOCK_UPDATE_TOUCH);
-                if ((!player.isSneaking() || ((PlayerInventory) player.getInventory()).getItemInHand().isNull()) && targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item, player)) {
+                if ((!player.isSneaking() || player.getInventory().getItemInHand().isNull()) && targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item, player)) {
                     if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
                         item = ItemStacks.AIR;
                     }

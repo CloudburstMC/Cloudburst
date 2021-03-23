@@ -29,8 +29,8 @@ import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.inventory.CloudPlayerInventory;
 import org.cloudburstmc.server.inventory.PlayerEnderChestInventory;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.math.NukkitMath;
@@ -53,7 +53,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class EntityHuman extends EntityCreature implements InventoryHolder, Human {
 
     protected UUID identity;
-    private final PlayerInventory inventory = new PlayerInventory(this);
+    private final CloudPlayerInventory inventory = new CloudPlayerInventory(this);
     private final PlayerEnderChestInventory enderChestInventory = new PlayerEnderChestInventory(this);
 
     protected SerializedSkin skin;
@@ -104,7 +104,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
     }
 
     @Override
-    public PlayerInventory getInventory() {
+    public CloudPlayerInventory getInventory() {
         return inventory;
     }
 
@@ -208,7 +208,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
         super.saveAdditionalData(tag);
 
         List<NbtMap> inventoryItems = new ArrayList<>();
-        int slotCount = PlayerInventory.SURVIVAL_SLOTS + 9;
+        int slotCount = CloudPlayerInventory.SURVIVAL_SLOTS + 9;
         for (int slot = 9; slot < slotCount; ++slot) {
             ItemStack item = this.inventory.getItem(slot - 9);
             if (!item.isNull()) {

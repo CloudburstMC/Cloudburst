@@ -15,7 +15,6 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.Bucket;
 import org.cloudburstmc.server.blockentity.CauldronBlockEntity;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
@@ -115,9 +114,9 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
             }
 
             if (item.getAmount() == 1) {
-                player.getInventory().clear(((PlayerInventory) player.getInventory()).getHeldItemIndex());
+                player.getInventory().clear(player.getInventory().getHeldItemIndex());
             } else if (item.getAmount() > 1) {
-                ((PlayerInventory) player.getInventory()).decrementHandCount();
+                player.getInventory().decrementHandCount();
 
                 ItemStack bottle = CloudItemRegistry.get().getItem(ItemTypes.GLASS_BOTTLE);
                 if (player.getInventory().canAddItem(bottle)) {
@@ -135,9 +134,9 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
             }
 
             if (item.getAmount() == 1) {
-                ((PlayerInventory) player.getInventory()).setItemInHand(CloudItemRegistry.get().getItem(ItemTypes.POTION));
+                player.getInventory().setItemInHand(CloudItemRegistry.get().getItem(ItemTypes.POTION));
             } else if (item.getAmount() > 1) {
-                ((PlayerInventory) player.getInventory()).decrementHandCount();
+                player.getInventory().decrementHandCount();
 
                 ItemStack potion = CloudItemRegistry.get().getItem(ItemTypes.POTION);
                 if (player.getInventory().canAddItem(potion)) {

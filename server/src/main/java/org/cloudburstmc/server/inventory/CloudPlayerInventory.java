@@ -9,6 +9,7 @@ import org.cloudburstmc.api.event.entity.EntityArmorChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.api.event.player.PlayerItemHeldEvent;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.player.Player;
@@ -28,14 +29,14 @@ import static org.cloudburstmc.api.block.BlockTypes.AIR;
  * Nukkit Project
  */
 @Log4j2
-public class PlayerInventory extends BaseInventory {
+public class CloudPlayerInventory extends BaseInventory implements PlayerInventory {
 
     public static final int SURVIVAL_SLOTS = 36;
 
     protected int itemInHandIndex = 0;
     private int offHandIndex = 40;
 
-    public PlayerInventory(EntityHuman player) {
+    public CloudPlayerInventory(EntityHuman player) {
         super(player, InventoryType.PLAYER);
     }
 
@@ -99,14 +100,17 @@ public class PlayerInventory extends BaseInventory {
 
     }
 
+    @Override
     public int getHeldItemIndex() {
         return this.itemInHandIndex;
     }
 
+    @Override
     public void setHeldItemIndex(int index) {
         setHeldItemIndex(index, true);
     }
 
+    @Override
     public void setHeldItemIndex(int index, boolean send) {
         if (index >= 0 && index < this.getHotbarSize()) {
             this.itemInHandIndex = index;
@@ -119,14 +123,17 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
+    @Override
     public void decrementHandCount() {
         this.decrementCount(getHeldItemIndex());
     }
 
+    @Override
     public void incrementHandCount() {
         this.incrementCount(getHeldItemIndex());
     }
 
+    @Override
     public ItemStack getItemInHand() {
         ItemStack item = this.getItem(this.getHeldItemIndex());
         if (item != null) {
@@ -136,6 +143,7 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
+    @Override
     public boolean setItemInHand(ItemStack item) {
         return this.setItem(this.getHeldItemIndex(), item);
     }
@@ -199,48 +207,14 @@ public class PlayerInventory extends BaseInventory {
         return 9;
     }
 
+    @Override
     public ItemStack getArmorItem(int index) {
         return this.getItem(this.getSize() + index);
     }
 
-    public boolean setArmorItem(int index, ItemStack item) {
-        return this.setArmorItem(index, item, false);
-    }
-
+    @Override
     public boolean setArmorItem(int index, ItemStack item, boolean ignoreArmorEvents) {
         return this.setItem(this.getSize() + index, item, ignoreArmorEvents);
-    }
-
-    public ItemStack getHelmet() {
-        return this.getItem(this.getSize());
-    }
-
-    public ItemStack getChestplate() {
-        return this.getItem(this.getSize() + 1);
-    }
-
-    public ItemStack getLeggings() {
-        return this.getItem(this.getSize() + 2);
-    }
-
-    public ItemStack getBoots() {
-        return this.getItem(this.getSize() + 3);
-    }
-
-    public boolean setHelmet(ItemStack helmet) {
-        return this.setItem(this.getSize(), helmet);
-    }
-
-    public boolean setChestplate(ItemStack chestplate) {
-        return this.setItem(this.getSize() + 1, chestplate);
-    }
-
-    public boolean setLeggings(ItemStack leggings) {
-        return this.setItem(this.getSize() + 2, leggings);
-    }
-
-    public boolean setBoots(ItemStack boots) {
-        return this.setItem(this.getSize() + 3, boots);
     }
 
     @Override
@@ -326,6 +300,7 @@ public class PlayerInventory extends BaseInventory {
         return true;
     }
 
+    @Override
     public ItemStack[] getArmorContents() {
         ItemStack[] armor = new ItemStack[4];
         for (int i = 0; i < 4; i++) {
@@ -343,10 +318,12 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
+    @Override
     public ItemStack getOffHand() {
         return this.getItem(offHandIndex);
     }
 
+    @Override
     public void setOffHandContents(ItemStack offhand) {
         if (offhand == null) {
             offhand = ItemStacks.AIR;
@@ -544,6 +521,7 @@ public class PlayerInventory extends BaseInventory {
         }
     }
 
+    @Override
     public void sendCreativeContents() {
         if (!(this.getHolder() instanceof Player)) {
             return;
@@ -563,8 +541,8 @@ public class PlayerInventory extends BaseInventory {
     }
 
     @Override
-    public EntityHuman getHolder() {
-        return (EntityHuman) super.getHolder();
+    public CloudPlayer getHolder() {
+        return (CloudPlayer) super.getHolder();
     }
 
     @Override

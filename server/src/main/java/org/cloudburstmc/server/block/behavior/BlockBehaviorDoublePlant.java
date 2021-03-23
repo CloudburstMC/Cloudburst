@@ -12,7 +12,6 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.DoublePlantType;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -125,7 +124,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
                 case ROSE:
                 case PAEONIA:
                     if (player != null && player.getGamemode().isSurvival()) {
-                        ((PlayerInventory) player.getInventory()).decrementHandCount();
+                        player.getInventory().decrementHandCount();
                     }
                     ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
                     block.getLevel().dropItem(block.getPosition(), CloudItemRegistry.get().getItem(block.getState()));

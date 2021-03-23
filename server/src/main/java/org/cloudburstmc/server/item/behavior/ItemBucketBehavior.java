@@ -15,7 +15,6 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.CloudBlock;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockRegistry;
@@ -118,9 +117,9 @@ public class ItemBucketBehavior extends CloudItemBehavior {
 
                     if (player.isSurvival()) {
                         if(itemStack.getAmount() == 1) {
-                            ((PlayerInventory) player.getInventory()).setItemInHand(ev.getItem());
+                            player.getInventory().setItemInHand(ev.getItem());
                         } else {
-                            ((PlayerInventory) player.getInventory()).decrementHandCount();
+                            player.getInventory().decrementHandCount();
                             ItemStack[] drops = player.getInventory().addItem(ev.getItem());
                             if(drops.length > 0) {
                                 ((CloudPlayer) player).dropItem(drops[0]);
@@ -169,9 +168,9 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                 }
                 if (player.isSurvival()) {
                     if(itemStack.getAmount() == 1) {
-                        ((PlayerInventory) player.getInventory()).setItemInHand(ev.getItem());
+                        player.getInventory().setItemInHand(ev.getItem());
                     } else {
-                        ((PlayerInventory) player.getInventory()).decrementHandCount();
+                        player.getInventory().decrementHandCount();
                         ItemStack[] drops = player.getInventory().addItem(ev.getItem());
                         if(drops.length > 0) {
                             ((CloudPlayer) player).dropItem(drops[0]);
@@ -217,7 +216,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
         }
 
         if (!player.isCreative()) {
-            ((PlayerInventory) player.getInventory()).decrementHandCount();
+            player.getInventory().decrementHandCount();
             player.getInventory().addItem(CloudItemRegistry.get().getItem(ItemTypes.BUCKET));
         }
 

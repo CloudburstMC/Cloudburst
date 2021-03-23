@@ -17,7 +17,6 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -122,7 +121,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
                             } else {
                                 item = item.withData(dmg.damage());
                             }
-                            ((PlayerInventory) player.getInventory()).setItemInHand(item);
+                            player.getInventory().setItemInHand(item);
                         }
                     }
                 }

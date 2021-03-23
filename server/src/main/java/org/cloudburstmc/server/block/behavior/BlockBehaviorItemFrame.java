@@ -11,7 +11,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.blockentity.ItemFrameBlockEntity;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
@@ -49,7 +48,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         if (itemFrame.getItem() == null || itemFrame.getItem().getType() == AIR) {
             if (player != null && player.isSurvival()) {
-                ((PlayerInventory) player.getInventory()).decrementHandCount();
+                player.getInventory().decrementHandCount();
             }
 
             itemFrame.setItem(item.withAmount(1));

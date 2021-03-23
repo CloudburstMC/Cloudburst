@@ -17,7 +17,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.inventory.PlayerInventory;
 import org.cloudburstmc.server.item.behavior.ItemEdibleBehavior;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -109,7 +108,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
 
                 if (fire.putItemInFire(item)) {
                     if (player != null && player.isSurvival()) {
-                        ((PlayerInventory) player.getInventory()).decrementHandCount();
+                        player.getInventory().decrementHandCount();
                     }
                 }
             }
