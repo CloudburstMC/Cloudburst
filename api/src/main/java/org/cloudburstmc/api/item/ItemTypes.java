@@ -8,6 +8,7 @@ import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.item.data.Coal;
 import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.api.util.data.TreeSpecies;
 
@@ -236,6 +237,8 @@ public class ItemTypes {
     public static final ItemType NETHERITE_CHESTPLATE = IntItem.builder().id(ItemIds.NETHERITE_CHESTPLATE).maxStackSize(1).data(Damageable.class).tierType(NETHERITE).build();
     public static final ItemType NETHERITE_LEGGINGS = IntItem.builder().id(ItemIds.NETHERITE_LEGGINGS).maxStackSize(1).data(Damageable.class).tierType(NETHERITE).build();
     public static final ItemType NETHERITE_BOOTS = IntItem.builder().id(ItemIds.NETHERITE_BOOTS).maxStackSize(1).data(Damageable.class).tierType(NETHERITE).build();
+
+    public static final ItemType UNKNOWN = IntItem.builder().id(Identifiers.UNKNOWN).build();
 
     private static class IntItem implements ItemType {
         private final Identifier id;
