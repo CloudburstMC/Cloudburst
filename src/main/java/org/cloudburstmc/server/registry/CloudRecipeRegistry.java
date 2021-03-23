@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import lombok.var;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
@@ -58,6 +59,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private final Map<Identifier, Recipe> recipeMap = new Object2ReferenceOpenHashMap<>();
     private final Int2ReferenceMap<Map<UUID, Identifier>> recipeHashMap = new Int2ReferenceOpenHashMap<>();
 
+    private boolean closed;
     private CraftingDataPacket cached;
 
     public static CloudRecipeRegistry get() {
@@ -76,9 +78,39 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     @Override
     public void close() throws RegistryException {
-
+        if (this.closed) {
+            throw new RegistryException("Registry already closed!");
+        }
+        this.closed = true;
         log.info("Loaded {}{}{} recipies.", TextFormat.GREEN, recipeMap.size(), TextFormat.RESET);
         this.rebuildPacket();
+    }
+
+    public void unregisterRecipe(Identifier id) {
+        unregisterRecipe(recipeMap.get(id));
+    }
+
+    /**
+     * Used to remove a {@link Recipe} from the Registry.
+     *
+     * @param recipe instance of the recipe to remove (i.e. as returned by {@link RecipeRegistry#matchRecipe(ItemStack[][], ItemStack, ItemStack[][], Identifier)}
+     */
+    public void unregisterRecipe(Recipe recipe) {
+        if (this.closed) {
+            throw new RegistryException("Unable to unregister recipes after registry closes");
+        }
+        int outputHash = ItemUtils.getItemHash((CloudItemStack) recipe.getResult());
+        UUID id = getInputHash(recipe);
+        var hashMap = recipeHashMap.get(outputHash);
+        if (hashMap.size() <= 1) {
+            recipeHashMap.remove(outputHash);
+        } else {
+            hashMap.remove(id);
+        }
+
+        recipeMap.remove(recipe.getId());
+
+
     }
 
     @Override
@@ -88,33 +120,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
 
         int outputHash = ItemUtils.getItemHash((CloudItemStack) recipe.getResult());
-        switch(recipe.getType()) {
-            case SHAPED:
-            case SHAPED_CHEMISTRY:
-                register0(recipe.getId(),ItemUtils.getMultiItemHash(((ShapedRecipe)recipe).getIngredientList()),outputHash, recipe);
-                break;
-            case SHAPELESS:
-            case SHAPELESS_CHEMISTRY:
-                List<ItemStack> list = ((ShapelessRecipe)recipe).getIngredientList();
-                list.sort(recipeComparator);
-                register0(recipe.getId(), ItemUtils.getMultiItemHash(list),outputHash,recipe);
-                break;
-            case FURNACE:
-            case FURNACE_DATA:
-                ItemStack input = ((FurnaceRecipe)recipe).getInput();
-                register0(recipe.getId(), ItemUtils.getMultiItemHash(Arrays.asList(input, recipe.getResult())), outputHash, recipe);
-                break;
-            case POTION:
-            case CONTAINER:
-                register0(recipe.getId(), ItemUtils.getMultiItemHash(Arrays.asList(((MixRecipe)recipe).getInput(),((MixRecipe)recipe).getIngredient())),outputHash,recipe);
-                break;
-            case MULTI:
-            case SHULKER_BOX:
-                //TODO
-                break;
-            default:
-                throw new RegistryException("Unable to register recipe, unkown type: "+ recipe.toString());
-        }
+        UUID id = getInputHash(recipe);
+        register0(recipe.getId(), id, outputHash, recipe);
+
     }
 
     private void register0(Identifier id, UUID uuid, int outputHash, Recipe recipe) {
@@ -431,5 +439,26 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
 
         this.cached = packet;
+    }
+
+    private UUID getInputHash(Recipe recipe) {
+        switch (recipe.getType()) {
+            case SHAPED:
+            case SHAPED_CHEMISTRY:
+                return ItemUtils.getMultiItemHash(((ShapedRecipe) recipe).getIngredientList());
+            case SHAPELESS:
+            case SHAPELESS_CHEMISTRY:
+                List<ItemStack> list = ((ShapelessRecipe) recipe).getIngredientList();
+                list.sort(recipeComparator);
+                return ItemUtils.getMultiItemHash(list);
+            case FURNACE:
+            case FURNACE_DATA:
+                ItemStack input = ((FurnaceRecipe) recipe).getInput();
+                return ItemUtils.getMultiItemHash(Arrays.asList(input, recipe.getResult()));
+            case POTION:
+            case CONTAINER:
+                return ItemUtils.getMultiItemHash(Arrays.asList(((MixRecipe) recipe).getInput(), ((MixRecipe) recipe).getIngredient()));
+        }
+        return null;
     }
 }
