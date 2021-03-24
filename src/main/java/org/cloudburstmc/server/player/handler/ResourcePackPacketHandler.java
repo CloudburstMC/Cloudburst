@@ -9,8 +9,12 @@ import com.nukkitx.protocol.bedrock.packet.ResourcePackClientResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackDataInfoPacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.pack.Pack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.PlayerLoginData;
+
+import java.util.function.Consumer;
 
 /**
  * @author Extollite
@@ -58,7 +62,11 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                 return true;
             case COMPLETED:
                 if (loginData.getPreLoginEventTask().isFinished()) {
-                    loginData.initializePlayer();
+                    CloudPlayer player = loginData.initializePlayer();
+                    for (Consumer<Player> task : loginData.getLoginTasks()) {
+                        task.accept(player);
+                    }
+
                 } else {
                     loginData.setShouldLogin(true);
                 }

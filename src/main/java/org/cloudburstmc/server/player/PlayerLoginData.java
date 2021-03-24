@@ -3,6 +3,7 @@ package org.cloudburstmc.server.player;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.player.PlayerCreationEvent;
 import org.cloudburstmc.server.network.BedrockInterface;
@@ -11,6 +12,8 @@ import org.cloudburstmc.server.utils.ClientChainData;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Extollite
@@ -25,6 +28,7 @@ public class PlayerLoginData {
     private String username;
     private ClientChainData chainData;
     private boolean shouldLogin;
+    private List<Consumer<Player>> loginTasks;
 
     public PlayerLoginData(BedrockServerSession session, CloudServer server, BedrockInterface interfaz) {
         this.session = session;
@@ -90,5 +94,13 @@ public class PlayerLoginData {
 
     public void setName(String username) {
         this.username = username;
+    }
+
+    public void setLoginTasks(List<Consumer<Player>> tasks) {
+        this.loginTasks = tasks;
+    }
+
+    public List<Consumer<Player>> getLoginTasks() {
+        return loginTasks;
     }
 }
