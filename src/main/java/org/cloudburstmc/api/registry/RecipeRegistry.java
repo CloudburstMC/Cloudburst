@@ -21,5 +21,10 @@ public interface RecipeRegistry extends Registry {
 
     void unregister(Identifier id);
 
+    /**
+     * Used to remove a {@link Recipe} from the Registry.
+     *
+     * @param recipe instance of the recipe to remove (i.e. as returned by {@link RecipeRegistry#matchRecipe(ItemStack[][], ItemStack, ItemStack[][], Identifier)}
+     */
     void unregister(Recipe recipe);
 }

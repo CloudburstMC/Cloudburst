@@ -2,7 +2,7 @@ package org.cloudburstmc.api.event.player;
 
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.util.Skin;
+import org.cloudburstmc.api.player.skin.Skin;
 
 /**
  * author: KCodeYT

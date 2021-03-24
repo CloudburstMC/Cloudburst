@@ -1,11 +1,13 @@
-package org.cloudburstmc.api.util;
+package org.cloudburstmc.api.player.skin;
 
-import com.google.common.collect.ImmutableList;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.cloudburstmc.api.player.skin.data.ImageData;
+import org.cloudburstmc.api.player.skin.data.PersonaPiece;
+import org.cloudburstmc.api.player.skin.data.PersonaPieceTint;
+import org.cloudburstmc.api.player.skin.data.SkinAnimation;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,12 +19,13 @@ public class Skin {
 
     private final String fullSkinId = UUID.randomUUID().toString();
     private String skinId;
+    private String playFabId;
     private String skinResourcePatch = GEOMETRY_CUSTOM;
-    private BufferedImage skinData;
-    private final List<SkinAnimation> animations = new ArrayList<>();
+    private ImageData skinData;
+    private List<SkinAnimation> animations;
     private final List<PersonaPiece> personaPieces = new ArrayList<>();
     private final List<PersonaPieceTint> tintColors = new ArrayList<>();
-    private BufferedImage capeData;
+    private ImageData capeData;
     private String geometryData;
     private String animationData;
     private boolean premium;
@@ -41,34 +44,8 @@ public class Skin {
     }
 
     public boolean isValid() {
-        return true; //TODO
-    }
-
-    @Data
-    public class PersonaPieceTint {
-        private final String pieceType;
-        private final ImmutableList<String> colors;
-
-        public PersonaPieceTint(String pieceType, List<String> colors) {
-            this.pieceType = pieceType;
-            this.colors = ImmutableList.copyOf(colors);
-        }
-    }
-
-    @Data
-    public class PersonaPiece {
-        private final String id;
-        private final String type;
-        private final String packId;
-        private final boolean isDefault;
-        private final String productId;
-    }
-
-    @Data
-    public class SkinAnimation {
-        private final BufferedImage image;
-        private final int type;
-        private final float frames;
-        private final int expression;
+        return skinId != null && !skinId.trim().isEmpty() &&
+                skinData != null && skinData.getWidth() >= 64 && skinData.getHeight() >= 32;
+        //TODO geometry validation
     }
 }
