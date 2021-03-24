@@ -90,16 +90,6 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
         return slot >= 0 && slot <= this.getHotbarSize();
     }
 
-    @Deprecated
-    public int getHotbarSlotIndex(int index) {
-        return index;
-    }
-
-    @Deprecated
-    public void setHotbarSlotIndex(int index, int slot) {
-
-    }
-
     @Override
     public int getHeldItemIndex() {
         return this.itemInHandIndex;
@@ -526,7 +516,7 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
         if (!(this.getHolder() instanceof Player)) {
             return;
         }
-        CloudPlayer p = (CloudPlayer) this.getHolder();
+        CloudPlayer p = this.getHolder();
 
         CreativeContentPacket pk;
 
@@ -549,7 +539,7 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
     public void onOpen(Player who) {
         super.onOpen(who);
         ContainerOpenPacket pk = new ContainerOpenPacket();
-        pk.setId(((CloudPlayer) who).getWindowId(this));
+        pk.setId(who.getWindowId(this));
         pk.setType(ContainerType.INVENTORY);
         pk.setBlockPosition(who.getPosition().toInt());
         pk.setUniqueEntityId(who.getUniqueId());
@@ -559,7 +549,7 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
     @Override
     public void onClose(Player who) {
         ContainerClosePacket pk = new ContainerClosePacket();
-        pk.setId(((CloudPlayer) who).getWindowId(this));
+        pk.setId(who.getWindowId(this));
         ((CloudPlayer) who).sendPacket(pk);
         // Player can neer stop viewing their own inventory
         if (who != holder)

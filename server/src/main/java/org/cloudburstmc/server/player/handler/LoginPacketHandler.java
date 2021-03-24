@@ -75,13 +75,13 @@ public class LoginPacketHandler implements BedrockPacketHandler {
 
         this.loginData.setName(TextFormat.clean(username));
 
-        if (!this.loginData.getChainData().getSkin().isValid()) {
+        if (!this.loginData.getChainData().getSerializedSkin().isValid()) {
             session.disconnect("disconnectionScreen.invalidSkin");
             return true;
         }
 
-        PlayerPreLoginEvent playerPreLoginEvent;
-        this.server.getEventManager().fire(playerPreLoginEvent = new PlayerPreLoginEvent(loginData, "Plugin reason"));
+        PlayerPreLoginEvent playerPreLoginEvent = new PlayerPreLoginEvent(loginData, "Plugin reason");
+        this.server.getEventManager().fire(playerPreLoginEvent);
         if (playerPreLoginEvent.isCancelled()) {
             session.disconnect(playerPreLoginEvent.getKickMessage());
             return true;
@@ -95,8 +95,8 @@ public class LoginPacketHandler implements BedrockPacketHandler {
 
             @Override
             public void onRun() {
-               // e = new PlayerAsyncPreLoginEvent(loginDataInstance); // TODO figure out if LoginData needs to be moved to API?
-//                server.getEventManager().fire(e);
+                e = new PlayerAsyncPreLoginEvent(loginDataInstance.getChainData());
+                server.getEventManager().fire(e);
             }
 
             @Override
@@ -110,12 +110,15 @@ public class LoginPacketHandler implements BedrockPacketHandler {
                         for (Consumer<Player> action : e.getScheduledActions()) {
                             action.accept(player);
                         }
+                    } else {
+                        // Finished this before the resouce pack packets finished
+                        loginDataInstance.setLoginTasks(e.getScheduledActions());
                     }
                 }
             }
         });
 
-        this.server.getScheduler().scheduleAsyncTask(loginData.getPreLoginEventTask());
+        this.server.getScheduler().scheduleAsyncTask(null, loginData.getPreLoginEventTask());
 
         PlayStatusPacket statusPacket = new PlayStatusPacket();
         statusPacket.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);

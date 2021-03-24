@@ -12,6 +12,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
@@ -722,7 +723,7 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public Inventory getInventory() {
+    public PlayerInventory getInventory() {
         return null;
     }
 

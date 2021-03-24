@@ -86,16 +86,14 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         this.rebuildPacket();
     }
 
-    public void unregisterRecipe(Identifier id) {
-        unregisterRecipe(recipeMap.get(id));
+    @Override
+    public void unregister(Identifier id) {
+        unregister(recipeMap.get(id));
     }
 
-    /**
-     * Used to remove a {@link Recipe} from the Registry.
-     *
-     * @param recipe instance of the recipe to remove (i.e. as returned by {@link RecipeRegistry#matchRecipe(ItemStack[][], ItemStack, ItemStack[][], Identifier)}
-     */
-    public void unregisterRecipe(Recipe recipe) {
+
+    @Override
+    public void unregister(Recipe recipe) {
         if (this.closed) {
             throw new RegistryException("Unable to unregister recipes after registry closes");
         }
