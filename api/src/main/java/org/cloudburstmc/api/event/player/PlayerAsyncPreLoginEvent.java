@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.event.player;
 
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.LoginChainData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,25 +14,21 @@ import java.util.function.Consumer;
  */
 public final class PlayerAsyncPreLoginEvent extends PlayerEvent {
 
-//    private final PlayerLoginData loginData;
+    private final LoginChainData loginData;
 
     private LoginResult loginResult = LoginResult.SUCCESS;
     private String kickMessage = "Plugin Reason";
 
     private final List<Consumer<Player>> scheduledActions = new ArrayList<>();
 
-    public PlayerAsyncPreLoginEvent(Player player) {
-        super(player);
-    }
-
-/*    public PlayerAsyncPreLoginEvent(PlayerLoginData loginData) {
+    public PlayerAsyncPreLoginEvent(LoginChainData loginData) {
         super(null);
         this.loginData = loginData;
     }
 
-    public PlayerLoginData getLoginData() {
+    public LoginChainData getLoginData() {
         return loginData;
-    }*/
+    }
 
     public LoginResult getLoginResult() {
         return loginResult;

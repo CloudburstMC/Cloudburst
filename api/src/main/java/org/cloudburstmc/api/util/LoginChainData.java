@@ -1,5 +1,7 @@
 package org.cloudburstmc.api.util;
 
+import org.cloudburstmc.api.player.skin.Skin;
+
 import java.util.UUID;
 
 /**
