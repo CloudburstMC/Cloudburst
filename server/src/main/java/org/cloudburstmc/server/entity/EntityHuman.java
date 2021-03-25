@@ -29,12 +29,14 @@ import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.server.inventory.CloudPlayerInventory;
 import org.cloudburstmc.server.inventory.PlayerEnderChestInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.utils.SkinUtils;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.ArrayList;
@@ -56,7 +58,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
     private final CloudPlayerInventory inventory = new CloudPlayerInventory(this);
     private final PlayerEnderChestInventory enderChestInventory = new PlayerEnderChestInventory(this);
 
-    protected SerializedSkin skin;
+    protected Skin skin;
 
     public EntityHuman(EntityType<Human> type, Location location) {
         super(type, location);
@@ -87,7 +89,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
         return this.getEyeHeight();
     }
 
-    public SerializedSkin getSkin() {
+    public Skin getSkin() {
         return skin;
     }
 
@@ -99,7 +101,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
         this.identity = uuid;
     }
 
-    public void setSkin(SerializedSkin skin) {
+    public void setSkin(Skin skin) {
         this.skin = skin;
     }
 
@@ -176,7 +178,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
                     }
                     skin.animations(animations);
                 }
-                this.setSkin(skin.build());
+                this.setSkin(SkinUtils.fromSerialized(skin.build()));
             }
 
             this.identity = Utils.dataToUUID(String.valueOf(this.getUniqueId()).getBytes(UTF_8), this.getSkin()
@@ -234,23 +236,24 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
         }
         tag.putList("EnderItems", NbtType.COMPOUND, enderItems);
 
-        if (skin != null) {
+        if (this.skin != null) {
+            SerializedSkin nbtSkin = SkinUtils.fromSkin(skin);
             NbtMapBuilder skinTag = NbtMap.builder()
-                    .putByteArray("Data", this.getSkin().getSkinData().getImage())
-                    .putInt("SkinImageWidth", this.getSkin().getSkinData().getWidth())
-                    .putInt("SkinImageHeight", this.getSkin().getSkinData().getHeight())
-                    .putString("ModelId", this.getSkin().getSkinId())
-                    .putString("CapeId", this.getSkin().getCapeId())
-                    .putByteArray("CapeData", this.getSkin().getCapeData().getImage())
-                    .putInt("CapeImageWidth", this.getSkin().getCapeData().getWidth())
-                    .putInt("CapeImageHeight", this.getSkin().getCapeData().getHeight())
-                    .putByteArray("SkinResourcePatch", this.getSkin().getSkinResourcePatch().getBytes(UTF_8))
-                    .putByteArray("GeometryData", this.getSkin().getGeometryData().getBytes(UTF_8))
-                    .putByteArray("AnimationData", this.getSkin().getAnimationData().getBytes(UTF_8))
-                    .putBoolean("PremiumSkin", this.getSkin().isPremium())
-                    .putBoolean("PersonaSkin", this.getSkin().isPersona())
-                    .putBoolean("CapeOnClassicSkin", this.getSkin().isCapeOnClassic());
-            List<AnimationData> animations = this.getSkin().getAnimations();
+                    .putByteArray("Data", nbtSkin.getSkinData().getImage())
+                    .putInt("SkinImageWidth", nbtSkin.getSkinData().getWidth())
+                    .putInt("SkinImageHeight", nbtSkin.getSkinData().getHeight())
+                    .putString("ModelId", nbtSkin.getSkinId())
+                    .putString("CapeId", nbtSkin.getCapeId())
+                    .putByteArray("CapeData", nbtSkin.getCapeData().getImage())
+                    .putInt("CapeImageWidth", nbtSkin.getCapeData().getWidth())
+                    .putInt("CapeImageHeight", nbtSkin.getCapeData().getHeight())
+                    .putByteArray("SkinResourcePatch", nbtSkin.getSkinResourcePatch().getBytes(UTF_8))
+                    .putByteArray("GeometryData", nbtSkin.getGeometryData().getBytes(UTF_8))
+                    .putByteArray("AnimationData", nbtSkin.getAnimationData().getBytes(UTF_8))
+                    .putBoolean("PremiumSkin", nbtSkin.isPremium())
+                    .putBoolean("PersonaSkin", nbtSkin.isPersona())
+                    .putBoolean("CapeOnClassicSkin", nbtSkin.isCapeOnClassic());
+            List<AnimationData> animations = nbtSkin.getAnimations();
             if (!animations.isEmpty()) {
                 List<NbtMap> animationsTag = new ArrayList<>();
                 for (AnimationData animation : animations) {
@@ -284,9 +287,9 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
             }
 
             if (this instanceof CloudPlayer)
-                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), this.skin, ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
+                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), ((CloudPlayer) this).getSerializedSkin(), ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
             else
-                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), this.skin, new CloudPlayer[]{player});
+                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), SkinUtils.fromSkin(this.skin), new CloudPlayer[]{player});
 
             player.sendPacket(createAddEntityPacket());
 
