@@ -5,7 +5,6 @@ import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
-import org.cloudburstmc.api.registry.BlockRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -20,10 +19,20 @@ public class BlockState {
     private final BlockType type;
     private final Map<BlockTrait<?>, Comparable<?>> traits;
     private Map<BlockTrait<?>, BlockState[]> blockStates;
+    private BlockBehavior behavior;
 
     public BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits) {
+        this(type, traits, null);
+    }
+
+    public BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockBehavior behavior) {
         this.type = type;
         this.traits = traits;
+        this.behavior = behavior;
+    }
+
+    public void setBehavior(BlockBehavior behavior) {
+        this.behavior = behavior;
     }
 
     public BlockType getType() {
@@ -100,7 +109,7 @@ public class BlockState {
     }
 
     public BlockBehavior getBehavior() {
-        return BlockRegistry.get().getBehavior(this.type);
+        return this.behavior;
     }
 
     public BlockState toggleTrait(BooleanBlockTrait trait) {
