@@ -13,7 +13,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Random;
@@ -203,7 +203,7 @@ public class ParticleCommand extends Command {
         } else if (name.startsWith("blockcrack_")) {
             String[] d = name.split("_");
             if (d.length == 2) {
-                return new TerrainParticle(pos, BlockRegistry.get().getBlock(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
+                return new TerrainParticle(pos, CloudBlockRegistry.get().getBlock(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
             }
         } else if (name.startsWith("blockdust_")) {
             String[] d = name.split("_");

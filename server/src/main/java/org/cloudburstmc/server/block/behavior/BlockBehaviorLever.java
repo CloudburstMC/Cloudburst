@@ -11,7 +11,7 @@ import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.LeverDirection;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorLever extends FloodableBlockBehavior {
@@ -68,7 +68,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().getBehavior().isNormalBlock(target)) {
-            return placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.LEVER)
+            return placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.LEVER)
                     .withTrait(
                             BlockTraits.LEVER_DIRECTION,
                             LeverDirection.forDirection(face, player.getHorizontalDirection())

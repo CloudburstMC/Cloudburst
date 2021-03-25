@@ -26,7 +26,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
@@ -40,13 +40,13 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
         if (face != Direction.DOWN) {
             BlockState banner;
             if (face == Direction.UP) {
-                banner = BlockRegistry.get().getBlock(BlockTypes.STANDING_BANNER)
+                banner = CloudBlockRegistry.get().getBlock(BlockTypes.STANDING_BANNER)
                         .withTrait(
                                 BlockTraits.CARDINAL_DIRECTION,
                                 CardinalDirection.values()[NukkitMath.floorDouble(((player.getYaw() + 180) * 16 / 360) + 0.5) & 0x0f]
                         );
             } else {
-                banner = BlockRegistry.get().getBlock(WALL_BANNER)
+                banner = CloudBlockRegistry.get().getBlock(WALL_BANNER)
                         .withTrait(BlockTraits.FACING_DIRECTION, face);
             }
 

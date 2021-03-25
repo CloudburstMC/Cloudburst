@@ -18,7 +18,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -57,7 +57,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        boolean ret = placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.FLOWING_LAVA));
+        boolean ret = placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.FLOWING_LAVA));
 
         block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
         return ret;
@@ -87,7 +87,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                             level.getServer().getEventManager().fire(e);
 
                             if (!e.isCancelled()) {
-                                BlockState fire = BlockRegistry.get().getBlock(BlockTypes.FIRE);
+                                BlockState fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
                                 b.set(fire, true);
                                 level.scheduleUpdate(v, fire.getBehavior().tickRate());
                                 return CloudLevel.BLOCK_UPDATE_RANDOM;
@@ -110,7 +110,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                         level.getServer().getEventManager().fire(e);
 
                         if (!e.isCancelled()) {
-                            BlockState fire = BlockRegistry.get().getBlock(BlockTypes.FIRE);
+                            BlockState fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
                             b.set(fire, true);
                             level.scheduleUpdate(v, fire.getBehavior().tickRate());
                         }
@@ -171,9 +171,9 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
         if (colliding != null) {
             int level = block.getState().ensureTrait(BlockTraits.FLUID_LEVEL);
             if (level == 0) {
-                this.liquidCollide(colliding, BlockRegistry.get().getBlock(BlockTypes.OBSIDIAN));
+                this.liquidCollide(colliding, CloudBlockRegistry.get().getBlock(BlockTypes.OBSIDIAN));
             } else if (level <= 4) {
-                this.liquidCollide(colliding, BlockRegistry.get().getBlock(BlockTypes.COBBLESTONE));
+                this.liquidCollide(colliding, CloudBlockRegistry.get().getBlock(BlockTypes.COBBLESTONE));
             }
         }
     }
@@ -182,7 +182,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
     protected void flowIntoBlock(Block block, int newFlowDecay, boolean falling) {
         val behavior = block.getState().getBehavior();
         if (behavior instanceof BlockBehaviorWater) {
-            ((BlockBehaviorLiquid) behavior).liquidCollide(block, BlockRegistry.get().getBlock(BlockTypes.STONE));
+            ((BlockBehaviorLiquid) behavior).liquidCollide(block, CloudBlockRegistry.get().getBlock(BlockTypes.STONE));
         } else {
             super.flowIntoBlock(block, newFlowDecay, falling);
         }

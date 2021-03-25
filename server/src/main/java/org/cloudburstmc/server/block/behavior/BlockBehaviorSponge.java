@@ -14,7 +14,7 @@ import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -56,7 +56,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
                     LevelEventPacket packet = new LevelEventPacket();
                     packet.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
                     packet.setPosition(block.getPosition().toFloat().add(0.5, 0.5, 0.5));
-                    packet.setData(BlockRegistry.get().getRuntimeId(BlockStates.FLOWING_WATER));
+                    packet.setData(CloudBlockRegistry.get().getRuntimeId(BlockStates.FLOWING_WATER));
                     level.addChunkPacket(block.getPosition(), packet);
                 }
             }

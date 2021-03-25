@@ -12,7 +12,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
@@ -20,7 +20,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val level = (CloudLevel) block.getLevel();
-        var state = BlockRegistry.get().getBlock(BlockTypes.REDSTONE_LAMP);
+        var state = CloudBlockRegistry.get().getBlock(BlockTypes.REDSTONE_LAMP);
         if (level.isBlockPowered(block.getPosition())) {
             state = state.withTrait(BlockTraits.IS_POWERED, true);
         }

@@ -14,7 +14,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.OBSIDIAN;
 
@@ -162,7 +162,7 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlockState(Vector3i.from(scanX - width, scanY + height, scanZ), BlockRegistry.get().getBlock(BlockTypes.PORTAL));
+                            level.setBlockState(Vector3i.from(scanX - width, scanY + height, scanZ), CloudBlockRegistry.get().getBlock(BlockTypes.PORTAL));
                         }
                     }
 
@@ -241,7 +241,7 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
 
                     for (int height = 0; height < innerHeight; height++) {
                         for (int width = 0; width < innerWidth; width++) {
-                            level.setBlockState(Vector3i.from(scanX, scanY + height, scanZ - width), BlockRegistry.get().getBlock(BlockTypes.PORTAL));
+                            level.setBlockState(Vector3i.from(scanX, scanY + height, scanZ - width), CloudBlockRegistry.get().getBlock(BlockTypes.PORTAL));
                         }
                     }
 
@@ -249,8 +249,8 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
                     return null;
                 }
             }
-            BlockState fire = BlockRegistry.get().getBlock(BlockTypes.FIRE);
-            BlockBehaviorFire fireBehavior = (BlockBehaviorFire) BlockRegistry.get().getBehavior(BlockTypes.FIRE);
+            BlockState fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
+            BlockBehaviorFire fireBehavior = (BlockBehaviorFire) CloudBlockRegistry.get().getBehavior(BlockTypes.FIRE);
 
  /*           if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
                 BlockIgniteEvent e = new BlockIgniteEvent(block, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);

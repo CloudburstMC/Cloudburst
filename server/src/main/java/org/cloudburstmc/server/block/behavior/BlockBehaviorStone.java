@@ -7,7 +7,7 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.TierTypes;
 import org.cloudburstmc.api.util.data.StoneType;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.COBBLESTONE;
@@ -22,7 +22,7 @@ public class BlockBehaviorStone extends BlockBehaviorSolid {
         if (behavior.isPickaxe() && behavior.getTier(hand).compareTo(TierTypes.WOOD) >= 0) {
             var state = block.getState();
             if (state.ensureTrait(BlockTraits.STONE_TYPE) == StoneType.STONE) {
-                state = BlockRegistry.get().getBlock(COBBLESTONE);
+                state = CloudBlockRegistry.get().getBlock(COBBLESTONE);
             }
             return new ItemStack[]{CloudItemRegistry.get().getItem(state)};
         } else {

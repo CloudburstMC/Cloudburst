@@ -40,8 +40,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
 @Log4j2
-public class BlockRegistry implements Registry {
-    private static final BlockRegistry INSTANCE;
+public class CloudBlockRegistry implements Registry {
+    private static final CloudBlockRegistry INSTANCE;
     private static final Map<Identifier, Integer> VANILLA_LEGACY_IDS;
 
     static {
@@ -54,7 +54,7 @@ public class BlockRegistry implements Registry {
             throw new AssertionError("Unable to load legacy IDs", e);
         }
 
-        INSTANCE = new BlockRegistry(); // Needs to be initialized afterwards
+        INSTANCE = new CloudBlockRegistry(); // Needs to be initialized afterwards
     }
 
     private final Reference2ReferenceMap<BlockType, BlockBehavior> behaviorMap = new Reference2ReferenceOpenHashMap<>();
@@ -65,7 +65,7 @@ public class BlockRegistry implements Registry {
     private volatile boolean closed;
     private transient NbtList<NbtMap> serializedPalette;
 
-    private BlockRegistry() {
+    private CloudBlockRegistry() {
         BlockTraitSerializers.init();
         this.registerVanillaBlocks();
 
@@ -78,7 +78,7 @@ public class BlockRegistry implements Registry {
         this.idLegacyMap.putAll(VANILLA_LEGACY_IDS);
     }
 
-    public static BlockRegistry get() {
+    public static CloudBlockRegistry get() {
         return INSTANCE;
     }
 
@@ -114,7 +114,9 @@ public class BlockRegistry implements Registry {
                 throw new RegistryException(type + " is already registered");
         }
 
-        this.palette.addBlock(type, serializer, traits);
+        type.forEachPermutation(state -> state.setBehavior(behavior));
+
+        this.palette.addBlock(type, serializer, traits, behavior);
     }
 
     /**

@@ -38,7 +38,7 @@ public class BlockRegistryTest {
         int build = version & 0xFF;
         System.out.printf("Latest block state version: %d.%d.%d.%d%n", major, minor, patch, build);
 
-        BlockRegistry.get().close(); // init
+        CloudBlockRegistry.get().close(); // init
 
         Collection<NbtMap> serverPalette = BlockPalette.INSTANCE.getSerializedPalette().keySet();
 

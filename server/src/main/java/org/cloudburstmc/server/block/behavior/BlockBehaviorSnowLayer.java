@@ -9,7 +9,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
@@ -18,7 +18,7 @@ public class BlockBehaviorSnowLayer extends BlockBehaviorFallable {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
         if (down.inCategory(BlockCategory.SOLID)) {
-            placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.SNOW_LAYER));
+            placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.SNOW_LAYER));
             return true;
         }
         return false;

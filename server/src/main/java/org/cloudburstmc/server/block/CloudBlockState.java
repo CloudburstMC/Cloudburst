@@ -10,7 +10,7 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,8 +33,8 @@ public final class CloudBlockState extends BlockState {
     private BlockState defaultState;
 
     CloudBlockState(Identifier id, BlockType type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
-                    Reference2IntMap<BlockTrait<?>> traitPalette/*, ImmutableList<NbtMap> tags*/) {
-        super(type, traits);
+                    Reference2IntMap<BlockTrait<?>> traitPalette, BlockBehavior behavior/*, ImmutableList<NbtMap> tags*/) {
+        super(type, traits, behavior);
         Preconditions.checkNotNull(id, "id");
         Preconditions.checkNotNull(type, "type");
         this.id = id;
@@ -116,7 +116,7 @@ public final class CloudBlockState extends BlockState {
 
     //@Override
     public BlockBehavior getBehavior() {
-        return BlockRegistry.get().getBehavior(this.type);
+        return CloudBlockRegistry.get().getBehavior(this.type);
     }
 
     @Nonnull

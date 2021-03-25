@@ -6,7 +6,7 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
 
@@ -32,7 +32,7 @@ public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
         val behavior = item.getBehavior();
         if (behavior.isHoe()) {
             behavior.useOn(item, block.getState());
-            block.set(BlockRegistry.get().getBlock(BlockTypes.FARMLAND), true);
+            block.set(CloudBlockRegistry.get().getBlock(BlockTypes.FARMLAND), true);
             return true;
         }
 

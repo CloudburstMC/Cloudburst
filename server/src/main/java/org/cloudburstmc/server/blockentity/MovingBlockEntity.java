@@ -11,7 +11,7 @@ import org.cloudburstmc.api.blockentity.MovingBlock;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * Created by CreeperFace on 11.4.2017.
@@ -31,7 +31,7 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        BlockRegistry registry = BlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.get();
         if (tag.containsKey("movingBlockId") && tag.containsKey("movingBlockData")) {
             int id = tag.getByte("movingBlockId") & 0xff;
             int meta = tag.getByte("movingBlockData");

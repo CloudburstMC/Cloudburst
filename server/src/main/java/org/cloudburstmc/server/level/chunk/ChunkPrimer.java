@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.chunk;
 
 import com.google.common.base.Preconditions;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Arrays;
 
@@ -33,7 +33,7 @@ public final class ChunkPrimer {
     }
 
     public void setBlock(int x, int y, int z, int layer, BlockState blockState) {
-        this.data[index(x, y, z, layer)] = (char) BlockRegistry.get().getRuntimeId(blockState);
+        this.data[index(x, y, z, layer)] = (char) CloudBlockRegistry.get().getRuntimeId(blockState);
     }
 
     public BlockState getBlock(int x, int y, int z) {
@@ -41,7 +41,7 @@ public final class ChunkPrimer {
     }
 
     public BlockState getBlock(int x, int y, int z, int layer) {
-        return BlockRegistry.get().getBlock(this.data[index(x, y, z, layer)]);
+        return CloudBlockRegistry.get().getBlock(this.data[index(x, y, z, layer)]);
     }
 
     /**

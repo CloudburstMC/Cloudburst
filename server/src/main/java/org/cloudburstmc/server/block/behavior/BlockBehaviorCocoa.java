@@ -17,7 +17,7 @@ import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -107,7 +107,7 @@ public class BlockBehaviorCocoa extends BlockBehaviorTransparent {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().getType() == BlockTypes.LOG && target.getState().ensureTrait(BlockTraits.TREE_SPECIES) == TreeSpecies.JUNGLE) {
             if (face != Direction.DOWN && face != Direction.UP) {
-                placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.COCOA)
+                placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.COCOA)
                         .withTrait(BlockTraits.DIRECTION, face));
                 return true;
             }

@@ -7,7 +7,7 @@ import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * Provides helper methods for other {@link WorldFeature} to quickly check if a block can be replaced.
@@ -27,7 +27,7 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
     }
 
     public boolean testOrLiquid(int runtimeId) {
-        return runtimeId == 0 || this.testOrLiquid(BlockRegistry.get().getBlock(runtimeId));
+        return runtimeId == 0 || this.testOrLiquid(CloudBlockRegistry.get().getBlock(runtimeId));
     }
 
     /**

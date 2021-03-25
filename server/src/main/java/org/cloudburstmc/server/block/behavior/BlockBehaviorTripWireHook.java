@@ -13,7 +13,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
@@ -120,7 +120,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
         canConnect = canConnect & distance > 1;
         nextPowered = nextPowered & canConnect;
 
-        var hook = BlockRegistry.get().getBlock(TRIPWIRE_HOOK)
+        var hook = CloudBlockRegistry.get().getBlock(TRIPWIRE_HOOK)
                 .withTrait(BlockTraits.IS_ATTACHED, canConnect)
                 .withTrait(BlockTraits.IS_POWERED, nextPowered);
 

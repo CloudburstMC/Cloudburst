@@ -15,7 +15,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -136,7 +136,7 @@ public class BlockUtils {
 
         String idText = matcher.group(1);
         Identifier blockId = Identifier.fromString(idText);
-        checkArgument(BlockRegistry.get().getBlock(blockId) != null, "unknown block: \"%s\"", idText);
+        checkArgument(CloudBlockRegistry.get().getBlock(blockId) != null, "unknown block: \"%s\"", idText);
 
         Map<String, Object> traits = new HashMap<>();
         String traitsTxt = matcher.group(2);
@@ -174,7 +174,7 @@ public class BlockUtils {
 
         String idText = matcher.group(1);
         Identifier blockId = Identifier.fromString(idText);
-        checkArgument(BlockRegistry.get().getBlock(blockId) != null, "unknown block: \"%s\"", idText);
+        checkArgument(CloudBlockRegistry.get().getBlock(blockId) != null, "unknown block: \"%s\"", idText);
 
         List<Map<String, Object>> variants = new ArrayList<>();
 

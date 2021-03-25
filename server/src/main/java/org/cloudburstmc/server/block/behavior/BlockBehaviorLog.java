@@ -9,7 +9,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorLog extends BlockBehaviorSolid {
@@ -30,7 +30,7 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     public static void upgradeLegacyBlock(int[] blockState) {
         if ((blockState[1] & 0b1100) == 0b1100) { // old full bark texture
-            blockState[0] = BlockRegistry.get().getLegacyId(BlockIds.WOOD);
+            blockState[0] = CloudBlockRegistry.get().getLegacyId(BlockIds.WOOD);
             blockState[1] = blockState[1] & 0x03; // gets only the log type and set pillar to y
         }
     }

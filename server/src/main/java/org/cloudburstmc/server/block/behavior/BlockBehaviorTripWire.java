@@ -12,7 +12,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.TRIPWIRE;
@@ -109,7 +109,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        val state = BlockRegistry.get().getBlock(TRIPWIRE);
+        val state = CloudBlockRegistry.get().getBlock(TRIPWIRE);
         placeBlock(block, state);
         this.updateHook(block, state, false);
 

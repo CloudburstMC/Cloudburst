@@ -26,7 +26,7 @@ import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.MathHelper;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Rail;
 
@@ -131,7 +131,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
             int id;
             int meta;
-            BlockRegistry registry = BlockRegistry.get();
+            CloudBlockRegistry registry = CloudBlockRegistry.get();
             if (tag.containsKey("DisplayTile") && tag.containsKey("DisplayData")) {
                 id = tag.getInt("DisplayTile");
                 meta = tag.getInt("DisplayData");
@@ -723,11 +723,11 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     public BlockState getDisplayBlock() {
         int runtimeId = this.data.getInt(DISPLAY_ITEM);
-        return BlockRegistry.get().getBlock(runtimeId);
+        return CloudBlockRegistry.get().getBlock(runtimeId);
     }
 
     public void setDisplayBlock(BlockState blockState) {
-        int runtimeId = BlockRegistry.get().getRuntimeId(blockState);
+        int runtimeId = CloudBlockRegistry.get().getRuntimeId(blockState);
         this.data.setInt(DISPLAY_ITEM, runtimeId);
     }
 

@@ -10,7 +10,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -47,7 +47,7 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
                     Block side = block.getSide(Direction.Plane.HORIZONTAL.random(random));
                     BlockState d = side.down().getState();
                     if (side.getState().getType() == AIR && (d.getType() == FARMLAND || d.getType() == GRASS || d.getType() == DIRT)) {
-                        BlockGrowEvent ev = new BlockGrowEvent(side, BlockRegistry.get().getBlock(MELON_BLOCK));
+                        BlockGrowEvent ev = new BlockGrowEvent(side, CloudBlockRegistry.get().getBlock(MELON_BLOCK));
                         CloudServer.getInstance().getEventManager().fire(ev);
                         if (!ev.isCancelled()) {
                             side.set(ev.getNewState(), true);

@@ -20,7 +20,7 @@ import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
@@ -56,7 +56,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.LECTERN).withTrait(
+        if (placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.LECTERN).withTrait(
                 BlockTraits.DIRECTION,
                 player != null ? player.getHorizontalDirection() : Direction.NORTH)
         )) {

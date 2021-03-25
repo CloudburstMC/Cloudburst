@@ -13,7 +13,7 @@ import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.WriteBatch;
 
@@ -96,7 +96,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                                     short value = extraDataMap.get(CloudChunk.blockKey(x, y, z));
                                     int blockId = value & 0xff;
                                     int blockData = (value >> 8) & 0xf;
-                                    blockStorage[1].setBlock(CloudChunkSection.blockIndex(x, y, z), BlockRegistry.get().getBlock(blockId, blockData));
+                                    blockStorage[1].setBlock(CloudChunkSection.blockIndex(x, y, z), CloudBlockRegistry.get().getBlock(blockId, blockData));
                                 }
                             }
                         }

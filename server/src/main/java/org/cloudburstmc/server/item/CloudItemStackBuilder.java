@@ -17,7 +17,7 @@ import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import javax.annotation.Nonnull;
@@ -71,7 +71,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
         Preconditions.checkState(this.blockState == null || itemType == this.blockState.getType(), "Cannot change item id when block state is set");
         this.itemType = itemType;
         if (itemType instanceof BlockType) {
-            this.blockState = BlockRegistry.get().getBlock((BlockType) itemType);
+            this.blockState = CloudBlockRegistry.get().getBlock((BlockType) itemType);
         } else {
             this.blockState = null;
         }

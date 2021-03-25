@@ -10,7 +10,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.TierTypes;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.StoneSlabType;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.server.block.behavior.BlockBehaviorSlab.COLORS;
@@ -36,7 +36,7 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         val behavior = hand.getBehavior();
         if (behavior.isPickaxe() && behavior.getTier(hand).compareTo(TierTypes.WOOD) > 0) {
-            BlockState state = BlockRegistry.get().getBlock(slabType);
+            BlockState state = CloudBlockRegistry.get().getBlock(slabType);
             if (typeTrait != null) {
                 state = state.withTrait(typeTrait, block.getState().ensureTrait(typeTrait));
             }
