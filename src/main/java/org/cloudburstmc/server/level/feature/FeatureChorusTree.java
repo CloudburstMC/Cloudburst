@@ -9,6 +9,7 @@ import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Random;
 
@@ -66,8 +67,8 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
                 final int dz = face.getUnitVector().getZ();
 
                 if (abs(deltaX + dx) < this.maxOverhang && abs(deltaZ + dz) < this.maxOverhang
-                        && org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockState(x + dx, y, z + dz, 0)) == 0
-                        && org.cloudburstmc.server.registry.BlockRegistry.get().getRuntimeId(level.getBlockState(x + dx, y - 1, z + dz, 0)) == 0
+                        && CloudBlockRegistry.get().getRuntimeId(level.getBlockState(x + dx, y, z + dz, 0)) == 0
+                        && CloudBlockRegistry.get().getRuntimeId(level.getBlockState(x + dx, y - 1, z + dz, 0)) == 0
                         && this.allNeighborsMatch(level, x + dx, y, z + dz, BlockFilter.AIR, face.getOpposite())
                         && this.place0(level, random, x + dx, y, z + dz, depth + 1, deltaX + dx, deltaZ + dz)) {
                     level.setBlockState(x + dx, y, z + dz, 0, BlockStates.CHORUS_PLANT);

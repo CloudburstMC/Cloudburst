@@ -17,7 +17,7 @@ import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 @Log4j2
@@ -86,7 +86,7 @@ public class BlockBehaviorChest extends BlockBehaviorTransparent {
             }
         }
 
-        placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace));
+        placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.CHEST).withTrait(BlockTraits.FACING_DIRECTION, chestFace));
 
         ChestBlockEntity chest1 = (ChestBlockEntity) BlockEntityRegistry.get().newEntity(BlockEntityTypes.CHEST, (CloudChunk) block.getChunk(), block.getPosition());
         chest1.loadAdditionalData(((CloudItemStack) item).getDataTag());

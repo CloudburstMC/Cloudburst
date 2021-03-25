@@ -15,7 +15,7 @@ import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
@@ -92,7 +92,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
                     for (int y = 1; y < 3; ++y) {
                         Block b = block.getLevel().getBlock(block.getX(), block.getY() + y, block.getZ());
                         if (b.getState().getType() == AIR) {
-                            BlockGrowEvent event = new BlockGrowEvent(b, BlockRegistry.get().getBlock(CACTUS));
+                            BlockGrowEvent event = new BlockGrowEvent(b, CloudBlockRegistry.get().getBlock(CACTUS));
                             CloudServer.getInstance().getEventManager().fire(event);
                             if (!event.isCancelled()) {
                                 block.set(event.getNewState(), true);

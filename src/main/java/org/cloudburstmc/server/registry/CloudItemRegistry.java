@@ -63,7 +63,7 @@ public class CloudItemRegistry implements ItemRegistry {
         } catch (IOException e) {
             throw new RegistryException("Unable to load legacy IDs", e);
         }
-        INSTANCE = new CloudItemRegistry(BlockRegistry.get()); // Needs to be initialized afterwards
+        INSTANCE = new CloudItemRegistry(CloudBlockRegistry.get()); // Needs to be initialized afterwards
     }
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
@@ -73,13 +73,13 @@ public class CloudItemRegistry implements ItemRegistry {
     private final List<ItemStack> creativeItems = new ArrayList<>();
     private final BiMap<Integer, Identifier> runtimeIdMap = HashBiMap.create();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger(256);
-    private final BlockRegistry blockRegistry;
+    private final CloudBlockRegistry blockRegistry;
     private List<StartGamePacket.ItemEntry> itemEntries;
     private volatile CreativeContentPacket creativeContent;
 
     private volatile boolean closed;
 
-    private CloudItemRegistry(BlockRegistry blockRegistry) {
+    private CloudItemRegistry(CloudBlockRegistry blockRegistry) {
         this.blockRegistry = blockRegistry;
         try {
             this.registerVanillaItems();

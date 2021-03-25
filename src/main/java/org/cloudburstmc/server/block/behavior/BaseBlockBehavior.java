@@ -13,7 +13,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -51,7 +51,7 @@ public abstract class BaseBlockBehavior extends BlockBehavior {
 
     public boolean placeBlock(Block block, BlockState newState, boolean update) {
         val state = block.getLiquid();
-        BlockBehavior behavior = BlockRegistry.get().getBehavior(state.getType());
+        BlockBehavior behavior = CloudBlockRegistry.get().getBehavior(state.getType());
         if (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging()) {
             boolean flowing = state.ensureTrait(BlockTraits.IS_FLOWING) || state.ensureTrait(BlockTraits.FLUID_LEVEL) != 0;
 

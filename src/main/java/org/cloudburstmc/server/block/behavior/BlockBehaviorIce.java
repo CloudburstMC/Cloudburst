@@ -10,7 +10,7 @@ import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 public class BlockBehaviorIce extends BlockBehaviorTransparent {
 
@@ -23,7 +23,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
         }
 
         if (block.down().getState().inCategory(BlockCategory.SOLID)) {
-            block.set(BlockRegistry.get().getBlock(BlockTypes.WATER));
+            block.set(CloudBlockRegistry.get().getBlock(BlockTypes.WATER));
         } else {
             return removeBlock(block);
         }
@@ -35,7 +35,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             if (((CloudLevel) block.getLevel()).getBlockLightAt(block.getX(), block.getY(), block.getZ()) >= 12) {
-                BlockFadeEvent event = new BlockFadeEvent(block, BlockRegistry.get().getBlock(BlockTypes.WATER));
+                BlockFadeEvent event = new BlockFadeEvent(block, CloudBlockRegistry.get().getBlock(BlockTypes.WATER));
                 block.getLevel().getServer().getEventManager().fire(event);
                 if (!event.isCancelled()) {
                     block.getLevel().setBlockState(block.getPosition(), event.getNewState(), true);

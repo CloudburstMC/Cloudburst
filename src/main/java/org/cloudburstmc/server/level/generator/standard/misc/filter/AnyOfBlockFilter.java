@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockUtils;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Arrays;
 
@@ -28,7 +28,7 @@ public final class AnyOfBlockFilter extends ReferenceOpenHashSet<BlockState> imp
 
     @Override
     public boolean test(BlockState blockState) {
-        return super.contains(BlockRegistry.get().getRuntimeId(blockState));
+        return super.contains(CloudBlockRegistry.get().getRuntimeId(blockState));
     }
 
     @AllArgsConstructor

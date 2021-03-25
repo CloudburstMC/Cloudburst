@@ -14,7 +14,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorVine extends BlockBehaviorTransparent {
@@ -93,7 +93,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().inCategory(BlockCategory.SOLID) && face.getAxis().isHorizontal()) {
-            var state = BlockRegistry.get().getBlock(BlockTypes.VINE)
+            var state = CloudBlockRegistry.get().getBlock(BlockTypes.VINE)
                     .withTrait(BlockTraits.VINE_DIRECTION_BITS, 1 << face.getOpposite().getHorizontalIndex());
 
             placeBlock(block, state);

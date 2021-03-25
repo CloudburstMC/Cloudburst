@@ -8,7 +8,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 public class PunchBlockParticle extends Particle {
 
@@ -20,7 +20,7 @@ public class PunchBlockParticle extends Particle {
 
     public PunchBlockParticle(Vector3f pos, Identifier blockId, int blockDamage, Direction face) {
         super(pos);
-        this.data = BlockRegistry.get().getRuntimeId(blockId, blockDamage) | (face.getIndex() << 24);
+        this.data = CloudBlockRegistry.get().getRuntimeId(blockId, blockDamage) | (face.getIndex() << 24);
     }
 
     @Override

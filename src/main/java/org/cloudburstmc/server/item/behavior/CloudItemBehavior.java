@@ -17,7 +17,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.item.BlockItemStack;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * author: MagicDroidX
@@ -60,7 +60,7 @@ public abstract class CloudItemBehavior implements ItemBehavior {
         }
 
         val b = item.getType().getBlockType();
-        return b != null ? BlockRegistry.get().getBlock(b) : BlockStates.AIR;
+        return b != null ? CloudBlockRegistry.get().getBlock(b) : BlockStates.AIR;
     }
 
     @Override

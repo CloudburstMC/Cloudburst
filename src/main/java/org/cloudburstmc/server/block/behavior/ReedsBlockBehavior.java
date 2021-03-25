@@ -14,7 +14,7 @@ import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class ReedsBlockBehavior extends FloodableBlockBehavior {
@@ -50,7 +50,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
                 for (int i = 1; i <= toGrow; i++) {
                     Block b = block.up(i);
                     if (b.getState() == BlockStates.AIR) {
-                        BlockGrowEvent ev = new BlockGrowEvent(b, BlockRegistry.get().getBlock(BlockTypes.REEDS));
+                        BlockGrowEvent ev = new BlockGrowEvent(b, CloudBlockRegistry.get().getBlock(BlockTypes.REEDS));
                         CloudServer.getInstance().getEventManager().fire(ev);
 
                         if (!ev.isCancelled()) {
@@ -92,7 +92,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
                     for (int y = 1; y < 3; ++y) {
                         Block b = block.up(y);
                         if (b.getState() == BlockStates.AIR) {
-                            b.set(BlockRegistry.get().getBlock(BlockTypes.REEDS));
+                            b.set(CloudBlockRegistry.get().getBlock(BlockTypes.REEDS));
                             break;
                         }
                     }
@@ -116,13 +116,13 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
         val downType = down.getState().getType();
 
         if (downType == BlockTypes.REEDS) {
-            return placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.REEDS));
+            return placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.REEDS));
         } else if (downType == BlockTypes.GRASS || downType == BlockTypes.DIRT || downType == BlockTypes.SAND) {
             for (Direction direction : Plane.HORIZONTAL) {
                 val sideType = down.getSideState(direction).getType();
 
                 if (sideType == BlockTypes.WATER || sideType == BlockTypes.FLOWING_WATER) {
-                    return placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.REEDS));
+                    return placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.REEDS));
                 }
             }
         }

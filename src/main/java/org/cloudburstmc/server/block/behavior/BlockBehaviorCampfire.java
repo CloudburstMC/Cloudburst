@@ -21,7 +21,7 @@ import org.cloudburstmc.server.item.behavior.ItemEdibleBehavior;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * @author Sleepybear
@@ -52,7 +52,7 @@ public class BlockBehaviorCampfire extends BlockBehaviorSolid {
             return false;
         }
 
-        BlockState campfire = BlockRegistry.get().getBlock(BlockTypes.CAMPFIRE)
+        BlockState campfire = CloudBlockRegistry.get().getBlock(BlockTypes.CAMPFIRE)
                 .withTrait(BlockTraits.DIRECTION, player.getHorizontalDirection().getOpposite());
 
         if (placeBlock(block, campfire)) {

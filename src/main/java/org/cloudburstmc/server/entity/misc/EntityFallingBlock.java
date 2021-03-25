@@ -16,7 +16,7 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.VARIANT;
@@ -73,7 +73,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
 
         int id;
         int meta;
-        BlockRegistry registry = BlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.get();
         if (tag.containsKey("Tile") && tag.containsKey("Data")) {
             id = tag.getByte("Tile") & 0xff;
             meta = tag.getByte("Data");
@@ -171,12 +171,12 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
     }
 
     public BlockState getBlock() {
-        return BlockRegistry.get().getBlock(this.data.getInt(VARIANT));
+        return CloudBlockRegistry.get().getBlock(this.data.getInt(VARIANT));
     }
 
     @Override
     public void setBlock(BlockState blockState) {
-        int runtimeId = BlockRegistry.get().getRuntimeId(blockState);
+        int runtimeId = CloudBlockRegistry.get().getRuntimeId(blockState);
         this.data.setInt(VARIANT, runtimeId);
     }
 

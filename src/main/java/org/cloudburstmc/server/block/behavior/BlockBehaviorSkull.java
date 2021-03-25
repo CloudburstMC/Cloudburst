@@ -15,7 +15,7 @@ import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.blockentity.SkullBlockEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorSkull extends BlockBehaviorTransparent {
@@ -27,7 +27,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
             return false;
         }
 
-        placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
+        placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.SKULL).withTrait(BlockTraits.FACING_DIRECTION, face));
 
         SkullBlockEntity skull = (SkullBlockEntity) BlockEntityRegistry.get().newEntity(BlockEntityTypes.SKULL, block);
         skull.loadAdditionalData(((CloudItemStack) item).getDataTag());

@@ -11,7 +11,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.FlowerPot;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
@@ -21,7 +21,7 @@ import static org.cloudburstmc.api.block.BlockTypes.AIR;
  */
 public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
 
-    private BlockState plant = BlockRegistry.get().getBlock(AIR);
+    private BlockState plant = CloudBlockRegistry.get().getBlock(AIR);
 
     public FlowerPotBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -31,7 +31,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        BlockRegistry registry = BlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.get();
 
         if (tag.containsKey("item") && tag.containsKey("mData")) {
             short id = tag.getShort("item");
@@ -41,7 +41,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
         } else if (tag.containsKey("PlantBlock", NbtType.COMPOUND)) {
             NbtMap plantTag = tag.getCompound("PlantBlock");
 
-            this.plant = BlockRegistry.get().getBlock(plantTag);
+            this.plant = CloudBlockRegistry.get().getBlock(plantTag);
         }
     }
 
@@ -64,7 +64,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     public void setPlant(BlockState blockState) {
-        this.plant = blockState == null ? BlockRegistry.get().getBlock(AIR) : blockState;
+        this.plant = blockState == null ? CloudBlockRegistry.get().getBlock(AIR) : blockState;
     }
 
     @Override

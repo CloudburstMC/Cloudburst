@@ -18,7 +18,7 @@ import org.cloudburstmc.server.inventory.CloudContainer;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.blockentity.BlockEntityTypes.BREWING_STAND;
@@ -35,7 +35,7 @@ public class BlockBehaviorBrewingStand extends BlockBehaviorSolid {
         BlockState state = target.getState();
 
         if (!state.getBehavior().isTransparent(state)) {
-            placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.BREWING_STAND));
+            placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.BREWING_STAND));
 
             BrewingStandBlockEntity brewingStand = (BrewingStandBlockEntity) BlockEntityRegistry.get().newEntity(BREWING_STAND, (CloudChunk) block.getChunk(), block.getPosition());
             brewingStand.loadAdditionalData(((CloudItemStack) item).getDataTag());

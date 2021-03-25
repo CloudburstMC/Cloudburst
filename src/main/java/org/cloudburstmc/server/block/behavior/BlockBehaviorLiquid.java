@@ -20,7 +20,7 @@ import org.cloudburstmc.api.util.Direction.Plane;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -414,7 +414,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     protected BlockState getState(int decay, boolean falling) {
-        return BlockRegistry.get().getBlock(flowingId)
+        return CloudBlockRegistry.get().getBlock(flowingId)
                 .withTrait(BlockTraits.FLUID_LEVEL, decay & 0x7)
                 .withTrait(BlockTraits.IS_FLOWING, falling);
     }

@@ -17,7 +17,7 @@ import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -59,7 +59,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                     getServer().getEventManager().fire(e);
 
                     if (!e.isCancelled()) {
-                        val fire = BlockRegistry.get().getBlock(BlockTypes.FIRE);
+                        val fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
                         block.set(fire);
 
                         level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
@@ -126,7 +126,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                         getServer().getEventManager().fire(e);
 
                         if (!e.isCancelled()) {
-                            BlockState fire = BlockRegistry.get().getBlock(BlockTypes.FIRE);
+                            BlockState fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
                             block.set(fire);
 
                             this.getLevel().scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate());

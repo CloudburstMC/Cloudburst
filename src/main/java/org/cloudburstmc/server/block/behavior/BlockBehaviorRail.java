@@ -10,7 +10,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Rail;
 
@@ -110,7 +110,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
             direction = RailDirection.NORTH_SOUTH;
         }
 
-        placeBlock(block, BlockRegistry.get().getBlock(this.type).withTrait(directionTrait, direction));
+        placeBlock(block, CloudBlockRegistry.get().getBlock(this.type).withTrait(directionTrait, direction));
         if (!isAbstract()) {
             block.getLevel().scheduleUpdate(block.getPosition(), 0);
         }

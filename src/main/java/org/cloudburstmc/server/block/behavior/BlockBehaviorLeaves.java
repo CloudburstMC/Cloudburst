@@ -14,7 +14,7 @@ import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -28,12 +28,12 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return placeBlock(block, BlockRegistry.get().getBlock(LEAVES).withTrait(BlockTraits.IS_PERSISTENT, true));
+        return placeBlock(block, CloudBlockRegistry.get().getBlock(LEAVES).withTrait(BlockTraits.IS_PERSISTENT, true));
     }
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(BlockRegistry.get().getBlock(LEAVES).withTrait(BlockTraits.TREE_SPECIES_OVERWORLD, block.getState().ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD)));
+        return CloudItemRegistry.get().getItem(CloudBlockRegistry.get().getBlock(LEAVES).withTrait(BlockTraits.TREE_SPECIES_OVERWORLD, block.getState().ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD)));
     }
 
     @Override
@@ -117,7 +117,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
     }
 
     protected ItemStack getSapling(BlockState state) {
-        return CloudItemRegistry.get().getItem(BlockRegistry.get().getBlock(SAPLING).withTrait(BlockTraits.TREE_SPECIES_OVERWORLD, state.ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD)));
+        return CloudItemRegistry.get().getItem(CloudBlockRegistry.get().getBlock(SAPLING).withTrait(BlockTraits.TREE_SPECIES_OVERWORLD, state.ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD)));
     }
 
 

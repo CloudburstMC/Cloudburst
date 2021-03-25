@@ -10,7 +10,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
@@ -27,7 +27,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
     public void initEntity() {
         super.initEntity();
 
-        this.setDisplayBlock(BlockRegistry.get().getBlock(BlockTypes.CHEST));
+        this.setDisplayBlock(CloudBlockRegistry.get().getBlock(BlockTypes.CHEST));
         this.setDisplay(true);
     }
 

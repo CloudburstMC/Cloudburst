@@ -15,7 +15,7 @@ import org.cloudburstmc.api.util.data.TallGrassType;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -70,7 +70,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
 
                     ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
 
-                    val dp = BlockRegistry.get().getBlock(DOUBLE_PLANT).withTrait(BlockTraits.TALL_GRASS_TYPE, type);
+                    val dp = CloudBlockRegistry.get().getBlock(DOUBLE_PLANT).withTrait(BlockTraits.TALL_GRASS_TYPE, type);
                     block.set(dp, true);
                     up.set(dp.withTrait(BlockTraits.IS_UPPER_BLOCK, true), true);
                 }

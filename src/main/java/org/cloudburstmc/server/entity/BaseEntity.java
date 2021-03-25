@@ -58,7 +58,7 @@ import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import javax.annotation.Nullable;
@@ -826,7 +826,7 @@ public abstract class BaseEntity implements Entity {
         float diffY = y - j;
         float diffZ = z - k;
 
-        BlockRegistry registry = BlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.get();
 
         if (!this.level.getBlockState(i, j, k).inCategory(BlockCategory.TRANSPARENT)) {
             boolean flag = this.level.getBlockState(i - 1, j, k).inCategory(BlockCategory.TRANSPARENT);
@@ -1339,7 +1339,7 @@ public abstract class BaseEntity implements Entity {
                 if (ev.isCancelled()) {
                     return;
                 }
-                this.level.setBlockState(down.getPosition(), BlockRegistry.get().getBlock(BlockTypes.DIRT), false, true);
+                this.level.setBlockState(down.getPosition(), CloudBlockRegistry.get().getBlock(BlockTypes.DIRT), false, true);
             }
         }
     }

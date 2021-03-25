@@ -10,7 +10,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
@@ -51,7 +51,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
         if (targetType == BlockTypes.WATER || targetType == BlockTypes.FLOWING_WATER) {
             Block up = target.up();
             if (up.getState() == BlockStates.AIR) {
-                placeBlock(block, BlockRegistry.get().getBlock(BlockTypes.WATERLILY));
+                placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.WATERLILY));
                 return true;
             }
         }

@@ -14,9 +14,11 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.block.behavior.NoopBlockBehavior;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 
 import javax.annotation.Nullable;
@@ -52,12 +54,12 @@ public class BlockPalette {
     private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
     private final SortedMap<String, List<CloudBlockState>> sortedPalette = new Object2ReferenceRBTreeMap<>();
 
-    public void addBlock(BlockType type, BlockSerializer serializer, BlockTrait<?>[] traits) {
+    public void addBlock(BlockType type, BlockSerializer serializer, BlockTrait<?>[] traits, BlockBehavior behavior) {
         if (this.defaultStateMap.containsKey(type)) {
             log.warn("Duplicate block type: {}", type);
         }
 
-        Map<NbtMap, CloudBlockState> states = getBlockPermutations(type, serializer, traits);
+        Map<NbtMap, CloudBlockState> states = getBlockPermutations(type, serializer, traits, behavior);
 
         Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map = new HashMap<>();
         for (CloudBlockState state : states.values()) {
@@ -186,12 +188,12 @@ public class BlockPalette {
         return tags.stream().map(NbtMapBuilder::build).collect(Collectors.toList());
     }
 
-    private static Map<NbtMap, CloudBlockState> getBlockPermutations(BlockType type, BlockSerializer serializer, BlockTrait<?>[] traits) {
+    private static Map<NbtMap, CloudBlockState> getBlockPermutations(BlockType type, BlockSerializer serializer, BlockTrait<?>[] traits, BlockBehavior behavior) {
         if (traits == null || traits.length == 0) {
             Preconditions.checkNotNull(type.getId(), "", type);
             val tags = serialize(type, serializer, ImmutableMap.of());
             val state = new CloudBlockState(type.getId(), type, ImmutableMap.of(),
-                    Reference2IntMaps.emptyMap()/*, ImmutableList.copyOf(tags)*/);
+                    Reference2IntMaps.emptyMap(), NoopBlockBehavior.INSTANCE/*, ImmutableList.copyOf(tags)*/);
             // No traits so 1 permutation.
             return tags.stream().collect(Collectors.toMap(nbt -> nbt, (s) -> state));
         }
@@ -243,7 +245,8 @@ public class BlockPalette {
                         Identifier.fromString(Iterables.getLast(tags).getString("name")),
                         type,
                         traitMap,
-                        traitPalette
+                        traitPalette,
+                        behavior
 //                        ImmutableList.copyOf(tags)
                 );
                 duplicated.put(traitMap, state);

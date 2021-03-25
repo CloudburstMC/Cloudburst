@@ -19,7 +19,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
@@ -87,7 +87,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
-        BlockRegistry registry = BlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.get();
 
         if (!down.inCategory(BlockCategory.TRANSPARENT)) {
             Block next = block.getSide(player.getHorizontalDirection());

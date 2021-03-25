@@ -17,7 +17,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
@@ -85,7 +85,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
             return null;
         }
 
-        BlockState bucketContents = BlockRegistry.get().getBlock(getBlockIdFromDamage(itemStack.getMetadata(Bucket.class)));
+        BlockState bucketContents = CloudBlockRegistry.get().getBlock(getBlockIdFromDamage(itemStack.getMetadata(Bucket.class)));
 
         if (bucketContents == BlockStates.AIR) {
             BlockState liquid;
@@ -109,9 +109,9 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                         Block b = target.getSide(side);
 
                         if (b.getState().getType() == WATER) {
-                            b.set(BlockRegistry.get().getBlock(FLOWING_WATER));
+                            b.set(CloudBlockRegistry.get().getBlock(FLOWING_WATER));
                         } else if (b.getExtra().getType() == WATER) {
-                            b.set(BlockRegistry.get().getBlock(FLOWING_WATER), 1, true, false);
+                            b.set(CloudBlockRegistry.get().getBlock(FLOWING_WATER), 1, true, false);
                         }
                     }
 

@@ -13,7 +13,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorFire;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -40,7 +40,7 @@ public class ItemFireChargeBehavior extends CloudItemBehavior {
                 level.getServer().getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
-                    val fire = BlockRegistry.get().getBlock(FIRE);
+                    val fire = CloudBlockRegistry.get().getBlock(FIRE);
                     level.setBlockState(clickPos.toInt(), fire);
 
                     ((CloudLevel) level).addSound(clickPos, Sound.MOB_GHAST_FIREBALL);

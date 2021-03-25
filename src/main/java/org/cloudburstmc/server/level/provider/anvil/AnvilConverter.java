@@ -20,7 +20,7 @@ import org.cloudburstmc.server.level.chunk.*;
 import org.cloudburstmc.server.level.provider.LegacyBlockConverter;
 import org.cloudburstmc.server.level.provider.anvil.palette.BiomePalette;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.NibbleArray;
 
@@ -50,7 +50,7 @@ public class AnvilConverter {
 
         // Reusable array for performance
         final int[] blockState = new int[2];
-        BlockRegistry blockRegistry = BlockRegistry.get();
+        CloudBlockRegistry blockRegistry = CloudBlockRegistry.get();
         LegacyBlockConverter legacyBlockConverter = LegacyBlockConverter.get();
 
         // Chunk sections

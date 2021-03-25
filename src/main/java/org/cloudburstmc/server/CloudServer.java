@@ -190,7 +190,7 @@ public class CloudServer implements Server {
     private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
     private final StorageRegistry storageRegistry = StorageRegistry.get();
     private final EnchantmentRegistry enchantmentRegistry = EnchantmentRegistry.get();
-    private final BlockRegistry blockRegistry = BlockRegistry.get();
+    private final CloudBlockRegistry blockRegistry = CloudBlockRegistry.get();
     private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
     private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
     private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
@@ -1829,7 +1829,7 @@ public class CloudServer implements Server {
         return gameRuleRegistry;
     }
 
-    public BlockRegistry getBlockRegistry() {
+    public CloudBlockRegistry getBlockRegistry() {
         return blockRegistry;
     }
 

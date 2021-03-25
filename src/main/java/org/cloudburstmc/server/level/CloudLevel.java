@@ -82,7 +82,7 @@ import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.registry.GeneratorRegistry;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
@@ -1788,7 +1788,7 @@ public class CloudLevel implements Level {
             block = target;
         }
 
-        BlockState handState = BlockRegistry.get().getBlock(hand.getType());
+        BlockState handState = CloudBlockRegistry.get().getBlock(hand.getType());
         BlockBehavior handBehavior = handState.getBehavior();
 
         AxisAlignedBB handBB = handBehavior.getBoundingBox(block.getPosition(), hand);
@@ -1870,7 +1870,7 @@ public class CloudLevel implements Level {
         }
 
         if (playSound) {
-            this.addLevelSoundEvent(block.getPosition().toFloat(), SoundEvent.PLACE, BlockRegistry.get().getRuntimeId(hand));
+            this.addLevelSoundEvent(block.getPosition().toFloat(), SoundEvent.PLACE, CloudBlockRegistry.get().getRuntimeId(hand));
         }
 
         if (item.getAmount() <= 0) {

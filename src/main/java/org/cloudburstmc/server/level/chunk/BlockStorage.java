@@ -14,7 +14,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.io.IOException;
 import java.util.List;
@@ -75,7 +75,7 @@ public class BlockStorage {
 
         VarInts.writeInt(buffer, palette.size());
 
-        BlockRegistry registry = BlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.get();
         palette.forEach(state -> VarInts.writeInt(buffer, registry.getRuntimeId(state)));
     }
 
@@ -120,7 +120,7 @@ public class BlockStorage {
                 try {
                     NbtMap tag = (NbtMap) nbtInputStream.readTag();
 
-                    BlockState state = BlockRegistry.get().getBlock(tag);
+                    BlockState state = CloudBlockRegistry.get().getBlock(tag);
 
                     if (this.palette.contains(state)) {
                         log.warn("Palette contains block state ({}) twice! ({}) (palette: {})", state, tag, this.palette);
