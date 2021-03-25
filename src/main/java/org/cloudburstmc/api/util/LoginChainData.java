@@ -41,5 +41,7 @@ public interface LoginChainData {
 
     Skin getSkin();
 
+    void setSkin(Skin skin);
+
     int getUIProfile();
 }

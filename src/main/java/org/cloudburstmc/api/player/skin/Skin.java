@@ -1,7 +1,6 @@
 package org.cloudburstmc.api.player.skin;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.cloudburstmc.api.player.skin.data.ImageData;
 import org.cloudburstmc.api.player.skin.data.PersonaPiece;
@@ -13,11 +12,10 @@ import java.util.List;
 import java.util.UUID;
 
 @ToString(exclude = {"geometryData", "animationData"})
-@NoArgsConstructor
 @Data
 public class Skin {
 
-    private final String fullSkinId = UUID.randomUUID().toString();
+    private final String fullSkinId;
     private String skinId;
     private String playFabId;
     private String skinResourcePatch = GEOMETRY_CUSTOM;
@@ -41,6 +39,14 @@ public class Skin {
 
     private static String convertLegacyGeometryName(String geometryName) {
         return "{\"geometry\" : {\"default\" : \"" + geometryName + "\"}}";
+    }
+
+    public Skin(String fullSkinId) {
+        this.fullSkinId = fullSkinId;
+    }
+
+    public Skin() {
+        this(UUID.randomUUID().toString());
     }
 
     public boolean isValid() {
