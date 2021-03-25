@@ -6,19 +6,12 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
-import com.nukkitx.protocol.bedrock.data.skin.AnimatedTextureType;
-import com.nukkitx.protocol.bedrock.data.skin.AnimationData;
-import com.nukkitx.protocol.bedrock.data.skin.AnimationExpressionType;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minidev.json.JSONObject;
 import org.cloudburstmc.api.player.skin.Skin;
-import org.cloudburstmc.api.player.skin.data.ImageData;
-import org.cloudburstmc.api.player.skin.data.PersonaPiece;
-import org.cloudburstmc.api.player.skin.data.PersonaPieceTint;
-import org.cloudburstmc.api.player.skin.data.SkinAnimation;
 import org.cloudburstmc.api.util.LoginChainData;
 import org.cloudburstmc.server.Bootstrap;
 
@@ -200,77 +193,6 @@ public final class ClientChainData implements LoginChainData {
         return new String(bytes, StandardCharsets.US_ASCII); // base 64 encoded.
     }
 
-    private static Skin getSkin(JsonNode skinToken) {
-        Skin newSkin = new Skin();
-
-        if (skinToken.has("SkinId")) {
-            newSkin.setSkinId(skinToken.get("SkinId").textValue());
-        }
-        if (skinToken.has("PlayFabId")) {
-            newSkin.setPlayFabId(skinToken.get("PlayFabId").textValue());
-        }
-        if (skinToken.has("CapeId")) {
-            newSkin.setCapeId(skinToken.get("CapeId").textValue());
-        }
-
-        newSkin.setSkinData(getImage(skinToken, "Skin"));
-        newSkin.setCapeData(getImage(skinToken, "Cape"));
-        if (skinToken.has("PremiumSkin")) {
-            newSkin.setPremium(skinToken.get("PremiumSkin").booleanValue());
-        }
-        if (skinToken.has("PersonaSkin")) {
-            newSkin.setPersona(skinToken.get("PersonaSkin").booleanValue());
-            if (skinToken.has("PersonaPieces")) {
-                for (JsonNode piece : skinToken.get("PersonaPieces")) {
-                    newSkin.getPersonaPieces().add(new PersonaPiece(
-                            piece.get("PieceId").textValue(),
-                            piece.get("PieceType").textValue(),
-                            piece.get("PackId").textValue(),
-                            piece.get("IsDefault").booleanValue(),
-                            piece.get("ProductId").textValue()
-                    ));
-                }
-            }
-            if (skinToken.has("PieceTintColors")) {
-                for (JsonNode node : skinToken.get("PieceTintColors")) {
-                    List<String> colors = new ArrayList<>();
-                    for (JsonNode color : node.get("Colors")) {
-                        colors.add(color.textValue());
-                    }
-                    newSkin.getTintColors().add(new PersonaPieceTint(
-                            node.get("PieceType").textValue(),
-                            colors
-                    ));
-                }
-            }
-        }
-        if (skinToken.has("CapeOnClassicSkin")) {
-            newSkin.setCapeOnClassic(skinToken.get("CapeOnClassicSkin").booleanValue());
-        }
-
-        if (skinToken.has("SkinResourcePatch")) {
-            newSkin.setSkinResourcePatch(new String(Base64.getDecoder().decode(skinToken.get("SkinResourcePatch").textValue()), StandardCharsets.UTF_8));
-        }
-
-        if (skinToken.has("SkinGeometryData")) {
-            newSkin.setGeometryData(new String(Base64.getDecoder().decode(skinToken.get("SkinGeometryData").textValue()), StandardCharsets.UTF_8));
-        }
-
-        if (skinToken.has("SkinAnimationData")) {
-            newSkin.setAnimationData(new String(Base64.getDecoder().decode(skinToken.get("SkinAnimationData").textValue()), StandardCharsets.UTF_8));
-        }
-
-        if (skinToken.has("AnimatedImageData")) {
-            List<SkinAnimation> animations = new ArrayList<>();
-            JsonNode array = skinToken.get("AnimatedImageData");
-            for (JsonNode element : array) {
-                animations.add(getAnimation(element));
-            }
-            newSkin.setAnimations(animations);
-        }
-        return newSkin;
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
@@ -369,44 +291,6 @@ public final class ClientChainData implements LoginChainData {
         return mojangKeyVerified;
     }
 
-    private static SkinAnimation getAnimation(JsonNode element) {
-        float frames = element.get("Frames").floatValue();
-        int type = element.get("Type").intValue();
-        byte[] data = Base64.getDecoder().decode(element.get("Image").textValue());
-        int width = element.get("ImageWidth").intValue();
-        int height = element.get("ImageHeight").intValue();
-        int expression = 0;
-        if (element.hasNonNull("ExpressionType")) {
-            expression = element.get("ExpressionType").intValue();
-        }
-        return new SkinAnimation(new ImageData(width, height, data), type, frames, expression);
-    }
-
-    private static ImageData getImage(JsonNode token, String name) {
-        if (token.has(name + "Data")) {
-            byte[] skinImage = Base64.getDecoder().decode(token.get(name + "Data").textValue());
-            if (token.has(name + "ImageHeight") && token.has(name + "ImageWidth")) {
-                int width = token.get(name + "ImageWidth").intValue();
-                int height = token.get(name + "ImageHeight").intValue();
-                return new ImageData(width, height, skinImage);
-            } else {
-                switch (skinImage.length / 4) {
-                    case 2048:
-                        return new ImageData(64, 32, skinImage);
-                    case 4096:
-                        return new ImageData(64, 64, skinImage);
-                    case 8192:
-                        return new ImageData(128, 64, skinImage);
-                    case 16384:
-                        return new ImageData(128, 128, skinImage);
-                    default:
-                        return ImageData.EMPTY;
-                }
-            }
-        }
-        return ImageData.EMPTY;
-    }
-
     @Override
     public Skin getSkin() {
         return skin;
@@ -414,30 +298,20 @@ public final class ClientChainData implements LoginChainData {
 
     public SerializedSkin getSerializedSkin() {
         if (this.serializedSkin == null) {
-            List<AnimationData> animations = new ArrayList<>();
-            for (SkinAnimation a : this.skin.getAnimations()) {
-                animations.add(new AnimationData(
-                        com.nukkitx.protocol.bedrock.data.skin.ImageData.of(a.getImage().getWidth(), a.getImage().getHeight(), a.getImage().getImage()),
-                        AnimatedTextureType.values()[a.getType()],
-                        a.getFrames(),
-                        AnimationExpressionType.values()[a.getExpression()]
-                ));
-            }
-            this.serializedSkin = SerializedSkin.of(this.skin.getSkinId(),
-                    this.skin.getPlayFabId(),
-                    this.skin.getSkinResourcePatch(),
-                    com.nukkitx.protocol.bedrock.data.skin.ImageData.of(this.skin.getSkinData().getWidth(), this.skin.getSkinData().getWidth(), this.skin.getSkinData().getImage()),
-                    animations,
-                    com.nukkitx.protocol.bedrock.data.skin.ImageData.of(this.skin.getCapeData().getWidth(), this.skin.getCapeData().getWidth(), this.skin.getCapeData().getImage()),
-                    this.skin.getGeometryData(),
-                    this.skin.getAnimationData(),
-                    this.skin.isPremium(),
-                    this.skin.isPersona(),
-                    this.skin.isCapeOnClassic(),
-                    this.skin.getCapeId(),
-                    this.skin.getFullSkinId());
+            this.serializedSkin = SkinUtils.fromSkin(this.skin);
         }
         return this.serializedSkin;
+    }
+
+    @Override
+    public void setSkin(Skin skin) {
+        this.skin = skin;
+        this.serializedSkin = SkinUtils.fromSkin(skin);
+    }
+
+    public void setSkin(SerializedSkin skin) {
+        this.serializedSkin = skin;
+        this.skin = SkinUtils.fromSerialized(skin);
     }
 
     private void decodeSkinData(String skinData) {
@@ -454,6 +328,6 @@ public final class ClientChainData implements LoginChainData {
         if (skinToken.has("CurrentInputMode")) this.currentInputMode = skinToken.get("CurrentInputMode").intValue();
         if (skinToken.has("DefaultInputMode")) this.defaultInputMode = skinToken.get("DefaultInputMode").intValue();
         if (skinToken.has("UIProfile")) this.UIProfile = skinToken.get("UIProfile").intValue();
-        this.skin = getSkin(skinToken);
+        this.skin = SkinUtils.fromToken(skinToken);
     }
 }

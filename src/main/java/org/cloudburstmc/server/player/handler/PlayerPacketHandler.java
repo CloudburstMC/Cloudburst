@@ -118,11 +118,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     public boolean handle(PlayerSkinPacket packet) {
         SerializedSkin skin = packet.getSkin();
 
+
         if (!skin.isValid()) {
             return true;
         }
 
-        PlayerChangeSkinEvent playerChangeSkinEvent = new PlayerChangeSkinEvent(player, /* skin*/ null); // TODO - need a SerializedSkin to Skin (api) parser
+        PlayerChangeSkinEvent playerChangeSkinEvent = new PlayerChangeSkinEvent(player, player.getLoginChainData().getSkin());
         playerChangeSkinEvent.setCancelled(TimeUnit.SECONDS.toMillis(player.getServer().getPlayerSkinChangeCooldown()) > System.currentTimeMillis() - player.lastSkinChange);
         player.getServer().getEventManager().fire(playerChangeSkinEvent);
         if (!playerChangeSkinEvent.isCancelled()) {

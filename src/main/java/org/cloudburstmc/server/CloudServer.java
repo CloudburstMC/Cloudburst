@@ -779,7 +779,7 @@ public class CloudServer implements Server {
 
     public void addOnlinePlayer(Player player) {
         this.playerList.put(player.getServerId(), (CloudPlayer) player);
-        this.updatePlayerListData(player.getServerId(), player.getUniqueId(), player.getDisplayName(), ((CloudPlayer) player).getSkin(), player.getXuid());
+        this.updatePlayerListData(player.getServerId(), player.getUniqueId(), player.getDisplayName(), ((CloudPlayer) player).getSerializedSkin(), player.getXuid());
     }
 
     public void removeOnlinePlayer(Player player) {
@@ -849,7 +849,7 @@ public class CloudServer implements Server {
                     PlayerListPacket.Entry entry = new PlayerListPacket.Entry(p.getServerId());
                     entry.setEntityId(p.getUniqueId());
                     entry.setName(p.getDisplayName());
-                    entry.setSkin(p.getSkin());
+                    entry.setSkin(p.getSerializedSkin());
                     entry.setXuid(p.getXuid());
                     entry.setPlatformChatId("");
                     return entry;

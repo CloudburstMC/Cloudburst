@@ -70,6 +70,7 @@ import org.cloudburstmc.api.permission.PermissionAttachmentInfo;
 import org.cloudburstmc.api.player.AdventureSetting;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.LoginChainData;
@@ -666,7 +667,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
         if (this.spawned) {
-            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSkin(), this.getXuid());
+            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSerializedSkin(), this.getXuid());
         }
     }
 
@@ -675,10 +676,28 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     @Override
-    public void setSkin(SerializedSkin skin) {
+    public Skin getSkin() {
+        return this.loginChainData.getSkin();
+    }
+
+    @Override
+    public void setSkin(Skin skin) {
         super.setSkin(skin);
+        this.loginChainData.setSkin(skin);
         if (this.spawned) {
-            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), skin, this.getXuid());
+            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSerializedSkin(), this.getXuid());
+        }
+    }
+
+    public SerializedSkin getSerializedSkin() {
+        return ((ClientChainData) this.loginChainData).getSerializedSkin();
+    }
+
+    public void setSkin(SerializedSkin skin) {
+        ((ClientChainData) this.loginChainData).setSkin(skin);
+        super.setSkin(this.getSkin());
+        if (this.spawned) {
+            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSerializedSkin(), this.getXuid());
         }
     }
 
