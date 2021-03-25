@@ -20,10 +20,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
@@ -353,7 +350,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Nonnull
     @Override
     public Set<BaseBlockEntity> getBlockEntities() {
-        return (Set<BaseBlockEntity>) this.tiles.values();
+        return new HashSet<>(this.tiles.values());
     }
 
     @Override
