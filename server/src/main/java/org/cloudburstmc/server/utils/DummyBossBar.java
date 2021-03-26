@@ -153,7 +153,7 @@ public class DummyBossBar {
         Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH);
         attr.setMaxValue(100); // Max value - We need to change the max value first, or else the "setValue" will return a IllegalArgumentException
         attr.setValue(length); // Entity health
-        pkAttributes.getAttributes().add(NetworkUtils.toNetwork(attr));
+        pkAttributes.getAttributes().add(NetworkUtils.attributeToNetwork(attr));
         this.player.sendPacket(pkAttributes);
     }
 

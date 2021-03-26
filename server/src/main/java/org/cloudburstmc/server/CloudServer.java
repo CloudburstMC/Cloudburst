@@ -593,11 +593,10 @@ public class CloudServer implements Server {
         }
 
         try (Timing ignored = Timings.playerNetworkSendTimer.startTiming()) {
-            List<Player> targets = new ArrayList<>();
-            for (CloudPlayer p : (CloudPlayer[]) players) {
+            for (Player p : players) {
                 if (p.isConnected()) {
                     for (BedrockPacket packet : packets) {
-                        p.sendPacket(packet);
+                        ((CloudPlayer) p).sendPacket(packet);
                     }
                 }
             }

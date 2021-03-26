@@ -851,7 +851,7 @@ public class CloudLevel implements Level {
             packets[i] = updateBlockPacket;
             packets[i + 1] = updateBlockPacket2;
         }
-        CloudServer.broadcastPackets((CloudPlayer[]) target, packets);
+        CloudServer.broadcastPackets(Arrays.copyOf(target, target.length, CloudPlayer[].class), packets);
     }
 
     public boolean save() {

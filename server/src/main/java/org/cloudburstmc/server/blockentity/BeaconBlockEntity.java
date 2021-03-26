@@ -13,6 +13,7 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.inventory.BeaconInventory;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
@@ -45,8 +46,8 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
-        tag.putInt("primary", this.getPrimaryEffect().getNetworkId());
-        tag.putInt("secondary", this.getSecondaryEffect().getNetworkId());
+        tag.putInt("primary", NetworkUtils.effectToNetwork(this.getPrimaryEffect()));
+        tag.putInt("secondary", NetworkUtils.effectToNetwork(this.getSecondaryEffect()));
     }
 
     @Override
@@ -192,17 +193,17 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     public void setPrimaryEffect(int legacyId) {
-        this.setPrimaryEffect(EffectType.fromLegacy((byte) legacyId));
+        this.setPrimaryEffect(NetworkUtils.effectFromLegacy((byte) legacyId));
     }
 
     public void setSecondaryEffect(int legacyId) {
-        this.setSecondaryEffect(EffectType.fromLegacy((byte) legacyId));
+        this.setSecondaryEffect(NetworkUtils.effectFromLegacy((byte) legacyId));
     }
 
     @Override
     public boolean updateNbtMap(NbtMap nbt, CloudPlayer player) {
-        this.setPrimaryEffect(EffectType.fromLegacy((byte) nbt.getInt("primary")));
-        this.setSecondaryEffect(EffectType.fromLegacy((byte) nbt.getInt("secondary")));
+        this.setPrimaryEffect(NetworkUtils.effectFromLegacy((byte) nbt.getInt("primary")));
+        this.setSecondaryEffect(NetworkUtils.effectFromLegacy((byte) nbt.getInt("secondary")));
 
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_POWER);
 

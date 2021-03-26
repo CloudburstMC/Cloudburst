@@ -1151,11 +1151,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         UpdateAttributesPacket pk = new UpdateAttributesPacket();
         pk.setRuntimeEntityId(this.getRuntimeId());
         List<AttributeData> attributes = pk.getAttributes();
-        attributes.add(NetworkUtils.toNetwork(Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0)));
-        attributes.add(NetworkUtils.toNetwork(Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.getFoodData().getLevel())));
-        attributes.add(NetworkUtils.toNetwork(Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(this.getMovementSpeed())));
-        attributes.add(NetworkUtils.toNetwork(Attribute.getAttribute(Attribute.EXPERIENCE_LEVEL).setValue(this.getExperienceLevel())));
-        attributes.add(NetworkUtils.toNetwork(Attribute.getAttribute(Attribute.EXPERIENCE).setValue(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel()))));
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0)));
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.getFoodData().getLevel())));
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(this.getMovementSpeed())));
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXPERIENCE_LEVEL).setValue(this.getExperienceLevel())));
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXPERIENCE).setValue(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel()))));
         this.sendPacket(pk);
     }
 
@@ -1551,7 +1551,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setCommandsEnabled(this.isEnableClientCommand());
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        NetworkUtils.toNetwork(this.getLevel().getGameRules(), startGamePacket.getGamerules());
+        NetworkUtils.gameRulesToNetwork(this.getLevel().getGameRules(), startGamePacket.getGamerules());
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
         startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default level name
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
@@ -2128,7 +2128,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0);
         if (this.spawned) {
             UpdateAttributesPacket packet = new UpdateAttributesPacket();
-            packet.getAttributes().add(NetworkUtils.toNetwork(attr));
+            packet.getAttributes().add(NetworkUtils.attributeToNetwork(attr));
             packet.setRuntimeEntityId(this.getRuntimeId());
             this.sendPacket(packet);
         }
@@ -2141,7 +2141,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0);
         if (this.spawned) {
             UpdateAttributesPacket packet = new UpdateAttributesPacket();
-            packet.getAttributes().add(NetworkUtils.toNetwork(attr));
+            packet.getAttributes().add(NetworkUtils.attributeToNetwork(attr));
             packet.setRuntimeEntityId(this.getRuntimeId());
             this.sendPacket(packet);
         }
@@ -2217,7 +2217,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     public void setAttribute(Attribute attr) {
         UpdateAttributesPacket packet = new UpdateAttributesPacket();
-        packet.getAttributes().add(NetworkUtils.toNetwork(attr));
+        packet.getAttributes().add(NetworkUtils.attributeToNetwork(attr));
         packet.setRuntimeEntityId(this.getRuntimeId());
         this.sendPacket(packet);
     }
@@ -3240,7 +3240,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             this.sendPacket(setTime);
 
             GameRulesChangedPacket gameRulesChanged = new GameRulesChangedPacket();
-            NetworkUtils.toNetwork(level.getGameRules(), gameRulesChanged.getGameRules());
+            NetworkUtils.gameRulesToNetwork(level.getGameRules(), gameRulesChanged.getGameRules());
             this.sendPacket(gameRulesChanged);
             return true;
         }

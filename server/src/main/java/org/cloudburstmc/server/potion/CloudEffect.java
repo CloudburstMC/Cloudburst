@@ -11,6 +11,7 @@ import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.INVISIBLE;
@@ -44,7 +45,7 @@ public class CloudEffect extends Effect {
     }
 
     public static Effect fromNBT(byte id, boolean ambient, int amplifier, boolean visible, int duration ) {
-        return new CloudEffect(EffectType.fromLegacy(id))
+        return new CloudEffect(NetworkUtils.effectFromLegacy(id))
                 .setAmbient(ambient)
                 .setAmplifier(amplifier)
                 .setVisible(visible)
@@ -56,22 +57,22 @@ public class CloudEffect extends Effect {
     }
 
     public byte getNetworkId() {
-        return getType().getNetworkId();
+        return NetworkUtils.effectToNetwork(this.getType());
     }
 
     public boolean canTick() {
         int interval;
-        if (EffectTypes.POISON.equals(this.getType().getId())) { //POISON
+        if (EffectTypes.POISON.equals(this.getType().getId())) {
             if ((interval = (25 >> this.getAmplifier())) > 0) {
                 return (this.getDuration() % interval) == 0;
             }
             return true;
-        } else if (EffectTypes.WITHER.equals(this.getType().getId())) { //WITHER
+        } else if (EffectTypes.WITHER.equals(this.getType().getId())) {
             if ((interval = (50 >> this.getAmplifier())) > 0) {
                 return (this.getDuration() % interval) == 0;
             }
             return true;
-        } else if (EffectTypes.REGENERATION.equals(this.getType().getId())) { //REGENERATION
+        } else if (EffectTypes.REGENERATION.equals(this.getType().getId())) {
             if ((interval = (40 >> this.getAmplifier())) > 0) {
                 return (this.getDuration() % interval) == 0;
             }
@@ -81,13 +82,13 @@ public class CloudEffect extends Effect {
     }
 
     public void applyEffect(Entity entity) {
-        if (EffectTypes.POISON.equals(this.getType().getId())) { //POISON
+        if (EffectTypes.POISON.equals(this.getType().getId())) {
             if (entity.getHealth() > 1) {
                 entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.MAGIC, 1));
             }
-        } else if (EffectTypes.WITHER.equals(this.getType().getId())) { //WITHER
+        } else if (EffectTypes.WITHER.equals(this.getType().getId())) {
             entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.MAGIC, 1));
-        } else if (EffectTypes.REGENERATION.equals(this.getType().getId())) { //REGENERATION
+        } else if (EffectTypes.REGENERATION.equals(this.getType().getId())) {
             if (entity.getHealth() < entity.getMaxHealth()) {
                 entity.heal(new EntityRegainHealthEvent(entity, 1, EntityRegainHealthEvent.CAUSE_MAGIC));
             }
@@ -95,7 +96,7 @@ public class CloudEffect extends Effect {
     }
 
     public void add(Entity entity) {
-        CloudEffect oldEffect = (CloudEffect) entity.getEffect(getNetworkId());
+        CloudEffect oldEffect = (CloudEffect) entity.getEffect(getType());
         if (oldEffect != null && (Math.abs(this.getAmplifier()) < Math.abs(oldEffect.getAmplifier()) ||
                 Math.abs(this.getAmplifier()) == Math.abs(oldEffect.getAmplifier())
                         && this.getDuration() < oldEffect.getDuration())) {
