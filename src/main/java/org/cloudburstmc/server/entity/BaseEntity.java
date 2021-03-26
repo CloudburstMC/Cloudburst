@@ -56,6 +56,7 @@ import org.cloudburstmc.server.level.EnumLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.math.NukkitMath;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -456,18 +457,26 @@ public abstract class BaseEntity implements Entity {
         return vehicle;
     }
 
+    @Override
     public Map<EffectType, Effect> getEffects() {
         return effects;
     }
 
+    @Override
     public void removeAllEffects() {
         for (Effect effect : this.effects.values()) {
-            this.removeEffect(effect.getType().getNetworkId());
+            this.removeEffect(effect.getType());
         }
     }
-    //TODO - depreciate use of network ID, and use EffectType instead
+
+    @Deprecated
+    @Override
     public void removeEffect(int effectId) {
-        EffectType type = EffectType.fromLegacy((byte) effectId);
+        removeEffect(NetworkUtils.effectFromLegacy((byte) effectId));
+    }
+
+    @Override
+    public void removeEffect(EffectType type) {
         if (this.effects.containsKey(type)) {
             Effect effect = this.effects.remove(type);
             effect.remove(this);
@@ -476,21 +485,31 @@ public abstract class BaseEntity implements Entity {
         }
     }
 
+    @Deprecated
+    @Override
     public Effect getEffect(int effectId) {
-        EffectType type = EffectType.fromLegacy((byte) effectId);
+        EffectType type = NetworkUtils.effectFromLegacy((byte) effectId);
         return this.effects.getOrDefault(type, null);
     }
 
-    @Deprecated
-    public boolean hasEffect(int effectId) {
-        EffectType type = EffectType.fromLegacy((byte) effectId);
-        return this.effects.containsKey(type);
+    @Nullable
+    @Override
+    public CloudEffect getEffect(EffectType type) {
+        return (CloudEffect) this.effects.getOrDefault(type, null);
     }
 
+    @Deprecated
+    @Override
+    public boolean hasEffect(int effectId) {
+        return this.hasEffect(NetworkUtils.effectFromLegacy((byte) effectId));
+    }
+
+    @Override
     public boolean hasEffect(EffectType type) {
         return this.effects.containsKey(type);
     }
 
+    @Override
     public void addEffect(Effect effect) {
         if (effect == null) {
             return; //here add null means add nothing
@@ -650,7 +669,7 @@ public abstract class BaseEntity implements Entity {
         for (Effect effect : this.effects.values()) {
             MobEffectPacket pk = new MobEffectPacket();
             pk.setRuntimeEntityId(this.getRuntimeId());
-            pk.setEffectId(effect.getType().getNetworkId());
+            pk.setEffectId(NetworkUtils.effectToNetwork(effect.getType()));
             pk.setAmplifier(effect.getAmplifier());
             pk.setParticles(effect.isVisible());
             pk.setDuration(effect.getDuration());
@@ -720,7 +739,7 @@ public abstract class BaseEntity implements Entity {
     }
 
     public boolean attack(EntityDamageEvent source) {
-        if (hasEffect(EffectTypes.FIRE_RESISTANCE.getNetworkId())
+        if (hasEffect(EffectTypes.FIRE_RESISTANCE)
                 && (source.getCause() == EntityDamageEvent.DamageCause.FIRE
                 || source.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK
                 || source.getCause() == EntityDamageEvent.DamageCause.LAVA)) {
@@ -925,7 +944,7 @@ public abstract class BaseEntity implements Entity {
                     effect.setDuration(effect.getDuration() - tickDiff);
 
                     if (effect.getDuration() <= 0) {
-                        this.removeEffect(effect.getType().getNetworkId());
+                        this.removeEffect(effect.getType());
                     }
                 }
             }

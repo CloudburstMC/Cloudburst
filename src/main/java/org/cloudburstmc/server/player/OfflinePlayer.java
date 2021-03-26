@@ -32,6 +32,7 @@ import java.util.*;
 
 /**
  * Represents a player that is currently offline.
+ * //TODO Figure out better implementation of Offline players
  */
 public class OfflinePlayer implements Player {
     private final CloudServer server;
@@ -517,12 +518,27 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
+    public Effect getEffect(EffectType type) {
+        return null;
+    }
+
+    @Override
     public void removeEffect(int effectId) {
 
     }
 
     @Override
+    public void removeEffect(EffectType type) {
+
+    }
+
+    @Override
     public boolean hasEffect(int effectId) {
+        return false;
+    }
+
+    @Override
+    public boolean hasEffect(EffectType type) {
         return false;
     }
 

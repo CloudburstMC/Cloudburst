@@ -5,8 +5,8 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.LingeringPotion;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.server.entity.misc.EntityAreaEffectCloud;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
@@ -32,7 +32,7 @@ public class EntityLingeringPotion extends EntitySplashPotion implements Lingeri
         entity.setPosition(this.getLocation().getPosition());
         entity.setPotionId(this.getPotionId());
 
-        CloudEffect effect = new CloudEffect(EffectType.fromLegacy((byte) this.getPotionId()));
+        CloudEffect effect = new CloudEffect(NetworkUtils.effectFromLegacy((byte) this.getPotionId()));
 
         entity.getCloudEffects().add(effect);
         entity.spawnToAll();

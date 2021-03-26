@@ -11,6 +11,7 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.utils.TextFormat;
@@ -61,7 +62,7 @@ public class EffectCommand extends Command {
         }
         CloudEffect effect;
         try {
-            effect = new CloudEffect(EffectType.fromLegacy((byte) Integer.parseInt(args[1])));
+            effect = new CloudEffect(NetworkUtils.effectFromLegacy((byte) Integer.parseInt(args[1])));
         } catch (NumberFormatException | ServerException a) {
             try {
                 effect = new CloudEffect(EffectType.byName(args[1]));

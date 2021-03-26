@@ -10,10 +10,10 @@ import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudEffect;
 
 import java.util.ArrayList;
@@ -93,7 +93,7 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
             b = color & 0x000000FF;
         } else {
             a = 255;
-            CloudEffect effect = new CloudEffect(EffectType.fromLegacy((byte) getPotionId()));
+            CloudEffect effect = new CloudEffect(NetworkUtils.effectFromLegacy((byte) getPotionId()));
             if (effect == null) {
                 r = 40;
                 g = 40;

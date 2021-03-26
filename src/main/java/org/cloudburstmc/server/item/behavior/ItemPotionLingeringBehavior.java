@@ -19,6 +19,6 @@ public class ItemPotionLingeringBehavior extends ItemProjectileBehavior {
 
     @Override
     protected void onProjectileCreation(ItemStack item, Projectile projectile) {
-        ((LingeringPotion) projectile).setPotionId(item.getMetadata(Potion.class).getNetworkId());
+        ((LingeringPotion) projectile).setPotionType(item.getMetadata(Potion.class).getType());
     }
 }
