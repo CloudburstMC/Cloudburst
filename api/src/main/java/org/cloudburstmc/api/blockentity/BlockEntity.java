@@ -35,8 +35,6 @@ public interface BlockEntity {
 
     boolean isSpawnable();
 
-    // boolean updateFromClient(NbtMap tag, Player player);
-
     Block getBlock();
 
     BlockState getBlockState();
