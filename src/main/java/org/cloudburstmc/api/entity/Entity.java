@@ -109,25 +109,28 @@ public interface Entity {
     void addEffect(Effect effect);
 
     @Deprecated
+    /**
+     * Use {@link #getEffect(EffectType)}
+     */
     Effect getEffect(int effectId);
 
-    default Effect getEffect(EffectType type) {
-        return getEffect(type.getNetworkId());
-    }
+    Effect getEffect(EffectType type);
 
     @Deprecated
+    /**
+     * Use {@link #removeEffect(EffectType)}
+     */
     void removeEffect(int effectId);
 
-    default void removeEffect(EffectType type) {
-        removeEffect(type.getNetworkId());
-    }
+    void removeEffect(EffectType type);
 
     @Deprecated
+    /**
+     * Use {@link #hasEffect(EffectType)}
+     */
     boolean hasEffect(int effectId);
 
-    default boolean hasEffect(EffectType type) {
-        return hasEffect(type.getNetworkId());
-    }
+    boolean hasEffect(EffectType type);
 
     String getName();
 

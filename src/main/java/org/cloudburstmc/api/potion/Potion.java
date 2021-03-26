@@ -4,7 +4,7 @@ import org.cloudburstmc.api.entity.Entity;
 
 public abstract class Potion {
 
-    private PotionType type;
+    private final PotionType type;
 
     public Potion(PotionType type) {
         this(type, false);
@@ -13,6 +13,10 @@ public abstract class Potion {
     public Potion(PotionType type, boolean splash) {
         type.setSplash(splash);
         this.type = type;
+    }
+
+    public PotionType getType() {
+        return this.type;
     }
 
     public abstract Effect getEffect();
@@ -24,10 +28,6 @@ public abstract class Potion {
             return (int) (type.getDuration() * 0.75f);
         }
         return type.getDuration();
-    }
-
-    public int getNetworkId() {
-        return type.getNetworkId();
     }
 
     public int getLevel() {
