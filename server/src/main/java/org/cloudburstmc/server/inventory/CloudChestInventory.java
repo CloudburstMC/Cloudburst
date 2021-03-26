@@ -2,6 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.blockentity.Chest;
+import org.cloudburstmc.api.inventory.ChestInventory;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.ChestBlockEntity;
@@ -11,11 +12,11 @@ import org.cloudburstmc.server.level.CloudLevel;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class ChestInventory extends CloudContainer {
+public class CloudChestInventory extends CloudContainer implements ChestInventory {
 
-    protected DoubleChestInventory doubleInventory;
+    protected CloudDoubleChestInventory doubleInventory;
 
-    public ChestInventory(Chest chest) {
+    public CloudChestInventory(Chest chest) {
         super(chest, InventoryType.CHEST);
     }
 
@@ -49,11 +50,11 @@ public class ChestInventory extends CloudContainer {
         super.onClose(who);
     }
 
-    public void setDoubleInventory(DoubleChestInventory doubleInventory) {
+    public void setDoubleInventory(CloudDoubleChestInventory doubleInventory) {
         this.doubleInventory = doubleInventory;
     }
 
-    public DoubleChestInventory getDoubleInventory() {
+    public CloudDoubleChestInventory getDoubleInventory() {
         return doubleInventory;
     }
 
@@ -64,5 +65,10 @@ public class ChestInventory extends CloudContainer {
         } else {
             super.sendSlot(index, players);
         }
+    }
+
+    @Override
+    public boolean isDouble() {
+        return this.doubleInventory != null;
     }
 }

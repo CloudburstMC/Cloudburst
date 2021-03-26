@@ -12,7 +12,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.server.inventory.BeaconInventory;
+import org.cloudburstmc.server.inventory.CloudBeaconInventory;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -207,7 +207,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
 
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_POWER);
 
-        BeaconInventory inv = (BeaconInventory) player.getWindowById(ContainerIds.BEACON);
+        CloudBeaconInventory inv = (CloudBeaconInventory) player.getWindowById(ContainerIds.BEACON);
 
         inv.clear(0);
         this.scheduleUpdate();

@@ -11,9 +11,9 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.inventory.ChestInventory;
+import org.cloudburstmc.server.inventory.CloudChestInventory;
 import org.cloudburstmc.server.inventory.CloudContainer;
-import org.cloudburstmc.server.inventory.DoubleChestInventory;
+import org.cloudburstmc.server.inventory.CloudDoubleChestInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -28,9 +28,9 @@ import java.util.Map;
  */
 public class ChestBlockEntity extends BaseBlockEntity implements Chest {
 
-    private final ChestInventory inventory = new ChestInventory(this);
+    private final CloudChestInventory inventory = new CloudChestInventory(this);
 
-    private DoubleChestInventory doubleInventory = null;
+    private CloudDoubleChestInventory doubleInventory = null;
     private Vector3i pairPosition;
     private boolean pairlead;
     private boolean findable;
@@ -130,7 +130,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
         return this.doubleInventory != null ? this.doubleInventory : this.inventory;
     }
 
-    public ChestInventory getRealInventory() {
+    public CloudChestInventory getRealInventory() {
         return inventory;
     }
 
@@ -148,9 +148,9 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
             } else if (this.doubleInventory == null) {
                 if ((pair.pairPosition.getX() + pair.pairPosition.getZ() << 15) >
                         (this.pairPosition.getX() + this.pairPosition.getZ() << 15)) { //Order them correctly
-                    this.doubleInventory = new DoubleChestInventory(pair, this);
+                    this.doubleInventory = new CloudDoubleChestInventory(pair, this);
                 } else {
-                    this.doubleInventory = new DoubleChestInventory(this, pair);
+                    this.doubleInventory = new CloudDoubleChestInventory(this, pair);
                 }
             }
         } else {

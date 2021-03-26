@@ -20,12 +20,12 @@ import java.util.Map;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class DoubleChestInventory extends CloudContainer implements InventoryHolder {
+public class CloudDoubleChestInventory extends CloudContainer implements InventoryHolder {
 
-    private final ChestInventory left;
-    private final ChestInventory right;
+    private final CloudChestInventory left;
+    private final CloudChestInventory right;
 
-    public DoubleChestInventory(ChestBlockEntity left, ChestBlockEntity right) {
+    public CloudDoubleChestInventory(ChestBlockEntity left, ChestBlockEntity right) {
         super(null, InventoryType.DOUBLE_CHEST);
         this.holder = this;
 
@@ -143,11 +143,11 @@ public class DoubleChestInventory extends CloudContainer implements InventoryHol
         super.onClose(who);
     }
 
-    public ChestInventory getLeftSide() {
+    public CloudChestInventory getLeftSide() {
         return this.left;
     }
 
-    public ChestInventory getRightSide() {
+    public CloudChestInventory getRightSide() {
         return this.right;
     }
 

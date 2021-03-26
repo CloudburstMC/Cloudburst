@@ -9,7 +9,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.inventory.BeaconInventory;
+import org.cloudburstmc.server.inventory.CloudBeaconInventory;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -32,7 +32,7 @@ public class BlockBehaviorBeacon extends BlockBehaviorTransparent {
                 BlockEntityRegistry.get().newEntity(BlockEntityTypes.BEACON, (CloudChunk) block.getChunk(), block.getPosition());
             }
 
-            player.addWindow(new BeaconInventory(((CloudPlayer)player).getUIInventory(), block), ContainerIds.BEACON);
+            player.addWindow(new CloudBeaconInventory((CloudPlayer) player), ContainerIds.BEACON);
         }
         return true;
     }
