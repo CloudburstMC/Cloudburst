@@ -3,7 +3,7 @@ package org.cloudburstmc.api.inventory;
 import org.cloudburstmc.api.blockentity.BrewingStand;
 import org.cloudburstmc.api.item.ItemStack;
 
-public interface BrewingInventory extends Inventory {
+public interface BrewingInventory extends ContainerInventory {
 
     ItemStack getIngredient();
 
