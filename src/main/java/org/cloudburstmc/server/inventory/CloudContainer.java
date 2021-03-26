@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
@@ -14,6 +13,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.NukkitMath;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Map;
@@ -46,7 +46,7 @@ public abstract class CloudContainer extends BaseInventory implements ContainerI
         super.onOpen(who);
         ContainerOpenPacket packet = new ContainerOpenPacket();
         packet.setId(who.getWindowId(this));
-        packet.setType(ContainerType.from(this.getType().getNetworkType()));
+        packet.setType(NetworkUtils.inventoryToNetwork(this.getType()));
         InventoryHolder holder = this.getHolder();
         if (holder instanceof BlockEntity) {
             packet.setBlockPosition(((BlockEntity) holder).getPosition());
