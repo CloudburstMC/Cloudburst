@@ -10,7 +10,7 @@ import org.cloudburstmc.api.item.TierTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
-import org.cloudburstmc.server.inventory.AnvilInventory;
+import org.cloudburstmc.server.inventory.CloudAnvilInventory;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
@@ -43,7 +43,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
-            player.addWindow(new AnvilInventory(((CloudPlayer) player).getUIInventory(), block), ContainerIds.ANVIL);
+            player.addWindow(new CloudAnvilInventory((CloudPlayer) player), ContainerIds.ANVIL);
         }
         return true;
     }

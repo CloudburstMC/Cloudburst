@@ -52,15 +52,15 @@ public abstract class BaseInventory implements Inventory {
         this(holder, type, new HashMap<>());
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items) {
-        this(holder, type, items, null);
+    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents) {
+        this(holder, type, contents, null);
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize) {
-        this(holder, type, items, overrideSize, null);
+    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents, Integer overrideSize) {
+        this(holder, type, contents, overrideSize, null);
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize, String overrideTitle) {
+    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents, Integer overrideSize, String overrideTitle) {
         this.holder = holder;
 
         this.type = type;
@@ -79,8 +79,8 @@ public abstract class BaseInventory implements Inventory {
 
         this.name = this.type.getDefaultTitle();
 
-        if (!(this instanceof DoubleChestInventory)) {
-            this.setContents(items);
+        if (!(this instanceof CloudDoubleChestInventory)) {
+            this.setContents(contents);
         }
     }
 

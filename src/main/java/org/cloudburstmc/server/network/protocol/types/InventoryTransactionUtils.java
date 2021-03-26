@@ -10,9 +10,9 @@ import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.inventory.AnvilInventory;
-import org.cloudburstmc.server.inventory.BeaconInventory;
-import org.cloudburstmc.server.inventory.EnchantInventory;
+import org.cloudburstmc.server.inventory.CloudAnvilInventory;
+import org.cloudburstmc.server.inventory.CloudBeaconInventory;
+import org.cloudburstmc.server.inventory.CloudEnchantInventory;
 import org.cloudburstmc.server.inventory.transaction.action.*;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -169,11 +169,11 @@ public class InventoryTransactionUtils {
                 if (containerId >= SOURCE_TYPE_ANVIL_OUTPUT && containerId <= SOURCE_TYPE_ANVIL_INPUT) { //anvil actions
                     Inventory inv = player.getWindowById(ContainerIds.ANVIL);
 
-                    if (!(inv instanceof AnvilInventory)) {
+                    if (!(inv instanceof CloudAnvilInventory)) {
                         log.debug("Player " + player.getName() + " has no open anvil inventory");
                         return null;
                     }
-                    AnvilInventory anvil = (AnvilInventory) inv;
+                    CloudAnvilInventory anvil = (CloudAnvilInventory) inv;
 
                     switch (containerId) {
                         case SOURCE_TYPE_ANVIL_INPUT:
@@ -204,11 +204,11 @@ public class InventoryTransactionUtils {
                 if (containerId >= SOURCE_TYPE_ENCHANT_OUTPUT && containerId <= SOURCE_TYPE_ENCHANT_INPUT) {
                     Inventory inv = player.getWindowById(ContainerIds.ENCHANTING_TABLE);
 
-                    if (!(inv instanceof EnchantInventory)) {
+                    if (!(inv instanceof CloudEnchantInventory)) {
                         log.debug("Player " + player.getName() + " has no open enchant inventory");
                         return null;
                     }
-                    EnchantInventory enchant = (EnchantInventory) inv;
+                    CloudEnchantInventory enchant = (CloudEnchantInventory) inv;
 
                     // TODO: This is all a temporary hack. Enchanting needs it's own transaction class.
                     switch (containerId) {
@@ -264,11 +264,11 @@ public class InventoryTransactionUtils {
                 if (containerId == SOURCE_TYPE_BEACON) {
                     Inventory inv = player.getWindowById(ContainerIds.BEACON);
 
-                    if (!(inv instanceof BeaconInventory)) {
+                    if (!(inv instanceof CloudBeaconInventory)) {
                         log.debug("Player " + player.getName() + " has no open beacon inventory");
                         return null;
                     }
-                    BeaconInventory beacon = (BeaconInventory) inv;
+                    CloudBeaconInventory beacon = (CloudBeaconInventory) inv;
 
                     slot = 0;
                     return new SlotChangeAction(beacon, slot, oldItem, newItem);

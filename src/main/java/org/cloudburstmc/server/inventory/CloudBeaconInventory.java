@@ -1,16 +1,22 @@
 package org.cloudburstmc.server.inventory;
 
-import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.inventory.BeaconInventory;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * author: Rover656
  */
-public class BeaconInventory extends FakeBlockUIComponent {
+public class CloudBeaconInventory extends BaseInventory implements BeaconInventory {
 
-    public BeaconInventory(PlayerUIInventory playerUI, Block block) {
-        super(playerUI, InventoryType.BEACON, 27, block);
+    public CloudBeaconInventory(CloudPlayer player) {
+        super(player, InventoryType.BEACON);
+    }
+
+    @Override
+    public CloudPlayer getHolder() {
+        return (CloudPlayer) super.getHolder();
     }
 
     @Override

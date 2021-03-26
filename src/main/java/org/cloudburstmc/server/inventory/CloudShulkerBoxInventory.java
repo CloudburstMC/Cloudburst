@@ -3,6 +3,7 @@ package org.cloudburstmc.server.inventory;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.inventory.ShulkerBoxInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.ShulkerBoxBlockEntity;
@@ -11,9 +12,9 @@ import org.cloudburstmc.server.level.CloudLevel;
 /**
  * Created by PetteriM1
  */
-public class ShulkerBoxInventory extends CloudContainer {
+public class CloudShulkerBoxInventory extends CloudContainer implements ShulkerBoxInventory {
 
-    public ShulkerBoxInventory(ShulkerBoxBlockEntity box) {
+    public CloudShulkerBoxInventory(ShulkerBoxBlockEntity box) {
         super(box, InventoryType.SHULKER_BOX);
     }
 

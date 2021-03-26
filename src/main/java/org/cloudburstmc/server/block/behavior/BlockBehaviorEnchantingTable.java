@@ -9,7 +9,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.blockentity.EnchantingTableBlockEntity;
-import org.cloudburstmc.server.inventory.EnchantInventory;
+import org.cloudburstmc.server.inventory.CloudEnchantInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -53,10 +53,10 @@ public class BlockBehaviorEnchantingTable extends BlockBehaviorTransparent {
         if (player != null) {
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             if (!(blockEntity instanceof EnchantingTable)) {
-                BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, block);
+                blockEntity = BlockEntityRegistry.get().newEntity(ENCHANTING_TABLE, block);
             }
 
-            player.addWindow(new EnchantInventory(((CloudPlayer) player).getUIInventory(), block), ContainerIds.ENCHANTING_TABLE);
+            player.addWindow(new CloudEnchantInventory((CloudPlayer) player, (EnchantingTable) blockEntity), ContainerIds.ENCHANTING_TABLE);
         }
 
         return true;

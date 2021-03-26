@@ -20,7 +20,7 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.server.inventory.HopperInventory;
+import org.cloudburstmc.server.inventory.CloudHopperInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -36,7 +36,7 @@ import static com.nukkitx.math.vector.Vector3i.UP;
  */
 public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
 
-    protected final HopperInventory inventory = new HopperInventory(this);
+    protected final CloudHopperInventory inventory = new CloudHopperInventory(this);
 
     private final AxisAlignedBB pickupArea = new SimpleAxisAlignedBB(this.getPosition(), this.getPosition().add(1, 2, 1));
     private int transferCooldown = 8;
@@ -86,7 +86,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
     }
 
     @Override
-    public HopperInventory getInventory() {
+    public CloudHopperInventory getInventory() {
         return inventory;
     }
 
