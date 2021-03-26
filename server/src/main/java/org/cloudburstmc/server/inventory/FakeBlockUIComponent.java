@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.block.Block;
@@ -10,6 +9,7 @@ import org.cloudburstmc.api.event.inventory.InventoryOpenEvent;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 public class FakeBlockUIComponent extends PlayerUIComponent {
@@ -52,7 +52,7 @@ public class FakeBlockUIComponent extends PlayerUIComponent {
         super.onOpen(who);
         ContainerOpenPacket packet = new ContainerOpenPacket();
         packet.setId(who.getWindowId(this));
-        packet.setType(ContainerType.from(type.getNetworkType()));
+        packet.setType(NetworkUtils.inventoryToNetwork(type));
         InventoryHolder holder = this.getHolder();
         if (holder != null) {
             packet.setBlockPosition(((FakeBlockMenu) holder).getPosition());

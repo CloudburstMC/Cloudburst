@@ -4,21 +4,26 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.entity.Attribute;
+import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
 
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 @UtilityClass
 public class NetworkUtils {
 
     private BiMap<PotionType, Short> potionTypeMap = HashBiMap.create();
     private BiMap<EffectType, Byte> effectTypeMap = HashBiMap.create();
+    private Map<InventoryType, ContainerType> inventoryTypeMap = new IdentityHashMap<>();
 
     static {
         potionTypeMap.put(PotionTypes.WATER, (short) 0);
@@ -93,6 +98,27 @@ public class NetworkUtils {
         effectTypeMap.put(EffectTypes.SLOW_FALLING, (byte) 27);
         effectTypeMap.put(EffectTypes.BAD_OMEN, (byte) 28);
         effectTypeMap.put(EffectTypes.HERO_OF_THE_VILLAGE, (byte) 29);
+
+        inventoryTypeMap.put(InventoryType.CHEST, ContainerType.CONTAINER);
+        inventoryTypeMap.put(InventoryType.ENDER_CHEST, ContainerType.CONTAINER);
+        inventoryTypeMap.put(InventoryType.DOUBLE_CHEST, ContainerType.CONTAINER);
+        inventoryTypeMap.put(InventoryType.PLAYER, ContainerType.INVENTORY);
+        inventoryTypeMap.put(InventoryType.FURNACE, ContainerType.FURNACE);
+        inventoryTypeMap.put(InventoryType.CRAFTING, ContainerType.WORKBENCH);
+        inventoryTypeMap.put(InventoryType.WORKBENCH, ContainerType.WORKBENCH);
+        inventoryTypeMap.put(InventoryType.BREWING_STAND, ContainerType.BREWING_STAND);
+        inventoryTypeMap.put(InventoryType.ANVIL, ContainerType.ANVIL);
+        inventoryTypeMap.put(InventoryType.ENCHANT_TABLE, ContainerType.ENCHANTMENT);
+        inventoryTypeMap.put(InventoryType.DISPENSER, ContainerType.DISPENSER);
+        inventoryTypeMap.put(InventoryType.DROPPER, ContainerType.DROPPER);
+        inventoryTypeMap.put(InventoryType.HOPPER, ContainerType.HOPPER);
+        inventoryTypeMap.put(InventoryType.UI, ContainerType.INVENTORY); // Might not be needed anymore?
+        inventoryTypeMap.put(InventoryType.SHULKER_BOX, ContainerType.CONTAINER);
+        inventoryTypeMap.put(InventoryType.BEACON, ContainerType.BEACON);
+        inventoryTypeMap.put(InventoryType.BLAST_FURNACE, ContainerType.BLAST_FURNACE);
+        inventoryTypeMap.put(InventoryType.SMOKER, ContainerType.SMOKER);
+        inventoryTypeMap.put(InventoryType.BARREL, ContainerType.CONTAINER);
+
     }
 
     public static AttributeData attributeToNetwork(Attribute attr) {
@@ -119,5 +145,9 @@ public class NetworkUtils {
 
     public static EffectType effectFromLegacy(byte effectId) {
         return effectTypeMap.inverse().get(effectId);
+    }
+
+    public static ContainerType inventoryToNetwork(InventoryType type) {
+        return inventoryTypeMap.get(type);
     }
 }
