@@ -208,6 +208,7 @@ public class CloudItemRegistry implements ItemRegistry {
 
         val builder = new CloudItemStackBuilder()
                 .itemType(type)
+                .amount(amount)
                 .itemData(metadata);
 
         return builder.build();
