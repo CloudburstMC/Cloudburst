@@ -1716,7 +1716,7 @@ public class Server {
         }
 
         Map<String, ServerConfig.World> worldConfigs = getConfig().getWorlds();
-        if (worldConfigs.isEmpty()) { 
+        if (worldConfigs.isEmpty()) {
             throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }
         List<CompletableFuture<Level>> worldFutures = new ArrayList<>(worldConfigs.size());
