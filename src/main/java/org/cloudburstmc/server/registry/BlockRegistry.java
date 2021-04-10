@@ -262,7 +262,7 @@ public class BlockRegistry implements Registry {
     public synchronized void close() throws RegistryException {
         checkClosed();
         this.closed = true;
-        this.palette.generateRuntimeIds();
+//        this.palette.generateRuntimeIds();
         // generate cache
 
         this.propertiesTag = NbtMap.EMPTY;
