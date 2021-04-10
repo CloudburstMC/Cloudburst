@@ -54,7 +54,7 @@ public class CloudItemRegistry implements ItemRegistry {
         }
 
         INSTANCE = new CloudItemRegistry(BlockRegistry.get()); // Needs to be initialized afterwards
-//        INSTANCE.registerVanillaCreativeItems(); // TODO needs to be moved to using item Identifiers instead of legacy ids
+        INSTANCE.registerVanillaCreativeItems(); // TODO needs to be moved to using item Identifiers instead of legacy ids
     }
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
@@ -631,13 +631,13 @@ public class CloudItemRegistry implements ItemRegistry {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private void registerVanillaCreativeItems() {
-//        Config config = new Config(Config.JSON);
-//        config.load(CloudServer.class.getClassLoader().getResourceAsStream("data/creative_items.json"));
-//        List<Map> list = config.getMapList("items");
+        Config config = new Config(Config.JSON);
+        config.load(CloudServer.class.getClassLoader().getResourceAsStream("data/creative_items.json"));
+        List<Map> list = config.getMapList("items");
 
-        for (Map.Entry<Integer,Identifier> entry : this.runtimeIdMap.entrySet()) {
+        for (Map map : list) {
             try {
-                registerCreativeItem(ItemStack.get(ItemTypes.byId(entry.getValue())));
+                registerCreativeItem(ItemUtils.fromJson(map));
             } catch (RegistryException e) {
                 // ignore
             } catch (Exception e) {
