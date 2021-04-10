@@ -470,7 +470,10 @@ public class PlayerInventory extends BaseInventory {
     }
 
     public void sendArmorSlot(int index, Player[] players) {
-        CloudItemStack[] armor = (CloudItemStack[]) this.getArmorContents();
+        CloudItemStack[] armor = new CloudItemStack[this.getArmorContents().length];
+
+        for (int i = 0;i <= this.getArmorContents().length;i++)
+            armor[i] = (CloudItemStack) this.getArmorContents()[i];
 
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());

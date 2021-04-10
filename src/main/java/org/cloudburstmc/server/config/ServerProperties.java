@@ -28,10 +28,10 @@ public class ServerProperties {
     private Path path = null;
 
     @Builder.Default
-    private String motd = "A Cloudburst Powered Server";
+    private String motd = "A Cookie Powered Server";
 
     @Builder.Default
-    private String subMotd = "https://cloudburstmc.org";
+    private String subMotd = "https://github/Cookie-Studio/Cookie";
 
     @Builder.Default
     private String serverIp = "0.0.0.0";

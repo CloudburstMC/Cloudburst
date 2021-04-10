@@ -1027,7 +1027,7 @@ public class CloudServer implements Server {
     }
 
     public String getName() {
-        return "Cloudburst";
+        return "Cookie";
     }
 
     public boolean isRunning() {

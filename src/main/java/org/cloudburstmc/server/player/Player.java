@@ -1542,6 +1542,8 @@ public class Player extends Human implements CommandSender, InventoryHolder, Chu
 //        updateBlockPropertiesPacket.setProperties(BlockRegistry.get().getPropertiesTag());
 //        this.sendPacket(updateBlockPropertiesPacket);
 
+        this.getInventory().sendCreativeContents();
+
         this.loggedIn = true;
 
         this.getLevel().sendTime(this);

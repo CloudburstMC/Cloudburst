@@ -63,7 +63,7 @@ public class ItemUtils {
     }
 
     public static ItemData toNetwork(ItemStack item) {
-        int id = registry.getRuntimeId(((CloudItemStack) item).getId());
+        int runtimeId = registry.getRuntimeId(((CloudItemStack) item).getId());
 
         NbtMap tag = ((CloudItemStack) item).getNbt();
         short meta;
@@ -77,7 +77,7 @@ public class ItemUtils {
         String[] canPlace = item.getCanPlaceOn().stream().map(Identifier::toString).toArray(String[]::new);
         String[] canBreak = item.getCanDestroy().stream().map(Identifier::toString).toArray(String[]::new);
 
-        return ItemData.builder().blockRuntimeId(id).damage(meta).count(item.getAmount()).tag(tag).canBreak(canBreak).canPlace(canPlace).build();
+        return ItemData.builder().id(runtimeId).damage(meta).count(item.getAmount()).tag(tag).canBreak(canBreak).canPlace(canPlace).build();
     }
 
     public static ItemStack fromNetwork(ItemData data) {
