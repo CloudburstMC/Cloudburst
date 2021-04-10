@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.behavior;
 
 import lombok.RequiredArgsConstructor;
 import lombok.val;
-import lombok.var;
+
 import org.cloudburstmc.server.block.Block;
 import org.cloudburstmc.server.enchantment.EnchantmentInstance;
 import org.cloudburstmc.server.enchantment.EnchantmentTypes;
