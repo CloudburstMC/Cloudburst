@@ -1,4 +1,4 @@
-![Cloudburst](.github/images/banner.png)
+![Cloudburst](.github/images/cookie-logo.png)
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
 [![Build Status](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/badge/icon)](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/)
@@ -8,28 +8,16 @@
 Introduction
 -------------
 
-Cloudburst is a server software for Minecraft: Bedrock Edition.
-It has a few key advantages over other server software:
+Cookie is a server software for Minecraft: Bedrock Edition depend on Cloudburst.
 
-* Written in Java, Cloudburst is faster and more stable.
-* Having a friendly structure, it's easy to contribute to Cloudburst's development and rewrite plugins from other platforms into Cloudburst plugins.
+We are committed to bringing better architecture and original features to nk2.
 
-Cloudburst is **under improvement** yet, we welcome contributions. 
-
-Links
---------------------
-
-* __[News](https://cloudburstmc.org)__
-* __[Forums](https://cloudburstmc.org/forums)__
-* __[Discord](https://discord.gg/5PzMkyK)__
-* __[Download](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/)__
-* __[Plugins](https://cloudburstmc.org/resources/categories/nukkit-plugins.1)__
-* __[Wiki](https://cloudburstmc.org/wiki/nukkit)__
+This project are still under developing, we welcome new developers join us.
 
 Build JAR file
 -------------
-- `git clone https://github.com/CloudburstMC/Server.git`
-- `cd Server`
+- `git clone https://github.com/Cookie-Studio/Cookie.git`
+- `cd Cookie`
 - `git submodule update --init`
 - `./mvnw clean package`
 
@@ -37,7 +25,7 @@ The compiled JAR can be found in the `target/` directory.
 
 Running
 -------------
-Simply run `java -jar Cloudburst.jar`.
+Simply run `java -jar Cookie.jar`.
 
 Plugin API
 -------------

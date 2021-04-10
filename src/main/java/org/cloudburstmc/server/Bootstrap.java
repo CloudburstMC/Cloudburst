@@ -177,6 +177,7 @@ public class Bootstrap {
         // Make sure all log messages have made it to their destination before ending the process,
         // especially since we use async logging.
         LogManager.shutdown();
+        killer.interrupt();
     }
 
     /**
