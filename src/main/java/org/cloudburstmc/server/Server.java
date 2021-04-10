@@ -1753,7 +1753,7 @@ public class Server {
         }
 
         // Wait for worlds to load.
-        CompletableFutures.allAsList(levelFutures).join();
+        CompletableFutures.allAsList(worldFutures).join();
 
         //Set default world
         if (this.getDefaultLevel() == null) {
