@@ -1896,6 +1896,15 @@ public class Level implements ChunkManager, Metadatable {
             if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
                 event.setCancelled();
             }
+//            if (Math.abs(player.getX() - clickPos.getX()) < 1 || Math.abs(player.getZ() - clickPos.getZ()) < 1){
+//                event.setCancelled();
+//            }
+//            if (clickPos.getY() > player.getY() && clickPos.getY() - player.getY() < 2){
+//                event.setCancelled();
+//            }
+//            if (clickPos.getY() < player.getY() && player.getY() - clickPos.getY()< 1){
+//                event.setCancelled();
+//            } todo: fix block place
             this.server.getEventManager().fire(event);
             if (event.isCancelled()) {
                 return null;

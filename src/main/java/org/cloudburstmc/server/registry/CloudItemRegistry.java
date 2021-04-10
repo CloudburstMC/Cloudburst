@@ -54,7 +54,6 @@ public class CloudItemRegistry implements ItemRegistry {
         }
 
         INSTANCE = new CloudItemRegistry(BlockRegistry.get()); // Needs to be initialized afterwards
-        INSTANCE.registerVanillaCreativeItems(); // TODO needs to be moved to using item Identifiers instead of legacy ids
     }
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
@@ -272,6 +271,9 @@ public class CloudItemRegistry implements ItemRegistry {
     public synchronized void close() throws RegistryException {
         checkClosed();
         this.closed = true;
+
+        INSTANCE.registerVanillaCreativeItems(); // TODO needs to be moved to using item Identifiers instead of legacy ids
+        //we put this at here because that the block init must invoke before this so that it won't cause null pointer exception.
 
         List<StartGamePacket.ItemEntry> itemEntries = new ArrayList<>();
 

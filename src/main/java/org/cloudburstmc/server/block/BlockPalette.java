@@ -65,8 +65,6 @@ public class BlockPalette {
         BlockState defaultState = map.get(Arrays.stream(traits).filter(t -> !t.isOnlySerialize()).collect(Collectors.toMap(t -> t, BlockTrait::getDefaultValue)));
         this.defaultStateMap.put(type, defaultState);
         states.forEach((nbt, state) -> {
-            int runtimeId = this.runtimeIdAllocator.getAndIncrement();
-
             String id = nbt.getString("name");
             if (!sortedPalette.containsKey(id)) {
                 sortedPalette.put(id, new ArrayList<>());
@@ -76,8 +74,6 @@ public class BlockPalette {
             if (!state.isInitialized()) {
                 state.initialize(defaultState, map);
 
-                this.stateRuntimeMap.put(state, runtimeId);
-                this.runtimeStateMap.put(runtimeId, state);
                 this.stateMap.putIfAbsent(state.getId(), state.defaultState());
             }
 
