@@ -222,6 +222,8 @@ public class Server {
 
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.dat$", Pattern.CASE_INSENSITIVE);
 
+    public static final Random RANDOM = new Random();
+
     public Server(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
         instance = this;
@@ -522,7 +524,7 @@ public class Server {
             this.defaultStorageId = StorageIds.LEVELDB;
         }
 
-        this.loadLevels();
+        this.loadWorlds();
 
         this.serverProperties.save();
 
@@ -1705,7 +1707,7 @@ public class Server {
         this.defaultLevelData.getGameRules().putAll(this.gameRuleRegistry.getDefaultRules());
     }
 
-    private void loadLevels() throws IOException {
+    private void loadWorlds() throws IOException {
         Path levelPath = dataPath.resolve("worlds");
         if (Files.notExists(levelPath)) {
             Files.createDirectory(levelPath);
@@ -1714,44 +1716,46 @@ public class Server {
         }
 
         Map<String, ServerConfig.World> worldConfigs = getConfig().getWorlds();
-        if (worldConfigs.isEmpty()) {
+        if (worldConfigs.isEmpty()) { 
             throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }
-        List<CompletableFuture<Level>> levelFutures = new ArrayList<>(worldConfigs.size());
+        List<CompletableFuture<Level>> worldFutures = new ArrayList<>(worldConfigs.size());
 
         for (String name : worldConfigs.keySet()) {
             final ServerConfig.World config = worldConfigs.get(name);
-            //fallback to level name if no seed is set
             Object seedObj = config.getSeed();
             long seed;
+            if(seedObj == null) { //Auto generate seed if one was not specified
+            	seedObj = RANDOM.nextLong();
+            }
             if (seedObj instanceof Number) {
                 seed = ((Number) seedObj).longValue();
             } else if (seedObj instanceof String) {
                 if (seedObj == name) {
-                    log.warn("World \"{}\" does not have a seed! Using a the name as the seed", name);
+                    log.warn("World \"{}\" is using its own name as a seed", name);
                 }
 
                 //this internally generates an MD5 hash of the seed string
                 UUID uuid = UUID.nameUUIDFromBytes(((String) seedObj).getBytes(StandardCharsets.UTF_8));
                 seed = uuid.getMostSignificantBits() ^ uuid.getLeastSignificantBits();
             } else {
-                throw new IllegalStateException("Seed for world \"" + name + "\" is invalid: " + (seedObj == null ? "null" : seedObj.getClass().getCanonicalName()));
+                throw new IllegalStateException("Seed for world \"" + name + "\" is invalid: " + (seedObj == null ? "The seed used for world generation was null (Not specified)" : seedObj.getClass().getCanonicalName()));
             }
 
             Identifier generator = Identifier.fromString(config.getGenerator());
             String options = config.getOptions();
 
-            levelFutures.add(this.loadLevel().id(name)
+            worldFutures.add(this.loadLevel().id(name)
                     .seed(seed)
                     .generator(generator == null ? this.generatorRegistry.getFallback() : generator)
                     .generatorOptions(options)
                     .load());
         }
 
-        // Wait for levels to load.
+        // Wait for worlds to load.
         CompletableFutures.allAsList(levelFutures).join();
 
-        //set default level
+        //Set default world
         if (this.getDefaultLevel() == null) {
             String defaultName = this.serverProperties.getDefaultLevel();
             if (defaultName == null || defaultName.trim().isEmpty()) {

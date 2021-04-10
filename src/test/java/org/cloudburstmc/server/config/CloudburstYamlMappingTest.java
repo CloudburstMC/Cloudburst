@@ -141,7 +141,7 @@ public class CloudburstYamlMappingTest {
                 yml.getAliases()
         );
 
-        HashMap<String, ServerConfig.World> worldConfig = new HashMap<>();
+      /*HashMap<String, ServerConfig.World> worldConfig = new HashMap<>();
         worldConfig.put("world", new ServerConfig.World(
                 "test",
                 "cloudburst:standard",
@@ -155,7 +155,7 @@ public class CloudburstYamlMappingTest {
         assertEquals(
                 worldConfig,
                 yml.getWorlds()
-        );
+        );*/
     }
 
 }
