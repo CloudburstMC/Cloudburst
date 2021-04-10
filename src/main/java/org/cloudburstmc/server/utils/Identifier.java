@@ -21,6 +21,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 
+import static net.daporkchop.lib.common.math.PMath.mix32;
+import static net.daporkchop.lib.common.math.PMath.mix64;
+
 //@JsonDeserialize(using = Identifier.Deserializer.class)
 @JsonSerialize(using = ToStringSerializer.class)
 public final class Identifier implements Comparable<Identifier> {
@@ -52,7 +55,7 @@ public final class Identifier implements Comparable<Identifier> {
         this.name = name;
         this.fullName = fullName;
 
-        this.hashCode = FastPRandom.mix32(fullName.chars().asLongStream().reduce(0L, (a, b) -> FastPRandom.mix64(a + b)));
+        this.hashCode = mix32(fullName.chars().asLongStream().reduce(0L, (a, b) -> mix64(a + b)));
     }
 
     @JsonCreator

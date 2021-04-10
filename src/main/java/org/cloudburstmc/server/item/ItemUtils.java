@@ -77,7 +77,7 @@ public class ItemUtils {
         String[] canPlace = item.getCanPlaceOn().stream().map(Identifier::toString).toArray(String[]::new);
         String[] canBreak = item.getCanDestroy().stream().map(Identifier::toString).toArray(String[]::new);
 
-        return ItemData.of(id, meta, item.getAmount(), tag, canPlace, canBreak);
+        return ItemData.builder().blockRuntimeId(id).damage(meta).count(item.getAmount()).tag(tag).canBreak(canBreak).canPlace(canPlace).build();
     }
 
     public static ItemStack fromNetwork(ItemData data) {
@@ -109,7 +109,7 @@ public class ItemUtils {
         }
 
         CloudItemStackBuilder builder = new CloudItemStackBuilder();
-        registry.getSerializer(type).deserialize(id, data.getDamage(), data.getCount(), builder, tag);
+        registry.getSerializer(type).deserialize(id, (short) data.getDamage(), data.getCount(), builder, tag);
 
         return builder.build();
     }

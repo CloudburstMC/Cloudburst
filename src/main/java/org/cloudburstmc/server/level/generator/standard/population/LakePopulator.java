@@ -2,9 +2,9 @@ package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import net.daporkchop.lib.common.pool.handle.DefaultThreadHandledPool;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
+import net.daporkchop.lib.common.ref.ReferenceType;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.block.BlockState;
 import org.cloudburstmc.server.block.BlockStates;
@@ -27,7 +27,7 @@ import static java.lang.Integer.min;
 public class LakePopulator extends ChancePopulator.Column {
     public static final Identifier ID = Identifier.fromString("cloudburst:lake");
 
-    protected static final HandledPool<BitSet> BITSET_CACHE = new DefaultThreadHandledPool<>(() -> new BitSet(2048), 1);
+    protected static final HandledPool<BitSet> BITSET_CACHE = HandledPool.<BitSet>global(() -> new BitSet(2048), ReferenceType.SOFT,1);
 
     @JsonProperty
     protected IntRange height = IntRange.WHOLE_WORLD;

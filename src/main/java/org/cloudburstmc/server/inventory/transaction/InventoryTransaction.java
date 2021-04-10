@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory.transaction;
 
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import lombok.var;
+
 import org.cloudburstmc.server.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.server.event.inventory.InventoryTransactionEvent;
 import org.cloudburstmc.server.inventory.Inventory;
