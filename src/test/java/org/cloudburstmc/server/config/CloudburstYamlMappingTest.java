@@ -142,7 +142,7 @@ public class CloudburstYamlMappingTest {
         );
 
       /*HashMap<String, ServerConfig.World> worldConfig = new HashMap<>(); With the new system, the old test that checks for seeds is obsolute
-        worldConfig.put("world", new ServerConfig.World( 
+        worldConfig.put("world", new ServerConfig.World(
                 "test",
                 "cloudburst:standard",
                 "overworld"
