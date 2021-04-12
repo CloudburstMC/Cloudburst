@@ -1,11 +1,10 @@
 package org.cloudburstmc.api.item;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.block.BlockTypes;
 
 @UtilityClass
 public class ItemStacks {
-
+/* // TODO these can't be used until BlockTypes.createItem() is implemented
     public static final ItemStack AIR = BlockTypes.AIR.createItem();
     //blocks
     public static final ItemStack ACTIVATOR_RAIL = BlockTypes.ACTIVATOR_RAIL.createItem();
@@ -493,5 +492,5 @@ public class ItemStacks {
     public static final ItemStack WOODEN_SWORD = ItemTypes.WOODEN_SWORD.createItem();
     public static final ItemStack WRITABLE_BOOK = ItemTypes.WRITABLE_BOOK.createItem();
     public static final ItemStack WRITTEN_BOOK = ItemTypes.WRITTEN_BOOK.createItem();
-
+*/
 }
