@@ -40,8 +40,8 @@ import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.player.*;
+import org.cloudburstmc.api.inventory.CraftingGrid;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.item.data.MapItem;
@@ -69,13 +69,13 @@ import org.cloudburstmc.server.level.particle.PunchBlockParticle;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.network.protocol.types.InventoryTransactionUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
-import static org.cloudburstmc.server.player.CloudPlayer.CraftingType;
 import static org.cloudburstmc.server.player.CloudPlayer.DEFAULT_SPEED;
 
 /**
@@ -336,8 +336,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
                 }
 
-                player.craftingType = CraftingType.SMALL;
-                player.resetCraftingGridType();
+                player.getCraftingInventory().resetCraftingGrid();
 
                 PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(player, player.getSpawn());
                 player.getServer().getEventManager().fire(playerRespawnEvent);
@@ -512,8 +511,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        player.craftingType = CraftingType.SMALL;
-        //this.resetCraftingGridType();
+        player.getCraftingInventory().resetCraftingGrid();
 
         Entity targetEntity = player.getLevel().getEntity(packet.getRuntimeEntityId());
 
@@ -670,8 +668,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!player.spawned || !player.isAlive()) {
             return true;
         }
-        player.craftingType = CraftingType.SMALL;
-        //player.resetCraftingGridType();
+
+        player.getCraftingInventory().resetCraftingGrid();
 
         if (packet.getType() == EntityEventType.EATING_ITEM) {
             if (packet.getData() == 0 || packet.getRuntimeEntityId() != player.getRuntimeId()) {
@@ -691,7 +689,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!player.spawned || !player.isAlive()) {
             return true;
         }
-        player.craftingType = CraftingType.SMALL;
+        player.getCraftingInventory().setCraftingGridType(CraftingGrid.Type.CRAFTING_GRID_SMALL);
         PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(player, packet.getCommand());
         player.getServer().getEventManager().fire(playerCommandPreprocessEvent);
         if (playerCommandPreprocessEvent.isCancelled()) {
@@ -729,9 +727,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (packet.getId() == -1) {
-            player.craftingType = CraftingType.SMALL;
-            player.resetCraftingGridType();
-            player.addWindow(player.getCraftingGrid(), (byte) ContainerId.NONE);
+            player.getCraftingInventory().resetCraftingGrid();
+
             ContainerClosePacket ccp = new ContainerClosePacket();
             ccp.setId((byte) -1);
             player.sendPacket(ccp);
@@ -750,8 +747,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        player.craftingType = CraftingType.SMALL;
-        player.resetCraftingGridType();
+        player.getCraftingInventory().resetCraftingGrid();
 
         Vector3i blockPos = packet.getBlockPosition();
         if (blockPos.distanceSquared(player.getPosition().toInt()) > 10000) {
@@ -804,7 +800,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!itemFrameDropItemEvent.isCancelled()) {
             if (itemDrop.getType() != AIR) {
                 player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
-                itemFrame.setItem(ItemStacks.AIR);
+                itemFrame.setItem(CloudItemRegistry.AIR);
                 itemFrame.setItemRotation(0);
                 player.getLevel().addSound(player.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
             }
@@ -995,7 +991,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             return true;
                         }
 
-                        player.resetCraftingGridType();
+                        player.getCraftingInventory().resetCraftingGrid();
 
                         ItemStack i = player.getInventory().getItemInHand();
 
@@ -1109,7 +1105,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 if (serverItem.getAmount() > 1) {
                                     serverItem = serverItem.decrementAmount();
                                 } else {
-                                    serverItem = ItemStacks.AIR;
+                                    serverItem = CloudItemRegistry.AIR;
                                 }
                             } else {
                                 serverItem = result;
@@ -1177,7 +1173,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         if (behavior.isTool(serverItem) && player.isSurvival()) {
                             val result = behavior.useOn(serverItem, target);
                             if (result == null && serverItem.getMetadata(Damageable.class).getDurability() >= behavior.getMaxDurability()) {
-                                player.getInventory().setItemInHand(ItemStacks.AIR);
+                                player.getInventory().setItemInHand(CloudItemRegistry.AIR);
                             } else {
                                 player.getInventory().setItemInHand(result);
                             }

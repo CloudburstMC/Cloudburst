@@ -12,7 +12,6 @@ import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.event.block.LecternDropBookEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
@@ -21,6 +20,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
@@ -158,9 +158,9 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
                 LecternDropBookEvent dropBookEvent = new LecternDropBookEvent(player, lectern, book);
                 block.getLevel().getServer().getEventManager().fire(dropBookEvent);
                 if (!dropBookEvent.isCancelled()) {
-                    lectern.setBook(ItemStacks.AIR);
+                    lectern.setBook(CloudItemRegistry.AIR);
                     lectern.spawnToAll();
-                    ((CloudLevel)block.getLevel()).dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
+                    block.getLevel().dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
                 }
             }
         }

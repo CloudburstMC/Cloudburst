@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block.behavior;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorEndGateway extends BlockBehaviorSolid {
     @Override
@@ -18,7 +18,7 @@ public class BlockBehaviorEndGateway extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStacks.AIR;
+        return CloudItemRegistry.AIR;
     }
 
 }
