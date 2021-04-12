@@ -5,8 +5,8 @@ import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
 import org.cloudburstmc.api.inventory.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
@@ -140,7 +140,7 @@ public class ShapedRecipe implements CraftingRecipe {
     public ItemStack getIngredient(int x, int y) {
         ItemStack item = this.ingredients.get(this.shape[y].charAt(x));
 
-        return item != null ? item : ItemStacks.AIR;
+        return item != null ? item : CloudItemRegistry.AIR;
     }
 
     public String[] getShape() {

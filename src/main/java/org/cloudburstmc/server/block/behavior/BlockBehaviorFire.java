@@ -11,7 +11,6 @@ import org.cloudburstmc.api.event.entity.EntityCombustByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.potion.EffectTypes;
@@ -21,6 +20,7 @@ import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -273,6 +273,6 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStacks.AIR;
+        return CloudItemRegistry.AIR;
     }
 }

@@ -43,7 +43,6 @@ import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.api.event.level.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.item.data.Damageable;
@@ -83,6 +82,7 @@ import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.registry.GeneratorRegistry;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
@@ -1554,7 +1554,7 @@ public class CloudLevel implements Level {
         int dropExp = targetBehavior.getDropExp();
 
         if (item == null) {
-            item = ItemStacks.AIR;
+            item = CloudItemRegistry.AIR;
         }
 
         boolean isSilkTouch = item.getEnchantment(EnchantmentTypes.SILK_TOUCH) != null;
@@ -1656,7 +1656,7 @@ public class CloudLevel implements Level {
         val itemBehavior = item.getBehavior();
         itemBehavior.useOn(item, target.getState());
         if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-            item = ItemStacks.AIR;
+            item = CloudItemRegistry.AIR;
         }
 
         if (this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
@@ -1745,7 +1745,7 @@ public class CloudLevel implements Level {
                 targetBehavior.onUpdate(target, BLOCK_UPDATE_TOUCH);
                 if ((!player.isSneaking() || player.getInventory().getItemInHand().isNull()) && targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item, player)) {
                     if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-                        item = ItemStacks.AIR;
+                        item = CloudItemRegistry.AIR;
                     }
                     return item;
                 }
@@ -1755,7 +1755,7 @@ public class CloudLevel implements Level {
                     if (result != null) {
                         item = result;
                         if (item.getAmount() <= 0) {
-                            item = ItemStacks.AIR;
+                            item = CloudItemRegistry.AIR;
                             return item;
                         }
                     }
@@ -1768,7 +1768,7 @@ public class CloudLevel implements Level {
             }
         } else if (targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item)) {
             if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-                item = ItemStacks.AIR;
+                item = CloudItemRegistry.AIR;
             }
             return item;
         }
@@ -1874,7 +1874,7 @@ public class CloudLevel implements Level {
         }
 
         if (item.getAmount() <= 0) {
-            item = ItemStacks.AIR;
+            item = CloudItemRegistry.AIR;
         }
         return item;
     }

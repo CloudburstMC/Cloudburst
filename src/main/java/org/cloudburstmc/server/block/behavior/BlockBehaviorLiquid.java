@@ -12,7 +12,6 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.block.BlockFromToEvent;
 import org.cloudburstmc.api.event.block.LiquidFlowEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
@@ -21,6 +20,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -421,7 +421,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return ItemStacks.AIR;
+        return CloudItemRegistry.AIR;
     }
 
     public boolean usesWaterLogging() {
