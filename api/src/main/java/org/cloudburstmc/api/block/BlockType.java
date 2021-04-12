@@ -215,7 +215,7 @@ public final class BlockType implements ItemType {
 
     @Override
     public ItemStack createItem(int amount, Object... metadata) {
-        return null; // TODO
+        return null; // TODO - Need to inject an Item or Block Registry? Or make ItemStack not an interface so we can create a new instance?
     }
 
     @Nullable

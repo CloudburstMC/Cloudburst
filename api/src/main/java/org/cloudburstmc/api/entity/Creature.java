@@ -1,4 +1,6 @@
 package org.cloudburstmc.api.entity;
 
-public interface Creature extends Entity {
+import org.cloudburstmc.api.inventory.InventoryHolder;
+
+public interface Creature extends Entity, InventoryHolder {
 }
