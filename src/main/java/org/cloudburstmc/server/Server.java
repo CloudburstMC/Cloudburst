@@ -1728,7 +1728,7 @@ public class Server {
                 seedObj = ThreadLocalRandom.current().nextLong();
             }
             if (seedObj instanceof Number) {
-                seed = ((Number) seedObj).longValue();
+seed = ((Number) seedObj).longValue();
             } else if (seedObj instanceof String) {
                 if (seedObj == name) {
                     log.warn("World \"{}\" is using its own name as a seed", name);
