@@ -12,6 +12,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.BedrockSession;
@@ -53,6 +54,7 @@ import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
 import org.cloudburstmc.api.event.player.*;
+import org.cloudburstmc.api.inventory.CraftingGrid;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
@@ -88,9 +90,13 @@ import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
-import org.cloudburstmc.server.inventory.*;
+import org.cloudburstmc.server.inventory.CloudCraftingGrid;
+import org.cloudburstmc.server.inventory.CloudEnderChestInventory;
+import org.cloudburstmc.server.inventory.CloudPlayerInventory;
+import org.cloudburstmc.server.inventory.PlayerCursorInventory;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
 import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.biome.Biome;
@@ -156,10 +162,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     private String clientSecret;
     protected Vector3f forceMovement = null;
 
-    public CraftingType craftingType = CraftingType.SMALL;
+    private final CloudPlayerInventory inventory = new CloudPlayerInventory(this);
+    private final CloudEnderChestInventory enderChestInventory = new CloudEnderChestInventory(this);
+    private final PlayerCursorInventory cursorInventory = new PlayerCursorInventory(this);
+    private final CloudCraftingGrid craftingGrid = new CloudCraftingGrid(this);
 
-    protected PlayerUIInventory playerUIInventory;
-    protected CraftingGrid craftingGrid;
     protected CraftingTransaction craftingTransaction;
 
     public long creationTime = 0;
@@ -259,7 +266,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.loginChainData = chainData;
 
         this.randomClientId = chainData.getClientId();
-        this.identity = chainData.getClientUUID();
+        //this.identity = chainData.getClientUUID();
         this.username = TextFormat.clean(chainData.getUsername());
         this.iusername = username.toLowerCase();
         this.setDisplayName(this.username);
@@ -298,10 +305,12 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.lastChorusFruitTeleport = this.server.getTick();
     }
 
+    @Override
     public EnderChest getViewingEnderChest() {
         return viewingEnderChest;
     }
 
+    @Override
     public void setViewingEnderChest(EnderChest chest) {
         if (chest == null && this.viewingEnderChest != null) {
             this.viewingEnderChest.getInventory().getViewers().remove(this);
@@ -309,6 +318,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             ((EnderChestBlockEntity) chest).getInventory().getViewers().add(this);
         }
         this.viewingEnderChest = chest;
+    }
+
+    @Override
+    public CloudCraftingGrid getCraftingInventory() {
+        return craftingGrid;
     }
 
     public TranslationContainer getLeaveMessage() {
@@ -347,7 +361,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     @Override
     public boolean isWhitelisted() {
-        return ((CloudServer) this.server).isWhitelisted(this.getName().toLowerCase());
+        return this.server.isWhitelisted(this.getName().toLowerCase());
     }
 
     @Override
@@ -365,11 +379,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     public void setInitialized(boolean initialized) {
         this.initialized = initialized;
-    }
-
-    @Override
-    public CloudPlayer getPlayer() {
-        return this;
     }
 
     private static boolean hasSubstantiallyMoved(Vector3f oldPos, Vector3f newPos) {
@@ -682,7 +691,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     @Override
     public void setSkin(Skin skin) {
-        super.setSkin(skin);
         this.loginChainData.setSkin(skin);
         if (this.spawned) {
             this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSerializedSkin(), this.getXuid());
@@ -699,6 +707,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         if (this.spawned) {
             this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSerializedSkin(), this.getXuid());
         }
+    }
+
+    public UUID getServerId() {
+        return this.loginChainData.getClientUUID();
     }
 
     public String getAddress() {
@@ -1738,8 +1750,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             return false;
         }
 
-        this.resetCraftingGridType();
-        this.craftingType = CraftingType.SMALL;
+        this.craftingGrid.setCraftingGridType(CraftingGrid.Type.CRAFTING_GRID_SMALL);
 
         if (this.removeFormat) {
             message = TextFormat.clean(message, true);
@@ -2357,6 +2368,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         tag.listenForInt("foodLevel", this.foodData::setLevel);
         tag.listenForFloat("FoodSaturationLevel", this.foodData::setFoodSaturationLevel);
+        tag.listenForList("EnderItems", NbtType.COMPOUND, items -> {
+            for (NbtMap itemTag : items) {
+                this.enderChestInventory.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
+            }
+        });
     }
 
     @Override
@@ -2378,6 +2394,33 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         tag.putInt("foodLevel", this.getFoodData().getLevel());
         tag.putFloat("foodSaturationLevel", this.getFoodData().getFoodSaturationLevel());
+
+        List<NbtMap> inventoryItems = new ArrayList<>();
+        int slotCount = CloudPlayerInventory.SURVIVAL_SLOTS + 9;
+        for (int slot = 9; slot < slotCount; ++slot) {
+            ItemStack item = this.inventory.getItem(slot - 9);
+            if (!item.isNull()) {
+                inventoryItems.add(ItemUtils.serializeItem(item, slot));
+            }
+        }
+
+        for (int slot = 100; slot < 105; ++slot) {
+            ItemStack item = this.inventory.getItem(this.inventory.getSize() + slot - 100);
+            if (!item.isNull()) {
+                inventoryItems.add(ItemUtils.serializeItem(item, slot));
+            }
+        }
+
+        tag.putList("Inventory", NbtType.COMPOUND, inventoryItems);
+
+        List<NbtMap> enderItems = new ArrayList<>();
+        for (int slot = 0; slot < 27; ++slot) {
+            ItemStack item = this.enderChestInventory.getItem(slot);
+            if (item != null && !item.isNull()) {
+                enderItems.add(ItemUtils.serializeItem(item, slot));
+            }
+        }
+        tag.putList("EnderItems", NbtType.COMPOUND, enderItems);
     }
 
     public void save(boolean async) {
@@ -2884,23 +2927,29 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     protected void addDefaultWindows() {
         this.addWindow(this.getInventory(), (byte) ContainerId.INVENTORY, true);
-
-        this.playerUIInventory = new PlayerUIInventory(this);
-        this.addWindow(this.playerUIInventory, (byte) ContainerId.UI, true);
-
-        this.craftingGrid = this.playerUIInventory.getCraftingGrid();
         this.addWindow(this.craftingGrid, (byte) ContainerId.NONE);
 
         //TODO: more windows
     }
 
-    public PlayerUIInventory getUIInventory() {
-        return playerUIInventory;
+    @Override
+    public CloudPlayerInventory getInventory() {
+        return inventory;
     }
 
-    public PlayerCursorInventory getCursorInventory() {
-        return this.playerUIInventory.getCursorInventory();
+    public CloudEnderChestInventory getEnderChestInventory() {
+        return enderChestInventory;
     }
+
+    /*
+        public PlayerUIInventory getUIInventory() {
+            return playerUIInventory;
+        }
+    */
+    public PlayerCursorInventory getCursorInventory() {
+        return this.cursorInventory;
+    }
+
 
     public CraftingTransaction getCraftingTransaction() {
         return craftingTransaction;
@@ -2908,50 +2957,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     public void setCraftingTransaction(CraftingTransaction craftingTransaction) {
         this.craftingTransaction = craftingTransaction;
-    }
-
-    public CraftingGrid getCraftingGrid() {
-        return this.craftingGrid;
-    }
-
-    public void setCraftingGrid(CraftingGrid grid) {
-        this.craftingGrid = grid;
-        this.addWindow(grid, (byte) ContainerId.NONE);
-    }
-
-    public void resetCraftingGridType() {
-        if (this.craftingGrid != null) {
-            ItemStack[] drops = this.getInventory().addItem(this.craftingGrid.getContents().values().toArray(new ItemStack[0]));
-
-            if (drops.length > 0) {
-                for (ItemStack drop : drops) {
-                    this.dropItem(drop);
-                }
-            }
-
-            val cursorItem = this.getCursorInventory().getItem(0);
-            if (!cursorItem.isNull()) {
-                drops = this.getInventory().addItem();
-                if (drops.length > 0) {
-                    for (ItemStack drop : drops) {
-                        this.dropItem(drop);
-                    }
-                }
-            }
-
-            this.playerUIInventory.clearAll();
-
-            if (this.craftingGrid instanceof BigCraftingGrid) {
-                this.craftingGrid = this.playerUIInventory.getCraftingGrid();
-                this.addWindow(this.craftingGrid, (byte) ContainerId.NONE);
-//
-//                ContainerClosePacket pk = new ContainerClosePacket(); //be sure, big crafting is really closed
-//                pk.windowId = ContainerIds.NONE;
-//                this.dataPacket(pk);
-            }
-
-            this.craftingType = CraftingType.SMALL;
-        }
     }
 
     public void removeAllWindows() {

@@ -18,6 +18,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import net.minidev.json.JSONArray;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.item.ItemIds;
@@ -30,8 +31,10 @@ import org.cloudburstmc.api.potion.Potion;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.*;
@@ -76,6 +79,8 @@ public class CloudItemRegistry implements ItemRegistry {
     private final CloudBlockRegistry blockRegistry;
     private List<StartGamePacket.ItemEntry> itemEntries;
     private volatile CreativeContentPacket creativeContent;
+
+    public static final CloudItemStack AIR = new CloudItemStack(Identifiers.AIR, BlockTypes.AIR);
 
     private volatile boolean closed;
 

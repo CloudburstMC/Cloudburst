@@ -1,16 +1,15 @@
 package org.cloudburstmc.server.inventory;
 
+import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * @author CreeperFace
  */
-public class PlayerCursorInventory extends PlayerUIComponent {
-    private final PlayerUIInventory playerUI;
+public class PlayerCursorInventory extends BaseInventory {
 
-    PlayerCursorInventory(PlayerUIInventory playerUI) {
-        super(playerUI, 0, 1);
-        this.playerUI = playerUI;
+    public PlayerCursorInventory(CloudPlayer player) {
+        super(player, InventoryType.UI);
     }
 
     /**
@@ -20,6 +19,16 @@ public class PlayerCursorInventory extends PlayerUIComponent {
      */
     @Override
     public CloudPlayer getHolder() {
-        return playerUI.getHolder();
+        return (CloudPlayer) super.getHolder();
+    }
+
+    @Override
+    public int getSize() {
+        return 1;
+    }
+
+    @Override
+    public void setSize(int size) {
+        super.setSize(1);
     }
 }
