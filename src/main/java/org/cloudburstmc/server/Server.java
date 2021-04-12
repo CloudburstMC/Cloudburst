@@ -524,7 +524,7 @@ public class Server {
             this.defaultStorageId = StorageIds.LEVELDB;
         }
 
-        this.loadWorlds();
+        this.loadLevels();
 
         this.serverProperties.save();
 
@@ -1707,7 +1707,7 @@ public class Server {
         this.defaultLevelData.getGameRules().putAll(this.gameRuleRegistry.getDefaultRules());
     }
 
-    private void loadWorlds() throws IOException {
+    private void loadLevels() throws IOException {
         Path levelPath = dataPath.resolve("worlds");
         if (Files.notExists(levelPath)) {
             Files.createDirectory(levelPath);
