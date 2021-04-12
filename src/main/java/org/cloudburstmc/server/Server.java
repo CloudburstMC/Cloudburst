@@ -1738,7 +1738,7 @@ public class Server {
                 UUID uuid = UUID.nameUUIDFromBytes(((String) seedObj).getBytes(StandardCharsets.UTF_8));
                 seed = uuid.getMostSignificantBits() ^ uuid.getLeastSignificantBits();
             } else {
-                throw new IllegalStateException("Seed for world \"" + name + "\" is invalid: " + (seedObj == null ? "The seed used for world generation was null (Not specified)" : seedObj.getClass().getCanonicalName()));
+                throw new IllegalStateException("Seed for world \"" + name + "\" is invalid, the seed was of type " + (seedObj == null ? "null" : seedObj.getClass().getCanonicalName()) + ", a number or string was expected");
             }
 
             Identifier generator = Identifier.fromString(config.getGenerator());
