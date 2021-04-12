@@ -7,7 +7,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.EnchantingTableBlockEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.player.CloudPlayer.CraftingType;
 
 
 /**
@@ -67,7 +66,7 @@ public class CloudEnchantInventory extends BaseInventory implements EnchantInven
     @Override
     public void onOpen(Player who) {
         super.onOpen(who);
-        ((CloudPlayer) who).craftingType = CraftingType.ENCHANT;
+        //((CloudPlayer) who).craftingType = CraftingType.ENCHANT;
     }
 
     @Override

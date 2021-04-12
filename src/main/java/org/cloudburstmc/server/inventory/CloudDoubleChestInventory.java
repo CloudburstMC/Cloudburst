@@ -63,7 +63,7 @@ public class CloudDoubleChestInventory extends CloudContainer implements Invento
     }
 
     @Override
-    public ItemStack getItem(int index) {
+    public CloudItemStack getItem(int index) {
         return index < this.left.getSize() ? this.left.getItem(index) : this.right.getItem(index - this.right.getSize());
     }
 
