@@ -14,12 +14,12 @@ import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -109,8 +109,9 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public ItemStack getItem(int index) {
-        return this.slots.containsKey(index) ? this.slots.get(index) : ItemStacks.AIR;
+    @Nonnull
+    public CloudItemStack getItem(int index) {
+        return (CloudItemStack) (this.slots.containsKey(index) ? this.slots.get(index) : CloudItemRegistry.AIR);
     }
 
     @Override
@@ -461,7 +462,7 @@ public abstract class BaseInventory implements Inventory {
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            ItemStack item = ItemStacks.AIR;
+            ItemStack item = CloudItemRegistry.AIR;
             ItemStack old = this.slots.get(index);
             InventoryHolder holder = this.getHolder();
             if (holder instanceof BaseEntity) {

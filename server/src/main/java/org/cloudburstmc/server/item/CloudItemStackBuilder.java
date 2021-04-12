@@ -14,7 +14,6 @@ import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -264,12 +263,12 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
         Preconditions.checkArgument(itemType != null, "ItemType has not been set");
 
         if (amount <= 0) {
-            return (CloudItemStack) ItemStacks.AIR;
+            return CloudItemRegistry.AIR;
         }
 
         if (blockState != null) {
             if (blockState == BlockStates.AIR) {
-                return (CloudItemStack) ItemStacks.AIR;
+                return CloudItemRegistry.AIR;
             }
 
             return new BlockItemStack(this.blockState, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData);

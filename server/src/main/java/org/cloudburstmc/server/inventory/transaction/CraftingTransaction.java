@@ -3,14 +3,14 @@ package org.cloudburstmc.server.inventory.transaction;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.api.event.inventory.CraftItemEvent;
+import org.cloudburstmc.api.inventory.CraftingGrid;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.server.inventory.BigCraftingGrid;
 import org.cloudburstmc.server.inventory.CraftingRecipe;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.scheduler.Task;
 
@@ -38,8 +38,8 @@ public class CraftingTransaction extends InventoryTransaction {
     public CraftingTransaction(CloudPlayer source, List<InventoryAction> actions) {
         super(source, actions, false);
 
-        this.gridSize = (source.getCraftingGrid() instanceof BigCraftingGrid) ? 3 : 2;
-        ItemStack air = ItemStacks.AIR;
+        this.gridSize = (source.getInventory().getCraftingGrid().getCraftingGridType() == CraftingGrid.Type.CRAFTING_GRID_BIG) ? 3 : 2;
+        ItemStack air = CloudItemRegistry.AIR;
         this.inputs = new ItemStack[gridSize][gridSize];
         for (ItemStack[] a : this.inputs) {
             Arrays.fill(a, air);
@@ -167,7 +167,7 @@ public class CraftingTransaction extends InventoryTransaction {
             }
         }, 20);
 
-        this.source.resetCraftingGridType();
+        this.source.getCraftingInventory().resetCraftingGrid();
     }
 
     public boolean execute() {

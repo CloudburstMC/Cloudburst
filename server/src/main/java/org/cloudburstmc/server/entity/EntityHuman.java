@@ -23,19 +23,15 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
-import org.cloudburstmc.server.inventory.CloudPlayerInventory;
-import org.cloudburstmc.server.inventory.PlayerEnderChestInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.SkinUtils;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -52,11 +48,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class EntityHuman extends EntityCreature implements InventoryHolder, Human {
+public class EntityHuman extends EntityCreature implements Human {
 
     protected UUID identity;
-    private final CloudPlayerInventory inventory = new CloudPlayerInventory(this);
-    private final PlayerEnderChestInventory enderChestInventory = new PlayerEnderChestInventory(this);
+
 
     protected Skin skin;
 
@@ -103,15 +98,6 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
 
     public void setSkin(Skin skin) {
         this.skin = skin;
-    }
-
-    @Override
-    public CloudPlayerInventory getInventory() {
-        return inventory;
-    }
-
-    public PlayerEnderChestInventory getEnderChestInventory() {
-        return enderChestInventory;
     }
 
     @Override
@@ -184,57 +170,11 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
             this.identity = Utils.dataToUUID(String.valueOf(this.getUniqueId()).getBytes(UTF_8), this.getSkin()
                     .getSkinData().getImage(), this.getNameTag().getBytes(UTF_8));
         }
-
-        tag.listenForList("Inventory", NbtType.COMPOUND, items -> {
-            for (NbtMap itemTag : items) {
-                int slot = itemTag.getByte("Slot");
-                if (slot >= 0 && slot < 9) { //hotbar
-                    //Old hotbar saving stuff, useless now
-                } else if (slot >= 100 && slot < 105) {
-                    this.inventory.setItem(this.inventory.getSize() + slot - 100, ItemUtils.deserializeItem(itemTag));
-                } else {
-                    this.inventory.setItem(slot - 9, ItemUtils.deserializeItem(itemTag));
-                }
-            }
-        });
-
-        tag.listenForList("EnderItems", NbtType.COMPOUND, items -> {
-            for (NbtMap itemTag : items) {
-                this.enderChestInventory.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
-            }
-        });
     }
 
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
-
-        List<NbtMap> inventoryItems = new ArrayList<>();
-        int slotCount = CloudPlayerInventory.SURVIVAL_SLOTS + 9;
-        for (int slot = 9; slot < slotCount; ++slot) {
-            ItemStack item = this.inventory.getItem(slot - 9);
-            if (!item.isNull()) {
-                inventoryItems.add(ItemUtils.serializeItem(item, slot));
-            }
-        }
-
-        for (int slot = 100; slot < 105; ++slot) {
-            ItemStack item = this.inventory.getItem(this.inventory.getSize() + slot - 100);
-            if (!item.isNull()) {
-                inventoryItems.add(ItemUtils.serializeItem(item, slot));
-            }
-        }
-
-        tag.putList("Inventory", NbtType.COMPOUND, inventoryItems);
-
-        List<NbtMap> enderItems = new ArrayList<>();
-        for (int slot = 0; slot < 27; ++slot) {
-            ItemStack item = this.enderChestInventory.getItem(slot);
-            if (item != null && !item.isNull()) {
-                enderItems.add(ItemUtils.serializeItem(item, slot));
-            }
-        }
-        tag.putList("EnderItems", NbtType.COMPOUND, enderItems);
 
         if (this.skin != null) {
             SerializedSkin nbtSkin = SkinUtils.fromSkin(skin);
@@ -293,7 +233,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
 
             player.sendPacket(createAddEntityPacket());
 
-            this.inventory.sendArmorContents(player);
+            this.getInventory().sendArmorContents(player);
 
             if (this.vehicle != null) {
                 SetEntityLinkPacket packet = new SetEntityLinkPacket();
@@ -342,8 +282,8 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
     public void close() {
         if (!this.closed) {
             if (!(this instanceof CloudPlayer) || ((CloudPlayer) this).loggedIn) {
-                for (CloudPlayer viewer : this.inventory.getViewers()) {
-                    viewer.removeWindow(this.inventory);
+                for (CloudPlayer viewer : this.getInventory().getViewers()) {
+                    viewer.removeWindow(this.getInventory());
                 }
             }
 
@@ -362,7 +302,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
             int epf = 0;
             int toughness = 0;
 
-            for (ItemStack armor : inventory.getArmorContents()) {
+            for (ItemStack armor : getInventory().getArmorContents()) {
                 armorPoints += armor.getBehavior().getArmorPoints(armor);
                 epf += calculateEnchantmentProtectionFactor(armor, source);
                 //toughness += armor.getToughness();
@@ -386,7 +326,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
             }
 
             for (int slot = 0; slot < 4; slot++) {
-                ItemStack armor = this.inventory.getArmorItem(slot);
+                ItemStack armor = this.getInventory().getArmorItem(slot);
 
                 if (armor.hasEnchantments()) {
                     if (damager != null) {
@@ -410,9 +350,9 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
                     armor = armor.withData(damageable.damage());
 
                     if (damageable.getDurability() + 1 >= armor.getBehavior().getMaxDurability()) {
-                        inventory.setArmorItem(slot, ItemStacks.AIR);
+                        getInventory().setArmorItem(slot, CloudItemRegistry.AIR);
                     } else {
-                        inventory.setArmorItem(slot, armor, true);
+                        getInventory().setArmorItem(slot, armor, true);
                     }
                 }
             }
@@ -441,7 +381,7 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
     public void setOnFire(int seconds) {
         int level = 0;
 
-        for (ItemStack armor : this.inventory.getArmorContents()) {
+        for (ItemStack armor : this.getInventory().getArmorContents()) {
             EnchantmentInstance fireProtection = armor.getEnchantment(EnchantmentTypes.FIRE_PROTECTION);
 
             if (fireProtection != null && fireProtection.getLevel() > 0) {
@@ -456,8 +396,8 @@ public class EntityHuman extends EntityCreature implements InventoryHolder, Huma
 
     @Override
     public ItemStack[] getDrops() {
-        if (this.inventory != null) {
-            return this.inventory.getContents().values().toArray(new ItemStack[0]);
+        if (this.getInventory() != null) {
+            return this.getInventory().getContents().values().toArray(new ItemStack[0]);
         }
         return new ItemStack[0];
     }

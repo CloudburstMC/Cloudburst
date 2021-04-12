@@ -1,55 +1,41 @@
 package org.cloudburstmc.server.inventory;
 
+import com.google.common.collect.ImmutableList;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.entity.EntityArmorChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.api.event.player.PlayerItemHeldEvent;
-import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStacks;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import java.util.*;
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.cloudburstmc.api.block.BlockTypes.AIR;
+import static org.cloudburstmc.server.registry.CloudItemRegistry.AIR;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
 @Log4j2
-public class CloudPlayerInventory extends BaseInventory implements PlayerInventory {
+public class CloudPlayerInventory extends CloudCreatureInventory implements PlayerInventory {
 
     public static final int SURVIVAL_SLOTS = 36;
 
-    protected int itemInHandIndex = 0;
-    private int offHandIndex = 40;
-
-    public CloudPlayerInventory(EntityHuman player) {
-        super(player, InventoryType.PLAYER);
-    }
-
-    @Override
-    public int getSize() {
-        return super.getSize() - 5;
-    }
-
-    @Override
-    public void setSize(int size) {
-        super.setSize(size + 5);
-        this.offHandIndex = size + 4;
-        this.sendContents(this.getViewers());
+    public CloudPlayerInventory(CloudPlayer player) {
+        super(player);
     }
 
     /**
@@ -61,12 +47,12 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
      */
     public boolean equipItem(int slot) {
         if (!isHotbarSlot(slot)) {
-            this.sendContents((CloudPlayer) this.getHolder());
+            this.sendContents(this.getHolder());
             return false;
         }
 
-        if (this.getHolder() instanceof CloudPlayer) {
-            CloudPlayer player = (CloudPlayer) this.getHolder();
+        if (this.getHolder() != null) {
+            CloudPlayer player = this.getHolder();
             PlayerItemHeldEvent ev = new PlayerItemHeldEvent(player, this.getItem(slot), slot);
             this.getHolder().getLevel().getServer().getEventManager().fire(ev);
 
@@ -90,9 +76,45 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
         return slot >= 0 && slot <= this.getHotbarSize();
     }
 
+    private PlayerCursorInventory getCursor() {
+        return getHolder().getCursorInventory();
+    }
+
     @Override
-    public int getHeldItemIndex() {
-        return this.itemInHandIndex;
+    public boolean setHotbarSlot(int slot, ItemStack item) {
+        if (!isHotbarSlot(slot)) return false;
+        return super.setItem(slot, item, true);
+    }
+
+    @Override
+    public CloudItemStack getHotbarSlot(int slot) {
+        if (!isHotbarSlot(slot)) return AIR;
+        return super.getItem(slot);
+    }
+
+    @Override
+    public List<CloudItemStack> getHotbar() {
+        ImmutableList.Builder<CloudItemStack> builder = ImmutableList.builder();
+        for (int i = 0; i < this.getHotbarSize(); i++) {
+            builder.add(getItem(i));
+        }
+        return builder.build();
+    }
+
+    @Nonnull
+    @Override
+    public ItemStack getCursorItem() {
+        return getItem(0);
+    }
+
+    @Override
+    public boolean setCursorItem(@Nonnull ItemStack item) {
+        return super.setItem(0, item);
+    }
+
+    @Override
+    public void clearCursor() {
+        super.setItem(0, AIR, true);
     }
 
     @Override
@@ -103,86 +125,29 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
     @Override
     public void setHeldItemIndex(int index, boolean send) {
         if (index >= 0 && index < this.getHotbarSize()) {
-            this.itemInHandIndex = index;
-
-            if (this.getHolder() instanceof CloudPlayer && send) {
-                this.sendHeldItem((CloudPlayer) this.getHolder());
+            super.setHeldItemIndex(index);
+            if (send) {
+                this.sendHeldItem(this.getHolder());
             }
-
-            this.sendHeldItem(this.getHolder().getViewers());
         }
-    }
-
-    @Override
-    public void decrementHandCount() {
-        this.decrementCount(getHeldItemIndex());
-    }
-
-    @Override
-    public void incrementHandCount() {
-        this.incrementCount(getHeldItemIndex());
-    }
-
-    @Override
-    public ItemStack getItemInHand() {
-        ItemStack item = this.getItem(this.getHeldItemIndex());
-        if (item != null) {
-            return item;
-        } else {
-            return ItemStacks.AIR;
-        }
-    }
-
-    @Override
-    public boolean setItemInHand(ItemStack item) {
-        return this.setItem(this.getHeldItemIndex(), item);
     }
 
     public void setHeldItemSlot(int slot) {
         if (!isHotbarSlot(slot)) {
             return;
         }
-
-        this.itemInHandIndex = slot;
-
-        if (this.getHolder() instanceof CloudPlayer) {
-            this.sendHeldItem((CloudPlayer) this.getHolder());
-        }
-
-        this.sendHeldItem(this.getViewers());
-    }
-
-    public void sendHeldItem(CloudPlayer... players) {
-        ItemStack item = this.getItemInHand();
-
-        MobEquipmentPacket packet = new MobEquipmentPacket();
-        packet.setItem(((CloudItemStack) item).getNetworkData());
-        packet.setInventorySlot(this.getHeldItemIndex());
-        packet.setHotbarSlot(this.getHeldItemIndex());
-
-        for (CloudPlayer player : players) {
-            packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-            if (player.equals(this.getHolder())) {
-                packet.setRuntimeEntityId(player.getRuntimeId());
-                this.sendSlot(this.getHeldItemIndex(), player);
-            }
-
-            player.sendPacket(packet);
-        }
-    }
-
-    public void sendHeldItem(Collection<CloudPlayer> players) {
-        this.sendHeldItem(players.toArray(new CloudPlayer[0]));
+        super.setHeldItemIndex(slot);
+        this.sendHeldItem(this.getHolder());
     }
 
     @Override
     public void onSlotChange(int index, ItemStack before, boolean send) {
         EntityHuman holder = this.getHolder();
-        if (holder instanceof Player && !((Player) holder).isSpawned()) {
+        if (holder != null && !((Player) holder).isSpawned()) {
             return;
         }
 
-        if (index == this.offHandIndex) {
+        if (index == this.getOffHandIndex()) {
             this.sendOffHandSlot(this.getViewers());
             this.sendOffHandSlot(this.getHolder().getViewers());
         } else if (index >= this.getSize()) {
@@ -198,16 +163,6 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
     }
 
     @Override
-    public ItemStack getArmorItem(int index) {
-        return this.getItem(this.getSize() + index);
-    }
-
-    @Override
-    public boolean setArmorItem(int index, ItemStack item, boolean ignoreArmorEvents) {
-        return this.setItem(this.getSize() + index, item, ignoreArmorEvents);
-    }
-
-    @Override
     public boolean setItem(int index, ItemStack item) {
         return setItem(index, item, true, false);
     }
@@ -215,7 +170,7 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
     private boolean setItem(int index, ItemStack item, boolean send, boolean ignoreArmorEvents) {
         if (index < 0 || index >= this.size) {
             return false;
-        } else if (item.getType() == AIR || item.getAmount() <= 0) {
+        } else if (item.getType() == BlockTypes.AIR || item.getAmount() <= 0) {
             return this.clear(index);
         }
 
@@ -224,7 +179,7 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
             EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), this.getItem(index), item, index);
             CloudServer.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled() && this.getHolder() != null) {
-                if (index == this.offHandIndex) {
+                if (index == this.getOffHandIndex()) {
                     this.sendOffHandSlot(this.getViewers());
                 } else {
                     this.sendArmorSlot(index, this.getViewers());
@@ -250,7 +205,7 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            ItemStack item = ItemStacks.AIR;
+            ItemStack item = AIR;
             ItemStack old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
@@ -291,178 +246,11 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
     }
 
     @Override
-    public ItemStack[] getArmorContents() {
-        ItemStack[] armor = new ItemStack[4];
-        for (int i = 0; i < 4; i++) {
-            armor[i] = this.getItem(this.getSize() + i);
-        }
-
-        return armor;
-    }
-
-    @Override
     public void clearAll() {
         int limit = this.getSize() + 5;
         for (int index = 0; index < limit; ++index) {
             this.clear(index);
         }
-    }
-
-    @Override
-    public ItemStack getOffHand() {
-        return this.getItem(offHandIndex);
-    }
-
-    @Override
-    public void setOffHandContents(ItemStack offhand) {
-        if (offhand == null) {
-            offhand = ItemStacks.AIR;
-        }
-        this.setItem(offHandIndex, offhand);
-    }
-
-    public void sendOffHandContents(Collection<CloudPlayer> players) {
-        this.sendOffHandContents(players.toArray(new CloudPlayer[0]));
-    }
-
-    public void sendOffHandContents(CloudPlayer player) {
-        this.sendOffHandContents(new CloudPlayer[]{player});
-    }
-
-    public void sendOffHandContents(CloudPlayer[] players) {
-        ItemStack offHand = this.getOffHand();
-
-        if (offHand == null) {
-            offHand = ItemStacks.AIR;
-        }
-
-        MobEquipmentPacket packet = new MobEquipmentPacket();
-        packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setItem(((CloudItemStack) offHand).getNetworkData());
-        packet.setContainerId(ContainerId.OFFHAND);
-        packet.setInventorySlot(1);
-
-        for (Player player : players) {
-            if (player.equals(this.getHolder())) {
-                InventoryContentPacket invPacket = new InventoryContentPacket();
-                invPacket.setContainerId(ContainerId.OFFHAND);
-                invPacket.setContents(ItemUtils.toNetwork(Collections.singleton(offHand)));
-                ((CloudPlayer) player).sendPacket(invPacket);
-            } else {
-                ((CloudPlayer) player).sendPacket(packet);
-            }
-        }
-    }
-
-    public void sendOffHandSlot(CloudPlayer player) {
-        this.sendOffHandSlot(new CloudPlayer[]{player});
-    }
-
-    public void sendOffHandSlot(Collection<CloudPlayer> players) {
-        this.sendOffHandSlot(players.toArray(new CloudPlayer[0]));
-    }
-
-    public void sendOffHandSlot(CloudPlayer[] players) {
-        ItemStack offhand = this.getOffHand();
-
-        MobEquipmentPacket packet = new MobEquipmentPacket();
-        packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setItem(((CloudItemStack) offhand).getNetworkData());
-        packet.setContainerId(ContainerId.OFFHAND);
-        packet.setInventorySlot(1);
-
-        for (CloudPlayer player : players) {
-            if (player.equals(this.getHolder())) {
-                InventorySlotPacket slotPacket = new InventorySlotPacket();
-                slotPacket.setContainerId(ContainerId.OFFHAND);
-                slotPacket.setItem(((CloudItemStack) offhand).getNetworkData());
-                slotPacket.setSlot(0); // Not sure why offhand uses slot 0 in SlotPacket and 1 in MobEq Packet
-                player.sendPacket(slotPacket);
-            } else {
-                player.sendPacket(packet);
-            }
-        }
-    }
-
-    public void sendArmorContents(CloudPlayer player) {
-        this.sendArmorContents(new CloudPlayer[]{player});
-    }
-
-    public void sendArmorContents(CloudPlayer[] players) {
-        ItemStack[] armor = this.getArmorContents();
-
-        MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
-        packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setHelmet(((CloudItemStack) armor[0]).getNetworkData());
-        packet.setChestplate(((CloudItemStack) armor[1]).getNetworkData());
-        packet.setLeggings(((CloudItemStack) armor[2]).getNetworkData());
-        packet.setBoots(((CloudItemStack) armor[3]).getNetworkData());
-
-        for (CloudPlayer player : players) {
-            if (player.equals(this.getHolder())) {
-                InventoryContentPacket packet2 = new InventoryContentPacket();
-                packet2.setContainerId(ContainerId.ARMOR);
-                packet2.setContents(ItemUtils.toNetwork(Arrays.asList(armor)));
-                player.sendPacket(packet2);
-            } else {
-                player.sendPacket(packet);
-            }
-        }
-    }
-
-    public void setArmorContents(ItemStack[] items) {
-        if (items.length < 4) {
-            ItemStack[] newItems = new ItemStack[4];
-            System.arraycopy(items, 0, newItems, 0, items.length);
-            items = newItems;
-        }
-
-        for (int i = 0; i < 4; ++i) {
-            if (items[i] == null) {
-                items[i] = ItemStacks.AIR;
-            }
-
-            if (items[i].isNull()) {
-                this.clear(this.getSize() + i);
-            } else {
-                this.setItem(this.getSize() + i, items[i]);
-            }
-        }
-    }
-
-    public void sendArmorContents(Collection<CloudPlayer> players) {
-        this.sendArmorContents(players.toArray(new CloudPlayer[0]));
-    }
-
-    public void sendArmorSlot(int index, CloudPlayer player) {
-        this.sendArmorSlot(index, new CloudPlayer[]{player});
-    }
-
-    public void sendArmorSlot(int index, CloudPlayer[] players) {
-        CloudItemStack[] armor = (CloudItemStack[]) this.getArmorContents();
-
-        MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
-        packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setHelmet(armor[0].getNetworkData());
-        packet.setChestplate(armor[1].getNetworkData());
-        packet.setLeggings(armor[2].getNetworkData());
-        packet.setBoots(armor[3].getNetworkData());
-
-        for (CloudPlayer player : players) {
-            if (player.equals(this.getHolder())) {
-                InventorySlotPacket packet2 = new InventorySlotPacket();
-                packet2.setContainerId(ContainerId.ARMOR);
-                packet2.setSlot(index - this.getSize());
-                packet2.setItem(((CloudItemStack) this.getItem(index)).getNetworkData());
-                player.sendPacket(packet2);
-            } else {
-                player.sendPacket(packet);
-            }
-        }
-    }
-
-    public void sendArmorSlot(int index, Collection<CloudPlayer> players) {
-        this.sendArmorSlot(index, players.toArray(new CloudPlayer[0]));
     }
 
     @Override
@@ -489,7 +277,7 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
 
     @Override
     public void sendSlot(int index, Player... players) {
-        ItemData itemData = ((CloudItemStack) this.getItem(index)).getNetworkData();
+        ItemData itemData = this.getItem(index).getNetworkData();
 
         for (CloudPlayer player : (CloudPlayer[]) players) {
             InventorySlotPacket packet = new InventorySlotPacket();
@@ -513,9 +301,6 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
 
     @Override
     public void sendCreativeContents() {
-        if (!(this.getHolder() instanceof Player)) {
-            return;
-        }
         CloudPlayer p = this.getHolder();
 
         CreativeContentPacket pk;
@@ -554,5 +339,10 @@ public class CloudPlayerInventory extends BaseInventory implements PlayerInvento
         // Player can neer stop viewing their own inventory
         if (who != holder)
             super.onClose(who);
+    }
+
+    @Override
+    public CloudCraftingGrid getCraftingGrid() {
+        return this.getHolder().getCraftingInventory();
     }
 }

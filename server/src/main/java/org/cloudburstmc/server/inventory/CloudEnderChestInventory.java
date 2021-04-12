@@ -5,6 +5,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.EnderChest;
+import org.cloudburstmc.api.inventory.ContainerInventory;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.entity.EntityHuman;
@@ -12,15 +13,15 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class PlayerEnderChestInventory extends BaseInventory {
+public class CloudEnderChestInventory extends CloudContainer implements ContainerInventory {
 
-    public PlayerEnderChestInventory(EntityHuman player) {
+    public CloudEnderChestInventory(EntityHuman player) {
         super(player, InventoryType.ENDER_CHEST);
     }
 
     @Override
-    public EntityHuman getHolder() {
-        return (EntityHuman) this.holder;
+    public CloudPlayer getHolder() {
+        return (CloudPlayer) this.holder;
     }
 
     @Override
@@ -32,7 +33,7 @@ public class PlayerEnderChestInventory extends BaseInventory {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setId(who.getWindowId(this));
         containerOpenPacket.setType(NetworkUtils.inventoryToNetwork(this.getType()));
-        EnderChest chest = ((CloudPlayer) who).getViewingEnderChest();
+        EnderChest chest = who.getViewingEnderChest();
         if (chest != null) {
             containerOpenPacket.setBlockPosition(chest.getPosition());
         } else {
