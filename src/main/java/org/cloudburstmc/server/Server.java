@@ -78,6 +78,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -221,8 +222,6 @@ public class Server {
     private final Set<String> ignoredPackets = new HashSet<>();
 
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.dat$", Pattern.CASE_INSENSITIVE);
-
-    public static final Random RANDOM = new Random();
 
     public Server(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
@@ -1726,7 +1725,7 @@ public class Server {
             Object seedObj = config.getSeed();
             long seed;
             if(seedObj == null) { //Auto generate seed if one was not specified
-            	seedObj = RANDOM.nextLong();
+            	seedObj = ThreadLocalRandom.current().nextLong();
             }
             if (seedObj instanceof Number) {
                 seed = ((Number) seedObj).longValue();
