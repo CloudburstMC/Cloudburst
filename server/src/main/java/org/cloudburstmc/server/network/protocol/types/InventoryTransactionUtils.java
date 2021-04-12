@@ -152,7 +152,7 @@ public class InventoryTransactionUtils {
                 switch (containerId) {
                     case SOURCE_TYPE_CRAFTING_ADD_INGREDIENT:
                     case SOURCE_TYPE_CRAFTING_REMOVE_INGREDIENT:
-                        return new SlotChangeAction(player.getCraftingGrid(), slot, oldItem, newItem);
+                        return new SlotChangeAction(player.getCraftingInventory(), slot, oldItem, newItem);
                     case SOURCE_TYPE_CONTAINER_DROP_CONTENTS:
                         Optional<Inventory> inventory = player.getTopWindow();
                         if (!inventory.isPresent()) {

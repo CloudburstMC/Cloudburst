@@ -5,12 +5,15 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
+import org.cloudburstmc.api.inventory.ContainerInventory;
+import org.cloudburstmc.api.inventory.CraftingGrid;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
@@ -19,6 +22,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.util.AxisAlignedBB;
@@ -84,7 +88,7 @@ public class OfflinePlayer implements Player {
 
     @Override
     public boolean isOnline() {
-        return this.getPlayer() != null;
+        return false;
     }
 
     @Override
@@ -648,6 +652,26 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
+    public Skin getSkin() {
+        return null;
+    }
+
+    @Override
+    public void setSkin(Skin newSkin) {
+
+    }
+
+    @Override
+    public EnderChest getViewingEnderChest() {
+        return null;
+    }
+
+    @Override
+    public void setViewingEnderChest(EnderChest chest) {
+
+    }
+
+    @Override
     public void setOp(boolean value) {
         if (value == this.isOp()) {
             return;
@@ -688,11 +712,11 @@ public class OfflinePlayer implements Player {
         }
     }
 
-    @Override
+    /*@Override
     public Player getPlayer() {
         return this.server.getPlayerExact(this.getName());
     }
-
+*/
     @Override
     public OptionalLong getFirstPlayed() {
         return this.namedTag != null ? OptionalLong.of(this.namedTag.getLong("firstPlayed")) : OptionalLong.empty();
@@ -740,6 +764,16 @@ public class OfflinePlayer implements Player {
 
     @Override
     public PlayerInventory getInventory() {
+        return null;
+    }
+
+    @Override
+    public ContainerInventory getEnderChestInventory() {
+        return null;
+    }
+
+    @Override
+    public CraftingGrid getCraftingInventory() {
         return null;
     }
 

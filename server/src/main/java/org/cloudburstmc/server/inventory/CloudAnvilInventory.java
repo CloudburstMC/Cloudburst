@@ -5,7 +5,6 @@ import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.player.CloudPlayer.CraftingType;
 
 /**
  * author: MagicDroidX
@@ -32,8 +31,7 @@ public class CloudAnvilInventory extends BaseInventory implements AnvilInventory
     @Override
     public void onClose(Player who) {
         super.onClose(who);
-        ((CloudPlayer) who).craftingType = CraftingType.SMALL;
-        ((CloudPlayer) who).resetCraftingGridType();
+        getHolder().getCraftingInventory().resetCraftingGrid();
 
         for (int i = 0; i < 2; ++i) {
             this.getHolder().getLevel().dropItem(this.getHolder().getPosition().toFloat().add(0.5, 0.5, 0.5), this.getItem(i));
@@ -44,7 +42,7 @@ public class CloudAnvilInventory extends BaseInventory implements AnvilInventory
     @Override
     public void onOpen(Player who) {
         super.onOpen(who);
-        ((CloudPlayer) who).craftingType = CraftingType.ANVIL;
+        //((CloudPlayer) who).craftingType = CraftingType.ANVIL;
     }
 
     @Override
