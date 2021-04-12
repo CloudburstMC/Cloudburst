@@ -1725,7 +1725,7 @@ public class Server {
             Object seedObj = config.getSeed();
             long seed;
             if(seedObj == null) { //Auto generate seed if one was not specified
-            	seedObj = ThreadLocalRandom.current().nextLong();
+                seedObj = ThreadLocalRandom.current().nextLong();
             }
             if (seedObj instanceof Number) {
                 seed = ((Number) seedObj).longValue();
