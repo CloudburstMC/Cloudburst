@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.inventory;
+package org.cloudburstmc.server.crafting;
 
 import com.google.common.collect.ImmutableList;
 import io.netty.util.collection.CharObjectHashMap;

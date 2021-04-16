@@ -7,7 +7,7 @@ import org.cloudburstmc.api.inventory.CraftingGrid;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.server.inventory.CraftingRecipe;
+import org.cloudburstmc.server.crafting.CraftingRecipe;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;

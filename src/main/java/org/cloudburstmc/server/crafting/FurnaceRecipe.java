@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.inventory;
+package org.cloudburstmc.server.crafting;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import lombok.val;

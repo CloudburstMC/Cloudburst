@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.inventory;
+package org.cloudburstmc.server.crafting;
 
 import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
