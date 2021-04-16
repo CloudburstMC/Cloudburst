@@ -21,7 +21,7 @@ import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.inventory.BrewingRecipe;
+import org.cloudburstmc.server.crafting.BrewingRecipe;
 import org.cloudburstmc.server.inventory.CloudBrewingInventory;
 import org.cloudburstmc.server.inventory.ContainerRecipe;
 import org.cloudburstmc.server.item.ItemUtils;

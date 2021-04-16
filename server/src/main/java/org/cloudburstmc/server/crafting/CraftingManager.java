@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.inventory;
+package org.cloudburstmc.server.crafting;
 
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.item.ItemStack;
