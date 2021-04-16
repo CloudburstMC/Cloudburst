@@ -25,6 +25,8 @@ package co.aikar.timings;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.Event;
@@ -41,8 +43,8 @@ import java.util.Set;
 
 import static co.aikar.timings.TimingIdentifier.DEFAULT_GROUP;
 
-@Log4j2
 public final class Timings {
+    private static final Logger log = LogManager.getLogger(Timings.class);
     private static boolean timingsEnabled = false;
     private static boolean verboseEnabled = false;
     private static boolean privacy = false;
