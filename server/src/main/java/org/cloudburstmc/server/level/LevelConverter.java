@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.generator.impl.VoidGenerator;
 import org.cloudburstmc.server.level.provider.LevelProvider;
@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LevelConverter {
     private final LevelProvider oldLevelProvider;
     private final LevelProvider newLevelProvider;
-    private final Level fakeLevel;
+    private final CloudLevel fakeLevel;
 
     public LevelConverter(LevelProvider oldLevelProvider, LevelProvider newLevelProvider) {
         this.oldLevelProvider = oldLevelProvider;
@@ -23,7 +23,7 @@ public class LevelConverter {
         data.setName("converting");
         data.setGenerator(VoidGenerator.ID);
         data.setRandomSeed(0L);
-        this.fakeLevel = new Level(Server.getInstance(), "converting", newLevelProvider, data);
+        this.fakeLevel = new CloudLevel(CloudServer.getInstance(), "converting", newLevelProvider, data);
     }
 
     public CompletableFuture<Void> perform() {
@@ -47,6 +47,7 @@ public class LevelConverter {
             }
         }).thenApply(aVoid -> {
             fakeLevel.close();
+            log.info("Conversion completed. {} chunks converted", converted.get());
             return null;
         });
     }

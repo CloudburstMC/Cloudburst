@@ -1,21 +1,22 @@
 package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.level.gamerule.GameRule;
+import org.cloudburstmc.api.level.gamerule.GameRuleMap;
+import org.cloudburstmc.api.registry.GameRuleRegistry;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.gamerule.GameRule;
-import org.cloudburstmc.server.level.gamerule.GameRuleMap;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.GameRuleRegistry;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Arrays;
 import java.util.StringJoiner;
 
 public class GameruleCommand extends Command {
-    private static final GameRuleRegistry registry = GameRuleRegistry.get();
+    private static final GameRuleRegistry registry = CloudServer.getInstance().getGameRuleRegistry();
 
     public GameruleCommand() {
         super("gamerule", CommandData.builder("gamerule")
@@ -35,11 +36,11 @@ public class GameruleCommand extends Command {
             return true;
         }
 
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof CloudPlayer)) {
             sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
             return true;
         }
-        GameRuleMap rules = ((Player) sender).getLevel().getGameRules();
+        GameRuleMap rules = ((CloudPlayer) sender).getLevel().getGameRules();
 
         switch (args.length) {
             case 0:

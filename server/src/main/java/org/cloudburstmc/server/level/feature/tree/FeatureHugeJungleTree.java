@@ -2,13 +2,13 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.level.ChunkManager;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.math.Direction;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
@@ -66,8 +66,8 @@ public class FeatureHugeJungleTree extends FeatureHugeTree {
                 dx = floorI(1.5d + dirCos * branchLength);
                 dz = floorI(1.5d + dirSin * branchLength);
                 int ddy = (branchLength >> 1) - 3;
-                if (this.test(level.getBlockAt(x + dx, y + dy + ddy, z + dz, 0))) {
-                    level.setBlockAt(x + dx, y + dy + ddy, z + dz, 0, log);
+                if (this.test(level.getBlockState(x + dx, y + dy + ddy, z + dz, 0))) {
+                    level.setBlockState(x + dx, y + dy + ddy, z + dz, 0, log);
                 }
             }
 
@@ -80,8 +80,8 @@ public class FeatureHugeJungleTree extends FeatureHugeTree {
     protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, Direction face) {
         x -= face.getUnitVector().getX();
         z -= face.getUnitVector().getZ();
-        if (random.nextInt(4) != 0 && this.test(level.getBlockAt(x, y, z, 0))) {
-            level.setBlockAt(x, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, face));
+        if (random.nextInt(4) != 0 && this.test(level.getBlockState(x, y, z, 0))) {
+            level.setBlockState(x, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, face));
         }
     }
 }

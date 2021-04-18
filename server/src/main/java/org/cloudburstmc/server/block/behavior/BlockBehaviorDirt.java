@@ -1,17 +1,17 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.DirtType;
+import lombok.val;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DirtType;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import static org.cloudburstmc.server.block.BlockIds.DIRT;
-import static org.cloudburstmc.server.block.BlockIds.FARMLAND;
-import static org.cloudburstmc.server.block.BlockTraits.DIRT_TYPE;
+import static org.cloudburstmc.api.block.BlockTraits.DIRT_TYPE;
+import static org.cloudburstmc.api.block.BlockTypes.DIRT;
+import static org.cloudburstmc.api.block.BlockTypes.FARMLAND;
 
 public class BlockBehaviorDirt extends BlockBehaviorSolid {
 
@@ -20,26 +20,13 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
         return true;
     }
 
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
 
     @Override
-    public float getHardness() {
-        return 0.5f;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_SHOVEL;
-    }
-
-    @Override
-    public boolean onActivate(Block block, Item item, Player player) {
-        if (item.isHoe()) {
-            item.useOn(block);
-            block.set(BlockState.get(block.getState().ensureTrait(DIRT_TYPE) == DirtType.NORMAL ? FARMLAND : DIRT), true);
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        val behavior = item.getBehavior();
+        if (behavior.isHoe()) {
+            behavior.useOn(item, block.getState());
+            block.set(CloudBlockRegistry.get().getBlock(block.getState().ensureTrait(DIRT_TYPE) == DirtType.NORMAL ? FARMLAND : DIRT), true);
             return true;
         }
 
@@ -47,8 +34,8 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{Item.get(BlockIds.DIRT)};
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{CloudItemRegistry.get().getItem(DIRT)};
     }
 
     @Override

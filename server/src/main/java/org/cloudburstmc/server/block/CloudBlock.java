@@ -1,28 +1,34 @@
 package org.cloudburstmc.server.block;
 
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.math.Direction;
+import lombok.ToString;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockSnapshot;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 
-import static org.cloudburstmc.server.block.BlockIds.FLOWING_WATER;
-import static org.cloudburstmc.server.block.BlockIds.WATER;
+import static org.cloudburstmc.api.block.BlockStates.AIR;
+import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
+import static org.cloudburstmc.api.block.BlockTypes.WATER;
 
+@ToString(exclude = {"level"}, callSuper = true)
 public class CloudBlock extends CloudBlockSnapshot implements Block {
 
-    public static BlockState[] EMPTY = new BlockState[]{BlockStates.AIR, BlockStates.AIR};
+    public static BlockState[] EMPTY = new BlockState[]{AIR, AIR};
 
-    private final Level level;
+    private final CloudLevel level;
     private final Vector3i position;
 
-    public CloudBlock(Level level, Vector3i position, BlockState[] states) {
+    public CloudBlock(CloudLevel level, Vector3i position, BlockState[] states) {
         super(states);
         this.level = level;
         this.position = position;
     }
 
     @Override
-    public Level getLevel() {
+    public CloudLevel getLevel() {
         return level;
     }
 
@@ -32,7 +38,7 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     }
 
     @Override
-    public Chunk getChunk() {
+    public CloudChunk getChunk() {
         return level.getChunk(position);
     }
 
@@ -43,12 +49,12 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public BlockState getRelativeState(int x, int y, int z, int layer) {
-        return this.level.getBlockAt(getX() + x, getY() + y, getZ() + z, layer);
+        return this.level.getBlockState(getX() + x, getY() + y, getZ() + z, layer);
     }
 
     @Override
     public BlockState getSideState(Direction face, int step, int layer) {
-        return this.level.getBlockAt(
+        return this.level.getBlockState(
                 getX() + face.getXOffset() * step,
                 getY() + face.getYOffset() * step,
                 getZ() + face.getZOffset() * step,
@@ -69,7 +75,7 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public void set(BlockState state, int layer, boolean direct, boolean update) {
-        this.level.setBlock(this.position, layer, state, direct, update);
+        this.level.setBlockState(this.position, layer, state, direct, update);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.command;
 
-import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginContainer;
 
 /**
  * author: MagicDroidX

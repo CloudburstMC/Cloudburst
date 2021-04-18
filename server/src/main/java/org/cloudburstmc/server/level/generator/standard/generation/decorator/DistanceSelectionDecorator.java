@@ -6,10 +6,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.server.level.chunk.IChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Objects;
 
@@ -60,7 +60,7 @@ public class DistanceSelectionDecorator extends AbstractGenerationPass implement
     }
 
     @Override
-    public void decorate(PRandom random, IChunk chunk, int x, int z) {
+    public void decorate(PRandom random, Chunk chunk, int x, int z) {
         int blockX = (chunk.getX() << 4) | x;
         int blockZ = (chunk.getZ() << 4) | z;
         double distanceSq = blockX * blockX + blockZ * blockZ;

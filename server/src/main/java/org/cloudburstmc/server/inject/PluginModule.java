@@ -3,7 +3,7 @@ package org.cloudburstmc.server.inject;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.server.plugin.PluginDescription;
+import org.cloudburstmc.api.plugin.PluginDescription;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;

@@ -3,8 +3,9 @@ package org.cloudburstmc.server.level.chunk;
 import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2ShortMap;
 import it.unimi.dsi.fastutil.ints.Int2ShortOpenHashMap;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.BlockUpdate;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,17 +14,17 @@ public class ChunkBuilder {
 
     private final int x;
     private final int z;
-    private final Level level;
+    private final CloudLevel level;
     private final Int2ShortMap extraData = new Int2ShortOpenHashMap();
     private final List<BlockUpdate> blockUpdates = new ArrayList<>();
     private final List<ChunkDataLoader> chunkDataLoaders = new ArrayList<>();
-    private ChunkSection[] sections;
+    private CloudChunkSection[] sections;
     private byte[] biomes;
     private int[] heightMap;
     private boolean dirty;
-    private int state = IChunk.STATE_NEW;
+    private int state = Chunk.STATE_NEW;
 
-    public ChunkBuilder(int x, int z, Level level) {
+    public ChunkBuilder(int x, int z, CloudLevel level) {
         this.x = x;
         this.z = z;
         this.level = Preconditions.checkNotNull(level, "level");
@@ -37,7 +38,7 @@ public class ChunkBuilder {
         return z;
     }
 
-    public ChunkBuilder sections(ChunkSection[] sections) {
+    public ChunkBuilder sections(CloudChunkSection[] sections) {
         this.sections = Preconditions.checkNotNull(sections, "sections");
         return this;
     }
@@ -79,13 +80,13 @@ public class ChunkBuilder {
         return this;
     }
 
-    public Chunk build() {
+    public CloudChunk build() {
         Preconditions.checkNotNull(this.sections, "sections");
         Preconditions.checkNotNull(this.biomes, "biomes");
         Preconditions.checkNotNull(this.heightMap, "heightMap");
-        Chunk chunk = new Chunk(new UnsafeChunk(this.x, this.z, this.level, this.sections, this.biomes,
+        CloudChunk chunk = new CloudChunk(new UnsafeChunk(this.x, this.z, this.level, this.sections, this.biomes,
                 this.heightMap), this.chunkDataLoaders, this.blockUpdates);
-        if (this.state != IChunk.STATE_NEW) {
+        if (this.state != Chunk.STATE_NEW) {
             chunk.setState(this.state);
         }
         chunk.setDirty(this.dirty);

@@ -1,15 +1,16 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.RailDirection;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Rail;
-import org.cloudburstmc.server.utils.data.RailDirection;
 
-import static org.cloudburstmc.server.block.BlockIds.GOLDEN_RAIL;
+import static org.cloudburstmc.api.block.BlockTypes.GOLDEN_RAIL;
 
 public class BlockBehaviorRailPowered extends BlockBehaviorRail {
 
@@ -24,12 +25,12 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
         //          Network below 86Kb/s. This will became unresponsive to clients 
         //          When updating the block state. Espicially on the world with many rails. 
         //          Trust me, I tested this on my server.
-        if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE || type == Level.BLOCK_UPDATE_SCHEDULED) {
-            if (super.onUpdate(block, type) == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE || type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
+            if (super.onUpdate(block, type) == CloudLevel.BLOCK_UPDATE_NORMAL) {
                 return 0; // Already broken
             }
             boolean wasPowered = isActive(block.getState());
-            boolean isPowered = block.getLevel().isBlockPowered(block.getPosition())
+            boolean isPowered = ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition())
                     || checkSurrounding(block, block.getPosition(), true, 0)
                     || checkSurrounding(block, block.getPosition(), false, 0);
 
@@ -163,13 +164,13 @@ public class BlockBehaviorRailPowered extends BlockBehaviorRail {
                 || base != RailDirection.EAST_WEST
                 && base != RailDirection.ASCENDING_EAST
                 && base != RailDirection.ASCENDING_WEST)
-                && (block.getLevel().isBlockPowered(pos) || checkSurrounding(block, pos, relative, power + 1));
+                && (((CloudLevel) block.getLevel()).isBlockPowered(pos) || checkSurrounding(block, pos, relative, power + 1));
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(GOLDEN_RAIL)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                CloudItemRegistry.get().getItem(GOLDEN_RAIL)
         };
     }
 }

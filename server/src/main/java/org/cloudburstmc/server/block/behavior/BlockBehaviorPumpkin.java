@@ -1,47 +1,24 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorPumpkin extends BlockBehaviorSolid {
 
-    protected final Identifier type;
-
-    public BlockBehaviorPumpkin(Identifier type) {
-        this.type = type;
+    @Override
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
     @Override
-    public float getHardness() {
-        return 1;
-    }
-
-    @Override
-    public float getResistance() {
-        return 5;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
-
-    @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
-    }
-
-    @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return placeBlock(block, BlockState.get(type).withTrait(
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        return placeBlock(block, item.getBehavior().getBlock(item).withTrait(
                 BlockTraits.DIRECTION,
                 (player != null ? player.getHorizontalDirection() : Direction.NORTH).getOpposite()
         ));

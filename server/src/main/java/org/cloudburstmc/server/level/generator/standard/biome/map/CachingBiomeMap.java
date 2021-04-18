@@ -4,9 +4,9 @@ import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Set;
 
@@ -31,7 +31,7 @@ public final class CachingBiomeMap implements BiomeMap {
     }
 
     private GenerationBiome[] getChunk(int chunkX, int chunkZ) {
-        long key = Chunk.key(chunkX, chunkZ);
+        long key = CloudChunk.key(chunkX, chunkZ);
         GenerationBiome[] chunk;
         boolean generate = false;
         synchronized (this.cache) {

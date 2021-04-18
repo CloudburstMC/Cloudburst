@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.command.defaults;
 
+import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * author: MagicDroidX
@@ -25,8 +25,8 @@ public class SeedCommand extends Command {
         }
 
         long seed;
-        if (sender instanceof Player) {
-            seed = ((Player) sender).getLevel().getSeed();
+        if (sender instanceof CloudPlayer) {
+            seed = ((CloudPlayer) sender).getLevel().getSeed();
         } else {
             seed = sender.getServer().getDefaultLevel().getSeed();
         }

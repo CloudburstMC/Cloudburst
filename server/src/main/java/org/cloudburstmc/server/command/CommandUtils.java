@@ -2,10 +2,11 @@ package org.cloudburstmc.server.command;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.locale.TextContainer;
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.locale.TextContainer;
+import org.cloudburstmc.api.permission.Permissible;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.permission.Permissible;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Optional;
@@ -60,7 +61,7 @@ public class CommandUtils {
     }
 
     public static void broadcastCommandMessage(CommandSender source, String message, boolean sendToSource) {
-        Set<Permissible> users = source.getServer().getPermissionManager().getPermissionSubscriptions(Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+        Set<Permissible> users = source.getServer().getPermissionManager().getPermissionSubscriptions(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE);
 
         TranslationContainer result = new TranslationContainer("chat.type.admin", source.getName(), message);
 
@@ -89,7 +90,7 @@ public class CommandUtils {
         TextContainer m = message.clone();
         String resultStr = "[" + source.getName() + ": " + m.getText() + "]";
 
-        Set<Permissible> users = source.getServer().getPermissionManager().getPermissionSubscriptions(Server.BROADCAST_CHANNEL_ADMINISTRATIVE);
+        Set<Permissible> users = source.getServer().getPermissionManager().getPermissionSubscriptions(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE);
 
         String coloredStr = TextFormat.GRAY + "" + TextFormat.ITALIC + resultStr;
 

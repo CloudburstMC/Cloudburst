@@ -3,12 +3,12 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Objects;
 
@@ -54,7 +54,7 @@ public class EndIslandPopulator extends ChancePopulator.Column {
             for (int f = floorI(-radius), c = ceilI(radius), dx = f; dx <= c; dx++) {
                 for (int dz = f; dz <= c; dz++) {
                     if (dx * dx + dz * dz <= (radius + 1.0d) * (radius + 1.0d)) {
-                        level.setBlockAt(blockX + dx, blockY + dy, blockZ + dz, 0, block);
+                        level.setBlockState(blockX + dx, blockY + dy, blockZ + dz, 0, block);
                     }
                 }
             }

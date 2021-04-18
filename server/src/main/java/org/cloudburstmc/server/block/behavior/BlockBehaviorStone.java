@@ -1,52 +1,34 @@
 package org.cloudburstmc.server.block.behavior;
 
+import lombok.val;
 import lombok.var;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.utils.data.StoneType;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.TierTypes;
+import org.cloudburstmc.api.util.data.StoneType;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import static org.cloudburstmc.server.block.BlockIds.COBBLESTONE;
+import static org.cloudburstmc.api.block.BlockTypes.COBBLESTONE;
 
 public class BlockBehaviorStone extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 1.5f;
-    }
 
     @Override
-    public float getResistance() {
-        return 10;
-    }
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        val behavior = hand.getBehavior();
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
-
-    @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
+        if (behavior.isPickaxe() && behavior.getTier(hand).compareTo(TierTypes.WOOD) >= 0) {
             var state = block.getState();
             if (state.ensureTrait(BlockTraits.STONE_TYPE) == StoneType.STONE) {
-                state = BlockState.get(COBBLESTONE);
+                state = CloudBlockRegistry.get().getBlock(COBBLESTONE);
             }
-            return new Item[]{Item.get(state)};
+            return new ItemStack[]{CloudItemRegistry.get().getItem(state)};
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 }

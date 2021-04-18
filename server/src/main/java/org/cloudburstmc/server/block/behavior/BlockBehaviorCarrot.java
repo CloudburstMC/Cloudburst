@@ -1,28 +1,29 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Random;
 
 public class BlockBehaviorCarrot extends BlockBehaviorCrops {
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         if (block.getState().ensureTrait(BlockTraits.GROWTH) >= 0x07) {
-            return new Item[]{
-                    Item.get(ItemIds.CARROT, 0, new Random().nextInt(3) + 1)
+            return new ItemStack[]{
+                    CloudItemRegistry.get().getItem(ItemTypes.CARROT, new Random().nextInt(3) + 1)
             };
         }
-        return new Item[]{
-                Item.get(ItemIds.CARROT)
+        return new ItemStack[]{
+                CloudItemRegistry.get().getItem(ItemTypes.CARROT)
         };
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.CARROT);
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(ItemTypes.CARROT);
     }
 }

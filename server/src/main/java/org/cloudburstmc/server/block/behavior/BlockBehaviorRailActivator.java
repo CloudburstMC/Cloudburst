@@ -2,14 +2,15 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.RailDirection;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Rail;
-import org.cloudburstmc.server.utils.data.RailDirection;
 
-import static org.cloudburstmc.server.block.BlockIds.ACTIVATOR_RAIL;
+import static org.cloudburstmc.api.block.BlockTypes.ACTIVATOR_RAIL;
 
 public class BlockBehaviorRailActivator extends BlockBehaviorRail {
 
@@ -20,10 +21,10 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE || type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE || type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             super.onUpdate(block, type);
 
-            val level = block.getLevel();
+            val level = (CloudLevel) block.getLevel();
             boolean wasPowered = isActive(block.getState());
             boolean isPowered = level.isBlockPowered(block.getPosition())
                     || checkSurrounding(block, block.getPosition(), true, 0)
@@ -145,7 +146,7 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
             return false;
         }
 
-        RailDirection base = ((BlockBehaviorRailActivator) state).getOrientation(state);
+        RailDirection base = ((BlockBehaviorRailActivator) state.getBehavior()).getOrientation(state);
 
         return (direction != RailDirection.EAST_WEST
                 || base != RailDirection.NORTH_SOUTH
@@ -155,13 +156,13 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
                 || base != RailDirection.EAST_WEST
                 && base != RailDirection.ASCENDING_EAST
                 && base != RailDirection.ASCENDING_WEST)
-                && (block.getLevel().isBlockPowered(pos) || checkSurrounding(block, pos, relative, power + 1));
+                && (((CloudLevel) block.getLevel()).isBlockPowered(pos) || checkSurrounding(block, pos, relative, power + 1));
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(ACTIVATOR_RAIL)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                CloudItemRegistry.get().getItem(ACTIVATOR_RAIL)
         };
     }
 

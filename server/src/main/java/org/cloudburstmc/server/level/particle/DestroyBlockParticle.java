@@ -4,8 +4,8 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * Created on 2015/11/21 by xtypr.
@@ -17,7 +17,7 @@ public class DestroyBlockParticle extends Particle {
 
     public DestroyBlockParticle(Vector3f pos, BlockState blockState) {
         super(pos);
-        this.data = BlockRegistry.get().getRuntimeId(blockState);
+        this.data = CloudBlockRegistry.get().getRuntimeId(blockState);
     }
 
     @Override

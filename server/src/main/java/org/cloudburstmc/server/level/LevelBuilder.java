@@ -3,11 +3,11 @@ package org.cloudburstmc.server.level;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.LevelProviderFactory;
 import org.cloudburstmc.server.registry.StorageRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -18,13 +18,13 @@ import java.util.concurrent.Executor;
 @Log4j2
 @NotThreadSafe
 public class LevelBuilder {
-    private final Server server;
+    private final CloudServer server;
     private final LevelData levelData;
     private String id;
     private Identifier storageId;
     //private PlayerDataProvider playerDataProvider;
 
-    public LevelBuilder(Server server) {
+    public LevelBuilder(CloudServer server) {
         this.server = server;
         this.levelData = new LevelData(server.getDefaultLevelData());
     }
@@ -60,8 +60,8 @@ public class LevelBuilder {
     }
 
     @Nonnull
-    public CompletableFuture<Level> load() {
-        Level loadedLevel = this.server.getLevel(id);
+    public CompletableFuture<CloudLevel> load() {
+        CloudLevel loadedLevel = this.server.getLevel(id);
         if (loadedLevel != null) {
             return CompletableFuture.completedFuture(loadedLevel);
         }
@@ -95,7 +95,7 @@ public class LevelBuilder {
 
         // Combine futures
         return providerFuture.thenApply(levelProvider -> {
-            Level level = new Level(this.server, id, levelProvider, levelData);
+            CloudLevel level = new CloudLevel(this.server, id, levelProvider, levelData);
             this.server.getLevelManager().register(level);
             level.init();
             level.setTickRate(this.server.getBaseTickRate());

@@ -1,10 +1,14 @@
 package org.cloudburstmc.server.block;
 
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import org.cloudburstmc.api.block.BlockSnapshot;
+import org.cloudburstmc.api.block.BlockState;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
 
 @RequiredArgsConstructor
+@ToString
 public class CloudBlockSnapshot implements BlockSnapshot {
     private final BlockState[] states;
 

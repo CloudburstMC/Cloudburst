@@ -1,46 +1,35 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.event.block.BlockFadeEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.event.block.BlockFadeEvent;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorOreRedstoneGlowing extends BlockBehaviorOreRedstone {
 
-    @Override
-    public int getLightLevel(Block block) {
-        return 9;
-    }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(BlockIds.REDSTONE_ORE);
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(BlockTypes.REDSTONE_ORE);
     }
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED || type == Level.BLOCK_UPDATE_RANDOM) {
-            BlockFadeEvent event = new BlockFadeEvent(block, BlockState.get(BlockIds.REDSTONE_ORE));
+        if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED || type == CloudLevel.BLOCK_UPDATE_RANDOM) {
+            BlockFadeEvent event = new BlockFadeEvent(block, CloudBlockRegistry.get().getBlock(BlockTypes.REDSTONE_ORE));
             block.getLevel().getServer().getEventManager().fire(event);
             if (!event.isCancelled()) {
                 block.set(event.getNewState(), false, false);
             }
 
-            return Level.BLOCK_UPDATE_WEAK;
+            return CloudLevel.BLOCK_UPDATE_WEAK;
         }
 
         return 0;
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
 }

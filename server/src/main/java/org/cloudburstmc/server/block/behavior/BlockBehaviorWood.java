@@ -1,15 +1,16 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.TreeSpecies;
+import lombok.val;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.TreeSpecies;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 //Block state information: https://hastebin.com/emuvawasoj.js
 public class BlockBehaviorWood extends BlockBehaviorSolid {
@@ -24,34 +25,10 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     private static final int AXIS_X = 1 << 4;
     private static final int AXIS_Z = 2 << 4;
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
 
     @Override
-    public float getResistance() {
-        return 15;
-    }
-
-    @Override
-    public int getBurnChance() {
-        return 5;
-    }
-
-    @Override
-    public int getBurnAbility() {
-        return 20;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
-
-    @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().resetTrait(BlockTraits.AXIS));
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState().withTrait(BlockTraits.AXIS, BlockTraits.AXIS.getDefaultValue()));
     }
 
 
@@ -61,8 +38,9 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
-        if (!item.isAxe() || !player.isCreative() && !item.useOn(block)) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        val behavior = item.getBehavior();
+        if (!behavior.isAxe() || !player.isCreative() && behavior.useOn(item, block.getState()) == item) {
             return false;
         }
 
@@ -79,8 +57,8 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        return placeBlock(block, item.getBlock().withTrait(BlockTraits.AXIS, face.getAxis()));
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        return placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.AXIS, face.getAxis()));
     }
 
     public TreeSpecies getWoodType(BlockState state) {

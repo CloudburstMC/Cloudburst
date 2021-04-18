@@ -6,9 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.level.chunk.IChunk;
-import org.cloudburstmc.server.level.chunk.LockableChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.level.chunk.LockableChunk;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.generator.Generator;
 
 import java.util.List;
@@ -21,11 +22,11 @@ import java.util.function.BiFunction;
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class FinishingTask implements BiFunction<Chunk, List<Chunk>, Chunk> {
+public final class FinishingTask implements BiFunction<CloudChunk, List<CloudChunk>, CloudChunk> {
     public static final FinishingTask INSTANCE = new FinishingTask();
 
     @Override
-    public Chunk apply(@NonNull Chunk chunk, List<Chunk> chunks) {
+    public CloudChunk apply(@NonNull CloudChunk chunk, List<CloudChunk> chunks) {
         if (chunk.isFinished()) {
             return chunk;
         }
@@ -41,8 +42,8 @@ public final class FinishingTask implements BiFunction<Chunk, List<Chunk>, Chunk
                 .peek(Lock::lock)
                 .toArray(LockableChunk[]::new);
         try {
-            chunk.getLevel().getGenerator().finish(random, new PopulationChunkManager(chunk, lockableChunks, chunk.getLevel().getSeed()), chunk.getX(), chunk.getZ());
-            chunk.setState(IChunk.STATE_FINISHED);
+            ((CloudLevel) chunk.getLevel()).getGenerator().finish(random, new PopulationChunkManager(chunk, lockableChunks, chunk.getLevel().getSeed()), chunk.getX(), chunk.getZ());
+            chunk.setState(Chunk.STATE_FINISHED);
             chunk.setDirty();
         } finally {
             for (LockableChunk lockableChunk : lockableChunks) {

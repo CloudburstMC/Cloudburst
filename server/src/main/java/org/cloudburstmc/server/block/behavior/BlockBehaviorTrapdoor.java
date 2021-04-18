@@ -2,20 +2,20 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.event.block.DoorToggleEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
+import org.cloudburstmc.api.event.block.DoorToggleEvent;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
 
@@ -102,25 +102,12 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
         }
     }
 
-    @Override
-    public float getHardness() {
-        return 3;
-    }
 
     @Override
     public boolean canBeActivated(Block block) {
         return true;
     }
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
-
-    @Override
-    public float getResistance() {
-        return 15;
-    }
 
 //    private AxisAlignedBB getRelativeBoundingBox() { //TODO: bounding box
 //        return boundingBoxDamage[this.getMeta()];
@@ -162,8 +149,8 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_REDSTONE) {
-            val level = block.getLevel();
+        if (type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
+            val level = (CloudLevel) block.getLevel();
             val open = isOpen(block.getState());
             if ((!open && level.isBlockPowered(block.getPosition())) || (open && !level.isBlockPowered(block.getPosition()))) {
                 level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
@@ -178,21 +165,21 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (toggle(block, player)) {
-            block.getLevel().addSound(block.getPosition(), isOpen(block.getState()) ? Sound.RANDOM_DOOR_CLOSE : Sound.RANDOM_DOOR_OPEN);
+            ((CloudLevel) block.getLevel()).addSound(block.getPosition(), isOpen(block.getState()) ? Sound.RANDOM_DOOR_CLOSE : Sound.RANDOM_DOOR_OPEN);
             return true;
         }
         return false;
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Direction facing;
         boolean top;
 
@@ -204,7 +191,7 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
             top = face != Direction.UP;
         }
 
-        return placeBlock(block, item.getBlock()
+        return placeBlock(block, item.getBehavior().getBlock(item)
                 .withTrait(BlockTraits.DIRECTION, facing)
                 .withTrait(BlockTraits.IS_UPSIDE_DOWN, top)
         );
@@ -234,8 +221,5 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
         return this.blockColor;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

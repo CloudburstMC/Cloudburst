@@ -4,7 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.inject.provider.config.DataDirProvider;
 
 import java.nio.file.Path;
@@ -12,7 +12,7 @@ import java.nio.file.Path;
 @RequiredArgsConstructor
 public class CloudburstModule extends AbstractModule {
 
-    private final Server server;
+    private final CloudServer server;
 
     private final Path dataPath;
     private final Path pluginPath;

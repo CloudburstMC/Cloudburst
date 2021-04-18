@@ -31,7 +31,7 @@ populators:
     chance: 0.2 # about one per 5 logs
     avoidDouble: true
     height: "60-75"
-    on: "log{tree_species=jungle}"
+    on: "log{old_log_type=jungle}"
 
     # Melons
   - id: "cloudburst:shrub"
@@ -45,7 +45,7 @@ populators:
   - id: "cloudburst:huge_tree"
     chance: 0.02197265625 # about 5.625 per chunk
     on: "grass"
-    replace: "air,leaves{tree_species=jungle}"
+    replace: "air,leaves{old_leaf_type=jungle}"
     below: "grass"
     type: "jungle"
 
@@ -54,8 +54,8 @@ populators:
     chance: 0.0390625 # about 10 per chunk
     on: "grass"
     replace: "air"
-    log: "log{tree_species=jungle}"
-    leaves: "leaves{tree_species=jungle}"
+    log: "log{old_log_type=jungle}"
+    leaves: "leaves{old_leaf_type=jungle}"
 
     # Flowers
   - id: "cloudburst:shrub"

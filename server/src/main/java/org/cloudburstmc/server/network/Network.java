@@ -2,7 +2,7 @@ package org.cloudburstmc.server.network;
 
 import io.netty.buffer.ByteBuf;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.net.InetAddress;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 public class Network {
 
-    private final Server server;
+    private final CloudServer server;
 
     private final Set<SourceInterface> interfaces = new HashSet<>();
 
@@ -30,7 +30,7 @@ public class Network {
     private String name;
     private String subName;
 
-    public Network(Server server) {
+    public Network(CloudServer server) {
         this.server = server;
     }
 
@@ -107,7 +107,7 @@ public class Network {
         }
     }
 
-    public Server getServer() {
+    public CloudServer getServer() {
         return server;
     }
 

@@ -9,18 +9,19 @@ import com.nukkitx.nbt.NbtUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.BlockEntityType;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.chunk.*;
 import org.cloudburstmc.server.level.provider.LegacyBlockConverter;
 import org.cloudburstmc.server.level.provider.anvil.palette.BiomePalette;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.NibbleArray;
 
 import java.io.IOException;
@@ -45,11 +46,11 @@ public class AnvilConverter {
             tag = tag.getCompound("Level");
         }
 
-        ChunkSection[] sections = new ChunkSection[Chunk.SECTION_COUNT];
+        CloudChunkSection[] sections = new CloudChunkSection[CloudChunk.SECTION_COUNT];
 
         // Reusable array for performance
         final int[] blockState = new int[2];
-        BlockRegistry blockRegistry = BlockRegistry.get();
+        CloudBlockRegistry blockRegistry = CloudBlockRegistry.get();
         LegacyBlockConverter legacyBlockConverter = LegacyBlockConverter.get();
 
         // Chunk sections
@@ -70,7 +71,7 @@ public class AnvilConverter {
                 for (int blockZ = 0; blockZ < 16; blockZ++) {
                     for (int blockY = 0; blockY < 16; blockY++) {
                         int anvilIndex = getAnvilIndex(blockX, blockY, blockZ);
-                        int cloudburstIndex = ChunkSection.blockIndex(blockX, blockY, blockZ);
+                        int cloudburstIndex = CloudChunkSection.blockIndex(blockX, blockY, blockZ);
                         blockState[0] = blocks[anvilIndex] & 0xff;
                         blockState[1] = data.get(anvilIndex);
                         legacyBlockConverter.convertBlockState(blockState);
@@ -79,7 +80,7 @@ public class AnvilConverter {
                 }
             }
 
-            sections[y] = new ChunkSection(new BlockStorage[]{blockStorage, new BlockStorage()}, blockLight, skyLight);
+            sections[y] = new CloudChunkSection(new BlockStorage[]{blockStorage, new BlockStorage()}, blockLight, skyLight);
         }
         chunkBuilder.sections(sections);
 
@@ -146,14 +147,14 @@ public class AnvilConverter {
         }
 
         if (tag.getBoolean("TerrainGenerated")) {
-            chunkBuilder.state(IChunk.STATE_GENERATED);
+            chunkBuilder.state(Chunk.STATE_GENERATED);
         }
         if (tag.getBoolean("TerrainPopulated")) {
-            chunkBuilder.state(IChunk.STATE_POPULATED);
+            chunkBuilder.state(Chunk.STATE_POPULATED);
         }
     }
 
-    public static NbtMap convertToAnvil(Chunk chunk) {
+    public static NbtMap convertToAnvil(CloudChunk chunk) {
         throw new UnsupportedOperationException();
     }
 
@@ -161,7 +162,7 @@ public class AnvilConverter {
         return (y << 8) + (z << 4) + x;
     }
 
-    private static Location getLocation(NbtMap tag, Chunk chunk) {
+    private static Location getLocation(NbtMap tag, CloudChunk chunk) {
         List<Float> pos = tag.getList("Pos", NbtType.FLOAT);
         if (pos == null || pos.size() < 3) return null;
 
@@ -182,7 +183,7 @@ public class AnvilConverter {
         private final List<NbtMap> entityTags;
 
         @Override
-        public boolean load(Chunk chunk) {
+        public boolean load(CloudChunk chunk) {
             EntityRegistry registry = EntityRegistry.get();
             boolean dirty = false;
             for (NbtMap entityTag : entityTags) {
@@ -206,7 +207,7 @@ public class AnvilConverter {
                     continue;
                 }
                 EntityType<?> type = registry.getEntityType(identifier);
-                Entity entity = registry.newEntity(type, location);
+                BaseEntity entity = (BaseEntity) registry.newEntity(type, location);
                 entity.loadAdditionalData(entityTag);
             }
             return dirty;
@@ -219,7 +220,7 @@ public class AnvilConverter {
         private final List<NbtMap> tileTags;
 
         @Override
-        public boolean load(Chunk chunk) {
+        public boolean load(CloudChunk chunk) {
             boolean dirty = false;
             for (NbtMap tag : tileTags) {
                 if (tag != null) {

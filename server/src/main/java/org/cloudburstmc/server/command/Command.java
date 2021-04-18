@@ -2,10 +2,11 @@ package org.cloudburstmc.server.command;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
@@ -125,7 +126,7 @@ public abstract class Command {
      * @param player Player to have command packet sent
      * @return CommandData|null
      */
-    public com.nukkitx.protocol.bedrock.data.command.CommandData toNetwork(Player player) {
+    public com.nukkitx.protocol.bedrock.data.command.CommandData toNetwork(CloudPlayer player) {
         if (!this.testPermission(player)) {
             return null;
         }

@@ -2,9 +2,9 @@ package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.level.ChunkManager;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.finish.Finisher;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

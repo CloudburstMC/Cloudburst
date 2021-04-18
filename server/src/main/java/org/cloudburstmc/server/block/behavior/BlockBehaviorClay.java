@@ -1,32 +1,18 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorClay extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 0.6f;
-    }
 
     @Override
-    public float getResistance() {
-        return 3;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_SHOVEL;
-    }
-
-    @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(ItemIds.CLAY_BALL, 0, 4)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                CloudItemRegistry.get().getItem(ItemTypes.CLAY_BALL, 4)
         };
     }
 
@@ -35,8 +21,5 @@ public class BlockBehaviorClay extends BlockBehaviorSolid {
         return BlockColor.CLAY_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
+
 }

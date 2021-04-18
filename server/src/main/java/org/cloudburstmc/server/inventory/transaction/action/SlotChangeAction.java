@@ -1,10 +1,11 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
 import lombok.ToString;
-import org.cloudburstmc.server.inventory.Inventory;
+import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,7 +19,7 @@ public class SlotChangeAction extends InventoryAction {
     protected Inventory inventory;
     private int inventorySlot;
 
-    public SlotChangeAction(Inventory inventory, int inventorySlot, Item sourceItem, Item targetItem) {
+    public SlotChangeAction(Inventory inventory, int inventorySlot, ItemStack sourceItem, ItemStack targetItem) {
         super(sourceItem, targetItem);
         this.inventory = inventory;
         this.inventorySlot = inventorySlot;
@@ -48,10 +49,10 @@ public class SlotChangeAction extends InventoryAction {
      * @param source player
      * @return valid
      */
-    public boolean isValid(Player source) {
-        Item check = inventory.getItem(this.inventorySlot);
+    public boolean isValid(CloudPlayer source) {
+        ItemStack check = inventory.getItem(this.inventorySlot);
 
-        return check.equalsExact(this.sourceItem);
+        return check.equals(this.sourceItem, true);
     }
 
     /**
@@ -60,7 +61,7 @@ public class SlotChangeAction extends InventoryAction {
      * @param source player
      * @return successfully executed
      */
-    public boolean execute(Player source) {
+    public boolean execute(CloudPlayer source) {
         return this.inventory.setItem(this.inventorySlot, this.targetItem, false);
     }
 
@@ -69,7 +70,7 @@ public class SlotChangeAction extends InventoryAction {
      *
      * @param source player
      */
-    public void onExecuteSuccess(Player source) {
+    public void onExecuteSuccess(CloudPlayer source) {
         Set<Player> viewers = new HashSet<>(this.inventory.getViewers());
         viewers.remove(source);
 
@@ -81,7 +82,7 @@ public class SlotChangeAction extends InventoryAction {
      *
      * @param source player
      */
-    public void onExecuteFail(Player source) {
+    public void onExecuteFail(CloudPlayer source) {
         this.inventory.sendSlot(this.inventorySlot, source);
     }
 

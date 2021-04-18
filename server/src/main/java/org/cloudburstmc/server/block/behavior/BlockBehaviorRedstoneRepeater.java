@@ -1,21 +1,15 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
-
-    public BlockBehaviorRedstoneRepeater(Identifier type) {
-        super(type);
-        this.isPowered = true;
-    }
 
     @Override
     protected boolean isAlternateInput(Block block) {
@@ -23,8 +17,8 @@ public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.REPEATER);
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(ItemTypes.REPEATER);
     }
 
     @Override
@@ -32,23 +26,9 @@ public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
         return (1 + state.ensureTrait(BlockTraits.REPEATER_DELAY)) * 2;
     }
 
-    @Override
-    protected BlockState getPowered(BlockState state) {
-        return BlockState.get(BlockIds.POWERED_REPEATER).copyTraits(state);
-    }
 
     @Override
-    protected BlockState getUnpowered(BlockState state) {
-        return BlockState.get(BlockIds.UNPOWERED_REPEATER).copyTraits(state);
-    }
-
-    @Override
-    public int getLightLevel(Block block) {
-        return 7;
-    }
-
-    @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val state = block.getState();
 
         block.set(state.withTrait(BlockTraits.REPEATER_DELAY, (state.ensureTrait(BlockTraits.REPEATER_DELAY) + 1) % 4), true, false);

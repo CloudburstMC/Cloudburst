@@ -2,8 +2,8 @@ package org.cloudburstmc.server.scheduler;
 
 
 import com.google.common.base.Preconditions;
-import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.server.CloudServer;
 
 import javax.annotation.Nonnull;
 
@@ -43,7 +43,7 @@ public abstract class PluginTask<T> extends Task {
     public PluginTask(@Nonnull T owner) {
         Preconditions.checkNotNull(owner, "owner");
         this.owner = owner;
-        this.container = Server.getInstance().getPluginManager().fromInstance(owner).orElseThrow(() ->
+        this.container = CloudServer.getInstance().getPluginManager().fromInstance(owner).orElseThrow(() ->
                 new IllegalArgumentException("Object " + owner + " is not a plugin")
         );
     }

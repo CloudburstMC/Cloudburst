@@ -1,56 +1,41 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.Direction.Plane;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.DyeColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Direction.Plane;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
-import static org.cloudburstmc.server.block.BlockIds.CONCRETE;
+import static org.cloudburstmc.api.block.BlockTypes.CONCRETE;
 
 public class BlockBehaviorConcretePowder extends BlockBehaviorFallable {
 
-    @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_SHOVEL;
-    }
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
-            super.onUpdate(block, Level.BLOCK_UPDATE_NORMAL);
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
+            super.onUpdate(block, CloudLevel.BLOCK_UPDATE_NORMAL);
 
             if (checkLiquid(block)) {
-                block.set(BlockState.get(CONCRETE).withTrait(BlockTraits.COLOR, block.getState().ensureTrait(BlockTraits.COLOR)));
+                block.set(CloudBlockRegistry.get().getBlock(CONCRETE).withTrait(BlockTraits.COLOR, block.getState().ensureTrait(BlockTraits.COLOR)));
             }
 
-            return Level.BLOCK_UPDATE_NORMAL;
+            return CloudLevel.BLOCK_UPDATE_NORMAL;
         }
         return 0;
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (checkLiquid(block)) {
-            placeBlock(block, BlockState.get(CONCRETE).withTrait(BlockTraits.COLOR, item.getBlock().ensureTrait(BlockTraits.COLOR)));
+            placeBlock(block, CloudBlockRegistry.get().getBlock(CONCRETE).withTrait(BlockTraits.COLOR, item.getBehavior().getBlock(item).ensureTrait(BlockTraits.COLOR)));
         } else {
             placeBlock(block, item);
         }

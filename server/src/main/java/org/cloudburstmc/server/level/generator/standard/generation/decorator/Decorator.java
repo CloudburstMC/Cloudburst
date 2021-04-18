@@ -2,10 +2,10 @@ package org.cloudburstmc.server.level.generator.standard.generation.decorator;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.IChunk;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -41,7 +41,7 @@ public interface Decorator extends Populator {
      * @param x      the X coordinate of the block column in the chunk to decorate
      * @param z      the Z coordinate of the block column in the chunk to decorate
      */
-    void decorate(PRandom random, IChunk chunk, int x, int z);
+    void decorate(PRandom random, Chunk chunk, int x, int z);
 
     @Override
     Identifier getId();

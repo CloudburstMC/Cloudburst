@@ -3,20 +3,22 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.event.entity.EntityInteractEvent;
-import org.cloudburstmc.server.event.player.PlayerInteractEvent;
-import org.cloudburstmc.server.event.player.PlayerInteractEvent.Action;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.event.Event;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
+import org.cloudburstmc.api.event.entity.EntityInteractEvent;
+import org.cloudburstmc.api.event.player.PlayerInteractEvent;
+import org.cloudburstmc.api.event.player.PlayerInteractEvent.Action;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Created by Snake1999 on 2016/1/11.
@@ -26,16 +28,6 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
 
     protected float onPitch;
     protected float offPitch;
-
-    @Override
-    public boolean canPassThrough() {
-        return true;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
 
 //    @Override //TODO: bounding box
 //    public float getMinX() {
@@ -67,18 +59,14 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
 //        return isActivated() ? this.getY() + 0.03125f : this.getY() + 0.0625f;
 //    }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
                 block.getLevel().useBreakOn(block.getPosition());
             }
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             int power = this.getRedstonePower(block.getState());
 
             if (power > 0) {
@@ -90,7 +78,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
             return false;
         }
@@ -110,8 +98,8 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
         if (power == 0) {
             Event ev;
 
-            if (entity instanceof Player) {
-                ev = new PlayerInteractEvent((Player) entity, null, block, null, Action.PHYSICAL);
+            if (entity instanceof CloudPlayer) {
+                ev = new PlayerInteractEvent((CloudPlayer) entity, null, block, null, Action.PHYSICAL);
             } else {
                 ev = new EntityInteractEvent(entity, block);
             }
@@ -129,7 +117,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
         boolean wasPowered = oldStrength > 0;
         boolean isPowered = strength > 0;
 
-        val level = block.getLevel();
+        val level = (CloudLevel) block.getLevel();
 
         if (oldStrength != strength) {
             block.set(block.getState().withTrait(BlockTraits.REDSTONE_SIGNAL, strength), false, false);
@@ -152,12 +140,12 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         super.onBreak(block, item);
 
         if (this.getRedstonePower(block.getState()) > 0) {
-            block.getLevel().updateAroundRedstone(block.getPosition(), null);
-            block.getLevel().updateAroundRedstone(block.getPosition().down(), null);
+            ((CloudLevel) block.getLevel()).updateAroundRedstone(block.getPosition(), null);
+            ((CloudLevel) block.getLevel()).updateAroundRedstone(block.getPosition().down(), null);
         }
 
         return true;
@@ -178,22 +166,19 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
     }
 
     protected void playOnSound(Block block) {
-        block.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_ON);
+        ((CloudLevel) block.getLevel()).addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_ON);
     }
 
     protected void playOffSound(Block block) {
-        block.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_OFF);
+        ((CloudLevel) block.getLevel()).addLevelSoundEvent(block.getPosition(), SoundEvent.POWER_OFF);
     }
 
     protected abstract int computeRedstoneStrength(Block block);
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

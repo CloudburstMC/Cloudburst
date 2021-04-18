@@ -15,7 +15,7 @@ import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -38,7 +38,7 @@ public class FloatingTextParticle extends Particle {
     }
 
     protected UUID uuid = UUID.randomUUID();
-    protected final Level level;
+    protected final CloudLevel level;
     protected long entityId = -1;
     protected boolean invisible = false;
     protected EntityDataMap dataMap = new EntityDataMap();
@@ -47,7 +47,7 @@ public class FloatingTextParticle extends Particle {
         this(pos, title, null);
     }
 
-    public FloatingTextParticle(Level level, Vector3f pos, String title) {
+    public FloatingTextParticle(CloudLevel level, Vector3f pos, String title) {
         this(level, pos, title, null);
     }
 
@@ -55,7 +55,7 @@ public class FloatingTextParticle extends Particle {
         this(null, pos, title, text);
     }
 
-    public FloatingTextParticle(Level level, Vector3f pos, String title, String text) {
+    public FloatingTextParticle(CloudLevel level, Vector3f pos, String title, String text) {
         super(pos);
         this.level = level;
 

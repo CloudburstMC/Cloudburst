@@ -4,10 +4,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.api.level.chunk.ChunkException;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
-import org.cloudburstmc.server.utils.ChunkException;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.WriteBatch;
 
@@ -17,7 +17,7 @@ class ChunkSerializerV1 implements ChunkSerializer {
     static final ChunkSerializer INSTANCE = new ChunkSerializerV1();
 
     @Override
-    public void serialize(WriteBatch db, Chunk chunk) {
+    public void serialize(WriteBatch db, CloudChunk chunk) {
         throw new UnsupportedOperationException();
     }
 

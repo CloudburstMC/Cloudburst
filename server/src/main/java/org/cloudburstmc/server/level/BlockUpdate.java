@@ -2,8 +2,8 @@ package org.cloudburstmc.server.level;
 
 import com.google.common.base.Preconditions;
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTypes;
 
 public class BlockUpdate {
 
@@ -37,7 +37,7 @@ public class BlockUpdate {
     public static BlockUpdate of(Block block, Vector3i pos, int delay, int priority, boolean checkArea) {
         Preconditions.checkNotNull(block, "block");
         Preconditions.checkNotNull(pos, "pos");
-        Preconditions.checkArgument(block.getState().getType() != BlockIds.AIR, "Air cannot be ticked");
+        Preconditions.checkArgument(block.getState().getType() != BlockTypes.AIR, "Air cannot be ticked");
 
         return new BlockUpdate(block, pos, delay, priority, checkArea);
     }

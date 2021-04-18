@@ -1,14 +1,9 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.util.data.BlockColor;
 
-public abstract class BlockBehaviorTransparent extends BlockBehavior {
-
-    @Override
-    public boolean isTransparent() {
-        return true;
-    }
+public abstract class BlockBehaviorTransparent extends BaseBlockBehavior {
 
     @Override
     public BlockColor getColor(Block block) {

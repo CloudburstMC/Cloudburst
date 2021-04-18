@@ -7,10 +7,10 @@ import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.random.impl.FastPRandom;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -74,7 +74,7 @@ public class Biome {
 
     public boolean canSnowAt(ChunkManager level, int x, int y, int z) {
         //TODO: light level must be less than 10
-        return y >= 0 && this.getTemperature(x, y, z) < 0.15d && (y >= 256 || level.getBlockAt(x, y, z) == BlockStates.AIR);
+        return y >= 0 && this.getTemperature(x, y, z) < 0.15d && (y >= 256 || level.getBlockState(x, y, z) == BlockStates.AIR);
     }
 
     public double getDownfall() {

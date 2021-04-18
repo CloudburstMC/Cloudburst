@@ -3,9 +3,9 @@ package org.cloudburstmc.server.event.firehandler;
 import co.aikar.timings.Timing;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.event.Event;
-import org.cloudburstmc.server.event.EventFireHandler;
-import org.cloudburstmc.server.event.Listener;
+import org.cloudburstmc.api.event.Event;
+import org.cloudburstmc.api.event.EventFireHandler;
+import org.cloudburstmc.api.event.Listener;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
@@ -33,7 +33,7 @@ public class ReflectionEventFireHandler implements EventFireHandler {
         for (ListenerMethod method : methods) {
             try {
                 method.run(event);
-            } catch (InvocationTargetException | IllegalAccessException e) {
+            } catch (Throwable e) {
                 log.error("Exception occurred while executing method " + method + " for " + event, e);
             }
         }

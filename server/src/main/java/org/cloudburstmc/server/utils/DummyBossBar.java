@@ -2,9 +2,11 @@ package org.cloudburstmc.server.utils;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.*;
-import org.cloudburstmc.server.entity.Attribute;
-import org.cloudburstmc.server.entity.EntityTypes;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.entity.Attribute;
+import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -19,7 +21,7 @@ import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
  */
 public class DummyBossBar {
 
-    private final Player player;
+    private final CloudPlayer player;
     private final long bossBarId;
 
     private String text;
@@ -35,14 +37,14 @@ public class DummyBossBar {
     }
 
     public static class Builder {
-        private final Player player;
+        private final CloudPlayer player;
         private final long bossBarId;
 
         private String text = "";
         private float length = 100;
         private BlockColor color = null;
 
-        public Builder(Player player) {
+        public Builder(CloudPlayer player) {
             this.player = player;
             this.bossBarId = 1095216660480L + ThreadLocalRandom.current().nextLong(0, 0x7fffffffL);
         }
@@ -62,16 +64,16 @@ public class DummyBossBar {
             return this;
         }
 
-        public Builder color(int red, int green, int blue) {
-            return color(new BlockColor(red, green, blue));
-        }
-
+        /* public Builder color(int red, int green, int blue) {
+             return color(new BlockColor(red, green, blue));
+         }
+ */
         public DummyBossBar build() {
             return new DummyBossBar(this);
         }
     }
 
-    public Player getPlayer() {
+    public CloudPlayer getPlayer() {
         return player;
     }
 
@@ -115,9 +117,9 @@ public class DummyBossBar {
         }
     }
 
-    public void setColor(int red, int green, int blue) {
+    /*public void setColor(int red, int green, int blue) {
         this.setColor(new BlockColor(red, green, blue));
-    }
+    }*/
 
     public int getMixedColor() {
         return this.color.getRGB();//(this.color.getRed() << 16 | this.color.getGreen() << 8 | this.color.getBlue()) & 0xffffff;
@@ -151,7 +153,7 @@ public class DummyBossBar {
         Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH);
         attr.setMaxValue(100); // Max value - We need to change the max value first, or else the "setValue" will return a IllegalArgumentException
         attr.setValue(length); // Entity health
-        pkAttributes.getAttributes().add(attr.toNetwork());
+        pkAttributes.getAttributes().add(NetworkUtils.attributeToNetwork(attr));
         this.player.sendPacket(pkAttributes);
     }
 

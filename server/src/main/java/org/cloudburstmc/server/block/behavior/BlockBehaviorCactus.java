@@ -1,34 +1,27 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.Direction.Plane;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.event.block.BlockGrowEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Direction.Plane;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 
 public class BlockBehaviorCactus extends BlockBehaviorTransparent {
 
-    @Override
-    public float getHardness() {
-        return 0.4f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 2;
-    }
 
     @Override
     public boolean hasEntityCollision() {
@@ -78,7 +71,7 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             Block down = block.down();
             BlockState downState = down.getState();
             if (downState.getType() != SAND && downState.getType() != CACTUS) {
@@ -86,12 +79,12 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
             } else {
                 for (Direction direction : Plane.HORIZONTAL) {
                     Block side = block.getSide(direction);
-                    if (!side.getState().getBehavior().canBeFlooded()) {
+                    if (!side.getState().getBehavior().canBeFlooded(side.getState())) {
                         block.getLevel().useBreakOn(block.getPosition());
                     }
                 }
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             if (block.down().getState().getType() != CACTUS) {
                 int age = block.getState().ensureTrait(BlockTraits.AGE);
 
@@ -99,8 +92,8 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
                     for (int y = 1; y < 3; ++y) {
                         Block b = block.getLevel().getBlock(block.getX(), block.getY() + y, block.getZ());
                         if (b.getState().getType() == AIR) {
-                            BlockGrowEvent event = new BlockGrowEvent(b, BlockState.get(CACTUS));
-                            Server.getInstance().getEventManager().fire(event);
+                            BlockGrowEvent event = new BlockGrowEvent(b, CloudBlockRegistry.get().getBlock(CACTUS));
+                            CloudServer.getInstance().getEventManager().fire(event);
                             if (!event.isCancelled()) {
                                 block.set(event.getNewState(), true);
                             }
@@ -118,13 +111,13 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         Block down = block.down();
         if (!block.isWaterlogged() && (down.getState().getType() == SAND || down.getState().getType() == CACTUS)) {
             for (Direction direction : Plane.HORIZONTAL) {
                 BlockState state = block.getSide(direction).getState();
 
-                if (!state.getBehavior().canBeFlooded()) {
+                if (!state.getBehavior().canBeFlooded(state)) {
                     return false;
                 }
             }
@@ -141,14 +134,11 @@ public class BlockBehaviorCactus extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(CACTUS, 0, 1)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                CloudItemRegistry.get().getItem(CACTUS, 1)
         };
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

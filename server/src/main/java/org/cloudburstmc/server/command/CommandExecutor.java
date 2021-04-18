@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command;
 
+import org.cloudburstmc.api.command.CommandSender;
+
 /**
  * Represents a class which contains a single method for command execution.
  */

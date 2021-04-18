@@ -1,16 +1,17 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.impl.vehicle.EntityAbstractMinecart;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import static org.cloudburstmc.server.block.BlockIds.DETECTOR_RAIL;
+import static org.cloudburstmc.api.block.BlockTypes.DETECTOR_RAIL;
 
 public class BlockBehaviorRailDetector extends BlockBehaviorRail {
 
@@ -19,10 +20,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
         canBePowered = true;
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
+
 
     @Override
     public int getWeakPower(Block block, Direction side) {
@@ -36,7 +34,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             updateState(block);
             return type;
         }
@@ -79,13 +77,13 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
             level.scheduleUpdate(block.getPosition().down(), 0);
         }
 
-        level.updateComparatorOutputLevel(block.getPosition());
+        ((CloudLevel) level).updateComparatorOutputLevel(block.getPosition());
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(DETECTOR_RAIL, 0, 1)
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                CloudItemRegistry.get().getItem(DETECTOR_RAIL)
         };
     }
 }

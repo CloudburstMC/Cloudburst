@@ -1,7 +1,8 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * @author CreeperFace
@@ -18,7 +19,7 @@ public class CreativeInventoryAction extends InventoryAction {
 
     protected int actionType;
 
-    public CreativeInventoryAction(Item source, Item target, int action) {
+    public CreativeInventoryAction(ItemStack source, ItemStack target, int action) {
         super(source, target);
     }
 
@@ -28,9 +29,9 @@ public class CreativeInventoryAction extends InventoryAction {
      * @param source player
      * @return valid
      */
-    public boolean isValid(Player source) {
+    public boolean isValid(CloudPlayer source) {
         return source.isCreative() &&
-                (this.actionType == TYPE_DELETE_ITEM || Item.getCreativeItemIndex(this.sourceItem) != -1);
+                (this.actionType == TYPE_DELETE_ITEM || CloudItemRegistry.get().getCreativeItemIndex(this.sourceItem) != -1);
     }
 
     /**
@@ -48,15 +49,15 @@ public class CreativeInventoryAction extends InventoryAction {
      * @param source playere
      * @return successfully executed
      */
-    public boolean execute(Player source) {
+    public boolean execute(CloudPlayer source) {
         return true;
     }
 
-    public void onExecuteSuccess(Player source) {
+    public void onExecuteSuccess(CloudPlayer source) {
 
     }
 
-    public void onExecuteFail(Player source) {
+    public void onExecuteFail(CloudPlayer source) {
 
     }
 }

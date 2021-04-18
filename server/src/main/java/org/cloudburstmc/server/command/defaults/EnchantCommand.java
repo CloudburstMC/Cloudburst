@@ -1,18 +1,17 @@
 package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import lombok.val;
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.EnchantmentRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
-
-import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * Created by Pub4Game on 23.01.2016.
@@ -45,12 +44,12 @@ public class EnchantCommand extends Command {
         if (args.length < 2) {
             return false;
         }
-        Player player = sender.getServer().getPlayer(args[0]);
+        CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
         if (player == null) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
             return true;
         }
-        int enchantId;
+        short enchantId;
         int enchantLevel;
         try {
             enchantId = getIdByName(args[1]);
@@ -58,24 +57,27 @@ public class EnchantCommand extends Command {
         } catch (NumberFormatException e) {
             return false;
         }
-        Enchantment enchantment = Enchantment.getEnchantment(enchantId);
+        val registry = EnchantmentRegistry.get();
+        val enchantment = registry.getEnchantment(registry.getType(enchantId), enchantLevel);
         if (enchantment == null) {
             sender.sendMessage(new TranslationContainer("%commands.enchant.notFound", enchantId));
             return true;
         }
-        enchantment.setLevel(enchantLevel);
-        Item item = player.getInventory().getItemInHand();
-        if (item.getId() == AIR) {
+
+        ItemStack item = player.getInventory().getItemInHand();
+        if (item.isNull()) {
             sender.sendMessage(new TranslationContainer("%commands.enchant.noItem", item.getName()));
             return true;
         }
-        item.addEnchantment(enchantment);
+
+        item = item.withEnchantment(enchantment);
+
         player.getInventory().setItemInHand(item);
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.enchant.success", sender.getName()));
         return true;
     }
 
-    public int getIdByName(String value) throws NumberFormatException {
+    public short getIdByName(String value) throws NumberFormatException {
         switch (value) {
             case "protection":
                 return 0;
@@ -144,7 +146,7 @@ public class EnchantCommand extends Command {
             case "channeling":
                 return 32;
             default:
-                return Integer.parseInt(value);
+                return Short.parseShort(value);
         }
     }
 }

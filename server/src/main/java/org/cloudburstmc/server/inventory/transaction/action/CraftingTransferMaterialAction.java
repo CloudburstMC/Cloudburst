@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * @author CreeperFace
@@ -12,7 +12,7 @@ public class CraftingTransferMaterialAction extends InventoryAction {
 
     private int slot;
 
-    public CraftingTransferMaterialAction(Item sourceItem, Item targetItem, int slot) {
+    public CraftingTransferMaterialAction(ItemStack sourceItem, ItemStack targetItem, int slot) {
         super(sourceItem, targetItem);
 
         this.slot = slot;
@@ -34,22 +34,22 @@ public class CraftingTransferMaterialAction extends InventoryAction {
     }
 
     @Override
-    public boolean isValid(Player source) {
+    public boolean isValid(CloudPlayer source) {
         return true;
     }
 
     @Override
-    public boolean execute(Player source) {
+    public boolean execute(CloudPlayer source) {
         return true;
     }
 
     @Override
-    public void onExecuteSuccess(Player $source) {
+    public void onExecuteSuccess(CloudPlayer $source) {
 
     }
 
     @Override
-    public void onExecuteFail(Player source) {
+    public void onExecuteFail(CloudPlayer source) {
 
     }
 }

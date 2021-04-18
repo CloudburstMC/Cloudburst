@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
 
@@ -14,35 +14,21 @@ public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 5;
-    }
 
     @Override
-    public float getResistance() {
-        return 25;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
-
-    @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            return new Item[]{
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (checkTool(block.getState(), hand)) {
+            return new ItemStack[]{
                     toItem(block)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.IRON_DOOR);
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(ItemTypes.IRON_DOOR);
     }
 
     @Override
@@ -51,12 +37,9 @@ public class BlockBehaviorDoorIron extends BlockBehaviorDoor {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         return false;
     }
 
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
+
 }

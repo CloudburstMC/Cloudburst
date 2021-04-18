@@ -4,16 +4,16 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.EntityRegistry;
-import org.cloudburstmc.server.registry.RegistryException;
-import org.cloudburstmc.server.utils.Identifier;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.WriteBatch;
 
@@ -50,9 +50,9 @@ public class EntitySerializer {
         builder.dataLoader(new DataLoader(entityTags));
     }
 
-    public static void saveEntities(WriteBatch db, Chunk chunk) {
+    public static void saveEntities(WriteBatch db, CloudChunk chunk) {
         byte[] key = LevelDBKey.ENTITIES.getKey(chunk.getX(), chunk.getZ());
-        Set<Entity> entities = chunk.getEntities();
+        Set<BaseEntity> entities = chunk.getEntities();
         if (entities.isEmpty()) {
             db.delete(key);
             return;
@@ -61,7 +61,7 @@ public class EntitySerializer {
         byte[] value;
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
              NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
-            for (Entity entity : entities) {
+            for (BaseEntity entity : entities) {
                 NbtMapBuilder tag = NbtMap.builder();
                 entity.saveAdditionalData(tag);
                 nbtOutputStream.writeTag(tag.build());
@@ -74,7 +74,7 @@ public class EntitySerializer {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Location getLocation(NbtMap tag, Chunk chunk) {
+    private static Location getLocation(NbtMap tag, CloudChunk chunk) {
         List<Float> pos = tag.getList("Pos", NbtType.FLOAT);
         Vector3f position = Vector3f.from(pos.get(0), pos.get(1), pos.get(2));
 
@@ -93,7 +93,7 @@ public class EntitySerializer {
         private final List<NbtMap> entityTags;
 
         @Override
-        public boolean load(Chunk chunk) {
+        public boolean load(CloudChunk chunk) {
             boolean dirty = false;
             for (NbtMap entityTag : entityTags) {
                 try {
@@ -111,7 +111,7 @@ public class EntitySerializer {
                         continue;
                     }
                     try {
-                        Entity entity = registry.newEntity(type, location);
+                        BaseEntity entity = (BaseEntity) registry.newEntity(type, location);
                         if (entity != null) {
                             entity.loadAdditionalData(entityTag);
                         }

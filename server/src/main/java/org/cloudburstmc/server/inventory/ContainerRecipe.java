@@ -1,19 +1,23 @@
 package org.cloudburstmc.server.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerMixData;
-import org.cloudburstmc.server.item.behavior.Item;
+import org.cloudburstmc.api.inventory.RecipeType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.Identifiers;
+import org.cloudburstmc.server.crafting.MixRecipe;
 
 public class ContainerRecipe extends MixRecipe {
-    public ContainerRecipe(Item input, Item ingredient, Item output) {
-        super(input, ingredient, output);
+    public ContainerRecipe(Identifier id, ItemStack input, ItemStack ingredient, ItemStack output) {
+        super(id, input, ingredient, output);
     }
 
     @Override
-    public void registerToCraftingManager(CraftingManager manager) {
-        manager.registerContainerRecipe(this);
+    public RecipeType getType() {
+        return RecipeType.CONTAINER;
     }
 
-    public ContainerMixData toData() {
-        return new ContainerMixData(getInput().getNetworkId(), getIngredient().getNetworkId(), getResult().getNetworkId());
+    @Override
+    public Identifier getBlock() {
+        return Identifiers.BREWING_STAND;
     }
 }

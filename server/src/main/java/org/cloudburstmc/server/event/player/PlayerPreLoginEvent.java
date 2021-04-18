@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.event.player;
 
-import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.Event;
+import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.server.player.PlayerLoginData;
+
 
 /**
  * Called when the player logs in, before things have been set up

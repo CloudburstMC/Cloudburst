@@ -1,14 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.util.data.BlockColor;
 
 public class BlockBehaviorDaylightDetector extends BlockBehaviorTransparent {
 
-    @Override
-    public float getHardness() {
-        return 0.2f;
-    }
 
     @Override
     public BlockColor getColor(Block state) {
@@ -20,10 +16,6 @@ public class BlockBehaviorDaylightDetector extends BlockBehaviorTransparent {
         return false;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 
     //todo redstone
 

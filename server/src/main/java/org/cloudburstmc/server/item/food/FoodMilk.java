@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.item.food;
 
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import static org.cloudburstmc.server.item.behavior.ItemIds.BUCKET;
+import static org.cloudburstmc.api.item.ItemTypes.BUCKET;
 
 /**
  * Created by Snake1999 on 2016/1/21.
@@ -11,9 +11,9 @@ import static org.cloudburstmc.server.item.behavior.ItemIds.BUCKET;
  */
 public class FoodMilk extends Food {
     @Override
-    protected boolean onEatenBy(Player player) {
+    public boolean onEatenBy(Player player) {
         super.onEatenBy(player);
-        player.getInventory().addItem(Item.get(BUCKET));
+        player.getInventory().addItem(CloudItemRegistry.get().getItem(BUCKET));
         player.removeAllEffects();
         return true;
     }

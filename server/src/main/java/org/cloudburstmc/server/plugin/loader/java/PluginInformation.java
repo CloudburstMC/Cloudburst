@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.plugin.loader.java;
 
 import lombok.Data;
-import org.cloudburstmc.server.plugin.Dependency;
+import org.cloudburstmc.api.plugin.Dependency;
 
 import java.util.ArrayList;
 import java.util.List;

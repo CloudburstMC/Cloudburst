@@ -6,25 +6,26 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.misc.DroppedItem;
+import org.cloudburstmc.api.entity.misc.ExperienceOrb;
+import org.cloudburstmc.api.event.block.BlockUpdateEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.EntityExplodeEvent;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorTNT;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.misc.DroppedItem;
-import org.cloudburstmc.server.entity.misc.ExperienceOrb;
-import org.cloudburstmc.server.event.block.BlockUpdateEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByBlockEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.server.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.event.entity.EntityExplodeEvent;
-import org.cloudburstmc.server.item.behavior.Item;
 import org.cloudburstmc.server.level.particle.HugeExplodeSeedParticle;
-import org.cloudburstmc.server.math.AxisAlignedBB;
-import org.cloudburstmc.server.math.Direction;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.math.SimpleAxisAlignedBB;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Hash;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Explosion {
 
     private final int rays = 16; //Rays
-    private final Level level;
+    private final CloudLevel level;
     private final Vector3f source;
     private final double size;
 
@@ -49,7 +50,7 @@ public class Explosion {
 
     private final Object what;
 
-    public Explosion(Level level, Vector3f center, double size, Entity what) {
+    public Explosion(CloudLevel level, Vector3f center, double size, Entity what) {
         this.level = level;
         this.source = center;
         this.size = Math.max(size, 0);
@@ -106,7 +107,7 @@ public class Explosion {
                             if (block != null && block.getState() != BlockStates.AIR) {
                                 val state = block.getState();
                                 BlockState layer1 = block.getExtra();
-                                double resistance = Math.max(state.getBehavior().getResistance(), layer1.getBehavior().getResistance());
+                                double resistance = Math.max(state.getBehavior().getResistance(state), layer1.getBehavior().getResistance(layer1));
                                 blastForce -= (resistance / 5 + 0.3d) * this.stepLen;
                                 if (blastForce > 0) {
                                     if (!this.affectedBlockStates.contains(block)) {
@@ -178,17 +179,17 @@ public class Explosion {
             }
         }
 
-        Item air = Item.get(BlockIds.AIR, 0, 0);
+        ItemStack air = CloudItemRegistry.AIR;
 
         //Iterator iter = this.affectedBlocks.entrySet().iterator();
         for (Block block : this.affectedBlockStates) {
             val state = block.getState();
             val behavior = state.getBehavior();
             //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
-            if (state.getType() == BlockIds.TNT) {
+            if (state.getType() == BlockTypes.TNT) {
                 ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
             } else if (Math.random() * 100 < yield) {
-                for (Item drop : behavior.getDrops(block, air)) {
+                for (ItemStack drop : behavior.getDrops(block, air)) {
                     this.level.dropItem(block.getPosition(), drop);
                 }
             }
@@ -204,7 +205,7 @@ public class Explosion {
                     this.level.getServer().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         val b = ev.getBlock();
-                        b.getState().getBehavior().onUpdate(b, Level.BLOCK_UPDATE_NORMAL);
+                        b.getState().getBehavior().onUpdate(b, CloudLevel.BLOCK_UPDATE_NORMAL);
                     }
 
                     updateBlocks.add(index);

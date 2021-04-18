@@ -1,16 +1,16 @@
 package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 /**
@@ -37,22 +37,22 @@ public class SpawnpointCommand extends Command {
         if (!this.testPermission(sender)) {
             return true;
         }
-        Player target;
+        CloudPlayer target;
         if (args.length == 0) {
-            if (sender instanceof Player) {
-                target = (Player) sender;
+            if (sender instanceof CloudPlayer) {
+                target = (CloudPlayer) sender;
             } else {
                 sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
                 return true;
             }
         } else {
-            target = sender.getServer().getPlayer(args[0]);
+            target = (CloudPlayer) sender.getServer().getPlayer(args[0]);
             if (target == null) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
                 return true;
             }
         }
-        Level level = target.getLevel();
+        CloudLevel level = target.getLevel();
 
         if (args.length == 4) {
             if (level != null) {
@@ -74,8 +74,8 @@ public class SpawnpointCommand extends Command {
                 return true;
             }
         } else if (args.length <= 1) {
-            if (sender instanceof Player) {
-                Location pos = ((Player) sender).getLocation();
+            if (sender instanceof CloudPlayer) {
+                Location pos = ((CloudPlayer) sender).getLocation();
                 target.setSpawn(pos);
                 CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.spawnpoint.success.single", target.getName(),
                         NukkitMath.round(pos.getX(), 2),

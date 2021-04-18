@@ -1,13 +1,16 @@
 package org.cloudburstmc.server.block;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
-import org.cloudburstmc.server.block.behavior.BlockBehavior;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.block.trait.BooleanBlockTrait;
-import org.cloudburstmc.server.block.trait.IntegerBlockTrait;
-import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.behavior.BlockBehavior;
+import org.cloudburstmc.api.block.trait.BlockTrait;
+import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
+import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,36 +22,50 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 @ParametersAreNonnullByDefault
-public final class CloudBlockState implements BlockState {
+public final class CloudBlockState extends BlockState {
 
-    private final Identifier type;
+    private final Identifier id;
+    private final BlockType type;
     private final ImmutableMap<BlockTrait<?>, Comparable<?>> traits;
     private final Reference2IntMap<BlockTrait<?>> traitPalette;
+//    private final ImmutableList<NbtMap> tags;
     private CloudBlockState[][] table = null;
     private BlockState defaultState;
 
-    CloudBlockState(Identifier type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
-                    Reference2IntMap<BlockTrait<?>> traitPalette) {
+    CloudBlockState(Identifier id, BlockType type, ImmutableMap<BlockTrait<?>, Comparable<?>> traits,
+                    Reference2IntMap<BlockTrait<?>> traitPalette, BlockBehavior behavior/*, ImmutableList<NbtMap> tags*/) {
+        super(type, traits, behavior);
+        Preconditions.checkNotNull(id, "id");
+        Preconditions.checkNotNull(type, "type");
+        this.id = id;
         this.type = type;
         this.traits = traits;
         this.traitPalette = traitPalette;
+//        this.tags = tags;
+    }
+
+    @Nonnull
+    public Identifier getId() {
+        return id;
     }
 
     @Nonnull
     @Override
-    public Identifier getType() {
+    public BlockType getType() {
         return type;
     }
 
+//    public ImmutableCollection<NbtMap> getVanillaTags() {
+//        return tags;
+//    }
+
     @Nullable
-    @Override
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> T getTrait(BlockTrait<T> trait) {
         return (T) this.traits.get(trait);
     }
 
     @Nonnull
-    @Override
     public <T extends Comparable<T>> T ensureTrait(BlockTrait<T> trait) {
         return checkNotNull(this.getTrait(trait), "trait does not exist for specific block");
     }
@@ -97,18 +114,22 @@ public final class CloudBlockState implements BlockState {
         return result;
     }
 
-    @Override
+    //@Override
     public BlockBehavior getBehavior() {
-        return BlockRegistry.get().getBehavior(this.type);
+        return CloudBlockRegistry.get().getBehavior(this.type);
     }
 
     @Nonnull
-    @Override
+   // @Override
     public BlockState defaultState() {
         return defaultState;
     }
 
-    public void buildStateTable(BlockState defaultState, Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map) {
+    public boolean isInitialized() {
+        return this.table != null;
+    }
+
+    public void initialize(BlockState defaultState, Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map) {
         checkState(this.table == null, "BlockTrait table has already been built");
         this.defaultState = defaultState;
         this.table = new CloudBlockState[this.traitPalette.size()][];
