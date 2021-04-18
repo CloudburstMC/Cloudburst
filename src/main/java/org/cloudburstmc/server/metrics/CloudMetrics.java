@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.metrics;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.utils.Config;
 
 import java.io.BufferedWriter;
@@ -18,13 +18,13 @@ import java.util.regex.Pattern;
 public class CloudMetrics {
     private static boolean metricsStarted = false;
 
-    private final Server server;
+    private final CloudServer server;
 
     private boolean enabled;
     private String serverUUID;
     private boolean logFailedRequests;
 
-    public CloudMetrics(Server server) {
+    public CloudMetrics(CloudServer server) {
         this.server = server;
 
         if (metricsStarted) {
@@ -42,7 +42,7 @@ public class CloudMetrics {
 
             metrics.addCustomChart(new Metrics.SingleLineChart("players", () -> server.getOnlinePlayers().size()));
             metrics.addCustomChart(new Metrics.SimplePie("minecraft_version", server::getVersion));
-            metrics.addCustomChart(new Metrics.SimplePie("cloudburst_version", server::getNukkitVersion));
+            metrics.addCustomChart(new Metrics.SimplePie("cloudburst_version", server::getImplementationVersion));
             metrics.addCustomChart(new Metrics.SimplePie("xbox_auth", () -> server.getConfig().isXboxAuth() ? "Required" : "Not required"));
 
             metrics.addCustomChart(new Metrics.AdvancedPie("player_platform", () -> {
