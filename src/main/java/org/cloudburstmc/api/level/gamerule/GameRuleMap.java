@@ -2,7 +2,6 @@ package org.cloudburstmc.api.level.gamerule;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -63,7 +62,6 @@ public class GameRuleMap implements Iterable<Map.Entry<GameRule<?>, Object>> {
         this.dirty = false;
     }
 
-    @Nonnull
     @Override
     public Iterator<Map.Entry<GameRule<?>, Object>> iterator() {
         return this.gameRules.entrySet().iterator();

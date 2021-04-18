@@ -3,7 +3,6 @@ package org.cloudburstmc.api.block;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import lombok.experimental.UtilityClass;
-import lombok.val;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.EnumBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
@@ -149,9 +148,9 @@ public class BlockTraits {
 
     @SuppressWarnings({"unchecked", "ConstantConditions"})
     private static <T extends Enum<T>> T[] getEnumValues(Class<T> value, T... except) {
-        val set = Sets.newHashSet(except);
-        val values = value.getEnumConstants();
-        val stream = Arrays.stream(values).filter(v -> !set.contains(v));
+        var set = Sets.newHashSet(except);
+        var values = value.getEnumConstants();
+        var stream = Arrays.stream(values).filter(v -> !set.contains(v));
 
         return stream.toArray((s) -> (T[]) Array.newInstance(value, s));
     }

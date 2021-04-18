@@ -2,7 +2,6 @@ package org.cloudburstmc.api.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
@@ -19,7 +18,7 @@ import static org.cloudburstmc.api.block.BlockStates.AIR;
 public abstract class BlockBehavior {
 
     public boolean canHarvestWithHand(BlockState state) {  //used for calculating breaking time
-        val type = state.getType();
+        var type = state.getType();
         return type.isDiggable() && type.getToolType() == null && type.getTierType() == null;
     }
 
@@ -60,10 +59,10 @@ public abstract class BlockBehavior {
     }
 
     public boolean checkTool(BlockState state, ItemStack item) {
-        val toolType = getToolType(state);
-        val tier = getMinimalTier(state);
+        var toolType = getToolType(state);
+        var tier = getMinimalTier(state);
 
-        val type = item.getType();
+        var type = item.getType();
         if (toolType != null && type.getToolType() != toolType) {
             return false;
         }
@@ -90,7 +89,7 @@ public abstract class BlockBehavior {
     }
 
     public boolean isTransparent(BlockState state) {
-        val type = state.getType();
+        var type = state.getType();
         return type.isTransparent() || type.getTranslucency() > 0;
     }
 
@@ -140,7 +139,7 @@ public abstract class BlockBehavior {
     }
 
     public boolean canBeFlooded(BlockState state) {
-        val type = state.getType();
+        var type = state.getType();
         return type.isFloodable() || !type.blocksWater();
     }
 
@@ -246,7 +245,7 @@ public abstract class BlockBehavior {
     }
 
     public AxisAlignedBB getBoundingBox(Vector3i pos, BlockState state) {
-        val type = state.getType();
+        var type = state.getType();
 
         AxisAlignedBB bb = type.getBoundingBox();
 
@@ -287,7 +286,7 @@ public abstract class BlockBehavior {
     }
 
     public boolean isNormalBlock(Block block) {
-        val state = block.getState();
+        var state = block.getState();
         return !isTransparent(state) && isSolid(state) && !isPowerSource(block);
     }
 
@@ -312,7 +311,7 @@ public abstract class BlockBehavior {
     }
 
     public boolean canWaterlogFlowing(BlockState state) {
-        val type = state.getType();
+        var type = state.getType();
         return !type.breaksFlowing() && !type.blocksWater();
     }
 }

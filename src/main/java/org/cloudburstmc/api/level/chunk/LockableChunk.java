@@ -1,12 +1,11 @@
 package org.cloudburstmc.api.level.chunk;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.NotThreadSafe;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
-@NotThreadSafe
 public abstract class LockableChunk implements Chunk, Lock {
     private final Lock lock;
 
@@ -30,7 +29,7 @@ public abstract class LockableChunk implements Chunk, Lock {
     }
 
     @Override
-    public boolean tryLock(long time, @Nonnull TimeUnit unit) throws InterruptedException {
+    public boolean tryLock(long time, @NonNull TimeUnit unit) throws InterruptedException {
         return this.lock.tryLock(time, unit);
     }
 

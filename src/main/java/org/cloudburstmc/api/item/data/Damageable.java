@@ -2,10 +2,7 @@ package org.cloudburstmc.api.item.data;
 
 import lombok.Value;
 
-import javax.annotation.concurrent.Immutable;
-
 @Value(staticConstructor = "of")
-@Immutable
 public class Damageable {
 
     /**

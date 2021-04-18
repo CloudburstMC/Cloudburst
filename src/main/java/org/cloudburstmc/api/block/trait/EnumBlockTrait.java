@@ -2,17 +2,15 @@ package org.cloudburstmc.api.block.trait;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-@ParametersAreNonnullByDefault
-public class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
+public final class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
 
     private final E defaultValue;
 

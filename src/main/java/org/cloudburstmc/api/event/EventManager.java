@@ -1,12 +1,10 @@
 package org.cloudburstmc.api.event;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collection;
 
 /**
  * This class manages event listeners and fires events.
  */
-@ParametersAreNonnullByDefault
 public interface EventManager {
 
     /**

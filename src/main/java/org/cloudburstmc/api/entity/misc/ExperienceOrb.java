@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.entity.misc;
 
 import com.google.common.collect.ImmutableList;
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.cloudburstmc.api.entity.Entity;
 
-import javax.annotation.Nonnegative;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,13 +45,13 @@ public interface ExperienceOrb extends Entity {
         return result;
     }
 
-    @Nonnegative
+    @NonNegative
     int getExperience();
 
-    void setExperience(@Nonnegative int experience);
+    void setExperience(@NonNegative int experience);
 
-    @Nonnegative
+    @NonNegative
     int getPickupDelay();
 
-    void setPickupDelay(@Nonnegative int pickupDelay);
+    void setPickupDelay(@NonNegative int pickupDelay);
 }

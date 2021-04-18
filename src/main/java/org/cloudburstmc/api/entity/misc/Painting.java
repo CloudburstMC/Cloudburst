@@ -1,10 +1,10 @@
 package org.cloudburstmc.api.entity.misc;
 
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.Entity;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +14,7 @@ public interface Painting extends Entity {
 
     Motive getMotive();
 
-    void setMotive(@Nonnull Motive motive);
+    void setMotive(@NonNull Motive motive);
 
     @RequiredArgsConstructor
     enum Motive {

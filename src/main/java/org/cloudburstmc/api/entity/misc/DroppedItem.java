@@ -1,19 +1,18 @@
 package org.cloudburstmc.api.entity.misc;
 
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
-
-import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
 
 public interface DroppedItem extends Entity {
 
     ItemStack getItem();
 
-    void setItem(@Nonnull ItemStack item);
+    void setItem(@NonNull ItemStack item);
 
-    @Nonnegative
+    @NonNegative
     int getPickupDelay();
 
-    void setPickupDelay(@Nonnegative int pickupDelay);
+    void setPickupDelay(@NonNegative int pickupDelay);
 }

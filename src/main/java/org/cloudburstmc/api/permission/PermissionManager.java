@@ -1,13 +1,11 @@
 package org.cloudburstmc.api.permission;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 public interface PermissionManager {
 
-    @Nonnull
     Optional<Permission> getPermission(String name);
 
     boolean addPermission(Permission nukkitPermission);
@@ -16,7 +14,6 @@ public interface PermissionManager {
 
     void removePermission(Permission permission);
 
-    @Nonnull
     Map<String, Permission> getDefaultPermissions(boolean op);
 
     void recalculatePermissionDefaults(Permission nukkitPermission);
@@ -25,16 +22,13 @@ public interface PermissionManager {
 
     void unsubscribeFromPermission(String permission, Permissible permissible);
 
-    @Nonnull
     Set<Permissible> getPermissionSubscriptions(String permission);
 
     void subscribeToDefaultPerms(boolean op, Permissible permissible);
 
     void unsubscribeFromDefaultPerms(boolean op, Permissible permissible);
 
-    @Nonnull
     Set<Permissible> getDefaultPermSubscriptions(boolean op);
 
-    @Nonnull
     Map<String, Permission> getPermissions();
 }

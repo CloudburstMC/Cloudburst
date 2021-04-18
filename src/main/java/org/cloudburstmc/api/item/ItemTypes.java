@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.item;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.data.Bucket;
@@ -9,8 +10,6 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.api.util.data.TreeSpecies;
-
-import javax.annotation.Nullable;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -241,7 +240,7 @@ public class ItemTypes {
 
     public static final ItemType UNKNOWN = IntItem.builder().id(Identifiers.UNKNOWN).build();
 
-    private static class IntItem implements ItemType {
+    public static final class IntItem implements ItemType {
         private final Identifier id;
         private final int maxStackSize;
         private final int attackDamage;
@@ -255,7 +254,7 @@ public class ItemTypes {
         private final ToolType toolType;
         private final TierType tierType;
 
-        public IntItem(
+        private IntItem(
                 Identifier id,
                 int maxStackSize,
                 int attackDamage,

@@ -2,6 +2,8 @@ package org.cloudburstmc.api.entity;
 
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.entity.passive.Bat;
@@ -19,8 +21,6 @@ import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.MountType;
 
-import javax.annotation.Nonnegative;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -190,9 +190,9 @@ public interface Entity {
         return getFireTicks() > 0;
     }
 
-    void setOnFire(@Nonnegative int seconds);
+    void setOnFire(@NonNegative int seconds);
 
-    @Nonnegative
+    @NonNegative
     int getFireTicks();
 
     void extinguish();

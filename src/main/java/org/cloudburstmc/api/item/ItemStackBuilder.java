@@ -1,23 +1,23 @@
 package org.cloudburstmc.api.item;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.util.Identifier;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 
 public interface ItemStackBuilder {
 
-    ItemStackBuilder itemType(@Nonnull ItemType itemType);
+    ItemStackBuilder itemType(@NonNull ItemType itemType);
 
     ItemStackBuilder blockState(BlockState blockState);
 
     ItemStackBuilder amount(int amount);
 
-    ItemStackBuilder name(@Nonnull String name);
+    ItemStackBuilder name(@NonNull String name);
 
     ItemStackBuilder clearName();
 

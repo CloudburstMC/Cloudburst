@@ -6,13 +6,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
 import java.util.List;
 
 @Getter
-@Immutable
-@ParametersAreNonnullByDefault
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class FireworkData {
 
@@ -25,7 +21,6 @@ public class FireworkData {
     }
 
     @Getter
-    @ParametersAreNonnullByDefault
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     public static class FireworkExplosion {
 

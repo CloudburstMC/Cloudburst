@@ -1,11 +1,10 @@
 package org.cloudburstmc.api.item;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.util.Identifier;
 
-import javax.annotation.Nullable;
-
-public interface ItemType {
+public sealed interface ItemType permits BlockType, ItemTypes.IntItem {
     Identifier getId();
 
     boolean isBlock();

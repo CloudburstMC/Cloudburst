@@ -1,10 +1,8 @@
 package org.cloudburstmc.api.plugin;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collection;
 import java.util.Optional;
 
-@ParametersAreNonnullByDefault
 public interface PluginManager {
 
     <T extends PluginLoader> boolean registerLoader(Class<T> clazz, T loader);

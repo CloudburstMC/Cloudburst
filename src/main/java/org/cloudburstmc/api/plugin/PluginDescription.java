@@ -1,6 +1,5 @@
 package org.cloudburstmc.api.plugin;
 
-import javax.annotation.Nonnull;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -12,13 +11,10 @@ public interface PluginDescription {
      *
      * @return the ID for this plugin
      */
-    @Nonnull
     String getId();
 
-    @Nonnull
     String getName();
 
-    @Nonnull
     Optional<String> getDescription();
 
     /**
@@ -26,7 +22,6 @@ public interface PluginDescription {
      *
      * @return the path of this plugin
      */
-    @Nonnull
     Optional<Path> getPath();
 
     /**
@@ -34,7 +29,6 @@ public interface PluginDescription {
      *
      * @return the plugin's author
      */
-    @Nonnull
     List<String> getAuthors();
 
     /**
@@ -42,7 +36,6 @@ public interface PluginDescription {
      *
      * @return the version of this plugin
      */
-    @Nonnull
     String getVersion();
 
     /**
@@ -50,7 +43,6 @@ public interface PluginDescription {
      *
      * @return the dependencies
      */
-    @Nonnull
     List<PluginDependency> getDependencies();
 
     /**
@@ -58,9 +50,7 @@ public interface PluginDescription {
      *
      * @return website url
      */
-    @Nonnull
     Optional<String> getUrl();
 
-    @Nonnull
     PluginLoader getPluginLoader();
 }

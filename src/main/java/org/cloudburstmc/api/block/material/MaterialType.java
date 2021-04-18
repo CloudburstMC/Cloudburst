@@ -1,12 +1,8 @@
 package org.cloudburstmc.api.block.material;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.index.qual.NonNegative;
 
-import javax.annotation.Nonnegative;
-import javax.annotation.concurrent.Immutable;
-
-
-@Immutable
 public final class MaterialType {
     private final float translucency;
     private final boolean neverBuildable;
@@ -38,7 +34,7 @@ public final class MaterialType {
         return new Builder();
     }
 
-    @Nonnegative
+    @NonNegative
     public float getTranslucency() {
         return translucency;
     }
@@ -95,7 +91,7 @@ public final class MaterialType {
         private boolean blockingPrecipitation;
         private boolean blockingMotion;
 
-        public Builder translucency(@Nonnegative float translucency) {
+        public Builder translucency(@NonNegative float translucency) {
             Preconditions.checkArgument(translucency >= 0 && translucency <= 1, "Translucency must be between 0 and 1");
             this.translucency = translucency;
             return this;

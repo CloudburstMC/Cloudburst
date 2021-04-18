@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.inventory;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +26,7 @@ public interface Inventory {
 
     String getTitle();
 
-    @Nonnull
+    @NonNull
     ItemStack getItem(int index);
 
     default boolean setItem(int index, ItemStack item) {
@@ -147,7 +147,7 @@ public interface Inventory {
 
     Set<? extends Player> getViewers();
 
-    @Nonnull
+    @NonNull
     InventoryType getType();
 
     InventoryHolder getHolder();
