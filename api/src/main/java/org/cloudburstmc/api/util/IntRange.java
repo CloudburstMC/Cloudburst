@@ -1,9 +1,10 @@
 package org.cloudburstmc.api.util;
 
 import com.google.common.base.Preconditions;
-import it.unimi.dsi.fastutil.ints.AbstractIntList;
 
-public class IntRange extends AbstractIntList {
+import java.util.AbstractList;
+
+public class IntRange extends AbstractList<Integer> {
     private final int start;
     private final int end;
     private final int size;
@@ -25,6 +26,10 @@ public class IntRange extends AbstractIntList {
     }
 
     @Override
+    public Integer get(int index) {
+        return this.start + Preconditions.checkElementIndex(index, this.size);
+    }
+
     public int getInt(int index) {
         return this.start + Preconditions.checkElementIndex(index, this.size);
     }

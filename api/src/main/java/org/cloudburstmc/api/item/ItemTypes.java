@@ -1,7 +1,5 @@
 package org.cloudburstmc.api.item;
 
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.data.Bucket;
@@ -14,13 +12,16 @@ import org.cloudburstmc.api.util.data.TreeSpecies;
 
 import javax.annotation.Nullable;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 import static org.cloudburstmc.api.item.TierTypes.*;
 import static org.cloudburstmc.api.item.ToolTypes.*;
 
 public class ItemTypes {
 
-    private static final Reference2ReferenceMap<Identifier, ItemType> BY_ID = new Reference2ReferenceOpenHashMap<>();
-    private static final Reference2ReferenceMap<Identifier, BlockType> BLOCKS_BY_ID = new Reference2ReferenceOpenHashMap<>();
+    private static final Map<Identifier, ItemType> BY_ID = new IdentityHashMap<>();
+    private static final Map<Identifier, BlockType> BLOCKS_BY_ID = new IdentityHashMap<>();
 
     public static final ItemType IRON_SHOVEL = IntItem.builder().id(ItemIds.IRON_SHOVEL).maxStackSize(1).data(Damageable.class).toolType(SHOVEL).tierType(IRON).attackDamage(4).build();
     public static final ItemType IRON_PICKAXE = IntItem.builder().id(ItemIds.IRON_PICKAXE).maxStackSize(1).data(Damageable.class).toolType(PICKAXE).tierType(IRON).attackDamage(4).build();

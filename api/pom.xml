@@ -112,22 +112,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-int-common</artifactId>
-            <version>8.5.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-reference-sets</artifactId>
-            <version>8.5.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-reference-reference-maps</artifactId>
-            <version>8.5.2</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <version>4.2.3</version>

@@ -1,20 +1,16 @@
 package org.cloudburstmc.api.block;
 
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Set;
+import java.util.*;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
 @UtilityClass
 public class BlockCategories {
 
-    private final EnumMap<BlockCategory, ReferenceSet<BlockType>> categoryMap = new EnumMap<>(BlockCategory.class);
+    private final EnumMap<BlockCategory, Set<BlockType>> categoryMap = new EnumMap<>(BlockCategory.class);
 
     static {
         init();
@@ -23,7 +19,7 @@ public class BlockCategories {
 
     public void init() {
         for (BlockCategory category : BlockCategory.values()) {
-            categoryMap.put(category, new ReferenceOpenHashSet<>());
+            categoryMap.put(category, Collections.newSetFromMap(new IdentityHashMap<>()));
         }
     }
 
