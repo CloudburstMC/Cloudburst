@@ -1,11 +1,11 @@
 package org.cloudburstmc.api.entity.misc;
 
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import org.cloudburstmc.api.entity.Entity;
 
 import javax.annotation.Nonnegative;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface ExperienceOrb extends Entity {
 
@@ -33,8 +33,8 @@ public interface ExperienceOrb extends Entity {
     /**
      * Splits the specified amount of XP into an array of acceptable XP orb sizes.
      */
-    static IntList splitIntoOrbSizes(int amount) {
-        IntList result = new IntArrayList();
+    static List<Integer> splitIntoOrbSizes(int amount) {
+        List<Integer> result = new ArrayList<>();
 
         while (amount > 0) {
             int size = getMaxOrbSize(amount);
