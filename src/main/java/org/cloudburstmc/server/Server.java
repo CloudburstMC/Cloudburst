@@ -1718,7 +1718,7 @@ public class Server {
         if (worldConfigs.isEmpty()) {
             throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }
-        List<CompletableFuture<Level>> worldFutures = new ArrayList<>(worldConfigs.size());
+        List<CompletableFuture<Level>> levelFutures = new ArrayList<>(worldConfigs.size());
 
         for (String name : worldConfigs.keySet()) {
             final ServerConfig.World config = worldConfigs.get(name);
@@ -1744,7 +1744,7 @@ public class Server {
             Identifier generator = Identifier.fromString(config.getGenerator());
             String options = config.getOptions();
 
-            worldFutures.add(this.loadLevel().id(name)
+            levelFutures.add(this.loadLevel().id(name)
                     .seed(seed)
                     .generator(generator == null ? this.generatorRegistry.getFallback() : generator)
                     .generatorOptions(options)
@@ -1752,9 +1752,9 @@ public class Server {
         }
 
         // Wait for worlds to load.
-        CompletableFutures.allAsList(worldFutures).join();
+        CompletableFutures.allAsList(levelFutures).join();
 
-        //Set default world
+        //set default level
         if (this.getDefaultLevel() == null) {
             String defaultName = this.serverProperties.getDefaultLevel();
             if (defaultName == null || defaultName.trim().isEmpty()) {
