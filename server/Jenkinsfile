@@ -61,7 +61,7 @@ pipeline {
                                 deployerId: "maven-deployer",
                                 resolverId: "maven-resolver"
                         )
-                        sh 'mvn javadoc:aggregate -pl bedrock/bedrock-common -am -DskipTests'
+                        sh 'mvn javadoc:javadoc -DskipTests'
                         step([$class: 'JavadocArchiver', javadocDir: 'target/site/apidocs', keepAll: false])
                     }
                 }
