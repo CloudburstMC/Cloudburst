@@ -57,7 +57,7 @@ pipeline {
                     steps {
                         rtMavenRun(
                                 pom: 'pom.xml',
-                                goals: 'javadoc:jar source:jar install',
+                                goals: 'clean javadoc:jar source:jar install',
                                 deployerId: "maven-deployer",
                                 resolverId: "maven-resolver"
                         )
@@ -75,7 +75,7 @@ pipeline {
                     steps {
                         rtMavenRun(
                                 pom: 'pom.xml',
-                                goals: 'javadoc:jar source:jar install',
+                                goals: 'clean javadoc:jar source:jar install',
                                 deployerId: "maven-deployer",
                                 resolverId: "maven-resolver"
                         )
@@ -95,11 +95,8 @@ pipeline {
 
     post {
         success {
-            junit 'target/surefire-reports/**/*.xml'
+//            junit 'target/surefire-reports/**/*.xml'
             archiveArtifacts artifacts: 'target/Cloudburst.jar', fingerprint: true
-        }
-        always {
-            deleteDir()
         }
     }
 }
