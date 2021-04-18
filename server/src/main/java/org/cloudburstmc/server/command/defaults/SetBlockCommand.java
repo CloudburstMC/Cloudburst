@@ -2,18 +2,18 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.registry.BlockRegistry;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 import org.cloudburstmc.server.utils.TextFormat;
 
 public class SetBlockCommand extends Command {
@@ -26,7 +26,7 @@ public class SetBlockCommand extends Command {
                 .setParameters(
                         new CommandParameter[]{
                                 new CommandParameter("position", CommandParamType.BLOCK_POSITION, false),
-                                new CommandParameter("Block", false, BlockRegistry.get().getBlockStates().stream().map(b -> b.getType().getName()).distinct().toArray(String[]::new)),
+                                new CommandParameter("Block", new String[]{}),
                                 new CommandParameter("tileData", CommandParamType.INT, true),
                                 new CommandParameter("oldBlockHandling", true, new String[]{"replace", "destroy", "keep"})
                         })
@@ -88,7 +88,7 @@ public class SetBlockCommand extends Command {
         }
 
         if (setType != SetType.REPLACE) {
-            BlockState existing = p.getLevel().getBlockAt(pos);
+            BlockState existing = p.getLevel().getBlockState(pos);
 
             if (existing != BlockStates.AIR) {
                 if (setType == SetType.DESTROY) {
@@ -100,7 +100,7 @@ public class SetBlockCommand extends Command {
             }
         }
 
-        p.getLevel().setBlock(pos, state);
+        p.getLevel().setBlockState(pos, state);
         sender.sendMessage(new TranslationContainer("%commands.setblock.success"));
 
         return true;
