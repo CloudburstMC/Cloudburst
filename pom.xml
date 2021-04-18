@@ -353,7 +353,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.name}</finalName>
+        <finalName>Cloudburst</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
