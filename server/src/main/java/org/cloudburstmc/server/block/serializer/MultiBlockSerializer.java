@@ -5,7 +5,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Identifier;
@@ -38,7 +37,7 @@ public class MultiBlockSerializer implements BlockSerializer {
         Identifier name = this.getName((NbtMap) builder.get(TAG_STATES), toRemove);
         builder.putString(TAG_NAME, name.toString());
 
-        val states = ((NbtMap) builder.get("states")).toBuilder();
+        var states = ((NbtMap) builder.get("states")).toBuilder();
         toRemove.forEach(states::remove);
         builder.putCompound("states", states.build());
 

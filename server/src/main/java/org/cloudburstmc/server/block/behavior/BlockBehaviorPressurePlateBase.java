@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
@@ -117,7 +116,7 @@ public abstract class BlockBehaviorPressurePlateBase extends FloodableBlockBehav
         boolean wasPowered = oldStrength > 0;
         boolean isPowered = strength > 0;
 
-        val level = (CloudLevel) block.getLevel();
+        var level = (CloudLevel) block.getLevel();
 
         if (oldStrength != strength) {
             block.set(block.getState().withTrait(BlockTraits.REDSTONE_SIGNAL, strength), false, false);

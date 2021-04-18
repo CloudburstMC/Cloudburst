@@ -5,7 +5,6 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
@@ -105,7 +104,7 @@ public class Explosion {
                             Block block = this.level.getLoadedBlock(vBlock);
 
                             if (block != null && block.getState() != BlockStates.AIR) {
-                                val state = block.getState();
+                                var state = block.getState();
                                 BlockState layer1 = block.getExtra();
                                 double resistance = Math.max(state.getBehavior().getResistance(state), layer1.getBehavior().getResistance(layer1));
                                 blastForce -= (resistance / 5 + 0.3d) * this.stepLen;
@@ -183,8 +182,8 @@ public class Explosion {
 
         //Iterator iter = this.affectedBlocks.entrySet().iterator();
         for (Block block : this.affectedBlockStates) {
-            val state = block.getState();
-            val behavior = state.getBehavior();
+            var state = block.getState();
+            var behavior = state.getBehavior();
             //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
             if (state.getType() == BlockTypes.TNT) {
                 ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
@@ -204,7 +203,7 @@ public class Explosion {
                     BlockUpdateEvent ev = new BlockUpdateEvent(sideBlock);
                     this.level.getServer().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
-                        val b = ev.getBlock();
+                        var b = ev.getBlock();
                         b.getState().getBehavior().onUpdate(b, CloudLevel.BLOCK_UPDATE_NORMAL);
                     }
 

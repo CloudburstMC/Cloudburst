@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.item.ItemStack;
@@ -65,7 +64,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     //Information from http://minecraft.gamepedia.com/Rail
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        val down = block.down().getState();
+        var down = block.down().getState();
         if (down.inCategory(BlockCategory.TRANSPARENT)) {
             return false;
         }
@@ -138,7 +137,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
         int delta = block.getY() - other.getY();
         Map<Block, Direction> rails = checkRailsConnected(block);
 
-        val behaviorOther = (BlockBehaviorRail) other.getState().getBehavior();
+        var behaviorOther = (BlockBehaviorRail) other.getState().getBehavior();
 
         if (rails.isEmpty()) { //Only one
             behaviorOther.setOrientation(other, delta == 1 ? RailDirection.ascending(face.getOpposite()) : RailDirection.straight(face));
@@ -172,7 +171,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     private Map<Block, Direction> checkRailsAround(Block block, Collection<Direction> faces) {
         Map<Block, Direction> result = new HashMap<>();
         faces.forEach(f -> {
-            val b = block.getSide(f);
+            var b = block.getSide(f);
             Stream.of(b, b.up(), b.down())
                     .filter(bl -> Rail.isRailBlock(bl.getState()))
                     .forEach(bl -> result.put(bl, f));
@@ -181,7 +180,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     }
 
     protected Map<Block, Direction> checkRailsConnected(Block block) {
-        val state = block.getState();
+        var state = block.getState();
         Map<Block, Direction> railsAround = this.checkRailsAround(block, this.getOrientation(state).connectingDirections());
         return railsAround.keySet().stream()
                 .filter(r -> ((BlockBehaviorRail) r.getState().getBehavior()).getOrientation(r.getState()).hasConnectingDirections(railsAround.get(r).getOpposite()))
@@ -201,7 +200,7 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     }
 
     public void setOrientation(Block block, RailDirection o) {
-        val state = block.getState();
+        var state = block.getState();
         if (state.ensureTrait(directionTrait) != o) {
             block.set(state.withTrait(directionTrait, o));
         }
@@ -212,8 +211,8 @@ public class BlockBehaviorRail extends FloodableBlockBehavior {
     }
 
     public void setActive(Block block, boolean active) {
-        val state = block.getState();
-        val current = state.ensureTrait(BlockTraits.IS_POWERED);
+        var state = block.getState();
+        var current = state.ensureTrait(BlockTraits.IS_POWERED);
         if (current != null && current != active) {
             block.set(state.toggleTrait(BlockTraits.IS_POWERED), true);
         }

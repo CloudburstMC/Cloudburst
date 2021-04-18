@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -21,7 +20,7 @@ public class BlockBehaviorNetherWart extends FloodableBlockBehavior {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        val down = block.down().getState();
+        var down = block.down().getState();
         if (down.getType() == BlockTypes.SOUL_SAND) {
             placeBlock(block, item);
             return true;
@@ -38,7 +37,7 @@ public class BlockBehaviorNetherWart extends FloodableBlockBehavior {
             }
         } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             if (new Random().nextInt(10) == 1) {
-                val state = block.getState();
+                var state = block.getState();
                 if (state.ensureTrait(BlockTraits.AGE) < 3) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.AGE));
                     CloudServer.getInstance().getEventManager().fire(ev);

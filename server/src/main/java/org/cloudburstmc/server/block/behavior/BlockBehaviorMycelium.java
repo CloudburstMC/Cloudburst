@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -38,7 +37,7 @@ public class BlockBehaviorMycelium extends BlockBehaviorSolid {
             int y = ThreadLocalRandom.current().nextInt(pos.getY() - 1, pos.getY() + 1);
             int z = ThreadLocalRandom.current().nextInt(pos.getZ() - 1, pos.getZ() + 1);
             Block b = block.getLevel().getBlock(x, y, z);
-            val state = b.getState();
+            var state = b.getState();
 
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
                 if (b.up().getState().inCategory(BlockCategory.TRANSPARENT)) {

@@ -4,7 +4,6 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.experimental.UtilityClass;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
@@ -47,7 +46,7 @@ public class BlockTraitSerializers {
 
         String traitName = null;
         if (serializer != null) {
-            val v = serializer.serialize(builder, type, traits, value);
+            var v = serializer.serialize(builder, type, traits, value);
             if (v != null) {
                 value = v;
             }

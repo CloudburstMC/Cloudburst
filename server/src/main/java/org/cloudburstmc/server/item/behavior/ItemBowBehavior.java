@@ -2,7 +2,6 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import lombok.val;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -112,7 +111,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
                     player.getInventory().removeItem(itemArrow);
                 }
                 if (!this.isUnbreakable(item)) {
-                    val dmg = item.getMetadata(Damageable.class);
+                    var dmg = item.getMetadata(Damageable.class);
                     if (dmg != null) {
                         EnchantmentInstance durability = item.getEnchantment(EnchantmentTypes.DURABILITY);
                         if (!(durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100))) {

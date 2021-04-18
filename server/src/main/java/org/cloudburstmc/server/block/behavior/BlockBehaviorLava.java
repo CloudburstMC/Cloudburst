@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.PrimedTnt;
@@ -68,8 +67,8 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
         int result = super.onUpdate(block, type);
 
         if (type == CloudLevel.BLOCK_UPDATE_RANDOM && block.getLevel().getGameRules().get(GameRules.DO_FIRE_TICK)) {
-            val pos = block.getPosition();
-            val level = block.getLevel();
+            var pos = block.getPosition();
+            var level = block.getLevel();
 
             Random random = ThreadLocalRandom.current();
 
@@ -78,8 +77,8 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
             if (i > 0) {
                 for (int k = 0; k < i; ++k) {
                     Vector3i v = pos.add(random.nextInt(3) - 1, 1, random.nextInt(3) - 1);
-                    val b = level.getBlock(v);
-                    val state = b.getState();
+                    var b = level.getBlock(v);
+                    var state = b.getState();
 
                     if (state.getType() == BlockTypes.AIR) {
                         if (this.isSurroundingBlockFlammable(b)) {
@@ -102,8 +101,8 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
             } else {
                 for (int k = 0; k < 3; ++k) {
                     Vector3i v = pos.add(random.nextInt(3) - 1, 0, random.nextInt(3) - 1);
-                    val b = level.getBlock(v);
-                    val state = b.getState();
+                    var b = level.getBlock(v);
+                    var state = b.getState();
 
                     if (b.up().getState().getType() == BlockTypes.AIR && state.getBehavior().getBurnChance(state) > 0) {
                         BlockIgniteEvent e = new BlockIgniteEvent(b, block, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
@@ -124,7 +123,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
     protected boolean isSurroundingBlockFlammable(Block block) {
         for (Direction face : Direction.values()) {
-            val sideState = block.getSide(face).getState();
+            var sideState = block.getSide(face).getState();
             if (sideState.getBehavior().getBurnChance(sideState) > 0) {
                 return true;
             }
@@ -160,7 +159,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
                 continue;
             }
 
-            val side = block.getSide(direction);
+            var side = block.getSide(direction);
 
             if (side.getState().getType() == BlockTypes.WATER
                     || side.getExtra().getType() == BlockTypes.WATER) {
@@ -180,7 +179,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
     @Override
     protected void flowIntoBlock(Block block, int newFlowDecay, boolean falling) {
-        val behavior = block.getState().getBehavior();
+        var behavior = block.getState().getBehavior();
         if (behavior instanceof BlockBehaviorWater) {
             ((BlockBehaviorLiquid) behavior).liquidCollide(block, CloudBlockRegistry.get().getBlock(BlockTypes.STONE));
         } else {

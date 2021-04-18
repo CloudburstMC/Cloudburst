@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -146,7 +145,7 @@ public class BlockBehaviorNoteblock extends BlockBehaviorSolid {
 
         Instrument instrument = this.getInstrument(block);
 
-        val level = (CloudLevel) block.getLevel();
+        var level = (CloudLevel) block.getLevel();
         level.addLevelSoundEvent(block.getPosition(), SoundEvent.NOTE, instrument.ordinal() << 8 | this.getStrength(block));
 
         BlockEventPacket pk = new BlockEventPacket();

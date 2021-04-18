@@ -3,7 +3,6 @@ package org.cloudburstmc.server.event;
 import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.EventFireHandler;
 import org.cloudburstmc.api.event.EventManager;
@@ -140,12 +139,12 @@ public class CloudEventManager implements EventManager {
         Map<Class<? extends Event>, List<ReflectionEventFireHandler.ListenerMethod>> listenerMap = new HashMap<>();
 
         for (Entry<PluginContainer, Set<Object>> entry : listenersByPlugin.entrySet()) {
-            val container = entry.getKey();
+            var container = entry.getKey();
 
             for (Object listener : entry.getValue()) {
                 for (Method method : listener.getClass().getDeclaredMethods()) {
                     if (method.isAnnotationPresent(Listener.class)) {
-                        val event = (Class<? extends Event>) method.getParameterTypes()[0];
+                        var event = (Class<? extends Event>) method.getParameterTypes()[0];
                         listenerMap.computeIfAbsent(event, (k) -> new ArrayList<>())
                                 .add(new ReflectionEventFireHandler.ListenerMethod(listener, method, Timings.getPluginEventTiming(event, listener, method, container)));
                     }

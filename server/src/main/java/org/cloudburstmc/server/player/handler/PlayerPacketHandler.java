@@ -21,7 +21,6 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -278,7 +277,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
                 }
                 Block target = player.getLevel().getBlock(blockPos);
-                val targetState = target.getState();
+                var targetState = target.getState();
 
                 PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, player.getInventory().getItemInHand(), target, face, targetState == BlockStates.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
                 player.getServer().getEventManager().fire(playerInteractEvent);
@@ -819,7 +818,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 continue;
             }
 
-            val data = item1.getMetadata(MapItem.class);
+            var data = item1.getMetadata(MapItem.class);
 
             if (data == null) {
                 continue;
@@ -835,13 +834,13 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             for (BlockEntity be : player.getLevel().getBlockEntities()) {
                 if (be instanceof ItemFrame) {
                     ItemFrame itemFrame1 = (ItemFrame) be;
-                    val frameItem = itemFrame1.getItem();
+                    var frameItem = itemFrame1.getItem();
 
                     if (frameItem.getType() != ItemTypes.MAP) {
                         continue;
                     }
 
-                    val data = frameItem.getMetadata(MapItem.class);
+                    var data = frameItem.getMetadata(MapItem.class);
 
                     if (data == null) {
                         continue;
@@ -1060,7 +1059,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             int ticksUsed = player.getServer().getTick() - player.getStartActionTick();
                             player.setUsingItem(false);
 
-                            val result = serverItem.getBehavior().onUse(serverItem, ticksUsed, player);
+                            var result = serverItem.getBehavior().onUse(serverItem, ticksUsed, player);
                             if (result != null) {
                                 player.getInventory().setItemInHand(result);
                             } else {
@@ -1099,8 +1098,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             break;
                         }
                         if (target.onInteract(player, serverItem, packet.getClickPosition()) && player.isSurvival()) {
-                            val behavior = serverItem.getBehavior();
-                            val result = behavior.useOn(serverItem, target);
+                            var behavior = serverItem.getBehavior();
+                            var result = behavior.useOn(serverItem, target);
                             if (result == null) {
                                 if (serverItem.getAmount() > 1) {
                                     serverItem = serverItem.decrementAmount();
@@ -1115,7 +1114,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
                         break;
                     case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-                        val behavior = serverItem.getBehavior();
+                        var behavior = serverItem.getBehavior();
                         float itemDamage = behavior.getAttackDamage(serverItem);
 
                         for (EnchantmentInstance enchantment : serverItem.getEnchantments().values()) {
@@ -1171,7 +1170,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
 
                         if (behavior.isTool(serverItem) && player.isSurvival()) {
-                            val result = behavior.useOn(serverItem, target);
+                            var result = behavior.useOn(serverItem, target);
                             if (result == null && serverItem.getMetadata(Damageable.class).getDurability() >= behavior.getMaxDurability()) {
                                 player.getInventory().setItemInHand(CloudItemRegistry.AIR);
                             } else {
@@ -1197,7 +1196,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 serverItem = player.getInventory().getItemInHand();
 
                                 int ticksUsed = player.getServer().getTick() - player.getStartActionTick();
-                                val result = serverItem.getBehavior().onRelease(serverItem, ticksUsed, player);
+                                var result = serverItem.getBehavior().onRelease(serverItem, ticksUsed, player);
                                 if (result != null) {
                                     player.getInventory().setItemInHand(result);
                                 }
@@ -1273,7 +1272,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         if (packet.isDroppingBook()) {
             Block block = player.getLevel().getBlock(blockPosition);
-            val state = block.getState();
+            var state = block.getState();
             if (state.getType() == BlockTypes.LECTERN) {
                 ((BlockBehaviorLectern) state.getBehavior()).dropBook(block, player);
             }
@@ -1286,8 +1285,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 if (!lecternPageChangeEvent.isCancelled()) {
                     lectern.setPage(lecternPageChangeEvent.getNewRawPage());
                     lectern.spawnToAll();
-                    val block = lectern.getBlock();
-                    val state = block.getState();
+                    var block = lectern.getBlock();
+                    var state = block.getState();
                     if (state.getType() == BlockTypes.LECTERN) {
                         ((BlockBehaviorLectern) state.getBehavior()).executeRedstonePulse(block);
                     }

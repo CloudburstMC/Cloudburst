@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -150,8 +149,8 @@ public class BlockBehaviorTrapdoor extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
-            val level = (CloudLevel) block.getLevel();
-            val open = isOpen(block.getState());
+            var level = (CloudLevel) block.getLevel();
+            var open = isOpen(block.getState());
             if ((!open && level.isBlockPowered(block.getPosition())) || (open && !level.isBlockPowered(block.getPosition()))) {
                 level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
 

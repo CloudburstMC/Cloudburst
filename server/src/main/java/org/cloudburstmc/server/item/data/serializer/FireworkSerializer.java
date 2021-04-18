@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
@@ -58,7 +57,7 @@ public class FireworkSerializer implements ItemDataSerializer<FireworkData> {
 
     @Override
     public FireworkData deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
-        val compound = dataTag.getCompound(TAG_FIREWORKS);
+        var compound = dataTag.getCompound(TAG_FIREWORKS);
 
         if (compound != null) {
             boolean flight = compound.getBoolean(TAG_FLIGHT, true);

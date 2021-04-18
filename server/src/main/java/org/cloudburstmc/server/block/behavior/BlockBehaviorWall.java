@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
@@ -97,11 +96,11 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
             BlockState state = block.getState();
             BlockState newState = state;
 
-            val connections = findConnections(block);
+            var connections = findConnections(block);
 
             for (Direction face : Plane.HORIZONTAL) {
-                val connectionType = connections.get(face);
-                val trait = getConnectionTypeTrait(face);
+                var connectionType = connections.get(face);
+                var trait = getConnectionTypeTrait(face);
                 if (state.ensureTrait(trait) != connectionType) {
                     newState = newState.withTrait(trait, connectionType);
                 }
@@ -119,7 +118,7 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        val connections = findConnections(block);
+        var connections = findConnections(block);
 
         BlockState newState = item.getBehavior().getBlock(item);
 

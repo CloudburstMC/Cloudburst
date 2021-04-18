@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -33,11 +32,11 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         // Prevents from placing the same plant block on itself
-        val itemBlock = item.getBehavior().getBlock(item);
+        var itemBlock = item.getBehavior().getBlock(item);
         if (itemBlock.getType() == target.getState().getType() && itemBlock.ensureTrait(BlockTraits.TALL_GRASS_TYPE) == block.getState().ensureTrait(BlockTraits.TALL_GRASS_TYPE)) {
             return false;
         }
-        val down = block.down().getState().getType();
+        var down = block.down().getState().getType();
         if (down == GRASS || down == DIRT || down == PODZOL) {
             placeBlock(block, itemBlock);
             return true;
@@ -59,10 +58,10 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
-            val up = block.up();
+            var up = block.up();
 
             if (up.getState().getType() == AIR) {
-                val type = block.getState().ensureTrait(BlockTraits.TALL_GRASS_TYPE);
+                var type = block.getState().ensureTrait(BlockTraits.TALL_GRASS_TYPE);
                 if (type == TallGrassType.DEFAULT) {
                     if (player != null && player.getGamemode().isSurvival()) {
                         ((CloudPlayer) player).getInventory().decrementHandCount();
@@ -70,7 +69,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
 
                     ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
 
-                    val dp = CloudBlockRegistry.get().getBlock(DOUBLE_PLANT).withTrait(BlockTraits.TALL_GRASS_TYPE, type);
+                    var dp = CloudBlockRegistry.get().getBlock(DOUBLE_PLANT).withTrait(BlockTraits.TALL_GRASS_TYPE, type);
                     block.set(dp, true);
                     up.set(dp.withTrait(BlockTraits.IS_UPPER_BLOCK, true), true);
                 }

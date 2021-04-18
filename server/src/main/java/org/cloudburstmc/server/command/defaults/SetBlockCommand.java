@@ -6,7 +6,6 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.command.Command;

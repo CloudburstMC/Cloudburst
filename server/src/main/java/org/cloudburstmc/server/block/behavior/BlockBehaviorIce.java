@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -17,7 +16,7 @@ public class BlockBehaviorIce extends BlockBehaviorTransparent {
 
     @Override
     public boolean onBreak(Block block, ItemStack item, Player player) {
-        val level = block.getLevel();
+        var level = block.getLevel();
         if (player.getGamemode() == GameMode.CREATIVE) {
             return removeBlock(block);
         }

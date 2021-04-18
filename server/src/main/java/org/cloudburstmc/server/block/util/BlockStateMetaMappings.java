@@ -12,7 +12,6 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
@@ -67,7 +66,7 @@ public class BlockStateMetaMappings {
     }
 
     public BlockState getStateFromMeta(ItemStack item) {
-        val cloudItem = (CloudItemStack) item;
+        var cloudItem = (CloudItemStack) item;
         return getStateFromMeta(cloudItem.getId(), cloudItem.getNetworkData().getDamage());
     }
 

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -25,7 +24,7 @@ public class ItemEndCrystalBehavior extends CloudItemBehavior {
 
     @Override
     public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
-        val targetType = target.getState().getType();
+        var targetType = target.getState().getType();
         if (!(targetType == BlockTypes.BEDROCK) && !(targetType == BlockTypes.OBSIDIAN)) return null;
         CloudChunk chunk = (CloudChunk) level.getLoadedChunk(block.getPosition());
 

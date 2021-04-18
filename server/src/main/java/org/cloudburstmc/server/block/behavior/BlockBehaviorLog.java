@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -42,8 +41,8 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val behavior = item.getBehavior();
-        val state = block.getState();
+        var behavior = item.getBehavior();
+        var state = block.getState();
 
         if (state.ensureTrait(BlockTraits.IS_STRIPPED) || !behavior.isAxe() || behavior.useOn(item, state) == null) {
             return false;

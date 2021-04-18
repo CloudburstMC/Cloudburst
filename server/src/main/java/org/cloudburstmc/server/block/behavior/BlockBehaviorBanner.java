@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -76,7 +75,7 @@ public class BlockBehaviorBanner extends BlockBehaviorTransparent {
     @Override
     public ItemStack toItem(Block block) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
-        val builder = new CloudItemStackBuilder();
+        var builder = new CloudItemStackBuilder();
         builder.itemType(ItemTypes.BANNER);
         if (blockEntity instanceof Banner) {
             BannerBlockEntity banner = (BannerBlockEntity) blockEntity;

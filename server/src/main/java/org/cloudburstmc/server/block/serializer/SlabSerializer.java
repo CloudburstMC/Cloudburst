@@ -4,7 +4,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -22,7 +21,7 @@ public class SlabSerializer implements BlockSerializer {
 
     private void serialize0(NbtMapBuilder builder, BlockType blockType, Map<BlockTrait<?>, Comparable<?>> traits, boolean flag) {
         DefaultBlockSerializer.INSTANCE.serialize(builder, blockType, traits);
-        val statesBuilder = ((NbtMap) builder.get("states")).toBuilder();
+        var statesBuilder = ((NbtMap) builder.get("states")).toBuilder();
 
         switch ((SlabSlot) traits.get(BlockTraits.SLAB_SLOT)) {
             case TOP:
@@ -54,7 +53,7 @@ public class SlabSerializer implements BlockSerializer {
 
     @Override
     public void serialize(List<NbtMapBuilder> tags, BlockType blockType, Map<BlockTrait<?>, Comparable<?>> traits) {
-        val slabSlot = (SlabSlot) traits.get(BlockTraits.SLAB_SLOT);
+        var slabSlot = (SlabSlot) traits.get(BlockTraits.SLAB_SLOT);
 
         if (slabSlot == SlabSlot.FULL) {
             NbtMapBuilder builder = NbtMap.builder();

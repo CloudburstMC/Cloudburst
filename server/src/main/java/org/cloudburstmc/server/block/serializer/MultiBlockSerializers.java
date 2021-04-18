@@ -440,10 +440,10 @@ public class MultiBlockSerializers {
         Preconditions.checkNotNull(trait, "trait");
         Preconditions.checkNotNull(ids, "ids");
 
-        val values = trait.getPossibleValues();
+        var values = trait.getPossibleValues();
         Preconditions.checkArgument(ids.length == values.size());
 
-        val builder = builder();
+        var builder = builder();
         builder.removeTrait(traitName);
         for (int i = 0; i < ids.length; i++) {
             builder.add(traitName, values.get(i).name().toLowerCase(), ids[i]);
@@ -509,7 +509,7 @@ public class MultiBlockSerializers {
             Preconditions.checkNotNull(traitName, "traitName");
             Preconditions.checkNotNull(id, "id");
 
-            val entry = traits.computeIfAbsent(traitName, (k) -> new TraitEntry(traitName));
+            var entry = traits.computeIfAbsent(traitName, (k) -> new TraitEntry(traitName));
             if (traitValue != null) {
                 if (removeTrait) {
                     entry.removeValues.add(traitValue);
@@ -569,7 +569,7 @@ public class MultiBlockSerializers {
         }
 
         public static Tuple<String, TraitEntry> combine(String traitName, @Nullable Object value, boolean remove) {
-            val entry = new TraitEntry(traitName);
+            var entry = new TraitEntry(traitName);
             if (remove) {
                 entry.remove = true;
             }
@@ -597,7 +597,7 @@ public class MultiBlockSerializers {
 
                         boolean found = false;
                         for (Object val : te.values.keySet()) {
-                            val trait = traits.get(entry.getA());
+                            var trait = traits.get(entry.getA());
 
                             if (trait == null) {
                                 continue;
@@ -624,7 +624,7 @@ public class MultiBlockSerializers {
             }
 
             for (Entry<String, Object> traitEntry : traits.entrySet()) {
-                val entry = this.traits.get(traitEntry.getKey());
+                var entry = this.traits.get(traitEntry.getKey());
 
                 if (entry != null) {
                     return entry.getId(traitEntry.getValue(), toRemove);
@@ -676,7 +676,7 @@ public class MultiBlockSerializers {
             this.id = id;
             this.values = values;
             this.weight = (int) values.stream().filter(t -> {
-                val ids = t.getB().values;
+                var ids = t.getB().values;
 
                 return !ids.isEmpty() && ids.get(null) == null;
             }).count();

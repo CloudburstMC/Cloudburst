@@ -2,7 +2,6 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -62,7 +61,7 @@ public class GiveCommand extends Command {
         ItemStack item;
 
         try {
-            val registry = CloudItemRegistry.get();
+            var registry = CloudItemRegistry.get();
             item = registry.getItem(ItemTypes.byId(Identifier.fromString(args[1])));
         } catch (Exception e) {
             log.throwing(e);

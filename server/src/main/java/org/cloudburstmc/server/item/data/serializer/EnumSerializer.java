@@ -3,7 +3,6 @@ package org.cloudburstmc.server.item.data.serializer;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.Coal;
 import org.cloudburstmc.api.util.Identifier;
@@ -22,7 +21,7 @@ public class EnumSerializer<T extends Enum<T>> implements ItemDataSerializer<T> 
 
     @Override
     public T deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
-        val constants = enumClass.getEnumConstants();
+        var constants = enumClass.getEnumConstants();
         return constants[rootTag.getShort("Damage") % constants.length];
     }
 }

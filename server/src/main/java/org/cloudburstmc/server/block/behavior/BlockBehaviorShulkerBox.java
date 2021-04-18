@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.util.data.BlockColor;
@@ -14,7 +13,7 @@ public class BlockBehaviorShulkerBox extends BlockBehaviorUndyedShulkerBox {
     }
 
     public DyeColor getDyeColor(Block block) {
-        val color = block.getState().ensureTrait(BlockTraits.COLOR);
+        var color = block.getState().ensureTrait(BlockTraits.COLOR);
 
         if (color == null) {
             return DyeColor.WHITE;

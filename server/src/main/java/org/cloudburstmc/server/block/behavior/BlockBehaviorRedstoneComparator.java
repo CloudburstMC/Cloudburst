@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -39,7 +38,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     @Override
     public void updateState(Block block) {
-        val state = block.getState();
+        var state = block.getState();
         if (!((CloudLevel) block.getLevel()).isBlockTickPending(block.getPosition(), block)) {
             int output = this.calculateOutput(block);
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
@@ -62,8 +61,8 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
         int power = super.calculateInputStrength(block);
         Direction face = getFacing(block.getState());
         Block b = block.getSide(face);
-        val state = b.getState();
-        val behavior = state.getBehavior();
+        var state = b.getState();
+        var behavior = state.getBehavior();
 
         if (behavior.hasComparatorInputOverride(state)) {
             power = behavior.getComparatorInputOverride(b);
@@ -97,7 +96,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val state = block.getState();
+        var state = block.getState();
         boolean subtract = state.ensureTrait(BlockTraits.IS_OUTPUT_SUBTRACT);
         block.set(state.withTrait(BlockTraits.IS_OUTPUT_SUBTRACT, !subtract), true);
         ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.RANDOM_CLICK, 1, subtract ? 0.5f : 0.55F);
@@ -128,7 +127,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
             blockEntityComparator.setOutputSignal(output);
         }
 
-        val state = block.getState();
+        var state = block.getState();
         if (currentOutput != output || getMode(state) == Mode.COMPARE) {
             boolean shouldBePowered = this.shouldBePowered(block);
             boolean isPowered = this.isPowered(state);

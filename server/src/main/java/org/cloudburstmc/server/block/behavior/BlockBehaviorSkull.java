@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -41,7 +40,7 @@ public class BlockBehaviorSkull extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        val be = block.getLevel().getBlockEntity(block.getPosition());
+        var be = block.getLevel().getBlockEntity(block.getPosition());
 
         int meta = 0;
         if (be instanceof Skull) {

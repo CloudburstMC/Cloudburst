@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -38,7 +37,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        val state = block.getState();
+        var state = block.getState();
         if (hand.getBehavior().isShears()) {
             return new ItemStack[]{
                     toItem(block)
@@ -66,7 +65,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        val state = block.getState();
+        var state = block.getState();
         if (type == CloudLevel.BLOCK_UPDATE_RANDOM && !isPersistent(state) && !isCheckDecay(state)) {
             block.set(block.getState().withTrait(BlockTraits.HAS_UPDATE, true));
         } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM && isCheckDecay(state) && !isPersistent(state)) {
@@ -88,7 +87,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
                 pos.getX() - distance, pos.getY() - distance, pos.getZ() - distance,
                 pos.getX() + distance, pos.getY() + distance, pos.getZ() + distance))) {
 
-            val state = collisionBlock.getState().getType();
+            var state = collisionBlock.getState().getType();
 
             if (state == LOG) {
                 return true;
@@ -112,7 +111,7 @@ public class BlockBehaviorLeaves extends BlockBehaviorTransparent {
 
 
     protected boolean canDropApple(BlockState state) {
-        val type = state.ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD);
+        var type = state.ensureTrait(BlockTraits.TREE_SPECIES_OVERWORLD);
         return type == TreeSpecies.OAK || type == TreeSpecies.DARK_OAK;
     }
 

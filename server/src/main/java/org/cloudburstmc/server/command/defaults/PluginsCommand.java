@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.command.defaults;
 
-import lombok.val;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.command.Command;
@@ -35,7 +34,7 @@ public class PluginsCommand extends Command {
 
     private void sendPluginList(CommandSender sender) {
         StringBuilder list = new StringBuilder();
-        val plugins = sender.getServer().getPluginManager().getAllPlugins();
+        var plugins = sender.getServer().getPluginManager().getAllPlugins();
         for (PluginContainer plugin : plugins) {
             if (list.length() > 0) {
                 list.append(TextFormat.WHITE);

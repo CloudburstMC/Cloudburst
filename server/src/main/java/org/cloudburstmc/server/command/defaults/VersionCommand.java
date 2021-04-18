@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.command.defaults;
 
-import lombok.val;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.plugin.PluginDescription;
@@ -42,7 +41,7 @@ public class VersionCommand extends Command {
             StringJoiner pluginName = new StringJoiner(" ");
             for (String arg : args) pluginName.add(arg);
 
-            val exactPlugin = sender.getServer().getPluginManager().getPlugin(pluginName.toString()).orElseGet(() -> {
+            var exactPlugin = sender.getServer().getPluginManager().getPlugin(pluginName.toString()).orElseGet(() -> {
                 final String finalPluginName = pluginName.toString().toLowerCase();
                 for (PluginContainer container : sender.getServer().getPluginManager().getAllPlugins()) {
                     if (container.getDescription().getName().toLowerCase().contains(finalPluginName)) {

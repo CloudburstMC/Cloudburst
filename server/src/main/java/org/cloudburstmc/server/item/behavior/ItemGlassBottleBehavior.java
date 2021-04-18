@@ -2,7 +2,6 @@ package org.cloudburstmc.server.item.behavior;
 
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
@@ -23,7 +22,7 @@ public class ItemGlassBottleBehavior extends CloudItemBehavior {
 
     @Override
     public ItemStack onActivate(ItemStack item, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
-        val targetType = target.getState().getType();
+        var targetType = target.getState().getType();
         if (targetType == WATER || targetType == FLOWING_WATER) {
             ItemStack potion = CloudItemRegistry.get().getItem(POTION);
 

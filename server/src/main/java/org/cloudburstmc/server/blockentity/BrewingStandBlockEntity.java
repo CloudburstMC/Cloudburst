@@ -7,7 +7,6 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -274,7 +273,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         for (int i = 1; i <= 3; ++i) {
             ItemStack potion = this.inventory.getItem(i);
 
-            val id = potion.getType();
+            var id = potion.getType();
             if ((id == ItemTypes.POTION || id == ItemTypes.SPLASH_POTION || id == ItemTypes.LINGERING_POTION) && potion.getAmount() > 0) {
                 switch (i) {
                     case 1:
@@ -305,7 +304,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
     @Override
     public int[] getHopperPushSlots(Direction direction, ItemStack item) {
-        val id = item.getType();
+        var id = item.getType();
 
         if (direction.getAxis().isHorizontal()) {
             if (id == ItemTypes.BLAZE_POWDER) {

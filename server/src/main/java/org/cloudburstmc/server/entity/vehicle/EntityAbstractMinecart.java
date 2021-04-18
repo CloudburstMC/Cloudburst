@@ -4,7 +4,6 @@ import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -207,7 +206,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             }
 
             Block block = this.getLevel().getBlock(dx, dy, dz);
-            val state = block.getState();
+            var state = block.getState();
 
             // Ensure that the block is a rail
             if (Rail.isRailBlock(state)) {
@@ -441,7 +440,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     private void processMovement(int dx, int dy, int dz, Block block) {
         fallDistance = 0.0F;
-        val identifier = block.getState().getType();
+        var identifier = block.getState().getType();
         if (identifier != BlockTypes.RAIL && identifier != BlockTypes.ACTIVATOR_RAIL &&
                 identifier != BlockTypes.DETECTOR_RAIL && identifier != BlockTypes.GOLDEN_RAIL) {
             return;
@@ -450,12 +449,12 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
         int y = dy;
 
-        val state = block.getState();
+        var state = block.getState();
         Boolean powered = state.ensureTrait(BlockTraits.IS_POWERED);
         boolean isPowered = powered != null ? powered : false;
         boolean isSlowed = !isPowered;
 
-        val behavior = block.getState().getBehavior();
+        var behavior = block.getState().getBehavior();
 
         float motionX = this.motion.getX();
         float motionY = this.motion.getY();

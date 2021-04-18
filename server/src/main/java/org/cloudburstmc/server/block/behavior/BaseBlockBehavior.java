@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
@@ -28,15 +27,15 @@ public abstract class BaseBlockBehavior extends BlockBehavior {
         Objects.requireNonNull(item, "getBreakTime: Item can not be null");
         //Objects.requireNonNull(p, "getBreakTime: Player can not be null");
         float blockHardness = getHardness(state);
-        val toolType = getToolType(state);
+        var toolType = getToolType(state);
 
-        val itemBehavior = item.getBehavior();
-        val itemToolType = itemBehavior.getToolType(item);
-        val itemTier = itemBehavior.getTier(item);
+        var itemBehavior = item.getBehavior();
+        var itemToolType = itemBehavior.getToolType(item);
+        var itemTier = itemBehavior.getTier(item);
 
         boolean correctTool = toolType == null || itemToolType == toolType;
         boolean canHarvestWithHand = canHarvestWithHand(state);
-        val blockType = state.getType();
+        var blockType = state.getType();
         int efficiencyLoreLevel = Optional.ofNullable(item.getEnchantment(EnchantmentTypes.EFFICIENCY))
                 .map(EnchantmentInstance::getLevel).orElse(0);
         int hasteEffectLevel = Optional.ofNullable(player).map((p1) -> p1.getEffect(EffectTypes.HASTE))
@@ -50,12 +49,12 @@ public abstract class BaseBlockBehavior extends BlockBehavior {
     }
 
     public boolean placeBlock(Block block, BlockState newState, boolean update) {
-        val state = block.getLiquid();
+        var state = block.getLiquid();
         BlockBehavior behavior = CloudBlockRegistry.get().getBehavior(state.getType());
         if (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging()) {
             boolean flowing = state.ensureTrait(BlockTraits.IS_FLOWING) || state.ensureTrait(BlockTraits.FLUID_LEVEL) != 0;
 
-            val newBehavior = newState.getBehavior();
+            var newBehavior = newState.getBehavior();
             if (!flowing && newBehavior.canWaterlogSource(newState) || flowing && newBehavior.canWaterlogFlowing(newState)) {
                 block.set(state, 1, true, false);
             } else {

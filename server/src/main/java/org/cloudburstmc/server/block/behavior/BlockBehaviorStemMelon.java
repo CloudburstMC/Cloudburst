@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -29,7 +28,7 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
         } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             ThreadLocalRandom random = ThreadLocalRandom.current();
             if (random.nextBoolean()) {
-                val state = block.getState();
+                var state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 7) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
                     CloudServer.getInstance().getEventManager().fire(ev);
@@ -39,7 +38,7 @@ public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
                     return CloudLevel.BLOCK_UPDATE_RANDOM;
                 } else {
                     for (Direction face : Direction.Plane.HORIZONTAL) {
-                        val b = block.getSide(face).getState();
+                        var b = block.getSide(face).getState();
                         if (b.getType() == MELON_BLOCK) {
                             return CloudLevel.BLOCK_UPDATE_RANDOM;
                         }

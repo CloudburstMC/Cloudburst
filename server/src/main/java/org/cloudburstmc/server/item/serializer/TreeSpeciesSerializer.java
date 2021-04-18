@@ -5,7 +5,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import lombok.val;
 import org.cloudburstmc.api.item.ItemIds;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.TreeSpecies;
@@ -26,7 +25,7 @@ public class TreeSpeciesSerializer extends DefaultItemSerializer {
         Preconditions.checkArgument(identifiers.length == TreeSpecies.values().length, "Invalid amount of identifiers provided");
 
         this.identifiers = identifiers;
-        val values = TreeSpecies.values();
+        var values = TreeSpecies.values();
         for (int i = 0; i < values.length; i++) {
             dataMap.put(identifiers[i], values[i]);
         }

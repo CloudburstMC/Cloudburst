@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.item.behavior;
 
 import lombok.RequiredArgsConstructor;
-import lombok.val;
-import lombok.var;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
@@ -63,11 +61,11 @@ public abstract class ItemToolBehavior extends CloudItemBehavior {
             return item;
         }
 
-        val behavior = state.getBehavior();
+        var behavior = state.getBehavior();
         var damage = item.getMetadata(Damageable.class);
 
         if (damage != null) {
-            val itemBehavior = item.getBehavior();
+            var itemBehavior = item.getBehavior();
             if (behavior.getToolType(state) == itemBehavior.getToolType(item)) {
                 return item.withData(damage.damage());
             }
@@ -120,7 +118,7 @@ public abstract class ItemToolBehavior extends CloudItemBehavior {
 
     @Override
     public boolean isUnbreakable(ItemStack item) {
-        val damage = item.getMetadata(Damageable.class);
+        var damage = item.getMetadata(Damageable.class);
         return damage != null && damage.isUnbreakable();
     }
 
@@ -156,7 +154,7 @@ public abstract class ItemToolBehavior extends CloudItemBehavior {
 
     @Override
     public boolean isTool(ItemStack item) {
-        val type = item.getType();
+        var type = item.getType();
         return type == FLINT_AND_STEEL || type == SHEARS || type == BOW ||
                 this.isPickaxe() || this.isAxe() || this.isShovel() || this.isSword() || this.isHoe();
     }

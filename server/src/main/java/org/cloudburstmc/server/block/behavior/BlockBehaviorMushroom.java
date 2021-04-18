@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
@@ -69,7 +68,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     public boolean grow(Block block) {
         block.set(BlockStates.AIR, true, false);
 
-        val item = (CloudItemStack) CloudItemRegistry.get().getItem(block.getState());
+        var item = (CloudItemStack) CloudItemRegistry.get().getItem(block.getState());
         WorldFeature feature = GenerationTreeSpecies.fromItem(item.getId(), item.getNetworkData().getDamage()).getDefaultGenerator();
 
         if (feature.place(block.getLevel(), ThreadLocalPRandom.current(), block.getX(), block.getY(), block.getZ())) {
@@ -81,7 +80,7 @@ public abstract class BlockBehaviorMushroom extends FloodableBlockBehavior {
     }
 
     public boolean canStay(Block block) {
-        val state = block.down().getState();
+        var state = block.down().getState();
         return state.getType() == BlockTypes.MYCELIUM || state.getType() == BlockTypes.PODZOL ||
                 (!state.inCategory(BlockCategory.TRANSPARENT) && block.getLevel().getFullLight(block.getPosition()) < 13);
     }

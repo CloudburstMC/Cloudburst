@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -34,7 +33,7 @@ public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
     @SuppressWarnings("unchecked")
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        val behavior = hand.getBehavior();
+        var behavior = hand.getBehavior();
         if (behavior.isPickaxe() && behavior.getTier(hand).compareTo(TierTypes.WOOD) > 0) {
             BlockState state = CloudBlockRegistry.get().getBlock(slabType);
             if (typeTrait != null) {

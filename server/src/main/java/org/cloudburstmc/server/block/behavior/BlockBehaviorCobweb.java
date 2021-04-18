@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
@@ -18,7 +17,7 @@ public class BlockBehaviorCobweb extends FloodableBlockBehavior {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        val behavior = hand.getBehavior();
+        var behavior = hand.getBehavior();
         if (behavior.isShears() || behavior.isSword()) {
             return new ItemStack[]{
                     CloudItemRegistry.get().getItem(ItemTypes.STRING)

@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
-import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -70,7 +68,7 @@ public class BlockBehaviorHopper extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
-            val state = block.getState();
+            var state = block.getState();
             boolean powered = ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition());
 
             if (powered != state.ensureTrait(BlockTraits.IS_TOGGLED)) {

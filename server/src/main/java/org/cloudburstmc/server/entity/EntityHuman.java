@@ -15,7 +15,6 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
-import lombok.val;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -340,7 +339,7 @@ public class EntityHuman extends EntityCreature implements Human {
                         continue;
                 }
 
-                val damageable = armor.getMetadata(Damageable.class);
+                var damageable = armor.getMetadata(Damageable.class);
 
                 if (damageable != null) {
                     if (damageable.isUnbreakable()) {

@@ -8,7 +8,6 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -116,7 +115,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
         this.saveClientData(tag);
 
-//        val nbt = tag.build();
+//        var nbt = tag.build();
 //        checkNbt(this.tag, nbt);
 
 //        log.info("saving: " + this.type);
@@ -126,8 +125,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
 //                return;
 //            }
 //
-//            val type = NbtType.byClass(value.getClass());
-//            val vanillaType = NbtType.byClass(this.tag.get(key).getClass());
+//            var type = NbtType.byClass(value.getClass());
+//            var vanillaType = NbtType.byClass(this.tag.get(key).getClass());
 //
 //            if (type != vanillaType) {
 //                log.info("Incompatible types for '" + key + "' vanilla: " + vanillaType.getTypeName() + "  local: " + type.getTypeName());
@@ -201,8 +200,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
                 return false;
             }
 
-            val localMap = (Map<String, ?>) local;
-            val vanillaMap = (Map<String, ?>) tag;
+            var localMap = (Map<String, ?>) local;
+            var vanillaMap = (Map<String, ?>) tag;
 
             for (Entry<String, ?> entry : localMap.entrySet()) {
                 if (!vanillaMap.containsKey(entry.getKey())) {
@@ -222,16 +221,16 @@ public abstract class BaseBlockEntity implements BlockEntity {
                 return false;
             }
 
-            val localList = (List) local;
-            val vanillaList = (List) tag;
+            var localList = (List) local;
+            var vanillaList = (List) tag;
 
             if (localList.size() != vanillaList.size()) {
                 return false;
             }
 
             for (int i = 0; i < localList.size(); i++) {
-                val localItem = localList.get(i);
-                val vanillaItem = vanillaList.get(i);
+                var localItem = localList.get(i);
+                var vanillaItem = vanillaList.get(i);
 
                 if (!nbtEquals(vanillaItem, localItem)) {
                     return false;
@@ -246,18 +245,18 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     private boolean checkNbt(NbtMap tag, NbtMap local) {
         for (Entry<String, Object> entry : local.entrySet()) {
-            val key = entry.getKey();
-            val value = entry.getValue();
+            var key = entry.getKey();
+            var value = entry.getValue();
 
             if (!tag.containsKey(key)) {
                 log.info("redundant key: " + key);
                 continue;
             }
 
-            val vanilla = tag.get(key);
+            var vanilla = tag.get(key);
 
-            val localType = NbtType.byClass(value.getClass());
-            val vanillaType = NbtType.byClass(vanilla.getClass());
+            var localType = NbtType.byClass(value.getClass());
+            var vanillaType = NbtType.byClass(vanilla.getClass());
 
             if (vanillaType != localType) {
                 log.info("wrong tag types, local: " + localType.getTypeName() + ", vanilla: " + vanillaType.getTypeName());
@@ -292,8 +291,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
             Object value = local.get(i);
             Object vanilla = tag.get(i);
 
-            val localType = NbtType.byClass(value.getClass());
-            val vanillaType = NbtType.byClass(vanilla.getClass());
+            var localType = NbtType.byClass(value.getClass());
+            var vanillaType = NbtType.byClass(vanilla.getClass());
 
             if (vanillaType != localType) {
                 log.info("wrong tag types at index '" + i + "', local: " + localType.getTypeName() + ", vanilla: " + vanillaType.getTypeName());

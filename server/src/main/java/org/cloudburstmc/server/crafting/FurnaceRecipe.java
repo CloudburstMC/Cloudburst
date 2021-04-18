@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.crafting;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import lombok.val;
 import org.cloudburstmc.api.inventory.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
@@ -75,8 +74,8 @@ public class FurnaceRecipe implements CraftingRecipe {
     }
 
     public CraftingData toNetwork(int netId) {
-        val ingredientData = ((CloudItemStack) ingredient).getNetworkData();
-        val outputData = ((CloudItemStack) output).getNetworkData();
+        var ingredientData = ((CloudItemStack) ingredient).getNetworkData();
+        var outputData = ((CloudItemStack) output).getNetworkData();
 
         if (ingredientData.getDamage() >= 0) {
             return CraftingData.fromFurnaceData(ingredientData.getId(), ingredientData.getDamage(), outputData, block.getName(), netId);

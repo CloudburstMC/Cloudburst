@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
-import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -19,7 +17,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        val level = (CloudLevel) block.getLevel();
+        var level = (CloudLevel) block.getLevel();
         var state = CloudBlockRegistry.get().getBlock(BlockTypes.REDSTONE_LAMP);
         if (level.isBlockPowered(block.getPosition())) {
             state = state.withTrait(BlockTraits.IS_POWERED, true);
@@ -40,7 +38,7 @@ public class BlockBehaviorRedstoneLamp extends BlockBehaviorSolid {
             }
 
             boolean powered = ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition());
-            val state = block.getState();
+            var state = block.getState();
 
             if (state.ensureTrait(BlockTraits.IS_POWERED) != powered) {
                 block.set(state.toggleTrait(BlockTraits.IS_POWERED), false, false);

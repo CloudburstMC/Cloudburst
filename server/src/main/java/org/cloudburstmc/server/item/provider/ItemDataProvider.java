@@ -2,7 +2,6 @@ package org.cloudburstmc.server.item.provider;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
-import lombok.val;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.item.CloudItemStack;
@@ -23,7 +22,7 @@ public abstract class ItemDataProvider {
     }
 
     public String getCustomName() {
-        val display = tag.getCompound("display");
+        var display = tag.getCompound("display");
 
         if (display != null) {
             return tag.getString("Name");
@@ -33,7 +32,7 @@ public abstract class ItemDataProvider {
     }
 
     public List<String> getLore() {
-        val display = tag.getCompound("display");
+        var display = tag.getCompound("display");
 
         if (display != null) {
             return tag.getList("Lore", NbtType.STRING);
@@ -44,7 +43,7 @@ public abstract class ItemDataProvider {
 
     public Set<EnchantmentInstance> getEnchantments() {
         Set<EnchantmentInstance> enchantments = new HashSet<>();
-        val registry = EnchantmentRegistry.get();
+        var registry = EnchantmentRegistry.get();
 
         tag.listenForList("ench", NbtType.COMPOUND, tags -> {
             for (NbtMap entry : tags) {

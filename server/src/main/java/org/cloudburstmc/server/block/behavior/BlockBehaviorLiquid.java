@@ -6,7 +6,6 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.block.BlockFromToEvent;
@@ -94,12 +93,12 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
             return this.flowVector;
         }
         Vector3f vector = Vector3f.ZERO;
-        val state = block.getState();
-        val level = block.getLevel();
+        var state = block.getState();
+        var level = block.getLevel();
         int decay = this.getEffectiveFlowDecay(state);
         for (Direction face : Direction.Plane.HORIZONTAL) {
-            val side = block.getSide(face);
-            val sideState = side.getState();
+            var side = block.getSide(face);
+            var sideState = side.getState();
 
             int blockDecay = this.getEffectiveFlowDecay(sideState);
             if (blockDecay < 0) {
@@ -150,11 +149,11 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
             this.checkForHarden(block);
             // This check exists because if water is at layer1 with air at layer0, the water gets invisible
             if (usesWaterLogging() && block.getExtra() != BlockStates.AIR) {
-                val mainBlockState = block.getState();
-//                val behavior = mainBlockState.getBehavior();
+                var mainBlockState = block.getState();
+//                var behavior = mainBlockState.getBehavior();
 
                 if (mainBlockState == BlockStates.AIR) {
-                    val liquid = block.getExtra();
+                    var liquid = block.getExtra();
                     block.set(mainBlockState, 1, true, false);
                     block.set(liquid, 0, true, false);
                 }
@@ -170,7 +169,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
             int layer = block.getLiquidLayer();
             BlockState currentState = block.getState(layer);
 
-            val level = block.getLevel();
+            var level = block.getLevel();
             int decay = this.getFlowDecay(currentState);
             boolean falling = currentState.ensureTrait(BlockTraits.IS_FLOWING);
             int multiplier = this.getFlowDecayPerBlock(block);
@@ -250,16 +249,16 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     protected void flowIntoBlock(final Block block, int newFlowDecay, boolean falling) {
-        val state = block.getLiquid();
+        var state = block.getLiquid();
 
         if (this.canFlowInto(block) && !state.inCategory(BlockCategory.LIQUID)) {
-            val level = block.getLevel();
+            var level = block.getLevel();
             boolean waterlog = usesWaterLogging() && state.getBehavior().canWaterlogFlowing(state);
 
             LiquidFlowEvent event = new LiquidFlowEvent(state, block, newFlowDecay);
             level.getServer().getEventManager().fire(event);
             if (!event.isCancelled()) {
-                val newState = getState(newFlowDecay, falling);
+                var newState = getState(newFlowDecay, falling);
                 if (waterlog) {
                     block.setExtra(newState, true, true);
                 } else {
@@ -281,7 +280,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 continue;
             }
 
-            val pos = direction.getOffset(blockPos);
+            var pos = direction.getOffset(blockPos);
 
             if (!this.flowCostVisited.containsKey(pos)) {
                 Block side = level.getBlock(pos);
@@ -294,7 +293,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 }
             }
 
-            val status = this.flowCostVisited.get(pos);
+            var status = this.flowCostVisited.get(pos);
             if (status == FlowState.BLOCKED) {
                 continue;
             } else if (status == FlowState.DOWN) {
@@ -323,7 +322,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                 1000
         };
         int maxCost = 4 / this.getFlowDecayPerBlock(block);
-        val level = block.getLevel();
+        var level = block.getLevel();
 
         for (Direction direction : Plane.HORIZONTAL) {
             Block b = block.getSide(direction);
@@ -396,7 +395,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
     }
 
     protected boolean canFlowInto(Block block) {
-        val state = block.getLiquid();
+        var state = block.getLiquid();
 
         if (!canBlockBeFlooded(state)) {
             return false;

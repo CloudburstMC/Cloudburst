@@ -2,7 +2,6 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import lombok.val;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
@@ -47,7 +46,7 @@ public class ItemTridentBehavior extends ItemToolBehavior {
 
     @Override
     public ItemStack onRelease(ItemStack item, int ticksUsed, Player player) {
-        val r = this.useOn(item, player);
+        var r = this.useOn(item, player);
 
         Vector3f motion = Vector3f.from(
                 -Math.sin(player.getYaw() / 180 * Math.PI) * Math.cos(player.getPitch() / 180 * Math.PI),

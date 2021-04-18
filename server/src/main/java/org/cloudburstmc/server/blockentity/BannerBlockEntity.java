@@ -5,7 +5,6 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Banner;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
@@ -30,7 +29,7 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
 
     @Override
     public boolean isValid() {
-        val b = getBlockState().getType();
+        var b = getBlockState().getType();
         return b == BlockTypes.WALL_BANNER || b == BlockTypes.STANDING_BANNER;
     }
 

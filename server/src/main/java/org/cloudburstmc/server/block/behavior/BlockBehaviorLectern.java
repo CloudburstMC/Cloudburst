@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -102,7 +101,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     public void executeRedstonePulse(Block block) {
-        val level = block.getLevel();
+        var level = block.getLevel();
         if (isActivated(block.getState())) {
             level.cancelScheduledUpdate(block.getPosition());
         } else {
@@ -130,7 +129,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
-            val state = block.getState();
+            var state = block.getState();
             if (isActivated(state)) {
                 block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
 

@@ -5,7 +5,6 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.cloudburstmc.api.item.ArmorPartType;
 import org.cloudburstmc.api.item.ArmorPartTypes;
 import org.cloudburstmc.api.item.ItemStack;
@@ -84,7 +83,7 @@ abstract public class ItemArmorBehavior extends CloudItemBehavior {
         }
         if (equip) {
             player.getInventory().decrementCount(player.getInventory().getHeldItemIndex());
-            val tier = getTier(item);
+            var tier = getTier(item);
             if (tier != null) {
                 player.getLevel().addLevelSoundEvent(player.getPosition(), equipSounds.getOrDefault(tier, SoundEvent.ARMOR_EQUIP_GENERIC));
             }

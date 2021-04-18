@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector4i;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.util.AxisAlignedBB;
@@ -56,8 +55,8 @@ public class BlockUpdateScheduler {
                     Vector3i pos = entry.pos;
                     if (level.isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) {
                         Block block = level.getBlock(entry.pos);
-                        val state = block.getState();
-                        val extra = block.getExtra();
+                        var state = block.getState();
+                        var extra = block.getExtra();
 
                         if (entry.block.getState() == state) {
                             state.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);

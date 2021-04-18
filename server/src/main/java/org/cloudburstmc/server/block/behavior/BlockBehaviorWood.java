@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -39,7 +38,7 @@ public class BlockBehaviorWood extends BlockBehaviorSolid {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val behavior = item.getBehavior();
+        var behavior = item.getBehavior();
         if (!behavior.isAxe() || !player.isCreative() && behavior.useOn(item, block.getState()) == item) {
             return false;
         }

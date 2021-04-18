@@ -4,7 +4,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
@@ -37,7 +36,7 @@ public class DefaultItemSerializer implements ItemSerializer {
                 .putShort("Damage", (short) 0);
 
         if (!item.getData().isEmpty()) {
-            val registry = CloudItemRegistry.get();
+            var registry = CloudItemRegistry.get();
             NbtMapBuilder dataTag = NbtMap.builder();
 
             item.getData().forEach((clazz, value) -> {
@@ -124,14 +123,14 @@ public class DefaultItemSerializer implements ItemSerializer {
         builder.itemType(type);
         builder.amount(amount, false);
 
-        val tagBuilder = NbtMap.builder();
+        var tagBuilder = NbtMap.builder();
         tagBuilder.putString("Name", id.toString());
         tagBuilder.putShort("Damage", meta);
         tagBuilder.putByte("Count", (byte) amount);
         builder.nbt(tagBuilder.build());
 
         if (type instanceof BlockType) {
-            val blockState = BlockStateMetaMappings.getStateFromMeta(id, meta);
+            var blockState = BlockStateMetaMappings.getStateFromMeta(id, meta);
 
             if (blockState != null) {
                 builder.blockState(blockState);
@@ -142,16 +141,16 @@ public class DefaultItemSerializer implements ItemSerializer {
             return;
         }
 
-        val display = tag.getCompound("display");
+        var display = tag.getCompound("display");
         if (display != null && !display.isEmpty()) {
             builder.name(display.getString("Name"));
             builder.lore(display.getList("Lore", NbtType.STRING, null));
         }
 
-        val ench = tag.getList("ench", NbtType.COMPOUND, null);
+        var ench = tag.getList("ench", NbtType.COMPOUND, null);
         if (ench != null && !ench.isEmpty()) {
             for (NbtMap entry : ench) {
-                val enchantmentType = EnchantmentRegistry.get().getType(entry.getShort("id"));
+                var enchantmentType = EnchantmentRegistry.get().getType(entry.getShort("id"));
 
                 if (enchantmentType == null) {
                     log.debug("Unknown enchantment id: {}", entry.getShort("id"));
@@ -162,14 +161,14 @@ public class DefaultItemSerializer implements ItemSerializer {
             }
         }
 
-        val canPlaceOn = tag.getList("CanPlaceOn", NbtType.STRING, null);
+        var canPlaceOn = tag.getList("CanPlaceOn", NbtType.STRING, null);
         if (canPlaceOn != null && !canPlaceOn.isEmpty()) {
             for (String s : canPlaceOn) {
                 builder.addCanPlaceOn(Identifier.fromString(s));
             }
         }
 
-        val canDestroy = tag.getList("CanDestroy", NbtType.STRING, null);
+        var canDestroy = tag.getList("CanDestroy", NbtType.STRING, null);
         if (canDestroy != null && !canDestroy.isEmpty()) {
             for (String s : canDestroy) {
                 builder.addCanDestroy(Identifier.fromString(s));

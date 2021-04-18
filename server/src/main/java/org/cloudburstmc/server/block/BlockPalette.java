@@ -83,13 +83,13 @@ public class BlockPalette {
                 this.stateMap.putIfAbsent(state.getId(), state.defaultState());
             }
 
-            val stateMap = nbt.getCompound("states");
+            var stateMap = nbt.getCompound("states");
 
-            val traitMap = stateTraitMap.computeIfAbsent(state.getId(), (v) -> new Object2ReferenceOpenHashMap<>());
+            var traitMap = stateTraitMap.computeIfAbsent(state.getId(), (v) -> new Object2ReferenceOpenHashMap<>());
             traitMap.put(stateMap, state);
 
             stateMap.forEach((traitName, traitValue) -> {
-                val traitValues = vanillaTraitMap.computeIfAbsent(traitName, (k) -> new LinkedHashSet<>());
+                var traitValues = vanillaTraitMap.computeIfAbsent(traitName, (k) -> new LinkedHashSet<>());
                 traitValues.add(traitValue);
             });
 
@@ -191,8 +191,8 @@ public class BlockPalette {
     private static Map<NbtMap, CloudBlockState> getBlockPermutations(BlockType type, BlockSerializer serializer, BlockTrait<?>[] traits, BlockBehavior behavior) {
         if (traits == null || traits.length == 0) {
             Preconditions.checkNotNull(type.getId(), "", type);
-            val tags = serialize(type, serializer, ImmutableMap.of());
-            val state = new CloudBlockState(type.getId(), type, ImmutableMap.of(),
+            var tags = serialize(type, serializer, ImmutableMap.of());
+            var state = new CloudBlockState(type.getId(), type, ImmutableMap.of(),
                     Reference2IntMaps.emptyMap(), NoopBlockBehavior.INSTANCE/*, ImmutableList.copyOf(tags)*/);
             // No traits so 1 permutation.
             return tags.stream().collect(Collectors.toMap(nbt -> nbt, (s) -> state));
@@ -230,7 +230,7 @@ public class BlockPalette {
                 serializeBuilder.put(trait, val);
             }
 
-            val traitMap = builder.build();
+            var traitMap = builder.build();
             Collection<NbtMap> tags = serialize(type, serializer, serializeBuilder.build());
             Preconditions.checkArgument(!tags.isEmpty(), "Block state must have at least one nbt tag");
             Preconditions.checkArgument(

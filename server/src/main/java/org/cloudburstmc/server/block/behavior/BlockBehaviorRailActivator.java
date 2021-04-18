@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
@@ -24,7 +23,7 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
         if (type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE || type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             super.onUpdate(block, type);
 
-            val level = (CloudLevel) block.getLevel();
+            var level = (CloudLevel) block.getLevel();
             boolean wasPowered = isActive(block.getState());
             boolean isPowered = level.isBlockPowered(block.getPosition())
                     || checkSurrounding(block, block.getPosition(), true, 0)
@@ -65,7 +64,7 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
         int dz = pos.getZ();
 
         BlockBehaviorRail behavior;
-        val state = block.getLevel().getBlock(dx, dy, dz).getState();
+        var state = block.getLevel().getBlock(dx, dy, dz).getState();
 
         if (Rail.isRailBlock(state)) {
             behavior = (BlockBehaviorRail) state.getBehavior();
@@ -140,7 +139,7 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
     }
 
     protected boolean canPowered(Block block, Vector3i pos, RailDirection direction, int power, boolean relative) {
-        val state = block.getLevel().getBlock(pos).getState();
+        var state = block.getLevel().getBlock(pos).getState();
 
         if (state.getType() != ACTIVATOR_RAIL) {
             return false;

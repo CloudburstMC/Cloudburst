@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import lombok.val;
 import net.daporkchop.lib.random.impl.ThreadLocalPRandom;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.item.ItemStack;
@@ -27,7 +26,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        val type = block.down().getState().getType();
+        var type = block.down().getState().getType();
         if (type == GRASS || type == DIRT || type == FARMLAND || type == PODZOL) {
             placeBlock(block, item);
             return true;
@@ -67,7 +66,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
             }
         } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) { //Growth
             if (ThreadLocalRandom.current().nextInt(1, 8) == 1) {
-                val state = block.getState();
+                var state = block.getState();
                 if (state.ensureTrait(BlockTraits.HAS_AGE)) {
                     this.grow(block);
                 } else {
@@ -87,8 +86,8 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
         int x = 0;
         int z = 0;
 
-        val state = block.getState();
-        val level = block.getLevel();
+        var state = block.getState();
+        var level = block.getLevel();
         GenerationTreeSpecies species = GenerationTreeSpecies.fromItem(state.getType().getId(), BlockStateMetaMappings.getMetaFromState(state));
         WorldFeature feature = species.getHugeGenerator();
         BIG_TREE:
@@ -139,7 +138,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     }
 
     public boolean isSameType(Block block, Vector3i pos) {
-        val blockState = block.getState();
+        var blockState = block.getState();
 
         BlockState state = block.getLevel().getBlock(pos).getState();
         return state.getType() == blockState.getType() && state.ensureTrait(BlockTraits.TREE_SPECIES) == blockState.ensureTrait(BlockTraits.TREE_SPECIES);

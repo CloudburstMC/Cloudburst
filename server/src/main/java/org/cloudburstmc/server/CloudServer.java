@@ -14,7 +14,6 @@ import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.spotify.futures.CompletableFutures;
 import io.netty.buffer.ByteBuf;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.ServerException;
@@ -227,7 +226,7 @@ public class CloudServer implements Server {
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
 
-        val injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
+        var injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
 
         this.filePath = Bootstrap.PATH;
         this.dataPath = dataPath;

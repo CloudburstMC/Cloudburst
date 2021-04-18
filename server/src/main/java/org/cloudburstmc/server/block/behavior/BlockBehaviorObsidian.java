@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.TierTypes;
@@ -27,8 +26,8 @@ public class BlockBehaviorObsidian extends BlockBehaviorSolid {
     public boolean onBreak(Block block, ItemStack item) {
         //destroy the nether portal
         for (Direction direction : Direction.values()) {
-            val b = block.getSide(direction);
-            val state = b.getState();
+            var b = block.getSide(direction);
+            var state = b.getState();
             if (state.getType() == PORTAL) {
                 state.getBehavior().onBreak(b, item);
             }

@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.passive;
 
-import lombok.val;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Pig;
 import org.cloudburstmc.api.item.ItemStack;
@@ -53,7 +52,7 @@ public class EntityPig extends Animal implements Pig {
 
     @Override
     public boolean isBreedingItem(ItemStack item) {
-        val id = item.getType();
+        var id = item.getType();
 
         return id == ItemTypes.CARROT || id == ItemTypes.POTATO || id == ItemTypes.BEETROOT;
     }

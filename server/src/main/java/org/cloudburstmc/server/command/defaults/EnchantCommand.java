@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
-import lombok.val;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.command.Command;
@@ -57,8 +56,8 @@ public class EnchantCommand extends Command {
         } catch (NumberFormatException e) {
             return false;
         }
-        val registry = EnchantmentRegistry.get();
-        val enchantment = registry.getEnchantment(registry.getType(enchantId), enchantLevel);
+        var registry = EnchantmentRegistry.get();
+        var enchantment = registry.getEnchantment(registry.getType(enchantId), enchantLevel);
         if (enchantment == null) {
             sender.sendMessage(new TranslationContainer("%commands.enchant.notFound", enchantId));
             return true;

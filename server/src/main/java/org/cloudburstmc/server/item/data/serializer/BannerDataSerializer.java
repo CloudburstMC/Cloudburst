@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.BannerData;
 import org.cloudburstmc.api.util.Identifier;
@@ -35,10 +34,10 @@ public class BannerDataSerializer implements ItemDataSerializer<BannerData> {
 
     @Override
     public BannerData deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
-        val base = DyeColor.getByDyeData(dataTag.getInt("Base", 0));
-        val bannerType = dataTag.getInt("Type", 0);
+        var base = DyeColor.getByDyeData(dataTag.getInt("Base", 0));
+        var bannerType = dataTag.getInt("Type", 0);
 
-        val patternTags = dataTag.getList("Patterns", NbtType.COMPOUND);
+        var patternTags = dataTag.getList("Patterns", NbtType.COMPOUND);
         List<BannerPattern> patterns;
 
         if (patternTags != null) {
