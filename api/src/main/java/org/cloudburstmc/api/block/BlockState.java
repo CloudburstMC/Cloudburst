@@ -6,7 +6,6 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -43,19 +42,16 @@ public class BlockState {
         return traits;
     }
 
-    @Nonnull
     public <T extends Comparable<T>> BlockState withTrait(BlockTrait<T> trait, T value) {
         checkNotNull(trait, "trait");
         return this.blockStates.get(trait)[trait.getIndex(value)];
     }
 
-    @Nonnull
     public BlockState withTrait(IntegerBlockTrait trait, int value) {
         checkNotNull(trait, "trait");
         return this.blockStates.get(trait)[trait.getIndex(value)];
     }
 
-    @Nonnull
     public BlockState withTrait(BooleanBlockTrait trait, boolean value) {
         checkNotNull(trait, "trait");
         return this.blockStates.get(trait)[trait.getIndex(value)];
@@ -66,7 +62,6 @@ public class BlockState {
         return (T) this.traits.get(trait);
     }
 
-    @Nonnull
     @SuppressWarnings({"rawtypes", "unchecked"})
     public BlockState copyTraits(BlockState from) {
         BlockState result = this;
@@ -79,13 +74,11 @@ public class BlockState {
         return result;
     }
 
-    @Nonnull
     public BlockState incrementTrait(IntegerBlockTrait trait) {
         checkNotNull(trait, "trait");
         return withTrait(trait, Math.min(trait.getRange().getEnd(), ensureTrait(trait) + 1));
     }
 
-    @Nonnull
     public BlockState decrementTrait(IntegerBlockTrait trait) {
         checkNotNull(trait, "trait");
         return withTrait(trait, Math.max(trait.getRange().getStart(), ensureTrait(trait) - 1));

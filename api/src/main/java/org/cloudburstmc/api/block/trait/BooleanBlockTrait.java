@@ -1,15 +1,12 @@
 package org.cloudburstmc.api.block.trait;
 
 import com.google.common.collect.ImmutableList;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
-
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-@ParametersAreNonnullByDefault
-public class BooleanBlockTrait extends BlockTrait<Boolean> {
+public final class BooleanBlockTrait extends BlockTrait<Boolean> {
     private static final ImmutableList<Boolean> VALUES = ImmutableList.of(Boolean.TRUE, Boolean.FALSE);
 
     private final boolean defaultValue;

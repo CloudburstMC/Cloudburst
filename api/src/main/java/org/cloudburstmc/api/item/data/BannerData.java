@@ -8,13 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
 import java.util.List;
 
 @Getter
-@Immutable
-@ParametersAreNonnullByDefault
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class BannerData {
 

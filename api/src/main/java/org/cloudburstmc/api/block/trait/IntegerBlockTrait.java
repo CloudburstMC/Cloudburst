@@ -1,15 +1,12 @@
 package org.cloudburstmc.api.block.trait;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.IntRange;
-
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-@ParametersAreNonnullByDefault
 public final class IntegerBlockTrait extends BlockTrait<Integer> {
     private final IntRange range;
     private final int defaultValue;

@@ -1,9 +1,8 @@
 package org.cloudburstmc.api.entity.misc;
 
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.Entity;
-
-import javax.annotation.Nonnegative;
-import javax.annotation.Nullable;
 
 public interface PrimedTnt extends Entity {
 
@@ -16,8 +15,8 @@ public interface PrimedTnt extends Entity {
         setOwner(entity);
     }
 
-    @Nonnegative
+    @NonNegative
     int getFuse();
 
-    void setFuse(@Nonnegative int fuse);
+    void setFuse(@NonNegative int fuse);
 }

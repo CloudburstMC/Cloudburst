@@ -1,9 +1,8 @@
 package org.cloudburstmc.api.blockentity;
 
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.item.ItemStack;
-
-import javax.annotation.Nonnegative;
-import javax.annotation.Nullable;
 
 public interface Lectern extends BlockEntity {
 
@@ -16,7 +15,7 @@ public interface Lectern extends BlockEntity {
 
     int getPage();
 
-    void setPage(@Nonnegative int page);
+    void setPage(@NonNegative int page);
 
     int getTotalPages();
 }

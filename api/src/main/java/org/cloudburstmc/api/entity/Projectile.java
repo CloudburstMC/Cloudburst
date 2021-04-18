@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.entity;
 
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public interface Projectile extends Entity {
 

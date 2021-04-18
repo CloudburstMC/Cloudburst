@@ -6,7 +6,6 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 
-import javax.annotation.Nonnull;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -369,7 +368,6 @@ public enum Direction {
             return face != null && face.getAxis().getPlane() == this;
         }
 
-        @Nonnull
         public Iterator<Direction> iterator() {
             return Iterators.forArray(faces);
         }

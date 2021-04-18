@@ -1,5 +1,8 @@
 package org.cloudburstmc.api.level.chunk;
 
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
@@ -7,9 +10,6 @@ import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.player.Player;
 
-import javax.annotation.Nonnegative;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface Chunk extends Comparable<Chunk> {
@@ -18,34 +18,30 @@ public interface Chunk extends Comparable<Chunk> {
     int STATE_POPULATED = 2;
     int STATE_FINISHED = 3;
 
-    @Nonnull
-    ChunkSection getOrCreateSection(@Nonnegative int y);
+    ChunkSection getOrCreateSection(@NonNegative int y);
 
     @Nullable
-    ChunkSection getSection(@Nonnegative int y);
+    ChunkSection getSection(@NonNegative int y);
 
-    @Nonnull
     ChunkSection[] getSections();
 
-    @Nonnull
     default BlockState getBlock(int x, int y, int z) {
         return this.getBlock(x, y, z, 0);
     }
 
-    @Nonnull
-    BlockState getBlock(int x, int y, int z, @Nonnegative int layer);
+    BlockState getBlock(int x, int y, int z, @NonNegative int layer);
 
     default BlockState getAndSetBlock(int x, int y, int z, BlockState blockState) {
         return this.getAndSetBlock(x, y, z, 0, blockState);
     }
 
-    BlockState getAndSetBlock(int x, int y, int z, @Nonnegative int layer, BlockState blockState);
+    BlockState getAndSetBlock(int x, int y, int z, @NonNegative int layer, BlockState blockState);
 
     default void setBlock(int x, int y, int z, BlockState blockState) {
         this.setBlock(x, y, z, 0, blockState);
     }
 
-    void setBlock(int x, int y, int z, @Nonnegative int layer, BlockState blockState);
+    void setBlock(int x, int y, int z, @NonNegative int layer, BlockState blockState);
 
     int getBiome(int x, int z);
 
@@ -53,15 +49,15 @@ public interface Chunk extends Comparable<Chunk> {
 
     byte getSkyLight(int x, int y, int z);
 
-    void setSkyLight(int x, int y, int z, @Nonnegative int level);
+    void setSkyLight(int x, int y, int z, @NonNegative int level);
 
     byte getBlockLight(int x, int y, int z);
 
-    void setBlockLight(int x, int y, int z, @Nonnegative int level);
+    void setBlockLight(int x, int y, int z, @NonNegative int level);
 
     int getHighestBlock(int x, int z);
 
-    void addEntity(@Nonnull Entity entity);
+    void addEntity(@NonNull Entity entity);
 
     void removeEntity(Entity entity);
 
@@ -90,7 +86,6 @@ public interface Chunk extends Comparable<Chunk> {
      *
      * @return chunk level
      */
-    @Nonnull
     Level getLevel();
 
     /**
@@ -98,7 +93,6 @@ public interface Chunk extends Comparable<Chunk> {
      *
      * @return biome array
      */
-    @Nonnull
     byte[] getBiomeArray();
 
     /**
@@ -106,7 +100,6 @@ public interface Chunk extends Comparable<Chunk> {
      *
      * @return height map
      */
-    @Nonnull
     int[] getHeightMapArray();
 
     /**
@@ -114,7 +107,6 @@ public interface Chunk extends Comparable<Chunk> {
      *
      * @return player set
      */
-    @Nonnull
     Set<? extends Player> getPlayers();
 
     /**
@@ -122,7 +114,6 @@ public interface Chunk extends Comparable<Chunk> {
      *
      * @return entity set
      */
-    @Nonnull
     Set<? extends Entity> getEntities();
 
     /**
@@ -130,7 +121,6 @@ public interface Chunk extends Comparable<Chunk> {
      *
      * @return block entity set
      */
-    @Nonnull
     Set<? extends BlockEntity> getBlockEntities();
 
     /**

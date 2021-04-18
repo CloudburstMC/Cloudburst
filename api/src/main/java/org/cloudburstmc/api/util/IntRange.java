@@ -16,7 +16,6 @@ public class IntRange extends AbstractList<Integer> {
         this.size = (end - start) + 1;
     }
 
-
     public int getStart() {
         return start;
     }
@@ -25,6 +24,7 @@ public class IntRange extends AbstractList<Integer> {
         return end;
     }
 
+    @Deprecated
     @Override
     public Integer get(int index) {
         return this.start + Preconditions.checkElementIndex(index, this.size);

@@ -4,13 +4,12 @@ import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.math.vector.Vector4i;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.Player;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -100,27 +99,22 @@ public interface ChunkManager {
 
     boolean setBlockState(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update);
 
-    @Nonnull
     default Chunk getChunk(Vector3f pos) {
         return getChunk(pos.toInt());
     }
 
-    @Nonnull
     default Chunk getChunk(Vector3i pos) {
         return getChunk(pos.getX() >> 4, pos.getZ() >> 4);
     }
 
-    @Nonnull
     default Chunk getChunk(Vector2i chunkPos) {
         return getChunk(chunkPos.getX(), chunkPos.getY());
     }
 
-    @Nonnull
     default Chunk getChunk(int chunkX, int chunkZ) {
         return getChunk((((long) chunkX) << 32) | (chunkZ & 0xffffffffL));
     }
 
-    @Nonnull
     Chunk getChunk(long key);
 
     @Nullable
@@ -141,12 +135,10 @@ public interface ChunkManager {
     @Nullable
     Chunk getLoadedChunk(long key);
 
-    @Nonnull
     CompletableFuture<? extends Chunk> getChunkFuture(int chunkX, int chunkZ);
 
     long getSeed();
 
-    @Nonnull
     Set<? extends Chunk> getChunks();
 
     Set<? extends Player> getChunkPlayers(int chunkX, int chunkZ);

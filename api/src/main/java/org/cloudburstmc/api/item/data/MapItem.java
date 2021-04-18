@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import javax.annotation.concurrent.Immutable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -13,7 +12,6 @@ import java.io.IOException;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-@Immutable
 public class MapItem {
 
     private final long id;

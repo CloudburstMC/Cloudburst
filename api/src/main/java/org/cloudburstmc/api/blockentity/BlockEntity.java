@@ -1,12 +1,11 @@
 package org.cloudburstmc.api.blockentity;
 
 import com.nukkitx.math.vector.Vector3i;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.player.Player;
-
-import javax.annotation.Nullable;
 
 public interface BlockEntity {
 

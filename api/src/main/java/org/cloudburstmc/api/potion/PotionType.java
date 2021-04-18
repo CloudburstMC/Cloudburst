@@ -3,10 +3,10 @@ package org.cloudburstmc.api.potion;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.HashMap;
 
 @Data
@@ -15,7 +15,7 @@ public class PotionType {
 
     private static final HashMap<Identifier, PotionType> typeMap = new HashMap<>();
 
-    @Nonnull
+    @NonNull
     private Identifier potionId;
     private final EffectType type;
     private final int level;

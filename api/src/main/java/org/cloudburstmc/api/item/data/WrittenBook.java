@@ -5,12 +5,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import javax.annotation.concurrent.Immutable;
 import java.util.List;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-@Immutable
 public class WrittenBook {
 
     private final int generation; //TODO: nullable properties?

@@ -2,7 +2,7 @@ pipeline {
     agent any
     tools {
         maven 'Maven 3'
-        jdk 'Java 8'
+        jdk 'Java 16'
     }
     options {
         buildDiscarder(logRotator(artifactNumToKeepStr: '5'))
@@ -37,8 +37,8 @@ pipeline {
                  rtMavenResolver (
                         id: "maven-resolver",
                         serverId: "opencollab-artifactory",
-                        releaseRepo: "release",
-                        snapshotRepo: "snapshot"
+                        releaseRepo: "deploy-maven-release",
+                        snapshotRepo: "deploy-maven-snapshot"
                 )
                 rtMavenRun (
                         pom: 'pom.xml',

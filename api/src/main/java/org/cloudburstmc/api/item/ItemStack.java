@@ -1,6 +1,8 @@
 package org.cloudburstmc.api.item;
 
 import com.nukkitx.math.GenericMath;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
@@ -8,18 +10,12 @@ import org.cloudburstmc.api.item.behavior.ItemBehavior;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.util.Identifier;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-@Nonnull
-@Immutable
-@ParametersAreNonnullByDefault
+@NonNull
 public interface ItemStack extends Comparable<ItemStack> {
 
     @Inject
@@ -83,7 +79,7 @@ public interface ItemStack extends Comparable<ItemStack> {
 
     ItemBehavior getBehavior();
 
-    boolean isMergeable(@Nonnull ItemStack itemStack);
+    boolean isMergeable(@NonNull ItemStack itemStack);
 
     boolean equals(@Nullable ItemStack item);
 

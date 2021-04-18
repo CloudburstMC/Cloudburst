@@ -13,7 +13,6 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Set;
 
@@ -183,17 +182,14 @@ public interface Level extends ChunkManager {
 
     boolean canBlockSeeSky(Vector3i position);
 
-    @Nonnull
     default DroppedItem dropItem(Vector3i position, ItemStack item) {
         return dropItem(position.toFloat().add(0.5f, 0f, 0.5f), item);
     }
 
-    @Nonnull
     default DroppedItem dropItem(Vector3f position, ItemStack item) {
         return dropItem(position, item, null);
     }
 
-    @Nonnull
     default DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion) {
         return dropItem(position, item, motion, false);
     }
@@ -202,7 +198,6 @@ public interface Level extends ChunkManager {
         return dropItem(position, item, motion, false, delay);
     }
 
-    @Nonnull
     default DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion, boolean dropAround) {
         return dropItem(position, item, motion, dropAround, 10);
     }

@@ -2,18 +2,16 @@ package org.cloudburstmc.api.block.trait;
 
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 import java.util.function.Predicate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Getter
-@ParametersAreNonnullByDefault
-public abstract class BlockTrait<E extends Comparable<E>> {
+public abstract sealed class BlockTrait<E extends Comparable<E>> permits BooleanBlockTrait, IntegerBlockTrait, EnumBlockTrait {
 
     protected final Identifier name;
     protected final Class<E> valueClass;

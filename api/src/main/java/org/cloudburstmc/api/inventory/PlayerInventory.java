@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.inventory;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
 public interface PlayerInventory extends CreatureInventory {
@@ -15,21 +15,21 @@ public interface PlayerInventory extends CreatureInventory {
 
     void sendCreativeContents();
 
-    @Nonnull
+    @NonNull
     CraftingGrid getCraftingGrid();
 
-    @Nonnull
+    @NonNull
     List<? extends ItemStack> getHotbar();
 
-    @Nonnull
+    @NonNull
     ItemStack getHotbarSlot(int slot);
 
-    boolean setHotbarSlot(int slot, @Nonnull ItemStack item);
+    boolean setHotbarSlot(int slot, @NonNull ItemStack item);
 
-    @Nonnull
+    @NonNull
     ItemStack getCursorItem();
 
-    boolean setCursorItem(@Nonnull ItemStack item);
+    boolean setCursorItem(@NonNull ItemStack item);
 
     void clearCursor();
 }
