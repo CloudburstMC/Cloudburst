@@ -151,6 +151,17 @@
                     <argLine>--enable-preview</argLine>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <!-- DO NOT UPDATE: https://issues.apache.org/jira/projects/MJAVADOC/issues/MJAVADOC-673 -->
+                <version>3.0.1</version>
+                <configuration>
+                    <source>16</source>
+                    <release>16</release>
+                    <additionalOptions>--enable-preview</additionalOptions>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>

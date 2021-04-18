@@ -9,16 +9,16 @@ pipeline {
     }
     stages {
         stage ('Build') {
+            when { not { anyOf {
+                branch 'stable'
+                branch 'beta'
+                branch 'bleeding'
+            }}}
+
             steps {
                 sh 'mvn clean package'
             }
-//            post {
-//                success {
-//                    junit 'target/surefire-reports/**/*.xml'
-//                }
-//            }
         }
-
         stage ('Deploy') {
             when {
                 anyOf {
@@ -27,36 +27,69 @@ pipeline {
                     branch 'bleeding'
                 }
             }
-            steps {
-                 rtMavenDeployer (
-                        id: "maven-deployer",
-                        serverId: "opencollab-artifactory",
-                        releaseRepo: "maven-releases",
-                        snapshotRepo: "maven-snapshots"
-                 )
-                 rtMavenResolver (
-                        id: "maven-resolver",
-                        serverId: "opencollab-artifactory",
-                        releaseRepo: "maven-deploy-release",
-                        snapshotRepo: "maven-deploy-snapshot"
-                )
-                rtMavenRun (
-                        pom: 'pom.xml',
-                        goals: 'javadoc:javadoc javadoc:jar source:jar install -DskipTests',
-                        deployerId: "maven-deployer",
-                        resolverId: "maven-resolver"
-                )
-                rtPublishBuildInfo (
-                        serverId: "opencollab-artifactory"
-                )
-                step([$class: 'JavadocArchiver', javadocDir: 'target/site/apidocs', keepAll: false])
-            }
-        }
-    }
 
-    post {
-        always {
-            deleteDir()
+            stages {
+                stage('Setup') {
+                    steps {
+                        rtMavenDeployer(
+                                id: "maven-deployer",
+                                serverId: "opencollab-artifactory",
+                                releaseRepo: "maven-releases",
+                                snapshotRepo: "maven-snapshots"
+                        )
+                        rtMavenResolver(
+                                id: "maven-resolver",
+                                serverId: "opencollab-artifactory",
+                                releaseRepo: "maven-deploy-release",
+                                snapshotRepo: "maven-deploy-snapshot"
+                        )
+                    }
+                }
+
+                stage('Release') {
+                    when {
+                        anyOf {
+                            branch 'stable'
+                            branch 'beta'
+                        }
+                    }
+
+                    steps {
+                        rtMavenRun(
+                                pom: 'pom.xml',
+                                goals: 'clean javadoc:jar source:jar install',
+                                deployerId: "maven-deployer",
+                                resolverId: "maven-resolver"
+                        )
+                        sh 'mvn javadoc:javadoc -DskipTests'
+                        step([$class: 'JavadocArchiver', javadocDir: 'target/site/apidocs', keepAll: false])
+                    }
+                }
+
+                stage('Snapshot') {
+                    when {
+                        anyOf {
+                            branch 'bleeding'
+                        }
+                    }
+                    steps {
+                        rtMavenRun(
+                                pom: 'pom.xml',
+                                goals: 'clean javadoc:jar source:jar install',
+                                deployerId: "maven-deployer",
+                                resolverId: "maven-resolver"
+                        )
+                    }
+                }
+
+                stage('Publish') {
+                    steps {
+                        rtPublishBuildInfo(
+                                serverId: "opencollab-artifactory"
+                        )
+                    }
+                }
+            }
         }
     }
 }
