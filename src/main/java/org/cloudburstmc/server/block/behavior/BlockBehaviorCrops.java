@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
@@ -71,7 +70,7 @@ public abstract class BlockBehaviorCrops extends FloodableBlockBehavior {
             }
         } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             if (ThreadLocalRandom.current().nextInt(2) == 1) {
-                val state = block.getState();
+                var state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 0x07) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
                     CloudServer.getInstance().getEventManager().fire(ev);

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -25,8 +24,8 @@ public class BlockBehaviorNetherPortal extends FloodableBlockBehavior {
             }
         }
 
-        val obsidian = BlockStates.OBSIDIAN;
-        val portal = BlockStates.PORTAL;
+        var obsidian = BlockStates.OBSIDIAN;
+        var portal = BlockStates.PORTAL;
 
         level.setBlockState(x + 1, y, z, obsidian);
         level.setBlockState(x + 2, y, z, obsidian);

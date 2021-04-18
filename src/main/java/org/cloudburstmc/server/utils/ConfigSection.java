@@ -213,8 +213,8 @@ public class ConfigSection extends LinkedHashMap<String, Object> {
      * @return
      */
     public boolean isInt(String key) {
-        Object val = get(key);
-        return val instanceof Integer;
+        Object var = get(key);
+        return var instanceof Integer;
     }
 
     /**
@@ -245,8 +245,8 @@ public class ConfigSection extends LinkedHashMap<String, Object> {
      * @return
      */
     public boolean isLong(String key) {
-        Object val = get(key);
-        return val instanceof Long;
+        Object var = get(key);
+        return var instanceof Long;
     }
 
     /**
@@ -277,8 +277,8 @@ public class ConfigSection extends LinkedHashMap<String, Object> {
      * @return
      */
     public boolean isDouble(String key) {
-        Object val = get(key);
-        return val instanceof Double;
+        Object var = get(key);
+        return var instanceof Double;
     }
 
     /**
@@ -310,8 +310,8 @@ public class ConfigSection extends LinkedHashMap<String, Object> {
      * @return
      */
     public boolean isString(String key) {
-        Object val = get(key);
-        return val instanceof String;
+        Object var = get(key);
+        return var instanceof String;
     }
 
     /**
@@ -342,8 +342,8 @@ public class ConfigSection extends LinkedHashMap<String, Object> {
      * @return
      */
     public boolean isBoolean(String key) {
-        Object val = get(key);
-        return val instanceof Boolean;
+        Object var = get(key);
+        return var instanceof Boolean;
     }
 
     /**
@@ -374,8 +374,8 @@ public class ConfigSection extends LinkedHashMap<String, Object> {
      * @return
      */
     public boolean isList(String key) {
-        Object val = get(key);
-        return val instanceof List;
+        Object var = get(key);
+        return var instanceof List;
     }
 
     /**

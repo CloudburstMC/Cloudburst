@@ -3,7 +3,6 @@ package org.cloudburstmc.server.blockentity;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -77,7 +76,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
             return false;
         }
 
-        val state = getBlockState();
+        var state = getBlockState();
 
 /*
         if (state.getTrait(BlockTraits.IS_EXTINGUISHED) == null) {

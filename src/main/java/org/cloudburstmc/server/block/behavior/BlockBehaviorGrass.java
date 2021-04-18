@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
-import lombok.val;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.block.*;
@@ -27,8 +26,8 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val level = block.getLevel();
-        val behavior = item.getBehavior();
+        var level = block.getLevel();
+        var behavior = item.getBehavior();
 
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (player != null && player.getGamemode().isSurvival()) {
@@ -47,7 +46,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
                 int blockZ = block.getZ() + random.nextInt(8) - random.nextInt(8);
 
                 BlockState tallGrass = CloudBlockRegistry.get().getBlock(BlockTypes.TALL_GRASS);
-                val toReplace = level.getBlock(blockX, blockY + 1, blockZ);
+                var toReplace = level.getBlock(blockX, blockY + 1, blockZ);
                 if (toReplace.getState().getType() == BlockTypes.AIR) {
                     tallGrass.getBehavior().place(null, toReplace, block, Direction.UP, block.getPosition().toFloat(), null);
                 }
@@ -74,7 +73,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
             int y = ThreadLocalRandom.current().nextInt(pos.getY() - 2, pos.getY() + 2);
             int z = ThreadLocalRandom.current().nextInt(pos.getZ() - 1, pos.getZ() + 1);
             Block b = block.getLevel().getBlock(x, y, z);
-            val state = b.getState();
+            var state = b.getState();
 
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
                 if (b.upState() == BlockStates.AIR) {
@@ -85,7 +84,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
                     }
                 }
             } else if (state.getType() == GRASS) {
-                val up = b.upState();
+                var up = b.upState();
                 if (up.getBehavior().isSolid(up)) {
                     BlockSpreadEvent ev = new BlockSpreadEvent(b, block, CloudBlockRegistry.get().getBlock(DIRT));
                     CloudServer.getInstance().getEventManager().fire(ev);

@@ -3,7 +3,6 @@ package org.cloudburstmc.server.item.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.api.event.player.PlayerBucketFillEvent;
@@ -141,14 +140,14 @@ public class ItemBucketBehavior extends CloudItemBehavior {
         } else if (bucketContents.inCategory(BlockCategory.LIQUID)) {
             ItemStack result = CloudItemRegistry.get().getItem(ItemTypes.BUCKET);
             Block emptyTarget = block;
-            val targetState = target.getState();
-            val behavior = targetState.getBehavior();
+            var targetState = target.getState();
+            var behavior = targetState.getBehavior();
 
             if (behavior.canWaterlogSource(targetState) && bucketContents.getType() == FLOWING_WATER) {
                 emptyTarget = target;
             }
 
-            val blockBehavior = emptyTarget.getState().getBehavior();
+            var blockBehavior = emptyTarget.getState().getBehavior();
 
             PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, emptyTarget, face, itemStack, result);
             if (!blockBehavior.canBeFlooded(emptyTarget.getState()) && !blockBehavior.canWaterlogSource(emptyTarget.getState())) {

@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -29,7 +28,7 @@ public class BlockBehaviorRedstoneRepeater extends BlockBehaviorRedstoneDiode {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val state = block.getState();
+        var state = block.getState();
 
         block.set(state.withTrait(BlockTraits.REPEATER_DELAY, (state.ensureTrait(BlockTraits.REPEATER_DELAY) + 1) % 4), true, false);
         return true;

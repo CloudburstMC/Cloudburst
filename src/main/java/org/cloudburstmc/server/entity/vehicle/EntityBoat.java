@@ -4,7 +4,6 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -180,7 +179,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                val b = this.getLevel().getBlockState(this.getPosition().down().toInt());
+                var b = this.getLevel().getBlockState(this.getPosition().down().toInt());
                 friction *= b.getBehavior().getFrictionFactor(b);
             }
 
@@ -292,7 +291,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
             @Override
             public void accept(int x, int y, int z) {
-                val block = getLevel().getBlock(x, y, z);
+                var block = getLevel().getBlock(x, y, z);
                 BlockState state = block.getState();
 
                 if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
@@ -43,12 +42,12 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val level = block.getLevel();
+        var level = block.getLevel();
         BlockEntity blockEntity = level.getBlockEntity(block.getPosition());
         if (!(blockEntity instanceof FlowerPot)) return false;
         FlowerPot flowerPot = (FlowerPot) blockEntity;
 
-        val itemBlock = item.getBehavior().getBlock(item);
+        var itemBlock = item.getBehavior().getBlock(item);
         if (!canPlaceIntoFlowerPot(item.getType())) {
             if (!canPlaceIntoFlowerPot(itemBlock.getType())) {
                 return true;

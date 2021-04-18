@@ -2,7 +2,6 @@ package org.cloudburstmc.server.permission;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
-import lombok.val;
 import org.cloudburstmc.api.ServerException;
 import org.cloudburstmc.api.permission.*;
 import org.cloudburstmc.api.plugin.PluginContainer;
@@ -65,7 +64,7 @@ public class PermissibleBase implements Permissible {
             return this.permissions.get(name).getValue();
         }
 
-        val perm = CloudServer.getInstance().getPermissionManager().getPermission(name);
+        var perm = CloudServer.getInstance().getPermissionManager().getPermission(name);
 
         if (perm.isPresent()) {
             String permission = perm.get().getDefault();

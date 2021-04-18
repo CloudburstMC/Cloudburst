@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -43,7 +42,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
             TreeSpecies woodType = item.getMetadata(TreeSpecies.class);
 
             if (face == Direction.UP) {
-                val direction = player != null ? player.getCardinalDirection() : CardinalDirection.NORTH;
+                var direction = player != null ? player.getCardinalDirection() : CardinalDirection.NORTH;
 
                 placeBlock(block, BlockStates.STANDING_SIGN.withTrait(BlockTraits.TREE_SPECIES, woodType).withTrait(BlockTraits.CARDINAL_DIRECTION, direction));
             } else {
@@ -51,7 +50,7 @@ public class BlockBehaviorSignPost extends BlockBehaviorTransparent {
             }
 
             Sign sign = BlockEntityRegistry.get().newEntity(BlockEntityTypes.SIGN, block);
-            val cloudItem = (CloudItemStack) item;
+            var cloudItem = (CloudItemStack) item;
 
             if (cloudItem.getDataTag().isEmpty()) {
                 if (player != null) {

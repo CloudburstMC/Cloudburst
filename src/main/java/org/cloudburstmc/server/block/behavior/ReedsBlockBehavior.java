@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -33,10 +32,10 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
     public boolean onActivate(Block block, ItemStack item, Player player) {
         if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bonemeal
             int count = 1;
-            val level = block.getLevel();
+            var level = block.getLevel();
 
             for (int i = 1; i <= 2; i++) {
-                val id = level.getBlockState(block.getX(), block.getY() - i, block.getZ()).getType();
+                var id = level.getBlockState(block.getX(), block.getY() - i, block.getZ()).getType();
 
                 if (id == BlockTypes.REEDS) {
                     count++;
@@ -86,7 +85,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
             }
         } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             if (block.downState().getType() != BlockTypes.REEDS) {
-                val state = block.getState();
+                var state = block.getState();
 
                 if (state.ensureTrait(BlockTraits.AGE) == 15) {
                     for (int y = 1; y < 3; ++y) {
@@ -113,13 +112,13 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
             return false;
         }
         Block down = block.down();
-        val downType = down.getState().getType();
+        var downType = down.getState().getType();
 
         if (downType == BlockTypes.REEDS) {
             return placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.REEDS));
         } else if (downType == BlockTypes.GRASS || downType == BlockTypes.DIRT || downType == BlockTypes.SAND) {
             for (Direction direction : Plane.HORIZONTAL) {
-                val sideType = down.getSideState(direction).getType();
+                var sideType = down.getSideState(direction).getType();
 
                 if (sideType == BlockTypes.WATER || sideType == BlockTypes.FLOWING_WATER) {
                     return placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.REEDS));

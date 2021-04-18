@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -54,10 +53,10 @@ public class BlockBehaviorCauldron extends BlockBehaviorSolid {
 
         CauldronBlockEntity cauldron = (CauldronBlockEntity) be;
 
-        val itemType = item.getType();
+        var itemType = item.getType();
 
         if (itemType == ItemTypes.BUCKET) {
-            val bucket = item.getMetadata(Bucket.class);
+            var bucket = item.getMetadata(Bucket.class);
 
             if (bucket == Bucket.EMPTY) {//empty bucket
                 if (!isFull(block) || cauldron.hasCustomColor() || cauldron.getPotionId() != 0) {

@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -32,7 +31,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        val downState = block.getSide(Direction.DOWN).getState();
+        var downState = block.getSide(Direction.DOWN).getState();
         if (downState.getBehavior().isTransparent(downState)) {
             return false;
         }
@@ -57,7 +56,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
                 Vector3i pos = block.getPosition();
                 boolean shouldBePowered = this.shouldBePowered(block);
                 boolean powered = isPowered(block.getState());
-                val state = block.getState();
+                var state = block.getState();
 
                 if (powered && !shouldBePowered) {
                     block.set(this.getUnpowered(state), true, true);
@@ -78,7 +77,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
             RedstoneUpdateEvent event = new RedstoneUpdateEvent(block);
             level.getServer().getEventManager().fire(event);
             if (event.isCancelled()) return 0;
-            val downState = block.down().getState();
+            var downState = block.down().getState();
             if (type == CloudLevel.BLOCK_UPDATE_NORMAL && downState.getBehavior().isTransparent(downState)) {
                 level.useBreakOn(block.getPosition());
             } else {
@@ -120,7 +119,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
         if (power >= 15) {
             return power;
         } else {
-            val state = block.getLevel().getBlock(pos).getState();
+            var state = block.getLevel().getBlock(pos).getState();
             return Math.max(power, state.getType() == REDSTONE_WIRE ? state.ensureTrait(BlockTraits.REDSTONE_SIGNAL) : 0);
         }
     }
@@ -135,8 +134,8 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     protected int getPowerOnSide(Block block, Vector3i pos, Direction side) {
-        val b = block.getLevel().getBlock(pos);
-        val state = b.getState();
+        var b = block.getLevel().getBlock(pos);
+        var state = b.getState();
         return isAlternateInput(b) ? (state.getType() == REDSTONE_BLOCK ? 15 :
                 (state.getType() == REDSTONE_WIRE ? state.ensureTrait(BlockTraits.REDSTONE_SIGNAL)
                         : ((CloudLevel) block.getLevel()).getStrongPower(pos, side))) : 0;
@@ -183,7 +182,7 @@ public abstract class BlockBehaviorRedstoneDiode extends FloodableBlockBehavior 
     }
 
     public int getWeakPower(Block block, Direction side) {
-        val state = block.getState();
+        var state = block.getState();
         return !this.isPowered(state) ? 0 : (getFacing(state) == side ? this.getRedstoneSignal(block) : 0);
     }
 

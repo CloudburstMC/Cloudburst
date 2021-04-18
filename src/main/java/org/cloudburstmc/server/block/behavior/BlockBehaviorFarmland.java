@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -22,7 +21,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
-            val up = block.up();
+            var up = block.up();
             if (up.getState().inCategory(BlockCategory.CROPS)) {
                 return 0;
             }
@@ -44,7 +43,7 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
                                 continue;
                             }
 
-                            val b = block.getLevel().getBlockState(x, y, z).getType();
+                            var b = block.getLevel().getBlockState(x, y, z).getType();
 
                             if (b == BlockTypes.FLOWING_WATER || b == BlockTypes.WATER) {
                                 found = true;
@@ -55,8 +54,8 @@ public class BlockBehaviorFarmland extends BlockBehaviorTransparent {
                 }
             }
 
-            val state = block.getState();
-            val down = block.getLevel().getBlockState(block.getPosition().down()).getType();
+            var state = block.getState();
+            var down = block.getLevel().getBlockState(block.getPosition().down()).getType();
             if (found || down == BlockTypes.WATER || down == BlockTypes.FLOWING_WATER) {
                 if (state.ensureTrait(BlockTraits.MOISTURIZED_AMOUNT) < 7) {
                     block.set(state.withTrait(BlockTraits.MOISTURIZED_AMOUNT, 7));

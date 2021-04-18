@@ -24,7 +24,6 @@ import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -954,7 +953,7 @@ public class CloudLevel implements Level {
                                 int y = lcg >>> 8 & 0x0f;
                                 int z = lcg >>> 16 & 0x0f;
 
-                                val state = section.getBlock(x, y, z, 0);
+                                var state = section.getBlock(x, y, z, 0);
                                 if (randomTickBlocks.contains(state.getType().getId())) {
                                     Block block = new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
                                             state,
@@ -1653,7 +1652,7 @@ public class CloudLevel implements Level {
 
         targetBehavior.onBreak(target, item, player);
 
-        val itemBehavior = item.getBehavior();
+        var itemBehavior = item.getBehavior();
         itemBehavior.useOn(item, target.getState());
         if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
             item = CloudItemRegistry.AIR;
@@ -1727,7 +1726,7 @@ public class CloudLevel implements Level {
             return null;
         }
 
-        val itemBehavior = item.getBehavior();
+        var itemBehavior = item.getBehavior();
 
         if (player != null) {
             PlayerInteractEvent ev = new PlayerInteractEvent(player, item, target, face, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK);
@@ -1751,7 +1750,7 @@ public class CloudLevel implements Level {
                 }
 
                 if (itemBehavior.canBeActivated()) {
-                    val result = itemBehavior.onActivate(item, player, block, target, face, clickPos, this);
+                    var result = itemBehavior.onActivate(item, player, block, target, face, clickPos, this);
                     if (result != null) {
                         item = result;
                         if (item.getAmount() <= 0) {
@@ -2539,7 +2538,7 @@ public class CloudLevel implements Level {
 
     public int getRedstonePower(Vector3i pos, Direction face) {
         Block block = this.getBlock(pos);
-        val behavior = block.getState().getBehavior();
+        var behavior = block.getState().getBehavior();
         return behavior.isNormalBlock(block) ? this.getStrongPower(pos) : behavior.getWeakPower(block, face);
     }
 

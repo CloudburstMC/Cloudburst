@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
@@ -23,7 +22,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
         if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             BlockState below = block.down().getState();
 
-            val direction = block.getState().ensureTrait(BlockTraits.TORCH_DIRECTION);
+            var direction = block.getState().ensureTrait(BlockTraits.TORCH_DIRECTION);
             if (block.getSide(direction.getOpposite()).getState().inCategory(BlockCategory.TRANSPARENT)
                     && !(direction == Direction.UP && (below.inCategory(BlockCategory.FENCE) || below.getType() == STONE_WALL))) {
                 block.getLevel().useBreakOn(block.getPosition());

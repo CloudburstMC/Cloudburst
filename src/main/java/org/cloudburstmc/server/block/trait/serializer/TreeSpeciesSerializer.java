@@ -39,17 +39,17 @@ public class TreeSpeciesSerializer implements TraitSerializer<TreeSpecies> {
             return "sapling_type";
         }
 
-        TreeSpecies val = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES);
+        TreeSpecies species = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES);
 
-        if (val == null) {
-            val = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES_OVERWORLD);
+        if (species == null) {
+            species = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES_OVERWORLD);
         }
 
-        if (val == null) {
-            val = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES_NETHER);
+        if (species == null) {
+            species = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES_NETHER);
         }
 
-        int index = val.ordinal() >> 2;
+        int index = species.ordinal() >> 2;
 
         if (type == BlockTypes.LOG) {
             return BEDROCK_LOG_TRAITS[index];

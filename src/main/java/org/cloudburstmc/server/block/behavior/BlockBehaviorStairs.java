@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
-import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
@@ -39,7 +37,7 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        val behavior = hand.getBehavior();
+        var behavior = hand.getBehavior();
         if (behavior.isPickaxe() && behavior.getTier(hand).compareTo(TierTypes.WOOD) >= 0) {
             return new ItemStack[]{
                     toItem(block)
@@ -133,7 +131,7 @@ public abstract class BlockBehaviorStairs extends BlockBehaviorTransparent {
 
 //    @Override
 //    public float getHardness(BlockState blockState) { //TODO: stairs hardness
-//        val type = blockState.getType();
+//        var type = blockState.getType();
 //
 //        if (type == BlockTypes.STAIRS)
 //

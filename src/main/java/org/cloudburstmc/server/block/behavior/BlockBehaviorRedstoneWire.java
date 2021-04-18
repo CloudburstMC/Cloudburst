@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
@@ -34,7 +33,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     protected static boolean canConnectTo(Block block, Direction side) {
-        val state = block.getState();
+        var state = block.getState();
         if (state.getType() == REDSTONE_WIRE) {
             return true;
         } else if (BlockBehaviorRedstoneDiode.isDiode(state.getBehavior())) {
@@ -58,7 +57,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         placeBlock(block, item.getBehavior().getBlock(item));
 
         this.updateSurroundingRedstone(block.refresh(), true);
-        val level = (CloudLevel) block.getLevel();
+        var level = (CloudLevel) block.getLevel();
         Vector3i pos = block.getPosition();
 
         for (Direction direction : Direction.Plane.VERTICAL) {
@@ -83,7 +82,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
     private void calculateCurrentChanges(Block block, boolean force) {
         Vector3i pos = block.getPosition();
-        val level = (CloudLevel) block.getLevel();
+        var level = (CloudLevel) block.getLevel();
 
         int meta = block.getState().ensureTrait(BlockTraits.REDSTONE_SIGNAL);
         int maxStrength = meta;
@@ -148,7 +147,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     private int getMaxCurrentStrength(CloudLevel level, Vector3i pos, int maxStrength) {
-        val state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
+        var state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
         if (state.getType() != REDSTONE_WIRE) {
             return maxStrength;
         } else {
@@ -161,7 +160,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     public boolean onBreak(Block block, ItemStack item) {
         removeBlock(block);
 
-        val level = (CloudLevel) block.getLevel();
+        var level = (CloudLevel) block.getLevel();
         Vector3i pos = block.getPosition();
 
         this.updateSurroundingRedstone(block, false);
@@ -241,7 +240,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
         if (type != CloudLevel.BLOCK_UPDATE_NORMAL && type != CloudLevel.BLOCK_UPDATE_REDSTONE) {
             return 0;
         }
-        val level = block.getLevel();
+        var level = block.getLevel();
         // Redstone event
         RedstoneUpdateEvent ev = new RedstoneUpdateEvent(block);
         level.getServer().getEventManager().fire(ev);
@@ -260,7 +259,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     private boolean isPowerSourceAt(Block block, Direction side) {
-        val level = (CloudLevel) block.getLevel();
+        var level = (CloudLevel) block.getLevel();
         Vector3i pos = block.getPosition();
         Vector3i v = side.getOffset(pos);
         Block b = level.getBlock(v);
@@ -299,8 +298,8 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     private int getIndirectPower(CloudLevel level, Vector3i pos, Direction face) {
-        val block = level.getBlock(pos);
-        val state = block.getState();
+        var block = level.getBlock(pos);
+        var state = block.getState();
         if (state.getType() == REDSTONE_WIRE) {
             return 0;
         }
@@ -309,7 +308,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
     private int getStrongPower(CloudLevel level, Vector3i pos, Direction direction) {
         Block block = level.getBlock(pos);
-        val state = block.getState();
+        var state = block.getState();
 
         if (state.getType() == REDSTONE_WIRE) {
             return 0;

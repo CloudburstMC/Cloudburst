@@ -4,7 +4,6 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
@@ -116,7 +115,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
 
     @Override
     public boolean isValid() {
-        val blockId = this.getBlockState().getType();
+        var blockId = this.getBlockState().getType();
         return blockId == BlockTypes.CHEST || blockId == BlockTypes.TRAPPED_CHEST;
     }
 

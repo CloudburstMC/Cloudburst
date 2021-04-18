@@ -10,7 +10,6 @@ import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
@@ -224,13 +223,13 @@ public class CloudBlockRegistry implements Registry {
         }
 
         if (state == null/* && tag.containsKey("states", NbtType.COMPOUND)*/) { //TODO: fix unknown states
-            val defaultState = getBlock(Identifier.fromString(tag.getString("name")));
-            val serialized = palette.getSerialized(defaultState);
+            var defaultState = getBlock(Identifier.fromString(tag.getString("name")));
+            var serialized = palette.getSerialized(defaultState);
 
             if (serialized.containsKey("states", NbtType.COMPOUND)) {
-                val builder = tag.toBuilder();
+                var builder = tag.toBuilder();
 
-                val statesBuilder = ((NbtMap) builder.get("states")).toBuilder();
+                var statesBuilder = ((NbtMap) builder.get("states")).toBuilder();
                 serialized.getCompound("states").forEach(statesBuilder::putIfAbsent);
                 builder.putCompound("states", statesBuilder.build());
                 state = palette.getBlockState(builder.build());

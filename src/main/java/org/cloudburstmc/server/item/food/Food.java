@@ -2,7 +2,6 @@ package org.cloudburstmc.server.item.food;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.player.PlayerEatFoodEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -88,7 +87,7 @@ public abstract class Food implements org.cloudburstmc.api.item.Food {
     }
 
     public static Food getByRelative(ItemStack item) {
-        val food = registryDefault.get(item.getType());
+        var food = registryDefault.get(item.getType());
 
         if (food.metadata.isEmpty()) {
             return food;

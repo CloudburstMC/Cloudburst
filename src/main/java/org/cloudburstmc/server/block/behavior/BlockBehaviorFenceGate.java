@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
-import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.block.DoorToggleEvent;
@@ -104,11 +102,11 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
 
         player = event.getPlayer();
 
-        val state = block.getState();
+        var state = block.getState();
         var direction = state.ensureTrait(BlockTraits.DIRECTION);
 
         if (player != null) {
-            val playerDirection = player.getHorizontalDirection();
+            var playerDirection = player.getHorizontalDirection();
 
             if (playerDirection == direction.getOpposite()) {
                 direction = playerDirection;
@@ -126,7 +124,7 @@ public class BlockBehaviorFenceGate extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
-            val level = block.getLevel();
+            var level = block.getLevel();
             if ((!isOpen(block) && ((CloudLevel) level).isBlockPowered(block.getPosition())) || (isOpen(block) && !((CloudLevel) level).isBlockPowered(block.getPosition()))) {
                 this.toggle(block, null);
                 return type;

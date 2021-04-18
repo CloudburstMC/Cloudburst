@@ -2,7 +2,6 @@ package org.cloudburstmc.server.utils;
 
 import com.google.common.base.FinalizableReferenceQueue;
 import com.google.common.collect.Sets;
-import lombok.val;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -301,9 +300,9 @@ public class Utils {
 
     @SuppressWarnings({"unchecked", "ConstantConditions"})
     public static <T extends Enum<T>> T[] getEnumValues(Class<T> value, T... except) {
-        val set = Sets.newHashSet(except);
-        val values = value.getEnumConstants();
-        val stream = Arrays.stream(values).filter(v -> !set.contains(v));
+        var set = Sets.newHashSet(except);
+        var values = value.getEnumConstants();
+        var stream = Arrays.stream(values).filter(v -> !set.contains(v));
 
         return stream.toArray((s) -> (T[]) Array.newInstance(value, s));
     }
@@ -311,12 +310,12 @@ public class Utils {
     public static void finalAccess(Field field) {
         try {
             if (Integer.parseInt(System.getProperty("java.version").split("\\.")[0]) <= 9) {
-                val modifiers = Field.class.getDeclaredField("modifiers");
+                var modifiers = Field.class.getDeclaredField("modifiers");
                 modifiers.setAccessible(true);
 
                 modifiers.set(field, field.getModifiers() & (~Modifier.FINAL));
             } else {
-//                val lookup = MethodHandles.privateLookupIn();
+//                var lookup = MethodHandles.privateLookupIn();
             }
         } catch (NoSuchFieldException | IllegalAccessException ignore) {
 

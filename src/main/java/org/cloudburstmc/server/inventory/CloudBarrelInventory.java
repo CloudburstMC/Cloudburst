@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -45,7 +44,7 @@ public class CloudBarrelInventory extends CloudContainer implements BarrelInvent
         CloudLevel level = (CloudLevel) barrel.getLevel();
         if (level != null) {
             Block block = barrel.getBlock();
-            val state = block.getState();
+            var state = block.getState();
 
             if (state.getType() == BlockTypes.BARREL) {
                 if (state.ensureTrait(BlockTraits.IS_OPEN) != open) {

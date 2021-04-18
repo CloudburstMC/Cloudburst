@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -43,7 +42,7 @@ public class BlockBehaviorItemFrame extends BlockBehaviorTransparent {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val level = (CloudLevel) block.getLevel();
+        var level = (CloudLevel) block.getLevel();
         BlockEntity blockEntity = level.getBlockEntity(block.getPosition());
         ItemFrame itemFrame = (ItemFrame) blockEntity;
         if (itemFrame.getItem() == null || itemFrame.getItem().getType() == AIR) {

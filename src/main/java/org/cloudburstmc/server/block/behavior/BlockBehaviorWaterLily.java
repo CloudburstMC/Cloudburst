@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -47,7 +46,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        val targetType = target.getState().getType();
+        var targetType = target.getState().getType();
         if (targetType == BlockTypes.WATER || targetType == BlockTypes.FLOWING_WATER) {
             Block up = target.up();
             if (up.getState() == BlockStates.AIR) {
@@ -61,7 +60,7 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
-            val down = block.down().getState().getType();
+            var down = block.down().getState().getType();
 
             if (down != BlockTypes.WATER && down != BlockTypes.FLOWING_WATER) {
                 block.getLevel().useBreakOn(block.getPosition());

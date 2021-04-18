@@ -29,7 +29,6 @@ import it.unimi.dsi.fastutil.bytes.ByteSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -1041,7 +1040,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         boolean portal = false;
 
         for (Block block : this.getCollisionBlocks()) {
-            val state = block.getState();
+            var state = block.getState();
             if (state.getType() == BlockTypes.PORTAL) {
                 portal = true;
                 continue;
@@ -1195,7 +1194,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
                         Block block = this.getLevel().getBlock(x, y, z);
-                        val behavior = block.getState().getBehavior();
+                        var behavior = block.getState().getBehavior();
 
                         if (!behavior.canPassThrough(block.getState()) && behavior.collidesWithBB(block, realBB)) {
                             onGround = true;
@@ -3363,9 +3362,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                     Random rand = new Random();
                     Integer itemToRepair = itemsWithMending.get(rand.nextInt(itemsWithMending.size()));
                     ItemStack toRepair = getInventory().getItem(itemToRepair);
-                    val behavior = toRepair.getBehavior();
+                    var behavior = toRepair.getBehavior();
                     if (behavior.isTool(toRepair) || behavior.isArmor()) {
-                        val damage = toRepair.getMetadata(Damageable.class);
+                        var damage = toRepair.getMetadata(Damageable.class);
 
                         if (damage.getDurability() > 0) {
                             getInventory().setItem(itemToRepair, toRepair.withData(damage.repair(2)));

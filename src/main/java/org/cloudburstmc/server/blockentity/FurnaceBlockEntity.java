@@ -5,7 +5,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
@@ -113,7 +112,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     protected void checkFuel(ItemStack fuel) {
-        val behavior = fuel.getBehavior();
+        var behavior = fuel.getBehavior();
         FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel, behavior.getFuelTime(fuel));
         this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {

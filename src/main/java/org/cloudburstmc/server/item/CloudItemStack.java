@@ -8,7 +8,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.ToString;
-import lombok.val;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.ItemStack;
@@ -112,7 +111,7 @@ public class CloudItemStack implements ItemStack {
         T value = (T) this.data.get(metadataClass);
 
         if (value == null) {
-            val serializer = CloudItemRegistry.get().getSerializer(metadataClass);
+            var serializer = CloudItemRegistry.get().getSerializer(metadataClass);
             if (serializer != null) {
                 value = (T) serializer.deserialize(this.id, getNbt(), getDataTag());
             }
@@ -211,7 +210,7 @@ public class CloudItemStack implements ItemStack {
     @Override
     public boolean hasTag() {
         if (this.nbt != null) {
-            val tag = this.nbt.getCompound("tag");
+            var tag = this.nbt.getCompound("tag");
             if (tag != null && !tag.isEmpty()) {
                 return true;
             }

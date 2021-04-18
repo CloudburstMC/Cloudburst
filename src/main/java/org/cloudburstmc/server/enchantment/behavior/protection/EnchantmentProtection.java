@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.enchantment.behavior.protection;
 
-import lombok.val;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -27,7 +26,7 @@ public abstract class EnchantmentProtection extends EnchantmentBehavior {
 
     @Override
     public boolean isCompatibleWith(EnchantmentInstance first, EnchantmentInstance enchantment) {
-        val behavior = enchantment.getBehavior();
+        var behavior = enchantment.getBehavior();
         if (behavior instanceof EnchantmentProtection) {
             if (((EnchantmentProtection) behavior).protectionType == this.protectionType) {
                 return false;

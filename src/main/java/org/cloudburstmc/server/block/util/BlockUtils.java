@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import lombok.val;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.string.PStrings;
 import net.daporkchop.lib.common.ref.Ref;
@@ -86,7 +85,7 @@ public class BlockUtils {
     }*/
 
     private void applyDefaultValues(Identifier id, Map<String, Object> traits) {
-        val vanillaTraits = BlockPalette.INSTANCE.getVanillaTraitMap();
+        var vanillaTraits = BlockPalette.INSTANCE.getVanillaTraitMap();
 
         BlockPalette.INSTANCE.getTraits(id).forEach(name -> {
             traits.computeIfAbsent(name, k -> Iterables.get(vanillaTraits.get(name), 0));

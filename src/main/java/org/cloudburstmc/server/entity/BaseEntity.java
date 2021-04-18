@@ -19,7 +19,6 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import com.spotify.futures.CompletableFutures;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
@@ -1316,7 +1315,7 @@ public abstract class BaseEntity implements Entity {
             if (fallDistance > 0) {
                 // check if we fell into at least 1 block of water
                 if (this instanceof EntityLiving) {
-                    val liquid = this.level.getBlock(this.position.toInt()).getLiquid().getType();
+                    var liquid = this.level.getBlock(this.position.toInt()).getLiquid().getType();
 
                     if (liquid != WATER && liquid != FLOWING_WATER) {
                         this.fall(fallDistance);
@@ -1459,7 +1458,7 @@ public abstract class BaseEntity implements Entity {
         }
 
         BlockState state = block.getLiquid();
-        val blockType = state.getType();
+        var blockType = state.getType();
 
         float percent;
 
@@ -1708,13 +1707,13 @@ public abstract class BaseEntity implements Entity {
         boolean portal = false;
 
         for (Block block : this.getCollisionBlocks()) {
-            val state = block.getState();
+            var state = block.getState();
             if (state.getType() == PORTAL) {
                 portal = true;
                 continue;
             }
 
-            val behavior = state.getBehavior();
+            var behavior = state.getBehavior();
             behavior.onEntityCollide(block, this);
             vector = behavior.addVelocityToEntity(block, vector, this);
         }

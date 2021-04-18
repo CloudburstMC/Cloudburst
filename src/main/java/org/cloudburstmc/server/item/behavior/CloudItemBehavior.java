@@ -2,7 +2,6 @@ package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
@@ -59,7 +58,7 @@ public abstract class CloudItemBehavior implements ItemBehavior {
             return item.getBlockState();
         }
 
-        val b = item.getType().getBlockType();
+        var b = item.getType().getBlockType();
         return b != null ? CloudBlockRegistry.get().getBlock(b) : BlockStates.AIR;
     }
 

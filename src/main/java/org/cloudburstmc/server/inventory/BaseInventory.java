@@ -256,7 +256,7 @@ public abstract class BaseInventory implements Inventory {
     @Override
     public int firstFit(ItemStack item, boolean single) {
         int count = single ? 1 : item.getAmount();
-        val maxStackSize = item.getBehavior().getMaxStackSize(item);
+        var maxStackSize = item.getBehavior().getMaxStackSize(item);
 
         for (int i = 0; i < this.size; ++i) {
             ItemStack slot = this.getItem(i);
@@ -339,7 +339,7 @@ public abstract class BaseInventory implements Inventory {
 
             int maxStack = item.getBehavior().getMaxStackSize(item);
 
-            val copy = new ArrayList<>(itemSlots);
+            var copy = new ArrayList<>(itemSlots);
             for (int j = 0; j < copy.size(); j++) {
                 ItemStack slot = copy.get(j);
 

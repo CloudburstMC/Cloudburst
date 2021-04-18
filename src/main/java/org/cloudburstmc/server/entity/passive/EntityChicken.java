@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.passive;
 
-import lombok.val;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Chicken;
 import org.cloudburstmc.api.item.ItemStack;
@@ -51,7 +50,7 @@ public class EntityChicken extends Animal implements Chicken {
 
     @Override
     public boolean isBreedingItem(ItemStack item) {
-        val id = item.getType();
+        var id = item.getType();
 
         return id == ItemTypes.WHEAT_SEEDS || id == ItemTypes.MELON_SEEDS || id == ItemTypes.PUMPKIN_SEEDS ||
                 id == ItemTypes.BEETROOT_SEEDS;

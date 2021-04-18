@@ -2,7 +2,6 @@ package org.cloudburstmc.server.item.serializer;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import lombok.val;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.CloudItemStack;
@@ -23,7 +22,7 @@ public class EnumDamageSerializer extends DefaultItemSerializer {
     @Override
     public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
-        val val = item.getMetadata(enumClass);
+        var val = item.getMetadata(enumClass);
         itemTag.putShort("Damage", (short) (val == null ? 0 : val.ordinal()));
     }
 

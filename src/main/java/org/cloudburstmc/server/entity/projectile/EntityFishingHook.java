@@ -3,7 +3,6 @@ package org.cloudburstmc.server.entity.projectile;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -142,7 +141,7 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
 
     public int getWaterHeight() {
         for (int y = this.getPosition().getFloorY(); y < 256; y++) {
-            val id = this.getLevel().getBlockState(getPosition().getFloorX(), y, getPosition().getFloorZ()).getType();
+            var id = this.getLevel().getBlockState(getPosition().getFloorX(), y, getPosition().getFloorZ()).getType();
             if (id == BlockTypes.AIR) {
                 return y;
             }

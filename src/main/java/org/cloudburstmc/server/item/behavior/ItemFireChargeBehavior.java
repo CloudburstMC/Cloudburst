@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -32,7 +31,7 @@ public class ItemFireChargeBehavior extends CloudItemBehavior {
     @Override
     public ItemStack onActivate(ItemStack itemStack, Player player, Block block, Block target, Direction face, Vector3f clickPos, Level level) {
 
-        val targetState = target.getState();
+        var targetState = target.getState();
 
         if (block == BlockStates.AIR && (targetState.getBehavior().isSolid(targetState) || targetState.getType() == BlockTypes.LEAVES)) {
             if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(level.getBlock(clickPos.toInt()).downState()) || BlockBehaviorFire.canNeighborBurn(level.getBlock(clickPos.toInt()))) {
@@ -40,7 +39,7 @@ public class ItemFireChargeBehavior extends CloudItemBehavior {
                 level.getServer().getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
-                    val fire = CloudBlockRegistry.get().getBlock(FIRE);
+                    var fire = CloudBlockRegistry.get().getBlock(FIRE);
                     level.setBlockState(clickPos.toInt(), fire);
 
                     ((CloudLevel) level).addSound(clickPos, Sound.MOB_GHAST_FIREBALL);

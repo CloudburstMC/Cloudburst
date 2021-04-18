@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.projectile.Arrow;
@@ -55,8 +54,8 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        val level = block.getLevel();
-        val position = block.getPosition();
+        var level = block.getLevel();
+        var position = block.getPosition();
 
         if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_RANDOM) {
             if (!BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.down().getState()) && !BlockBehaviorFire.canNeighborBurn(block)) {
@@ -69,7 +68,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
             return Level.BLOCK_UPDATE_NORMAL;
         } else if (type == Level.BLOCK_UPDATE_SCHEDULED && level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
-            val down = block.down().getState();
+            var down = block.down().getState();
             boolean forever = down.getType() == BlockTypes.NETHERRACK || down.getType() == BlockTypes.MAGMA;
 
             ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -97,7 +96,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                     block.set(event.getNewState(), true);
                 }
             } else {
-                val state = block.getState();
+                var state = block.getState();
                 int age = state.ensureTrait(BlockTraits.AGE);
 
                 if (age < 15) {
@@ -144,7 +143,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
                                         k += (y - (block.getY() + 1)) * 100;
                                     }
 
-                                    val blockState = level.getBlock(x, y, z);
+                                    var blockState = level.getBlock(x, y, z);
                                     int chance = this.getChanceOfNeighborsEncouragingFire(blockState);
 
                                     if (chance > 0) {
@@ -180,8 +179,8 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     private void tryToCatchBlockOnFire(Block fire, Block block, int bound, int damage) {
-        val state = block.getState();
-        val behavior = state.getBehavior();
+        var state = block.getState();
+        var behavior = state.getBehavior();
 
         int burnAbility = behavior.getBurnAbility(state);
 
@@ -219,14 +218,14 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
     }
 
     private int getChanceOfNeighborsEncouragingFire(Block block) {
-        val state = block.getState();
+        var state = block.getState();
         if (state.getType() != BlockTypes.AIR) {
             return 0;
         } else {
             int chance = 0;
 
             for (Direction direction : Direction.values()) {
-                val sideState = block.getSide(direction).getState();
+                var sideState = block.getSide(direction).getState();
                 chance = Math.max(chance, sideState.getBehavior().getBurnChance(sideState));
             }
 
@@ -236,7 +235,7 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
     public static boolean canNeighborBurn(Block block) {
         for (Direction face : Direction.values()) {
-            val sideState = block.getSide(face).getState();
+            var sideState = block.getSide(face).getState();
             if (sideState.getBehavior().getBurnChance(sideState) > 0) {
                 return true;
             }

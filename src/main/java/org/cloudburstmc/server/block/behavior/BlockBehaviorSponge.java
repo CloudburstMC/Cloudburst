@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -35,11 +34,11 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         CloudLevel level = (CloudLevel) block.getLevel();
 
-        val state = item.getBehavior().getBlock(item);
+        var state = item.getBehavior().getBlock(item);
         boolean blockSet = placeBlock(block, state);
 
         if (blockSet) {
-            val type = state.ensureTrait(BlockTraits.SPONGE_TYPE);
+            var type = state.ensureTrait(BlockTraits.SPONGE_TYPE);
             if (type == WET && level.getDimension() == CloudLevel.DIMENSION_NETHER) {
                 block.set(state.withTrait(BlockTraits.SPONGE_TYPE, DRY));
 
@@ -74,8 +73,8 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
         while (waterRemoved < 64 && (entry = entries.poll()) != null) {
             for (Direction face : Direction.values()) {
 
-                val faceBlock = entry.block.getSide(face);
-                val faceState = faceBlock.getState();
+                var faceBlock = entry.block.getSide(face);
+                var faceState = faceBlock.getState();
                 if (faceState.getType() == FLOWING_WATER || faceState.getType() == WATER) {
                     faceBlock.set(BlockStates.AIR);
 

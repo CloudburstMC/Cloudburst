@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.inventory.transaction;
 
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
-import lombok.var;
 import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.item.ItemStack;
@@ -98,14 +96,14 @@ public class InventoryTransaction {
             }
         }
 
-        val needIterator = needItems.listIterator();
+        var needIterator = needItems.listIterator();
 
         while (needIterator.hasNext()) {
             var needItem = needIterator.next();
-            val haveIterator = haveItems.listIterator();
+            var haveIterator = haveItems.listIterator();
 
             while (haveIterator.hasNext()) {
-                val haveItem = haveIterator.next();
+                var haveItem = haveIterator.next();
 
                 if (needItem.equals(haveItem)) {
                     int amount = Math.min(haveItem.getAmount(), needItem.getAmount());

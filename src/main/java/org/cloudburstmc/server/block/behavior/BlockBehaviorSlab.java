@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.item.ItemStack;
@@ -78,11 +77,11 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         boolean isTop;
 
-        val state = item.getBehavior().getBlock(item).getType().getDefaultState();
-        val blockState = block.getState();
-        val targetState = target.getState();
+        var state = item.getBehavior().getBlock(item).getType().getDefaultState();
+        var blockState = block.getState();
+        var targetState = target.getState();
 
-        val slot = state.ensureTrait(BlockTraits.SLAB_SLOT);
+        var slot = state.ensureTrait(BlockTraits.SLAB_SLOT);
 
         if (slot == SlabSlot.FULL) {
             return placeBlock(block, state);
@@ -121,8 +120,8 @@ public class BlockBehaviorSlab extends BlockBehaviorTransparent {
 
         BlockTrait<?> type = getSlabType(state);
 
-        val slot = state.ensureTrait(BlockTraits.SLAB_SLOT);
-        val otherSlot = other.ensureTrait(BlockTraits.SLAB_SLOT);
+        var slot = state.ensureTrait(BlockTraits.SLAB_SLOT);
+        var otherSlot = other.ensureTrait(BlockTraits.SLAB_SLOT);
 
         return state.ensureTrait(type) == other.ensureTrait(type) && slot != SlabSlot.FULL && otherSlot != SlabSlot.FULL && slot != otherSlot;
     }

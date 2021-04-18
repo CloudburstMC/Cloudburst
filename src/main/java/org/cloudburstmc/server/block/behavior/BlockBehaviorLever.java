@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -38,8 +37,8 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val level = (CloudLevel) block.getLevel();
-        val state = block.getState();
+        var level = (CloudLevel) block.getLevel();
+        var state = block.getState();
 
         boolean powerOn = isPowerOn(state);
         level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, powerOn ? 15 : 0, powerOn ? 0 : 15));
@@ -48,7 +47,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
         block.set(state.toggleTrait(BlockTraits.IS_OPEN));
         level.addSound(block.getPosition(), Sound.RANDOM_CLICK, 0.8f, powerOn ? 0.5f : 0.58f);
 
-        val face = state.ensureTrait(BlockTraits.LEVER_DIRECTION).getDirection();
+        var face = state.ensureTrait(BlockTraits.LEVER_DIRECTION).getDirection();
 
         level.updateAroundRedstone(face.getOpposite().getOffset(block.getPosition()), powerOn ? null : face);
         return true;
@@ -82,7 +81,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     public boolean onBreak(Block block, ItemStack item) {
         super.onBreak(block, item);
 
-        val state = block.getState();
+        var state = block.getState();
         if (isPowerOn(state)) {
             Direction face = state.ensureTrait(BlockTraits.LEVER_DIRECTION).getDirection();
             block.getLevel().updateAround(face.getOpposite().getOffset(block.getPosition()));
@@ -96,7 +95,7 @@ public class BlockBehaviorLever extends FloodableBlockBehavior {
     }
 
     public int getStrongPower(Block block, Direction side) {
-        val state = block.getState();
+        var state = block.getState();
         return !isPowerOn(state) ? 0 : state.ensureTrait(BlockTraits.LEVER_DIRECTION).getDirection() == side ? 15 : 0;
     }
 

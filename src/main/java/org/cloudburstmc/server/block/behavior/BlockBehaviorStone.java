@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
-import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.item.ItemStack;
@@ -17,7 +15,7 @@ public class BlockBehaviorStone extends BlockBehaviorSolid {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        val behavior = hand.getBehavior();
+        var behavior = hand.getBehavior();
 
         if (behavior.isPickaxe() && behavior.getTier(hand).compareTo(TierTypes.WOOD) >= 0) {
             var state = block.getState();

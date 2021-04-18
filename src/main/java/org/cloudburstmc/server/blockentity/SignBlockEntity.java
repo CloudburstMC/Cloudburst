@@ -3,7 +3,6 @@ package org.cloudburstmc.server.blockentity;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Sign;
@@ -68,7 +67,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
 
     @Override
     public boolean isValid() {
-        val blockType = getBlockState().getType();
+        var blockType = getBlockState().getType();
         return blockType == BlockTypes.STANDING_SIGN || blockType == BlockTypes.WALL_SIGN;
     }
 

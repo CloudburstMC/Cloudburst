@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.event.redstone.RedstoneUpdateEvent;
@@ -93,7 +92,7 @@ public class BlockBehaviorRedstoneTorch extends BlockBehaviorTorch {
     }
 
     protected boolean checkState(Block block) {
-        val state = block.getState();
+        var state = block.getState();
         boolean powered = isPoweredFromSide(block);
 
         if (powered != state.ensureTrait(BlockTraits.IS_POWERED)) {

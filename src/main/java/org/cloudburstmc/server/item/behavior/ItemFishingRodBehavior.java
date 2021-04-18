@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.item.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.player.Player;
@@ -39,7 +38,7 @@ public class ItemFishingRodBehavior extends ItemToolBehavior {
             player.stopFishing(true);
         } else {
             player.startFishing(item);
-            val damage = item.getMetadata(Damageable.class);
+            var damage = item.getMetadata(Damageable.class);
             if (damage != null) {
                 return item.withData(damage.damage());
             }

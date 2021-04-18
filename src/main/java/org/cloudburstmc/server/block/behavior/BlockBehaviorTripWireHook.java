@@ -3,8 +3,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import lombok.val;
-import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -53,7 +51,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     @Override
     public boolean onBreak(Block block, ItemStack item) {
         super.onBreak(block, item);
-        val state = block.getState();
+        var state = block.getState();
         boolean attached = isAttached(state);
         boolean powered = isPowered(state);
 
@@ -70,10 +68,10 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     public void calculateState(Block block, boolean onBreak, boolean updateAround, int pos, BlockState blockState) {
-        val state = block.getState();
+        var state = block.getState();
         Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
         Vector3i v = block.getPosition();
-        val level = block.getLevel();
+        var level = block.getLevel();
 
         boolean attached = isAttached(state);
         boolean powered = isPowered(state);
@@ -102,7 +100,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
                 }
 
                 if (b.getType() == TRIPWIRE) {
-                    val behavior = (BlockBehaviorTripWire) b.getBehavior();
+                    var behavior = (BlockBehaviorTripWire) b.getBehavior();
 
                     boolean disarmed = !behavior.isDisarmed(b);
                     boolean wirePowered = behavior.isPowered(b);
@@ -159,7 +157,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
     }
 
     private void addSound(Block block, Vector3f pos, boolean canConnect, boolean nextPowered, boolean attached, boolean powered) {
-        val level = block.getLevel();
+        var level = block.getLevel();
         if (nextPowered && !powered) {
             ((CloudLevel) level).addLevelSoundEvent(pos, SoundEvent.POWER_ON);
             level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
@@ -189,7 +187,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
 
     @Override
     public int getStrongPower(Block block, Direction side) {
-        val state = block.getState();
+        var state = block.getState();
         return !isPowered(state) ? 0 : state.ensureTrait(BlockTraits.DIRECTION) == side ? 15 : 0;
     }
 

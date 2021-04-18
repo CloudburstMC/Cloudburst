@@ -25,7 +25,6 @@ package co.aikar.timings;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.val;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.util.Identifier;
@@ -112,7 +111,7 @@ public class TimingsHistory {
 
                 //count block entities
                 for (BlockEntity blockEntity : chunk.getBlockEntities()) {
-                    val type = blockEntity.getType().getIdentifier();
+                    var type = blockEntity.getType().getIdentifier();
 
                     if (!blockEntityCounts.containsKey(type))
                         blockEntityCounts.put(type, new AtomicInteger(0));

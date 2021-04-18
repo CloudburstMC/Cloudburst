@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
@@ -29,7 +28,7 @@ public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val behavior = item.getBehavior();
+        var behavior = item.getBehavior();
         if (behavior.isHoe()) {
             behavior.useOn(item, block.getState());
             block.set(CloudBlockRegistry.get().getBlock(BlockTypes.FARMLAND), true);

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.entity.misc;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -49,7 +48,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
 
         if (isEffect && this.level.getGameRules().get(GameRules.DO_FIRE_TICK) && (this.server.getDifficulty().ordinal() >= 2)) {
             Block block = this.getLevel().getBlock(this.getPosition().toInt());
-            val state = block.getState();
+            var state = block.getState();
 
             if (state.getType() == AIR || state.getType() == TALL_GRASS) {
 
@@ -59,7 +58,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                     getServer().getEventManager().fire(e);
 
                     if (!e.isCancelled()) {
-                        val fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
+                        var fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
                         block.set(fire);
 
                         level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
@@ -119,7 +118,7 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
 
                 if (this.isEffect && this.level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
                     Block block = this.getLevel().getBlock(this.getPosition().toInt());
-                    val state = block.getState();
+                    var state = block.getState();
 
                     if (state.getType() == AIR || state.getType() == TALL_GRASS) {
                         BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);

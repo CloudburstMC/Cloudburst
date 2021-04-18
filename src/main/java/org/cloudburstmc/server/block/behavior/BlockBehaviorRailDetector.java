@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.entity.Entity;
@@ -19,8 +18,6 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
         super(DETECTOR_RAIL, BlockTraits.SIMPLE_RAIL_DIRECTION);
         canBePowered = true;
     }
-
-
 
     @Override
     public int getWeakPower(Block block, Direction side) {
@@ -63,7 +60,7 @@ public class BlockBehaviorRailDetector extends BlockBehaviorRail {
             }
         }
 
-        val level = block.getLevel();
+        var level = block.getLevel();
 
         if (isPowered && !wasPowered) {
             setActive(block, true);

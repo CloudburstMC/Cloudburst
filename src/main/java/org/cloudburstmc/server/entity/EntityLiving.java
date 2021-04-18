@@ -12,7 +12,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -219,7 +218,7 @@ public abstract class EntityLiving extends BaseEntity implements Damageable, Liv
                     this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.SUFFOCATION, 1));
                 }
 
-                val block = this.getLevel().getBlockState(this.getPosition().toInt()).getType();
+                var block = this.getLevel().getBlockState(this.getPosition().toInt()).getType();
                 boolean ignore = block == BlockTypes.LADDER || block == BlockTypes.VINE || block == BlockTypes.WEB;
                 if (ignore || this.hasEffect(EffectTypes.LEVITATION)) {
                     this.resetFallDistance();
@@ -316,7 +315,7 @@ public abstract class EntityLiving extends BaseEntity implements Damageable, Liv
                 blocks.remove(0);
             }
 
-            val id = block.getState().getType();
+            var id = block.getState().getType();
 
             if (transparent == null) {
                 if (id != AIR) {

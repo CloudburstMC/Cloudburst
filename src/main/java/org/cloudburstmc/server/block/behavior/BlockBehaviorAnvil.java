@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -28,7 +27,7 @@ public class BlockBehaviorAnvil extends BlockBehaviorFallable {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        val state = block.getState();
+        var state = block.getState();
         if (!target.getState().getBehavior().isTransparent(state) || state.getType() == SNOW_LAYER) {
             BlockState anvil = item.getBehavior().getBlock(item)
                     .withTrait(BlockTraits.DIRECTION, player.getDirection().getOpposite());

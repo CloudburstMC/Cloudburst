@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.behavior;
 
-import lombok.val;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
@@ -23,7 +22,7 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        val behavior = item.getBehavior();
+        var behavior = item.getBehavior();
         if (behavior.isHoe()) {
             behavior.useOn(item, block.getState());
             block.set(CloudBlockRegistry.get().getBlock(block.getState().ensureTrait(DIRT_TYPE) == DirtType.NORMAL ? FARMLAND : DIRT), true);

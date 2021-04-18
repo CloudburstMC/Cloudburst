@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import lombok.val;
-import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -122,10 +120,10 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
-//            val direction = block.getState().ensureTrait(BlockTraits.DIRECTION);
+//            var direction = block.getState().ensureTrait(BlockTraits.DIRECTION);
 //
 //            if (!block.getSideState(direction).inCategory(BlockCategory.SOLID)) {
-//                val up = block.upState();
+//                var up = block.upState();
 //
 //                if (up.getType() != BlockTypes.VINE || up.ensureTrait(BlockTraits.DIRECTION) != direction) {
 //                    block.getLevel().useBreakOn(block.getPosition());
@@ -142,7 +140,7 @@ public class BlockBehaviorVine extends BlockBehaviorTransparent {
             }
 
             if (bits == 0) {
-                val upState = block.up().getState();
+                var upState = block.up().getState();
                 if (upState.getType() != BlockTypes.VINE || (upState.ensureTrait(BlockTraits.VINE_DIRECTION_BITS) & current) == 0) {
                     block.getLevel().useBreakOn(block.getPosition(), null, null, true);
                     return CloudLevel.BLOCK_UPDATE_NORMAL;

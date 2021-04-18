@@ -8,8 +8,6 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import lombok.val;
-import lombok.var;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ShulkerBox;
@@ -35,7 +33,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        val be = block.getLevel().getBlockEntity(block.getPosition());
+        var be = block.getLevel().getBlockEntity(block.getPosition());
 
         var tag = NbtMap.EMPTY;
         if ((be instanceof ShulkerBoxBlockEntity)) {

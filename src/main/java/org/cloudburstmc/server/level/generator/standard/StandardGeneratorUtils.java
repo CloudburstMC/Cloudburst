@@ -2,7 +2,6 @@ package org.cloudburstmc.server.level.generator.standard;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import lombok.val;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
@@ -35,7 +34,7 @@ public class StandardGeneratorUtils {
                 in = Bootstrap.class.getClassLoader().getResourceAsStream(name);
                 break;
             default:
-                val plugin = CloudServer.getInstance().getPluginManager().getPlugin(id.getNamespace());
+                var plugin = CloudServer.getInstance().getPluginManager().getPlugin(id.getNamespace());
                 if (plugin.isPresent()) {
                     in = plugin.get().getPlugin().getClass().getClassLoader().getResourceAsStream(name);
                 }
