@@ -1,19 +1,18 @@
 package org.cloudburstmc.server.inventory.transaction;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.event.inventory.InventoryClickEvent;
-import org.cloudburstmc.server.event.inventory.InventoryTransactionEvent;
-import org.cloudburstmc.server.inventory.Inventory;
-import org.cloudburstmc.server.inventory.PlayerInventory;
+import lombok.val;
+import lombok.var;
+import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
+import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.server.inventory.CloudPlayerInventory;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.inventory.transaction.action.SlotChangeAction;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.*;
 import java.util.Map.Entry;
-
-import static org.cloudburstmc.server.block.BlockIds.AIR;
 
 /**
  * @author CreeperFace
@@ -24,23 +23,23 @@ public class InventoryTransaction {
     private long creationTime;
     protected boolean hasExecuted;
 
-    protected Player source;
+    protected CloudPlayer source;
 
     protected Set<Inventory> inventories = new HashSet<>();
 
     protected Set<InventoryAction> actions = new HashSet<>();
 
-    public InventoryTransaction(Player source, List<InventoryAction> actions) {
+    public InventoryTransaction(CloudPlayer source, List<InventoryAction> actions) {
         this(source, actions, true);
     }
 
-    public InventoryTransaction(Player source, List<InventoryAction> actions, boolean init) {
+    public InventoryTransaction(CloudPlayer source, List<InventoryAction> actions, boolean init) {
         if (init) {
             init(source, actions);
         }
     }
 
-    protected void init(Player source, List<InventoryAction> actions) {
+    protected void init(CloudPlayer source, List<InventoryAction> actions) {
         creationTime = System.currentTimeMillis();
         this.source = source;
 
@@ -49,7 +48,7 @@ public class InventoryTransaction {
         }
     }
 
-    public Player getSource() {
+    public CloudPlayer getSource() {
         return source;
     }
 
@@ -84,9 +83,9 @@ public class InventoryTransaction {
         this.inventories.add(inventory);
     }
 
-    protected boolean matchItems(List<Item> needItems, List<Item> haveItems) {
+    protected boolean matchItems(List<ItemStack> needItems, List<ItemStack> haveItems) {
         for (InventoryAction action : this.actions) {
-            if (action.getTargetItem().getId() != AIR) {
+            if (!action.getTargetItem().isNull()) {
                 needItems.add(action.getTargetItem());
             }
 
@@ -94,23 +93,35 @@ public class InventoryTransaction {
                 return false;
             }
 
-            if (action.getSourceItem().getId() != AIR) {
+            if (!action.getSourceItem().isNull()) {
                 haveItems.add(action.getSourceItem());
             }
         }
 
-        for (Item needItem : new ArrayList<>(needItems)) {
-            for (Item haveItem : new ArrayList<>(haveItems)) {
+        val needIterator = needItems.listIterator();
+
+        while (needIterator.hasNext()) {
+            var needItem = needIterator.next();
+            val haveIterator = haveItems.listIterator();
+
+            while (haveIterator.hasNext()) {
+                val haveItem = haveIterator.next();
+
                 if (needItem.equals(haveItem)) {
-                    int amount = Math.min(haveItem.getCount(), needItem.getCount());
-                    needItem.setCount(needItem.getCount() - amount);
-                    haveItem.setCount(haveItem.getCount() - amount);
-                    if (haveItem.getCount() == 0) {
-                        haveItems.remove(haveItem);
+                    int amount = Math.min(haveItem.getAmount(), needItem.getAmount());
+
+                    if (haveItem.getAmount() - amount <= 0) {
+                        haveIterator.remove();
+                    } else {
+                        haveIterator.set(haveItem.decrementAmount(amount));
                     }
-                    if (needItem.getCount() == 0) {
-                        needItems.remove(needItem);
+
+                    if (needItem.getAmount() - amount <= 0) {
+                        needIterator.remove();
                         break;
+                    } else {
+                        needItem = needItem.decrementAmount(amount);
+                        needIterator.set(needItem);
                     }
                 }
             }
@@ -122,8 +133,8 @@ public class InventoryTransaction {
     protected void sendInventories() {
         for (Inventory inventory : this.inventories) {
             inventory.sendContents(this.source);
-            if (inventory instanceof PlayerInventory) {
-                ((PlayerInventory) inventory).sendArmorContents(this.source);
+            if (inventory instanceof CloudPlayerInventory) {
+                ((CloudPlayerInventory) inventory).sendArmorContents(this.source);
             }
         }
     }
@@ -171,7 +182,7 @@ public class InventoryTransaction {
             List<SlotChangeAction> originalList = new ArrayList<>(list);
 
             SlotChangeAction originalAction = null;
-            Item lastTargetItem = null;
+            ItemStack lastTargetItem = null;
 
             for (int i = 0; i < list.size(); i++) {
                 SlotChangeAction action = list.get(i);
@@ -195,15 +206,15 @@ public class InventoryTransaction {
                 for (int i = 0; i < list.size(); i++) {
                     SlotChangeAction action = list.get(i);
 
-                    Item actionSource = action.getSourceItem();
-                    if (actionSource.equalsExact(lastTargetItem)) {
+                    ItemStack actionSource = action.getSourceItem();
+                    if (actionSource.equals(lastTargetItem, true)) {
                         lastTargetItem = action.getTargetItem();
                         list.remove(i);
                         sortedThisLoop++;
                     } else if (actionSource.equals(lastTargetItem)) {
-                        lastTargetItem.decrementCount(actionSource.getCount());
+                        lastTargetItem = lastTargetItem.decrementAmount(actionSource.getAmount());
                         list.remove(i);
-                        if (lastTargetItem.getCount() == 0) sortedThisLoop++;
+                        if (lastTargetItem.getAmount() == 0) sortedThisLoop++;
                     }
                 }
             } while (sortedThisLoop > 0);
@@ -228,18 +239,18 @@ public class InventoryTransaction {
     public boolean canExecute() {
         this.squashDuplicateSlotChanges();
 
-        List<Item> haveItems = new ArrayList<>();
-        List<Item> needItems = new ArrayList<>();
-        return matchItems(needItems, haveItems) && this.actions.size() > 0 && haveItems.size() == 0 && needItems.size() == 0;
+        List<ItemStack> haveItems = new ArrayList<>();
+        List<ItemStack> needItems = new ArrayList<>();
+        return matchItems(needItems, haveItems) && this.actions.size() > 0;
     }
 
     protected boolean callExecuteEvent() {
-        InventoryTransactionEvent ev = new InventoryTransactionEvent(this);
-        this.source.getServer().getEventManager().fire(ev);
+        //InventoryTransactionEvent ev = new InventoryTransactionEvent(this);
+        //this.source.getServer().getEventManager().fire(ev);
 
         SlotChangeAction from = null;
         SlotChangeAction to = null;
-        Player who = null;
+        CloudPlayer who = null;
 
         for (InventoryAction action : this.actions) {
             if (!(action instanceof SlotChangeAction)) {
@@ -247,8 +258,8 @@ public class InventoryTransaction {
             }
             SlotChangeAction slotChange = (SlotChangeAction) action;
 
-            if (slotChange.getInventory() instanceof PlayerInventory) {
-                who = (Player) slotChange.getInventory().getHolder();
+            if (slotChange.getInventory() instanceof CloudPlayerInventory) {
+                who = (CloudPlayer) slotChange.getInventory().getHolder();
             }
 
             if (from == null) {
@@ -259,7 +270,7 @@ public class InventoryTransaction {
         }
 
         if (who != null && to != null) {
-            if (from.getTargetItem().getCount() > from.getSourceItem().getCount()) {
+            if (from.getTargetItem().getAmount() > from.getSourceItem().getAmount()) {
                 from = to;
             }
 
@@ -271,7 +282,7 @@ public class InventoryTransaction {
             }
         }
 
-        return !ev.isCancelled();
+        return false;
     }
 
     public boolean execute() {

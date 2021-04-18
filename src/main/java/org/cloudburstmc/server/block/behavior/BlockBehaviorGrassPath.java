@@ -1,29 +1,21 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import lombok.val;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_SHOVEL;
-    }
 
 //    @Override //TODO: bounding box
 //    public float getMaxY() {
 //        return this.getY() + 0.9375f;
 //    }
 
-    @Override
-    public float getResistance() {
-        return 3.25f;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
@@ -36,10 +28,11 @@ public class BlockBehaviorGrassPath extends BlockBehaviorGrass {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
-        if (item.isHoe()) {
-            item.useOn(block);
-            block.set(BlockState.get(BlockIds.FARMLAND), true);
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        val behavior = item.getBehavior();
+        if (behavior.isHoe()) {
+            behavior.useOn(item, block.getState());
+            block.set(CloudBlockRegistry.get().getBlock(BlockTypes.FARMLAND), true);
             return true;
         }
 

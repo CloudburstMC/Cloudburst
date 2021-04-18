@@ -4,46 +4,37 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockSpreadEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.event.block.BlockSpreadEvent;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DirtType;
+import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.DirtType;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 
 public class BlockBehaviorGrass extends BlockBehaviorDirt {
 
-    @Override
-    public float getHardness() {
-        return 0.6f;
-    }
 
     @Override
-    public float getResistance() {
-        return 3;
-    }
-
-    @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val level = block.getLevel();
+        val behavior = item.getBehavior();
 
-        if (item.getId() == ItemIds.DYE && item.getMeta() == 0x0F) {
+        if (item.getType() == ItemTypes.DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             if (player != null && player.getGamemode().isSurvival()) {
-                item.decrementCount();
+                player.getInventory().decrementHandCount();
             }
-            level.addParticle(new BoneMealParticle(block.getPosition()));
+            ((CloudLevel) level).addParticle(new BoneMealParticle(block.getPosition()));
 
             PRandom random = new FastPRandom();
 
@@ -55,20 +46,20 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
                 int blockX = block.getX() + random.nextInt(8) - random.nextInt(8);
                 int blockZ = block.getZ() + random.nextInt(8) - random.nextInt(8);
 
-                BlockState tallGrass = BlockState.get(BlockIds.TALL_GRASS);
+                BlockState tallGrass = CloudBlockRegistry.get().getBlock(BlockTypes.TALL_GRASS);
                 val toReplace = level.getBlock(blockX, blockY + 1, blockZ);
-                if (toReplace.getState().getType() == BlockIds.AIR) {
+                if (toReplace.getState().getType() == BlockTypes.AIR) {
                     tallGrass.getBehavior().place(null, toReplace, block, Direction.UP, block.getPosition().toFloat(), null);
                 }
             }
             return true;
-        } else if (item.isHoe()) {
-            item.useOn(block);
-            block.set(BlockState.get(FARMLAND));
+        } else if (behavior.isHoe()) {
+            behavior.useOn(item, block.getState());
+            block.set(CloudBlockRegistry.get().getBlock(FARMLAND));
             return true;
-        } else if (item.isShovel()) {
-            item.useOn(block);
-            block.set(BlockState.get(GRASS_PATH));
+        } else if (behavior.isShovel()) {
+            behavior.useOn(item, block.getState());
+            block.set(CloudBlockRegistry.get().getBlock(GRASS_PATH));
             return true;
         }
 
@@ -77,7 +68,7 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_RANDOM) {
+        if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             Vector3i pos = block.getPosition();
             int x = ThreadLocalRandom.current().nextInt(pos.getX() - 1, pos.getX() + 1);
             int y = ThreadLocalRandom.current().nextInt(pos.getY() - 2, pos.getY() + 2);
@@ -86,19 +77,20 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
             val state = b.getState();
 
             if (state.getType() == DIRT && state.ensureTrait(BlockTraits.DIRT_TYPE) == DirtType.NORMAL) {
-                if (b.up() instanceof BlockBehaviorAir) {
-                    BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(GRASS));
-                    Server.getInstance().getEventManager().fire(ev);
+                if (b.upState() == BlockStates.AIR) {
+                    BlockSpreadEvent ev = new BlockSpreadEvent(b, block, CloudBlockRegistry.get().getBlock(GRASS));
+                    CloudServer.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
-                        block.getLevel().setBlock(b.getPosition(), ev.getNewState());
+                        block.getLevel().setBlockState(b.getPosition(), ev.getNewState());
                     }
                 }
             } else if (state.getType() == GRASS) {
-                if (b.up() instanceof BlockBehaviorSolid) {
-                    BlockSpreadEvent ev = new BlockSpreadEvent(b, block, BlockState.get(DIRT));
-                    Server.getInstance().getEventManager().fire(ev);
+                val up = b.upState();
+                if (up.getBehavior().isSolid(up)) {
+                    BlockSpreadEvent ev = new BlockSpreadEvent(b, block, CloudBlockRegistry.get().getBlock(DIRT));
+                    CloudServer.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
-                        block.getLevel().setBlock(b.getPosition(), ev.getNewState());
+                        block.getLevel().setBlockState(b.getPosition(), ev.getNewState());
                     }
                 }
             }
@@ -111,8 +103,5 @@ public class BlockBehaviorGrass extends BlockBehaviorDirt {
         return BlockColor.GRASS_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
+
 }

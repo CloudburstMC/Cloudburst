@@ -11,7 +11,7 @@ import org.cloudburstmc.server.form.element.ElementButton;
 import org.cloudburstmc.server.form.response.SimpleFormResponse;
 import org.cloudburstmc.server.form.util.FormType;
 import org.cloudburstmc.server.form.util.ImageType;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -29,16 +29,16 @@ public class SimpleForm extends Form<SimpleFormResponse> {
     private final List<ElementButton> buttons;
 
     @JsonIgnore
-    private final Int2ObjectMap<Consumer<Player>> buttonListeners;
+    private final Int2ObjectMap<Consumer<CloudPlayer>> buttonListeners;
 
     public SimpleForm(
             String title,
             String content,
             List<ElementButton> buttons,
-            Int2ObjectMap<Consumer<Player>> buttonListeners,
-            List<BiConsumer<Player, SimpleFormResponse>> listeners,
-            List<Consumer<Player>> closeListeners,
-            List<Consumer<Player>> errorListeners
+            Int2ObjectMap<Consumer<CloudPlayer>> buttonListeners,
+            List<BiConsumer<CloudPlayer, SimpleFormResponse>> listeners,
+            List<Consumer<CloudPlayer>> closeListeners,
+            List<Consumer<CloudPlayer>> errorListeners
     ) {
         super(FormType.SIMPLE, title, listeners, closeListeners, errorListeners);
         this.content = content;
@@ -51,7 +51,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
     }
 
     @Override
-    public void handleResponse(Player p, JsonNode node) {
+    public void handleResponse(CloudPlayer p, JsonNode node) {
         if (!node.isInt()) {
             error(p);
             log.warn("Received invalid response for SimpleForm {}", node);
@@ -60,7 +60,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
 
         int clicked = node.intValue();
 
-        Consumer<Player> buttonListener = buttonListeners.get(clicked);
+        Consumer<CloudPlayer> buttonListener = buttonListeners.get(clicked);
         if (buttonListener != null) {
             buttonListener.accept(p);
         }
@@ -72,7 +72,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
 
         private String content = "";
         private final List<ElementButton> buttons = new ArrayList<>();
-        private final Int2ObjectMap<Consumer<Player>> buttonListeners = new Int2ObjectOpenHashMap<>();
+        private final Int2ObjectMap<Consumer<CloudPlayer>> buttonListeners = new Int2ObjectOpenHashMap<>();
 
         /**
          * Set the form text content
@@ -117,7 +117,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
          * @param action callback called when the button is clicked
          * @return self builder instance
          */
-        public SimpleFormBuilder button(@Nonnull String text, @Nonnull Consumer<Player> action) {
+        public SimpleFormBuilder button(@Nonnull String text, @Nonnull Consumer<CloudPlayer> action) {
             this.buttons.add(new ElementButton(text));
             this.buttonListeners.put(buttons.size() - 1, action);
             return this;
@@ -132,7 +132,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
          * @param action    callback called when the button is clicked
          * @return self builder instance
          */
-        public SimpleFormBuilder button(@Nonnull String text, @Nonnull ImageType imageType, @Nonnull String imageData, @Nonnull Consumer<Player> action) {
+        public SimpleFormBuilder button(@Nonnull String text, @Nonnull ImageType imageType, @Nonnull String imageData, @Nonnull Consumer<CloudPlayer> action) {
             this.buttons.add(new ElementButton(text, imageType, imageData));
             this.buttonListeners.put(buttons.size() - 1, action);
             return this;

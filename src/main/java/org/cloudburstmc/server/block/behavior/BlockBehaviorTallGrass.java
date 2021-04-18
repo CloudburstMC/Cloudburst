@@ -2,24 +2,26 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.api.util.data.TallGrassType;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.TallGrassType;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
-import static org.cloudburstmc.server.item.behavior.ItemIds.DYE;
+import static org.cloudburstmc.api.block.BlockTypes.*;
+import static org.cloudburstmc.api.item.ItemTypes.DYE;
 
 public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
 
@@ -29,30 +31,15 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean canBeReplaced(Block block) {
-        return true;
-    }
-
-    @Override
-    public int getBurnChance() {
-        return 60;
-    }
-
-    @Override
-    public int getBurnAbility() {
-        return 100;
-    }
-
-    @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         // Prevents from placing the same plant block on itself
-        val itemBlock = item.getBlock();
+        val itemBlock = item.getBehavior().getBlock(item);
         if (itemBlock.getType() == target.getState().getType() && itemBlock.ensureTrait(BlockTraits.TALL_GRASS_TYPE) == block.getState().ensureTrait(BlockTraits.TALL_GRASS_TYPE)) {
             return false;
         }
         val down = block.down().getState().getType();
         if (down == GRASS || down == DIRT || down == PODZOL) {
-            placeBlock(block, item.getBlock());
+            placeBlock(block, itemBlock);
             return true;
         }
         return false;
@@ -60,30 +47,30 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
-        if (item.getId() == DYE && item.getMeta() == 0x0f) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        if (item.getType() == DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) {
             val up = block.up();
 
             if (up.getState().getType() == AIR) {
                 val type = block.getState().ensureTrait(BlockTraits.TALL_GRASS_TYPE);
                 if (type == TallGrassType.DEFAULT) {
                     if (player != null && player.getGamemode().isSurvival()) {
-                        item.decrementCount();
+                        ((CloudPlayer) player).getInventory().decrementHandCount();
                     }
 
-                    block.getLevel().addParticle(new BoneMealParticle(block.getPosition()));
+                    ((CloudLevel) block.getLevel()).addParticle(new BoneMealParticle(block.getPosition()));
 
-                    val dp = BlockState.get(DOUBLE_PLANT).withTrait(BlockTraits.TALL_GRASS_TYPE, type);
+                    val dp = CloudBlockRegistry.get().getBlock(DOUBLE_PLANT).withTrait(BlockTraits.TALL_GRASS_TYPE, type);
                     block.set(dp, true);
                     up.set(dp.withTrait(BlockTraits.IS_UPPER_BLOCK, true), true);
                 }
@@ -96,28 +83,24 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         boolean dropSeeds = ThreadLocalRandom.current().nextDouble(100) > 87.5;
-        if (hand.isShears()) {
+        if (hand.getBehavior().isShears()) {
             //todo enchantment
-            return new Item[]{
-                    Item.get(block.getState().resetTrait(BlockTraits.IS_UPPER_BLOCK))
+            return new ItemStack[]{
+                    CloudItemRegistry.get().getItem(block.getState().withTrait(BlockTraits.IS_UPPER_BLOCK, BlockTraits.IS_UPPER_BLOCK.getDefaultValue()))
             };
         }
 
         if (dropSeeds) {
-            return new Item[]{
-                    Item.get(ItemIds.WHEAT_SEEDS)
+            return new ItemStack[]{
+                    CloudItemRegistry.get().getItem(ItemTypes.WHEAT_SEEDS)
             };
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_SHEARS;
-    }
 
     @Override
     public BlockColor getColor(Block block) {

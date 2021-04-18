@@ -1,9 +1,10 @@
 package org.cloudburstmc.server.command.defaults;
 
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.TextFormat;
 import org.cloudburstmc.server.utils.ThreadCache;
@@ -33,7 +34,7 @@ public class GarbageCollectorCommand extends Command {
         int tilesCollected = 0;
         long memory = Runtime.getRuntime().freeMemory();
 
-        for (Level level : sender.getServer().getLevels()) {
+        for (CloudLevel level : ((CloudServer) sender.getServer()).getLevels()) {
             int chunksCount = level.getChunkCount();
             int entitiesCount = level.getEntities().length;
             int tilesCount = level.getBlockEntities().size();

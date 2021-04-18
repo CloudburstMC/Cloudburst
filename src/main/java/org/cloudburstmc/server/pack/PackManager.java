@@ -1,13 +1,18 @@
 package org.cloudburstmc.server.pack;
 
 import com.google.common.base.Preconditions;
-import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackStackPacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.pack.Pack;
+import org.cloudburstmc.api.pack.PackManifest;
+import org.cloudburstmc.api.pack.PackType;
+import org.cloudburstmc.api.pack.ResourcePack;
+import org.cloudburstmc.api.pack.loader.PackLoader;
+import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.registry.ResourcePackRegistry;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.pack.loader.DirectoryPackLoader;
-import org.cloudburstmc.server.pack.loader.PackLoader;
 import org.cloudburstmc.server.pack.loader.ZipPackLoader;
 
 import javax.annotation.Nullable;
@@ -22,7 +27,7 @@ import java.util.*;
 
 @Log4j2
 @Singleton
-public class PackManager implements Closeable {
+public class PackManager implements Closeable, ResourcePackRegistry {
     private static final Path MANIFEST_PATH = Paths.get("manifest.json");
 
     private final Map<Class<? extends PackLoader>, PackLoader.Factory> packLoaders = new HashMap<>();
@@ -150,7 +155,7 @@ public class PackManager implements Closeable {
             loader.getNetworkPreparedFile();
         }
 
-        log.info(Server.getInstance().getLanguage()
+        log.info(CloudServer.getInstance().getLanguage()
                 .translate("cloudburst.resources.success", String.valueOf(manifestMap.size())));
     }
 
@@ -190,7 +195,7 @@ public class PackManager implements Closeable {
             }
         }
         if (loader == null) {
-            log.warn(Server.getInstance().getLanguage().translate("cloudburst.resources.unknown-format", path));
+            log.warn(CloudServer.getInstance().getLanguage().translate("cloudburst.resources.unknown-format", path));
         }
         return loader;
     }
@@ -198,7 +203,7 @@ public class PackManager implements Closeable {
     public synchronized void closeRegistration() {
         checkRegistrationClosed();
 
-        boolean mustAccept = Server.getInstance().getForceResources();
+        boolean mustAccept = CloudServer.getInstance().getForceResources();
         packsInfos.setForcedToAccept(mustAccept);
         packStack.setForcedToAccept(mustAccept);
 
@@ -209,9 +214,9 @@ public class PackManager implements Closeable {
 //        packStack.setExperimental(true); // Needed for custom blocks, items and entities
         packStack.setGameVersion("*");
         for (Pack pack : packs.values()) {
-            if (pack.getType() != ResourcePackType.BEHAVIOR) {
+            if (pack.getType() == PackType.RESOURCES) {
                 packsInfos.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(pack.getId().toString(),
-                        pack.getVersion().toString(), pack.getSize(), "", "", "", false));
+                        pack.getVersion().toString(), pack.getSize(), "", "", "", false, false));
                 packStack.getResourcePacks().add(new ResourcePackStackPacket.Entry(pack.getId().toString(),
                         pack.getVersion().toString(), ""));
             }
@@ -241,9 +246,14 @@ public class PackManager implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
-        for (Pack pack : this.packs.values()) {
-            pack.close();
+    public void close() throws RegistryException {
+        try {
+            for (Pack pack : this.packs.values()) {
+
+                pack.close();
+            }
+        } catch (IOException e) {
+            throw new RegistryException(e);
         }
     }
 }

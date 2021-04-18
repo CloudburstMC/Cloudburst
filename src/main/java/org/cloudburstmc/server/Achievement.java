@@ -1,6 +1,6 @@
 package org.cloudburstmc.server;
 
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.HashMap;
@@ -26,14 +26,14 @@ public class Achievement {
         }
     };
 
-    public static boolean broadcast(Player player, String achievementId) {
+    public static boolean broadcast(CloudPlayer player, String achievementId) {
         if (!achievements.containsKey(achievementId)) {
             return false;
         }
-        String translation = Server.getInstance().getLanguage().translate("chat.type.achievement", player.getDisplayName(), TextFormat.GREEN + achievements.get(achievementId).getMessage() + TextFormat.RESET);
+        String translation = CloudServer.getInstance().getLanguage().translate("chat.type.achievement", player.getDisplayName(), TextFormat.GREEN + achievements.get(achievementId).getMessage() + TextFormat.RESET);
 
-        if (Server.getInstance().getConfig().isAnnouncePlayerAchievements()) {
-            Server.getInstance().broadcastMessage(translation);
+        if (CloudServer.getInstance().getConfig().isAnnouncePlayerAchievements()) {
+            CloudServer.getInstance().broadcastMessage(translation);
         } else {
             player.sendMessage(translation);
         }
@@ -61,11 +61,11 @@ public class Achievement {
         return message;
     }
 
-    public void broadcast(Player player) {
-        String translation = Server.getInstance().getLanguage().translate("chat.type.achievement", player.getDisplayName(), TextFormat.GREEN + this.getMessage(), null);
+    public void broadcast(CloudPlayer player) {
+        String translation = CloudServer.getInstance().getLanguage().translate("chat.type.achievement", player.getDisplayName(), TextFormat.GREEN + this.getMessage(), null);
 
-        if (Server.getInstance().getConfig().isAnnouncePlayerAchievements()) {
-            Server.getInstance().broadcastMessage(translation);
+        if (CloudServer.getInstance().getConfig().isAnnouncePlayerAchievements()) {
+            CloudServer.getInstance().broadcastMessage(translation);
         } else {
             player.sendMessage(translation);
         }

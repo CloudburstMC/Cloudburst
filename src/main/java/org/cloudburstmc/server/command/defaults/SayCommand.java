@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.command.defaults;
 
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 
@@ -38,8 +39,8 @@ public class SayCommand extends Command {
         }
 
         String senderString;
-        if (sender instanceof Player) {
-            senderString = ((Player) sender).getDisplayName();
+        if (sender instanceof CloudPlayer) {
+            senderString = ((CloudPlayer) sender).getDisplayName();
         } else if (sender instanceof ConsoleCommandSender) {
             senderString = "Server";
         } else {
@@ -48,7 +49,7 @@ public class SayCommand extends Command {
 
         String msg = String.join(" ", args);
 
-        sender.getServer().broadcastMessage(new TranslationContainer(
+        ((CloudServer) sender.getServer()).broadcastMessage(new TranslationContainer(
                 TextFormat.LIGHT_PURPLE + "%chat.type.announcement",
                 senderString, TextFormat.LIGHT_PURPLE + msg));
         return true;

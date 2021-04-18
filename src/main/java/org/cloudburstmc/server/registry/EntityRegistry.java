@@ -15,20 +15,21 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityFactory;
+import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.registry.Registry;
+import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityFactory;
-import org.cloudburstmc.server.entity.EntityType;
-import org.cloudburstmc.server.entity.impl.Human;
-import org.cloudburstmc.server.entity.impl.UnknownEntity;
-import org.cloudburstmc.server.entity.impl.hostile.*;
-import org.cloudburstmc.server.entity.impl.misc.*;
-import org.cloudburstmc.server.entity.impl.passive.*;
-import org.cloudburstmc.server.entity.impl.projectile.*;
-import org.cloudburstmc.server.entity.impl.vehicle.*;
-import org.cloudburstmc.server.level.Location;
-import org.cloudburstmc.server.plugin.PluginContainer;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.entity.EntityHuman;
+import org.cloudburstmc.server.entity.UnknownEntity;
+import org.cloudburstmc.server.entity.hostile.*;
+import org.cloudburstmc.server.entity.misc.*;
+import org.cloudburstmc.server.entity.passive.*;
+import org.cloudburstmc.server.entity.projectile.*;
+import org.cloudburstmc.server.entity.vehicle.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static org.cloudburstmc.server.entity.EntityTypes.*;
+import static org.cloudburstmc.api.entity.EntityTypes.*;
 
 @Log4j2
 public class EntityRegistry implements Registry {
@@ -95,7 +96,7 @@ public class EntityRegistry implements Registry {
         return INSTANCE;
     }
 
-    public synchronized <T extends Entity> void register(PluginContainer plugin, EntityType<T> type, EntityFactory<T> factory,
+    public synchronized <T extends Entity> void register(Object plugin, EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg) {
         this.registerInternal(plugin, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg);
     }
@@ -104,7 +105,7 @@ public class EntityRegistry implements Registry {
         this.registerInternal(null, type, factory, legacyId, 1000, false); // Vanilla NBT decides
     }
 
-    private synchronized <T extends Entity> void registerInternal(PluginContainer plugin, EntityType<T> type, EntityFactory<T> factory,
+    private synchronized <T extends Entity> void registerInternal(Object plugin, EntityType<T> type, EntityFactory<T> factory,
                                                                   int runtimeType, int priority, boolean hasSpawnEgg)
             throws RegistryException {
         checkClosed();
@@ -172,7 +173,7 @@ public class EntityRegistry implements Registry {
      * @param <T>      entity class type
      * @return new entity
      */
-    public <T extends Entity> T newEntity(EntityType<T> type, PluginContainer plugin, Location location) {
+    public <T extends Entity> T newEntity(EntityType<T> type, Object plugin, Location location) {
         checkState(closed, "Cannot create entity till registry is closed");
         checkNotNull(type, "type");
         checkNotNull(plugin, "plugin");
@@ -304,7 +305,7 @@ public class EntityRegistry implements Registry {
         registerVanilla(VINDICATOR, EntityVindicator::new, 57);
         registerVanilla(PHANTOM, EntityPhantom::new, 58);
         registerVanilla(RAVAGER, EntityRavager::new, 59);
-        registerVanilla(PLAYER, Human::new, 63);
+        registerVanilla(PLAYER, EntityHuman::new, 63);
         registerVanilla(ITEM, EntityDroppedItem::new, 64);
         registerVanilla(TNT, EntityPrimedTnt::new, 65);
         registerVanilla(FALLING_BLOCK, EntityFallingBlock::new, 66);

@@ -5,15 +5,18 @@ import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.data.command.CommandData;
 import com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.api.registry.Registry;
+import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.*;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.command.defaults.*;
 import org.cloudburstmc.server.command.simple.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.plugin.PluginContainer;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -270,7 +273,7 @@ public class CommandRegistry implements Registry {
 
         // Want to do this after all plugins have registered thier commands,
         // so the aliases defined in cloudburst.yml can use the plugin commands
-        this.registerServerAliases(Server.getInstance());
+        this.registerServerAliases(CloudServer.getInstance());
         this.closed = true;
         this.registeredCommands = ImmutableMap.copyOf(this.registeredCommands);
         this.knownAliases = ImmutableMap.copyOf(this.knownAliases);
@@ -378,7 +381,7 @@ public class CommandRegistry implements Registry {
             }
         } catch (Exception e) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.exception"));
-            log.error(Server.getInstance().getLanguage().translate("cloudburst.command.exception", commandLine,
+            log.error(CloudServer.getInstance().getLanguage().translate("cloudburst.command.exception", commandLine,
                     target.toString(), Utils.getExceptionMessage(e)));
         }
         target.timing.stopTiming();
@@ -423,7 +426,7 @@ public class CommandRegistry implements Registry {
      * @param player The player receiving the packet
      * @return The Packet
      */
-    public AvailableCommandsPacket createPacketFor(Player player) {
+    public AvailableCommandsPacket createPacketFor(CloudPlayer player) {
         AvailableCommandsPacket pk = new AvailableCommandsPacket();
         List<CommandData> data = pk.getCommands();
         for (Command command : this.registeredCommands.values()) {
@@ -484,7 +487,7 @@ public class CommandRegistry implements Registry {
         this.registerInternal("version", new VersionCommand());
     }
 
-    private void registerServerAliases(Server server) {
+    private void registerServerAliases(CloudServer server) {
         Map<String, List<String>> values = server.getCommandAliases();
         for (Map.Entry<String, List<String>> entry : values.entrySet()) {
             String alias = entry.getKey();

@@ -8,7 +8,7 @@ import net.daporkchop.lib.noise.engine.SimplexNoiseEngine;
 import net.daporkchop.lib.noise.filter.ScaleOctavesOffsetFilter;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.server.level.chunk.IChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 
@@ -57,7 +57,7 @@ public abstract class DepthNoiseDecorator extends AbstractGenerationPass impleme
         this.depthNoise = new ScaleOctavesOffsetFilter(DEPTH_NOISE, this.depthNoiseScale, this.depthNoiseScale, 0.0d, 4, this.depthNoiseFactor, this.depthNoiseOffset);
     }
 
-    protected int getDepthNoise(IChunk chunk, PRandom random, int x, int z) {
+    protected int getDepthNoise(Chunk chunk, PRandom random, int x, int z) {
         return this.getDepthNoise(random, (chunk.getX() << 4) + x, (chunk.getZ() << 4) + z);
     }
 

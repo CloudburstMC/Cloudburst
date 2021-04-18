@@ -7,15 +7,15 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.IChunk;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -64,7 +64,7 @@ public class HugeTreePopulator extends AbstractTreePopulator {
             final int max = min(this.height.max - 1, 254);
             final int min = this.height.min;
 
-            IChunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
+            Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
             BlockState lastId = chunk.getBlock(blockX & 0xF, max + 1, blockZ & 0xF, 0);
             for (int y = max; y >= min; y--) {
                 BlockState id = chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0);
@@ -84,8 +84,8 @@ public class HugeTreePopulator extends AbstractTreePopulator {
     protected void placeTree(PRandom random, ChunkManager level, int x, int y, int z) {
         for (int dx = 0; dx <= 1; dx++) {
             for (int dz = 0; dz <= 1; dz++) {
-                BlockState test = level.getBlockAt(x + dx, y, z + dz, 0);
-                if (!this.on.test(test) && (!this.replace.test(test) || !this.on.test(level.getBlockAt(x + dx, y - 1, z + dz, 0)))) {
+                BlockState test = level.getBlockState(x + dx, y, z + dz, 0);
+                if (!this.on.test(test) && (!this.replace.test(test) || !this.on.test(level.getBlockState(x + dx, y - 1, z + dz, 0)))) {
                     return;
                 }
             }
@@ -95,8 +95,8 @@ public class HugeTreePopulator extends AbstractTreePopulator {
             BlockState below = this.below.selectWeighted(random);
             for (int dx = 0; dx <= 1; dx++) {
                 for (int dz = 0; dz <= 1; dz++) {
-                    level.setBlockAt(x + dx, y, z + dz, 0, below);
-                    level.setBlockAt(x + dx, y - 1, z + dz, 0, below);
+                    level.setBlockState(x + dx, y, z + dz, 0, below);
+                    level.setBlockState(x + dx, y - 1, z + dz, 0, below);
                 }
             }
         }

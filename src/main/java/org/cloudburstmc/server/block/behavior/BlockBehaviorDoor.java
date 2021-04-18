@@ -1,14 +1,15 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.*;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.event.block.DoorToggleEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.behavior.BlockBehavior;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
+import org.cloudburstmc.api.event.block.DoorToggleEvent;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
 
 public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
@@ -22,10 +23,6 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
 
 //    @Override
 //    public AxisAlignedBB getBoundingBox(Block block) {
@@ -177,8 +174,8 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (block.down().getState().getType() == BlockIds.AIR) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
+            if (block.down().getState().getType() == BlockTypes.AIR) {
                 Block up = block.up();
 
                 if (up.getState().inCategory(BlockCategory.DOOR)) {
@@ -186,13 +183,13 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
                     block.getLevel().useBreakOn(block.getPosition());
                 }
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
 
-        if (type == Level.BLOCK_UPDATE_REDSTONE) {
+        if (type == CloudLevel.BLOCK_UPDATE_REDSTONE) {
             boolean open = isOpen(block);
-            if ((!open && block.getLevel().isBlockPowered(block.getPosition())) || (open && !block.getLevel().isBlockPowered(block.getPosition()))) {
+            if ((!open && ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition())) || (open && !((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition()))) {
                 block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, open ? 15 : 0, open ? 0 : 15));
 
                 this.toggle(block, null);
@@ -203,7 +200,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (block.getY() > 254) return false;
         if (face == Direction.UP) {
             Block blockUp = block.up();
@@ -211,7 +208,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
             Block blockDown = block.down();
             BlockBehavior downBehavior = blockDown.getState().getBehavior();
 
-            if (!upBehavior.canBeReplaced(blockUp) || downBehavior.isTransparent()) {
+            if (!upBehavior.canBeReplaced(blockUp) || downBehavior.isTransparent(blockDown.getState())) {
                 return false;
             }
 
@@ -220,18 +217,18 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
             BlockState left = block.getSide(direction.rotateYCCW()).getState();
             BlockState right = block.getSide(direction.rotateY()).getState();
 
-            BlockState door = item.getBlock().withTrait(BlockTraits.DIRECTION, direction);
+            BlockState door = item.getBehavior().getBlock(item).withTrait(BlockTraits.DIRECTION, direction);
             placeBlock(block, door);
 
             door = door.withTrait(BlockTraits.IS_UPPER_BLOCK, true);
-            if (left.getType() == block.getState().getType() || (!right.getBehavior().isTransparent() && left.getBehavior().isTransparent())) { //Door hinge
+            if (left.getType() == block.getState().getType() || (!right.getBehavior().isTransparent(right) && left.getBehavior().isTransparent(left))) { //Door hinge
                 door = door.withTrait(BlockTraits.IS_DOOR_HINGE, false);
             }
 
             placeBlock(blockUp, door);
 
             Block newBlock = block.refresh();
-            if (!this.isOpen(newBlock) && block.getLevel().isBlockPowered(block.getPosition())) {
+            if (!this.isOpen(newBlock) && ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition())) {
                 this.toggle(newBlock, null);
             }
 
@@ -242,7 +239,7 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         Block otherPart;
         if (isTop(block.getState())) {
             otherPart = block.down();
@@ -261,12 +258,12 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (!this.toggle(block, player)) {
             return false;
         }
 
-        block.getLevel().addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
+        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), isOpen(block) ? Sound.RANDOM_DOOR_OPEN : Sound.RANDOM_DOOR_CLOSE);
         return true;
     }
 
@@ -284,11 +281,12 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
         } else {
             down = block;
         }
+
         if (down.up().getState().getType() != down.getState().getType()) {
             return false;
         }
 
-        down.set(down.getState().withTrait(BlockTraits.IS_OPEN, true), true);
+        down.set(down.getState().toggleTrait(BlockTraits.IS_OPEN), true);
         return true;
     }
 
@@ -308,8 +306,5 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
         return state.ensureTrait(BlockTraits.IS_DOOR_HINGE);
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.level.provider;
 
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.LevelData;
-import org.cloudburstmc.server.level.chunk.Chunk;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.utils.LoadState;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -29,7 +30,7 @@ public interface LevelProvider extends PlayerDataProvider, Closeable {
      * @param chunkBuilder builder
      * @return future when chunk is loaded. Will return null if the chunk does not exist
      */
-    CompletableFuture<Chunk> readChunk(ChunkBuilder chunkBuilder);
+    CompletableFuture<CloudChunk> readChunk(ChunkBuilder chunkBuilder);
 
     /**
      * Saves chunk to provider asynchronously
@@ -45,7 +46,7 @@ public interface LevelProvider extends PlayerDataProvider, Closeable {
      * @param consumer
      * @throws UnsupportedOperationException if the provider does not support chunk iteration.
      */
-    CompletableFuture<Void> forEachChunk(ChunkBuilder.Factory factory, BiConsumer<Chunk, Throwable> consumer);
+    CompletableFuture<Void> forEachChunk(ChunkBuilder.Factory factory, BiConsumer<CloudChunk, Throwable> consumer);
 
     /**
      * Load level data into given {@link LevelData} object

@@ -1,22 +1,99 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.blockentity.BlockEntityType;
-import org.cloudburstmc.server.blockentity.Furnace;
+import com.nukkitx.math.vector.Vector3f;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.blockentity.Furnace;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.blockentity.FurnaceBlockEntity;
+import org.cloudburstmc.server.inventory.CloudContainer;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-public class BlockBehaviorFurnace extends BlockBehaviorFurnaceBurning {
+public class BlockBehaviorFurnace extends BlockBehaviorSolid {
+
+    private BlockEntityType<? extends Furnace> furnaceEntity;
 
     public BlockBehaviorFurnace(BlockEntityType<? extends Furnace> entity) {
-        super(entity);
+        this.furnaceEntity = entity;
+    }
+
+    @Override
+    public boolean canBeActivated(Block block) {
+        return true;
     }
 
     @Override
     public int getLightLevel(Block block) {
-        return 0;
+        return block.getState().ensureTrait(BlockTraits.IS_EXTINGUISHED) ? 0 : 13;
     }
 
     @Override
-    public boolean canHarvestWithHand() {
-        return false;
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        placeBlock(block,
+                item.getBehavior().getBlock(item)
+                        .withTrait(BlockTraits.FACING_DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH)
+                        .withTrait(BlockTraits.IS_EXTINGUISHED, true)
+        );
+
+        FurnaceBlockEntity furnace = (FurnaceBlockEntity) BlockEntityRegistry.get().newEntity(furnaceEntity, block);
+        furnace.loadAdditionalData(((CloudItemStack) item).getDataTag());
+        if (item.hasName()) {
+            furnace.setCustomName(item.getName());
+        }
+
+        return true;
     }
+
+    @Override
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        if (player != null) {
+            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+            Furnace furnace;
+            if (blockEntity instanceof Furnace) {
+                furnace = (Furnace) blockEntity;
+            } else {
+                furnace = BlockEntityRegistry.get().newEntity(furnaceEntity, block);
+            }
+
+            player.addWindow(furnace.getInventory());
+        }
+
+        return true;
+    }
+
+    @Override
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
+    }
+
+    @Override
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        if (checkTool(block.getState(), hand)) {
+            return new ItemStack[]{
+                    this.toItem(block)
+            };
+        } else {
+            return new ItemStack[0];
+        }
+    }
+
+
+    @Override
+    public int getComparatorInputOverride(Block block) {
+        BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
+
+        if (blockEntity instanceof Furnace) {
+            return CloudContainer.calculateRedstone(((Furnace) blockEntity).getInventory());
+        }
+
+        return super.getComparatorInputOverride(block);
+    }
+
+
 }

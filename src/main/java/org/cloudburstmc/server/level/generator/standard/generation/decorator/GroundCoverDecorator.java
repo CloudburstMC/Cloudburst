@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.level.chunk.IChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Objects;
 
@@ -43,7 +43,7 @@ public class GroundCoverDecorator implements Decorator {
     }
 
     @Override
-    public void decorate(PRandom random, IChunk chunk, int x, int z) {
+    public void decorate(PRandom random, Chunk chunk, int x, int z) {
         int y = chunk.getHighestBlock(x, z);
         if (y >= 0 && y < 255 && (this.on == null || this.on.test(chunk.getBlock(x, y, z, 0)))
                 && this.replace.test(chunk.getBlock(x, y + 1, z, 0)) && random.nextDouble() < this.chance) {

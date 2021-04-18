@@ -2,14 +2,14 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * Created on 2015/12/13 by xtypr.
@@ -32,18 +32,18 @@ public class SetWorldSpawnCommand extends Command {
         if (!this.testPermission(sender)) {
             return true;
         }
-        Level level;
+        CloudLevel level;
         Vector3f pos;
         if (args.length == 0) {
-            if (sender instanceof Player) {
-                level = ((Player) sender).getLevel();
-                pos = ((Player) sender).getPosition();
+            if (sender instanceof CloudPlayer) {
+                level = ((CloudPlayer) sender).getLevel();
+                pos = ((CloudPlayer) sender).getPosition();
             } else {
                 sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
                 return true;
             }
         } else if (args.length == 3) {
-            level = sender.getServer().getDefaultLevel();
+            level = (CloudLevel) sender.getServer().getDefaultLevel();
             try {
                 pos = Vector3f.from(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]));
             } catch (NumberFormatException e1) {

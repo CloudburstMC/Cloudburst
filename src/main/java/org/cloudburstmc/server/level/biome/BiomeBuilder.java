@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.biome;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.util.Identifier;
 
 import java.util.Collection;
 import java.util.HashSet;

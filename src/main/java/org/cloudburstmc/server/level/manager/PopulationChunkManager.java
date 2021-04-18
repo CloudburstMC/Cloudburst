@@ -3,11 +3,18 @@ package org.cloudburstmc.server.level.manager;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.NonNull;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.level.chunk.IChunk;
-import org.cloudburstmc.server.level.chunk.LockableChunk;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.level.ChunkLoader;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.level.chunk.LockableChunk;
+import org.cloudburstmc.api.player.Player;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Implementation of {@link ChunkManager} used during chunk population.
@@ -48,27 +55,79 @@ public final class PopulationChunkManager implements ChunkManager {
     }
 
     @Override
-    public BlockState getBlockAt(int x, int y, int z) {
+    public BlockState getBlockState(int x, int y, int z) {
         return this.chunkFromBlock(x, z).getBlock(x & 0xF, y, z & 0xF, 0);
     }
 
     @Override
-    public BlockState getBlockAt(int x, int y, int z, int layer) {
+    public BlockState getBlockState(int x, int y, int z, int layer) {
         return this.chunkFromBlock(x, z).getBlock(x & 0xF, y, z & 0xF, layer);
     }
 
+    // TODO
     @Override
-    public void setBlockAt(int x, int y, int z, BlockState state) {
+    public Block getBlock(int x, int y, int z) {
+        return null;
+    }
+
+    @Override
+    public Block getLoadedBlock(int x, int y, int z) {
+        return null;
+    }
+
+    @Override
+    public boolean setBlockState(int x, int y, int z, BlockState state) {
         this.chunkFromBlock(x, z).setBlock(x & 0xF, y, z & 0xF, 0, state);
+        return true;
     }
 
     @Override
-    public void setBlockAt(int x, int y, int z, int layer, BlockState state) {
+    public boolean setBlockState(int x, int y, int z, int layer, BlockState state) {
         this.chunkFromBlock(x, z).setBlock(x & 0xF, y, z & 0xF, layer, state);
+        return true;
     }
 
     @Override
-    public IChunk getChunk(int chunkX, int chunkZ) {
+    public boolean setBlockState(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update) {
+        return false;
+    }
+
+    @Override
+    public Chunk getChunk(int chunkX, int chunkZ) {
         return this.chunks[this.chunkIndex(chunkX, chunkZ)];
+    }
+
+    @Nonnull
+    @Override
+    public Chunk getChunk(long key) {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public Chunk getLoadedChunk(long key) {
+        return null;
+    }
+
+    @Nonnull
+    @Override
+    public CompletableFuture<? extends Chunk> getChunkFuture(int chunkX, int chunkZ) {
+        return null;
+    }
+
+    @Nonnull
+    @Override
+    public Set<? extends Chunk> getChunks() {
+        return null;
+    }
+
+    @Override
+    public Set<? extends Player> getChunkPlayers(int chunkX, int chunkZ) {
+        return null;
+    }
+
+    @Override
+    public Set<? extends ChunkLoader> getChunkLoaders(int chunkX, int chunkZ) {
+        return null;
     }
 }

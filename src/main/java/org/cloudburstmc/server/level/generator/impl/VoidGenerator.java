@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.level.generator.impl;
 
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.IChunk;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.Generator;
-import org.cloudburstmc.server.utils.Identifier;
 
 /**
  * A basic generator that does nothing at all, resulting in a world of nothing but air.
@@ -20,7 +20,7 @@ public final class VoidGenerator implements Generator {
     }
 
     @Override
-    public void generate(PRandom random, IChunk chunk, int chunkX, int chunkZ) {
+    public void generate(PRandom random, Chunk chunk, int chunkX, int chunkZ) {
         int i = chunkX | chunkZ;
         if (((i | (i >> 31)) & ~1) == 0) {
             //both chunk coordinates are either 0 or 1

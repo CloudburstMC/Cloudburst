@@ -5,9 +5,10 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.server.level.chunk.Chunk;
-import org.cloudburstmc.server.level.chunk.IChunk;
-import org.cloudburstmc.server.level.chunk.LockableChunk;
+import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.level.chunk.LockableChunk;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.generator.Generator;
 
 import java.util.function.Function;
@@ -18,11 +19,11 @@ import java.util.function.Function;
  * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class GenerationTask implements Function<Chunk, Chunk> {
+public final class GenerationTask implements Function<CloudChunk, CloudChunk> {
     public static final GenerationTask INSTANCE = new GenerationTask();
 
     @Override
-    public Chunk apply(@NonNull Chunk chunk) {
+    public CloudChunk apply(@NonNull CloudChunk chunk) {
         if (chunk.isGenerated()) {
             return chunk;
         }
@@ -32,8 +33,8 @@ public final class GenerationTask implements Function<Chunk, Chunk> {
 
         lockable.lock();
         try {
-            chunk.getLevel().getGenerator().generate(random, lockable, chunk.getX(), chunk.getZ());
-            chunk.setState(IChunk.STATE_GENERATED);
+            ((CloudLevel) chunk.getLevel()).getGenerator().generate(random, lockable, chunk.getX(), chunk.getZ());
+            chunk.setState(Chunk.STATE_GENERATED);
             chunk.setDirty();
         } finally {
             lockable.unlock();

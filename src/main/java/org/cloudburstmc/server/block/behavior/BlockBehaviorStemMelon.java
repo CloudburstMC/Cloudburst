@@ -1,72 +1,74 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.val;
-import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockGrowEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.event.block.BlockGrowEvent;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 
 public class BlockBehaviorStemMelon extends BlockBehaviorCrops {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().getType() != FARMLAND) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_RANDOM) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_RANDOM) {
             ThreadLocalRandom random = ThreadLocalRandom.current();
             if (random.nextBoolean()) {
                 val state = block.getState();
                 if (state.ensureTrait(BlockTraits.GROWTH) < 7) {
                     BlockGrowEvent ev = new BlockGrowEvent(block, state.incrementTrait(BlockTraits.GROWTH));
-                    Server.getInstance().getEventManager().fire(ev);
+                    CloudServer.getInstance().getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         block.set(ev.getNewState(), true);
                     }
-                    return Level.BLOCK_UPDATE_RANDOM;
+                    return CloudLevel.BLOCK_UPDATE_RANDOM;
                 } else {
                     for (Direction face : Direction.Plane.HORIZONTAL) {
                         val b = block.getSide(face).getState();
                         if (b.getType() == MELON_BLOCK) {
-                            return Level.BLOCK_UPDATE_RANDOM;
+                            return CloudLevel.BLOCK_UPDATE_RANDOM;
                         }
                     }
                     Block side = block.getSide(Direction.Plane.HORIZONTAL.random(random));
                     BlockState d = side.down().getState();
                     if (side.getState().getType() == AIR && (d.getType() == FARMLAND || d.getType() == GRASS || d.getType() == DIRT)) {
-                        BlockGrowEvent ev = new BlockGrowEvent(side, BlockState.get(MELON_BLOCK));
-                        Server.getInstance().getEventManager().fire(ev);
+                        BlockGrowEvent ev = new BlockGrowEvent(side, CloudBlockRegistry.get().getBlock(MELON_BLOCK));
+                        CloudServer.getInstance().getEventManager().fire(ev);
                         if (!ev.isCancelled()) {
                             side.set(ev.getNewState(), true);
                         }
                     }
                 }
             }
-            return Level.BLOCK_UPDATE_RANDOM;
+            return CloudLevel.BLOCK_UPDATE_RANDOM;
         }
         return 0;
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.MELON_SEEDS);
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(ItemTypes.MELON_SEEDS);
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(ItemIds.MELON_SEEDS, 0, ThreadLocalRandom.current().nextInt(0, 4))
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                CloudItemRegistry.get().getItem(ItemTypes.MELON_SEEDS, ThreadLocalRandom.current().nextInt(0, 4))
         };
     }
 }

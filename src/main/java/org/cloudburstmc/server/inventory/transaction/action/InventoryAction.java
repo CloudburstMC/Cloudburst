@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
 import lombok.ToString;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * @author CreeperFace
@@ -14,11 +14,11 @@ public abstract class InventoryAction {
 
     private long creationTime;
 
-    protected Item sourceItem;
+    protected ItemStack sourceItem;
 
-    protected Item targetItem;
+    protected ItemStack targetItem;
 
-    public InventoryAction(Item sourceItem, Item targetItem) {
+    public InventoryAction(ItemStack sourceItem, ItemStack targetItem) {
         this.sourceItem = sourceItem;
         this.targetItem = targetItem;
 
@@ -34,8 +34,8 @@ public abstract class InventoryAction {
      *
      * @return source item
      */
-    public Item getSourceItem() {
-        return sourceItem.clone();
+    public ItemStack getSourceItem() {
+        return sourceItem;
     }
 
     /**
@@ -43,8 +43,8 @@ public abstract class InventoryAction {
      *
      * @return target item
      */
-    public Item getTargetItem() {
-        return targetItem.clone();
+    public ItemStack getTargetItem() {
+        return targetItem;
     }
 
     /**
@@ -54,7 +54,7 @@ public abstract class InventoryAction {
      * @param source player
      * @return cancelled
      */
-    public boolean onPreExecute(Player source) {
+    public boolean onPreExecute(CloudPlayer source) {
         return true;
     }
 
@@ -64,7 +64,7 @@ public abstract class InventoryAction {
      * @param source player
      * @return valid
      */
-    abstract public boolean isValid(Player source);
+    abstract public boolean isValid(CloudPlayer source);
 
     /**
      * Called when the action is added to the specified InventoryTransaction.
@@ -83,19 +83,19 @@ public abstract class InventoryAction {
      * @param source player
      * @return successfully executed
      */
-    abstract public boolean execute(Player source);
+    abstract public boolean execute(CloudPlayer source);
 
     /**
      * Performs additional actions when this inventory-action completed successfully.
      *
      * @param source player
      */
-    abstract public void onExecuteSuccess(Player source);
+    abstract public void onExecuteSuccess(CloudPlayer source);
 
     /**
      * Performs additional actions when this inventory-action did not complete successfully.
      *
      * @param source player
      */
-    abstract public void onExecuteFail(Player source);
+    abstract public void onExecuteFail(CloudPlayer source);
 }

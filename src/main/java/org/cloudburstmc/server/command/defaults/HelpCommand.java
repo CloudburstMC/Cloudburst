@@ -1,12 +1,14 @@
 package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.locale.TranslationContainer;
+import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Map;
@@ -57,7 +59,7 @@ public class HelpCommand extends Command {
 
         if (command.length() == 0) {
             Map<String, Command> commands = new TreeMap<>();
-            for (Command cmd : sender.getServer().getCommandRegistry().getRegisteredCommands().values()) {
+            for (Command cmd : CommandRegistry.get().getRegisteredCommands().values()) {
                 if (cmd.testPermissionSilent(sender)) {
                     commands.put(cmd.getName(), cmd);
                 }
@@ -73,15 +75,15 @@ public class HelpCommand extends Command {
             for (Command command1 : commands.values()) {
                 if (i >= (pageNumber - 1) * pageHeight + 1 && i <= Math.min(commands.size(), pageNumber * pageHeight)) {
                     sender.sendMessage(TextFormat.DARK_GREEN + "/" + command1.getName() + ": "
-                            + TextFormat.WHITE + sender.getServer().getLanguage().translate(command1.getDescription()));
+                            + TextFormat.WHITE + ((CloudServer) sender.getServer()).getLanguage().translate(command1.getDescription()));
                 }
                 i++;
             }
         } else {
-            Command cmd = sender.getServer().getCommandRegistry().getCommand(command.toLowerCase());
+            Command cmd = CommandRegistry.get().getCommand(command.toLowerCase());
             if (cmd != null) {
                 if (cmd.testPermissionSilent(sender)) {
-                    String desc = sender.getServer().getLanguage().translate(cmd.getDescription());
+                    String desc = ((CloudServer) sender.getServer()).getLanguage().translate(cmd.getDescription());
                     String message = TextFormat.YELLOW + "--------- " + TextFormat.WHITE + " Help: /" + cmd.getName() + TextFormat.YELLOW + " ---------\n";
                     message += TextFormat.GOLD + "Description: " + TextFormat.WHITE + desc + "\n";
                     message += TextFormat.GOLD + "Usage: " + TextFormat.WHITE + cmd.getUsage() + "\n";

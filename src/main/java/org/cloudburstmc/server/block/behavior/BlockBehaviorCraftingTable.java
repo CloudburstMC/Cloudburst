@@ -2,12 +2,12 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.player.Player.CraftingType;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.inventory.CraftingGrid;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 public class BlockBehaviorCraftingTable extends BlockBehaviorSolid {
 
@@ -16,32 +16,19 @@ public class BlockBehaviorCraftingTable extends BlockBehaviorSolid {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 2.5f;
-    }
 
     @Override
-    public float getResistance() {
-        return 15;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
-
-    @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
-            player.craftingType = CraftingType.BIG;
-            player.setCraftingGrid(player.getUIInventory().getBigCraftingGrid());
+            CloudPlayer p = (CloudPlayer) player;
+
+            p.getCraftingInventory().setCraftingGridType(CraftingGrid.Type.CRAFTING_GRID_BIG);
             ContainerOpenPacket pk = new ContainerOpenPacket();
             pk.setId((byte) -1);
             pk.setBlockPosition(block.getPosition());
             pk.setType(ContainerType.WORKBENCH);
-            pk.setUniqueEntityId(player.getUniqueId());
-            player.sendPacket(pk);
+            pk.setUniqueEntityId(p.getUniqueId());
+            p.sendPacket(pk);
         }
         return true;
     }

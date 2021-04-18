@@ -2,30 +2,24 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.Comparator;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.Comparator;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import static org.cloudburstmc.server.block.BlockIds.POWERED_COMPARATOR;
-import static org.cloudburstmc.server.block.BlockIds.UNPOWERED_COMPARATOR;
-import static org.cloudburstmc.server.blockentity.BlockEntityTypes.COMPARATOR;
+import static org.cloudburstmc.api.blockentity.BlockEntityTypes.COMPARATOR;
 
 public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode {
-
-    public BlockBehaviorRedstoneComparator(Identifier type) {
-        super(type);
-    }
 
     @Override
     protected int getDelay(BlockState state) {
@@ -34,16 +28,6 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     public Mode getMode(BlockState state) {
         return state.ensureTrait(BlockTraits.IS_OUTPUT_SUBTRACT) ? Mode.SUBTRACT : Mode.COMPARE;
-    }
-
-    @Override
-    protected BlockState getUnpowered(BlockState state) {
-        return BlockState.get(UNPOWERED_COMPARATOR).copyTraits(state);
-    }
-
-    @Override
-    protected BlockState getPowered(BlockState state) {
-        return BlockState.get(POWERED_COMPARATOR).copyTraits(state);
     }
 
     @Override
@@ -56,7 +40,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
     @Override
     public void updateState(Block block) {
         val state = block.getState();
-        if (!block.getLevel().isBlockTickPending(block.getPosition(), block)) {
+        if (!((CloudLevel) block.getLevel()).isBlockTickPending(block.getPosition(), block)) {
             int output = this.calculateOutput(block);
             BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
             int power = blockEntity instanceof Comparator ? ((Comparator) blockEntity).getOutputSignal() : 0;
@@ -69,7 +53,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
                 }*/
 
                 //System.out.println("schedule update 0");
-                block.getLevel().scheduleUpdate(block, block.getPosition(), 2);
+                block.getLevel().scheduleUpdate(block.getPosition(), 2);
             }
         }
     }
@@ -78,14 +62,15 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
         int power = super.calculateInputStrength(block);
         Direction face = getFacing(block.getState());
         Block b = block.getSide(face);
-        val behavior = b.getState().getBehavior();
+        val state = b.getState();
+        val behavior = state.getBehavior();
 
-        if (behavior.hasComparatorInputOverride()) {
+        if (behavior.hasComparatorInputOverride(state)) {
             power = behavior.getComparatorInputOverride(b);
         } else if (power < 15 && behavior.isNormalBlock(b)) {
             b = b.getSide(face);
 
-            if (behavior.hasComparatorInputOverride()) {
+            if (behavior.hasComparatorInputOverride(state)) {
                 power = behavior.getComparatorInputOverride(b);
             }
         }
@@ -111,11 +96,11 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         val state = block.getState();
         boolean subtract = state.ensureTrait(BlockTraits.IS_OUTPUT_SUBTRACT);
         block.set(state.withTrait(BlockTraits.IS_OUTPUT_SUBTRACT, !subtract), true);
-        block.getLevel().addSound(block.getPosition(), Sound.RANDOM_CLICK, 1, subtract ? 0.5f : 0.55F);
+        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.RANDOM_CLICK, 1, subtract ? 0.5f : 0.55F);
         //bug?
 
         this.onChange(block.refresh());
@@ -124,7 +109,7 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             this.onChange(block);
             return type;
         }
@@ -154,16 +139,16 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
                 block.set(getPowered(state), true, false);
             }
 
-            block.getLevel().updateAroundRedstone(block.getPosition(), null);
+            ((CloudLevel) block.getLevel()).updateAroundRedstone(block.getPosition(), null);
         }
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (super.place(item, block, target, face, clickPos, player)) {
             BlockEntityRegistry.get().newEntity(COMPARATOR, block);
 
-            this.onUpdate(block.refresh(), Level.BLOCK_UPDATE_REDSTONE);
+            this.onUpdate(block.refresh(), CloudLevel.BLOCK_UPDATE_REDSTONE);
             return true;
         }
 
@@ -172,12 +157,12 @@ public class BlockBehaviorRedstoneComparator extends BlockBehaviorRedstoneDiode 
 
     @Override
     public boolean isPowered(BlockState state) {
-        return this.isPowered || state.ensureTrait(BlockTraits.IS_OUTPUT_LIT);
+        return state.ensureTrait(BlockTraits.IS_POWERED) || state.ensureTrait(BlockTraits.IS_OUTPUT_LIT);
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.COMPARATOR);
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(ItemTypes.COMPARATOR);
     }
 
     public enum Mode {

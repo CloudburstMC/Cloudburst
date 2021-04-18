@@ -4,9 +4,9 @@ package org.cloudburstmc.server.level;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.ToString;
-import org.cloudburstmc.server.level.gamerule.GameRuleMap;
-import org.cloudburstmc.server.level.gamerule.GameRules;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.api.level.gamerule.GameRuleMap;
+import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.util.Identifier;
 
 import java.util.Map;
 import java.util.Objects;

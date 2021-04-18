@@ -2,15 +2,16 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 
@@ -45,12 +46,12 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 //    }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val targetType = target.getState().getType();
-        if (targetType == BlockIds.WATER || targetType == BlockIds.FLOWING_WATER) {
+        if (targetType == BlockTypes.WATER || targetType == BlockTypes.FLOWING_WATER) {
             Block up = target.up();
             if (up.getState() == BlockStates.AIR) {
-                placeBlock(block, BlockState.get(BlockIds.WATERLILY));
+                placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.WATERLILY));
                 return true;
             }
         }
@@ -59,29 +60,24 @@ public class BlockBehaviorWaterLily extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             val down = block.down().getState().getType();
 
-            if (down != BlockIds.WATER && down != BlockIds.FLOWING_WATER) {
+            if (down != BlockTypes.WATER && down != BlockTypes.FLOWING_WATER) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState());
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState());
     }
 
     @Override
     public BlockColor getColor(Block block) {
         return BlockColor.FOLIAGE_BLOCK_COLOR;
-    }
-
-    @Override
-    public boolean canPassThrough() {
-        return false;
     }
 }

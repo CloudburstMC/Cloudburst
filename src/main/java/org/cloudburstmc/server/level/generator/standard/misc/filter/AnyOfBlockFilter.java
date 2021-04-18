@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
-import org.cloudburstmc.server.registry.BlockRegistry;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.server.block.util.BlockUtils;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Arrays;
 
@@ -22,13 +22,13 @@ public final class AnyOfBlockFilter extends ReferenceOpenHashSet<BlockState> imp
     public AnyOfBlockFilter(String[] values) {
         Arrays.stream(values)
                 .flatMap(value -> Arrays.stream(value.split(",")))
-                .flatMap(StandardGeneratorUtils::parseStateWildcard)
+                .flatMap(BlockUtils::parseStateWildcard)
                 .forEach(this::add);
     }
 
     @Override
     public boolean test(BlockState blockState) {
-        return super.contains(BlockRegistry.get().getRuntimeId(blockState));
+        return super.contains(CloudBlockRegistry.get().getRuntimeId(blockState));
     }
 
     @AllArgsConstructor
@@ -40,7 +40,7 @@ public final class AnyOfBlockFilter extends ReferenceOpenHashSet<BlockState> imp
         @JsonCreator
         public SingleWildcard(String value) {
             this(Arrays.stream(value.split(","))
-                    .flatMap(StandardGeneratorUtils::parseStateWildcard)
+                    .flatMap(BlockUtils::parseStateWildcard)
                     .toArray(BlockState[]::new));
         }
     }

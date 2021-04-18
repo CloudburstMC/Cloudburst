@@ -2,18 +2,17 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.trait.EnumBlockTrait;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.Direction.Plane;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.data.WallConnectionType;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.trait.EnumBlockTrait;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Direction.Plane;
+import org.cloudburstmc.api.util.data.WallConnectionType;
+import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -27,21 +26,6 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
         DIRECTION_MAP[Direction.SOUTH.ordinal()] = BlockTraits.WALL_CONNECTION_SOUTH;
         DIRECTION_MAP[Direction.WEST.ordinal()] = BlockTraits.WALL_CONNECTION_WEST;
         DIRECTION_MAP[Direction.EAST.ordinal()] = BlockTraits.WALL_CONNECTION_EAST;
-    }
-
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
-
-    @Override
-    public float getHardness() {
-        return 2;
-    }
-
-    @Override
-    public float getResistance() {
-        return 30;
     }
 
 //    @Override //TODO: bounding box
@@ -79,20 +63,6 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
 //        return (!(blockState.getId() != COBBLESTONE_WALL && blockState instanceof BlockBehaviorFence)) || blockState.isSolid() && !blockState.isTransparent();
 //    }
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
-
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
 
     public EnumBlockTrait<WallConnectionType> getConnectionTypeTrait(Direction direction) {
         return DIRECTION_MAP[direction.ordinal()];
@@ -123,7 +93,7 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             BlockState state = block.getState();
             BlockState newState = state;
 
@@ -141,17 +111,17 @@ public class BlockBehaviorWall extends BlockBehaviorTransparent {
                 block.set(newState);
             }
 
-            return Level.BLOCK_UPDATE_NORMAL;
+            return CloudLevel.BLOCK_UPDATE_NORMAL;
         }
 
         return 0;
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val connections = findConnections(block);
 
-        BlockState newState = item.getBlock();
+        BlockState newState = item.getBehavior().getBlock(item);
 
         for (Direction direction : Plane.HORIZONTAL) {
             newState = newState.withTrait(

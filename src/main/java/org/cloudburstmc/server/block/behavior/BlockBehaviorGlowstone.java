@@ -1,43 +1,31 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.enchantment.Enchantment;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.math.MathHelper;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Random;
 
 public class BlockBehaviorGlowstone extends BlockBehaviorTransparent {
 
-    @Override
-    public float getResistance() {
-        return 1.5f;
-    }
 
     @Override
-    public float getHardness() {
-        return 0.3f;
-    }
-
-    @Override
-    public int getLightLevel(Block block) {
-        return 15;
-    }
-
-    @Override
-    public Item[] getDrops(Block block, Item hand) {
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
         Random random = new Random();
         int count = 2 + random.nextInt(3);
 
-        Enchantment fortune = hand.getEnchantment(Enchantment.ID_FORTUNE_DIGGING);
+        EnchantmentInstance fortune = hand.getEnchantment(EnchantmentTypes.FORTUNE);
         if (fortune != null && fortune.getLevel() >= 1) {
             count += random.nextInt(fortune.getLevel() + 1);
         }
 
-        return new Item[]{
-                Item.get(ItemIds.GLOWSTONE_DUST, 0, MathHelper.clamp(count, 1, 4))
+        return new ItemStack[]{
+                CloudItemRegistry.get().getItem(ItemTypes.GLOWSTONE_DUST, MathHelper.clamp(count, 1, 4))
         };
     }
 
@@ -46,8 +34,5 @@ public class BlockBehaviorGlowstone extends BlockBehaviorTransparent {
         return BlockColor.SAND_BLOCK_COLOR;
     }
 
-    @Override
-    public boolean canSilkTouch() {
-        return true;
-    }
+
 }

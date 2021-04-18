@@ -2,36 +2,33 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import static org.cloudburstmc.server.block.BlockIds.COBBLESTONE_WALL;
+import static org.cloudburstmc.api.block.BlockTypes.STONE_WALL;
 
 public class BlockBehaviorTorch extends FloodableBlockBehavior {
 
-    @Override
-    public int getLightLevel(Block block) {
-        return 14;
-    }
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             BlockState below = block.down().getState();
 
             val direction = block.getState().ensureTrait(BlockTraits.TORCH_DIRECTION);
             if (block.getSide(direction.getOpposite()).getState().inCategory(BlockCategory.TRANSPARENT)
-                    && !(direction == Direction.UP && (below.inCategory(BlockCategory.FENCE) || below.getType() == COBBLESTONE_WALL))) {
+                    && !(direction == Direction.UP && (below.inCategory(BlockCategory.FENCE) || below.getType() == STONE_WALL))) {
                 block.getLevel().useBreakOn(block.getPosition());
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
 
@@ -39,7 +36,7 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState below = block.down().getState();
 
         if (block.getState().inCategory(BlockCategory.LIQUID)) {
@@ -47,16 +44,21 @@ public class BlockBehaviorTorch extends FloodableBlockBehavior {
         }
 
         if (!target.getState().inCategory(BlockCategory.TRANSPARENT) && face != Direction.DOWN) {
-            return placeBlock(block, item.getBlock().withTrait(BlockTraits.TORCH_DIRECTION, face.getOpposite()));
-        } else if (!below.inCategory(BlockCategory.TRANSPARENT) || below.inCategory(BlockCategory.FENCE) || below.getType() == COBBLESTONE_WALL) {
-            return placeBlock(block, item.getBlock());
+            return placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.TORCH_DIRECTION, face.getOpposite()));
+        } else if (!below.inCategory(BlockCategory.TRANSPARENT) || below.inCategory(BlockCategory.FENCE) || below.getType() == STONE_WALL) {
+            return placeBlock(block, item.getBehavior().getBlock(item));
         }
         return false;
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().defaultState());
+    public int getLightLevel(Block block) {
+        return block.getState().ensureTrait(BlockTraits.IS_SOUL) ? 10 : 14;
+    }
+
+    @Override
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState());
     }
 
     @Override

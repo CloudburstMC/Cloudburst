@@ -1,44 +1,27 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorButton extends FloodableBlockBehavior {
 
-    protected final Identifier type;
-
-    public BlockBehaviorButton(Identifier type) {
-        this.type = type;
-    }
-
     @Override
-    public float getResistance() {
-        return 2.5f;
-    }
-
-    @Override
-    public float getHardness() {
-        return 0.5f;
-    }
-
-    @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (target.getState().inCategory(BlockCategory.TRANSPARENT)) {
             return false;
         }
 
-        BlockState btn = BlockRegistry.get().getBlock(this.type).withTrait(BlockTraits.FACING_DIRECTION, face);
+        BlockState btn = item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, face);
         placeBlock(block, btn);
         return true;
     }
@@ -49,12 +32,12 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (this.isActivated(block)) {
             return false;
         }
 
-        Level level = block.getLevel();
+        CloudLevel level = (CloudLevel) block.getLevel();
         level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
 
         block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, true), true, false);
@@ -69,14 +52,14 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.getSide(getFacing(block).getOpposite()).getState().inCategory(BlockCategory.TRANSPARENT)) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
-        } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        } else if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             if (this.isActivated(block)) {
-                Level level = block.getLevel();
+                CloudLevel level = (CloudLevel) block.getLevel();
                 level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
 
                 block.set(block.getState().withTrait(BlockTraits.IS_BUTTON_PRESSED, false),
@@ -87,7 +70,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
                 level.updateAroundRedstone(this.getFacing(block).getOpposite().getOffset(block.getPosition()), null);
             }
 
-            return Level.BLOCK_UPDATE_SCHEDULED;
+            return CloudLevel.BLOCK_UPDATE_SCHEDULED;
         }
 
         return 0;
@@ -97,10 +80,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
         return block.getState().ensureTrait(BlockTraits.IS_BUTTON_PRESSED);
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
+
 
     public int getWeakPower(Block block, Direction side) {
         return isActivated(block) ? 15 : 0;
@@ -115,7 +95,7 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         if (isActivated(block)) {
             block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
         }
@@ -124,12 +104,10 @@ public class BlockBehaviorButton extends FloodableBlockBehavior {
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(block.getState().getType());
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState().withTrait(BlockTraits.FACING_DIRECTION, BlockTraits.FACING_DIRECTION.getDefaultValue())
+                .withTrait(BlockTraits.IS_BUTTON_PRESSED, BlockTraits.IS_BUTTON_PRESSED.getDefaultValue()));
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

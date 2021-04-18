@@ -1,32 +1,17 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.data.DyeColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DyeColor;
 
 public class BlockBehaviorConcrete extends BlockBehaviorSolid {
 
-    @Override
-    public float getResistance() {
-        return 9;
-    }
 
     @Override
-    public float getHardness() {
-        return 1.8f;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
-
-    @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return hand.getTier() >= ItemTool.TIER_WOODEN ? new Item[]{toItem(block)} : new Item[0];
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return checkTool(block.getState(), hand) ? new ItemStack[]{toItem(block)} : new ItemStack[0];
     }
 
     @Override

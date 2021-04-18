@@ -1,15 +1,15 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorLadder extends BlockBehaviorTransparent {
 
@@ -23,25 +23,12 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public boolean isSolid() {
-        return false;
-    }
 
     private float offMinX;
     private float offMinZ;
     private float offMaxX;
     private float offMaxZ;
 
-    @Override
-    public float getHardness() {
-        return 0.4f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 2;
-    }
 
 //    private void calculateOffsets() { //TODO: bounding box
 //        float f = 0.1875f;
@@ -106,10 +93,10 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
 //    }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         if (!target.getState().inCategory(BlockCategory.TRANSPARENT)) {
             if (face.getHorizontalIndex() != -1) {
-                placeBlock(block, item.getBlock().withTrait(BlockTraits.FACING_DIRECTION, face));
+                placeBlock(block, item.getBehavior().getBlock(item).withTrait(BlockTraits.FACING_DIRECTION, face));
                 return true;
             }
         }
@@ -118,19 +105,15 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (!block.getSide(block.getState().ensureTrait(BlockTraits.FACING_DIRECTION).getOpposite()).getState().inCategory(BlockCategory.SOLID)) {
                 block.getLevel().useBreakOn(block.getPosition());
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
         return 0;
     }
 
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
@@ -138,14 +121,11 @@ public class BlockBehaviorLadder extends BlockBehaviorTransparent {
     }
 
     @Override
-    public Item[] getDrops(Block block, Item hand) {
-        return new Item[]{
-                Item.get(block.getState().defaultState())
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        return new ItemStack[]{
+                CloudItemRegistry.get().getItem(block.getState().getType().getDefaultState())
         };
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

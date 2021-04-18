@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.GenericMath;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.Chest;
-import org.cloudburstmc.server.math.Direction;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.Chest;
+import org.cloudburstmc.api.util.Direction;
 
 public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
 
@@ -26,8 +26,5 @@ public class BlockBehaviorTrappedChest extends BlockBehaviorChest {
         return side == Direction.UP ? this.getWeakPower(block, side) : 0;
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
+
 }

@@ -3,15 +3,15 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.level.ChunkManager;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 import org.cloudburstmc.server.level.generator.standard.population.cluster.AbstractReplacingPopulator;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Objects;
 
@@ -52,7 +52,7 @@ public class SpringPopulator extends AbstractReplacingPopulator {
     protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
         int blockY = this.height.rand(random);
 
-        if (blockY <= 0 || !this.replace.test(level.getBlockAt(blockX, blockY, blockZ, 0))) {
+        if (blockY <= 0 || !this.replace.test(level.getBlockState(blockX, blockY, blockZ, 0))) {
             return;
         }
 
@@ -61,31 +61,31 @@ public class SpringPopulator extends AbstractReplacingPopulator {
         int neighbors = 0;
         int air = 0;
 
-        BlockState id = level.getBlockAt(blockX, blockY - 1, blockZ, 0);
+        BlockState id = level.getBlockState(blockX, blockY - 1, blockZ, 0);
         if (neighbor.test(id)) {
             neighbors++;
         } else if (id == BlockStates.AIR) {
             air++;
         }
-        id = level.getBlockAt(blockX - 1, blockY, blockZ, 0);
+        id = level.getBlockState(blockX - 1, blockY, blockZ, 0);
         if (neighbor.test(id)) {
             neighbors++;
         } else if (id == BlockStates.AIR) {
             air++;
         }
-        id = level.getBlockAt(blockX + 1, blockY, blockZ, 0);
+        id = level.getBlockState(blockX + 1, blockY, blockZ, 0);
         if (neighbor.test(id)) {
             neighbors++;
         } else if (id == BlockStates.AIR) {
             air++;
         }
-        id = level.getBlockAt(blockX, blockY, blockZ - 1, 0);
+        id = level.getBlockState(blockX, blockY, blockZ - 1, 0);
         if (neighbor.test(id)) {
             neighbors++;
         } else if (id == BlockStates.AIR) {
             air++;
         }
-        id = level.getBlockAt(blockX, blockY, blockZ + 1, 0);
+        id = level.getBlockState(blockX, blockY, blockZ + 1, 0);
         if (neighbor.test(id)) {
             neighbors++;
         } else if (id == BlockStates.AIR) {
@@ -93,7 +93,7 @@ public class SpringPopulator extends AbstractReplacingPopulator {
         }
 
         if (this.neighborCount.contains(neighbors) && this.airCount.contains(air)) {
-            level.setBlockAt(blockX, blockY, blockZ, 0, this.block.selectWeighted(random));
+            level.setBlockState(blockX, blockY, blockZ, 0, this.block.selectWeighted(random));
             //TODO: request immediate block update
         }
     }

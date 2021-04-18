@@ -3,15 +3,15 @@ package org.cloudburstmc.server.level.generator.standard.finish;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.level.ChunkManager;
+import org.cloudburstmc.api.block.BlockIds;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.registry.BiomeRegistry;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.Objects;
 
@@ -35,11 +35,11 @@ public class IceSnowFinisher implements Finisher {
         Biome biome = BiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, blockZ & 0xF));
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
         if (this.height.contains(y) && biome.canSnowAt(level, blockX, y + 1, blockZ)) {
-            BlockState state = level.getBlockAt(blockX, y, blockZ, 0);
-            if (state.getType() == BlockIds.WATER) {
-                level.setBlockAt(blockX, y, blockZ, 0, BlockStates.ICE);
-            } else if (y < 255 && state.getBehavior().isSolid()) {
-                level.setBlockAt(blockX, y + 1, blockZ, 0, BlockStates.SNOW_LAYER);
+            BlockState state = level.getBlockState(blockX, y, blockZ, 0);
+            if (state.getType().getId() == BlockIds.WATER) {
+                level.setBlockState(blockX, y, blockZ, 0, BlockStates.ICE);
+            } else if (y < 255 && state.getBehavior().isSolid(state)) {
+                level.setBlockState(blockX, y + 1, blockZ, 0, BlockStates.SNOW_LAYER);
             }
         }
     }

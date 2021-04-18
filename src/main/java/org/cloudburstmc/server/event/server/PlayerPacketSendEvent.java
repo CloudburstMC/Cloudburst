@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.event.server;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
-import org.cloudburstmc.server.event.Cancellable;
-import org.cloudburstmc.server.event.player.PlayerEvent;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.event.player.PlayerEvent;
+import org.cloudburstmc.api.player.Player;
 
 /**
  * author: MagicDroidX

@@ -4,36 +4,27 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.SmokeParticle;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
-import static org.cloudburstmc.server.utils.data.SpongeType.DRY;
-import static org.cloudburstmc.server.utils.data.SpongeType.WET;
+import static org.cloudburstmc.api.block.BlockTypes.*;
+import static org.cloudburstmc.api.util.data.SpongeType.DRY;
+import static org.cloudburstmc.api.util.data.SpongeType.WET;
 
 public class BlockBehaviorSponge extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 0.6f;
-    }
-
-    @Override
-    public float getResistance() {
-        return 3;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
@@ -41,22 +32,22 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        Level level = block.getLevel();
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        CloudLevel level = (CloudLevel) block.getLevel();
 
-        val state = item.getBlock();
+        val state = item.getBehavior().getBlock(item);
         boolean blockSet = placeBlock(block, state);
 
         if (blockSet) {
             val type = state.ensureTrait(BlockTraits.SPONGE_TYPE);
-            if (type == WET && level.getDimension() == Level.DIMENSION_NETHER) {
+            if (type == WET && level.getDimension() == CloudLevel.DIMENSION_NETHER) {
                 block.set(state.withTrait(BlockTraits.SPONGE_TYPE, DRY));
 
-                block.getLevel().addSound(block.getPosition(), Sound.RANDOM_FIZZ);
+                ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.RANDOM_FIZZ);
 
                 for (int i = 0; i < 8; ++i) {
                     //TODO: Use correct smoke particle
-                    block.getLevel().addParticle(new SmokeParticle(block.getPosition().add(Math.random(), 1, Math.random())));
+                    ((CloudLevel) block.getLevel()).addParticle(new SmokeParticle(block.getPosition().add(Math.random(), 1, Math.random())));
                 }
             } else if (type == DRY && performWaterAbsorb(block.refresh())) {
                 block.set(state.withTrait(BlockTraits.SPONGE_TYPE, WET));
@@ -65,7 +56,7 @@ public class BlockBehaviorSponge extends BlockBehaviorSolid {
                     LevelEventPacket packet = new LevelEventPacket();
                     packet.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
                     packet.setPosition(block.getPosition().toFloat().add(0.5, 0.5, 0.5));
-                    packet.setData(BlockRegistry.get().getRuntimeId(FLOWING_WATER, 0));
+                    packet.setData(CloudBlockRegistry.get().getRuntimeId(BlockStates.FLOWING_WATER));
                     level.addChunkPacket(block.getPosition(), packet);
                 }
             }

@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.level.generator;
 
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.level.ChunkManager;
-import org.cloudburstmc.server.level.chunk.IChunk;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.level.chunk.Chunk;
 
 /**
  * Generates terrain in a level.
@@ -20,7 +20,7 @@ public interface Generator {
      * @param chunkX the chunk's X coordinate
      * @param chunkZ the chunk's Z coordinate
      */
-    void generate(PRandom random, IChunk chunk, int chunkX, int chunkZ);
+    void generate(PRandom random, Chunk chunk, int chunkX, int chunkZ);
 
     /**
      * Populates a given chunk.

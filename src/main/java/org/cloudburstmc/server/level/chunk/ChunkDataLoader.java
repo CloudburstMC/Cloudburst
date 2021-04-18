@@ -9,5 +9,5 @@ public interface ChunkDataLoader {
      * @param chunk chunk
      * @return chunk dirty
      */
-    boolean load(Chunk chunk);
+    boolean load(CloudChunk chunk);
 }

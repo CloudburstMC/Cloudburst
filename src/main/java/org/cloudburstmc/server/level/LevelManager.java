@@ -3,9 +3,9 @@ package org.cloudburstmc.server.level;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.event.level.LevelLoadEvent;
-import org.cloudburstmc.server.event.level.LevelUnloadEvent;
+import org.cloudburstmc.api.event.level.LevelLoadEvent;
+import org.cloudburstmc.api.event.level.LevelUnloadEvent;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -24,17 +24,17 @@ import java.util.concurrent.Executors;
 @Singleton
 public class LevelManager implements Closeable {
     private final ExecutorService chunkExecutor = Executors.newWorkStealingPool();
-    private final Server server;
-    private final Set<Level> levels = new HashSet<>();
-    private final Map<String, Level> levelIds = new HashMap<>();
-    private volatile Level defaultLevel;
+    private final CloudServer server;
+    private final Set<CloudLevel> levels = new HashSet<>();
+    private final Map<String, CloudLevel> levelIds = new HashMap<>();
+    private volatile CloudLevel defaultLevel;
 
     @Inject
-    public LevelManager(Server server) {
+    public LevelManager(CloudServer server) {
         this.server = server;
     }
 
-    public synchronized void register(Level level) {
+    public synchronized void register(CloudLevel level) {
         Preconditions.checkNotNull(level, "level");
         Preconditions.checkArgument(level.getServer() == this.server, "Level did not come from this server");
         Preconditions.checkArgument(!levels.contains(level), "level already registered");
@@ -46,11 +46,11 @@ public class LevelManager implements Closeable {
         this.levelIds.put(level.getId(), level);
     }
 
-    public boolean deregister(Level level) {
+    public boolean deregister(CloudLevel level) {
         return deregister(level, false);
     }
 
-    public synchronized boolean deregister(Level level, boolean force) {
+    public synchronized boolean deregister(CloudLevel level, boolean force) {
         Preconditions.checkNotNull(level, "level");
         Preconditions.checkArgument(levels.contains(level), "level not registered");
 
@@ -65,13 +65,13 @@ public class LevelManager implements Closeable {
     }
 
     @Nullable
-    public synchronized Level getLevel(String id) {
+    public synchronized CloudLevel getLevel(String id) {
         return this.levelIds.get(id);
     }
 
     @Nullable
-    public synchronized Level getLevelByName(String name) {
-        for (Level level : this.levels) {
+    public synchronized CloudLevel getLevelByName(String name) {
+        for (CloudLevel level : this.levels) {
             if (level.getName().equals(name)) {
                 return level;
             }
@@ -79,34 +79,34 @@ public class LevelManager implements Closeable {
         return null;
     }
 
-    public Level getDefaultLevel() {
+    public CloudLevel getDefaultLevel() {
         return defaultLevel;
     }
 
-    public synchronized void setDefaultLevel(Level level) {
+    public synchronized void setDefaultLevel(CloudLevel level) {
         Preconditions.checkNotNull(level, "level");
         Preconditions.checkArgument(levels.contains(level), "level not registered");
 
         this.defaultLevel = level;
     }
 
-    public synchronized Set<Level> getLevels() {
+    public synchronized Set<CloudLevel> getLevels() {
         return ImmutableSet.copyOf(levels);
     }
 
     public synchronized void save() {
-        this.levels.forEach(Level::save);
+        this.levels.forEach(CloudLevel::save);
     }
 
     @Override
     public synchronized void close() {
-        for (Level level : this.levels) {
+        for (CloudLevel level : this.levels) {
             level.close();
         }
     }
 
     public void tick(int currentTick) {
-        for (Level level : this.levels) {
+        for (CloudLevel level : this.levels) {
             try {
                 long levelTime = System.currentTimeMillis();
                 level.doTick(currentTick);

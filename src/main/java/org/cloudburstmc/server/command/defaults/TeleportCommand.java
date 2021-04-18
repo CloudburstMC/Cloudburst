@@ -2,16 +2,16 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.server.level.Location;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Arrays;
@@ -50,28 +50,28 @@ public class TeleportCommand extends Command {
         CommandSender target;
         CommandSender origin = sender;
         if (args.length == 1 || args.length == 3) {
-            if (sender instanceof Player) {
+            if (sender instanceof CloudPlayer) {
                 target = sender;
             } else {
                 sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
                 return true;
             }
             if (args.length == 1) {
-                target = sender.getServer().getPlayer(args[0].replace("@s", sender.getName()));
+                target = (CommandSender) sender.getServer().getPlayer(args[0].replace("@s", sender.getName()));
                 if (target == null) {
                     sender.sendMessage(TextFormat.RED + "Can't find player " + args[0]);
                     return true;
                 }
             }
         } else {
-            target = sender.getServer().getPlayer(args[0].replace("@s", sender.getName()));
+            target = (CommandSender) sender.getServer().getPlayer(args[0].replace("@s", sender.getName()));
             if (target == null) {
                 sender.sendMessage(TextFormat.RED + "Can't find player " + args[0]);
                 return true;
             }
             if (args.length == 2) {
                 origin = target;
-                target = sender.getServer().getPlayer(args[1].replace("@s", sender.getName()));
+                target = (CommandSender) sender.getServer().getPlayer(args[1].replace("@s", sender.getName()));
                 if (target == null) {
                     sender.sendMessage(TextFormat.RED + "Can't find player " + args[1]);
                     return true;
@@ -79,32 +79,32 @@ public class TeleportCommand extends Command {
             }
         }
         if (args.length < 3) {
-            ((Player) origin).teleport(((Player) target).getLocation(), PlayerTeleportEvent.TeleportCause.COMMAND);
+            ((CloudPlayer) origin).teleport(((CloudPlayer) target).getLocation(), PlayerTeleportEvent.TeleportCause.COMMAND);
             CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.tp.success", origin.getName(), target.getName()));
             if (origin != sender) {
                 origin.sendMessage(new TranslationContainer("commands.tp.successVictim", target.getName()));
             }
             return true;
-        } else if (((Player) target).getLevel() != null) {
+        } else if (((CloudPlayer) target).getLevel() != null) {
             int pos;
             if (args.length == 4 || args.length == 6) {
                 pos = 1;
             } else {
                 pos = 0;
             }
-            Optional<Vector3f> optional = CommandUtils.parseVector3f(Arrays.copyOfRange(args, pos, pos += 3), ((Player) target).getPosition());
+            Optional<Vector3f> optional = CommandUtils.parseVector3f(Arrays.copyOfRange(args, pos, pos += 3), ((CloudPlayer) target).getPosition());
             if (!optional.isPresent()) {
                 return false;
             }
             Vector3f position = optional.get();
-            float yaw = ((Player) target).getYaw();
-            float pitch = ((Player) target).getPitch();
+            float yaw = ((CloudPlayer) target).getYaw();
+            float pitch = ((CloudPlayer) target).getPitch();
             if (position.getY() < 0) position = Vector3f.from(position.getX(), 0, position.getZ());
             if (args.length == 6 || (args.length == 5 && pos == 3)) {
                 yaw = Float.parseFloat(args[pos++]);
                 pitch = Float.parseFloat(args[pos++]);
             }
-            ((Player) target).teleport(Location.from(position, yaw, pitch, ((Player) target).getLevel()), PlayerTeleportEvent.TeleportCause.COMMAND);
+            ((CloudPlayer) target).teleport(Location.from(position, yaw, pitch, ((CloudPlayer) target).getLevel()), PlayerTeleportEvent.TeleportCause.COMMAND);
             CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.tp.success.coordinates",
                     target.getName(), String.valueOf(NukkitMath.round(position.getX(), 2)),
                     String.valueOf(NukkitMath.round(position.getY(), 2)),

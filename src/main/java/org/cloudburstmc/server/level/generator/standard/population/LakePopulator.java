@@ -6,14 +6,14 @@ import net.daporkchop.lib.common.pool.handle.DefaultThreadHandledPool;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.level.ChunkManager;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.BitSet;
 import java.util.Objects;
@@ -116,10 +116,10 @@ public class LakePopulator extends ChancePopulator.Column {
                                 || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
                                 || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
                                 || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1)))) {
-                            BlockState state = level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0);
+                            BlockState state = level.getBlockState(blockX + x, blockY + y, blockZ + z, 0);
 
                             if (y < 4) {
-                                if (state != block && !state.getBehavior().isSolid()) {
+                                if (state != block && !state.getBehavior().isSolid(state)) {
                                     return;
                                 }
                             } else {
@@ -141,7 +141,7 @@ public class LakePopulator extends ChancePopulator.Column {
                 for (int y = 4; y < 8; y++) {
                     for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
-                            if (points.get((y << 8) | (x << 4) | z) && surfaceBlocks.test(surface = level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0))) {
+                            if (points.get((y << 8) | (x << 4) | z) && surfaceBlocks.test(surface = level.getBlockState(blockX + x, blockY + y, blockZ + z, 0))) {
                                 break COMPUTE_SURFACE;
                             }
                         }
@@ -157,7 +157,7 @@ public class LakePopulator extends ChancePopulator.Column {
                 for (int x = 0; x < 16; x++) {
                     for (int z = 0; z < 16; z++) {
                         if (points.get((y << 8) | (x << 4) | z)) {
-                            level.setBlockAt(blockX + x, blockY + y, blockZ + z, 0, y >= 4 ? BlockStates.AIR : block);
+                            level.setBlockState(blockX + x, blockY + y, blockZ + z, 0, y >= 4 ? BlockStates.AIR : block);
                         }
                     }
                 }
@@ -169,8 +169,8 @@ public class LakePopulator extends ChancePopulator.Column {
                 for (int y = 4; y < 8; y++) {
                     for (int x = 0; x < 16; x++) {
                         for (int z = 0; z < 16; z++) {
-                            if (points.get((y << 8) | (x << 4) | z) && replaceWithSurface.test(level.getBlockAt(blockX + x, blockY + y - 1, blockZ + z, 0))) {
-                                level.setBlockAt(blockX + x, blockY + y - 1, blockZ + z, 0, surface);
+                            if (points.get((y << 8) | (x << 4) | z) && replaceWithSurface.test(level.getBlockState(blockX + x, blockY + y - 1, blockZ + z, 0))) {
+                                level.setBlockState(blockX + x, blockY + y - 1, blockZ + z, 0, surface);
                             }
                         }
                     }
@@ -194,8 +194,8 @@ public class LakePopulator extends ChancePopulator.Column {
                                     || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
                                     || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
                                     || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1))))
-                                    && level.getBlockAt(blockX + x, blockY + y, blockZ + z, 0).getBehavior().isSolid()) {
-                                level.setBlockAt(blockX + x, blockY + y, blockZ + z, 0, border);
+                                    && level.getBlockState(blockX + x, blockY + y, blockZ + z, 0).getType().isSolid()) {
+                                level.setBlockState(blockX + x, blockY + y, blockZ + z, 0, border);
                             }
                         }
                     }

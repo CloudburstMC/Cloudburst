@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.plugin;
 
+import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.api.plugin.PluginDescription;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;

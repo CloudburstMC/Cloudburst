@@ -2,24 +2,25 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.blockentity.Lectern;
-import org.cloudburstmc.server.event.block.BlockRedstoneEvent;
-import org.cloudburstmc.server.event.block.LecternDropBookEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.BlockEntityTypes;
+import org.cloudburstmc.api.blockentity.Lectern;
+import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
+import org.cloudburstmc.api.event.block.LecternDropBookEvent;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
@@ -28,30 +29,13 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public float getHardness() {
-        return 2;
-    }
-
-    @Override
-    public float getResistance() {
-        return 12.5f;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
-    }
 
 //    @Override //TODO: bounding box
 //    public float getMaxY() {
 //        return this.getY() + 0.89999f;
 //    }
 
-    @Override
-    public boolean hasComparatorInputOverride() {
-        return true;
-    }
+
 
     @Override
     public int getComparatorInputOverride(Block block) {
@@ -71,8 +55,8 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        if (placeBlock(block, BlockState.get(BlockIds.LECTERN).withTrait(
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        if (placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.LECTERN).withTrait(
                 BlockTraits.DIRECTION,
                 player != null ? player.getHorizontalDirection() : Direction.NORTH)
         )) {
@@ -85,7 +69,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         if (player != null) {
             BlockEntity t = block.getLevel().getBlockEntity(block.getPosition());
             Lectern lectern;
@@ -95,18 +79,16 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
                 lectern = BlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, block);
             }
 
-            Item currentBook = lectern.getBook();
-            if (currentBook != null && currentBook.getId() == BlockIds.AIR) {
-                if (item.getId() == ItemIds.WRITTEN_BOOK || item.getId() == ItemIds.WRITABLE_BOOK) {
-                    Item newBook = item.clone();
+            ItemStack currentBook = lectern.getBook();
+            if (currentBook != null && currentBook.isNull()) {
+                if (item.getType() == ItemTypes.WRITTEN_BOOK || item.getType() == ItemTypes.WRITABLE_BOOK) {
                     if (player.isSurvival()) {
-                        newBook.setCount(newBook.getCount() - 1);
-                        player.getInventory().setItemInHand(newBook);
+                        player.getInventory().decrementHandCount();
                     }
-                    newBook.setCount(1);
-                    lectern.setBook(newBook);
+
+                    lectern.setBook(item.withAmount(1));
                     lectern.spawnToAll();
-                    block.getLevel().addSound(block.getPosition(), Sound.ITEM_BOOK_PUT);
+                    ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.ITEM_BOOK_PUT);
                 }
             }
         }
@@ -114,10 +96,6 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public boolean isPowerSource(Block block) {
-        return true;
-    }
 
     public boolean isActivated(BlockState state) {
         return state.ensureTrait(BlockTraits.IS_POWERED);
@@ -126,7 +104,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
     public void executeRedstonePulse(Block block) {
         val level = block.getLevel();
         if (isActivated(block.getState())) {
-            level.cancelSheduledUpdate(block.getPosition(), block);
+            level.cancelScheduledUpdate(block.getPosition());
         } else {
             level.getServer().getEventManager().fire(new BlockRedstoneEvent(block, 0, 15));
         }
@@ -134,9 +112,9 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         level.scheduleUpdate(block.getPosition(), 4);
 
         block.set(block.getState().withTrait(BlockTraits.IS_POWERED, false), true);
-        level.addSound(block.getPosition(), Sound.ITEM_BOOK_PAGE_TURN);
+        ((CloudLevel)level).addSound(block.getPosition(), Sound.ITEM_BOOK_PAGE_TURN);
 
-        level.updateAroundRedstone(block.getPosition(), null);
+        ((CloudLevel)level).updateAroundRedstone(block.getPosition(), null);
     }
 
     @Override
@@ -151,16 +129,16 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+        if (type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
             val state = block.getState();
             if (isActivated(state)) {
                 block.getLevel().getServer().getEventManager().fire(new BlockRedstoneEvent(block, 15, 0));
 
                 block.set(state.withTrait(BlockTraits.IS_POWERED, false));
-                block.getLevel().updateAroundRedstone(block.getPosition(), null);
+                ((CloudLevel)block.getLevel()).updateAroundRedstone(block.getPosition(), null);
             }
 
-            return Level.BLOCK_UPDATE_SCHEDULED;
+            return CloudLevel.BLOCK_UPDATE_SCHEDULED;
         }
 
         return 0;
@@ -175,12 +153,12 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
         if (blockEntity instanceof Lectern) {
             Lectern lectern = (Lectern) blockEntity;
-            Item book = lectern.getBook();
-            if (book != null && book.getId() != BlockIds.AIR) {
+            ItemStack book = lectern.getBook();
+            if (book != null && !book.isNull()) {
                 LecternDropBookEvent dropBookEvent = new LecternDropBookEvent(player, lectern, book);
                 block.getLevel().getServer().getEventManager().fire(dropBookEvent);
                 if (!dropBookEvent.isCancelled()) {
-                    lectern.setBook(Item.get(BlockIds.AIR));
+                    lectern.setBook(CloudItemRegistry.AIR);
                     lectern.spawnToAll();
                     block.getLevel().dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
                 }

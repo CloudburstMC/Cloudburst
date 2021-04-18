@@ -1,23 +1,27 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.*;
-import org.cloudburstmc.server.blockentity.Bed;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.behavior.BlockBehavior;
+import org.cloudburstmc.api.blockentity.Bed;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.BlockEntityTypes;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Direction.Plane;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.math.Direction.Plane;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
-import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
-import org.cloudburstmc.server.utils.data.DyeColor;
 
 public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
@@ -26,18 +30,9 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         return true;
     }
 
-    @Override
-    public float getResistance() {
-        return 1;
-    }
 
     @Override
-    public float getHardness() {
-        return 0.2f;
-    }
-
-    @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         BlockState state = block.getState();
 
         BlockState head = null;
@@ -48,7 +43,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             for (Direction face : Plane.HORIZONTAL) {
                 BlockState side = block.getSide(face).getState();
 
-                if (side.getType() == BlockIds.BED && side.ensureTrait(BlockTraits.IS_HEAD_PIECE)) {
+                if (side.getType() == BlockTypes.BED && side.ensureTrait(BlockTraits.IS_HEAD_PIECE)) {
                     head = side;
                     break;
                 }
@@ -57,7 +52,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
         if (head == null) {
             if (player != null) {
-                player.sendMessage(new TranslationContainer("tile.bed.notValid"));
+                ((CloudPlayer) player).sendMessage(new TranslationContainer("tile.bed.notValid"));
             }
 
             return true;
@@ -68,21 +63,21 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
 
             if (!player.getSpawn().equals(spawn)) {
                 player.setSpawn(spawn);
-                player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.respawnSet"));
+                ((CloudPlayer) player).sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.respawnSet"));
             }
         }
 
-        int time = block.getLevel().getTime() % Level.TIME_FULL;
+        int time = block.getLevel().getTime() % CloudLevel.TIME_FULL;
 
-        boolean isNight = (time >= Level.TIME_NIGHT && time < Level.TIME_SUNRISE);
+        boolean isNight = (time >= CloudLevel.TIME_NIGHT && time < CloudLevel.TIME_SUNRISE);
 
         if (player != null && !isNight) {
-            player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.noSleep"));
+            ((CloudPlayer) player).sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.noSleep"));
             return true;
         }
 
         if (player != null && !player.sleepOn(block.getPosition())) {
-            player.sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.occupied"));
+            ((CloudPlayer) player).sendMessage(new TranslationContainer(TextFormat.GRAY + "%tile.bed.occupied"));
         }
 
 
@@ -90,9 +85,9 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         BlockState down = block.down().getState();
-        BlockRegistry registry = BlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.get();
 
         if (!down.inCategory(BlockCategory.TRANSPARENT)) {
             Block next = block.getSide(player.getHorizontalDirection());
@@ -101,14 +96,14 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             BlockState downNext = next.down().getState();
 
             if (nextBehavior.canBeReplaced(next) && !downNext.inCategory(BlockCategory.TRANSPARENT)) {
-                BlockState bed = registry.getBlock(BlockIds.BED)
+                BlockState bed = registry.getBlock(BlockTypes.BED)
                         .withTrait(BlockTraits.DIRECTION, player.getDirection());
 
                 placeBlock(block, bed);
                 placeBlock(next, bed.withTrait(BlockTraits.IS_HEAD_PIECE, true));
 
-                createBlockEntity(block, item.getMeta());
-                createBlockEntity(next, item.getMeta());
+                createBlockEntity(block, item.getMetadata(DyeColor.class));
+                createBlockEntity(next, item.getMetadata(DyeColor.class));
                 return true;
             }
         }
@@ -117,7 +112,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
     }
 
     @Override
-    public boolean onBreak(Block block, Item item) {
+    public boolean onBreak(Block block, ItemStack item) {
         BlockState state = block.getState();
         boolean head = state.ensureTrait(BlockTraits.IS_HEAD_PIECE);
         Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
@@ -127,7 +122,7 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
             Block side = block.getSide(direction);
             BlockState face = side.getState();
 
-            if (face.getType() == BlockIds.BED && face.ensureTrait(BlockTraits.IS_HEAD_PIECE) != head && face.ensureTrait(BlockTraits.DIRECTION) == facing) {
+            if (face.getType() == BlockTypes.BED && face.ensureTrait(BlockTraits.IS_HEAD_PIECE) != head && face.ensureTrait(BlockTraits.DIRECTION) == facing) {
                 otherPart = side;
                 break;
             }
@@ -141,14 +136,14 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         return true;
     }
 
-    private void createBlockEntity(Block block, int color) {
-        Bed bed = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BED, block.getChunk(), block.getPosition());
-        bed.setColor(DyeColor.getByDyeData(color));
+    private void createBlockEntity(Block block, DyeColor color) {
+        Bed bed = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BED, (CloudChunk) block.getChunk(), block.getPosition());
+        bed.setColor(color);
     }
 
     @Override
-    public Item toItem(Block block) {
-        return Item.get(ItemIds.BED, this.getDyeColor(block).getWoolData());
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(ItemTypes.BED, 1, this.getDyeColor(block));
     }
 
     @Override
@@ -166,8 +161,5 @@ public class BlockBehaviorBed extends BlockBehaviorTransparent {
         return DyeColor.WHITE;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

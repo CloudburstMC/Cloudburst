@@ -2,31 +2,19 @@ package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockIds;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.behavior.BlockBehavior;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
 
-    @Override
-    public float getHardness() {
-        return 3;
-    }
-
-    @Override
-    public float getResistance() {
-        return 45;
-    }
-
-    @Override
-    public int getLightLevel(Block block) {
-        return 1;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
@@ -34,13 +22,13 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean isTransparent() {
+    public boolean isTransparent(BlockState state) {
         return true;
     }
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_TOUCH) {
+        if (type == CloudLevel.BLOCK_UPDATE_TOUCH) {
             this.teleport(block);
         }
         return super.onUpdate(block, type);
@@ -52,7 +40,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
             Block t = block.getLevel().getBlock(block.getPosition().add(random.nextInt(-16, 16),
                     random.nextInt(-16, 16), random.nextInt(-16, 16)));
             BlockBehavior behavior = t.getState().getBehavior();
-            if (t.getState().getType() == BlockIds.AIR || (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging())) {
+            if (t.getState().getType() == BlockTypes.AIR || (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging())) {
                 int diffX = block.getX() - t.getX();
                 int diffY = block.getY() - t.getY();
                 int diffZ = block.getZ() - t.getZ();
@@ -61,7 +49,7 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
                 pk.setData((((((Math.abs(diffX) << 16) | (Math.abs(diffY) << 8)) | Math.abs(diffZ)) |
                         ((diffX < 0 ? 1 : 0) << 24)) | ((diffY < 0 ? 1 : 0) << 25)) | ((diffZ < 0 ? 1 : 0) << 26));
                 pk.setPosition(block.getPosition().toFloat().add(0.5f, 0.5f, 0.5f));
-                block.getLevel().addChunkPacket(block.getPosition(), pk);
+                ((CloudLevel) block.getLevel()).addChunkPacket(block.getPosition(), pk);
                 removeBlock(block, true);
 
                 placeBlock(t, block.getState());
@@ -76,13 +64,10 @@ public class BlockBehaviorDragonEgg extends BlockBehaviorFallable {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
+    public boolean onActivate(Block block, ItemStack item, Player player) {
         teleport(block);
         return true;
     }
 
-    @Override
-    public boolean canWaterlogSource() {
-        return true;
-    }
+
 }

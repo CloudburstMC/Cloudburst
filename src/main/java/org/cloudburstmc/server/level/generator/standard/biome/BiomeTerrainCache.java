@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PValidation;
-import org.cloudburstmc.server.level.chunk.Chunk;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
 
 /**
@@ -55,7 +55,7 @@ public final class BiomeTerrainCache {
 
     public Data get(int x, int z, @NonNull BiomeMap biomes) {
         Long2ObjectLinkedOpenHashMap<Data> cache = this.cacheCache.get();
-        Data val = cache.getAndMoveToLast(Chunk.key(x, z));
+        Data val = cache.getAndMoveToLast(CloudChunk.key(x, z));
         if (val == null) {
             if (cache.size() >= 1024) {
                 cache.removeFirst();
@@ -95,7 +95,7 @@ public final class BiomeTerrainCache {
                 }
             }
 
-            cache.put(Chunk.key(x, z), val = new Data(smoothHeight / totalWeight, smoothVariation / totalWeight));
+            cache.put(CloudChunk.key(x, z), val = new Data(smoothHeight / totalWeight, smoothVariation / totalWeight));
         }
         return val;
     }

@@ -1,19 +1,30 @@
 package org.cloudburstmc.server.inventory;
 
+import com.google.common.base.Preconditions;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.blockentity.BlockEntity;
-import org.cloudburstmc.server.entity.impl.BaseEntity;
-import org.cloudburstmc.server.event.entity.EntityInventoryChangeEvent;
-import org.cloudburstmc.server.event.inventory.InventoryOpenEvent;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.player.Player;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import lombok.val;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
+import org.cloudburstmc.api.event.inventory.InventoryOpenEvent;
+import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
-import static org.cloudburstmc.server.block.BlockIds.AIR;
+import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
 /**
  * author: MagicDroidX
@@ -31,9 +42,9 @@ public abstract class BaseInventory implements Inventory {
 
     protected final String title;
 
-    public final Map<Integer, Item> slots = new HashMap<>();
+    public final Int2ObjectMap<ItemStack> slots = new Int2ObjectOpenHashMap<>();
 
-    protected final Set<Player> viewers = new HashSet<>();
+    protected final Set<CloudPlayer> viewers = new HashSet<>();
 
     protected InventoryHolder holder;
 
@@ -41,15 +52,15 @@ public abstract class BaseInventory implements Inventory {
         this(holder, type, new HashMap<>());
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items) {
-        this(holder, type, items, null);
+    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents) {
+        this(holder, type, contents, null);
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items, Integer overrideSize) {
-        this(holder, type, items, overrideSize, null);
+    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents, Integer overrideSize) {
+        this(holder, type, contents, overrideSize, null);
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, Item> items, Integer overrideSize, String overrideTitle) {
+    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents, Integer overrideSize, String overrideTitle) {
         this.holder = holder;
 
         this.type = type;
@@ -68,8 +79,8 @@ public abstract class BaseInventory implements Inventory {
 
         this.name = this.type.getDefaultTitle();
 
-        if (!(this instanceof DoubleChestInventory)) {
-            this.setContents(items);
+        if (!(this instanceof CloudDoubleChestInventory)) {
+            this.setContents(contents);
         }
     }
 
@@ -98,26 +109,27 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public Item getItem(int index) {
-        return this.slots.containsKey(index) ? this.slots.get(index).clone() : Item.get(AIR, 0, 0);
+    @Nonnull
+    public CloudItemStack getItem(int index) {
+        return (CloudItemStack) (this.slots.containsKey(index) ? this.slots.get(index) : CloudItemRegistry.AIR);
     }
 
     @Override
-    public Map<Integer, Item> getContents() {
+    public Map<Integer, ItemStack> getContents() {
         return new HashMap<>(this.slots);
     }
 
     @Override
-    public void setContents(Map<Integer, Item> items) {
+    public void setContents(Map<Integer, ItemStack> items) {
         if (items.size() > this.size) {
-            TreeMap<Integer, Item> newItems = new TreeMap<>();
-            for (Map.Entry<Integer, Item> entry : items.entrySet()) {
+            TreeMap<Integer, ItemStack> newItems = new TreeMap<>();
+            for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
                 newItems.put(entry.getKey(), entry.getValue());
             }
             items = newItems;
             newItems = new TreeMap<>();
             int i = 0;
-            for (Map.Entry<Integer, Item> entry : items.entrySet()) {
+            for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
                 newItems.put(entry.getKey(), entry.getValue());
                 i++;
                 if (i >= this.size) {
@@ -141,18 +153,17 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public boolean setItem(int index, Item item, boolean send) {
-        item = item.clone();
+    public boolean setItem(int index, ItemStack item, boolean send) {
         if (index < 0 || index >= this.size) {
             return false;
-        } else if (item.getId() == AIR || item.getCount() <= 0) {
+        } else if (item.getType() == AIR || item.getAmount() <= 0) {
             return this.clear(index, send);
         }
 
         InventoryHolder holder = this.getHolder();
         if (holder instanceof BaseEntity) {
             EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent((BaseEntity) holder, this.getItem(index), item, index);
-            Server.getInstance().getEventManager().fire(ev);
+            CloudServer.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 this.sendSlot(index, this.getViewers());
                 return false;
@@ -165,21 +176,19 @@ public abstract class BaseInventory implements Inventory {
             ((BlockEntity) holder).setDirty();
         }
 
-        Item old = this.getItem(index);
-        this.slots.put(index, item.clone());
+        ItemStack old = this.getItem(index);
+        this.slots.put(index, item);
         this.onSlotChange(index, old, send);
 
         return true;
     }
 
     @Override
-    public boolean contains(Item item) {
-        int count = Math.max(1, item.getCount());
-        boolean checkDamage = item.hasMeta() && item.getMeta() >= 0;
-        boolean checkTag = item.hasNbtMap();
-        for (Item i : this.getContents().values()) {
-            if (item.equals(i, checkDamage, checkTag)) {
-                count -= i.getCount();
+    public boolean contains(ItemStack item) {
+        int count = Math.max(1, item.getAmount());
+        for (ItemStack i : this.getContents().values()) {
+            if (item.equals(i)) {
+                count -= i.getAmount();
                 if (count <= 0) {
                     return true;
                 }
@@ -190,12 +199,10 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public Map<Integer, Item> all(Item item) {
-        Map<Integer, Item> slots = new HashMap<>();
-        boolean checkDamage = item.hasMeta() && item.getMeta() >= 0;
-        boolean checkTag = item.hasNbtMap();
-        for (Map.Entry<Integer, Item> entry : this.getContents().entrySet()) {
-            if (item.equals(entry.getValue(), checkDamage, checkTag)) {
+    public Map<Integer, ItemStack> all(ItemStack item) {
+        Map<Integer, ItemStack> slots = new HashMap<>();
+        for (Map.Entry<Integer, ItemStack> entry : this.getContents().entrySet()) {
+            if (item.equals(entry.getValue())) {
                 slots.put(entry.getKey(), entry.getValue());
             }
         }
@@ -204,23 +211,19 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public void remove(Item item) {
-        boolean checkDamage = item.hasMeta();
-        boolean checkTag = item.hasNbtMap();
-        for (Map.Entry<Integer, Item> entry : this.getContents().entrySet()) {
-            if (item.equals(entry.getValue(), checkDamage, checkTag)) {
+    public void remove(ItemStack item) {
+        for (Map.Entry<Integer, ItemStack> entry : this.getContents().entrySet()) {
+            if (item.equals(entry.getValue())) {
                 this.clear(entry.getKey());
             }
         }
     }
 
     @Override
-    public int first(Item item, boolean exact) {
-        int count = Math.max(1, item.getCount());
-        boolean checkDamage = item.hasMeta();
-        boolean checkTag = item.hasNbtMap();
-        for (Map.Entry<Integer, Item> entry : this.getContents().entrySet()) {
-            if (item.equals(entry.getValue(), checkDamage, checkTag) && (entry.getValue().getCount() == count || (!exact && entry.getValue().getCount() > count))) {
+    public int first(ItemStack item, boolean exact) {
+        int count = Math.max(1, item.getAmount());
+        for (Map.Entry<Integer, ItemStack> entry : this.getContents().entrySet()) {
+            if (item.equals(entry.getValue()) && (entry.getValue().getAmount() == count || (!exact && entry.getValue().getAmount() > count))) {
                 return entry.getKey();
             }
         }
@@ -251,12 +254,13 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public int firstFit(Item item, boolean single) {
-        int count = single ? 1 : item.getCount();
+    public int firstFit(ItemStack item, boolean single) {
+        int count = single ? 1 : item.getAmount();
+        val maxStackSize = item.getBehavior().getMaxStackSize(item);
 
         for (int i = 0; i < this.size; ++i) {
-            Item slot = this.getItem(i);
-            if (slot.getCount() + count < item.getMaxStackSize() && slot.equals(item)) {
+            ItemStack slot = this.getItem(i);
+            if (slot.getAmount() + count < maxStackSize && slot.equals(item)) {
                 return i;
             }
         }
@@ -265,42 +269,43 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public void decreaseCount(int slot) {
-        Item item = this.getItem(slot);
+    public void decrementCount(int slot) {
+        ItemStack item = this.getItem(slot);
 
-        if (item.getCount() > 0) {
-            item.decrementCount();
-            this.setItem(slot, item);
+        if (item.getAmount() > 0) {
+            this.setItem(slot, item.decrementAmount());
         }
     }
 
     @Override
-    public void increaseCount(int slot) {
-        Item item = this.getItem(slot);
+    public void incrementCount(int slot) {
+        ItemStack item = this.getItem(slot);
 
-        if (item.getId() != AIR) {
-            item.incrementCount();
-            this.setItem(slot, item);
+        if (item.getType() != AIR) {
+            this.setItem(slot, item.decrementAmount());
         }
     }
 
     @Override
-    public boolean canAddItem(Item item) {
-        item = item.clone();
-        boolean checkDamage = item.hasMeta();
-        boolean checkTag = item.hasNbtMap();
+    public boolean canAddItem(ItemStack item) {
+        int count = item.getAmount();
+
+        if (count <= 0) {
+            return true;
+        }
+
         for (int i = 0; i < this.getSize(); ++i) {
-            Item slot = this.getItem(i);
-            if (item.equals(slot, checkDamage, checkTag)) {
+            ItemStack slot = this.getItem(i);
+            if (item.equals(slot)) {
                 int diff;
-                if ((diff = slot.getMaxStackSize() - slot.getCount()) > 0) {
-                    item.setCount(item.getCount() - diff);
+                if ((diff = slot.getBehavior().getMaxStackSize(slot) - slot.getAmount()) > 0) {
+                    count -= diff;
                 }
-            } else if (slot.getId() == AIR) {
-                item.setCount(item.getCount() - this.getMaxStackSize());
+            } else if (slot.getType() == AIR) {
+                count -= this.getMaxStackSize();
             }
 
-            if (item.getCount() <= 0) {
+            if (count <= 0) {
                 return true;
             }
         }
@@ -308,37 +313,52 @@ public abstract class BaseInventory implements Inventory {
         return false;
     }
 
+    @SuppressWarnings("SuspiciousListRemoveInLoop")
     @Override
-    public Item[] addItem(Item... slots) {
-        List<Item> itemSlots = new ArrayList<>();
-        for (Item slot : slots) {
-            if (slot.getId() != AIR && slot.getCount() > 0) {
-                itemSlots.add(slot.clone());
+    public ItemStack[] addItem(ItemStack... slots) {
+        Preconditions.checkNotNull(slots, "slots");
+
+        if (slots.length == 0) {
+            return slots;
+        }
+
+        List<ItemStack> itemSlots = new ArrayList<>(slots.length);
+        for (ItemStack slot : slots) {
+            if (!slot.isNull()) {
+                itemSlots.add(slot);
             }
         }
 
         List<Integer> emptySlots = new ArrayList<>();
 
         for (int i = 0; i < this.getSize(); ++i) {
-            Item item = this.getItem(i);
-            if (item.getId() == AIR || item.getCount() <= 0) {
+            ItemStack item = this.getItem(i);
+            if (item.isNull()) {
                 emptySlots.add(i);
             }
 
-            for (Item slot : new ArrayList<>(itemSlots)) {
-                if (slot.equals(item) && item.getCount() < item.getMaxStackSize()) {
-                    int amount = Math.min(item.getMaxStackSize() - item.getCount(), slot.getCount());
+            int maxStack = item.getBehavior().getMaxStackSize(item);
+
+            val copy = new ArrayList<>(itemSlots);
+            for (int j = 0; j < copy.size(); j++) {
+                ItemStack slot = copy.get(j);
+
+                if (slot.equals(item, false) && item.getAmount() < maxStack) {
+                    int amount = Math.min(maxStack - item.getAmount(), slot.getAmount());
                     amount = Math.min(amount, this.getMaxStackSize());
                     if (amount > 0) {
-                        slot.setCount(slot.getCount() - amount);
-                        item.setCount(item.getCount() + amount);
-                        this.setItem(i, item);
-                        if (slot.getCount() <= 0) {
-                            itemSlots.remove(slot);
+                        slot = slot.decrementAmount(amount);
+                        this.setItem(i, item.incrementAmount(amount));
+
+                        if (slot.getAmount() <= 0) {
+                            itemSlots.remove(j);
+                        } else {
+                            itemSlots.set(j, slot);
                         }
                     }
                 }
             }
+
             if (itemSlots.isEmpty()) {
                 break;
             }
@@ -347,45 +367,84 @@ public abstract class BaseInventory implements Inventory {
         if (!itemSlots.isEmpty() && !emptySlots.isEmpty()) {
             for (int slotIndex : emptySlots) {
                 if (!itemSlots.isEmpty()) {
-                    Item slot = itemSlots.get(0);
-                    int amount = Math.min(slot.getMaxStackSize(), slot.getCount());
+                    ItemStack slot = itemSlots.get(0);
+                    int amount = Math.min(slot.getBehavior().getMaxStackSize(slot), slot.getAmount());
                     amount = Math.min(amount, this.getMaxStackSize());
-                    slot.setCount(slot.getCount() - amount);
-                    Item item = slot.clone();
-                    item.setCount(amount);
+
+                    ItemStack item = slot.withAmount(amount);
                     this.setItem(slotIndex, item);
-                    if (slot.getCount() <= 0) {
-                        itemSlots.remove(slot);
+
+                    slot = slot.decrementAmount(amount);
+                    if (slot.getAmount() <= 0) {
+                        itemSlots.remove(0);
+                    } else {
+                        itemSlots.set(0, slot);
                     }
                 }
             }
         }
 
-        return itemSlots.toArray(new Item[0]);
+        return itemSlots.toArray(new ItemStack[0]);
+    }
+
+    protected int getEmptySlotsCount() {
+        int count = 0;
+
+        for (ItemStack item : this.slots.values()) {
+            if (item == null || item.isNull()) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private synchronized Int2ObjectMap<ItemStack> findMergable(@Nonnull ItemStack item) {
+        Int2ObjectMap<ItemStack> mergable = new Int2ObjectOpenHashMap<>();
+
+        for (val entry : this.slots.int2ObjectEntrySet()) {
+            ItemStack content = entry.getValue();
+
+            if (content != null && content.isMergeable(item)) {
+                mergable.put(entry.getIntKey(), content);
+            }
+        }
+
+        return mergable;
+    }
+
+    public boolean addItemToFirstEmptySlot(ItemStack item) {
+        int slot = firstEmpty();
+        if (slot < 0) {
+            return false;
+        }
+
+        setItem(slot, item);
+        return true;
     }
 
     @Override
-    public Item[] removeItem(Item... slots) {
-        List<Item> itemSlots = new ArrayList<>();
-        for (Item slot : slots) {
-            if (slot.getId() != AIR && slot.getCount() > 0) {
-                itemSlots.add(slot.clone());
+    public ItemStack[] removeItem(ItemStack... slots) {
+        List<ItemStack> itemSlots = new ArrayList<>();
+        for (ItemStack slot : slots) {
+            if (!slot.isNull()) {
+                itemSlots.add(slot);
             }
         }
 
         for (int i = 0; i < this.size; ++i) {
-            Item item = this.getItem(i);
-            if (item.getId() == AIR || item.getCount() <= 0) {
+            ItemStack item = this.getItem(i);
+            if (item.isNull()) {
                 continue;
             }
 
-            for (Item slot : new ArrayList<>(itemSlots)) {
-                if (slot.equals(item, item.hasMeta(), item.hasNbtMap())) {
-                    int amount = Math.min(item.getCount(), slot.getCount());
-                    slot.setCount(slot.getCount() - amount);
-                    item.setCount(item.getCount() - amount);
+            for (ItemStack slot : new ArrayList<>(itemSlots)) {
+                if (slot.equals(item)) {
+                    int amount = Math.min(item.getAmount(), slot.getAmount());
+                    slot = slot.decrementAmount(amount);
+                    item = item.decrementAmount(amount);
                     this.setItem(i, item);
-                    if (slot.getCount() <= 0) {
+                    if (slot.getAmount() <= 0) {
                         itemSlots.remove(slot);
                     }
 
@@ -397,18 +456,18 @@ public abstract class BaseInventory implements Inventory {
             }
         }
 
-        return itemSlots.toArray(new Item[0]);
+        return itemSlots.toArray(new ItemStack[0]);
     }
 
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            Item item = Item.get(AIR, 0, 0);
-            Item old = this.slots.get(index);
+            ItemStack item = CloudItemRegistry.AIR;
+            ItemStack old = this.slots.get(index);
             InventoryHolder holder = this.getHolder();
             if (holder instanceof BaseEntity) {
                 EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent((BaseEntity) holder, old, item, index);
-                Server.getInstance().getEventManager().fire(ev);
+                CloudServer.getInstance().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     this.sendSlot(index, this.getViewers());
                     return false;
@@ -419,8 +478,8 @@ public abstract class BaseInventory implements Inventory {
                 ((BlockEntity) holder).setDirty();
             }
 
-            if (item.getId() != AIR) {
-                this.slots.put(index, item.clone());
+            if (!item.isNull()) {
+                this.slots.put(index, item);
             } else {
                 this.slots.remove(index);
             }
@@ -439,7 +498,7 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public Set<Player> getViewers() {
+    public Set<CloudPlayer> getViewers() {
         return viewers;
     }
 
@@ -453,7 +512,6 @@ public abstract class BaseInventory implements Inventory {
         this.maxStackSize = maxStackSize;
     }
 
-    @Override
     public boolean open(Player who) {
         InventoryOpenEvent ev = new InventoryOpenEvent(this, who);
         who.getServer().getEventManager().fire(ev);
@@ -465,49 +523,42 @@ public abstract class BaseInventory implements Inventory {
         return true;
     }
 
-    @Override
     public void close(Player who) {
         this.onClose(who);
     }
 
-    @Override
     public void onOpen(Player who) {
-        this.viewers.add(who);
+        this.viewers.add((CloudPlayer) who);
     }
 
-    @Override
     public void onClose(Player who) {
         this.viewers.remove(who);
     }
 
     @Override
-    public void onSlotChange(int index, Item before, boolean send) {
+    public void onSlotChange(int index, ItemStack before, boolean send) {
         if (send) {
             this.sendSlot(index, this.getViewers());
         }
     }
 
     @Override
-    public void sendContents(Player player) {
-        this.sendContents(new Player[]{player});
-    }
-
-    @Override
     public void sendContents(Player... players) {
         InventoryContentPacket packet = new InventoryContentPacket();
-        packet.setContents(new ItemData[this.getSize()]);
+        List<ItemData> contents = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
-            packet.getContents()[i] = this.getItem(i).toNetwork();
+            contents.add(i, ((CloudItemStack) this.getItem(i)).getNetworkData());
         }
+        packet.setContents(contents);
 
         for (Player player : players) {
-            int id = player.getWindowId(this);
-            if (id == -1 || !player.spawned) {
+            int id = ((CloudPlayer) player).getWindowId(this);
+            if (id == -1 || !player.isSpawned()) {
                 this.close(player);
                 continue;
             }
             packet.setContainerId(id);
-            player.sendPacket(packet);
+            ((CloudPlayer) player).sendPacket(packet);
         }
     }
 
@@ -517,8 +568,8 @@ public abstract class BaseInventory implements Inventory {
             return false;
         }
 
-        for (Item item : this.slots.values()) {
-            if (item == null || item.getId() == AIR || item.getCount() < item.getMaxStackSize() || item.getCount() < this.getMaxStackSize()) {
+        for (ItemStack item : this.slots.values()) {
+            if (item == null || item.isNull() || item.getAmount() < item.getBehavior().getMaxStackSize(item) || item.getAmount() < this.getMaxStackSize()) {
                 return false;
             }
         }
@@ -532,8 +583,8 @@ public abstract class BaseInventory implements Inventory {
             return false;
         }
 
-        for (Item item : this.slots.values()) {
-            if (item != null && item.getId() != AIR && item.getCount() > 0) {
+        for (ItemStack item : this.slots.values()) {
+            if (item != null && !item.isNull()) {
                 return false;
             }
         }
@@ -541,18 +592,18 @@ public abstract class BaseInventory implements Inventory {
         return true;
     }
 
-    public int getFreeSpace(Item item) {
-        int maxStackSize = Math.min(item.getMaxStackSize(), this.getMaxStackSize());
+    public int getFreeSpace(ItemStack item) {
+        int maxStackSize = Math.min(item.getBehavior().getMaxStackSize(item), this.getMaxStackSize());
         int space = (this.getSize() - this.slots.size()) * maxStackSize;
 
-        for (Item slot : this.getContents().values()) {
-            if (slot == null || slot.getId() == AIR) {
+        for (ItemStack slot : this.getContents().values()) {
+            if (slot == null || slot.isNull()) {
                 space += maxStackSize;
                 continue;
             }
 
-            if (slot.equals(item, true, true)) {
-                space += maxStackSize - slot.getCount();
+            if (slot.equals(item, true)) {
+                space += maxStackSize - slot.getAmount();
             }
         }
 
@@ -560,35 +611,20 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    public void sendContents(Collection<Player> players) {
-        this.sendContents(players.toArray(new Player[0]));
-    }
-
-    @Override
-    public void sendSlot(int index, Player player) {
-        this.sendSlot(index, new Player[]{player});
-    }
-
-    @Override
     public void sendSlot(int index, Player... players) {
         InventorySlotPacket packet = new InventorySlotPacket();
         packet.setSlot(index);
-        packet.setItem(this.getItem(index).toNetwork());
+        packet.setItem(((CloudItemStack) this.getItem(index)).getNetworkData());
 
         for (Player player : players) {
-            int id = player.getWindowId(this);
+            int id = ((CloudPlayer) player).getWindowId(this);
             if (id == -1) {
                 this.close(player);
                 continue;
             }
             packet.setContainerId(id);
-            player.sendPacket(packet);
+            ((CloudPlayer) player).sendPacket(packet);
         }
-    }
-
-    @Override
-    public void sendSlot(int index, Collection<Player> players) {
-        this.sendSlot(index, players.toArray(new Player[0]));
     }
 
     @Override

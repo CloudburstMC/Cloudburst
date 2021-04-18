@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
 import org.cloudburstmc.server.level.generator.standard.biome.map.complex.AbstractBiomeFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.IntArrayAllocator;
 import org.cloudburstmc.server.level.generator.standard.store.StandardGeneratorStores;
-import org.cloudburstmc.server.utils.Identifier;
 
 import java.util.*;
 

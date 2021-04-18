@@ -2,18 +2,19 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.registry.BlockRegistry;
-import org.cloudburstmc.server.utils.Identifier;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Random;
 
@@ -63,8 +64,8 @@ public class ParticleCommand extends Command {
         }
 
         Location defaultLocation;
-        if (sender instanceof Player) {
-            defaultLocation = ((Player) sender).getLocation();
+        if (sender instanceof CloudPlayer) {
+            defaultLocation = ((CloudPlayer) sender).getLocation();
         } else {
             defaultLocation = Location.from(Vector3f.ZERO, sender.getServer().getDefaultLevel());
         }
@@ -108,7 +109,7 @@ public class ParticleCommand extends Command {
         Particle particle = this.getParticle(name, location, data);
 
         if (particle == null) {
-            location.getLevel().addParticleEffect(location.getPosition(), Identifier.fromString(args[0]), -1, location.getLevel().getDimension());
+            ((CloudLevel) location.getLevel()).addParticleEffect(location.getPosition(), Identifier.fromString(args[0]), -1, ((CloudLevel) location.getLevel()).getDimension());
             return true;
         }
 
@@ -119,7 +120,7 @@ public class ParticleCommand extends Command {
         for (int i = 0; i < count; i++) {
             particle.setPosition(location.getPosition()
                     .add(random.nextFloat() * 2 - 1, random.nextFloat() * 2 - 1, random.nextFloat() * 2 - 1));
-            location.getLevel().addParticle(particle);
+            ((CloudLevel) location.getLevel()).addParticle(particle);
         }
 
         return true;
@@ -165,17 +166,17 @@ public class ParticleCommand extends Command {
             case "reddust":
                 return new RedstoneParticle(pos, data != -1 ? data : 1);
             case "snowballpoof":
-                return new ItemBreakParticle(pos, Item.get(ItemIds.SNOWBALL));
+                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.SNOWBALL));
             case "slime":
-                return new ItemBreakParticle(pos, Item.get(ItemIds.SLIME_BALL));
+                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.SLIME_BALL));
             case "itembreak":
                 if (data != -1 && data != 0) {
-                    return new ItemBreakParticle(pos, Item.get(data));
+//                    return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(data)); //TODO: item name
                 }
                 break;
             case "terrain":
                 if (data != -1 && data != 0) {
-//                    return new TerrainParticle(pos, BlockState.get(data)); //TODO: block name
+//                    return new TerrainParticle(pos, BlockRegistry.get().getBlock(data)); //TODO: block name
                 }
                 break;
             case "heart":
@@ -197,12 +198,12 @@ public class ParticleCommand extends Command {
         if (name.startsWith("iconcrack_")) {
             String[] d = name.split("_");
             if (d.length == 3) {
-                return new ItemBreakParticle(pos, Item.get(Integer.parseInt(d[1]), Integer.parseInt(d[2])));
+                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.byId(Identifier.fromString(d[1])), Integer.parseInt(d[2])));
             }
         } else if (name.startsWith("blockcrack_")) {
             String[] d = name.split("_");
             if (d.length == 2) {
-                return new TerrainParticle(pos, BlockRegistry.get().getBlock(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
+                return new TerrainParticle(pos, CloudBlockRegistry.get().getBlock(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
             }
         } else if (name.startsWith("blockdust_")) {
             String[] d = name.split("_");

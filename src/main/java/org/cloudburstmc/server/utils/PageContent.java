@@ -4,12 +4,13 @@ import com.nukkitx.nbt.NbtMap;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.cloudburstmc.api.item.data.Page;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @ToString
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class PageContent {
+public class PageContent implements Page {
 
     private static final int MAX_PAGE_LENGTH = 256;
     private static final String TAG_TEXT = "page";

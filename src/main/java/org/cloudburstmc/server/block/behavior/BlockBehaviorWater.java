@@ -1,15 +1,15 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
 
-import static org.cloudburstmc.server.block.BlockIds.FLOWING_WATER;
-import static org.cloudburstmc.server.block.BlockIds.WATER;
+import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
+import static org.cloudburstmc.api.block.BlockTypes.WATER;
 
 public class BlockBehaviorWater extends BlockBehaviorLiquid {
 
@@ -18,8 +18,8 @@ public class BlockBehaviorWater extends BlockBehaviorLiquid {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        boolean success = target.getLevel().setBlock(block.getPosition(), item.getBlock(), true, false);
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        boolean success = target.getLevel().setBlockState(block.getPosition(), item.getBehavior().getBlock(item), true, false);
         if (success) block.getLevel().scheduleUpdate(block.getPosition(), this.tickRate());
 
         return success;

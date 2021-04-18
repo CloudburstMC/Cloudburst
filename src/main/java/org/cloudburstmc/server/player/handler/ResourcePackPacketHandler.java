@@ -1,15 +1,20 @@
 package org.cloudburstmc.server.player.handler;
 
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackChunkDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackClientResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.ResourcePackDataInfoPacket;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.Server;
-import org.cloudburstmc.server.pack.Pack;
+import org.cloudburstmc.api.pack.Pack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.PlayerLoginData;
+
+import java.util.function.Consumer;
 
 /**
  * @author Extollite
@@ -17,11 +22,11 @@ import org.cloudburstmc.server.player.PlayerLoginData;
 @Log4j2
 public class ResourcePackPacketHandler implements BedrockPacketHandler {
     private final BedrockServerSession session;
-    private final Server server;
+    private final CloudServer server;
 
     private PlayerLoginData loginData;
 
-    public ResourcePackPacketHandler(BedrockServerSession session, Server server, PlayerLoginData loginData) {
+    public ResourcePackPacketHandler(BedrockServerSession session, CloudServer server, PlayerLoginData loginData) {
         this.session = session;
         this.server = server;
         this.loginData = loginData;
@@ -48,7 +53,7 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                     dataInfoPacket.setChunkCount(pack.getSize() / dataInfoPacket.getMaxChunkSize());
                     dataInfoPacket.setCompressedPackSize(pack.getSize());
                     dataInfoPacket.setHash(pack.getHash());
-                    dataInfoPacket.setType(pack.getType());
+                    dataInfoPacket.setType(ResourcePackType.values()[pack.getType().ordinal()]);
                     session.sendPacket(dataInfoPacket);
                 }
                 return true;
@@ -57,7 +62,11 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                 return true;
             case COMPLETED:
                 if (loginData.getPreLoginEventTask().isFinished()) {
-                    loginData.initializePlayer();
+                    CloudPlayer player = loginData.initializePlayer();
+                    for (Consumer<Player> task : loginData.getLoginTasks()) {
+                        task.accept(player);
+                    }
+
                 } else {
                     loginData.setShouldLogin(true);
                 }

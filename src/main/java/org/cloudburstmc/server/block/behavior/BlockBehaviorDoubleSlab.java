@@ -1,63 +1,49 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.block.BlockTraits;
-import org.cloudburstmc.server.block.trait.BlockTrait;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemTool;
-import org.cloudburstmc.server.registry.ItemRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
-import org.cloudburstmc.server.utils.Identifier;
-import org.cloudburstmc.server.utils.data.StoneSlabType;
+import lombok.val;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.trait.BlockTrait;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.TierTypes;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.StoneSlabType;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.server.block.behavior.BlockBehaviorSlab.COLORS;
 
 public class BlockBehaviorDoubleSlab extends BlockBehaviorSolid {
 
-    protected Identifier slabType;
+    protected BlockType slabType;
+    @SuppressWarnings("rawtypes")
     protected BlockTrait typeTrait;
 
-    public BlockBehaviorDoubleSlab(Identifier slabType) {
+    public BlockBehaviorDoubleSlab(BlockType slabType) {
         this(slabType, null);
     }
 
-    public BlockBehaviorDoubleSlab(Identifier slabType, BlockTrait<?> typeTrait) {
+    public BlockBehaviorDoubleSlab(BlockType slabType, BlockTrait<?> typeTrait) {
         this.slabType = slabType;
         this.typeTrait = typeTrait;
     }
 
-    @Override
-    public float getResistance() {
-        return 30;
-    }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public float getHardness() {
-        return 2;
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_PICKAXE;
-    }
-
-    @Override
-    public boolean canHarvestWithHand() {
-        return false;
-    }
-
-    @Override
-    public Item[] getDrops(Block block, Item hand) {
-        if (hand.isPickaxe() && hand.getTier() >= ItemTool.TIER_WOODEN) {
-            BlockState state = BlockState.get(slabType);
+    public ItemStack[] getDrops(Block block, ItemStack hand) {
+        val behavior = hand.getBehavior();
+        if (behavior.isPickaxe() && behavior.getTier(hand).compareTo(TierTypes.WOOD) > 0) {
+            BlockState state = CloudBlockRegistry.get().getBlock(slabType);
             if (typeTrait != null) {
                 state = state.withTrait(typeTrait, block.getState().ensureTrait(typeTrait));
             }
 
-            return new Item[]{ItemRegistry.get().getItem(state)};
+            return new ItemStack[]{CloudItemRegistry.get().getItem(state)};
         } else {
-            return new Item[0];
+            return new ItemStack[0];
         }
     }
 

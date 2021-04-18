@@ -1,11 +1,13 @@
 package org.cloudburstmc.server.registry;
 
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.api.registry.Registry;
+import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.GeneratorFactory;
 import org.cloudburstmc.server.level.generator.impl.FlatGenerator;
 import org.cloudburstmc.server.level.generator.impl.VoidGenerator;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
-import org.cloudburstmc.server.utils.Identifier;
 
 import javax.annotation.Nonnull;
 import java.util.*;

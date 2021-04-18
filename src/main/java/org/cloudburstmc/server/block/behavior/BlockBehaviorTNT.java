@@ -1,48 +1,31 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockStates;
-import org.cloudburstmc.server.entity.Entity;
-import org.cloudburstmc.server.entity.EntityTypes;
-import org.cloudburstmc.server.entity.misc.PrimedTnt;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.item.behavior.ItemIds;
-import org.cloudburstmc.server.level.Level;
-import org.cloudburstmc.server.level.Location;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.misc.PrimedTnt;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
-import org.cloudburstmc.server.utils.BlockColor;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockBehaviorTNT extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 0;
-    }
-
-    @Override
-    public float getResistance() {
-        return 0;
-    }
 
     @Override
     public boolean canBeActivated(Block block) {
         return true;
     }
 
-    @Override
-    public int getBurnChance() {
-        return 15;
-    }
-
-    @Override
-    public int getBurnAbility() {
-        return 100;
-    }
 
     public void prime(Block block) {
         this.prime(block, 80);
@@ -64,12 +47,12 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
         primedTnt.setSource(source);
         primedTnt.spawnToAll();
 
-        block.getLevel().addSound(block.getPosition(), Sound.RANDOM_FUSE);
+        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.RANDOM_FUSE);
     }
 
     @Override
     public int onUpdate(Block block, int type) {
-        if ((type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) && block.getLevel().isBlockPowered(block.getPosition())) {
+        if ((type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE) && ((CloudLevel) block.getLevel()).isBlockPowered(block.getPosition())) {
             this.prime(block);
         }
 
@@ -77,15 +60,16 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
-        if (item.getId() == ItemIds.FLINT_AND_STEEL) {
-            item.useOn(block);
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        if (item.getType() == ItemTypes.FLINT_AND_STEEL) {
+            item.getBehavior().useOn(item, block.getState());
             this.prime(block, 80, player);
             return true;
         }
-        if (item.getId() == ItemIds.FIREBALL) {
-            if (!player.isCreative()) player.getInventory().removeItem(Item.get(ItemIds.FIREBALL, 0, 1));
-            block.getLevel().addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
+        if (item.getType() == ItemTypes.FIREBALL) {
+            if (!player.isCreative())
+                player.getInventory().removeItem(CloudItemRegistry.get().getItem(ItemTypes.FIREBALL));
+            ((CloudLevel) block.getLevel()).addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
             this.prime(block, 80, player);
             return true;
         }

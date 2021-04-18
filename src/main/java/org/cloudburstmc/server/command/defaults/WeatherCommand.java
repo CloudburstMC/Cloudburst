@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandSender;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.player.Player;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * author: Angelic47
@@ -37,7 +37,7 @@ public class WeatherCommand extends Command {
         }
 
         String weather = args[0];
-        Level level;
+        CloudLevel level;
         int seconds;
         if (args.length > 1) {
             try {
@@ -49,10 +49,10 @@ public class WeatherCommand extends Command {
             seconds = 600 * 20;
         }
 
-        if (sender instanceof Player) {
-            level = ((Player) sender).getLevel();
+        if (sender instanceof CloudPlayer) {
+            level = ((CloudPlayer) sender).getLevel();
         } else {
-            level = sender.getServer().getDefaultLevel();
+            level = (CloudLevel) sender.getServer().getDefaultLevel();
         }
 
         switch (weather) {

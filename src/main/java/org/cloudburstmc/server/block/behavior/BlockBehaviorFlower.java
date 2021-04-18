@@ -3,28 +3,29 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.val;
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.block.BlockCategory;
-import org.cloudburstmc.server.block.BlockState;
-import org.cloudburstmc.server.item.behavior.Item;
-import org.cloudburstmc.server.level.Level;
+import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.api.util.data.FlowerType;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.BoneMealParticle;
-import org.cloudburstmc.server.math.Direction;
-import org.cloudburstmc.server.player.Player;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.server.block.BlockIds.*;
-import static org.cloudburstmc.server.item.behavior.ItemIds.DYE;
+import static org.cloudburstmc.api.block.BlockTypes.*;
+import static org.cloudburstmc.api.item.ItemTypes.DYE;
 
 public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
     @Override
-    public boolean place(Item item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+    public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         val down = block.down().getState().getType();
         if (down == GRASS || down == DIRT || down == FARMLAND || down == PODZOL) {
-            placeBlock(block, getUncommonFlower());
+            placeBlock(block, item.getBehavior().getBlock(item));
             return true;
         }
         return false;
@@ -32,11 +33,11 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
     @Override
     public int onUpdate(Block block, int type) {
-        if (type == Level.BLOCK_UPDATE_NORMAL) {
+        if (type == CloudLevel.BLOCK_UPDATE_NORMAL) {
             if (block.down().getState().inCategory(BlockCategory.TRANSPARENT)) {
                 block.getLevel().useBreakOn(block.getPosition());
 
-                return Level.BLOCK_UPDATE_NORMAL;
+                return CloudLevel.BLOCK_UPDATE_NORMAL;
             }
         }
 
@@ -54,11 +55,11 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
     }
 
     @Override
-    public boolean onActivate(Block block, Item item, Player player) {
-        if (item.getId() == DYE && item.getMeta() == 0x0f) { //Bone meal
-            val level = block.getLevel();
+    public boolean onActivate(Block block, ItemStack item, Player player) {
+        if (item.getType() == DYE && item.getMetadata(DyeColor.class) == DyeColor.WHITE) { //Bone meal
+            CloudLevel level = (CloudLevel) block.getLevel();
             if (player != null && player.getGamemode().isSurvival()) {
-                item.decrementCount();
+                ((CloudPlayer) player).getInventory().decrementHandCount();
             }
 
             level.addParticle(new BoneMealParticle(block.getPosition()));
@@ -69,11 +70,11 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
                         ThreadLocalRandom.current().nextInt(-1, 2),
                         ThreadLocalRandom.current().nextInt(-3, 4));
 
-                if (level.getBlock(vec).getState().getType() == AIR && level.getBlock(vec.down()).getState().getType() == GRASS && vec.getY() >= 0 && vec.getY() < 256) {
+                if (level.getBlock(vec).getState() == BlockStates.AIR && level.getBlock(vec.down()).getState().getType() == GRASS && vec.getY() >= 0 && vec.getY() < 256) {
                     if (ThreadLocalRandom.current().nextInt(10) == 0) {
-                        level.setBlock(vec, this.getUncommonFlower(), true);
+                        level.setBlockState(vec, this.getUncommonFlower(block.getState()), true);
                     } else {
-                        level.setBlock(vec, BlockState.get(block.getState().getType()), true);
+                        level.setBlockState(vec, block.getState(), true);
                     }
                 }
             }
@@ -84,7 +85,15 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
         return false;
     }
 
-    protected BlockState getUncommonFlower() {
-        return BlockState.get(YELLOW_FLOWER);
+    protected BlockState getUncommonFlower(BlockState state) {
+        if (state.ensureTrait(BlockTraits.FLOWER_TYPE) == FlowerType.DANDELION) {
+            return state.withTrait(BlockTraits.FLOWER_TYPE, FlowerType.POPPY);
+        }
+
+        if (state.ensureTrait(BlockTraits.FLOWER_TYPE) == FlowerType.POPPY) {
+            return state.withTrait(BlockTraits.FLOWER_TYPE, FlowerType.DANDELION);
+        }
+
+        return state;
     }
 }

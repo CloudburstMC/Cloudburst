@@ -1,19 +1,10 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.server.block.Block;
-import org.cloudburstmc.server.utils.BlockColor;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.util.data.BlockColor;
 
 public class BlockBehaviorSlime extends BlockBehaviorSolid {
 
-    @Override
-    public float getHardness() {
-        return 0;
-    }
-
-    @Override
-    public float getResistance() {
-        return 0;
-    }
 
     @Override
     public BlockColor getColor(Block block) {
