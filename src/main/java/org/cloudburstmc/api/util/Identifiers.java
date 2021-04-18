@@ -88,7 +88,7 @@ public class Identifiers {
     public static final Identifier COMMAND_BLOCK = Identifier.fromString("command_block");
     public static final Identifier COMPOSTER = Identifier.fromString("composter");
     public static final Identifier CONCRETE = Identifier.fromString("concrete");
-    public static final Identifier CONCRETE_POWDER = Identifier.fromString("concrete_powder");
+    public static final Identifier CONCRETE_POWDER = Identifier.fromString("concretePowder");
     public static final Identifier CONDUIT = Identifier.fromString("conduit");
     public static final Identifier CORAL = Identifier.fromString("coral");
     public static final Identifier CORAL_BLOCK = Identifier.fromString("coral_block");
