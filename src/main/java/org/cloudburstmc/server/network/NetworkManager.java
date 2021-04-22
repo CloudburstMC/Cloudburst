@@ -12,11 +12,11 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * root network management object of the server
+ * everything related to networking should go here
  */
 @Log4j2
-public class Network {
+public class NetworkManager {
 
     private final CloudServer server;
 
@@ -30,7 +30,7 @@ public class Network {
     private String name;
     private String subName;
 
-    public Network(CloudServer server) {
+    public NetworkManager(CloudServer server) {
         this.server = server;
     }
 
@@ -72,7 +72,7 @@ public class Network {
         this.interfaces.add(interfaz);
         if (interfaz instanceof AdvancedSourceInterface) {
             this.advancedInterfaces.add((AdvancedSourceInterface) interfaz);
-            ((AdvancedSourceInterface) interfaz).setNetwork(this);
+            ((AdvancedSourceInterface) interfaz).setNetworkManager(this);
         }
         interfaz.setName(this.name + "!@#" + this.subName);
     }

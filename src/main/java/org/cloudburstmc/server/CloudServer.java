@@ -48,7 +48,7 @@ import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.metrics.CloudMetrics;
 import org.cloudburstmc.server.network.BedrockInterface;
-import org.cloudburstmc.server.network.Network;
+import org.cloudburstmc.server.network.NetworkManager;
 import org.cloudburstmc.server.network.ProtocolInfo;
 import org.cloudburstmc.server.network.SourceInterface;
 import org.cloudburstmc.server.network.query.QueryHandler;
@@ -150,7 +150,7 @@ public class CloudServer implements Server {
 
     private final LevelMetadataStore levelMetadata;*/
 
-    private Network network;
+    private NetworkManager networkManager;
 
     private boolean networkCompressionAsync = true;
     public int networkCompressionLevel = 7;
@@ -545,12 +545,12 @@ public class CloudServer implements Server {
         log.info(this.getLanguage().translate("cloudburst.server.networkStart", this.getIp().equals("") ? "*" : this.getIp(), this.getPort()));
         this.serverID = UUID.randomUUID();
 
-        this.network = new Network(this);
-        this.network.setName(this.getMotd());
-        this.network.setSubName(this.getSubMotd());
+        this.networkManager = new NetworkManager(this);
+        this.networkManager.setName(this.getMotd());
+        this.networkManager.setSubName(this.getSubMotd());
 
         try {
-            this.network.registerInterface(new BedrockInterface(this));
+            this.networkManager.registerInterface(new BedrockInterface(this));
         } catch (Exception e) {
             log.fatal("**** FAILED TO BIND TO " + getIp() + ":" + getPort() + "!");
             log.fatal("Perhaps a server is already running on that port?");
@@ -671,9 +671,9 @@ public class CloudServer implements Server {
             }
 
             log.debug("Stopping network interfaces");
-            for (SourceInterface interfaz : this.network.getInterfaces()) {
+            for (SourceInterface interfaz : this.networkManager.getInterfaces()) {
                 interfaz.shutdown();
-                this.network.unregisterInterface(interfaz);
+                this.networkManager.unregisterInterface(interfaz);
             }
 
             if (nameLookup != null) {
@@ -698,7 +698,7 @@ public class CloudServer implements Server {
 
         for (BanEntry entry : this.getIPBans().getEntires().values()) {
             try {
-                this.network.blockAddress(InetAddress.getByName(entry.getName()));
+                this.networkManager.blockAddress(InetAddress.getByName(entry.getName()));
             } catch (UnknownHostException e) {
                 // ignore
             }
@@ -732,7 +732,7 @@ public class CloudServer implements Server {
         } catch (Exception e) {
             log.error("Error whilst handling packet", e);
 
-            this.network.blockAddress(address.getAddress());
+            this.networkManager.blockAddress(address.getAddress());
         }
     }
 
@@ -915,7 +915,7 @@ public class CloudServer implements Server {
             ++this.tickCounter;
 
             try (Timing ignored2 = Timings.connectionTimer.startTiming()) {
-                this.network.processInterfaces();
+                this.networkManager.processInterfaces();
             }
 
             try (Timing ignored2 = Timings.schedulerTimer.startTiming()) {
@@ -932,7 +932,7 @@ public class CloudServer implements Server {
 
             if ((this.tickCounter & 0b1111) == 0) {
                 this.titleTick();
-                this.network.resetStatistics();
+                this.networkManager.resetStatistics();
                 this.maxTick = 20;
                 this.maxUse = 0;
 
@@ -1010,8 +1010,8 @@ public class CloudServer implements Server {
                 + " | Online " + this.players.size() + "/" + this.getMaxPlayers()
                 + " | Memory " + usage;
         if (!Bootstrap.shortTitle) {
-            title += " | U " + NukkitMath.round((this.network.getUpload() / 1024 * 1000), 2)
-                    + " D " + NukkitMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
+            title += " | U " + NukkitMath.round((this.networkManager.getUpload() / 1024 * 1000), 2)
+                    + " D " + NukkitMath.round((this.networkManager.getDownload() / 1024 * 1000), 2) + " kB/s";
         }
         title += " | TPS " + this.getTicksPerSecond()
                 + " | Load " + this.getTickUsage() + "%" + (char) 0x07;
@@ -1552,8 +1552,8 @@ public class CloudServer implements Server {
         return forceLanguage;
     }
 
-    public Network getNetwork() {
-        return network;
+    public NetworkManager getNetwork() {
+        return networkManager;
     }
 
     public ServerConfig getConfig() {

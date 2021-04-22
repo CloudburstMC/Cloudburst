@@ -86,7 +86,7 @@ public class BedrockInterface implements AdvancedSourceInterface, BedrockServerE
     }
 
     @Override
-    public void setNetwork(Network network) {
+    public void setNetworkManager(NetworkManager networkManager) {
         // no-op
     }
 
