@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 
 @Log4j2
 @ParametersAreNonnullByDefault
-public class BedrockInterface implements AdvancedSourceInterface, BedrockServerEventHandler {
+public class BedrockInterface implements BedrockServerEventHandler, SourceInterface {
 
     private final CloudServer server;
 

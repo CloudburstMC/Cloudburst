@@ -24,7 +24,7 @@ public class NetworkManager {
 
     private final Set<SourceInterface> interfaces = new HashSet<>();
 
-    private final Set<AdvancedSourceInterface> advancedInterfaces = new HashSet<>();
+    private final Set<BedrockInterface> advancedInterfaces = new HashSet<>();
 
     private String motd;
 
@@ -57,16 +57,16 @@ public class NetworkManager {
 
     public void registerInterface(SourceInterface interfaz) {
         this.interfaces.add(interfaz);
-        if (interfaz instanceof AdvancedSourceInterface) {
-            this.advancedInterfaces.add((AdvancedSourceInterface) interfaz);
-            ((AdvancedSourceInterface) interfaz).setNetworkManager(this);
+        if (interfaz instanceof BedrockInterface) {
+            this.advancedInterfaces.add((BedrockInterface) interfaz);
+            ((BedrockInterface) interfaz).setNetworkManager(this);
         }
         interfaz.setMotd(this.motd + "!@#" + this.subMotd);
     }
 
     public void unregisterInterface(SourceInterface sourceInterface) {
         this.interfaces.remove(sourceInterface);
-        if (sourceInterface instanceof AdvancedSourceInterface) {
+        if (sourceInterface instanceof BedrockInterface) {
             this.advancedInterfaces.remove(sourceInterface);
         }
     }
@@ -100,25 +100,25 @@ public class NetworkManager {
     }
 
     public void sendRawPacket(InetSocketAddress socketAddress, ByteBuf payload) {
-        for (AdvancedSourceInterface sourceInterface : this.advancedInterfaces) {
+        for (BedrockInterface sourceInterface : this.advancedInterfaces) {
             sourceInterface.sendRawPacket(socketAddress, payload);
         }
     }
 
     public void blockAddress(InetAddress address) {
-        for (AdvancedSourceInterface sourceInterface : this.advancedInterfaces) {
+        for (BedrockInterface sourceInterface : this.advancedInterfaces) {
             sourceInterface.blockAddress(address);
         }
     }
 
     public void blockAddress(InetAddress address, long timeout, TimeUnit unit) {
-        for (AdvancedSourceInterface sourceInterface : this.advancedInterfaces) {
+        for (BedrockInterface sourceInterface : this.advancedInterfaces) {
             sourceInterface.blockAddress(address, timeout, unit);
         }
     }
 
     public void unblockAddress(InetAddress address) {
-        for (AdvancedSourceInterface sourceInterface : this.advancedInterfaces) {
+        for (BedrockInterface sourceInterface : this.advancedInterfaces) {
             sourceInterface.unblockAddress(address);
         }
     }
