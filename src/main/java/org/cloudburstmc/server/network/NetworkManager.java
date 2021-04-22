@@ -37,6 +37,12 @@ public class NetworkManager {
         return this.statistics;
     }
 
+
+    public CloudServer getServer() {
+        return server;
+    }
+
+
     public Set<SourceInterface> getInterfaces() {
         return interfaces;
     }
@@ -63,9 +69,6 @@ public class NetworkManager {
         this.interfaces.remove(sourceInterface);
     }
 
-    public CloudServer getServer() {
-        return server;
-    }
 
     public String getMotd() {
         return motd;
@@ -89,9 +92,11 @@ public class NetworkManager {
         this.interfaces.forEach(it -> it.setMotd(this.motd, this.subMotd));
     }
 
+
     public void sendRawPacket(InetSocketAddress socketAddress, ByteBuf payload) {
         this.interfaces.forEach(it -> it.sendRawPacket(socketAddress, payload));
     }
+
 
     public void blockAddress(InetAddress address) {
         this.interfaces.forEach(it -> it.blockAddress(address));
