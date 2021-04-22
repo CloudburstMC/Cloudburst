@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  */
 public interface SourceInterface {
 
-    void setMotd(String name);
+    void setMotd(String motd, String subMotd);
 
     boolean process();
 

@@ -61,7 +61,7 @@ public class NetworkManager {
             this.advancedInterfaces.add((BedrockInterface) interfaz);
             ((BedrockInterface) interfaz).setNetworkManager(this);
         }
-        interfaz.setMotd(this.motd + "!@#" + this.subMotd);
+        interfaz.setMotd(this.motd, this.subMotd);
     }
 
     public void unregisterInterface(SourceInterface sourceInterface) {
@@ -91,7 +91,7 @@ public class NetworkManager {
 
     public void updateMotds() {
         for (SourceInterface interfaz : this.interfaces) {
-            interfaz.setMotd(this.motd + "!@#" + this.subMotd);
+            interfaz.setMotd(this.motd, this.subMotd);
         }
     }
 
