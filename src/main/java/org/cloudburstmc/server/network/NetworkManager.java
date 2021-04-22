@@ -33,6 +33,17 @@ public class NetworkManager {
         statistics = new NetworkStatistics();
     }
 
+
+    public void start() throws Exception {
+        registerInterface(new BedrockInterface(this.server));
+    }
+
+    public void close() {
+        interfaces.forEach(SourceInterface::shutdown);
+        interfaces.clear();
+    }
+
+
     public NetworkStatistics getStatistics() {
         return this.statistics;
     }

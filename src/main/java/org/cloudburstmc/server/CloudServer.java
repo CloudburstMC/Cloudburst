@@ -50,7 +50,6 @@ import org.cloudburstmc.server.metrics.CloudMetrics;
 import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.network.NetworkManager;
 import org.cloudburstmc.server.network.ProtocolInfo;
-import org.cloudburstmc.server.network.SourceInterface;
 import org.cloudburstmc.server.network.query.QueryHandler;
 import org.cloudburstmc.server.pack.PackManager;
 import org.cloudburstmc.server.permission.BanEntry;
@@ -550,9 +549,9 @@ public class CloudServer implements Server {
         this.networkManager.setSubMotd(this.getSubMotd());
 
         try {
-            this.networkManager.registerInterface(new BedrockInterface(this));
+            this.networkManager.start();
         } catch (Exception e) {
-            log.fatal("**** FAILED TO BIND TO " + getIp() + ":" + getPort() + "!");
+            log.fatal("**** FAILED TO START NETWORK TO " + getIp() + ":" + getPort() + "!");
             log.fatal("Perhaps a server is already running on that port?");
             this.forceShutdown();
         }
@@ -670,11 +669,9 @@ public class CloudServer implements Server {
                 }
             }
 
-            log.debug("Stopping network interfaces");
-            for (SourceInterface interfaz : this.networkManager.getInterfaces()) {
-                interfaz.shutdown();
-                this.networkManager.unregisterInterface(interfaz);
-            }
+            log.debug("Stopping network");
+            this.networkManager.close();
+
 
             if (nameLookup != null) {
                 nameLookup.close();
@@ -731,7 +728,6 @@ public class CloudServer implements Server {
             }
         } catch (Exception e) {
             log.error("Error whilst handling packet", e);
-
             this.networkManager.blockAddress(address.getAddress());
         }
     }
