@@ -7,7 +7,7 @@ package org.cloudburstmc.server.network;
  */
 public interface SourceInterface {
 
-    void setName(String name);
+    void setMotd(String name);
 
     boolean process();
 

@@ -546,8 +546,8 @@ public class CloudServer implements Server {
         this.serverID = UUID.randomUUID();
 
         this.networkManager = new NetworkManager(this);
-        this.networkManager.setName(this.getMotd());
-        this.networkManager.setSubName(this.getSubMotd());
+        this.networkManager.setMotd(this.getMotd());
+        this.networkManager.setSubMotd(this.getSubMotd());
 
         try {
             this.networkManager.registerInterface(new BedrockInterface(this));
@@ -947,7 +947,7 @@ public class CloudServer implements Server {
                     }
                 }
 
-                this.getNetwork().updateName();
+                this.getNetwork().updateMotds();
             }
 
             if (this.autoSave && ++this.autoSaveTicker >= this.autoSaveTicks) {

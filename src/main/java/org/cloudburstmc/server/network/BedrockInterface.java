@@ -101,7 +101,7 @@ public class BedrockInterface implements AdvancedSourceInterface, BedrockServerE
     }
 
     @Override
-    public void setName(String name) {
+    public void setMotd(String name) {
         QueryRegenerateEvent info = this.server.getQueryInformation();
         String[] names = name.split("!@#");  //Split double names within the program
         String motd = Utils.rtrim(names[0].replace(";", "\\;"), '\\');

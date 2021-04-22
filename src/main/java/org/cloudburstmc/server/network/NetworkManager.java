@@ -27,8 +27,8 @@ public class NetworkManager {
     private double upload = 0;
     private double download = 0;
 
-    private String name;
-    private String subName;
+    private String motd;
+    private String subMotd;
 
     public NetworkManager(CloudServer server) {
         this.server = server;
@@ -74,7 +74,7 @@ public class NetworkManager {
             this.advancedInterfaces.add((AdvancedSourceInterface) interfaz);
             ((AdvancedSourceInterface) interfaz).setNetworkManager(this);
         }
-        interfaz.setName(this.name + "!@#" + this.subName);
+        interfaz.setMotd(this.motd + "!@#" + this.subMotd);
     }
 
     public void unregisterInterface(SourceInterface sourceInterface) {
@@ -84,26 +84,27 @@ public class NetworkManager {
         }
     }
 
-    public void setName(String name) {
-        this.name = name;
-        this.updateName();
+    public String getMotd() {
+        return motd;
     }
 
-    public String getName() {
-        return name;
+    public void setMotd(String motd) {
+        this.motd = motd;
+        this.updateMotds();
     }
 
-    public String getSubName() {
-        return subName;
+    public String getSubMotd() {
+        return subMotd;
     }
 
-    public void setSubName(String subName) {
-        this.subName = subName;
+    public void setSubMotd(String subMotd) {
+        this.subMotd = subMotd;
+        this.updateMotds();
     }
 
-    public void updateName() {
+    public void updateMotds() {
         for (SourceInterface interfaz : this.interfaces) {
-            interfaz.setName(this.name + "!@#" + this.subName);
+            interfaz.setMotd(this.motd + "!@#" + this.subMotd);
         }
     }
 
@@ -134,4 +135,5 @@ public class NetworkManager {
             sourceInterface.unblockAddress(address);
         }
     }
+
 }
