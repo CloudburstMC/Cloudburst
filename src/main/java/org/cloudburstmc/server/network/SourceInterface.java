@@ -12,21 +12,49 @@ import java.util.concurrent.TimeUnit;
  */
 public interface SourceInterface {
 
+    /**
+     * set the main motd and submotd returned on client ping
+     */
     void setMotd(String motd, String subMotd);
 
+    /**
+     * perform some process need to be done per tick, used on ticking
+     */
     boolean process();
 
+    /**
+     * gracefully shutdown the interface
+     */
     void shutdown();
 
+    /**
+     * shutdown immediately
+     */
     void emergencyShutdown();
 
+    /**
+     * block an address indefinitely
+     */
     void blockAddress(InetAddress address);
 
+    /**
+     * block an address for specified amount of time
+     */
     void blockAddress(InetAddress address, long timeout, TimeUnit unit);
 
+    /**
+     * unblock an address
+     */
     void unblockAddress(InetAddress address);
 
+    /**
+     * send raw UDP packet to target address
+     */
+    void sendRawPacket(InetSocketAddress socketAddress, ByteBuf payload);
+
+    /**
+     * set the manager that this interface belongs to
+     */
     void setNetworkManager(NetworkManager networkManager);
 
-    void sendRawPacket(InetSocketAddress socketAddress, ByteBuf payload);
 }
