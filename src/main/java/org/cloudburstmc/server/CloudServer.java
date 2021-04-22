@@ -932,7 +932,7 @@ public class CloudServer implements Server {
 
             if ((this.tickCounter & 0b1111) == 0) {
                 this.titleTick();
-                this.networkManager.resetStatistics();
+                this.networkManager.getStatistics().reset();
                 this.maxTick = 20;
                 this.maxUse = 0;
 
@@ -1010,8 +1010,8 @@ public class CloudServer implements Server {
                 + " | Online " + this.players.size() + "/" + this.getMaxPlayers()
                 + " | Memory " + usage;
         if (!Bootstrap.shortTitle) {
-            title += " | U " + NukkitMath.round((this.networkManager.getUpload() / 1024 * 1000), 2)
-                    + " D " + NukkitMath.round((this.networkManager.getDownload() / 1024 * 1000), 2) + " kB/s";
+            title += " | U " + NukkitMath.round((this.networkManager.getStatistics().getUpload() / 1024 * 1000), 2)
+                    + " D " + NukkitMath.round((this.networkManager.getStatistics().getDownload() / 1024 * 1000), 2) + " kB/s";
         }
         title += " | TPS " + this.getTicksPerSecond()
                 + " | Load " + this.getTickUsage() + "%" + (char) 0x07;

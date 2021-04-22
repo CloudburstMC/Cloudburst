@@ -20,36 +20,23 @@ public class NetworkManager {
 
     private final CloudServer server;
 
+    private final NetworkStatistics statistics;
+
     private final Set<SourceInterface> interfaces = new HashSet<>();
 
     private final Set<AdvancedSourceInterface> advancedInterfaces = new HashSet<>();
 
-    private double upload = 0;
-    private double download = 0;
-
     private String motd;
+
     private String subMotd;
 
     public NetworkManager(CloudServer server) {
         this.server = server;
+        statistics = new NetworkStatistics();
     }
 
-    public void addStatistics(double upload, double download) {
-        this.upload += upload;
-        this.download += download;
-    }
-
-    public double getUpload() {
-        return upload;
-    }
-
-    public double getDownload() {
-        return download;
-    }
-
-    public void resetStatistics() {
-        this.upload = 0;
-        this.download = 0;
+    public NetworkStatistics getStatistics() {
+        return this.statistics;
     }
 
     public Set<SourceInterface> getInterfaces() {
