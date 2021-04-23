@@ -117,7 +117,7 @@ public class CloudServer implements Server {
 
     private int tickCounter;
 
-    private long nextTick;
+    private long nextTickTimeMillis;
 
     private final TickStatistics tickStatistics;
 
@@ -734,13 +734,23 @@ public class CloudServer implements Server {
     private int lastLevelGC;
 
     public void tickProcessor() {
-        this.nextTick = System.currentTimeMillis();
+        this.nextTickTimeMillis = System.currentTimeMillis();
         try {
             while (this.isRunning.get()) {
                 try {
-                    this.tick();
+                    long tickTime = System.currentTimeMillis();
 
-                    long next = this.nextTick;
+                    boolean ticked = this.tick();
+
+                    if(ticked){
+                        if ((this.nextTickTimeMillis - tickTime) < -1000) {
+                            this.nextTickTimeMillis = tickTime;
+                        } else {
+                            this.nextTickTimeMillis += 50;
+                        }
+                    }
+
+                    long next = this.nextTickTimeMillis;
                     long current = System.currentTimeMillis();
 
                     if (next - 0.1 > current) {
@@ -890,21 +900,18 @@ public class CloudServer implements Server {
     private boolean tick() {
         long tickTime = System.currentTimeMillis();
 
-        // TODO
-        long time = tickTime - this.nextTick;
-        if (time < -25) {
+        // TODO: remove this mysterious delay between tickTime and beforeTickNano
+        long time = this.nextTickTimeMillis - tickTime;
+        if (time < 25) {
             try {
-                Thread.sleep(Math.max(5, -time - 25));
+                Thread.sleep(Math.max(5, time - 25));
             } catch (InterruptedException e) {
                 log.error("Server interrupted whilst sleeping", e);
             }
-        }
-
-        long beforeTickNano = System.nanoTime();
-        if ((tickTime - this.nextTick) < -25) {
             return false;
         }
 
+        long beforeTickNano = System.nanoTime();
         try (Timing ignored = Timings.fullServerTickTimer.startTiming()) {
 
             ++this.tickCounter;
@@ -928,6 +935,7 @@ public class CloudServer implements Server {
             if ((this.tickCounter & 0b1111) == 0) {
                 this.titleTick();
                 this.network.resetStatistics();
+
                 tickStatistics.resetCurrent();
 
                 if ((this.tickCounter & 0b111111111) == 0) {
@@ -958,17 +966,11 @@ public class CloudServer implements Server {
 
         tickStatistics.onTickCompleted(beforeTickNano, afterTickNano);
 
-        if ((this.nextTick - tickTime) < -1000) {
-            this.nextTick = tickTime;
-        } else {
-            this.nextTick += 50;
-        }
-
         return true;
     }
 
-    public long getNextTick() {
-        return nextTick;
+    public long getNextTickTimeMillis() {
+        return nextTickTimeMillis;
     }
 
     // TODO: Fix title tick
