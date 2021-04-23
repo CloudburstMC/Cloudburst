@@ -119,13 +119,7 @@ public class CloudServer implements Server {
 
     private long nextTick;
 
-    private final float[] tickAverage = {20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20};
-
-    private final float[] useAverage = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-    private float maxTick = 20;
-
-    private float maxUse = 0;
+    private final TickStatistics tickStatistics;
 
     private int sendUsageTicker = 0;
 
@@ -233,6 +227,7 @@ public class CloudServer implements Server {
         this.pluginPath = pluginPath;
         this.predefinedLanguage = predefinedLanguage;
 
+        this.tickStatistics = new TickStatistics();
         this.pluginManager = injector.getInstance(CloudPluginManager.class);
         this.eventManager = injector.getInstance(CloudEventManager.class);
         this.permissionManager = injector.getInstance(CloudPermissionManager.class);
@@ -905,7 +900,7 @@ public class CloudServer implements Server {
             }
         }
 
-        long tickTimeNano = System.nanoTime();
+        long beforeTickNano = System.nanoTime();
         if ((tickTime - this.nextTick) < -25) {
             return false;
         }
@@ -933,8 +928,7 @@ public class CloudServer implements Server {
             if ((this.tickCounter & 0b1111) == 0) {
                 this.titleTick();
                 this.network.resetStatistics();
-                this.maxTick = 20;
-                this.maxUse = 0;
+                tickStatistics.resetCurrent();
 
                 if ((this.tickCounter & 0b111111111) == 0) {
                     try {
@@ -960,27 +954,9 @@ public class CloudServer implements Server {
                 //todo sendUsage
             }
         }
-        //long now = System.currentTimeMillis();
-        long nowNano = System.nanoTime();
-        //float tick = Math.min(20, 1000 / Math.max(1, now - tickTime));
-        //float use = Math.min(1, (now - tickTime) / 50);
+        long afterTickNano = System.nanoTime();
 
-        float tick = (float) Math.min(20, 1000000000 / Math.max(1000000, ((double) nowNano - tickTimeNano)));
-        float use = (float) Math.min(1, ((double) (nowNano - tickTimeNano)) / 50000000);
-
-        if (this.maxTick > tick) {
-            this.maxTick = tick;
-        }
-
-        if (this.maxUse < use) {
-            this.maxUse = use;
-        }
-
-        System.arraycopy(this.tickAverage, 1, this.tickAverage, 0, this.tickAverage.length - 1);
-        this.tickAverage[this.tickAverage.length - 1] = tick;
-
-        System.arraycopy(this.useAverage, 1, this.useAverage, 0, this.useAverage.length - 1);
-        this.useAverage[this.useAverage.length - 1] = use;
+        tickStatistics.onTickCompleted(beforeTickNano, afterTickNano);
 
         if ((this.nextTick - tickTime) < -1000) {
             this.nextTick = tickTime;
@@ -1188,29 +1164,19 @@ public class CloudServer implements Server {
     }
 
     public float getTicksPerSecond() {
-        return ((float) Math.round(this.maxTick * 100)) / 100;
+        return tickStatistics.getReadableTicksPerSecond();
     }
 
     public float getTicksPerSecondAverage() {
-        float sum = 0;
-        int count = this.tickAverage.length;
-        for (float aTickAverage : this.tickAverage) {
-            sum += aTickAverage;
-        }
-        return (float) NukkitMath.round(sum / count, 2);
+        return tickStatistics.getTicksPerSecondAverage();
     }
 
     public float getTickUsage() {
-        return (float) NukkitMath.round(this.maxUse * 100, 2);
+        return tickStatistics.getReadableTickUsage();
     }
 
     public float getTickUsageAverage() {
-        float sum = 0;
-        int count = this.useAverage.length;
-        for (float aUseAverage : this.useAverage) {
-            sum += aUseAverage;
-        }
-        return ((float) Math.round(sum / count * 100)) / 100;
+        return tickStatistics.getTickUsageAverage();
     }
 
     public CommandRegistry getCommandRegistry() {
