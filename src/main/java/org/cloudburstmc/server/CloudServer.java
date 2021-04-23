@@ -12,7 +12,6 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.spotify.futures.CompletableFutures;
-import io.netty.buffer.ByteBuf;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.api.Server;
@@ -47,10 +46,8 @@ import org.cloudburstmc.server.locale.LocaleManager;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.metrics.CloudMetrics;
-import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.network.NetworkManager;
 import org.cloudburstmc.server.network.ProtocolInfo;
-import org.cloudburstmc.server.network.query.QueryHandler;
 import org.cloudburstmc.server.pack.PackManager;
 import org.cloudburstmc.server.permission.BanEntry;
 import org.cloudburstmc.server.permission.BanList;
@@ -177,8 +174,6 @@ public class CloudServer implements Server {
     private final Path pluginPath;
 
     private final Set<UUID> uniquePlayers = new HashSet<>();
-
-    private QueryHandler queryHandler;
 
     private QueryRegenerateEvent queryRegenerateEvent;
     private CloudburstYaml cloudburstYaml;
@@ -689,9 +684,6 @@ public class CloudServer implements Server {
     }
 
     public void start() {
-        if (this.serverProperties.isEnableQuery()) {
-            this.queryHandler = new QueryHandler();
-        }
 
         for (BanEntry entry : this.getIPBans().getEntires().values()) {
             try {
@@ -710,26 +702,6 @@ public class CloudServer implements Server {
 
         this.tickProcessor();
         this.forceShutdown();
-    }
-
-    public void handlePacket(InetSocketAddress address, ByteBuf payload) {
-        try {
-            if (!payload.isReadable(3)) {
-                return;
-            }
-            byte[] prefix = new byte[2];
-            payload.readBytes(prefix);
-
-            if (!Arrays.equals(prefix, new byte[]{(byte) 0xfe, (byte) 0xfd})) {
-                return;
-            }
-            if (this.queryHandler != null) {
-                this.queryHandler.handle(address, payload);
-            }
-        } catch (Exception e) {
-            log.error("Error whilst handling packet", e);
-            this.networkManager.blockAddress(address.getAddress());
-        }
     }
 
     private int lastLevelGC;
@@ -935,8 +907,8 @@ public class CloudServer implements Server {
                 if ((this.tickCounter & 0b111111111) == 0) {
                     try {
                         this.eventManager.fire(this.queryRegenerateEvent = new QueryRegenerateEvent(this, 5));
-                        if (this.queryHandler != null) {
-                            this.queryHandler.regenerateInfo();
+                        if (this.networkManager.getQueryHandler() != null) {
+                            this.networkManager.getQueryHandler().regenerateInfo();
                         }
                     } catch (Exception e) {
                         log.error(e);

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.event.server.QueryRegenerateEvent;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.network.query.QueryHandler;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.handler.LoginPacketHandler;
 import org.cloudburstmc.server.utils.Utils;
@@ -20,6 +21,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -32,12 +34,15 @@ public class BedrockInterface implements BedrockServerEventHandler, SourceInterf
 
     private final CloudServer server;
 
+    private final QueryHandler queryHandler;
+
     private final BedrockServer bedrock;
     private final BedrockPong advertisement = new BedrockPong();
     private final Queue<NukkitSessionListener> disconnectQueue = new ConcurrentLinkedQueue<>();
 
     public BedrockInterface(CloudServer server) throws Exception {
         this.server = server;
+        this.queryHandler = server.getNetwork().getQueryHandler();
 
         InetSocketAddress bindAddress = new InetSocketAddress(this.server.getIp(), this.server.getPort());
 
@@ -97,7 +102,27 @@ public class BedrockInterface implements BedrockServerEventHandler, SourceInterf
 
     @Override
     public void onUnhandledDatagram(ChannelHandlerContext ctx, DatagramPacket packet) {
-        this.server.handlePacket(packet.sender(), packet.content());
+        this.handlePacket(packet.sender(), packet.content());
+    }
+
+    public void handlePacket(InetSocketAddress address, ByteBuf payload) {
+        try {
+            if (!payload.isReadable(3)) {
+                return;
+            }
+            byte[] prefix = new byte[2];
+            payload.readBytes(prefix);
+
+            if (!Arrays.equals(prefix, new byte[]{(byte) 0xfe, (byte) 0xfd})) {
+                return;
+            }
+            if (this.queryHandler != null) {
+                this.queryHandler.handle(address, payload);
+            }
+        } catch (Exception e) {
+            log.error("Error whilst handling packet", e);
+            this.server.getNetwork().blockAddress(address.getAddress());
+        }
     }
 
     @Override

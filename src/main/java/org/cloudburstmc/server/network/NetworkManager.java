@@ -3,10 +3,13 @@ package org.cloudburstmc.server.network;
 import io.netty.buffer.ByteBuf;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.network.query.QueryHandler;
+import org.cloudburstmc.server.permission.BanEntry;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +27,8 @@ public class NetworkManager {
 
     private final Set<SourceInterface> interfaces = new HashSet<>();
 
+    private final QueryHandler queryHandler;
+
     private String motd;
 
     private String subMotd;
@@ -31,6 +36,11 @@ public class NetworkManager {
     public NetworkManager(CloudServer server) {
         this.server = server;
         statistics = new NetworkStatistics();
+        if (this.server.getConfig().isEnableQuery()) {
+            this.queryHandler = new QueryHandler();
+        } else {
+            this.queryHandler = null;
+        }
     }
 
 
@@ -44,13 +54,12 @@ public class NetworkManager {
     }
 
 
-    public NetworkStatistics getStatistics() {
-        return this.statistics;
-    }
-
-
     public CloudServer getServer() {
         return server;
+    }
+
+    public NetworkStatistics getStatistics() {
+        return this.statistics;
     }
 
 
@@ -121,4 +130,7 @@ public class NetworkManager {
         this.interfaces.forEach(it -> it.unblockAddress(address));
     }
 
+    public QueryHandler getQueryHandler() {
+        return queryHandler;
+    }
 }
