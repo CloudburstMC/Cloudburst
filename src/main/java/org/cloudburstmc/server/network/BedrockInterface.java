@@ -127,12 +127,9 @@ public class BedrockInterface implements BedrockServerEventHandler, SourceInterf
 
     @Override
     public void setMotd(String motd0, String subMotd0) {
-        String name = motd0 + "!@#" + subMotd0;
-
         QueryRegenerateEvent info = this.server.getQueryInformation();
-        String[] names = name.split("!@#");  //Split double names within the program
-        String motd = Utils.rtrim(names[0].replace(";", "\\;"), '\\');
-        String subMotd = names.length > 1 ? Utils.rtrim(names[1].replace(";", "\\;"), '\\') : "";
+        String motd = Utils.rtrim(motd0.replace(";", "\\;"), '\\');
+        String subMotd = Utils.rtrim(subMotd0.replace(";", "\\;"), '\\');
         String gm = this.server.getDefaultGamemode().getName();
 
         this.advertisement.setEdition("MCPE");
