@@ -5,9 +5,13 @@
 # Use maven java 16 image for intermiediate build
 FROM maven:3-openjdk-16-slim AS build
 
+# Install packages required for build
+RUN apt update && apt install -y git
+
 # Build from source and create artifact
 WORKDIR /src
 COPY ./ /src
+RUN git submodule update --init
 RUN mvn clean package
 
 # Use OpenJDK JRE image for runtime
