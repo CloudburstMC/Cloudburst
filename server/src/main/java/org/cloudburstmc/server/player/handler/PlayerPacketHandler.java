@@ -17,6 +17,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
@@ -871,6 +872,17 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 packet.getSound() != SoundEvent.ATTACK_NODAMAGE)) {
             player.getLevel().addChunkPacket(player.getPosition(), packet);
         }
+        return true;
+    }
+
+    @Override
+    public boolean handle(ItemStackRequestPacket packet) {
+        ItemStackResponsePacket pk = new ItemStackResponsePacket();
+        for (ItemStackRequest req : packet.getRequests()) {
+            pk.getEntries().add(player.getInventoryManager().handle(req));
+        }
+
+        player.sendPacket(pk);
         return true;
     }
 

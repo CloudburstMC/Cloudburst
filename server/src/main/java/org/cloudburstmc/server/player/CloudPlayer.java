@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.bytes.ByteSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -107,6 +108,7 @@ import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.permission.PermissibleBase;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
+import org.cloudburstmc.server.player.manager.PlayerInventoryManager;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -161,12 +163,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     private String clientSecret;
     protected Vector3f forceMovement = null;
 
-    private final CloudPlayerInventory inventory = new CloudPlayerInventory(this);
-    private final CloudEnderChestInventory enderChestInventory = new CloudEnderChestInventory(this);
-    private final PlayerCursorInventory cursorInventory = new PlayerCursorInventory(this);
-    private final CloudCraftingGrid craftingGrid = new CloudCraftingGrid(this);
-
-    protected CraftingTransaction craftingTransaction;
+    private final PlayerInventoryManager invManager = new PlayerInventoryManager(this);
 
     public long creationTime = 0;
 
@@ -253,11 +250,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.perm = new PermissibleBase(this);
         this.server = CloudServer.getInstance();
         this.lastBreak = -1;
-        this.chunksPerTick = ((CloudServer) this.server).getConfig().getChunkSending().getPerTick();
-        this.spawnThreshold = ((CloudServer) this.server).getConfig().getChunkSending().getSpawnThreshold();
+        this.chunksPerTick = this.server.getConfig().getChunkSending().getPerTick();
+        this.spawnThreshold = this.server.getConfig().getChunkSending().getSpawnThreshold();
         this.spawnLocation = null;
         this.playerData.setGamemode(this.server.getGamemode());
-        this.viewDistance = ((CloudServer) this.server).getViewDistance();
+        this.viewDistance = this.server.getViewDistance();
         //this.newPosition = new Vector3(0, 0, 0);
         this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
         this.lastSkinChange = -1;
@@ -321,7 +318,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     @Override
     public CloudCraftingGrid getCraftingInventory() {
-        return craftingGrid;
+        return invManager.getCraftingGrid();
     }
 
     public TranslationContainer getLeaveMessage() {
@@ -1749,7 +1746,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             return false;
         }
 
-        this.craftingGrid.setCraftingGridType(CraftingGrid.Type.CRAFTING_GRID_SMALL);
+        this.invManager.getCraftingGrid().setCraftingGridType(CraftingGrid.Type.CRAFTING_GRID_SMALL);
 
         if (this.removeFormat) {
             message = TextFormat.clean(message, true);
@@ -2369,7 +2366,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         tag.listenForFloat("FoodSaturationLevel", this.foodData::setFoodSaturationLevel);
         tag.listenForList("EnderItems", NbtType.COMPOUND, items -> {
             for (NbtMap itemTag : items) {
-                this.enderChestInventory.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
+                this.getEnderChestInventory().setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
             }
         });
     }
@@ -2397,14 +2394,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         List<NbtMap> inventoryItems = new ArrayList<>();
         int slotCount = CloudPlayerInventory.SURVIVAL_SLOTS + 9;
         for (int slot = 9; slot < slotCount; ++slot) {
-            ItemStack item = this.inventory.getItem(slot - 9);
+            ItemStack item = this.getInventory().getItem(slot - 9);
             if (!item.isNull()) {
                 inventoryItems.add(ItemUtils.serializeItem(item, slot));
             }
         }
 
         for (int slot = 100; slot < 105; ++slot) {
-            ItemStack item = this.inventory.getItem(this.inventory.getSize() + slot - 100);
+            ItemStack item = this.getInventory().getItem(this.getInventory().getSize() + slot - 100);
             if (!item.isNull()) {
                 inventoryItems.add(ItemUtils.serializeItem(item, slot));
             }
@@ -2414,7 +2411,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         List<NbtMap> enderItems = new ArrayList<>();
         for (int slot = 0; slot < 27; ++slot) {
-            ItemStack item = this.enderChestInventory.getItem(slot);
+            ItemStack item = this.getEnderChestInventory().getItem(slot);
             if (item != null && !item.isNull()) {
                 enderItems.add(ItemUtils.serializeItem(item, slot));
             }
@@ -2926,36 +2923,38 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     protected void addDefaultWindows() {
         this.addWindow(this.getInventory(), (byte) ContainerId.INVENTORY, true);
-        this.addWindow(this.craftingGrid, (byte) ContainerId.NONE);
+        this.addWindow(this.getCraftingInventory(), (byte) ContainerId.NONE);
+        this.addWindow(this.getCursorInventory(), (byte) ContainerId.UI, true); // Is this needed?
 
         //TODO: more windows
     }
 
     @Override
     public CloudPlayerInventory getInventory() {
-        return inventory;
+        return invManager.getMainInv();
     }
 
+    @Override
     public CloudEnderChestInventory getEnderChestInventory() {
-        return enderChestInventory;
+        return invManager.getEnderChest();
     }
 
-    /*
-        public PlayerUIInventory getUIInventory() {
-            return playerUIInventory;
-        }
-    */
     public PlayerCursorInventory getCursorInventory() {
-        return this.cursorInventory;
+        return this.invManager.getCursor();
+    }
+
+    public PlayerInventoryManager getInventoryManager() {
+        return invManager;
     }
 
 
+    @Nullable
     public CraftingTransaction getCraftingTransaction() {
-        return craftingTransaction;
+        return invManager.getTransaction();
     }
 
-    public void setCraftingTransaction(CraftingTransaction craftingTransaction) {
-        this.craftingTransaction = craftingTransaction;
+    public void setCraftingTransaction(@Nullable CraftingTransaction craftingTransaction) {
+        this.invManager.setTransaction(craftingTransaction);
     }
 
     public void removeAllWindows() {

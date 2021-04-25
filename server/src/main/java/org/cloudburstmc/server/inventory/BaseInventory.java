@@ -1,12 +1,15 @@
 package org.cloudburstmc.server.inventory;
 
 import com.google.common.base.Preconditions;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
+import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.val;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.api.event.inventory.InventoryOpenEvent;
@@ -109,7 +112,7 @@ public abstract class BaseInventory implements Inventory {
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public CloudItemStack getItem(int index) {
         return (CloudItemStack) (this.slots.containsKey(index) ? this.slots.get(index) : CloudItemRegistry.AIR);
     }
@@ -630,5 +633,19 @@ public abstract class BaseInventory implements Inventory {
     @Override
     public InventoryType getType() {
         return type;
+    }
+
+    @NonNull
+    public List<ItemStackResponsePacket.ContainerEntry> getContainerEntries() {
+        List<ItemStackResponsePacket.ContainerEntry> result = new ArrayList<>();
+
+        List<ItemStackResponsePacket.ItemEntry> baseInv = new ArrayList<>();
+        for (int i = 0; i <= this.getSize(); i++) {
+            CloudItemStack item = getItem(i);
+            baseInv.add(new ItemStackResponsePacket.ItemEntry((byte) i, i <= 9 ? (byte) i : 0, (byte) item.getAmount(), item.getNetworkData().getNetId(), item.getName(), 0));
+        }
+
+        result.add(new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.INVENTORY, baseInv));
+        return result;
     }
 }
