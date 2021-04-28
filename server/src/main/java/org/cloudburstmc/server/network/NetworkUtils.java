@@ -5,14 +5,19 @@ import com.google.common.collect.HashBiMap;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
+import org.cloudburstmc.server.inventory.BaseInventory;
 
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -149,5 +154,21 @@ public class NetworkUtils {
 
     public static ContainerType inventoryToNetwork(InventoryType type) {
         return inventoryTypeMap.get(type);
+    }
+
+    public static ItemStackResponsePacket.ItemEntry itemStackToNetwork(StackRequestSlotInfoData data, BaseInventory inv) {
+        int durablility = 0;
+        ItemStack item = inv.getItem(data.getSlot());
+        if (item.getMetadata(Damageable.class, null) != null) {
+            durablility = item.getMetadata(Damageable.class).getDurability();
+        }
+
+        return new ItemStackResponsePacket.ItemEntry(data.getSlot(),
+                data.getSlot() >= 0 && data.getSlot() <= 9 ? data.getSlot() : 0,
+                (byte) item.getAmount(),
+                data.getStackNetworkId(),
+                item.getName(),
+                durablility);
+
     }
 }

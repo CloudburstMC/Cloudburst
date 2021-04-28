@@ -1,11 +1,9 @@
 package org.cloudburstmc.server.inventory;
 
 import com.google.common.base.Preconditions;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.val;
@@ -550,12 +548,12 @@ public abstract class BaseInventory implements Inventory {
         InventoryContentPacket packet = new InventoryContentPacket();
         List<ItemData> contents = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
-            contents.add(i, ((CloudItemStack) this.getItem(i)).getNetworkData());
+            contents.add(i, this.getItem(i).getNetworkData());
         }
         packet.setContents(contents);
 
         for (Player player : players) {
-            int id = ((CloudPlayer) player).getWindowId(this);
+            int id = player.getWindowId(this);
             if (id == -1 || !player.isSpawned()) {
                 this.close(player);
                 continue;
@@ -617,10 +615,10 @@ public abstract class BaseInventory implements Inventory {
     public void sendSlot(int index, Player... players) {
         InventorySlotPacket packet = new InventorySlotPacket();
         packet.setSlot(index);
-        packet.setItem(((CloudItemStack) this.getItem(index)).getNetworkData());
+        packet.setItem(this.getItem(index).getNetworkData());
 
         for (Player player : players) {
-            int id = ((CloudPlayer) player).getWindowId(this);
+            int id = player.getWindowId(this);
             if (id == -1) {
                 this.close(player);
                 continue;
@@ -633,19 +631,5 @@ public abstract class BaseInventory implements Inventory {
     @Override
     public InventoryType getType() {
         return type;
-    }
-
-    @NonNull
-    public List<ItemStackResponsePacket.ContainerEntry> getContainerEntries() {
-        List<ItemStackResponsePacket.ContainerEntry> result = new ArrayList<>();
-
-        List<ItemStackResponsePacket.ItemEntry> baseInv = new ArrayList<>();
-        for (int i = 0; i <= this.getSize(); i++) {
-            CloudItemStack item = getItem(i);
-            baseInv.add(new ItemStackResponsePacket.ItemEntry((byte) i, i <= 9 ? (byte) i : 0, (byte) item.getAmount(), item.getNetworkData().getNetId(), item.getName(), 0));
-        }
-
-        result.add(new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.INVENTORY, baseInv));
-        return result;
     }
 }

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.player.manager;
 
+import com.google.common.collect.Lists;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
@@ -13,6 +14,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.server.inventory.*;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
@@ -24,13 +26,14 @@ import static com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.St
 @Log4j2
 @Getter
 public class PlayerInventoryManager {
-    private CloudPlayer player;
-    private CloudPlayerInventory mainInv;
-    private PlayerCursorInventory cursor;
-    private CloudEnderChestInventory enderChest;
-    private CloudCraftingGrid craftingGrid;
+    private final CloudPlayer player;
+    private final CloudPlayerInventory mainInv;
+    private final PlayerCursorInventory cursor;
+    private final CloudEnderChestInventory enderChest;
+    private final CloudCraftingGrid craftingGrid;
     @Setter
     private CraftingTransaction transaction;
+    @Setter
     private BlockEntity viewingBlock;
 
     public PlayerInventoryManager(CloudPlayer player) {
@@ -81,21 +84,24 @@ public class PlayerInventoryManager {
                     sourceInv = getInventoryByType(source.getContainer());
                     targetInv = getInventoryByType(target.getContainer());
 
-                    containers.addAll(sourceInv.getContainerEntries());
-                    containers.addAll(targetInv.getContainerEntries());
-
                     //Check Item
                     if (sourceInv.getItem(source.getSlot()).getNetworkData().getNetId() != source.getStackNetworkId()) {
                         result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                        containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
+                        containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, targetInv))));
                         break;
                     }
 
                     if (!targetInv.setItem(target.getSlot(), sourceInv.getItem(source.getSlot()), false)
                             || !sourceInv.clear(source.getSlot(), false)) {
                         result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                        containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
+                        containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, targetInv))));
                         break;
                     }
                     result = ItemStackResponsePacket.ResponseStatus.OK;
+                    containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
+                    containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, targetInv))));
                     break;
                 case DROP:
                     break;
@@ -128,21 +134,11 @@ public class PlayerInventoryManager {
     }
 
     private BaseInventory getInventoryByType(ContainerSlotType type) {
-        switch (type) {
-            case HOTBAR:
-            case HOTBAR_AND_INVENTORY:
-            case INVENTORY:
-            case OFFHAND:
-                return mainInv;
-            case CRAFTING_INPUT:
-            case CRAFTING_OUTPUT:
-                return craftingGrid;
-            case CURSOR:
-                return cursor;
-            default:
-                return null;
-        }
-
-
+        return switch (type) {
+            case HOTBAR, HOTBAR_AND_INVENTORY, INVENTORY, OFFHAND -> mainInv;
+            case CRAFTING_INPUT, CRAFTING_OUTPUT -> craftingGrid;
+            case CURSOR -> cursor;
+            default -> null;
+        };
     }
 }
