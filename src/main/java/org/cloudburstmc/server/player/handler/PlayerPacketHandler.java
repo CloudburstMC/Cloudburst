@@ -17,6 +17,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
@@ -41,6 +42,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.inventory.CraftingGrid;
+import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Damageable;
@@ -67,9 +69,11 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
 import org.cloudburstmc.server.locale.TranslationContainer;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.network.protocol.types.InventoryTransactionUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.*;
@@ -738,6 +742,20 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(CraftingEventPacket packet) {
+        Recipe recipe = CloudRecipeRegistry.get().getRecipe(packet.getUuid());
+        if (recipe != null) {
+            CraftingTransaction transaction = new CraftingTransaction(player, recipe);
+            transaction.setPrimaryOutput(NetworkUtils.itemStackFromNetwork(packet.getOutputs().remove(0)));
+            if (packet.getOutputs().size() >= 1) {
+                int slot = 0;
+                for (ItemData data : packet.getOutputs()) {
+                    transaction.setExtraOutput(slot++, NetworkUtils.itemStackFromNetwork(data));
+                }
+            }
+            player.getInventoryManager().setTransaction(transaction);
+            return true;
+        }
+        log.warn("Received invalid recipe UUID({}) in CraftingEventPacket", packet.getUuid());
         return true;
     }
 

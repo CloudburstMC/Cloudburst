@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
@@ -237,15 +238,29 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         return new RecipeItemStack(ItemUtils.fromJson(json), damage != -1);
     }
 
+    @Nullable
     @Override
     public Recipe getRecipe(Identifier identifier) {
         return this.recipeMap.get(identifier);
     }
 
+    @Nullable
+    @Override
+    public Recipe getRecipe(UUID uuid) {
+        for (Map<UUID, Identifier> map : this.recipeHashMap.values()) {
+            for (Map.Entry<UUID, Identifier> entry : map.entrySet()) {
+                if (uuid.equals(entry.getKey())) {
+                    return recipeMap.get(entry.getValue());
+                }
+            }
+        }
+        return null;
+    }
+
     @Override
     public Recipe matchRecipe(ItemStack[][] inputMap, ItemStack output, ItemStack[][] extraOutputMap, Identifier craftingBlock) {
         int key = ItemUtils.getItemHash((CloudItemStack) output);
-        if( !recipeHashMap.containsKey(key)) {
+        if (!recipeHashMap.containsKey(key)) {
             return null;
         }
 

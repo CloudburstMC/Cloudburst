@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class CloudItemRegistry implements ItemRegistry {
     private static final CloudItemRegistry INSTANCE;
-    private static final BiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create();
+    private static final BiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create(); // TODO FIX THIS, it is currently mapping runtime IDs
 
     static {
         try (InputStream in = RegistryUtils.getOrAssertResource("data/runtime_item_states.json")) {

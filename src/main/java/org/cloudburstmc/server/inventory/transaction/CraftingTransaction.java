@@ -4,6 +4,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.api.event.inventory.CraftItemEvent;
 import org.cloudburstmc.api.inventory.CraftingGrid;
+import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -14,6 +15,7 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.scheduler.Task;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -51,6 +53,11 @@ public class CraftingTransaction extends InventoryTransaction {
         }
 
         init(source, actions);
+    }
+
+    public CraftingTransaction(CloudPlayer source, Recipe recipe) {
+        this(source, new ArrayList<>());
+        this.recipe = (CraftingRecipe) recipe;
     }
 
     public void setInput(int index, ItemStack item) {
@@ -137,7 +144,9 @@ public class CraftingTransaction extends InventoryTransaction {
     public boolean canExecute() {
         ItemStack[][] inputs = reindexInputs();
 
-        recipe = (CraftingRecipe) CloudRecipeRegistry.get().matchRecipe(inputs, this.primaryOutput, this.secondaryOutputs, null);
+        if (recipe == null) {
+            recipe = (CraftingRecipe) CloudRecipeRegistry.get().matchRecipe(inputs, this.primaryOutput, this.secondaryOutputs, null);
+        }
 
         return this.recipe != null && super.canExecute();
     }
