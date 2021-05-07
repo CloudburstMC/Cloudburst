@@ -33,9 +33,8 @@ import org.cloudburstmc.server.utils.TextFormat;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static org.cloudburstmc.api.block.BlockIds.LIT_BLAST_FURNACE;
@@ -69,8 +68,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     public CloudRecipeRegistry(ItemRegistry registry) {
         this.itemRegistry = registry;
         try {
-            loadFromFile(Paths.get(Thread.currentThread().getContextClassLoader().getResource("data/recipes.json").toURI()));
-        } catch (URISyntaxException e) {
+            loadFromFile(Thread.currentThread().getContextClassLoader().getResource("data/recipes.json").toURI());
+        } catch (URISyntaxException | NullPointerException e) {
             throw new RegistryException("Unable to load recipes.json", e);
         }
 
@@ -129,16 +128,16 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         this.recipeMap.put(id, recipe);
     }
 
-    public void loadFromFile(Path file) {
+    public void loadFromFile(URI file) {
         long start = System.currentTimeMillis();
         log.info("Loading recipes...");
         JsonNode json;
         int unlabeled = 0;
 
         try {
-            json = Bootstrap.JSON_MAPPER.readTree(file.toFile());
+            json = Bootstrap.JSON_MAPPER.readTree(file.toURL());
         } catch (IOException e) {
-            throw new RuntimeException("Unable to read JSON File to load recipes",e);
+            throw new RuntimeException("Unable to read JSON File to load recipes", e);
         }
 
         if(json == null) {
