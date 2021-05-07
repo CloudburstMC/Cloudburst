@@ -237,7 +237,7 @@ public class ItemTypes {
     public static final ItemType NETHERITE_CHESTPLATE = IntItem.builder().id(ItemIds.NETHERITE_CHESTPLATE).maxStackSize(1).data(Damageable.class).tierType(NETHERITE).build();
     public static final ItemType NETHERITE_LEGGINGS = IntItem.builder().id(ItemIds.NETHERITE_LEGGINGS).maxStackSize(1).data(Damageable.class).tierType(NETHERITE).build();
     public static final ItemType NETHERITE_BOOTS = IntItem.builder().id(ItemIds.NETHERITE_BOOTS).maxStackSize(1).data(Damageable.class).tierType(NETHERITE).build();
-
+    public static final ItemType CONCRETE_POWDER = IntItem.builder().id(ItemIds.CONCRETE_POWDER).maxStackSize(64).data(Damageable.class).blockType(BlockTypes.CONCRETE_POWDER).build();
     public static final ItemType UNKNOWN = IntItem.builder().id(Identifiers.UNKNOWN).build();
 
     public static final class IntItem implements ItemType {

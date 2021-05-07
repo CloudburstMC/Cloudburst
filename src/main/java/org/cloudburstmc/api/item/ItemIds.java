@@ -376,4 +376,6 @@ public final class ItemIds {
     public static final Identifier SOUL_CAMPFIRE = Identifier.fromString("soul_campfire");
     public static final Identifier BOARD = Identifier.fromString("board");
     public static final Identifier PORTFOLIO = Identifier.fromString("portfolio");
+
+    public static final Identifier CONCRETE_POWDER = Identifier.fromString("concrete_powder");
 }
