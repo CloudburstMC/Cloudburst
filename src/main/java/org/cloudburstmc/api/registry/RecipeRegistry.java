@@ -4,14 +4,14 @@ import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 
-import java.nio.file.Path;
+import java.net.URI;
 import java.util.Collection;
 
 public interface RecipeRegistry extends Registry {
 
     void register(Recipe recipe) throws RegistryException;
 
-    void loadFromFile(Path file);
+    void loadFromFile(URI file);
 
     Recipe getRecipe(Identifier identifier);
 
