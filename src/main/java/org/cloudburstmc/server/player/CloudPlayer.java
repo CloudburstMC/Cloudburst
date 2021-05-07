@@ -1571,7 +1571,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setPremiumWorldTemplateId("");
         startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setInventoriesServerAuthoritative(false);
+        startGamePacket.setInventoriesServerAuthoritative(true);
         SyncedPlayerMovementSettings settings = new SyncedPlayerMovementSettings();
         settings.setMovementMode(AuthoritativeMovementMode.CLIENT);
         settings.setRewindHistorySize(0);

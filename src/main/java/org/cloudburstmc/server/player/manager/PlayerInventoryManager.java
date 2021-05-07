@@ -4,9 +4,7 @@ import com.google.common.collect.Lists;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.PlaceStackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.TakeStackRequestActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +12,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.server.inventory.*;
 import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -58,7 +57,7 @@ public class PlayerInventoryManager {
                 return new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.ERROR, request.getRequestId(), containers);
             } else {
 
-                // TODO - create crafing transaction with CraftEventPacket and Execute the crafting request here
+                // TODO - create crafting transaction with CraftEventPacket and Execute the crafting request here
 
                 return new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.OK, request.getRequestId(), containers);
             }
@@ -73,19 +72,17 @@ public class PlayerInventoryManager {
 
             switch (data.getType()) {
                 case TAKE:
-                case PLACE:
-                    if (data.getType() == TAKE) {
-                        source = ((TakeStackRequestActionData) data).getSource();
-                        target = ((TakeStackRequestActionData) data).getDestination();
-                    } else {
-                        source = ((PlaceStackRequestActionData) data).getSource();
-                        target = ((PlaceStackRequestActionData) data).getDestination();
-                    }
+                    source = ((TakeStackRequestActionData) data).getSource();
+                    target = ((TakeStackRequestActionData) data).getDestination();
                     sourceInv = getInventoryByType(source.getContainer());
                     targetInv = getInventoryByType(target.getContainer());
 
-                    //Check Item
-                    if (sourceInv.getItem(source.getSlot()).getNetworkData().getNetId() != source.getStackNetworkId()) {
+                    if (sourceInv == null || targetInv == null) {
+                        result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                        break;
+                    }
+
+                    if (!checkItem(sourceInv.getItem(source.getSlot()), source.getStackNetworkId())) {
                         result = ItemStackResponsePacket.ResponseStatus.ERROR;
                         containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
                         containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, targetInv))));
@@ -95,17 +92,86 @@ public class PlayerInventoryManager {
                     if (!targetInv.setItem(target.getSlot(), sourceInv.getItem(source.getSlot()), false)
                             || !sourceInv.clear(source.getSlot(), false)) {
                         result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                    }
+
+                    containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
+                    containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, targetInv))));
+                    break;
+                case PLACE:
+                    source = ((PlaceStackRequestActionData) data).getSource();
+                    target = ((PlaceStackRequestActionData) data).getDestination();
+                    sourceInv = getInventoryByType(source.getContainer());
+                    targetInv = getInventoryByType(target.getContainer());
+
+                    if (sourceInv == null || targetInv == null) {
+                        result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                        break;
+                    }
+
+                    if (!checkItem(sourceInv.getItem(source.getSlot()), source.getStackNetworkId())) {
+                        result = ItemStackResponsePacket.ResponseStatus.ERROR;
                         containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
                         containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, targetInv))));
                         break;
                     }
-                    result = ItemStackResponsePacket.ResponseStatus.OK;
+
+                    if (!targetInv.setItem(target.getSlot(), sourceInv.getItem(source.getSlot()), false)
+                            || !sourceInv.clear(source.getSlot(), false)) {
+                        result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                        // no break here so the containers will still be added, but error result is set
+                    }
+                    //if setItems were successful, our result will still be OK
                     containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
                     containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, targetInv))));
                     break;
-                case DROP:
-                    break;
                 case SWAP:
+                    source = ((SwapStackRequestActionData) data).getSource();
+                    target = ((SwapStackRequestActionData) data).getDestination();
+
+                    sourceInv = getInventoryByType(source.getContainer());
+                    targetInv = getInventoryByType(target.getContainer());
+
+                    if (sourceInv == null || targetInv == null) {
+                        result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                        break;
+                    }
+
+                    //Check Item
+                    if (sourceInv.getItem(source.getSlot()).getNetworkData().getNetId() != source.getStackNetworkId()
+                            || targetInv.getItem(target.getSlot()).getNetworkData().getNetId() != target.getStackNetworkId()) {
+                        result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                        containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
+                        containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, targetInv))));
+                        break;
+                    }
+
+                    CloudItemStack swap = targetInv.getItem(target.getSlot());
+                    if (!targetInv.setItem(source.getSlot(), sourceInv.getItem(source.getSlot()), false)
+                            || !sourceInv.setItem(source.getSlot(), swap, false)) {
+                        result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                    }
+
+                    containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, sourceInv))));
+                    containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, targetInv))));
+                    break;
+                case DROP:
+                    source = ((DropStackRequestActionData) data).getSource();
+
+                    sourceInv = getInventoryByType(source.getContainer());
+                    if (sourceInv == null) {
+                        result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                        break;
+                    }
+
+                    CloudItemStack toDrop = sourceInv.getItem(source.getSlot());
+                    if (toDrop.getNetworkData().getNetId() != source.getStackNetworkId()
+                            || player.getLevel().dropItem(player.getPosition(), toDrop).isClosed()) {
+                        result = ItemStackResponsePacket.ResponseStatus.ERROR;
+                    } else {
+                        result = ItemStackResponsePacket.ResponseStatus.OK;
+                    }
+
+                    containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
                     break;
                 case DESTROY:
                 case CONSUME:
@@ -131,6 +197,10 @@ public class PlayerInventoryManager {
                 || req.getType() == CRAFT_NON_IMPLEMENTED_DEPRECATED
                 || req.getType() == CRAFT_RESULTS_DEPRECATED
         );
+    }
+
+    private boolean checkItem(CloudItemStack item, int netId) {
+        return item.getNetworkData().getNetId() == netId;
     }
 
     private BaseInventory getInventoryByType(ContainerSlotType type) {
