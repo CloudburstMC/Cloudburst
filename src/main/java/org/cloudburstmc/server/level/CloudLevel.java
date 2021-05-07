@@ -1513,6 +1513,7 @@ public class CloudLevel implements Level {
             }
         }
 
+
         DroppedItem droppedItem = EntityRegistry.get().newEntity(EntityTypes.ITEM, Location.from(source, this));
         droppedItem.setPosition(source);
         droppedItem.setMotion(motion);
@@ -1520,9 +1521,14 @@ public class CloudLevel implements Level {
         droppedItem.setItem(item);
         droppedItem.setPickupDelay(delay);
 
-        droppedItem.spawnToAll();
+        ItemSpawnEvent ev = new ItemSpawnEvent(droppedItem);
+        this.server.getEventManager().fire(ev);
 
-        this.server.getEventManager().fire(new ItemSpawnEvent(droppedItem));
+        if (!ev.isCancelled()) {
+            droppedItem.spawnToAll();
+        } else {
+            droppedItem.close();
+        }
 
         return droppedItem;
     }

@@ -130,6 +130,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     public void loadFromFile(Path file) {
+        long start = System.currentTimeMillis();
         log.info("Loading recipes...");
         JsonNode json;
         int unlabeled = 0;
@@ -217,14 +218,18 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
         //Load Container Mixes
         unlabeled = 0;
-        for( JsonNode recipe : json.get("containerMixes")) {
-            ItemStack input = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("inputId").asText()), (short) 0,1, NbtMap.EMPTY);
-            ItemStack reagent = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("reagentId").asText()), (short) 0,1, NbtMap.EMPTY);
-            ItemStack output = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("outputId").asText()), (short) 0,1, NbtMap.EMPTY);
+        for (JsonNode recipe : json.get("containerMixes")) {
+            ItemStack input = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("inputId").asText()), (short) 0, 1, NbtMap.EMPTY);
+            ItemStack reagent = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("reagentId").asText()), (short) 0, 1, NbtMap.EMPTY);
+            ItemStack output = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("outputId").asText()), (short) 0, 1, NbtMap.EMPTY);
 
-            Identifier id = Identifier.fromString(UNLABELED_CONTAINER_PREFIX+ (++unlabeled));
+            Identifier id = Identifier.fromString(UNLABELED_CONTAINER_PREFIX + (++unlabeled));
             this.register(new ContainerRecipe(id, input, reagent, output));
         }
+
+        long end = System.currentTimeMillis();
+        long time = end - start;
+        log.info("Took {} ms to load recipies", time);
     }
 
     private RecipeItemStack createRecipeItem(Map<String, Object> json) {
