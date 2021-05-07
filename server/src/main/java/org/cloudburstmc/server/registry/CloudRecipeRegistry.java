@@ -14,7 +14,10 @@ import io.netty.util.collection.CharObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.inventory.Recipe;
@@ -37,6 +40,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.cloudburstmc.api.block.BlockIds.LIT_BLAST_FURNACE;
 
@@ -58,6 +62,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private final ItemRegistry itemRegistry;
     private final Map<Identifier, Recipe> recipeMap = new Object2ReferenceOpenHashMap<>();
     private final Int2ReferenceMap<Map<UUID, Identifier>> recipeHashMap = new Int2ReferenceOpenHashMap<>();
+    private final Reference2IntMap<Identifier> netIdMap = new Reference2IntOpenHashMap<>();
+    private final Int2ReferenceMap<Identifier> idNetMap = new Int2ReferenceOpenHashMap<>();
+    private final AtomicInteger netIdAllocator = new AtomicInteger();
 
     private boolean closed;
     private CraftingDataPacket cached;
@@ -107,7 +114,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
 
         recipeMap.remove(recipe.getId());
-
+        int netId = netIdMap.remove(recipe.getId());
+        idNetMap.remove(netId);
 
     }
 
@@ -127,6 +135,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         Map<UUID, Identifier> map = recipeHashMap.computeIfAbsent(outputHash, (x) -> new HashMap<>());
         map.put(uuid, id);
         this.recipeMap.put(id, recipe);
+        int netId = this.netIdAllocator.getAndIncrement();
+        this.netIdMap.putIfAbsent(id, netId);
+        this.idNetMap.putIfAbsent(netId, id);
     }
 
     public void loadFromFile(URI file) {
@@ -230,6 +241,20 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         long end = System.currentTimeMillis();
         long time = end - start;
         log.info("Took {} ms to load recipies", time);
+    }
+
+    @NonNull
+    public int getRecipeNetId(Identifier id) {
+        return netIdMap.getOrDefault(id, 0);
+    }
+
+    @NonNull
+    public int getRecipeNetId(Recipe recipe) {
+        return getRecipeNetId(recipe.getId());
+    }
+
+    public Recipe getRecipeFromNetId(int netId) {
+        return this.recipeMap.get(idNetMap.get(netId));
     }
 
     private RecipeItemStack createRecipeItem(Map<String, Object> json) {
