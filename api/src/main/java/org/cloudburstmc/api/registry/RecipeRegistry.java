@@ -6,6 +6,7 @@ import org.cloudburstmc.api.util.Identifier;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.UUID;
 
 public interface RecipeRegistry extends Registry {
 
@@ -14,6 +15,8 @@ public interface RecipeRegistry extends Registry {
     void loadFromFile(URI file);
 
     Recipe getRecipe(Identifier identifier);
+
+    Recipe getRecipe(UUID uuid);
 
     Recipe matchRecipe(ItemStack[][] inputMap, ItemStack output, ItemStack[][] extraOutputMap, Identifier craftingBlock);
 
