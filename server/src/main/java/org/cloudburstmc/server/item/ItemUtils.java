@@ -52,7 +52,7 @@ public class ItemUtils {
         );
     }
 
-    public static ItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag) {
+    public static CloudItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag) {
         CloudItemStackBuilder builder = new CloudItemStackBuilder();
 
         registry.getSerializer(ItemTypes.byId(id)).deserialize(id, damage, amount, builder, tag);

@@ -5,6 +5,7 @@ import com.google.common.collect.HashBiMap;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.experimental.UtilityClass;
@@ -18,6 +19,9 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.server.inventory.BaseInventory;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -170,5 +174,10 @@ public class NetworkUtils {
                 item.getName(),
                 durablility);
 
+    }
+
+    public static CloudItemStack itemStackFromNetwork(ItemData data) {
+        int runtimeId = data.getId();
+        return ItemUtils.deserializeItem(CloudItemRegistry.get().getIdentifier(runtimeId), (short) data.getDamage(), data.getCount(), data.getTag());
     }
 }
