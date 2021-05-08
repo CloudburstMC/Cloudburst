@@ -141,7 +141,7 @@ public class CloudburstYamlMappingTest {
                 yml.getAliases()
         );
 
-        HashMap<String, ServerConfig.World> worldConfig = new HashMap<>();
+      /*HashMap<String, ServerConfig.World> worldConfig = new HashMap<>(); With the new system the old test for seeds is no longer needed
         worldConfig.put("world", new ServerConfig.World(
                 "test",
                 "cloudburst:standard",
@@ -155,7 +155,7 @@ public class CloudburstYamlMappingTest {
         assertEquals(
                 worldConfig,
                 yml.getWorlds()
-        );
+        );*/
     }
 
 }
