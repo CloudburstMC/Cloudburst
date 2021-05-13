@@ -1764,7 +1764,7 @@ public class CloudServer implements Server {
                 seed = ((Number) seedObj).longValue();
             } else if (seedObj instanceof String) {
                 if (seedObj == name) {
-                    log.warn("World \"{}\" is using it's own name as it's seed", name);
+                    log.warn("World \"{}\" is using its own name as its seed", name);
                 }
 
                 //this internally generates an MD5 hash of the seed string
