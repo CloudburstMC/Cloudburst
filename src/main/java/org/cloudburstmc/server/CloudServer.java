@@ -1754,7 +1754,7 @@ public class CloudServer implements Server {
 
         for (String name : worldConfigs.keySet()) {
             final ServerConfig.World config = worldConfigs.get(name);
-            //fallback to level name if no seed is set
+            //Auto-Generate Seed if it isn't set
             Object seedObj = config.getSeed();
             long seed;
             if(seedObj == null) {
