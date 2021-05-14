@@ -2432,9 +2432,12 @@ public class CloudLevel implements Level {
         this.levelData.setLightningTime(thunderTime);
     }
 
-    public void sendWeather(Player[] players) {
-        if (players == null) {
-            players = this.getPlayers().values().toArray(new Player[0]);
+    public void sendWeather(Player[] toSend) {
+        CloudPlayer[] players;
+        if (toSend == null) {
+            players = this.getPlayers().values().toArray(new CloudPlayer[0]);
+        } else {
+            players = Arrays.asList(toSend).toArray(new CloudPlayer[0]);
         }
 
         LevelEventPacket rainEvent = new LevelEventPacket();
@@ -2445,7 +2448,7 @@ public class CloudLevel implements Level {
             rainEvent.setType(LevelEventType.STOP_RAINING);
         }
         rainEvent.setPosition(Vector3f.ZERO);
-        CloudServer.broadcastPacket((CloudPlayer[]) players, rainEvent);
+        CloudServer.broadcastPacket(players, rainEvent);
 
         LevelEventPacket thunderEvent = new LevelEventPacket();
         if (this.isThundering()) {

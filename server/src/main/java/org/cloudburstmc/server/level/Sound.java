@@ -594,7 +594,9 @@ public enum Sound {
     BLOCK_BEEHIVE_EXIT("block.beehive.exit"),
     BLOCK_BEEHIVE_SHEAR("block.beehive.shear"),
     BLOCK_BEEHIVE_WORK("block.beehive.work"),
-    BLOCK_BEEHIVE_DRIP("block.beehive.drip");
+    BLOCK_BEEHIVE_DRIP("block.beehive.drip"),
+    SIGN_DYE_USE("sign.dye.use"),
+    SIGN_INK_SAC_USE("sign.ink_sac.use");
 
     private final String sound;
 

@@ -62,9 +62,13 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                 return true;
             case COMPLETED:
                 if (loginData.getPreLoginEventTask().isFinished()) {
-                    CloudPlayer player = loginData.initializePlayer();
-                    for (Consumer<Player> task : loginData.getLoginTasks()) {
-                        task.accept(player);
+                    try {
+                        CloudPlayer player = loginData.initializePlayer();
+                        for (Consumer<Player> task : loginData.getLoginTasks()) {
+                            task.accept(player);
+                        }
+                    } catch (Exception e) {
+                        log.debug("Exception in Player initialization: {}", e.getMessage());
                     }
 
                 } else {

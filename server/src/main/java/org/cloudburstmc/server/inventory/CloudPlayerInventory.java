@@ -257,10 +257,11 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     public void sendContents(Player[] players) {
         List<ItemData> itemData = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
-            itemData.add(i, ((CloudItemStack) this.getItem(i)).getNetworkData());
+            itemData.add(i, this.getItem(i).getNetworkData());
         }
 
-        for (CloudPlayer player : (CloudPlayer[]) players) {
+        for (Player p : players) {
+            CloudPlayer player = (CloudPlayer) p;
             int id = player.getWindowId(this);
             if (id == -1) {
                 if (this.getHolder() != player) this.close(player);
@@ -279,14 +280,14 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     public void sendSlot(int index, Player... players) {
         ItemData itemData = this.getItem(index).getNetworkData();
 
-        for (CloudPlayer player : (CloudPlayer[]) players) {
+        for (Player player : players) {
             InventorySlotPacket packet = new InventorySlotPacket();
             packet.setSlot(index);
             packet.setItem(itemData);
 
             if (player.equals(this.getHolder())) {
                 packet.setContainerId(ContainerId.INVENTORY);
-                player.sendPacket(packet);
+                ((CloudPlayer) player).sendPacket(packet);
             } else {
                 int id = player.getWindowId(this);
                 if (id == -1) {
@@ -294,7 +295,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
                     continue;
                 }
                 packet.setContainerId(id);
-                player.sendPacket(packet);
+                ((CloudPlayer) player).sendPacket(packet);
             }
         }
     }

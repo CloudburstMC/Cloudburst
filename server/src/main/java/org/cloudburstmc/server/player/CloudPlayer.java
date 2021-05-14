@@ -262,13 +262,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.loginChainData = chainData;
 
         this.randomClientId = chainData.getClientId();
-        //this.identity = chainData.getClientUUID();
+        this.identity = chainData.getClientUUID();
         this.username = TextFormat.clean(chainData.getUsername());
         this.iusername = username.toLowerCase();
         this.setDisplayName(this.username);
         this.setNameTag(this.username);
-
-        //this.setSkin(chainData.getSkin()); //TODO
 
         this.creationTime = System.currentTimeMillis();
     }
