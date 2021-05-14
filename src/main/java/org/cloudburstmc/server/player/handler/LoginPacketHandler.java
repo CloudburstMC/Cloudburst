@@ -105,10 +105,15 @@ public class LoginPacketHandler implements BedrockPacketHandler {
                     if (e.getLoginResult() == PlayerAsyncPreLoginEvent.LoginResult.KICK) {
                         loginDataInstance.getSession().disconnect(e.getKickMessage());
                     } else if (loginDataInstance.isShouldLogin()) {
-                        CloudPlayer player = loginDataInstance.initializePlayer();
+                        try {
+                            CloudPlayer player = loginDataInstance.initializePlayer();
 
-                        for (Consumer<Player> action : e.getScheduledActions()) {
-                            action.accept(player);
+                            for (Consumer<Player> action : e.getScheduledActions()) {
+                                action.accept(player);
+                            }
+                        } catch (Exception e) {
+                            //This will at least notify us of exceptions that were eaten in the network/protocol level
+                            log.debug("Error in player initialization: {}", e.getMessage());
                         }
                     } else {
                         // Finished this before the resouce pack packets finished
