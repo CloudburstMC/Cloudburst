@@ -792,7 +792,7 @@ public class CloudServer implements Server {
             packet.setAction(PlayerListPacket.Action.REMOVE);
             packet.getEntries().add(new PlayerListPacket.Entry(player.getServerId()));
 
-            CloudServer.broadcastPacket((Set<CloudPlayer>) this.playerList.values(), packet);
+            CloudServer.broadcastPacket(this.playerList.values().toArray(new CloudPlayer[0]), packet);
         }
     }
 

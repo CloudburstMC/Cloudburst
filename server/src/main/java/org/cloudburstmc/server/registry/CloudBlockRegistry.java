@@ -41,14 +41,14 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
 @Log4j2
 public class CloudBlockRegistry implements Registry {
     private static final CloudBlockRegistry INSTANCE;
-    private static final Map<Identifier, Integer> VANILLA_LEGACY_IDS;
+    private static final HashBiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create();
 
     static {
         InputStream stream = RegistryUtils.getOrAssertResource("data/legacy_block_ids.json");
 
         try {
-            VANILLA_LEGACY_IDS = Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<Map<Identifier, Integer>>() {
-            });
+            VANILLA_LEGACY_IDS.putAll(Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<Map<Identifier, Integer>>() {
+            }));
         } catch (IOException e) {
             throw new AssertionError("Unable to load legacy IDs", e);
         }
@@ -57,7 +57,7 @@ public class CloudBlockRegistry implements Registry {
     }
 
     private final Reference2ReferenceMap<BlockType, BlockBehavior> behaviorMap = new Reference2ReferenceOpenHashMap<>();
-    private final HashBiMap<Identifier, Integer> idLegacyMap = HashBiMap.create();
+    //private final HashBiMap<Identifier, Integer> idLegacyMap = HashBiMap.create();
     private final AtomicInteger customIdAllocator = new AtomicInteger(1000);
     private final BlockPalette palette = BlockPalette.INSTANCE;
     private NbtMap propertiesTag;
@@ -68,13 +68,12 @@ public class CloudBlockRegistry implements Registry {
         BlockTraitSerializers.init();
         this.registerVanillaBlocks();
 
-        //register vanilla legacy IDs
-        VANILLA_LEGACY_IDS.forEach((id, legacyId) -> {
-            if (!this.idLegacyMap.containsKey(id)) {
-                log.debug("Non-implemented block found: {}", id);
+        // Check legacy IDs
+        behaviorMap.forEach((bt, b) -> {
+            if (!VANILLA_LEGACY_IDS.containsKey(bt.getId())) {
+                log.debug("Unable to map legacy id for block: {}", bt.getId());
             }
         });
-        this.idLegacyMap.putAll(VANILLA_LEGACY_IDS);
     }
 
     public static CloudBlockRegistry get() {
@@ -87,7 +86,7 @@ public class CloudBlockRegistry implements Registry {
 
         // generate legacy ID (Not sure why we need to but it's a requirement)
         int legacyId = this.customIdAllocator.getAndIncrement();
-        this.idLegacyMap.put(type.getId(), legacyId);
+        this.VANILLA_LEGACY_IDS.put(type.getId(), legacyId);
     }
 
     private void registerVanilla(BlockType type, BlockTrait<?>... traits) throws RegistryException {
@@ -101,11 +100,7 @@ public class CloudBlockRegistry implements Registry {
     private synchronized void registerVanilla(BlockType type, BlockBehavior behavior, BlockSerializer serializer,
                                               BlockTrait<?>... traits) throws RegistryException {
         checkNotNull(type, "type");
-        checkNotNull(behavior, "behavior");
         checkNotNull(serializer, "serializer");
-        if (traits == null) {
-            traits = new BlockTrait[0];
-        }
         checkClosed();
 
         synchronized (this.behaviorMap) {
@@ -115,7 +110,7 @@ public class CloudBlockRegistry implements Registry {
 
         type.forEachPermutation(state -> state.setBehavior(behavior));
 
-        this.palette.addBlock(type, serializer, traits, behavior);
+        this.palette.addBlock(type, serializer);
     }
 
     /**
@@ -157,7 +152,7 @@ public class CloudBlockRegistry implements Registry {
     }
 
     boolean isBlock(Identifier id) {
-        return this.idLegacyMap.containsKey(id);
+        return this.VANILLA_LEGACY_IDS.containsKey(id);
     }
 
     public int getRuntimeId(BlockState blockState) {
@@ -177,7 +172,7 @@ public class CloudBlockRegistry implements Registry {
     }
 
     public int getRuntimeId(int id, int meta) {
-        return getRuntimeId(this.idLegacyMap.inverse().get(id), meta);
+        return getRuntimeId(this.VANILLA_LEGACY_IDS.inverse().get(id), meta);
     }
 
     public BlockState getBlock(BlockType type) {
@@ -246,7 +241,7 @@ public class CloudBlockRegistry implements Registry {
     }
 
     public int getLegacyId(Identifier identifier) {
-        int legacyId = this.idLegacyMap.getOrDefault(identifier, -1);
+        int legacyId = this.VANILLA_LEGACY_IDS.getOrDefault(identifier, -1);
         if (legacyId == -1) {
             throw new RegistryException("No legacy ID found for " + identifier);
         }
@@ -254,7 +249,7 @@ public class CloudBlockRegistry implements Registry {
     }
 
     public Identifier getNameFromLegacyId(int id) {
-        Identifier identifier = idLegacyMap.inverse().get(id);
+        Identifier identifier = VANILLA_LEGACY_IDS.inverse().get(id);
         if (identifier == null) {
             throw new RegistryException("No block found for ID " + id);
         }

@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -11,17 +10,18 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.block.behavior.NoopBlockBehavior;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 
 import javax.annotation.Nullable;
+import java.io.FileWriter;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -33,8 +33,12 @@ public class BlockPalette {
 
     public static final BlockPalette INSTANCE = new BlockPalette();
 
+    //Runtime ID mappings
     private final Reference2IntMap<BlockState> stateRuntimeMap = new Reference2IntOpenHashMap<>();
     private final Int2ReferenceMap<BlockState> runtimeStateMap = new Int2ReferenceOpenHashMap<>();
+    private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
+
+    //NBT Mappings
     private final Object2ReferenceMap<NbtMap, BlockState> serializedStateMap = new Object2ReferenceLinkedOpenCustomHashMap<>(new Hash.Strategy<NbtMap>() {
         @Override
         public int hashCode(NbtMap o) {
@@ -47,55 +51,38 @@ public class BlockPalette {
         }
     });
     private final Reference2ObjectMap<BlockState, NbtMap> stateSerializedMap = new Reference2ObjectLinkedOpenHashMap<>();
-    private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
-    private final Reference2ReferenceMap<BlockType, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
-    private final Reference2ReferenceMap<Identifier, BlockState> stateMap = new Reference2ReferenceOpenHashMap<>();
-    private final Reference2ReferenceMap<Identifier, Object2ReferenceMap<NbtMap, BlockState>> stateTraitMap = new Reference2ReferenceOpenHashMap<>();
-    private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
-    private final SortedMap<String, List<CloudBlockState>> sortedPalette = new Object2ReferenceRBTreeMap<>();
+    //private final Reference2ReferenceMap<Identifier, Object2ReferenceMap<NbtMap, BlockState>> stateTraitMap = new Reference2ReferenceOpenHashMap<>();
 
-    public void addBlock(BlockType type, BlockSerializer serializer, BlockTrait<?>[] traits, BlockBehavior behavior) {
-        if (this.defaultStateMap.containsKey(type)) {
+    private final Reference2ReferenceMap<Identifier, BlockType> typeMap = new Reference2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
+    private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
+    private final SortedMap<String, List<BlockState>> sortedPalette = new Object2ReferenceRBTreeMap<>();
+    //private final Reference2ReferenceMap<Identifier, BlockState> stateMap = new Reference2ReferenceOpenHashMap<>();
+
+    public void addBlock(BlockType type, BlockSerializer serializer) {
+        if (this.defaultStateMap.containsKey(type.getId())) {
             log.warn("Duplicate block type: {}", type);
         }
 
-        Map<NbtMap, CloudBlockState> states = getBlockPermutations(type, serializer, traits, behavior);
+        this.defaultStateMap.put(type.getId(), type.getDefaultState());
 
-        Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> map = new HashMap<>();
-        for (CloudBlockState state : states.values()) {
-            map.put(state.getTraits(), state);
-        }
+        type.getStates().forEach(state -> {
+            NbtMapBuilder builder = NbtMap.builder();
+            serializer.serialize(builder, type, state.getTraits());
+            NbtMap nbt = builder.build();
+            Identifier id = nbt.containsKey("name") ? Identifier.fromString(nbt.getString("name")) : type.getId();
+            var paletteEntry = sortedPalette.computeIfAbsent(id.toString(), (v) -> new ArrayList<>());
+            paletteEntry.add(state);
+            ItemTypes.addType(id, type);
 
-        BlockState defaultState = map.get(Arrays.stream(traits).filter(t -> !t.isOnlySerialize()).collect(Collectors.toMap(t -> t, BlockTrait::getDefaultValue)));
-        this.defaultStateMap.put(type, defaultState);
-        states.forEach((nbt, state) -> {
+            typeMap.putIfAbsent(id, type);
+            stateSerializedMap.put(state, nbt);
+            serializedStateMap.put(nbt, state);
+        });
 
-            String id = nbt.getString("name");
-            if (!sortedPalette.containsKey(id)) {
-                sortedPalette.put(id, new ArrayList<>());
-            }
-            sortedPalette.get(id).add(state);
-            ItemTypes.addType(state.getId(), state.getType());
-
-            if (!state.isInitialized()) {
-                state.initialize(defaultState, map);
-
-                this.stateMap.putIfAbsent(state.getId(), state.defaultState());
-            }
-
-            var stateMap = nbt.getCompound("states");
-
-            var traitMap = stateTraitMap.computeIfAbsent(state.getId(), (v) -> new Object2ReferenceOpenHashMap<>());
-            traitMap.put(stateMap, state);
-
-            stateMap.forEach((traitName, traitValue) -> {
-                var traitValues = vanillaTraitMap.computeIfAbsent(traitName, (k) -> new LinkedHashSet<>());
-                traitValues.add(traitValue);
-            });
-
-            this.stateSerializedMap.put(state, nbt);
-            this.serializedStateMap.put(nbt, state);
-
+        type.getTraits().forEach((t) -> {
+            var traitValues = vanillaTraitMap.computeIfAbsent(t.getVanillaName(), (k) -> new LinkedHashSet<>());
+            t.getPossibleValues().forEach(v -> traitValues.add(v));
         });
     }
 
@@ -113,6 +100,26 @@ public class BlockPalette {
             }
         });
 
+        if (log.isTraceEnabled()) {
+            Path logFile = CloudServer.getInstance().getFilePath().resolve("runtime Ids.log");
+
+            try (FileWriter out = new FileWriter(logFile.toFile())) {
+                for (int rid = 0; rid < runtimeIdAllocator.get(); rid++) {
+                    out.write("Runtime ID " + rid + "=> " + runtimeStateMap.get(rid).toString() + "\n");
+                }
+            } catch (Exception e) {
+                log.error("{}", e.getMessage());
+                e.printStackTrace();
+            }
+            try (FileWriter out = new FileWriter(CloudServer.getInstance().getFilePath().resolve("stateMap.log").toFile())) {
+                for (Map.Entry<BlockState, NbtMap> entry : stateSerializedMap.entrySet()) {
+                    out.write("BlockState  " + entry.getKey() + " \n=>\n" + entry.getValue().toString() + "\n");
+                }
+            } catch (Exception e) {
+                log.error("{}", e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 
     public Map<String, Set<Object>> getVanillaTraitMap() {
@@ -120,15 +127,15 @@ public class BlockPalette {
     }
 
     public BlockState getState(Identifier id) {
-        return this.stateMap.get(id);
+        return this.defaultStateMap.get(id);
     }
 
     public BlockState getState(Identifier id, Map<String, Object> traits) {
-        return Optional.ofNullable(this.stateTraitMap.get(id)).map(s -> s.get(traits)).orElse(null);
+        return serializedStateMap.getOrDefault(traits, defaultStateMap.get(id));
     }
 
     public Set<String> getTraits(Identifier blockId) {
-        return Optional.ofNullable(this.stateTraitMap.get(blockId)).map(m -> Iterables.getLast(m.keySet()).keySet()).orElse(null);
+        return this.defaultStateMap.get(blockId).getType().getTraits().stream().map(m -> m.toString()).collect(Collectors.toSet());
     }
 
     public BlockState getDefaultState(BlockType blockType) {
@@ -188,13 +195,13 @@ public class BlockPalette {
         return tags.stream().map(NbtMapBuilder::build).collect(Collectors.toList());
     }
 
-    private static Map<NbtMap, CloudBlockState> getBlockPermutations(BlockType type, BlockSerializer serializer, BlockTrait<?>[] traits, BlockBehavior behavior) {
-        if (traits == null || traits.length == 0) {
+    private static Map<NbtMap, BlockState> getBlockPermutations(BlockType type, BlockSerializer serializer, BlockBehavior behavior) {
+        BlockTrait<?>[] traits = type.getTraits().toArray(new BlockTrait[0]);
+        if (traits.length == 0) {
             Preconditions.checkNotNull(type.getId(), "", type);
             var tags = serialize(type, serializer, ImmutableMap.of());
-            var state = new CloudBlockState(type.getId(), type, ImmutableMap.of(),
-                    Reference2IntMaps.emptyMap(), NoopBlockBehavior.INSTANCE/*, ImmutableList.copyOf(tags)*/);
             // No traits so 1 permutation.
+            var state = type.getDefaultState();
             return tags.stream().collect(Collectors.toMap(nbt -> nbt, (s) -> state));
         }
 
@@ -204,8 +211,8 @@ public class BlockPalette {
             traitPalette.put(trait, id++);
         }
 
-        Map<Map<BlockTrait<?>, Comparable<?>>, CloudBlockState> duplicated = new Object2ReferenceOpenHashMap<>();
-        Map<NbtMap, CloudBlockState> permutations = new Object2ReferenceLinkedOpenHashMap<>();
+        Map<Map<BlockTrait<?>, Comparable<?>>, BlockState> duplicated = new Object2ReferenceOpenHashMap<>();
+        Map<NbtMap, BlockState> permutations = new Object2ReferenceLinkedOpenHashMap<>();
         int n = traits.length;
 
         // To keep track of next element in each of the n arrays
@@ -238,28 +245,32 @@ public class BlockPalette {
                     "Block state cannot represent multiple block ids"
             );
 
-            CloudBlockState state = duplicated.get(traitMap);
+            BlockState state = duplicated.get(traitMap);
 
             if (state == null) {
-                state = new CloudBlockState(
-                        Identifier.fromString(Iterables.getLast(tags).getString("name")),
+                state = new BlockState(
                         type,
                         traitMap,
-                        traitPalette,
                         behavior
-//                        ImmutableList.copyOf(tags)
                 );
                 duplicated.put(traitMap, state);
             }
 
-//            if (state.getId() == BlockIds.HAY_BLOCK) {
-//                for (NbtMap tag : tags) {
-//                    log.info("palette: " + tag);
-//                }
-//            }
+            BlockState match = null;
+            for (BlockState s : type.getStates()) {
+                if (state == s) {
+                    match = s;
+                    break;
+                }
+            }
+
+            Preconditions.checkNotNull(match, "Unable to match blockstate to block type");
+
+            Identifier stateId = Identifier.fromString(tags.iterator().next().getString("name"));
+            ItemTypes.addType(stateId, type);
 
             for (NbtMap tag : tags) {
-                permutations.put(tag, state);
+                permutations.put(tag, match);
             }
 
             // Find the rightmost array that has more elements left after the current element in that array
