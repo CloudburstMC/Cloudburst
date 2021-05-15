@@ -5,7 +5,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.trait.BlockTrait;
-import org.cloudburstmc.api.item.*;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.TierType;
+import org.cloudburstmc.api.item.ToolType;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Identifier;
 
@@ -40,7 +43,6 @@ public final class BlockType implements ItemType {
         for (BlockState state : this.states) {
             state.initialize(blockStateMap);
         }
-        ItemTypes.addType(id, this);
     }
 
     public Identifier getId() {
@@ -248,5 +250,10 @@ public final class BlockType implements ItemType {
 
     public boolean breaksFlowing() {
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return getId().toString();
     }
 }
