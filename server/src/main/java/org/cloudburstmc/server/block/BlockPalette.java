@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.block.trait.BlockTrait;
@@ -51,7 +52,7 @@ public class BlockPalette {
         }
     });
     private final Reference2ObjectMap<BlockState, NbtMap> stateSerializedMap = new Reference2ObjectLinkedOpenHashMap<>();
-    //private final Reference2ReferenceMap<Identifier, Object2ReferenceMap<NbtMap, BlockState>> stateTraitMap = new Reference2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<Identifier, Object2ReferenceMap<NbtMap, BlockState>> stateTraitMap = new Reference2ReferenceOpenHashMap<>();
 
     private final Reference2ReferenceMap<Identifier, BlockType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
@@ -71,6 +72,11 @@ public class BlockPalette {
             serializer.serialize(builder, type, state.getTraits());
             NbtMap nbt = builder.build();
             Identifier id = nbt.containsKey("name") ? Identifier.fromString(nbt.getString("name")) : type.getId();
+
+            var statesTag = nbt.getCompound("States");
+            var traitMap = stateTraitMap.computeIfAbsent(id, v -> new Object2ReferenceOpenHashMap<>());
+            traitMap.put(statesTag, state);
+
             var paletteEntry = sortedPalette.computeIfAbsent(id.toString(), (v) -> new ArrayList<>());
             paletteEntry.add(state);
             ItemTypes.addType(id, type);
@@ -131,7 +137,8 @@ public class BlockPalette {
     }
 
     public BlockState getState(Identifier id, Map<String, Object> traits) {
-        return serializedStateMap.getOrDefault(traits, defaultStateMap.get(id));
+        return Optional.ofNullable(stateTraitMap.get(id)).map(s -> s.get(traits)).orElse(BlockStates.AIR);
+        //return serializedStateMap.getOrDefault(traits, defaultStateMap.get(id));
     }
 
     public Set<String> getTraits(Identifier blockId) {
