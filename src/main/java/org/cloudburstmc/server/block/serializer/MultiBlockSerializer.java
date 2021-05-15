@@ -37,14 +37,10 @@ public class MultiBlockSerializer implements BlockSerializer {
         Identifier name = this.getName((NbtMap) builder.get(TAG_STATES), toRemove);
         builder.putString(TAG_NAME, name.toString());
 
-        var states = ((NbtMap) builder.get("states")).toBuilder();
+        var states = ((NbtMap) builder.get(TAG_STATES)).toBuilder();
         toRemove.forEach(states::remove);
-        builder.putCompound("states", states.build());
+        builder.putCompound(TAG_STATES, states.build());
 
-//        if(blockType == BlockTypes.STONE_SLAB) {
-//            log.info(traits);
-//            log.info(builder);
-//        }
     }
 
     public Identifier getName(NbtMap states, List<String> toRemove) {

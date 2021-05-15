@@ -534,6 +534,8 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.NETHERITE_LEGGINGS);
         registerVanilla(ItemTypes.NETHERITE_BOOTS);
 
+        registerVanilla(ItemTypes.CONCRETE_POWDER);
+
         registerVanilla(ItemTypes.UNKNOWN);
     }
 

@@ -408,6 +408,7 @@ public class MultiBlockSerializers {
 
     public static final MultiBlockSerializer ELEMENT = builder()
             .add("element_type", ElementType.class, (e) -> Identifier.fromString(e.name().toLowerCase()), true)
+            .defaultId(ELEMENT_0)
             .buildSerializer();
 
     public static final MultiBlockSerializer NYLIUM = buildTrait("wood_type", BlockTraits.TREE_SPECIES_NETHER,
