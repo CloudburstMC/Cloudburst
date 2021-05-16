@@ -118,7 +118,7 @@ public class BlockPalette {
 
             try (FileWriter out = new FileWriter(logFile.toFile())) {
                 for (int rid = 0; rid < runtimeIdAllocator.get(); rid++) {
-                    out.write("Runtime ID " + rid + "=> " + runtimeStateMap.get(rid).toString() + "\n");
+                    out.write("Runtime ID " + rid + "=> " + stateSerializedMap.get(runtimeStateMap.get(rid)).toString() + "\n");
                 }
             } catch (Exception e) {
                 log.error("{}", e.getMessage());
