@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -11,7 +12,6 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.block.trait.BlockTrait;
@@ -70,10 +70,16 @@ public class BlockPalette {
         type.getStates().forEach(state -> {
             NbtMapBuilder builder = NbtMap.builder();
             serializer.serialize(builder, type, state.getTraits());
-            NbtMap nbt = builder.build();
-            Identifier id = nbt.containsKey("name") ? Identifier.fromString(nbt.getString("name")) : type.getId();
+            NbtMap nbt = BlockStateUpdaters.updateBlockState(builder.build(), 0);
+            Identifier id;
+            if (nbt.containsKey("name")) {
+                id = Identifier.fromString(nbt.getString("name"));
+            } else {
+                id = type.getId();
+                nbt = nbt.toBuilder().putString("name", id.toString()).build();
+            }
 
-            var statesTag = nbt.getCompound("States");
+            var statesTag = nbt.getCompound("states");
             var traitMap = stateTraitMap.computeIfAbsent(id, v -> new Object2ReferenceOpenHashMap<>());
             traitMap.put(statesTag, state);
 
@@ -81,15 +87,16 @@ public class BlockPalette {
             paletteEntry.add(state);
             ItemTypes.addType(id, type);
 
+            statesTag.forEach((traitName, traitValue) -> {
+                var traitValues = vanillaTraitMap.computeIfAbsent(traitName, k -> new LinkedHashSet<>());
+                traitValues.add(traitValue);
+            });
+
             typeMap.putIfAbsent(id, type);
             stateSerializedMap.put(state, nbt);
             serializedStateMap.put(nbt, state);
         });
 
-        type.getTraits().forEach((t) -> {
-            var traitValues = vanillaTraitMap.computeIfAbsent(t.getVanillaName(), (k) -> new LinkedHashSet<>());
-            t.getPossibleValues().forEach(v -> traitValues.add(v));
-        });
     }
 
     public void generateRuntimeIds() {
@@ -137,12 +144,11 @@ public class BlockPalette {
     }
 
     public BlockState getState(Identifier id, Map<String, Object> traits) {
-        return Optional.ofNullable(stateTraitMap.get(id)).map(s -> s.get(traits)).orElse(BlockStates.AIR);
-        //return serializedStateMap.getOrDefault(traits, defaultStateMap.get(id));
+        return Optional.ofNullable(stateTraitMap.get(id)).map(s -> s.get(traits)).orElse(null);
     }
 
     public Set<String> getTraits(Identifier blockId) {
-        return this.defaultStateMap.get(blockId).getType().getTraits().stream().map(m -> m.toString()).collect(Collectors.toSet());
+        return Optional.ofNullable(this.stateTraitMap.get(blockId)).map(m -> Iterables.getLast(m.keySet()).keySet()).orElse(null);
     }
 
     public BlockState getDefaultState(BlockType blockType) {

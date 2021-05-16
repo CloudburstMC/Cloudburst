@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.util;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.NonNull;
@@ -84,8 +85,9 @@ public class BlockUtils {
     }*/
 
     private void applyDefaultValues(Identifier id, Map<String, Object> traits) {
-        CloudBlockRegistry.get().getBlock(id).getTraits().forEach((t, v) -> {
-            traits.computeIfAbsent(t.getVanillaName(), k -> t.getDefaultValue());
+        var vanillaTraits = BlockPalette.INSTANCE.getVanillaTraitMap();
+        BlockPalette.INSTANCE.getTraits(id).forEach((name) -> {
+            traits.computeIfAbsent(name, k -> Iterables.get(vanillaTraits.get(name), 0));
         });
     }
 
