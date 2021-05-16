@@ -98,7 +98,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<RailDirection> RAIL_DIRECTION = EnumBlockTrait.of("rail_direction", RailDirection.class);
     public static final EnumBlockTrait<RailDirection> SIMPLE_RAIL_DIRECTION = EnumBlockTrait.of("simple_rail_direction", "rail_direction", RailDirection.class, RailDirection.simpleValues());
     public static final EnumBlockTrait<Direction> TORCH_DIRECTION = EnumBlockTrait.of("torch_direction", "torch_facing_direction", Direction.class,
-            Direction.DOWN, //TODO: this was null
+            Direction.DOWN, //TODO: this was null - should read unknkown?
             Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.UP);
     public static final EnumBlockTrait<CardinalDirection> CARDINAL_DIRECTION = EnumBlockTrait.of("cardinal_direction", "ground_sign_direction", CardinalDirection.class);
     public static final EnumBlockTrait<LeverDirection> LEVER_DIRECTION = EnumBlockTrait.of("lever_direction", LeverDirection.class);

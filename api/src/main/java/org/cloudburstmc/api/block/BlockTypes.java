@@ -74,7 +74,7 @@ public class BlockTypes {
     public static final BlockType WALL_SIGN = BlockType.of(Identifiers.OAK_WALL_SIGN, BlockTraits.FACING_DIRECTION, BlockTraits.TREE_SPECIES);
     public static final BlockType LEVER = BlockType.of(Identifiers.LEVER, BlockTraits.IS_OPEN, BlockTraits.LEVER_DIRECTION);
     public static final BlockType STONE_PRESSURE_PLATE = BlockType.of(Identifiers.STONE_PRESSURE_PLATE, BlockTraits.REDSTONE_SIGNAL, BlockTraits.STONE_PRESSURE_PLATE_TYPE);
-    public static final BlockType IRON_DOOR = BlockType.of(Identifiers.IRON_DOOR, BlockTraits.IS_OPEN, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK);
+    public static final BlockType IRON_DOOR = BlockType.of(Identifiers.IRON_DOOR, BlockTraits.IS_OPEN, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK, BlockTraits.DIRECTION);
     public static final BlockType WOODEN_PRESSURE_PLATE = BlockType.of(Identifiers.OAK_PRESSURE_PLATE, BlockTraits.REDSTONE_SIGNAL, BlockTraits.TREE_SPECIES);
     public static final BlockType REDSTONE_ORE = BlockType.of(Identifiers.REDSTONE_ORE, BlockTraits.IS_EXTINGUISHED);
     public static final BlockType REDSTONE_TORCH = BlockType.of(Identifiers.REDSTONE_TORCH, BlockTraits.TORCH_DIRECTION, BlockTraits.IS_POWERED);
@@ -126,7 +126,7 @@ public class BlockTypes {
     public static final BlockType ACTIVATOR_RAIL = BlockType.of(Identifiers.ACTIVATOR_RAIL, BlockTraits.SIMPLE_RAIL_DIRECTION, BlockTraits.IS_POWERED);
     public static final BlockType COCOA = BlockType.of(Identifiers.COCOA, BlockTraits.COCOA_AGE, BlockTraits.DIRECTION);
     public static final BlockType EMERALD_ORE = BlockType.of(Identifiers.EMERALD_ORE);
-    public static final BlockType ENDER_CHEST = BlockType.of(Identifiers.ENDER_CHEST, BlockTraits.DIRECTION);
+    public static final BlockType ENDER_CHEST = BlockType.of(Identifiers.ENDER_CHEST, BlockTraits.FACING_DIRECTION);
     public static final BlockType TRIPWIRE_HOOK = BlockType.of(Identifiers.TRIPWIRE_HOOK, BlockTraits.IS_POWERED, BlockTraits.IS_ATTACHED, BlockTraits.DIRECTION);
     public static final BlockType TRIPWIRE = BlockType.of(Identifiers.TRIPWIRE, BlockTraits.IS_POWERED, BlockTraits.IS_SUSPENDED, BlockTraits.IS_DISARMED, BlockTraits.IS_ATTACHED);
     public static final BlockType EMERALD_BLOCK = BlockType.of(Identifiers.EMERALD_BLOCK);
@@ -171,11 +171,11 @@ public class BlockTypes {
     public static final BlockType HARD_STAINED_GLASS_PANE = BlockType.of(Identifiers.HARD_STAINED_GLASS_PANE, BlockTraits.COLOR);
     public static final BlockType CHEMICAL_HEAT = BlockType.of(Identifiers.CHEMICAL_HEAT);
     public static final BlockType GRASS_PATH = BlockType.of(Identifiers.GRASS_PATH);
-    public static final BlockType FRAME = BlockType.of(Identifiers.FRAME, BlockTraits.HAS_MAP);
+    public static final BlockType FRAME = BlockType.of(Identifiers.FRAME, BlockTraits.FACING_DIRECTION, BlockTraits.HAS_MAP);
     public static final BlockType CHORUS_FLOWER = BlockType.of(Identifiers.CHORUS_FLOWER, BlockTraits.CHORUS_AGE);
     public static final BlockType PURPUR_BLOCK = BlockType.of(Identifiers.PURPUR_BLOCK, BlockTraits.CHISEL_TYPE, BlockTraits.AXIS);
-    public static final BlockType COLORED_TORCH_RG = BlockType.of(Identifiers.COLORED_TORCH_RG, BlockTraits.TORCH_DIRECTION);
-    public static final BlockType COLORED_TORCH_BP = BlockType.of(Identifiers.COLORED_TORCH_BP, BlockTraits.TORCH_DIRECTION);
+    public static final BlockType COLORED_TORCH_RG = BlockType.of(Identifiers.COLORED_TORCH_RG, BlockTraits.HAS_COLOR, BlockTraits.TORCH_DIRECTION);
+    public static final BlockType COLORED_TORCH_BP = BlockType.of(Identifiers.COLORED_TORCH_BP, BlockTraits.HAS_COLOR, BlockTraits.TORCH_DIRECTION);
     public static final BlockType UNDYED_SHULKER_BOX = BlockType.of(Identifiers.UNDYED_SHULKER_BOX);
     public static final BlockType END_BRICKS = BlockType.of(Identifiers.END_BRICKS);
     public static final BlockType FROSTED_ICE = BlockType.of(Identifiers.FROSTED_ICE, BlockTraits.ICE_AGE);
@@ -272,7 +272,7 @@ public class BlockTypes {
     public static final BlockType CHISELED_POLISHED_BLACKSTONE = BlockType.of(Identifiers.CHISELED_POLISHED_BLACKSTONE);
     public static final BlockType CRACKED_POLISHED_BLACKSTONE_BRICKS = BlockType.of(Identifiers.CRACKED_POLISHED_BLACKSTONE_BRICKS);
     public static final BlockType GILDED_BLACKSTONE = BlockType.of(Identifiers.GILDED_BLACKSTONE);
-    public static final BlockType CHAIN = BlockType.of(Identifiers.CHAIN);
+    public static final BlockType CHAIN = BlockType.of(Identifiers.CHAIN, BlockTraits.AXIS);
     public static final BlockType TWISTING_VINES = BlockType.of(Identifiers.TWISTING_VINES, BlockTraits.TWISTING_VINES_AGE);
     public static final BlockType NETHER_GOLD_ORE = BlockType.of(Identifiers.NETHER_GOLD_ORE);
     public static final BlockType CRYING_OBSIDIAN = BlockType.of(Identifiers.CRYING_OBSIDIAN);
