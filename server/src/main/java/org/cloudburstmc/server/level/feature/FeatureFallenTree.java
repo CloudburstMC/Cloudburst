@@ -53,16 +53,16 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
 
         if (this.vineChance > 0.0d) {
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x - 1, y, z, 0))) {
-                level.setBlockState(x - 1, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.EAST));
+                level.setBlockState(x - 1, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 8));
             }
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x + 1, y, z, 0))) {
-                level.setBlockState(x + 1, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.WEST));
+                level.setBlockState(x + 1, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 2));
             }
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x, y, z - 1, 0))) {
-                level.setBlockState(x, y, z - 1, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.SOUTH));
+                level.setBlockState(x, y, z - 1, 0, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 1));
             }
             if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x, y, z + 1, 0))) {
-                level.setBlockState(x, y, z + 1, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, Direction.NORTH));
+                level.setBlockState(x, y, z + 1, 0, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 4));
             }
         }
 
