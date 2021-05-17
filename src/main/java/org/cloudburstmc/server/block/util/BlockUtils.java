@@ -27,6 +27,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 @UtilityClass
 public class BlockUtils {
 
+    public static final Comparator<BlockState> BLOCK_STATE_COMPARATOR = new BlockStateComparator();
+
     private final Ref<Matcher> SINGLE_STATE_PATTERN = ThreadRef.regex(Pattern.compile(
             "^((?:[a-z0-9_]+:)?[a-z0-9_]+)(\\{(?:[a-z_]+=[a-z0-9_]+(?:,\\s*)?)+\\})?$", Pattern.CASE_INSENSITIVE));
     private final Ref<Matcher> SINGLE_TRAIT_PATTERN = ThreadRef.regex(Pattern.compile(
@@ -218,5 +220,29 @@ public class BlockUtils {
 
             return state;
         });
+    }
+
+    private static class BlockStateComparator implements Comparator<BlockState> {
+
+        @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        public int compare(BlockState state1, BlockState state2) {
+            if (state1.getType() != state2.getType())
+                return state1.getType().getId().toString().compareTo(state2.getType().getId().toString());
+
+            for (BlockTrait<?> trait : state1.getTraits().keySet()) {
+                Comparable traitValue1 = state1.getTraits().get(trait);
+                Comparable traitValue2 = state2.getTraits().get(trait);
+                if (traitValue1.compareTo(traitValue2) == 0)
+                    continue;
+                return traitValue1.compareTo(traitValue2);
+            }
+            return 0;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return false;
+        }
     }
 }

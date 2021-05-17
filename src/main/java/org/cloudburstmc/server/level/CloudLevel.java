@@ -367,7 +367,7 @@ public class CloudLevel implements Level {
         if (players == null || players.length == 0) {
             addChunkPacket(pos, packet);
         } else {
-            CloudServer.broadcastPacket((CloudPlayer[]) players, packet);
+            CloudServer.broadcastPacket(players, packet);
         }
     }
 
@@ -422,7 +422,7 @@ public class CloudLevel implements Level {
             }
         } else {
             if (packets != null) {
-                CloudServer.broadcastPackets((CloudPlayer[]) players, packets);
+                CloudServer.broadcastPackets(players, packets);
             }
         }
     }
@@ -457,7 +457,7 @@ public class CloudLevel implements Level {
         if (players == null || players.length == 0) {
             addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, packet);
         } else {
-            CloudServer.broadcastPacket((CloudPlayer[]) players, packet);
+            CloudServer.broadcastPacket(players, packet);
         }
     }
 
@@ -554,7 +554,7 @@ public class CloudLevel implements Level {
         SetTimePacket pk = new SetTimePacket();
         pk.setTime(this.getTime());
 
-        CloudServer.broadcastPacket(Arrays.copyOf(players, players.length, CloudPlayer[].class), pk);
+        CloudServer.broadcastPacket(players, pk);
     }
 
     public void sendTime() {
@@ -850,7 +850,7 @@ public class CloudLevel implements Level {
             packets[i] = updateBlockPacket;
             packets[i + 1] = updateBlockPacket2;
         }
-        CloudServer.broadcastPackets(Arrays.copyOf(target, target.length, CloudPlayer[].class), packets);
+        CloudServer.broadcastPackets(players.values().toArray(new CloudPlayer[0]), packets);
     }
 
     public boolean save() {
@@ -2458,7 +2458,7 @@ public class CloudLevel implements Level {
             thunderEvent.setType(LevelEventType.STOP_THUNDERSTORM);
         }
         thunderEvent.setPosition(Vector3f.ZERO);
-        CloudServer.broadcastPacket((CloudPlayer[]) players, thunderEvent);
+        CloudServer.broadcastPacket(players, thunderEvent);
     }
 
     public void sendWeather(Player player) {
