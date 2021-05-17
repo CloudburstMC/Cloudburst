@@ -251,11 +251,11 @@ public class CloudServer implements Server {
         this.consoleThread = new ConsoleThread();
     }
 
-    public static void broadcastPackets(CloudPlayer[] players, BedrockPacket[] packets) {
+    public static void broadcastPackets(Player[] players, BedrockPacket[] packets) {
         CloudServer.getInstance().batchPackets(players, packets);
     }
 
-    public static void broadcastPacket(CloudPlayer[] players, BedrockPacket packet) {
+    public static void broadcastPacket(Player[] players, BedrockPacket packet) {
         CloudServer.getInstance().batchPackets(players, new BedrockPacket[]{packet});
     }
 

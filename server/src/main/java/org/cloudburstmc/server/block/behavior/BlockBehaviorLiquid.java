@@ -64,7 +64,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 //    }
 
     public static float getFluidHeightPercent(BlockState state) {
-        return (state.ensureTrait(BlockTraits.FLUID_LEVEL) + 1) / 9f;
+        return (state.ensureTrait(BlockTraits.LIQUID_DEPTH) + 1) / 9f;
     }
 
     protected int getFlowDecay(BlockState state) {
@@ -72,7 +72,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
             return -1;
         }
 
-        return state.ensureTrait(BlockTraits.FLUID_LEVEL);
+        return state.ensureTrait(BlockTraits.LIQUID_DEPTH);
     }
 
     protected int getEffectiveFlowDecay(BlockState state) {
@@ -80,7 +80,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
             return -1;
         }
 
-        return state.ensureTrait(BlockTraits.FLUID_LEVEL);
+        return state.ensureTrait(BlockTraits.LIQUID_DEPTH);
     }
 
     public void clearCaches() {
@@ -197,7 +197,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
                     BlockState bottomBlockState = block.down().getLiquid();
                     if (bottomBlockState.getBehavior().isSolid(bottomBlockState)) {
                         newDecay = 0;
-                    } else if (isWater(bottomBlockState.getType()) && bottomBlockState.ensureTrait(BlockTraits.FLUID_LEVEL) == 0 && !bottomBlockState.ensureTrait(BlockTraits.IS_FLOWING)) {
+                    } else if (isWater(bottomBlockState.getType()) && bottomBlockState.ensureTrait(BlockTraits.LIQUID_DEPTH) == 0 && !bottomBlockState.ensureTrait(BlockTraits.IS_FLOWING)) {
                         newDecay = 0;
                     }
                 }
@@ -402,7 +402,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
         }
 
         if (state.inCategory(BlockCategory.LIQUID)) {
-            return state.ensureTrait(BlockTraits.FLUID_LEVEL) != 0;
+            return state.ensureTrait(BlockTraits.LIQUID_DEPTH) != 0;
         }
 
         return true;
@@ -414,7 +414,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     protected BlockState getState(int decay, boolean falling) {
         return CloudBlockRegistry.get().getBlock(flowingId)
-                .withTrait(BlockTraits.FLUID_LEVEL, decay & 0x7)
+                .withTrait(BlockTraits.LIQUID_DEPTH, decay & 0x7)
                 .withTrait(BlockTraits.IS_FLOWING, falling);
     }
 
