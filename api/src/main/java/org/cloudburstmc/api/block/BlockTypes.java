@@ -41,7 +41,7 @@ public class BlockTypes {
     public static final BlockType PISTON = BlockType.of(Identifiers.PISTON, BlockTraits.FACING_DIRECTION, BlockTraits.IS_STICKY);
     public static final BlockType PISTON_ARM_COLLISION = BlockType.of(Identifiers.PISTON_ARM_COLLISION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_STICKY);
     public static final BlockType WOOL = BlockType.of(Identifiers.WOOL, BlockTraits.COLOR);
-    public static final BlockType ELEMENT = BlockType.of(Identifiers.ELEMENT_0);
+    public static final BlockType ELEMENT = BlockType.of(Identifiers.ELEMENT_0, BlockTraits.ELEMENT_TYPE);
     public static final BlockType FLOWER = BlockType.of(Identifiers.RED_FLOWER, BlockTraits.FLOWER_TYPE);
     public static final BlockType BROWN_MUSHROOM = BlockType.of(Identifiers.BROWN_MUSHROOM);
     public static final BlockType RED_MUSHROOM = BlockType.of(Identifiers.RED_MUSHROOM);
@@ -70,7 +70,7 @@ public class BlockTypes {
     public static final BlockType WOODEN_DOOR = BlockType.of(Identifiers.OAK_DOOR, BlockTraits.IS_OPEN, BlockTraits.DIRECTION, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_UPPER_BLOCK, BlockTraits.TREE_SPECIES);
     public static final BlockType LADDER = BlockType.of(Identifiers.LADDER, BlockTraits.FACING_DIRECTION);
     public static final BlockType RAIL = BlockType.of(Identifiers.RAIL, BlockTraits.RAIL_DIRECTION);
-    public static final BlockType STONE_STAIRS = BlockType.of(Identifiers.STONE_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.STONE_STAIRS_TYPE);
+    public static final BlockType STONE_STAIRS = BlockType.of(Identifiers.STONE_STAIRS, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.DIRECTION, BlockTraits.STONE_STAIRS_TYPE);
     public static final BlockType WALL_SIGN = BlockType.of(Identifiers.OAK_WALL_SIGN, BlockTraits.FACING_DIRECTION, BlockTraits.TREE_SPECIES);
     public static final BlockType LEVER = BlockType.of(Identifiers.LEVER, BlockTraits.IS_OPEN, BlockTraits.LEVER_DIRECTION);
     public static final BlockType STONE_PRESSURE_PLATE = BlockType.of(Identifiers.STONE_PRESSURE_PLATE, BlockTraits.REDSTONE_SIGNAL, BlockTraits.STONE_PRESSURE_PLATE_TYPE);
@@ -148,7 +148,7 @@ public class BlockTypes {
     public static final BlockType QUARTZ_ORE = BlockType.of(Identifiers.QUARTZ_ORE);
     public static final BlockType HOPPER = BlockType.of(Identifiers.HOPPER, BlockTraits.FACING_DIRECTION, BlockTraits.IS_TOGGLED);
     public static final BlockType QUARTZ_BLOCK = BlockType.of(Identifiers.QUARTZ_BLOCK, BlockTraits.CHISEL_TYPE, BlockTraits.AXIS);
-    public static final BlockType WOODEN_SLAB = BlockType.of(Identifiers.WOODEN_SLAB, BlockTraits.TREE_SPECIES, BlockTraits.SLAB_SLOT);
+    public static final BlockType WOODEN_SLAB = BlockType.of(Identifiers.WOODEN_SLAB, BlockTraits.SLAB_SLOT, BlockTraits.TREE_SPECIES);
     public static final BlockType STAINED_HARDENED_CLAY = BlockType.of(Identifiers.STAINED_HARDENED_CLAY, BlockTraits.COLOR);
     public static final BlockType STAINED_GLASS_PANE = BlockType.of(Identifiers.STAINED_GLASS_PANE, BlockTraits.COLOR);
     public static final BlockType SLIME = BlockType.of(Identifiers.SLIME);
