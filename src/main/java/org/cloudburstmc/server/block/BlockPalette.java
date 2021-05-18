@@ -133,7 +133,7 @@ public class BlockPalette {
     }
 
     public BlockState getDefaultState(BlockType blockType) {
-        return this.defaultStateMap.get(blockType);
+        return this.defaultStateMap.get(blockType.getId());
     }
 
     public BlockState getBlockState(int runtimeId) {

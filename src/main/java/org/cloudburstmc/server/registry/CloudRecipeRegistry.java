@@ -141,8 +141,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     public void loadFromFile(URI file) {
-        long start = System.currentTimeMillis();
-        log.info("Loading recipes...");
+        log.info("Loading recipes from {}...", file);
         JsonNode json;
         int unlabeled = 0;
 
@@ -167,6 +166,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             }
 
             switch (recipe.get("type").asInt()) {
+                case 5: // shunkler box dye colors, own type for some reason??
                 case 0: // Shapeless
                     String craftingBlock = recipe.get("block").asText();
                     Identifier block = craftingBlock == null ? null : Identifier.fromString(craftingBlock);
@@ -204,15 +204,19 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                     break;
                 case 2:
                 case 3: //furnace
-                    Map<String, Object> outputData = Bootstrap.JSON_MAPPER.convertValue(recipe.get("output"), new TypeReference<Map<String, Object>>() {});
-                    Map<String, Object> inputData = Bootstrap.JSON_MAPPER.convertValue(recipe.get("input"), new TypeReference<Map<String, Object>>() {});
+                    Map<String, Object> outputData = Bootstrap.JSON_MAPPER.convertValue(recipe.get("output"), new TypeReference<Map<String, Object>>() {
+                    });
+                    Map<String, Object> inputData = Bootstrap.JSON_MAPPER.convertValue(recipe.get("input"), new TypeReference<Map<String, Object>>() {
+                    });
                     craftingBlock = recipe.get("block").asText();
                     block = craftingBlock == null ? null : Identifier.fromString(craftingBlock);
 
-                    this.register(new FurnaceRecipe(id,createRecipeItem(outputData),createRecipeItem(inputData),block));
+                    this.register(new FurnaceRecipe(id, createRecipeItem(outputData), createRecipeItem(inputData), block));
+                    break;
+                case 4:
+                    break;
                 default:
-                    log.debug("Skipping recipie with unimplemented type");
-                    break; // unsupported type
+                    throw new RegistryException("Unsupported Recipe type");
             }
         }
 
@@ -238,9 +242,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             this.register(new ContainerRecipe(id, input, reagent, output));
         }
 
-        long end = System.currentTimeMillis();
-        long time = end - start;
-        log.info("Took {} ms to load recipies", time);
     }
 
     @NonNull

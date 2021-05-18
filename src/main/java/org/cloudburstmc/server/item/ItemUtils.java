@@ -8,6 +8,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -83,6 +84,10 @@ public class ItemUtils {
         String[] canPlace = item.getCanPlaceOn().stream().map(Identifier::toString).toArray(String[]::new);
         String[] canBreak = item.getCanDestroy().stream().map(Identifier::toString).toArray(String[]::new);
 
+        int brid = 0;
+        if (item instanceof BlockItemStack) {
+            brid = CloudBlockRegistry.get().getRuntimeId(item.getBlockState());
+        }
         return ItemData.builder()
                 .id(id)
                 .damage(meta)
@@ -90,6 +95,7 @@ public class ItemUtils {
                 .tag(tag)
                 .canPlace(canPlace)
                 .canBreak(canBreak)
+                .blockRuntimeId(brid)
                 .build();
     }
 
