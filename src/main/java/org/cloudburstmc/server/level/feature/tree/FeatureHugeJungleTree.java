@@ -81,7 +81,7 @@ public class FeatureHugeJungleTree extends FeatureHugeTree {
         x -= face.getUnitVector().getX();
         z -= face.getUnitVector().getZ();
         if (random.nextInt(4) != 0 && this.test(level.getBlockState(x, y, z, 0))) {
-            level.setBlockState(x, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, face));
+            level.setBlockState(x, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, face.getIndex()));
         }
     }
 }

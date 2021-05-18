@@ -54,7 +54,7 @@ public class LevelBuilder {
     }
 
     public LevelBuilder generatorOptions(String generatorOptions) {
-        Preconditions.checkNotNull(generatorOptions, "generatorOptions");
+       // Preconditions.checkNotNull(generatorOptions, "generatorOptions"); This should be able to be null, since we have defaults on the generator classes
         this.levelData.setGeneratorOptions(generatorOptions);
         return this;
     }
