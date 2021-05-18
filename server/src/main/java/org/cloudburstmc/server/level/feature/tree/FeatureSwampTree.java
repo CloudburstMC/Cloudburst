@@ -51,7 +51,7 @@ public class FeatureSwampTree extends FeatureNormalTree {
     }
 
     protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, Direction face, BlockState leaves) {
-        BlockState vine = BlockStates.VINE.withTrait(BlockTraits.FACING_DIRECTION, face.getOpposite());
+        BlockState vine = BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, face.getOpposite().getIndex());
         BlockState block;
         for (int dy = 0; dy < 4 && (block = level.getBlockState(x, y - dy, z, 0)) != leaves && this.test(block); dy++) {
             level.setBlockState(x, y - dy, z, 0, vine);
