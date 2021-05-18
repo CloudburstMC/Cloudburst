@@ -714,7 +714,7 @@ public class CloudItemRegistry implements ItemRegistry {
         try {
             json = Bootstrap.JSON_MAPPER.readValue(jsonFile.toURL(), new TypeReference<Map<String, JSONArray>>(){}).get("items");
         } catch (IOException e) {
-            throw new RegistryException("Unable to load creative items file: " + jsonFile.toString(), e);
+            throw new RegistryException("Unable to load creative items file: " + jsonFile, e);
         } catch (Exception e) {
             throw new RegistryException("Unknown error when loading creative items file.", e);
         }
