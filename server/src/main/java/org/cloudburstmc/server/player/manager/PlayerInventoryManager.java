@@ -190,12 +190,12 @@ public class PlayerInventoryManager {
     }
 
     private boolean isCraftingRequest(ItemStackRequest request) {
-        return Arrays.stream(request.getActions()).anyMatch(req -> req.getType() == CRAFT_CREATIVE
+        return Arrays.stream(request.getActions()).anyMatch(req -> (!player.isCreative() && (req.getType() == CRAFT_CREATIVE
+                || req.getType() == CRAFT_NON_IMPLEMENTED_DEPRECATED))
                 || req.getType() == CRAFT_RECIPE
                 || req.getType() == CRAFT_RECIPE_AUTO
                 || req.getType() == CRAFT_RECIPE_OPTIONAL
                 || req.getType() == CRAFT_RESULTS_DEPRECATED
-                || req.getType() == CRAFT_NON_IMPLEMENTED_DEPRECATED
                 || req.getType() == CRAFT_RESULTS_DEPRECATED
         );
     }
