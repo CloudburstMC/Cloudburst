@@ -8,6 +8,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.ToString;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.ItemStack;
@@ -103,6 +104,11 @@ public class CloudItemStack implements ItemStack {
     @Override
     public int getAmount() {
         return amount;
+    }
+
+    @Override
+    public boolean isNull() {
+        return this.getType() == BlockTypes.AIR;
     }
 
     @SuppressWarnings("unchecked")
