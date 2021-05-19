@@ -210,7 +210,7 @@ public final class BlockType implements ItemType {
 
     @Override
     public int getMaximumStackSize() {
-        return 0;
+        return 64;
     }
 
     @Override
