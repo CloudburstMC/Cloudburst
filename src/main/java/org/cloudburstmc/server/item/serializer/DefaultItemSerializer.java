@@ -127,6 +127,10 @@ public class DefaultItemSerializer implements ItemSerializer {
         tagBuilder.putString("Name", id.toString());
         tagBuilder.putShort("Damage", meta);
         tagBuilder.putByte("Count", (byte) amount);
+        if (!tag.isEmpty()) {
+            builder.dataTag(tag);
+            tagBuilder.putCompound("tag", tag);
+        }
         builder.nbt(tagBuilder.build());
 
         if (type instanceof BlockType) {

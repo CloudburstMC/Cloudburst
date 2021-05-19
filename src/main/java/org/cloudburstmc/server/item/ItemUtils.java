@@ -72,7 +72,7 @@ public class ItemUtils {
     public static ItemData toNetwork(ItemStack item) {
         int id = registry.getRuntimeId(((CloudItemStack) item).getId());
 
-        NbtMap tag = ((CloudItemStack) item).getNbt();
+        NbtMap tag = ((CloudItemStack) item).getDataTag();
         short meta;
         if (tag.isEmpty()) {
             tag = null;
@@ -149,7 +149,7 @@ public class ItemUtils {
 
         NbtMap tag;
         if (nbtBytes != null) {
-            try (NBTInputStream stream = NbtUtils.createReaderLE(new ByteArrayInputStream(Base64.getDecoder().decode(nbt)))) {
+            try (NBTInputStream stream = NbtUtils.createReaderLE(new ByteArrayInputStream(nbtBytes))) {
                 tag = (NbtMap) stream.readTag();
             } catch (IOException e) {
                 throw new IllegalStateException("Unable to decode tag", e);
