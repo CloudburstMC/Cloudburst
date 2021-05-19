@@ -171,7 +171,7 @@ public class NetworkUtils {
                 data.getSlot() >= 0 && data.getSlot() <= 9 ? data.getSlot() : 0,
                 (byte) item.getAmount(),
                 data.getStackNetworkId(),
-                item.getName(),
+                item.getName() == null ? "" : item.getName(),
                 durablility);
 
     }
