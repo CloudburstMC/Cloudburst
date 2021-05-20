@@ -140,7 +140,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                 if (fuel.getType() == ItemTypes.BUCKET && fuel.getMetadata(Bucket.class) == Bucket.LAVA) {
                     fuel = fuel.toBuilder().amount(1).itemData(Bucket.EMPTY).build();
                 } else {
-                    fuel = CloudItemRegistry.AIR;
+                    fuel = CloudItemRegistry.get().AIR;
                 }
             } else {
                 fuel = fuel.decrementAmount();
@@ -184,7 +184,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                     if (!ev.isCancelled()) {
                         this.inventory.setResult(ev.getResult());
                         if (raw.getAmount() <= 1) {
-                            raw = CloudItemRegistry.AIR;
+                            raw = CloudItemRegistry.get().AIR;
                         } else {
                             raw = raw.decrementAmount();
                         }

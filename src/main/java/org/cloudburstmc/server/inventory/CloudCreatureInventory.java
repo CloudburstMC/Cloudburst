@@ -130,7 +130,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
     @Override
     public void setOffHandContents(ItemStack offhand) {
         if (offhand == null) {
-            offhand = CloudItemRegistry.AIR;
+            offhand = CloudItemRegistry.get().AIR;
         }
         this.setItem(offHandIndex, offhand);
     }
@@ -147,7 +147,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
         ItemStack offHand = this.getOffHand();
 
         if (offHand == null) {
-            offHand = CloudItemRegistry.AIR;
+            offHand = CloudItemRegistry.get().AIR;
         }
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
@@ -233,7 +233,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
 
         for (int i = 0; i < 4; ++i) {
             if (items[i] == null) {
-                items[i] = CloudItemRegistry.AIR;
+                items[i] = CloudItemRegistry.get().AIR;
             }
 
             if (items[i].isNull()) {

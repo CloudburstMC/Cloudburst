@@ -12,7 +12,6 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
@@ -41,18 +40,21 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     private NbtMap nbt;
     private NbtMap dataTag;
     private ItemData networkData;
+    private int stackNetworkId = -1;
 
     public CloudItemStackBuilder() {
     }
 
-    public CloudItemStackBuilder(ItemStack item) {
+    public CloudItemStackBuilder(CloudItemStack item) {
         itemType = item.getType();
         amount = item.getAmount();
         itemLore = item.getLore();
         enchantments.putAll(item.getEnchantments());
         canDestroy.addAll(item.getCanDestroy());
         canPlaceOn.addAll(item.getCanPlaceOn());
-
+        dataTag = item.dataTag; // Access directly to allow for null return
+        nbt = item.nbt;
+        stackNetworkId = item.getStackNetworkId();
         if (item instanceof BlockItemStack) {
             this.blockState = item.getBlockState();
         }
@@ -61,6 +63,11 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     public CloudItemStackBuilder id(Identifier id) {
         Preconditions.checkState(this.blockState == null || id == this.blockState.getType().getId(), "Cannot change item id when block state is set");
         this.id = id;
+        return this;
+    }
+
+    public CloudItemStackBuilder stackNetworkId(int stackNetId) {
+        this.stackNetworkId = stackNetId;
         return this;
     }
 
@@ -262,18 +269,22 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     public CloudItemStack build() {
         Preconditions.checkArgument(itemType != null, "ItemType has not been set");
 
+        if (stackNetworkId == -1) {
+            stackNetworkId = CloudItemRegistry.get().getNetId();
+        }
+
         if (amount <= 0) {
-            return CloudItemRegistry.AIR;
+            return CloudItemRegistry.get().AIR;
         }
 
         if (blockState != null) {
-            if (blockState == BlockStates.AIR) {
-                return CloudItemRegistry.AIR;
+            if (blockState == BlockStates.AIR && CloudItemRegistry.get() != null) {
+                return CloudItemRegistry.get().AIR;
             }
 
-            return new BlockItemStack(this.blockState, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData);
+            return new BlockItemStack(this.blockState, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData, stackNetworkId);
         } else {
-            return new CloudItemStack(id, itemType, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData);
+            return new CloudItemStack(id, itemType, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData, stackNetworkId);
         }
     }
 

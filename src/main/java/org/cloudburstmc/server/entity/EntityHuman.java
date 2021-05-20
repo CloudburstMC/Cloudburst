@@ -349,7 +349,7 @@ public class EntityHuman extends EntityCreature implements Human {
                     armor = armor.withData(damageable.damage());
 
                     if (damageable.getDurability() + 1 >= armor.getBehavior().getMaxDurability()) {
-                        getInventory().setArmorItem(slot, CloudItemRegistry.AIR);
+                        getInventory().setArmorItem(slot, CloudItemRegistry.get().AIR);
                     } else {
                         getInventory().setArmorItem(slot, armor, true);
                     }

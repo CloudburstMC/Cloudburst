@@ -42,6 +42,7 @@ public class CloudItemStack implements ItemStack {
     protected final Set<Identifier> canDestroy;
     protected final Set<Identifier> canPlaceOn;
     protected final Map<Class<?>, Object> data;
+    protected final int stackNetId;
 
     protected volatile NbtMap nbt;
     protected volatile NbtMap dataTag;
@@ -53,6 +54,10 @@ public class CloudItemStack implements ItemStack {
 
     public CloudItemStack(Identifier id, ItemType type, int amount) {
         this(id, type, amount, null, null, null, null, null, null, null, null, null);
+    }
+
+    public CloudItemStack(Identifier id, ItemType type, int amount, String itemName, List<String> itemLore, Map<EnchantmentType, EnchantmentInstance> enchantments, Collection<Identifier> canDestroy, Collection<Identifier> canPlaceOn, Map<Class<?>, Object> data, NbtMap nbt, NbtMap dataTag, ItemData networkData) {
+        this(id, type, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData, -1);
     }
 
     @ParametersAreNullableByDefault
@@ -68,7 +73,8 @@ public class CloudItemStack implements ItemStack {
             Map<Class<?>, Object> data,
             NbtMap nbt,
             NbtMap dataTag,
-            ItemData networkData
+            ItemData networkData,
+            int netId
     ) {
         this.id = id;
         this.type = type;
@@ -82,6 +88,20 @@ public class CloudItemStack implements ItemStack {
         this.nbt = nbt;
         this.dataTag = dataTag;
         this.networkData = networkData;
+
+        if (netId == -1) {
+            if (networkData == null) {
+                this.stackNetId = CloudItemRegistry.get().getNetId();
+            } else {
+                this.stackNetId = networkData.getNetId();
+            }
+        } else {
+            this.stackNetId = netId;
+        }
+
+        if (type != BlockTypes.AIR) {
+            CloudItemRegistry.get().addNetId(this);
+        }
     }
 
     public Identifier getId() {
@@ -211,6 +231,10 @@ public class CloudItemStack implements ItemStack {
             }
         }
         return networkData;
+    }
+
+    public int getStackNetworkId() {
+        return stackNetId;
     }
 
     @Override

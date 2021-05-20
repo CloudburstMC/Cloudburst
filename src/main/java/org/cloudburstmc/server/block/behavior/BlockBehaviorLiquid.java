@@ -420,7 +420,7 @@ public abstract class BlockBehaviorLiquid extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.AIR;
+        return CloudItemRegistry.get().AIR;
     }
 
     public boolean usesWaterLogging() {

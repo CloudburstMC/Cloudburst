@@ -18,7 +18,7 @@ public class BlockBehaviorEndGateway extends BlockBehaviorSolid {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.AIR;
+        return CloudItemRegistry.get().AIR;
     }
 
 }

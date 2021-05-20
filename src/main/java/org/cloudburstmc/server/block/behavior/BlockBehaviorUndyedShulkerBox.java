@@ -44,7 +44,7 @@ public class BlockBehaviorUndyedShulkerBox extends BlockBehaviorTransparent {
             tag = tagBuilder.build();
         }
 
-        return new CloudItemStackBuilder(CloudItemRegistry.get().getItem(block.getState()))
+        return new CloudItemStackBuilder((CloudItemStack) CloudItemRegistry.get().getItem(block.getState()))
                 .dataTag(tag)
                 .build();
     }

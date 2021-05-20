@@ -96,10 +96,12 @@ public class ItemUtils {
                 .canPlace(canPlace)
                 .canBreak(canBreak)
                 .blockRuntimeId(brid)
+                .netId(((CloudItemStack) item).getStackNetworkId())
+                .usingNetId(true)
                 .build();
     }
 
-    public static ItemStack fromNetwork(ItemData data) {
+    public static CloudItemStack fromNetwork(ItemData data) {
         Identifier id = registry.getIdentifier(data.getId());
         ItemType type = ItemTypes.byId(id);
 
@@ -128,6 +130,7 @@ public class ItemUtils {
         }
 
         CloudItemStackBuilder builder = new CloudItemStackBuilder();
+        builder.stackNetworkId(data.getNetId());
         registry.getSerializer(type).deserialize(id, (short) data.getDamage(), data.getCount(), builder, tag);
 
         return builder.build();

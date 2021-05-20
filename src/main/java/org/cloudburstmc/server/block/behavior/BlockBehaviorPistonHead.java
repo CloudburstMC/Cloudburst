@@ -19,7 +19,7 @@ public class BlockBehaviorPistonHead extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.AIR;
+        return CloudItemRegistry.get().AIR;
     }
 
 

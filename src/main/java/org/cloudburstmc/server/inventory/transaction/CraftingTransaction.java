@@ -41,7 +41,7 @@ public class CraftingTransaction extends InventoryTransaction {
         super(source, actions, false);
 
         this.gridSize = (source.getInventory().getCraftingGrid().getCraftingGridType() == CraftingGrid.Type.CRAFTING_GRID_BIG) ? 3 : 2;
-        ItemStack air = CloudItemRegistry.AIR;
+        ItemStack air = CloudItemRegistry.get().AIR;
         this.inputs = new ItemStack[gridSize][gridSize];
         for (ItemStack[] a : this.inputs) {
             Arrays.fill(a, air);

@@ -11,7 +11,6 @@ import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.inventory.InventoryType;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.potion.EffectType;
@@ -162,7 +161,7 @@ public class NetworkUtils {
 
     public static ItemStackResponsePacket.ItemEntry itemStackToNetwork(StackRequestSlotInfoData data, BaseInventory inv) {
         int durablility = 0;
-        ItemStack item = inv.getItem(data.getSlot());
+        CloudItemStack item = inv.getItem(data.getSlot());
         if (item.getMetadata(Damageable.class, null) != null) {
             durablility = item.getMetadata(Damageable.class).getDurability();
         }
@@ -170,7 +169,7 @@ public class NetworkUtils {
         return new ItemStackResponsePacket.ItemEntry(data.getSlot(),
                 data.getSlot() >= 0 && data.getSlot() <= 9 ? data.getSlot() : 0,
                 (byte) item.getAmount(),
-                data.getStackNetworkId(),
+                item.getNetworkData().getNetId(),
                 item.getName() == null ? "" : item.getName(),
                 durablility);
 
