@@ -1559,7 +1559,7 @@ public class CloudLevel implements Level {
         int dropExp = targetBehavior.getDropExp();
 
         if (item == null) {
-            item = CloudItemRegistry.AIR;
+            item = CloudItemRegistry.get().AIR;
         }
 
         boolean isSilkTouch = item.getEnchantment(EnchantmentTypes.SILK_TOUCH) != null;
@@ -1661,7 +1661,7 @@ public class CloudLevel implements Level {
         var itemBehavior = item.getBehavior();
         itemBehavior.useOn(item, target.getState());
         if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-            item = CloudItemRegistry.AIR;
+            item = CloudItemRegistry.get().AIR;
         }
 
         if (this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
@@ -1750,7 +1750,7 @@ public class CloudLevel implements Level {
                 targetBehavior.onUpdate(target, BLOCK_UPDATE_TOUCH);
                 if ((!player.isSneaking() || player.getInventory().getItemInHand().isNull()) && targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item, player)) {
                     if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-                        item = CloudItemRegistry.AIR;
+                        item = CloudItemRegistry.get().AIR;
                     }
                     return item;
                 }
@@ -1760,7 +1760,7 @@ public class CloudLevel implements Level {
                     if (result != null) {
                         item = result;
                         if (item.getAmount() <= 0) {
-                            item = CloudItemRegistry.AIR;
+                            item = CloudItemRegistry.get().AIR;
                             return item;
                         }
                     }
@@ -1773,7 +1773,7 @@ public class CloudLevel implements Level {
             }
         } else if (targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item)) {
             if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-                item = CloudItemRegistry.AIR;
+                item = CloudItemRegistry.get().AIR;
             }
             return item;
         }
@@ -1879,7 +1879,7 @@ public class CloudLevel implements Level {
         }
 
         if (item.getAmount() <= 0) {
-            item = CloudItemRegistry.AIR;
+            item = CloudItemRegistry.get().AIR;
         }
         return item;
     }

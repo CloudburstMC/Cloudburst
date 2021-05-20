@@ -69,6 +69,7 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                         }
                     } catch (Exception e) {
                         log.debug("Exception in Player initialization: {}", e.getMessage());
+                        e.printStackTrace();
                     }
 
                 } else {

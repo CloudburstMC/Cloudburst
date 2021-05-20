@@ -140,7 +140,7 @@ public class ShapedRecipe implements CraftingRecipe {
     public ItemStack getIngredient(int x, int y) {
         ItemStack item = this.ingredients.get(this.shape[y].charAt(x));
 
-        return item != null ? item : CloudItemRegistry.AIR;
+        return item != null ? item : CloudItemRegistry.get().AIR;
     }
 
     public String[] getShape() {

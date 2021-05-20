@@ -818,7 +818,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!itemFrameDropItemEvent.isCancelled()) {
             if (itemDrop.getType() != AIR) {
                 player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
-                itemFrame.setItem(CloudItemRegistry.AIR);
+                itemFrame.setItem(CloudItemRegistry.get().AIR);
                 itemFrame.setItemRotation(0);
                 player.getLevel().addSound(player.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
             }
@@ -1134,7 +1134,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 if (serverItem.getAmount() > 1) {
                                     serverItem = serverItem.decrementAmount();
                                 } else {
-                                    serverItem = CloudItemRegistry.AIR;
+                                    serverItem = CloudItemRegistry.get().AIR;
                                 }
                             } else {
                                 serverItem = result;
@@ -1202,7 +1202,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         if (behavior.isTool(serverItem) && player.isSurvival()) {
                             var result = behavior.useOn(serverItem, target);
                             if (result == null && serverItem.getMetadata(Damageable.class).getDurability() >= behavior.getMaxDurability()) {
-                                player.getInventory().setItemInHand(CloudItemRegistry.AIR);
+                                player.getInventory().setItemInHand(CloudItemRegistry.get().AIR);
                             } else {
                                 player.getInventory().setItemInHand(result);
                             }

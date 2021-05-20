@@ -9,6 +9,8 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
+import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
@@ -17,6 +19,7 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.minidev.json.JSONArray;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -40,14 +43,19 @@ import org.cloudburstmc.server.item.behavior.*;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+
 
 @Log4j2
 public class CloudItemRegistry implements ItemRegistry {
@@ -79,12 +87,18 @@ public class CloudItemRegistry implements ItemRegistry {
     private List<StartGamePacket.ItemEntry> itemEntries;
     private volatile CreativeContentPacket creativeContent;
 
-    public static final CloudItemStack AIR = new CloudItemStack(Identifiers.AIR, BlockTypes.AIR);
+    //StackNetId stuff
+    private final AtomicInteger netIdAllocator = new AtomicInteger(1);
+    private final Int2ReferenceMap<WeakReference<CloudItemStack>> netIdMap = new Int2ReferenceOpenHashMap();
+    private final ReferenceQueue<CloudItemStack> oldIdQueue = new ReferenceQueue<>();
 
+    public final CloudItemStack AIR;
     private volatile boolean closed;
 
     private CloudItemRegistry(CloudBlockRegistry blockRegistry) {
         this.blockRegistry = blockRegistry;
+        AIR = new CloudItemStackBuilder().id(Identifiers.AIR).blockState(BlockStates.AIR).itemType(BlockTypes.AIR).stackNetworkId(0).build();
+        this.netIdMap.put(0, new WeakReference<>(AIR, oldIdQueue));
         try {
             this.registerVanillaItems();
             this.registerVanillaIdentifiers();
@@ -110,6 +124,40 @@ public class CloudItemRegistry implements ItemRegistry {
         Preconditions.checkNotNull(metadataClass, "metadataClass");
         Preconditions.checkNotNull(serializer, "serializer");
         this.dataSerializers.put(metadataClass, serializer);
+    }
+
+    public int getNetId() {
+        for (int i = 1; i < Integer.MAX_VALUE; i++) {
+            if (!netIdMap.containsKey(i) || netIdMap.get(i).refersTo(null)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void addNetId(@Nonnull CloudItemStack item) {
+        if (item.getStackNetworkId() == -1) {
+            throw new RegistryException("Invalid network stack id for item: " + item);
+        }
+        if (item.getStackNetworkId() == 0 && item.getType() != BlockTypes.AIR) return;
+        WeakReference<CloudItemStack> ref = new WeakReference<>(item, oldIdQueue);
+        netIdMap.put(item.getStackNetworkId(), ref);
+    }
+
+    @Nonnull
+    public CloudItemStack getItemByNetId(@Nonnull int stackNetId) {
+        WeakReference<CloudItemStack> ref = netIdMap.getOrDefault(stackNetId, null);
+        if (ref == null || ref.refersTo(null)) return AIR;
+        return Objects.requireNonNull(ref.get());
+
+    }
+
+    public void clearQueue() { //TODO - call this how often? Every server tick, every x minutes on a new thread? need to syncronize?
+        java.lang.ref.Reference<? extends CloudItemStack> ref;
+        while ((ref = oldIdQueue.poll()) != null) {
+            if (ref.get() != null && !ref.get().isNull())
+                netIdMap.remove(ref.get().getStackNetworkId());
+        }
     }
 
     public synchronized void register(ItemType type, ItemSerializer serializer, ItemBehavior behavior, Identifier... identifiers) throws RegistryException {

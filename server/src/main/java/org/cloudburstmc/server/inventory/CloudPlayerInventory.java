@@ -23,11 +23,9 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.cloudburstmc.server.registry.CloudItemRegistry.AIR;
-
 /**
  * author: MagicDroidX
- * Nukkit Project
+ *
  */
 @Log4j2
 public class CloudPlayerInventory extends CloudCreatureInventory implements PlayerInventory {
@@ -88,7 +86,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
 
     @Override
     public CloudItemStack getHotbarSlot(int slot) {
-        if (!isHotbarSlot(slot)) return AIR;
+        if (!isHotbarSlot(slot)) return CloudItemRegistry.get().AIR;
         return super.getItem(slot);
     }
 
@@ -114,7 +112,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
 
     @Override
     public void clearCursor() {
-        super.setItem(0, AIR, true);
+        super.setItem(0, CloudItemRegistry.get().AIR, true);
     }
 
     @Override
@@ -167,6 +165,11 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
         return setItem(index, item, true, false);
     }
 
+    @Override
+    public boolean setItem(int index, ItemStack item, boolean send) {
+        return setItem(index, item, send, false);
+    }
+
     private boolean setItem(int index, ItemStack item, boolean send, boolean ignoreArmorEvents) {
         if (index < 0 || index >= this.size) {
             return false;
@@ -205,7 +208,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            ItemStack item = AIR;
+            ItemStack item = CloudItemRegistry.get().AIR;
             ItemStack old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);

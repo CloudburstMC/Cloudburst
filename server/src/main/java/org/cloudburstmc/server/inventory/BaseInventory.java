@@ -112,7 +112,7 @@ public abstract class BaseInventory implements Inventory {
     @Override
     @NonNull
     public CloudItemStack getItem(int index) {
-        return (CloudItemStack) (this.slots.containsKey(index) ? this.slots.get(index) : CloudItemRegistry.AIR);
+        return (CloudItemStack) (this.slots.containsKey(index) ? this.slots.get(index) : CloudItemRegistry.get().AIR);
     }
 
     @Override
@@ -463,7 +463,7 @@ public abstract class BaseInventory implements Inventory {
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            ItemStack item = CloudItemRegistry.AIR;
+            ItemStack item = CloudItemRegistry.get().AIR;
             ItemStack old = this.slots.get(index);
             InventoryHolder holder = this.getHolder();
             if (holder instanceof BaseEntity) {

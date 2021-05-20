@@ -178,7 +178,7 @@ public class Explosion {
             }
         }
 
-        ItemStack air = CloudItemRegistry.AIR;
+        ItemStack air = CloudItemRegistry.get().AIR;
 
         //Iterator iter = this.affectedBlocks.entrySet().iterator();
         for (Block block : this.affectedBlockStates) {

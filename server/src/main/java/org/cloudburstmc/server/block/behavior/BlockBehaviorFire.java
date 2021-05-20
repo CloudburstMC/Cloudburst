@@ -272,6 +272,6 @@ public class BlockBehaviorFire extends FloodableBlockBehavior {
 
     @Override
     public ItemStack toItem(Block block) {
-        return CloudItemRegistry.AIR;
+        return CloudItemRegistry.get().AIR;
     }
 }

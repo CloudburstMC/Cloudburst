@@ -157,7 +157,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
                 LecternDropBookEvent dropBookEvent = new LecternDropBookEvent(player, lectern, book);
                 block.getLevel().getServer().getEventManager().fire(dropBookEvent);
                 if (!dropBookEvent.isCancelled()) {
-                    lectern.setBook(CloudItemRegistry.AIR);
+                    lectern.setBook(CloudItemRegistry.get().AIR);
                     lectern.spawnToAll();
                     block.getLevel().dropItem(lectern.getPosition().add(0.5f, 1, 0.5f), dropBookEvent.getBook());
                 }

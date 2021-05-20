@@ -15,6 +15,7 @@ import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,8 +83,9 @@ public class PlayerInventoryManager {
                         result = ItemStackResponsePacket.ResponseStatus.ERROR;
                         break;
                     }
+                    CloudItemStack sourceItem = CloudItemRegistry.get().getItemByNetId(source.getStackNetworkId());
 
-                    if (!checkItem(sourceInv.getItem(source.getSlot()), source.getStackNetworkId())) {
+                    if (!checkItem(sourceInv.getItem(source.getSlot()), sourceItem)) { // What we have doesn't match what client sent
                         result = ItemStackResponsePacket.ResponseStatus.ERROR;
                         containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
                         containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, targetInv))));
@@ -109,7 +111,9 @@ public class PlayerInventoryManager {
                         break;
                     }
 
-                    if (!checkItem(sourceInv.getItem(source.getSlot()), source.getStackNetworkId())) {
+                    sourceItem = CloudItemRegistry.get().getItemByNetId(source.getStackNetworkId());
+
+                    if (!checkItem(sourceInv.getItem(source.getSlot()), sourceItem)) {
                         result = ItemStackResponsePacket.ResponseStatus.ERROR;
                         containers.add(new ItemStackResponsePacket.ContainerEntry(source.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(source, sourceInv))));
                         containers.add(new ItemStackResponsePacket.ContainerEntry(target.getContainer(), Lists.newArrayList(NetworkUtils.itemStackToNetwork(target, targetInv))));
@@ -165,7 +169,7 @@ public class PlayerInventoryManager {
                     }
 
                     CloudItemStack toDrop = sourceInv.getItem(source.getSlot());
-                    if (toDrop.getNetworkData().getNetId() != source.getStackNetworkId()
+                    if (toDrop.isNull() || toDrop.getNetworkData().getNetId() != source.getStackNetworkId()
                             || player.getLevel().dropItem(player.getPosition(), toDrop).isClosed()) {
                         result = ItemStackResponsePacket.ResponseStatus.ERROR;
                     } else {
@@ -191,23 +195,22 @@ public class PlayerInventoryManager {
 
     private boolean isCraftingRequest(ItemStackRequest request) {
         return Arrays.stream(request.getActions()).anyMatch(req -> (!player.isCreative() && (req.getType() == CRAFT_CREATIVE
-                || req.getType() == CRAFT_NON_IMPLEMENTED_DEPRECATED))
+                || req.getType() == CRAFT_NON_IMPLEMENTED_DEPRECATED
                 || req.getType() == CRAFT_RECIPE
                 || req.getType() == CRAFT_RECIPE_AUTO
                 || req.getType() == CRAFT_RECIPE_OPTIONAL
-                || req.getType() == CRAFT_RESULTS_DEPRECATED
-                || req.getType() == CRAFT_RESULTS_DEPRECATED
+                || req.getType() == CRAFT_RESULTS_DEPRECATED))
         );
     }
 
-    private boolean checkItem(CloudItemStack item, int netId) {
-        return item.getNetworkData().getNetId() == netId;
+    private boolean checkItem(CloudItemStack item, CloudItemStack netItem) {
+        return item.getStackNetworkId() == netItem.getStackNetworkId() && item.equals(netItem, true, true);
     }
 
     private BaseInventory getInventoryByType(ContainerSlotType type) {
         return switch (type) {
             case HOTBAR, HOTBAR_AND_INVENTORY, INVENTORY, OFFHAND -> mainInv;
-            case CRAFTING_INPUT, CRAFTING_OUTPUT -> craftingGrid;
+            case CRAFTING_INPUT, CRAFTING_OUTPUT, CREATIVE_OUTPUT -> craftingGrid;
             case CURSOR -> cursor;
             default -> null;
         };
