@@ -59,7 +59,6 @@ public class TakeItemStackAction extends ItemStackAction {
 
     @Override
     public void onExecuteSuccess(CloudPlayer source) {
-
         getTransaction().addResponse(new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.OK, getRequestId(),
                 List.of(new ItemStackResponsePacket.ContainerEntry(sourceData.getContainer(), List.of(NetworkUtils.itemStackToNetwork(sourceData, source.getInventoryManager().getInventoryByType(sourceData.getContainer())))),
                         new ItemStackResponsePacket.ContainerEntry(targetData.getContainer(), List.of(NetworkUtils.itemStackToNetwork(targetData, source.getInventoryManager().getInventoryByType(targetData.getContainer()))))

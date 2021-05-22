@@ -87,10 +87,11 @@ public class PlayerInventoryManager {
 
                     this.transaction.addAction(new PlaceItemStackAction(
                             request.getRequestId(),
+                            ((PlaceStackRequestActionData) action).getCount(),
                             CloudItemRegistry.get().getItemByNetId(source.getStackNetworkId()),
-                            source.getSlot(),
+                            source,
                             CloudItemRegistry.get().getItemByNetId(target.getStackNetworkId()),
-                            target.getSlot()
+                            target
                     ));
                     this.transaction.addInventory(getInventoryByType(source.getContainer()));
                     this.transaction.addInventory(getInventoryByType(target.getContainer()));
