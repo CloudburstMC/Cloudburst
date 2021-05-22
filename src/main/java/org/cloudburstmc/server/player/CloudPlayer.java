@@ -2948,7 +2948,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     @Nullable
     public CraftingTransaction getCraftingTransaction() {
-        return invManager.getTransaction();
+        return invManager.getCraftingTransaction();
     }
 
     public void setCraftingTransaction(@Nullable CraftingTransaction craftingTransaction) {

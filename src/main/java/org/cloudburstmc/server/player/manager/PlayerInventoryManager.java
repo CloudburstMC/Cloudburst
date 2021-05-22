@@ -150,4 +150,10 @@ public class PlayerInventoryManager {
             default -> null;
         };
     }
+
+    public CraftingTransaction getCraftingTransaction() {
+        if (this.transaction != null && this.transaction instanceof CraftingTransaction)
+            return (CraftingTransaction) this.transaction;
+        return null;
+    }
 }
