@@ -17,7 +17,6 @@ import org.cloudburstmc.server.inventory.transaction.action.PlaceItemStackAction
 import org.cloudburstmc.server.inventory.transaction.action.SwapItemStackAction;
 import org.cloudburstmc.server.inventory.transaction.action.TakeItemStackAction;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Arrays;
 
@@ -109,10 +108,10 @@ public class PlayerInventoryManager {
 
                     this.transaction.addAction(new DropItemStackAction(
                             request.getRequestId(),
-                            CloudItemRegistry.get().getItemByNetId(source.getStackNetworkId()),
-                            source.getSlot(),
-                            CloudItemRegistry.get().AIR,
-                            -1
+                            ((DropStackRequestActionData) action).getCount(),
+                            ((DropStackRequestActionData) action).isRandomly(),
+                            source,
+                            null
                     ));
 
                     this.transaction.addInventory(getInventoryByType(source.getContainer()));
