@@ -1,31 +1,38 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
-import org.cloudburstmc.api.item.ItemStack;
+import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import org.cloudburstmc.server.inventory.BaseInventory;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 public class SwapItemStackAction extends ItemStackAction {
 
-    public SwapItemStackAction(int reqId, ItemStack sourceItem, int sourceSlot, ItemStack targetItem, int targetSlot) {
-        super(reqId, sourceItem, sourceSlot, targetItem, targetSlot);
+    public SwapItemStackAction(int reqId, StackRequestSlotInfoData source, StackRequestSlotInfoData target) {
+        super(reqId, source, target);
     }
 
     @Override
-    public boolean isValid(CloudPlayer source) {
+    public boolean isValid(CloudPlayer player) {
+        BaseInventory inv = player.getInventoryManager().getInventoryByType(getSourceData().getContainer());
+        BaseInventory targetInv = player.getInventoryManager().getInventoryByType(getTargetData().getContainer());
+
+        return inv.getItem(getSourceSlot()).equals(getSourceItem(), true, true) &&
+                targetInv.getItem(getTargetSlot()).equals(getTargetItem(), true, true);
+    }
+
+    @Override
+    public boolean execute(CloudPlayer player) {
+        BaseInventory inv = player.getInventoryManager().getInventoryByType(getSourceData().getContainer());
+        BaseInventory targetInv = player.getInventoryManager().getInventoryByType(getTargetData().getContainer());
+
+        if (!targetInv.setItem(getTargetSlot(), sourceItem)) {
+            return false;
+        }
+
+        if (!inv.setItem(getSourceSlot(), targetItem)) {
+            // attempt to revert prior change
+            targetInv.setItem(getTargetSlot(), targetItem);
+            return false;
+        }
         return true;
-    }
-
-    @Override
-    public boolean execute(CloudPlayer source) {
-        return false;
-    }
-
-    @Override
-    public void onExecuteSuccess(CloudPlayer source) {
-
-    }
-
-    @Override
-    public void onExecuteFail(CloudPlayer source) {
-
     }
 }

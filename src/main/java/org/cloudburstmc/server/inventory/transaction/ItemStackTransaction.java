@@ -15,6 +15,17 @@ public class ItemStackTransaction extends InventoryTransaction {
         super(source, new ArrayList<>(), true);
     }
 
+    @Override
+    public boolean canExecute() {
+        return !this.getActions().isEmpty();
+    }
+
+    @Override
+    protected boolean callExecuteEvent() {
+        //TODO - call event?
+        return true;
+    }
+
     public void addResponse(ItemStackResponsePacket.Response response) {
         this.responses.add(response);
     }
