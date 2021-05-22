@@ -46,6 +46,10 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     }
 
     public CloudItemStackBuilder(CloudItemStack item) {
+        this(item, false);
+    }
+
+    public CloudItemStackBuilder(CloudItemStack item, boolean transferStackId) {
         itemType = item.getType();
         amount = item.getAmount();
         itemLore = item.getLore();
@@ -54,7 +58,9 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
         canPlaceOn.addAll(item.getCanPlaceOn());
         dataTag = item.dataTag; // Access directly to allow for null return
         nbt = item.nbt;
-        stackNetworkId = item.getStackNetworkId();
+        if (transferStackId) {
+            stackNetworkId = item.getStackNetworkId();
+        }
         if (item instanceof BlockItemStack) {
             this.blockState = item.getBlockState();
         }

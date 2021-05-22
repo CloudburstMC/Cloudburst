@@ -16,7 +16,6 @@ import org.cloudburstmc.server.inventory.transaction.action.DropItemStackAction;
 import org.cloudburstmc.server.inventory.transaction.action.PlaceItemStackAction;
 import org.cloudburstmc.server.inventory.transaction.action.SwapItemStackAction;
 import org.cloudburstmc.server.inventory.transaction.action.TakeItemStackAction;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -63,27 +62,28 @@ public class PlayerInventoryManager {
             this.transaction = new ItemStackTransaction(player);
         }
 
-        for (StackRequestActionData data : request.getActions()) {
+        for (StackRequestActionData action : request.getActions()) {
             StackRequestSlotInfoData source;
             StackRequestSlotInfoData target;
-            switch (data.getType()) {
+            switch (action.getType()) {
                 case TAKE:
-                    source = ((TakeStackRequestActionData) data).getSource();
-                    target = ((TakeStackRequestActionData) data).getDestination();
+                    source = ((TakeStackRequestActionData) action).getSource();
+                    target = ((TakeStackRequestActionData) action).getDestination();
 
                     this.transaction.addAction(new TakeItemStackAction(
                             request.getRequestId(),
+                            ((TakeStackRequestActionData) action).getCount(),
                             CloudItemRegistry.get().getItemByNetId(source.getStackNetworkId()),
-                            source.getSlot(),
+                            source,
                             CloudItemRegistry.get().getItemByNetId(target.getStackNetworkId()),
-                            target.getSlot()
+                            target
                     ));
                     this.transaction.addInventory(getInventoryByType(source.getContainer()));
                     this.transaction.addInventory(getInventoryByType(target.getContainer()));
                     continue;
                 case PLACE:
-                    source = ((PlaceStackRequestActionData) data).getSource();
-                    target = ((PlaceStackRequestActionData) data).getDestination();
+                    source = ((PlaceStackRequestActionData) action).getSource();
+                    target = ((PlaceStackRequestActionData) action).getDestination();
 
                     this.transaction.addAction(new PlaceItemStackAction(
                             request.getRequestId(),
@@ -96,8 +96,8 @@ public class PlayerInventoryManager {
                     this.transaction.addInventory(getInventoryByType(target.getContainer()));
                     continue;
                 case SWAP:
-                    source = ((SwapStackRequestActionData) data).getSource();
-                    target = ((SwapStackRequestActionData) data).getDestination();
+                    source = ((SwapStackRequestActionData) action).getSource();
+                    target = ((SwapStackRequestActionData) action).getDestination();
 
                     this.transaction.addAction(new SwapItemStackAction(
                             request.getRequestId(),
@@ -110,7 +110,7 @@ public class PlayerInventoryManager {
                     this.transaction.addInventory(getInventoryByType(target.getContainer()));
                     continue;
                 case DROP:
-                    source = ((DropStackRequestActionData) data).getSource();
+                    source = ((DropStackRequestActionData) action).getSource();
 
                     this.transaction.addAction(new DropItemStackAction(
                             request.getRequestId(),
@@ -148,11 +148,7 @@ public class PlayerInventoryManager {
         );
     }
 
-    private boolean checkItem(CloudItemStack item, CloudItemStack netItem) {
-        return item.getStackNetworkId() == netItem.getStackNetworkId() && item.equals(netItem, true, true);
-    }
-
-    private BaseInventory getInventoryByType(ContainerSlotType type) {
+    public BaseInventory getInventoryByType(ContainerSlotType type) {
         return switch (type) {
             case HOTBAR, HOTBAR_AND_INVENTORY, INVENTORY, OFFHAND -> mainInv;
             case CRAFTING_INPUT, CRAFTING_OUTPUT, CREATIVE_OUTPUT -> craftingGrid;

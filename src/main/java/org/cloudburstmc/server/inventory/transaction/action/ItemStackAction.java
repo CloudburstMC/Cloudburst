@@ -4,14 +4,18 @@ import lombok.Getter;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 public abstract class ItemStackAction extends InventoryAction {
     @Getter
     private final int sourceSlot;
     @Getter
     private final int targetSlot;
+    @Getter
     private final int requestId;
+    @Getter
     private ItemStackTransaction transaction;
+
 
     public ItemStackAction(int reqId, ItemStack sourceItem, int sourceSlot, ItemStack targetItem, int targetSlot) {
         super(sourceItem, targetItem);
@@ -23,5 +27,9 @@ public abstract class ItemStackAction extends InventoryAction {
     @Override
     public void onAddToTransaction(InventoryTransaction transaction) {
         this.transaction = (ItemStackTransaction) transaction;
+    }
+
+    public CloudPlayer getSource() {
+        return transaction.getSource();
     }
 }
