@@ -900,6 +900,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         for (ItemStackRequest req : packet.getRequests()) {
             player.getInventoryManager().handle(req);
         }
+        player.getInventoryManager().getTransaction().execute();
         pk.getEntries().addAll(((ItemStackTransaction) player.getInventoryManager().getTransaction()).getResponses());
         player.sendPacket(pk);
         player.getInventoryManager().setTransaction(null);
