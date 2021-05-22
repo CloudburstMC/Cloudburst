@@ -73,9 +73,7 @@ public class PlayerInventoryManager {
                     this.transaction.addAction(new TakeItemStackAction(
                             request.getRequestId(),
                             ((TakeStackRequestActionData) action).getCount(),
-                            CloudItemRegistry.get().getItemByNetId(source.getStackNetworkId()),
                             source,
-                            CloudItemRegistry.get().getItemByNetId(target.getStackNetworkId()),
                             target
                     ));
                     this.transaction.addInventory(getInventoryByType(source.getContainer()));
@@ -88,9 +86,7 @@ public class PlayerInventoryManager {
                     this.transaction.addAction(new PlaceItemStackAction(
                             request.getRequestId(),
                             ((PlaceStackRequestActionData) action).getCount(),
-                            CloudItemRegistry.get().getItemByNetId(source.getStackNetworkId()),
                             source,
-                            CloudItemRegistry.get().getItemByNetId(target.getStackNetworkId()),
                             target
                     ));
                     this.transaction.addInventory(getInventoryByType(source.getContainer()));
@@ -102,10 +98,8 @@ public class PlayerInventoryManager {
 
                     this.transaction.addAction(new SwapItemStackAction(
                             request.getRequestId(),
-                            CloudItemRegistry.get().getItemByNetId(source.getStackNetworkId()),
-                            source.getSlot(),
-                            CloudItemRegistry.get().getItemByNetId(target.getStackNetworkId()),
-                            target.getSlot()
+                            source,
+                            target
                     ));
                     this.transaction.addInventory(getInventoryByType(source.getContainer()));
                     this.transaction.addInventory(getInventoryByType(target.getContainer()));
