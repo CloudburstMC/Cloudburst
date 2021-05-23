@@ -61,7 +61,7 @@ pipeline {
                                 deployerId: "maven-deployer",
                                 resolverId: "maven-resolver"
                         )
-                        sh 'mvn javadoc:javadoc -DskipTests'
+                        sh 'mvn package javadoc:javadoc -DskipTests'
                         step([$class: 'JavadocArchiver', javadocDir: 'target/site/apidocs', keepAll: false])
                     }
                 }
@@ -75,7 +75,7 @@ pipeline {
                     steps {
                         rtMavenRun(
                                 pom: 'pom.xml',
-                                goals: 'clean javadoc:jar source:jar install',
+                                goals: 'clean package javadoc:jar source:jar install',
                                 deployerId: "maven-deployer",
                                 resolverId: "maven-resolver"
                         )
