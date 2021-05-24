@@ -106,7 +106,7 @@ public class PlayerInventoryManager {
                     source = ((ConsumeStackRequestActionData) action).getSource();
                     this.transaction.addAction(new ConsumeItemAction(request.getRequestId(),
                             ((ConsumeStackRequestActionData) action).getCount(),
-                            source);
+                            source));
                     continue;
                 case CREATE:
                     continue;
