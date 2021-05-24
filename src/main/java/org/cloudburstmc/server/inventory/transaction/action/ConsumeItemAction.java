@@ -33,6 +33,6 @@ public class ConsumeItemAction extends ItemStackAction {
             replace = (CloudItemStack) item.withAmount(item.getAmount() - count);
         }
 
-        return !inv.setItem(getSourceSlot(), replace, false);
+        return !inv.setItem(getSourceSlot(), replace, true);
     }
 }

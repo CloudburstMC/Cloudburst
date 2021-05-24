@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.*;
 import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
@@ -15,6 +16,8 @@ import org.cloudburstmc.server.inventory.transaction.action.*;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.StringJoiner;
 
 import static com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType.*;
 
@@ -119,7 +122,8 @@ public class PlayerInventoryManager {
                             ((CraftRecipeStackRequestActionData) action).getRecipeNetworkId()));
                     continue;
                 case CRAFT_RESULTS_DEPRECATED:
-                    // Actually isn't needed unless we want to triple verify the output
+                    this.transaction.addAction(new CraftResultsAction(request.getRequestId(),
+                            ((CraftResultsDeprecatedStackRequestActionData) action).getTimesCrafted()));
                     continue;
                 default:
                     log.warn("Received unknown ItemStackRequest type: {}", action.getType());
@@ -151,5 +155,27 @@ public class PlayerInventoryManager {
         if (this.transaction != null && this.transaction instanceof CraftItemStackTransaction)
             return (CraftItemStackTransaction) this.transaction;
         return null;
+    }
+
+    @Override
+    public String toString() {
+        StringJoiner str = new StringJoiner("\n");
+        str.add("Player Inventories [" + player.getName() + ":");
+        str.add("Main Inventory: ");
+        for (Map.Entry<Integer, ItemStack> entry : mainInv.getContents().entrySet()) {
+            str.add("  " + entry.getKey() + ": " + entry.getValue());
+        }
+        str.add("===============");
+        str.add("Crafting Inventory:");
+        for (Map.Entry<Integer, ItemStack> entry : craftingGrid.getContents().entrySet()) {
+            str.add("  " + entry.getKey() + ": " + entry.getValue());
+        }
+        str.add("===============");
+        str.add("Cursor Inventory:");
+        for (Map.Entry<Integer, ItemStack> entry : cursor.getContents().entrySet()) {
+            str.add("  " + entry.getKey() + ": " + entry.getValue());
+        }
+
+        return str.toString();
     }
 }

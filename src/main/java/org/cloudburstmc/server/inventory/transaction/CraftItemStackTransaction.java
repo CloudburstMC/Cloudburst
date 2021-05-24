@@ -28,10 +28,6 @@ public class CraftItemStackTransaction extends ItemStackTransaction {
         return getSource().getCraftingInventory().getCraftingGridType();
     }
 
-    public int getCraftingGridSize() {
-        return getCraftingGridType() == CraftingGrid.Type.CRAFTING_GRID_BIG ? 3 : 2;
-    }
-
     public CraftingGrid getCraftingGrid() {
         return getSource().getCraftingInventory();
     }
@@ -42,5 +38,15 @@ public class CraftItemStackTransaction extends ItemStackTransaction {
 
     public CloudItemStack getPrimaryOutput() {
         return primaryOutput == null ? (CloudItemStack) recipe.getResult() : primaryOutput;
+    }
+
+    @Override
+    public boolean execute() {
+        if (super.execute()) {
+            getSource().getCraftingInventory().clearAll();
+            this.sendInventories();
+            return true;
+        }
+        return false;
     }
 }

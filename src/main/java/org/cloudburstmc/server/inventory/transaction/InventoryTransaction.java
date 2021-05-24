@@ -25,7 +25,7 @@ public class InventoryTransaction {
 
     protected Set<Inventory> inventories = new HashSet<>();
 
-    protected Set<InventoryAction> actions = new HashSet<>();
+    protected List<InventoryAction> actions = new ArrayList<>();
 
     public InventoryTransaction(CloudPlayer source, List<InventoryAction> actions) {
         this(source, actions, true);
@@ -58,7 +58,7 @@ public class InventoryTransaction {
         return inventories;
     }
 
-    public Set<InventoryAction> getActions() {
+    public List<InventoryAction> getActions() {
         return actions;
     }
 

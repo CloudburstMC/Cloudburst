@@ -64,7 +64,6 @@ import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.Sound;
@@ -516,7 +515,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        player.getCraftingInventory().resetCraftingGrid();
+       // player.getCraftingInventory().resetCraftingGrid();
 
         Entity targetEntity = player.getLevel().getEntity(packet.getRuntimeEntityId());
 
@@ -674,7 +673,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        player.getCraftingInventory().resetCraftingGrid();
+        //player.getCraftingInventory().resetCraftingGrid();
 
         if (packet.getType() == EntityEventType.EATING_ITEM) {
             if (packet.getData() == 0 || packet.getRuntimeEntityId() != player.getRuntimeId()) {
@@ -766,7 +765,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
 
-        player.getCraftingInventory().resetCraftingGrid();
+        // player.getCraftingInventory().resetCraftingGrid();
 
         Vector3i blockPos = packet.getBlockPosition();
         if (blockPos.distanceSquared(player.getPosition().toInt()) > 10000) {
@@ -901,7 +900,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             player.getInventoryManager().handle(req);
         }
         player.getInventoryManager().getTransaction().execute();
-        pk.getEntries().addAll(((ItemStackTransaction) player.getInventoryManager().getTransaction()).getResponses());
+        pk.getEntries().addAll(player.getInventoryManager().getTransaction().getResponses());
         player.sendPacket(pk);
         player.getInventoryManager().setTransaction(null);
         return true;
