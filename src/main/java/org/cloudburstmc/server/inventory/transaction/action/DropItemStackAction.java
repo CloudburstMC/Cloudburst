@@ -31,12 +31,12 @@ public class DropItemStackAction extends ItemStackAction {
         if (getSourceItem().getAmount() > count) {
             drop = (CloudItemStack) getSourceItem().withAmount(count);
 
-            if (!inv.setItem(getSourceSlot(), getSourceItem().withAmount(getSourceItem().getAmount() - count))) {
+            if (!inv.setItem(getSourceSlot(), getSourceItem().withAmount(getSourceItem().getAmount() - count), false)) {
                 return false;
             }
         } else {
             drop = getSourceItem();
-            if (!inv.setItem(getSourceSlot(), CloudItemRegistry.get().AIR)) {
+            if (!inv.setItem(getSourceSlot(), CloudItemRegistry.get().AIR, false)) {
                 return false;
             }
         }

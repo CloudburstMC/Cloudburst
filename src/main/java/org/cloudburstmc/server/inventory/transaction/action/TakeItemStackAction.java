@@ -36,13 +36,13 @@ public class TakeItemStackAction extends ItemStackAction {
             take = original;
             original = CloudItemRegistry.get().AIR;
         }
-        if (!targetInv.setItem(getTargetSlot(), take)) {
+        if (!targetInv.setItem(getTargetSlot(), take, false)) {
             return false;
         }
 
-        if (!inv.setItem(getSourceSlot(), original)) {
+        if (!inv.setItem(getSourceSlot(), original, false)) {
             // Revert previous one
-            targetInv.setItem(getTargetSlot(), old);
+            targetInv.setItem(getTargetSlot(), old, false);
             return false;
         }
 

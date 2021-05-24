@@ -52,5 +52,6 @@ public class CraftRecipeAction extends ItemStackAction {
     @Override
     public void onAddToTransaction(InventoryTransaction transaction) {
         super.onAddToTransaction(transaction);
+        transaction.addInventory(transaction.getSource().getInventoryManager().getCraftingGrid());
     }
 }
