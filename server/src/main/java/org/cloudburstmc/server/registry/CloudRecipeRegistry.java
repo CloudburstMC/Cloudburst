@@ -399,7 +399,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private void rebuildPacket() {
         CraftingDataPacket packet = new CraftingDataPacket();
         packet.setCleanRecipes(true);
-        int recipeId = 0;
 
         for( Map<UUID,Identifier> map : recipeHashMap.values()) {
             for (Map.Entry<UUID, Identifier> entry : map.entrySet()) {
@@ -413,7 +412,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                                 entry.getKey(),
                                 recipe.getBlock().getName(),
                                 ((ShapelessRecipe) recipe).getPriority(),
-                                ++recipeId));
+                                netIdMap.getOrDefault(recipe.getId(), 0)));
                         break;
                     case SHAPED:
                         packet.getCraftingData().add(CraftingData.fromShaped(
@@ -425,7 +424,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                                 entry.getKey(),
                                 recipe.getBlock().getName(),
                                 ((ShapedRecipe) recipe).getPriority(),
-                                ++recipeId));
+                                netIdMap.getOrDefault(recipe.getId(), 0)));
                         break;
                     case FURNACE:
                         assert recipe instanceof FurnaceRecipe;
@@ -436,7 +435,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                                 inputData.getId(),
                                 outputData,
                                 recipe.getBlock().getName(),
-                                ++recipeId));
+                                netIdMap.getOrDefault(recipe.getId(), 0)));
                         break;
                     case FURNACE_DATA:
                         assert recipe instanceof FurnaceRecipe;
@@ -448,7 +447,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                                 inputData.getDamage(),
                                 outputData,
                                 recipe.getBlock().getName(),
-                                ++recipeId));
+                                netIdMap.getOrDefault(recipe.getId(), 0)));
                         break;
                     case POTION:
                         assert recipe instanceof BrewingRecipe;
