@@ -14,6 +14,10 @@ public interface CraftingGrid extends Inventory {
 
     void resetCraftingGrid();
 
+    default int getCraftingGridSize() {
+        return getCraftingGridType() == Type.CRAFTING_GRID_SMALL ? 2 : 3;
+    }
+
     enum Type {
         CRAFTING_GRID_SMALL,
         CRAFTING_GRID_BIG
