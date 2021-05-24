@@ -2,6 +2,7 @@ package org.cloudburstmc.server.network;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
@@ -177,6 +178,6 @@ public class NetworkUtils {
 
     public static CloudItemStack itemStackFromNetwork(ItemData data) {
         int runtimeId = data.getId();
-        return ItemUtils.deserializeItem(CloudItemRegistry.get().getIdentifier(runtimeId), (short) data.getDamage(), data.getCount(), data.getTag());
+        return ItemUtils.deserializeItem(CloudItemRegistry.get().getIdentifier(runtimeId), (short) data.getDamage(), data.getCount(), data.getTag() == null ? NbtMap.EMPTY : data.getTag());
     }
 }

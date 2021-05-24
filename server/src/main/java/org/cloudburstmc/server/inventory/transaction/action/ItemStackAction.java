@@ -43,11 +43,13 @@ public abstract class ItemStackAction extends InventoryAction {
     @Override
     public void onExecuteSuccess(CloudPlayer source) {
         List<ItemStackResponsePacket.ContainerEntry> containers = new ArrayList<>();
-        containers.add(new ItemStackResponsePacket.ContainerEntry(sourceData.getContainer(), List.of(NetworkUtils.itemStackToNetwork(sourceData, source.getInventoryManager().getInventoryByType(sourceData.getContainer())))));
+        if (sourceData != null) {
+            containers.add(new ItemStackResponsePacket.ContainerEntry(sourceData.getContainer(), List.of(NetworkUtils.itemStackToNetwork(sourceData, source.getInventoryManager().getInventoryByType(sourceData.getContainer())))));
+        }
         if (targetData != null) {
             containers.add(new ItemStackResponsePacket.ContainerEntry(targetData.getContainer(), List.of(NetworkUtils.itemStackToNetwork(targetData, source.getInventoryManager().getInventoryByType(targetData.getContainer())))));
         }
-        getTransaction().addResponse(new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.ERROR, getRequestId(), containers));
+        getTransaction().addResponse(new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.OK, getRequestId(), containers));
     }
 
     @Override
