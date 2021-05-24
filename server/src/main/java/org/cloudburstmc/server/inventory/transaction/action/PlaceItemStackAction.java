@@ -46,12 +46,12 @@ public class PlaceItemStackAction extends ItemStackAction {
 
         if (count > 0) {
             if (!inv.setItem(getSourceSlot(), original.withAmount(count))) {
-                targetInv.setItem(getTargetSlot(), target);
+                targetInv.setItem(getTargetSlot(), target, false);
                 return false;
             }
         } else {
             if (!inv.clear(getSourceSlot())) {
-                targetInv.setItem(getTargetSlot(), target);
+                targetInv.setItem(getTargetSlot(), target, false);
                 return false;
             }
         }
