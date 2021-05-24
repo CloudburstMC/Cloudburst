@@ -62,7 +62,14 @@ public class GiveCommand extends Command {
 
         try {
             var registry = CloudItemRegistry.get();
-            item = registry.getItem(ItemTypes.byId(Identifier.fromString(args[1])));
+            Identifier id;
+            try {
+                id = registry.fromLegacy(Integer.parseInt(args[1]));
+
+            } catch (NumberFormatException e) {
+                id = Identifier.fromString(args[1]);
+            }
+            item = registry.getItem(ItemTypes.byId(id));
         } catch (Exception e) {
             log.throwing(e);
             return false;
@@ -87,7 +94,7 @@ public class GiveCommand extends Command {
         }
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer(
                 "%commands.give.success",
-                item.getName() + " (" + item.getType() + ":" + ((CloudItemStack) item).getData() + ")",
+                item.getName().length() == 0 ? item.getType() : item.getName() + " (" + item.getType() + ":" + ((CloudItemStack) item).getData() + ")",
                 item.getAmount(),
                 player.getName()));
         return true;
