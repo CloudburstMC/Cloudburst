@@ -32,9 +32,12 @@ public class PlaceItemStackAction extends ItemStackAction {
             int diff = target.getType().getMaximumStackSize() - target.getAmount();
             place = (CloudItemStack) target.withAmount(target.getType().getMaximumStackSize());
             count -= diff;
-        } else {
+        } else if (target.isNull() && original.getAmount() == count) {
             place = original;
-            count -= original.getAmount();
+            count = 0;
+        } else {
+            place = (CloudItemStack) original.withAmount(count);
+            count = original.getAmount() - count;
         }
 
         if (!targetInv.setItem(getTargetSlot(), place)) {

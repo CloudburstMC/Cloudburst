@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.inventory;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.inventory.CraftingGrid;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
@@ -50,9 +52,23 @@ public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
             return super.setItem(index - CRAFTING_RESULT_OFFSET, item, false);
         } else if (this.getCraftingGridType() == Type.CRAFTING_GRID_SMALL) {
             return super.setItem(index - CRAFTING_GRID_SMALL_OFFSET, item, false);
-        } else {
-            return super.setItem(index - CRAFTING_GRID_LARGE_OFFSET, item, false);
         }
+        return super.setItem(index - CRAFTING_GRID_LARGE_OFFSET, item, false);
+
+    }
+
+    @Override
+    public @NonNull CloudItemStack getItem(int index) {
+        if (index <= 10) {
+            return super.getItem(index);
+        }
+        if (index == 50) {
+            return super.getItem(index - CRAFTING_RESULT_OFFSET);
+        } else if (this.getCraftingGridType() == Type.CRAFTING_GRID_SMALL) {
+
+            return super.getItem(index - CRAFTING_GRID_SMALL_OFFSET);
+        }
+        return super.getItem(index - CRAFTING_GRID_LARGE_OFFSET);
     }
 
     @Override
