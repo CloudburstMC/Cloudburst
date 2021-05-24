@@ -94,7 +94,7 @@ public class GiveCommand extends Command {
         }
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer(
                 "%commands.give.success",
-                item.getName().length() == 0 ? item.getType() : item.getName() + " (" + item.getType() + ":" + ((CloudItemStack) item).getData() + ")",
+                item.getName() == null ? item.getType() : item.getName() + " (" + item.getType() + ":" + ((CloudItemStack) item).getData() + ")",
                 item.getAmount(),
                 player.getName()));
         return true;

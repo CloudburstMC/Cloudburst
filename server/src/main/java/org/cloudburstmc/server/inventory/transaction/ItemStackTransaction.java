@@ -2,6 +2,8 @@ package org.cloudburstmc.server.inventory.transaction;
 
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.Getter;
+import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
+import org.cloudburstmc.server.inventory.transaction.action.ItemStackAction;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
@@ -17,7 +19,14 @@ public class ItemStackTransaction extends InventoryTransaction {
 
     @Override
     public boolean canExecute() {
-        return !this.getActions().isEmpty();
+        if (this.getActions().isEmpty()) return false;
+        for (InventoryAction action : this.getActions()) {
+            if (!action.isValid(getSource())) {
+                addResponse(new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.ERROR, ((ItemStackAction) action).getRequestId(), new ArrayList<>()));
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

@@ -13,11 +13,11 @@ import java.util.List;
 public class CraftItemStackTransaction extends ItemStackTransaction {
 
     @Getter
-    private CraftingRecipe recipe;
-    @Getter
+    private final CraftingRecipe recipe;
     @Setter
     private CloudItemStack primaryOutput;
-    private List<CloudItemStack> extraOutputs = new ArrayList<>();
+    @Getter
+    private final List<CloudItemStack> extraOutputs = new ArrayList<>();
 
     public CraftItemStackTransaction(CloudPlayer source, CraftingRecipe recipe) {
         super(source);
@@ -32,7 +32,7 @@ public class CraftItemStackTransaction extends ItemStackTransaction {
         return getCraftingGridType() == CraftingGrid.Type.CRAFTING_GRID_BIG ? 3 : 2;
     }
 
-    private CraftingGrid getCraftingGrid() {
+    public CraftingGrid getCraftingGrid() {
         return getSource().getCraftingInventory();
     }
 
@@ -40,4 +40,7 @@ public class CraftItemStackTransaction extends ItemStackTransaction {
         this.extraOutputs.add(slot, item);
     }
 
+    public CloudItemStack getPrimaryOutput() {
+        return primaryOutput == null ? (CloudItemStack) recipe.getResult() : primaryOutput;
+    }
 }

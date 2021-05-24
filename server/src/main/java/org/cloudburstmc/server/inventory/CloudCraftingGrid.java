@@ -11,13 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
-    public static final int CRAFTING_GRID_SMALL_OFFSET = 28;
-    public static final int CRAFTING_GRID_LARGE_OFFSET = 32;
-    public static final int CRAFTING_RESULT_OFFSET = 40;
-
-
+    private static final int CRAFTING_GRID_SMALL_OFFSET = 28;
+    private static final int CRAFTING_GRID_LARGE_OFFSET = 32;
+    private static final int CRAFTING_RESULT_OFFSET = 40;
+    public static final int CRAFTING_RESULT_SLOT = 10;
     private CraftingGrid.Type gridType = Type.CRAFTING_GRID_SMALL;
-    private static final int CRAFTING_RESULT_SLOT = 10;
 
 
     public CloudCraftingGrid(CloudPlayer holder) {
