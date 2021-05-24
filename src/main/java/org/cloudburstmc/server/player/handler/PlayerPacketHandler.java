@@ -42,7 +42,6 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.inventory.CraftingGrid;
-import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Damageable;
@@ -55,6 +54,7 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.behavior.BlockBehaviorLectern;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.command.CommandUtils;
+import org.cloudburstmc.server.crafting.CraftingRecipe;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
@@ -62,7 +62,7 @@ import org.cloudburstmc.server.entity.vehicle.EntityBoat;
 import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
-import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
+import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
@@ -743,9 +743,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(CraftingEventPacket packet) {
-        Recipe recipe = CloudRecipeRegistry.get().getRecipe(packet.getUuid());
+        CraftingRecipe recipe = (CraftingRecipe) CloudRecipeRegistry.get().getRecipe(packet.getUuid());
         if (recipe != null) {
-            CraftingTransaction transaction = new CraftingTransaction(player, recipe);
+            CraftItemStackTransaction transaction = new CraftItemStackTransaction(player, recipe);
             transaction.setPrimaryOutput(NetworkUtils.itemStackFromNetwork(packet.getOutputs().remove(0)));
             if (packet.getOutputs().size() >= 1) {
                 int slot = 0;
@@ -929,7 +929,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         if (InventoryTransactionUtils.containsCraftingPart(packet)) {
             if (player.getCraftingTransaction() == null) {
-                player.setCraftingTransaction(new CraftingTransaction(player, actions));
+                //player.setCraftingTransaction(new CraftingTransaction(player, actions)); // TODO - remove old crafting code
             } else {
                 for (InventoryAction action : actions) {
                     player.getCraftingTransaction().addAction(action);

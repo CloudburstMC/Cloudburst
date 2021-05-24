@@ -94,7 +94,7 @@ import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.inventory.CloudEnderChestInventory;
 import org.cloudburstmc.server.inventory.CloudPlayerInventory;
 import org.cloudburstmc.server.inventory.PlayerCursorInventory;
-import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
+import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -2947,11 +2947,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
 
     @Nullable
-    public CraftingTransaction getCraftingTransaction() {
+    public CraftItemStackTransaction getCraftingTransaction() {
         return invManager.getCraftingTransaction();
     }
 
-    public void setCraftingTransaction(@Nullable CraftingTransaction craftingTransaction) {
+    public void setCraftingTransaction(@Nullable CraftItemStackTransaction craftingTransaction) {
         this.invManager.setTransaction(craftingTransaction);
     }
 

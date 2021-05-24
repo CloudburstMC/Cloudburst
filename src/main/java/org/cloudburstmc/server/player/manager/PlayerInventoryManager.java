@@ -9,13 +9,9 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.server.inventory.*;
-import org.cloudburstmc.server.inventory.transaction.CraftingTransaction;
-import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
+import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
-import org.cloudburstmc.server.inventory.transaction.action.DropItemStackAction;
-import org.cloudburstmc.server.inventory.transaction.action.PlaceItemStackAction;
-import org.cloudburstmc.server.inventory.transaction.action.SwapItemStackAction;
-import org.cloudburstmc.server.inventory.transaction.action.TakeItemStackAction;
+import org.cloudburstmc.server.inventory.transaction.action.*;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Arrays;
@@ -31,7 +27,7 @@ public class PlayerInventoryManager {
     private final CloudEnderChestInventory enderChest;
     private final CloudCraftingGrid craftingGrid;
     @Setter
-    private InventoryTransaction transaction;
+    private ItemStackTransaction transaction;
     @Setter
     private BlockEntity viewingBlock;
 
@@ -48,12 +44,9 @@ public class PlayerInventoryManager {
 
     public void handle(ItemStackRequest request) {
         if (isCraftingRequest(request)) {
-            if (this.transaction == null || !(this.transaction instanceof CraftingTransaction)) {
+            if (this.transaction == null || !(this.transaction instanceof CraftItemStackTransaction)) {
                 log.warn("Received crafting item stack request when crafting transaction is null!");
-                return;// new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.ERROR, request.getRequestId(), containers);
-            } else {
-                // TODO - create crafting transaction with CraftEventPacket and Execute the crafting request here
-                return;// new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.OK, request.getRequestId(), containers);
+                return;
             }
         }
 
@@ -75,8 +68,6 @@ public class PlayerInventoryManager {
                             source,
                             target
                     ));
-                    this.transaction.addInventory(getInventoryByType(source.getContainer()));
-                    this.transaction.addInventory(getInventoryByType(target.getContainer()));
                     continue;
                 case PLACE:
                     source = ((PlaceStackRequestActionData) action).getSource();
@@ -88,8 +79,6 @@ public class PlayerInventoryManager {
                             source,
                             target
                     ));
-                    this.transaction.addInventory(getInventoryByType(source.getContainer()));
-                    this.transaction.addInventory(getInventoryByType(target.getContainer()));
                     continue;
                 case SWAP:
                     source = ((SwapStackRequestActionData) action).getSource();
@@ -100,8 +89,6 @@ public class PlayerInventoryManager {
                             source,
                             target
                     ));
-                    this.transaction.addInventory(getInventoryByType(source.getContainer()));
-                    this.transaction.addInventory(getInventoryByType(target.getContainer()));
                     continue;
                 case DROP:
                     source = ((DropStackRequestActionData) action).getSource();
@@ -113,22 +100,31 @@ public class PlayerInventoryManager {
                             source,
                             null
                     ));
-
-                    this.transaction.addInventory(getInventoryByType(source.getContainer()));
                     continue;
                 case DESTROY:
                 case CONSUME:
-                    break;
+                    source = ((ConsumeStackRequestActionData) action).getSource();
+                    this.transaction.addAction(new ConsumeItemAction(request.getRequestId(),
+                            ((ConsumeStackRequestActionData) action).getCount(),
+                            source);
+                    continue;
                 case CREATE:
-                    break;
+                    continue;
                 case BEACON_PAYMENT:
-                    break;
+                    continue;
                 case MINE_BLOCK:
-                    break;
-
+                    continue;
+                case CRAFT_RECIPE:
+                    this.transaction.addAction(new CraftRecipeAction(request.getRequestId(),
+                            ((CraftRecipeStackRequestActionData) action).getRecipeNetworkId()));
+                    continue;
+                case CRAFT_RESULTS_DEPRECATED:
+                    // Actually isn't needed unless we want to triple verify the output
+                    continue;
+                default:
+                    log.warn("Received unknown ItemStackRequest type: {}", action.getType());
+                    continue;
             }
-
-
         }
     }
 
@@ -151,9 +147,9 @@ public class PlayerInventoryManager {
         };
     }
 
-    public CraftingTransaction getCraftingTransaction() {
-        if (this.transaction != null && this.transaction instanceof CraftingTransaction)
-            return (CraftingTransaction) this.transaction;
+    public CraftItemStackTransaction getCraftingTransaction() {
+        if (this.transaction != null && this.transaction instanceof CraftItemStackTransaction)
+            return (CraftItemStackTransaction) this.transaction;
         return null;
     }
 }
