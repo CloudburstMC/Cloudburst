@@ -261,6 +261,14 @@ public class CloudItemStack implements ItemStack {
     }
 
     @Override
+    public ItemStack withAmount(int amount) {
+        if (amount == getAmount()) return this;
+        this.nbt = null; // Force regeneration of NBT
+        this.dataTag = null;
+        return ItemStack.super.withAmount(amount);
+    }
+
+    @Override
     public ItemBehavior getBehavior() {
         return CloudItemRegistry.get().getBehavior(this.type);
     }

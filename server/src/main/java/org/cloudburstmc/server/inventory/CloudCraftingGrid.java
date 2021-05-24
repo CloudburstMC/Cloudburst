@@ -4,6 +4,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.inventory.CraftingGrid;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -11,15 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
-    private static final int CRAFTING_GRID_SMALL_OFFSET = 28;
-    private static final int CRAFTING_GRID_LARGE_OFFSET = 32;
-    private static final int CRAFTING_RESULT_OFFSET = 40;
-    public static final int CRAFTING_RESULT_SLOT = 10;
+    public static final int CRAFTING_GRID_SMALL_OFFSET = 28;
+    public static final int CRAFTING_GRID_LARGE_OFFSET = 32;
+    public static final int CRAFTING_RESULT_OFFSET = 41;
+    public static final int CRAFTING_RESULT_SLOT = 9;
     private CraftingGrid.Type gridType = Type.CRAFTING_GRID_SMALL;
 
 
     public CloudCraftingGrid(CloudPlayer holder) {
-        super(holder, InventoryType.WORKBENCH); // 10 slots, can reuse 0-3 for small grid, slot 10 is result always
+        super(holder, InventoryType.WORKBENCH); // 10 slots, can reuse 0-3 for small grid, slot 9 is result always
     }
 
     @Override
@@ -114,5 +115,20 @@ public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
         }
         this.clearAll();
         this.setCraftingGridType(Type.CRAFTING_GRID_SMALL);
+    }
+
+    @Override
+    public int getSize() {
+        return 10;
+    }
+
+    @Override
+    public void sendSlot(int index, Player... players) {
+        if (index == 50) {
+            index = CRAFTING_RESULT_SLOT;
+        } else if (index <= 10) {
+            index += getCraftingGridType() == Type.CRAFTING_GRID_SMALL ? CRAFTING_GRID_SMALL_OFFSET : CRAFTING_GRID_LARGE_OFFSET;
+        }
+        super.sendSlot(index, players);
     }
 }

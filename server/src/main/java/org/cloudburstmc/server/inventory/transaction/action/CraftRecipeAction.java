@@ -1,5 +1,9 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.inventory.CraftingGrid;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.crafting.CraftingRecipe;
 import org.cloudburstmc.server.inventory.CloudCraftingGrid;
@@ -9,6 +13,10 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Log4j2
 public class CraftRecipeAction extends ItemStackAction {
     private final int recipeId;
 
@@ -23,9 +31,14 @@ public class CraftRecipeAction extends ItemStackAction {
             return false;
         CraftItemStackTransaction transaction = ((CraftItemStackTransaction) getTransaction());
         CraftingRecipe recipe = transaction.getRecipe();
-        if (CloudRecipeRegistry.get().getRecipeNetId(recipe.getId()) != this.recipeId) return false;
+        CraftingGrid inv = transaction.getCraftingGrid();
 
-        int size = transaction.getCraftingGridSize();
+        if (CloudRecipeRegistry.get().getRecipeNetId(recipe.getId()) != this.recipeId) {
+            log.warn("Crafting recipe miss-match: {} =/= {}", this.recipeId, CloudRecipeRegistry.get().getRecipeNetId(recipe.getId()));
+            return false;
+        }
+
+        int size = transaction.getCraftingGrid().getCraftingGridSize();
 
         ItemStack[][] inputs = new ItemStack[size][size];
         ItemStack[][] extraOutputs = new ItemStack[size][size];
@@ -36,7 +49,7 @@ public class CraftRecipeAction extends ItemStackAction {
                 if (transaction.getExtraOutputs().size() <= slot || transaction.getExtraOutputs().get(slot) == null)
                     transaction.getExtraOutputs().add(slot, CloudItemRegistry.get().AIR);
                 extraOutputs[r][c] = transaction.getExtraOutputs().get(slot);
-                inputs[r][c] = transaction.getCraftingGrid().getItem(slot);
+                inputs[r][c] = inv.getItem(slot);
             }
         }
 
@@ -45,13 +58,34 @@ public class CraftRecipeAction extends ItemStackAction {
 
     @Override
     public boolean execute(CloudPlayer player) {
-        CraftItemStackTransaction transaction = (CraftItemStackTransaction) getTransaction();
-        return transaction.getCraftingGrid().setItem(CloudCraftingGrid.CRAFTING_RESULT_SLOT, transaction.getPrimaryOutput(), false);
+        return true;
     }
 
     @Override
     public void onAddToTransaction(InventoryTransaction transaction) {
         super.onAddToTransaction(transaction);
         transaction.addInventory(transaction.getSource().getInventoryManager().getCraftingGrid());
+    }
+
+    @Override
+    public void onExecuteSuccess(CloudPlayer source) {
+        List<ItemStackResponsePacket.ItemEntry> items = new ArrayList<>();
+        int size = getTransaction().getSource().getCraftingInventory().getCraftingGridSize();
+        for (int r = 0; r < size; r++) {
+            for (int c = 0; c < size; c++) {
+                int slot = (size * r) + c;
+                items.add(new ItemStackResponsePacket.ItemEntry(
+                        (byte) (getTransaction().getSource().getCraftingInventory().getCraftingGridType() == CraftingGrid.Type.CRAFTING_GRID_SMALL ? slot + CloudCraftingGrid.CRAFTING_GRID_SMALL_OFFSET : slot + CloudCraftingGrid.CRAFTING_GRID_LARGE_OFFSET),
+                        (byte) 0,
+                        (byte) 1,
+                        0,
+                        "",
+                        0
+
+                ));
+            }
+        }
+
+        this.getTransaction().addResponse(new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.OK, getRequestId(), List.of(new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CRAFTING_INPUT, items))));
     }
 }

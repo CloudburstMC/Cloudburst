@@ -24,13 +24,13 @@ public class SwapItemStackAction extends ItemStackAction {
         BaseInventory inv = player.getInventoryManager().getInventoryByType(getSourceData().getContainer());
         BaseInventory targetInv = player.getInventoryManager().getInventoryByType(getTargetData().getContainer());
 
-        if (!targetInv.setItem(getTargetSlot(), sourceItem, false)) {
+        if (!targetInv.setItem(getTargetSlot(), sourceItem, true)) {
             return false;
         }
 
-        if (!inv.setItem(getSourceSlot(), targetItem, false)) {
+        if (!inv.setItem(getSourceSlot(), targetItem, true)) {
             // attempt to revert prior change
-            targetInv.setItem(getTargetSlot(), targetItem, false);
+            targetInv.setItem(getTargetSlot(), targetItem, true);
             return false;
         }
         return true;
