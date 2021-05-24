@@ -21,8 +21,9 @@ public abstract class ItemStackAction extends InventoryAction {
     private final int requestId;
     private ItemStackTransaction transaction;
 
-    public ItemStackAction(int reqId, StackRequestSlotInfoData sourceData, @Nullable StackRequestSlotInfoData targetData) {
-        super(CloudItemRegistry.get().getItemByNetId(sourceData.getStackNetworkId()), targetData != null ? CloudItemRegistry.get().getItemByNetId(targetData.getStackNetworkId()) : CloudItemRegistry.get().AIR);
+    public ItemStackAction(int reqId, @Nullable StackRequestSlotInfoData sourceData, @Nullable StackRequestSlotInfoData targetData) {
+        super(sourceData != null ? CloudItemRegistry.get().getItemByNetId(sourceData.getStackNetworkId()) : CloudItemRegistry.get().AIR,
+                targetData != null ? CloudItemRegistry.get().getItemByNetId(targetData.getStackNetworkId()) : CloudItemRegistry.get().AIR);
         this.requestId = reqId;
         this.sourceData = sourceData;
         this.targetData = targetData;
@@ -31,7 +32,9 @@ public abstract class ItemStackAction extends InventoryAction {
     @Override
     public void onAddToTransaction(InventoryTransaction transaction) {
         this.transaction = (ItemStackTransaction) transaction;
-        this.transaction.addInventory(transaction.getSource().getInventoryManager().getInventoryByType(getSourceData().getContainer()));
+        if (getSourceData() != null) {
+            this.transaction.addInventory(transaction.getSource().getInventoryManager().getInventoryByType(getSourceData().getContainer()));
+        }
         if (getTargetData() != null) {
             this.transaction.addInventory(transaction.getSource().getInventoryManager().getInventoryByType(getTargetData().getContainer()));
         }
@@ -50,7 +53,9 @@ public abstract class ItemStackAction extends InventoryAction {
     @Override
     public void onExecuteFail(CloudPlayer source) {
         List<ItemStackResponsePacket.ContainerEntry> containers = new ArrayList<>();
-        containers.add(new ItemStackResponsePacket.ContainerEntry(sourceData.getContainer(), List.of(NetworkUtils.itemStackToNetwork(sourceData, source.getInventoryManager().getInventoryByType(sourceData.getContainer())))));
+        if (sourceData != null) {
+            containers.add(new ItemStackResponsePacket.ContainerEntry(sourceData.getContainer(), List.of(NetworkUtils.itemStackToNetwork(sourceData, source.getInventoryManager().getInventoryByType(sourceData.getContainer())))));
+        }
         if (targetData != null) {
             containers.add(new ItemStackResponsePacket.ContainerEntry(targetData.getContainer(), List.of(NetworkUtils.itemStackToNetwork(targetData, source.getInventoryManager().getInventoryByType(targetData.getContainer())))));
         }
