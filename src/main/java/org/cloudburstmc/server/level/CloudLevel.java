@@ -850,7 +850,7 @@ public class CloudLevel implements Level {
             packets[i] = updateBlockPacket;
             packets[i + 1] = updateBlockPacket2;
         }
-        CloudServer.broadcastPackets(players.values().toArray(new CloudPlayer[0]), packets);
+        CloudServer.broadcastPackets(target, packets);
     }
 
     public boolean save() {
