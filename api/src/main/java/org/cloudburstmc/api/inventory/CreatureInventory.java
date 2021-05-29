@@ -3,6 +3,8 @@ package org.cloudburstmc.api.inventory;
 import org.cloudburstmc.api.entity.Creature;
 import org.cloudburstmc.api.item.ItemStack;
 
+import java.util.Set;
+
 public interface CreatureInventory extends Inventory {
 
     @Override
@@ -60,10 +62,10 @@ public interface CreatureInventory extends Inventory {
         return setArmorItem(3, boots);
     }
 
-    ItemStack[] getArmorContents();
+    Set<? extends ItemStack> getArmorContents();
 
-    ItemStack getOffHand();
+    ItemStack getOffHandItem();
 
-    void setOffHandContents(ItemStack offhand);
+    void setOffHandItem(ItemStack offhand);
 
 }
