@@ -9,7 +9,7 @@ pipeline {
     }
     stages {
         stage ('Build') {
-            when { not { anyOf {
+            when { anyOf {
                 branch 'stable'
                 branch 'beta'
                 branch 'bleeding'
@@ -61,7 +61,7 @@ pipeline {
                                 deployerId: "maven-deployer",
                                 resolverId: "maven-resolver"
                         )
-                        sh 'mvn package javadoc:javadoc -DskipTests'
+                     //   sh 'mvn javadoc:javadoc -DskipTests'
                         step([$class: 'JavadocArchiver', javadocDir: 'target/site/apidocs', keepAll: false])
                     }
                 }
@@ -75,7 +75,7 @@ pipeline {
                     steps {
                         rtMavenRun(
                                 pom: 'pom.xml',
-                                goals: 'clean package javadoc:jar source:jar install',
+                                goals: 'clean javadoc:jar source:jar install',
                                 deployerId: "maven-deployer",
                                 resolverId: "maven-resolver"
                         )
