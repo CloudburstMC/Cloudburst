@@ -1,6 +1,9 @@
 package org.cloudburstmc.server.inventory;
 
 import com.google.common.base.Preconditions;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
@@ -19,6 +22,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -626,6 +630,19 @@ public abstract class BaseInventory implements Inventory {
             packet.setContainerId(id);
             ((CloudPlayer) player).sendPacket(packet);
         }
+    }
+
+    public void saveInventory(NbtMapBuilder tag) {
+        List<NbtMap> inventoryItems = new ArrayList<>();
+
+        for (Int2ObjectMap.Entry<ItemStack> slot : this.slots.int2ObjectEntrySet()) {
+            ItemStack item = slot.getValue();
+            if (!item.isNull()) {
+                inventoryItems.add(ItemUtils.serializeItem(item, slot.getIntKey()));
+            }
+        }
+
+        tag.putList("Inventory", NbtType.COMPOUND, inventoryItems);
     }
 
     @Override

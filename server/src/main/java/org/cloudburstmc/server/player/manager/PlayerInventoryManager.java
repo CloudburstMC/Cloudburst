@@ -25,7 +25,7 @@ import static com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.St
 @Getter
 public class PlayerInventoryManager {
     private final CloudPlayer player;
-    private final CloudPlayerInventory mainInv;
+    private final CloudPlayerInventory playerInventory;
     private final PlayerCursorInventory cursor;
     private final CloudEnderChestInventory enderChest;
     private final CloudCraftingGrid craftingGrid;
@@ -36,7 +36,7 @@ public class PlayerInventoryManager {
 
     public PlayerInventoryManager(CloudPlayer player) {
         this.player = player;
-        this.mainInv = new CloudPlayerInventory(player);
+        this.playerInventory = new CloudPlayerInventory(player);
         this.cursor = new PlayerCursorInventory(player);
         this.enderChest = new CloudEnderChestInventory(player);
         this.craftingGrid = new CloudCraftingGrid(player);
@@ -144,7 +144,7 @@ public class PlayerInventoryManager {
 
     public BaseInventory getInventoryByType(ContainerSlotType type) {
         return switch (type) {
-            case HOTBAR, HOTBAR_AND_INVENTORY, INVENTORY, OFFHAND -> mainInv;
+            case HOTBAR, HOTBAR_AND_INVENTORY, INVENTORY, OFFHAND -> playerInventory;
             case CRAFTING_INPUT, CRAFTING_OUTPUT, CREATIVE_OUTPUT -> craftingGrid;
             case CURSOR -> cursor;
             default -> null;
@@ -162,7 +162,7 @@ public class PlayerInventoryManager {
         StringJoiner str = new StringJoiner("\n");
         str.add("Player Inventories [" + player.getName() + ":");
         str.add("Main Inventory: ");
-        for (Map.Entry<Integer, ItemStack> entry : mainInv.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : playerInventory.getContents().entrySet()) {
             str.add("  " + entry.getKey() + ": " + entry.getValue());
         }
         str.add("===============");

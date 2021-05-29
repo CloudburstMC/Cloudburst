@@ -239,7 +239,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         boolean offhand = packet.getContainerId() == ContainerId.OFFHAND;
         ItemStack serverItem;
         if (offhand) {
-            serverItem = player.getInventory().getOffHand();
+            serverItem = player.getInventory().getOffHandItem();
         } else {
             serverItem = player.getInventory().getItem(packet.getHotbarSlot());
         }
@@ -251,7 +251,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return true;
         }
         if (offhand) {
-            player.getInventory().setOffHandContents(clientItem);
+            player.getInventory().setOffHandItem(clientItem);
         } else {
             player.getInventory().equipItem(packet.getHotbarSlot());
         }
