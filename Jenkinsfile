@@ -13,7 +13,7 @@ pipeline {
                 branch 'stable'
                 branch 'beta'
                 branch 'bleeding'
-            }}}
+            }}
 
             steps {
                 sh 'mvn clean package'
