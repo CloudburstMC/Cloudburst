@@ -1,17 +1,27 @@
 package org.cloudburstmc.server.inventory;
 
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.inventory.ContainerInventory;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.entity.EntityHuman;
+import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class CloudEnderChestInventory extends CloudContainer implements ContainerInventory {
 
@@ -73,5 +83,17 @@ public class CloudEnderChestInventory extends CloudContainer implements Containe
         }
 
         super.onClose(who);
+    }
+
+    @Override
+    public void saveInventory(NbtMapBuilder tag) {
+        List<NbtMap> enderItems = new ArrayList<>();
+        for (Map.Entry<Integer, ItemStack> slot : this.getContents().entrySet()) {
+            CloudItemStack item = (CloudItemStack) slot.getValue();
+            if (item != null && !item.isNull()) {
+                enderItems.add(ItemUtils.serializeItem(item, slot.getKey()));
+            }
+        }
+        tag.putList("EnderChestInventory", NbtType.COMPOUND, enderItems);
     }
 }

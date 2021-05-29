@@ -1,10 +1,18 @@
 package org.cloudburstmc.server.inventory;
 
+import com.google.common.collect.ImmutableSet;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.api.event.entity.EntityArmorChangeEvent;
 import org.cloudburstmc.api.inventory.CreatureInventory;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
@@ -14,14 +22,13 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 public class CloudCreatureInventory extends BaseInventory implements CreatureInventory {
 
     private int heldItemIndex = 0;
-    private int offHandIndex = 40;
+    private Int2ObjectMap<CloudItemStack> armorSlots = new Int2ObjectOpenHashMap<>(4);
+    private CloudItemStack offHand;
 
     public CloudCreatureInventory(EntityCreature entity) {
         super(entity, InventoryType.PLAYER);
@@ -40,11 +47,6 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
     @Override
     public void setSize(int size) {
         super.setSize(size + 5);
-        this.offHandIndex = size + 4;
-    }
-
-    protected int getOffHandIndex() {
-        return this.offHandIndex;
     }
 
     @Override
@@ -104,35 +106,46 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
 
     @Override
     public CloudItemStack getArmorItem(int index) {
-        return this.getItem(this.getSize() + index);
+        return this.armorSlots.get(index);
     }
 
     @Override
     public boolean setArmorItem(int index, ItemStack item, boolean ignoreArmorEvents) {
-        return this.setItem(this.getSize() + index, item, ignoreArmorEvents);
-    }
-
-    @Override
-    public ItemStack[] getArmorContents() {
-        ItemStack[] armor = new ItemStack[4];
-        for (int i = 0; i < 4; i++) {
-            armor[i] = this.getItem(this.getSize() + i);
+        if (index < 0 || index >= 3) {
+            return false;
+        } else if (item.isNull() || item.getAmount() <= 0) {
+            return this.armorSlots.remove(index) != null;
         }
 
-        return armor;
-    }
+        CloudItemStack oldItem = this.armorSlots.get(index);
+        if (!ignoreArmorEvents) {
+            EntityArmorChangeEvent ev = new EntityArmorChangeEvent(getHolder(), oldItem, item, index);
+            getHolder().getServer().getEventManager().fire(ev);
 
-    @Override
-    public ItemStack getOffHand() {
-        return this.getItem(offHandIndex);
-    }
-
-    @Override
-    public void setOffHandContents(ItemStack offhand) {
-        if (offhand == null) {
-            offhand = CloudItemRegistry.get().AIR;
+            if (ev.isCancelled()) {
+                this.sendArmorSlot(index, this.getViewers());
+                return false;
+            }
         }
-        this.setItem(offHandIndex, offhand);
+        this.armorSlots.put(index, ((CloudItemStack) item));
+        this.sendArmorSlot(index, this.getViewers());
+        return true;
+    }
+
+    @Override
+    public Set<CloudItemStack> getArmorContents() {
+        return ImmutableSet.copyOf(this.armorSlots.values());
+    }
+
+    @NonNull
+    @Override
+    public ItemStack getOffHandItem() {
+        return this.offHand == null ? CloudItemRegistry.get().AIR : this.offHand;
+    }
+
+    @Override
+    public void setOffHandItem(ItemStack offhand) {
+        this.offHand = (CloudItemStack) offhand;
     }
 
     public void sendOffHandContents(Collection<CloudPlayer> players) {
@@ -144,11 +157,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
     }
 
     public void sendOffHandContents(CloudPlayer[] players) {
-        ItemStack offHand = this.getOffHand();
-
-        if (offHand == null) {
-            offHand = CloudItemRegistry.get().AIR;
-        }
+        ItemStack offHand = this.getOffHandItem();
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
@@ -177,7 +186,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
     }
 
     public void sendOffHandSlot(CloudPlayer[] players) {
-        ItemStack offhand = this.getOffHand();
+        ItemStack offhand = this.getOffHandItem();
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
@@ -203,20 +212,18 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
     }
 
     public void sendArmorContents(CloudPlayer[] players) {
-        ItemStack[] armor = this.getArmorContents();
-
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setHelmet(((CloudItemStack) armor[0]).getNetworkData());
-        packet.setChestplate(((CloudItemStack) armor[1]).getNetworkData());
-        packet.setLeggings(((CloudItemStack) armor[2]).getNetworkData());
-        packet.setBoots(((CloudItemStack) armor[3]).getNetworkData());
+        packet.setHelmet(((CloudItemStack) getHelmet()).getNetworkData());
+        packet.setChestplate(((CloudItemStack) getChestplate()).getNetworkData());
+        packet.setLeggings(((CloudItemStack) getLeggings()).getNetworkData());
+        packet.setBoots(((CloudItemStack) getBoots()).getNetworkData());
 
         for (CloudPlayer player : players) {
             if (player.equals(this.getHolder())) {
                 InventoryContentPacket packet2 = new InventoryContentPacket();
                 packet2.setContainerId(ContainerId.ARMOR);
-                packet2.setContents(ItemUtils.toNetwork(Arrays.asList(armor)));
+                packet2.setContents(ItemUtils.toNetwork(new ArrayList<>(getArmorContents())));
                 player.sendPacket(packet2);
             } else {
                 player.sendPacket(packet);
@@ -237,9 +244,9 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
             }
 
             if (items[i].isNull()) {
-                this.clear(this.getSize() + i);
+                this.armorSlots.remove(i);
             } else {
-                this.setItem(this.getSize() + i, items[i]);
+                this.armorSlots.put(i, (CloudItemStack) items[i]);
             }
         }
     }
@@ -253,21 +260,19 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
     }
 
     public void sendArmorSlot(int index, CloudPlayer[] players) {
-        CloudItemStack[] armor = (CloudItemStack[]) this.getArmorContents();
-
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setHelmet(armor[0].getNetworkData());
-        packet.setChestplate(armor[1].getNetworkData());
-        packet.setLeggings(armor[2].getNetworkData());
-        packet.setBoots(armor[3].getNetworkData());
+        packet.setHelmet(((CloudItemStack) getHelmet()).getNetworkData());
+        packet.setChestplate(((CloudItemStack) getChestplate()).getNetworkData());
+        packet.setLeggings(((CloudItemStack) getLeggings()).getNetworkData());
+        packet.setBoots(((CloudItemStack) getBoots()).getNetworkData());
 
         for (CloudPlayer player : players) {
             if (player.equals(this.getHolder())) {
                 InventorySlotPacket packet2 = new InventorySlotPacket();
                 packet2.setContainerId(ContainerId.ARMOR);
-                packet2.setSlot(index - this.getSize());
-                packet2.setItem(this.getItem(index).getNetworkData());
+                packet2.setSlot(index);
+                packet2.setItem(this.armorSlots.get(index).getNetworkData());
                 player.sendPacket(packet2);
             } else {
                 player.sendPacket(packet);
@@ -279,5 +284,16 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
         this.sendArmorSlot(index, players.toArray(new CloudPlayer[0]));
     }
 
+    @Override
+    public void saveInventory(NbtMapBuilder tag) {
+        super.saveInventory(tag);
+        List<NbtMap> armor = new ArrayList<>();
+        for (int i = 0; i < 4; ++i) {
+            // For whatever reason the armor list doesn't store "Slot" info
+            armor.add(i, ItemUtils.serializeItem(this.armorSlots.get(i)));
+        }
 
+        tag.putList("Armor", NbtType.COMPOUND, armor);
+        tag.putList("Offhand", NbtType.COMPOUND, ItemUtils.serializeItem(this.offHand));
+    }
 }

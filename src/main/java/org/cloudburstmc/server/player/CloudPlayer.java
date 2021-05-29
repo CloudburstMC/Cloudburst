@@ -2362,7 +2362,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         tag.listenForInt("foodLevel", this.foodData::setLevel);
         tag.listenForFloat("FoodSaturationLevel", this.foodData::setFoodSaturationLevel);
-        tag.listenForList("EnderItems", NbtType.COMPOUND, items -> {
+        tag.listenForList("EnderChestInventory", NbtType.COMPOUND, items -> {
             for (NbtMap itemTag : items) {
                 this.getEnderChestInventory().setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
             }
@@ -2388,33 +2388,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         tag.putInt("foodLevel", this.getFoodData().getLevel());
         tag.putFloat("foodSaturationLevel", this.getFoodData().getFoodSaturationLevel());
+        this.invManager.getEnderChest().saveInventory(tag);
 
-        List<NbtMap> inventoryItems = new ArrayList<>();
-        int slotCount = CloudPlayerInventory.SURVIVAL_SLOTS + 9;
-        for (int slot = 9; slot < slotCount; ++slot) {
-            ItemStack item = this.getInventory().getItem(slot - 9);
-            if (!item.isNull()) {
-                inventoryItems.add(ItemUtils.serializeItem(item, slot));
-            }
-        }
-
-        for (int slot = 100; slot < 105; ++slot) {
-            ItemStack item = this.getInventory().getItem(this.getInventory().getSize() + slot - 100);
-            if (!item.isNull()) {
-                inventoryItems.add(ItemUtils.serializeItem(item, slot));
-            }
-        }
-
-        tag.putList("Inventory", NbtType.COMPOUND, inventoryItems);
-
-        List<NbtMap> enderItems = new ArrayList<>();
-        for (int slot = 0; slot < 27; ++slot) {
-            ItemStack item = this.getEnderChestInventory().getItem(slot);
-            if (item != null && !item.isNull()) {
-                enderItems.add(ItemUtils.serializeItem(item, slot));
-            }
-        }
-        tag.putList("EnderItems", NbtType.COMPOUND, enderItems);
     }
 
     public void save(boolean async) {
@@ -2929,7 +2904,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     @Override
     public CloudPlayerInventory getInventory() {
-        return invManager.getMainInv();
+        return invManager.getPlayerInventory();
     }
 
     @Override

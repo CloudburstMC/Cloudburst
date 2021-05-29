@@ -51,7 +51,6 @@ public class EntityHuman extends EntityCreature implements Human {
 
     protected UUID identity;
 
-
     protected Skin skin;
 
     public EntityHuman(EntityType<Human> type, Location location) {
