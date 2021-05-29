@@ -45,7 +45,7 @@ public abstract class EntityCreature extends EntityLiving implements Creature, I
 
         tag.listenForList("Armor", NbtType.COMPOUND, items -> {
             for (int i = 0; i < 4; ++i) {
-                getInventory().setArmorItem(i, ItemUtils.deserializeItem(items.get(i)));
+                    getInventory().setArmorItem(i, ItemUtils.deserializeItem(items.get(i)));
             }
         });
     }

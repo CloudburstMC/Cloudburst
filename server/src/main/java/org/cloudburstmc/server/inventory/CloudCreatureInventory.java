@@ -106,7 +106,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
 
     @Override
     public CloudItemStack getArmorItem(int index) {
-        return this.armorSlots.get(index);
+        return this.armorSlots.get(index) == null ? CloudItemRegistry.get().AIR : this.armorSlots.get(index);
     }
 
     @Override
@@ -290,10 +290,12 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
         List<NbtMap> armor = new ArrayList<>();
         for (int i = 0; i < 4; ++i) {
             // For whatever reason the armor list doesn't store "Slot" info
-            armor.add(i, ItemUtils.serializeItem(this.armorSlots.get(i)));
+            armor.add(i, ItemUtils.serializeItem(getArmorItem(i)));
         }
 
         tag.putList("Armor", NbtType.COMPOUND, armor);
-        tag.putList("Offhand", NbtType.COMPOUND, ItemUtils.serializeItem(this.offHand));
+        if (this.offHand != null) {
+            tag.putList("Offhand", NbtType.COMPOUND, ItemUtils.serializeItem(this.offHand));
+        }
     }
 }
