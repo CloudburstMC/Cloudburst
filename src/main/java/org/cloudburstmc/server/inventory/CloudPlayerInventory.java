@@ -144,13 +144,9 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
         if (holder != null && !((Player) holder).isSpawned()) {
             return;
         }
-
-        if (index == this.getOffHandIndex()) {
-            this.sendOffHandSlot(this.getViewers());
-            this.sendOffHandSlot(this.getHolder().getViewers());
-        } else if (index >= this.getSize()) {
-            this.sendArmorSlot(index, this.getViewers());
-            this.sendArmorSlot(index, this.getHolder().getViewers());
+        if (index >= this.getSize()) {
+            this.sendArmorSlot(index - this.getSize(), this.getViewers());
+            this.sendArmorSlot(index - this.getSize(), this.getHolder().getViewers());
         } else {
             super.onSlotChange(index, before, send);
         }
@@ -177,16 +173,12 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
             return this.clear(index);
         }
 
-        //Armor change
+        //Armor change --  TODO remove this from here, setArmorItem should be used for changing armor slots
         if (!ignoreArmorEvents && index >= this.getSize()) {
             EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), this.getItem(index), item, index);
             CloudServer.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled() && this.getHolder() != null) {
-                if (index == this.getOffHandIndex()) {
-                    this.sendOffHandSlot(this.getViewers());
-                } else {
-                    this.sendArmorSlot(index, this.getViewers());
-                }
+                this.sendArmorSlot(index, this.getViewers());
                 return false;
             }
             item = ev.getNewItem();
