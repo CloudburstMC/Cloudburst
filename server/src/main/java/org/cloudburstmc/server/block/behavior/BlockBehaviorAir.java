@@ -22,4 +22,9 @@ public class BlockBehaviorAir extends BlockBehaviorTransparent {
     public ItemStack[] getDrops(Block block, ItemStack hand) {
         return EMPTY;
     }
+
+    @Override
+    public boolean canBeReplaced(Block block) {
+        return true;
+    }
 }
