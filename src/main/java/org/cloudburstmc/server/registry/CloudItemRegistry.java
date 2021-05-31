@@ -84,6 +84,7 @@ public class CloudItemRegistry implements ItemRegistry {
     private final BiMap<Integer, Identifier> runtimeIdMap = HashBiMap.create();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger(256);
     private final CloudBlockRegistry blockRegistry;
+    private int hardcodedBlockingId;
     private List<StartGamePacket.ItemEntry> itemEntries;
     private volatile CreativeContentPacket creativeContent;
 
@@ -160,6 +161,10 @@ public class CloudItemRegistry implements ItemRegistry {
         }
     }
 
+    public int getHardcodedBlockingId() {
+        return this.hardcodedBlockingId;
+    }
+
     public synchronized void register(ItemType type, ItemSerializer serializer, ItemBehavior behavior, Identifier... identifiers) throws RegistryException {
         Objects.requireNonNull(type, "type");
         Objects.requireNonNull(behavior, "behavior");
@@ -184,8 +189,13 @@ public class CloudItemRegistry implements ItemRegistry {
         }
 
         for (Identifier identifier : identifiers) {
+            ItemTypes.addType(identifier, type);
             this.typeMap.put(identifier, type);
-            this.runtimeIdMap.put(this.runtimeIdAllocator.getAndIncrement(), identifier);
+            int runtimeId = this.runtimeIdAllocator.getAndIncrement();
+            this.runtimeIdMap.put(runtimeId, identifier);
+            if (type == ItemTypes.SHIELD) {
+                this.hardcodedBlockingId = runtimeId;
+            }
         }
 
         this.behaviorMap.put(type, behavior);
@@ -591,6 +601,9 @@ public class CloudItemRegistry implements ItemRegistry {
         this.typeMap.put(id, type);
         ItemTypes.addType(id, type);
         int runtime = this.runtimeIdAllocator.getAndIncrement();
+        if (type == ItemTypes.SHIELD) {
+            this.hardcodedBlockingId = runtime;
+        }
         this.runtimeIdMap.put(runtime, id);
 
 
