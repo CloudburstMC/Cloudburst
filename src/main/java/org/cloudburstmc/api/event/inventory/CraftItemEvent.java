@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.event.inventory;
 
 import com.google.common.collect.Lists;
+import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.event.Event;
-import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 

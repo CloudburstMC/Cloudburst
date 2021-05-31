@@ -1,4 +1,4 @@
-package org.cloudburstmc.api.inventory;
+package org.cloudburstmc.api.crafting;
 
 public enum RecipeType {
     SHAPELESS,

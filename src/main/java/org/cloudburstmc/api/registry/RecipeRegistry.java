@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.registry;
 
-import org.cloudburstmc.api.inventory.Recipe;
+import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 
