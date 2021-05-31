@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.api.inventory.CraftingGrid;
+import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;

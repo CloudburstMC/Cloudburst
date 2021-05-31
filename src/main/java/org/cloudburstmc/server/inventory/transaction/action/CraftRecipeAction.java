@@ -3,7 +3,7 @@ package org.cloudburstmc.server.inventory.transaction.action;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.inventory.CraftingGrid;
+import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.crafting.CraftingRecipe;
 import org.cloudburstmc.server.inventory.CloudCraftingGrid;

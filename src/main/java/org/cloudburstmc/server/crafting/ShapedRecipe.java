@@ -3,7 +3,7 @@ package org.cloudburstmc.server.crafting;
 import com.google.common.collect.ImmutableList;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
-import org.cloudburstmc.api.inventory.RecipeType;
+import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.registry.CloudItemRegistry;

@@ -3,7 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.inventory.CraftingGrid;
+import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.BlockColor;

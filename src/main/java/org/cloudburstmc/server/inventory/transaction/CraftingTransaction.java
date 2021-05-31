@@ -2,9 +2,9 @@ package org.cloudburstmc.server.inventory.transaction;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.api.crafting.CraftingGrid;
+import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.event.inventory.CraftItemEvent;
-import org.cloudburstmc.api.inventory.CraftingGrid;
-import org.cloudburstmc.api.inventory.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;

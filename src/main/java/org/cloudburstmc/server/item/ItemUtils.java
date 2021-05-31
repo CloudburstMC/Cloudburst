@@ -64,15 +64,15 @@ public class ItemUtils {
     public static List<ItemData> toNetwork(Collection<ItemStack> items) {
         List<ItemData> data = new ArrayList<>();
         for (ItemStack item : items) {
-            data.add(ItemUtils.toNetwork(item));
+            data.add(ItemUtils.toNetwork((CloudItemStack) item));
         }
         return data;
     }
 
-    public static ItemData toNetwork(ItemStack item) {
-        int id = registry.getRuntimeId(((CloudItemStack) item).getId());
+    public static ItemData toNetwork(CloudItemStack item) {
+        int id = registry.getRuntimeId(item.getId());
 
-        NbtMap tag = ((CloudItemStack) item).getDataTag();
+        NbtMap tag = item.getDataTag();
         short meta;
         if (tag.isEmpty()) {
             tag = null;
@@ -85,7 +85,7 @@ public class ItemUtils {
         String[] canBreak = item.getCanDestroy().stream().map(Identifier::toString).toArray(String[]::new);
 
         int brid = 0;
-        if (item instanceof BlockItemStack) {
+        if (item.isBlock()) {
             brid = CloudBlockRegistry.get().getRuntimeId(item.getBlockState());
         }
         return ItemData.builder()
@@ -96,7 +96,7 @@ public class ItemUtils {
                 .canPlace(canPlace)
                 .canBreak(canBreak)
                 .blockRuntimeId(brid)
-                .netId(((CloudItemStack) item).getStackNetworkId())
+                .netId(item.getStackNetworkId())
                 .usingNetId(true)
                 .build();
     }
