@@ -1,5 +1,6 @@
-package org.cloudburstmc.api.inventory;
+package org.cloudburstmc.api.crafting;
 
+import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 
