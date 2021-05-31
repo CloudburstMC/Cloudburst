@@ -190,6 +190,9 @@ public class CloudItemStack implements ItemStack {
         return new CloudItemStackBuilder(this);
     }
 
+    public boolean isBlock() {
+        return false;
+    }
 //    @Override
 //    public RecipeItemStackBuilder toRecipeBuilder() {
 //        return new NukkitRecipeItemStackBuilder(this);

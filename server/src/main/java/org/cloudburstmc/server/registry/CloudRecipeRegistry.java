@@ -20,7 +20,7 @@ import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockIds;
-import org.cloudburstmc.api.inventory.Recipe;
+import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RecipeRegistry;
@@ -90,7 +90,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
         this.closed = true;
         log.info("Loaded {}{}{} recipies.", TextFormat.GREEN, recipeMap.size(), TextFormat.RESET);
-        this.rebuildPacket();
     }
 
     @Override

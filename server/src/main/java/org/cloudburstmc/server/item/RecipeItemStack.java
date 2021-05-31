@@ -188,4 +188,9 @@ public class RecipeItemStack extends CloudItemStack {
     public BlockState getBlockState() {
         return item.getBlockState();
     }
+
+    @Override
+    public boolean isBlock() {
+        return item.isBlock();
+    }
 }

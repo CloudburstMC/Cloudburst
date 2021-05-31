@@ -33,6 +33,11 @@ public class BlockItemStack extends CloudItemStack {
         return this.blockState;
     }
 
+    @Override
+    public boolean isBlock() {
+        return true;
+    }
+
     //@Override
     public boolean equals(@Nullable ItemStack other, boolean checkAmount, boolean checkData) {
         if (this == other) return true;

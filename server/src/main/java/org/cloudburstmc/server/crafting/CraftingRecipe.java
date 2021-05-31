@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.crafting;
 
-import org.cloudburstmc.api.inventory.Recipe;
+import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.item.ItemStack;
 
 import java.util.List;
@@ -12,9 +12,9 @@ public interface CraftingRecipe extends Recipe {
 
     boolean requiresCraftingTable();
 
-    List<ItemStack> getExtraResults();
+    List<? extends ItemStack> getExtraResults();
 
-    List<ItemStack> getAllResults();
+    List<? extends ItemStack> getAllResults();
 
     int getPriority();
 
