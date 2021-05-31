@@ -7,6 +7,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.player.PlayerCreationEvent;
 import org.cloudburstmc.server.network.BedrockInterface;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.scheduler.AsyncTask;
 import org.cloudburstmc.server.utils.ClientChainData;
 
@@ -35,6 +36,7 @@ public class PlayerLoginData {
         this.server = server;
         this.interfaz = interfaz;
         shouldLogin = false;
+        this.session.getHardcodedBlockingId().set(CloudItemRegistry.get().getHardcodedBlockingId());
     }
 
     public CloudPlayer initializePlayer() {
