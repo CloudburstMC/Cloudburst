@@ -38,7 +38,7 @@ public class CraftRecipeAction extends ItemStackAction {
             return false;
         }
 
-        int size = transaction.getCraftingGrid().getCraftingGridSize();
+        int size = inv.getCraftingGridSize();
 
         ItemStack[][] inputs = new ItemStack[size][size];
         ItemStack[][] extraOutputs = new ItemStack[size][size];
@@ -53,7 +53,8 @@ public class CraftRecipeAction extends ItemStackAction {
             }
         }
 
-        return recipe.matchItems(inputs, extraOutputs);
+        ItemStack item = recipe.getResult();
+        return recipe.matchItems(inputs, extraOutputs) && inv.setItem(CloudCraftingGrid.CRAFTING_RESULT_SLOT, recipe.getResult().withAmount(item.getBehavior().getMaxStackSize(item)));
     }
 
     @Override

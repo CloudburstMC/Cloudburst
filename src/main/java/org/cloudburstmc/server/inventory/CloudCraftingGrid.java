@@ -38,7 +38,7 @@ public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
     }
 
     @Override
-    public ItemStack getCraftingResult() {
+    public CloudItemStack getCraftingResult() {
         return super.getItem(CRAFTING_RESULT_SLOT);
     }
 

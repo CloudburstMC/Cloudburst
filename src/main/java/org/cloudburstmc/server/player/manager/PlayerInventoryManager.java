@@ -122,11 +122,14 @@ public class PlayerInventoryManager {
                             ((CraftRecipeStackRequestActionData) action).getRecipeNetworkId()));
                     continue;
                 case CRAFT_RESULTS_DEPRECATED:
-                    this.transaction.addAction(new CraftResultsAction(request.getRequestId(),
-                            ((CraftResultsDeprecatedStackRequestActionData) action).getTimesCrafted()));
+                    // Don't use deprciated actions!
+                    continue;
+                case CRAFT_CREATIVE:
+                    this.transaction.addAction(new CraftCreativeAction(request.getRequestId(),
+                            ((CraftCreativeStackRequestActionData) action).getCreativeItemNetworkId()));
                     continue;
                 default:
-                    log.warn("Received unknown ItemStackRequest type: {}", action.getType());
+                    log.warn("Received unknown ItemStackRequestAction type: {}", action.getType());
                     continue;
             }
         }
@@ -138,8 +141,8 @@ public class PlayerInventoryManager {
                 || req.getType() == CRAFT_RECIPE
                 || req.getType() == CRAFT_RECIPE_AUTO
                 || req.getType() == CRAFT_RECIPE_OPTIONAL
-                || req.getType() == CRAFT_RESULTS_DEPRECATED))
-        );
+                || req.getType() == CRAFT_RESULTS_DEPRECATED)
+        ));
     }
 
     public BaseInventory getInventoryByType(ContainerSlotType type) {
@@ -173,6 +176,11 @@ public class PlayerInventoryManager {
         str.add("===============");
         str.add("Cursor Inventory:");
         for (Map.Entry<Integer, ItemStack> entry : cursor.getContents().entrySet()) {
+            str.add("  " + entry.getKey() + ": " + entry.getValue());
+        }
+        str.add("===============");
+        str.add("EnderChest Inventory:");
+        for (Map.Entry<Integer, ItemStack> entry : enderChest.getContents().entrySet()) {
             str.add("  " + entry.getKey() + ": " + entry.getValue());
         }
 
