@@ -62,14 +62,22 @@ public class ItemUtils {
     }
 
     public static List<ItemData> toNetwork(Collection<ItemStack> items) {
+        return toNetwork(items, true);
+    }
+
+    public static List<ItemData> toNetwork(Collection<ItemStack> items, boolean useNetId) {
         List<ItemData> data = new ArrayList<>();
         for (ItemStack item : items) {
-            data.add(ItemUtils.toNetwork((CloudItemStack) item));
+            data.add(ItemUtils.toNetwork((CloudItemStack) item, useNetId));
         }
         return data;
     }
 
-    public static ItemData toNetwork(CloudItemStack item) {
+    public static ItemData toNetwork(CloudItemStack itemStack) {
+        return toNetwork(itemStack, true);
+    }
+
+    public static ItemData toNetwork(CloudItemStack item, boolean useNetId) {
         int id = registry.getRuntimeId(item.getId());
 
         NbtMap tag = item.getDataTag();
@@ -96,8 +104,8 @@ public class ItemUtils {
                 .canPlace(canPlace)
                 .canBreak(canBreak)
                 .blockRuntimeId(brid)
-                .netId(item.getStackNetworkId())
-                .usingNetId(true)
+                .netId(useNetId ? item.getStackNetworkId() : 0)
+                .usingNetId(useNetId)
                 .build();
     }
 

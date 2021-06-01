@@ -15,7 +15,6 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.minidev.json.JSONArray;
 import org.cloudburstmc.api.block.BlockState;
@@ -800,7 +799,7 @@ public class CloudItemRegistry implements ItemRegistry {
                 if (creativeContent == null) {
                     CreativeContentPacket pk = new CreativeContentPacket();
 
-                    var contents = ItemUtils.toNetwork(this.creativeItems).toArray(new com.nukkitx.protocol.bedrock.data.inventory.ItemData[0]);
+                    var contents = ItemUtils.toNetwork(this.creativeItems, false).toArray(new com.nukkitx.protocol.bedrock.data.inventory.ItemData[0]);
 
                     for (int i = 0; i < contents.length; i++) {
                         contents[i].setNetId(i + 1);
@@ -832,11 +831,5 @@ public class CloudItemRegistry implements ItemRegistry {
         }
 
         return -1;
-    }
-
-    @Getter
-    private static class ItemData {
-        private String name;
-        private int id;
     }
 }

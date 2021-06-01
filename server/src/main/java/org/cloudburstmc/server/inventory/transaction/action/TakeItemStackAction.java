@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.cloudburstmc.server.inventory.BaseInventory;
-import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -18,6 +18,9 @@ public class TakeItemStackAction extends ItemStackAction {
     @Override
     public boolean isValid(CloudPlayer source) {
         BaseInventory inv = source.getInventoryManager().getInventoryByType(getSourceData().getContainer());
+        if (source.isCreative() && getSourceData().getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
+            return true;
+        }
         return inv.getItem(getSourceSlot()).equals(getSourceItem(), false, true) &&
                 inv.getItem(getSourceSlot()).getAmount() >= this.count;
     }
@@ -34,6 +37,9 @@ public class TakeItemStackAction extends ItemStackAction {
         if (original.getAmount() > count) {
             take = (CloudItemStack) original.withAmount(count);
             original = (CloudItemStack) original.decrementAmount(count);
+        } else if (source.isCreative() && getSourceData().getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
+            take = (CloudItemStack) original.withAmount(count);
+            original = CloudItemRegistry.get().AIR;
         } else {
             take = original;
             original = CloudItemRegistry.get().AIR;
@@ -54,7 +60,7 @@ public class TakeItemStackAction extends ItemStackAction {
     public CloudItemStack getSourceItem() {
         if (getRequestId() == getSourceData().getStackNetworkId()) {
             //Unique situation when client doesn't know the Stack Net ID of the crafted item, so it sends the same as the item stack request id
-            return getTransaction().getSource().getInventory().getCraftingGrid().getItem(CloudCraftingGrid.CRAFTING_RESULT_SLOT);
+            return getTransaction().getSource().getCraftingInventory().getCraftingResult();
         }
         return super.getSourceItem();
     }
