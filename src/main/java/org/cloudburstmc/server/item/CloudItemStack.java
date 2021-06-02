@@ -293,7 +293,10 @@ public class CloudItemStack implements ItemStack {
         CloudItemStack that = (CloudItemStack) other;
 
         return this.type == that.type && (!checkAmount || this.amount == that.amount) &&
-                (!checkData || Objects.equals(this.getDataTag(), that.getDataTag())); //TODO: damage
+                (!checkData || (Objects.equals(this.getDataTag(), that.getDataTag())
+                        && (this.getNbt().getShort("Damage") == 0x7FFF  // Crafting wildcards
+                        || that.getNbt().getShort("Damage") == 0x7FFF
+                        || this.getNbt().getShort("Damage") == that.getNbt().getShort("Damage"))));
     }
 
     @Override
