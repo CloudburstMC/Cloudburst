@@ -79,6 +79,9 @@ public class BlockPalette {
                 traitMap.put(statesTag, state);
 
                 ItemTypes.addType(id, type);
+                if (id != type.getId()) {
+                    defaultStateMap.putIfAbsent(id, state);
+                }
 
                 var paletteEntry = sortedPalette.computeIfAbsent(id.toString(), (v) -> new LinkedHashSet<>());
                 paletteEntry.add(nbt);

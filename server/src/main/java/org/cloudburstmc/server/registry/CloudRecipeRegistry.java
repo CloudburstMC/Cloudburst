@@ -32,9 +32,7 @@ import org.cloudburstmc.server.crafting.*;
 import org.cloudburstmc.server.inventory.ContainerRecipe;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.RecipeItemStack;
 import org.cloudburstmc.server.utils.TextFormat;
-import org.cloudburstmc.server.utils.Utils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -59,7 +57,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     public static final Comparator<ItemStack> recipeComparator = Comparator.comparing((ItemStack i) -> i.getType().getId())
             .thenComparingInt(i -> ((CloudItemStack) i).getNetworkData().getDamage()).thenComparingInt(ItemStack::getAmount);
 
-    private final ItemRegistry itemRegistry;
+    private final CloudItemRegistry itemRegistry;
     private final Map<Identifier, Recipe> recipeMap = new Object2ReferenceOpenHashMap<>();
     private final Int2ReferenceMap<Map<UUID, Identifier>> recipeHashMap = new Int2ReferenceOpenHashMap<>();
     private final Reference2IntMap<Identifier> netIdMap = new Reference2IntOpenHashMap<>();
@@ -74,7 +72,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     public CloudRecipeRegistry(ItemRegistry registry) {
-        this.itemRegistry = registry;
+        this.itemRegistry = (CloudItemRegistry) registry;
         try {
             loadFromFile(Thread.currentThread().getContextClassLoader().getResource("data/recipes.json").toURI());
         } catch (URISyntaxException | NullPointerException e) {
@@ -165,19 +163,18 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             }
 
             switch (recipe.get("type").asInt()) {
-                case 5: // shunkler box dye colors, own type for some reason??
                 case 0: // Shapeless
                     String craftingBlock = recipe.get("block").asText();
                     Identifier block = craftingBlock == null ? null : Identifier.fromString(craftingBlock);
 
                     List<ItemStack> outputs = new ArrayList<>();
                     for(Map<String, Object> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("output"), new TypeReference<List<Map<String, Object>>>(){})) {
-                        outputs.add(createRecipeItem(item));
+                        outputs.add(ItemUtils.fromJson(item));
                     }
 
                     List<ItemStack> inputs = new ArrayList<>();
                     for(Map<String, Object> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("input"), new TypeReference<List<Map<String, Object>>>(){})) {
-                        inputs.add(createRecipeItem(item));
+                        inputs.add(ItemUtils.fromJson(item));
                     }
                     inputs.sort(recipeComparator);
 
@@ -190,13 +187,13 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
                     outputs = new ArrayList<>();
                     for(Map<String, Object> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("output"), new TypeReference<List<Map<String, Object>>>(){})) {
-                        outputs.add(createRecipeItem(item));
+                        outputs.add(ItemUtils.fromJson(item));
                     }
                     ItemStack primary = outputs.remove(0);
 
                     CharObjectMap<ItemStack> ingredients = new CharObjectHashMap<>();
                     for(Map.Entry<String, Map<String, Object>> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("input"), new TypeReference<Map<String, Map<String, Object>>>(){}).entrySet()) {
-                        ingredients.put(item.getKey().charAt(0), createRecipeItem(item.getValue()));
+                        ingredients.put(item.getKey().charAt(0), ItemUtils.fromJson(item.getValue()));
 
                     }
                     this.register(new ShapedRecipe(id, recipe.get("priority").asInt(), primary, shape, ingredients, outputs, block));
@@ -210,9 +207,10 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                     craftingBlock = recipe.get("block").asText();
                     block = craftingBlock == null ? null : Identifier.fromString(craftingBlock);
 
-                    this.register(new FurnaceRecipe(id, createRecipeItem(outputData), createRecipeItem(inputData), block));
+                    this.register(new FurnaceRecipe(id, ItemUtils.fromJson(outputData), ItemUtils.fromJson(inputData), block));
                     break;
                 case 4:
+                case 5:
                     break;
                 default:
                     throw new RegistryException("Unsupported Recipe type");
@@ -257,10 +255,23 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         return this.recipeMap.get(idNetMap.get(netId));
     }
 
-    private RecipeItemStack createRecipeItem(Map<String, Object> json) {
-        int damage = Utils.toInt(json.getOrDefault("damage", 0));
-        if ((damage & 0x7FFF) == 0x7FFF) damage = -1;
-        return new RecipeItemStack(ItemUtils.fromJson(json), damage != -1);
+    private ItemData createRecipeItemData(CloudItemStack item) {
+        Identifier id = item.getNbt().isEmpty() ? item.getId() : Identifier.fromString(item.getNbt().getString("Name"));
+        return ItemData.builder()
+                .id(itemRegistry.getRuntimeId(id))
+                .damage(item.getNbt().isEmpty() ? 0 : item.getNbt().getShort("Damage"))
+                .usingNetId(false)
+                .netId(0)
+                .count(item.getAmount())
+                .build();
+    }
+
+    private List<ItemData> createRecipeItemData(List<ItemStack> items) {
+        List<ItemData> data = new ArrayList<>(items.size());
+        for (ItemStack item : items) {
+            data.add(createRecipeItemData((CloudItemStack) item));
+        }
+        return data;
     }
 
     @Nullable
@@ -406,8 +417,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                     case SHAPELESS:
                         packet.getCraftingData().add(CraftingData.fromShapeless(
                                 recipe.getId().toString(),
-                                ItemUtils.toNetwork(((ShapelessRecipe) recipe).getIngredientList(), false),
-                                ItemUtils.toNetwork(((ShapelessRecipe) recipe).getAllResults(), false),
+                                createRecipeItemData(((ShapelessRecipe) recipe).getIngredientList()),
+                                createRecipeItemData(((ShapelessRecipe) recipe).getAllResults()),
                                 entry.getKey(),
                                 recipe.getBlock().getName(),
                                 ((ShapelessRecipe) recipe).getPriority(),
@@ -418,8 +429,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                                 recipe.getId().toString(),
                                 ((ShapedRecipe) recipe).getWidth(),
                                 ((ShapedRecipe) recipe).getHeight(),
-                                ItemUtils.toNetwork(((ShapedRecipe) recipe).getIngredientList(), false),
-                                ItemUtils.toNetwork(((ShapedRecipe) recipe).getAllResults(), false),
+                                createRecipeItemData(((ShapedRecipe) recipe).getIngredientList()),
+                                createRecipeItemData(((ShapedRecipe) recipe).getAllResults()),
                                 entry.getKey(),
                                 recipe.getBlock().getName(),
                                 ((ShapedRecipe) recipe).getPriority(),
@@ -427,8 +438,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                         break;
                     case FURNACE:
                         assert recipe instanceof FurnaceRecipe;
-                        ItemData inputData = ItemUtils.toNetwork((CloudItemStack) ((FurnaceRecipe) recipe).getInput(), false);
-                        ItemData outputData = ItemUtils.toNetwork((CloudItemStack) recipe.getResult(), false);
+                        ItemData inputData = createRecipeItemData((CloudItemStack) ((FurnaceRecipe) recipe).getInput());
+                        ItemData outputData = createRecipeItemData((CloudItemStack) recipe.getResult());
 
                         packet.getCraftingData().add(CraftingData.fromFurnace(
                                 inputData.getId(),
@@ -438,8 +449,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                         break;
                     case FURNACE_DATA:
                         assert recipe instanceof FurnaceRecipe;
-                        inputData = ItemUtils.toNetwork((CloudItemStack) ((FurnaceRecipe) recipe).getInput(), false);
-                        outputData = ItemUtils.toNetwork((CloudItemStack) recipe.getResult(), false);
+                        inputData = createRecipeItemData((CloudItemStack) ((FurnaceRecipe) recipe).getInput());
+                        outputData = createRecipeItemData((CloudItemStack) recipe.getResult());
 
                         packet.getCraftingData().add(CraftingData.fromFurnaceData(
                                 ((CloudItemStack) ((FurnaceRecipe) recipe).getInput()).getNetworkData().getId(),
@@ -450,9 +461,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                         break;
                     case POTION:
                         assert recipe instanceof BrewingRecipe;
-                        ItemData reagentData = ItemUtils.toNetwork((CloudItemStack) ((BrewingRecipe) recipe).getIngredient(), false);
-                        inputData = ItemUtils.toNetwork((CloudItemStack) ((BrewingRecipe) recipe).getInput(), false);
-                        outputData = ItemUtils.toNetwork((CloudItemStack) recipe.getResult(), false);
+                        ItemData reagentData = createRecipeItemData((CloudItemStack) ((BrewingRecipe) recipe).getIngredient());
+                        inputData = createRecipeItemData((CloudItemStack) ((BrewingRecipe) recipe).getInput());
+                        outputData = createRecipeItemData((CloudItemStack) recipe.getResult());
 
                         packet.getPotionMixData().add(new PotionMixData(
                                 inputData.getId(),
@@ -464,9 +475,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                         break;
                     case CONTAINER:
                         assert recipe instanceof ContainerRecipe;
-                        reagentData = ItemUtils.toNetwork((CloudItemStack) ((ContainerRecipe) recipe).getIngredient(), false);
-                        inputData = ItemUtils.toNetwork((CloudItemStack) ((ContainerRecipe) recipe).getInput(), false);
-                        outputData = ItemUtils.toNetwork((CloudItemStack) recipe.getResult(), false);
+                        reagentData = createRecipeItemData((CloudItemStack) ((ContainerRecipe) recipe).getIngredient());
+                        inputData = createRecipeItemData((CloudItemStack) ((ContainerRecipe) recipe).getInput());
+                        outputData = createRecipeItemData((CloudItemStack) recipe.getResult());
 
                         packet.getContainerMixData().add(new ContainerMixData(
                                 inputData.getId(),

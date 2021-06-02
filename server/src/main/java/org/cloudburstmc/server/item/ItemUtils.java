@@ -57,6 +57,7 @@ public class ItemUtils {
         CloudItemStackBuilder builder = new CloudItemStackBuilder();
 
         registry.getSerializer(ItemTypes.byId(id)).deserialize(id, damage, amount, builder, tag);
+        builder.networkData(null); // Force rebuild
 
         return builder.build();
     }
@@ -78,12 +79,12 @@ public class ItemUtils {
     }
 
     public static ItemData toNetwork(CloudItemStack item, boolean useNetId) {
-        int id = registry.getRuntimeId(item.getId());
+        Identifier identifier = item.getNbt().isEmpty() ? item.getId() : Identifier.fromString(item.getNbt().getString("Name"));
+        int id = registry.getRuntimeId(identifier);
 
-        NbtMap tag = item.getDataTag();
+        NbtMap tag = item.getNbt();
         short meta;
         if (tag.isEmpty()) {
-            tag = null;
             meta = 0;
         } else {
             meta = tag.getShort("Damage", (short) 0);
@@ -100,7 +101,7 @@ public class ItemUtils {
                 .id(id)
                 .damage(meta)
                 .count(item.getAmount())
-                .tag(tag)
+                .tag(item.getDataTag().isEmpty() ? null : item.getDataTag())
                 .canPlace(canPlace)
                 .canBreak(canBreak)
                 .blockRuntimeId(brid)
@@ -189,7 +190,7 @@ public class ItemUtils {
 
     // -- Used by recipes and crafting
     public static int getItemHash(CloudItemStack item) {
-        return Objects.hash(System.identityHashCode(item.getId()), item.getNetworkData().getDamage(), item.getAmount());
+        return Objects.hash(System.identityHashCode(item.getId()), item.getNbt().getInt("Damage", 0), item.getAmount());
     }
 
     public static UUID getMultiItemHash(List<ItemStack> items) {
