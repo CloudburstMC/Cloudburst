@@ -22,17 +22,16 @@ public class ShapelessRecipe implements CraftingRecipe {
     private final int priority;
     private final Identifier block;
     private final List<ItemStack> extraOutputs = new ArrayList<>();
+    private final RecipeType type;
 
-    public ShapelessRecipe(Identifier recipeId, int priority, List<ItemStack> outputs, List<ItemStack> ingredients, Identifier craftingBlock ) {
-        this(recipeId, priority, outputs.remove(0),ingredients, craftingBlock);
+    public ShapelessRecipe(Identifier recipeId, int priority, List<ItemStack> outputs, List<ItemStack> ingredients, Identifier craftingBlock, RecipeType type) {
+        this.output = outputs.remove(0);
         this.extraOutputs.addAll(outputs);
-    }
-
-    public ShapelessRecipe(Identifier recipeId, int priority, ItemStack result, List<ItemStack> ingredients, Identifier block) {
+        this.type = type;
         this.recipeId = recipeId;
         this.priority = priority;
-        this.output = result;
-        this.block = block;
+
+        this.block = craftingBlock;
         if (ingredients.size() > 9) {
             throw new IllegalArgumentException("Shapeless recipes cannot have more than 9 ingredients");
         }
@@ -41,7 +40,7 @@ public class ShapelessRecipe implements CraftingRecipe {
 
         for (ItemStack item : ingredients) {
             if (item.getAmount() < 1) {
-                throw new IllegalArgumentException("Recipe '" + recipeId + "' Ingredient amount was not 1 (value: " + item.getAmount() + ")");
+                throw new IllegalArgumentException("Recipe '" + recipeId + "' Ingredient amount was not >= 1 (value: " + item.getAmount() + ")");
             }
             this.ingredients.add(item);
         }
@@ -67,7 +66,7 @@ public class ShapelessRecipe implements CraftingRecipe {
 
     @Override
     public RecipeType getType() {
-        return RecipeType.SHAPELESS;
+        return this.type;
     }
 
     @Override
