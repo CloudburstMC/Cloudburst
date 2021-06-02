@@ -19,12 +19,11 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 @Nonnull
 @ToString
-@ParametersAreNonnullByDefault
+//@ParametersAreNonnullByDefault
 public class CloudItemStackBuilder implements ItemStackBuilder {
 
     private Identifier id;

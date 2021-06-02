@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -17,8 +18,9 @@ public class CraftCreativeAction extends ItemStackAction {
         if (!source.isCreative()) {
             return false;
         }
-        return source.getCraftingInventory().setItem(CloudCraftingGrid.CRAFTING_RESULT_SLOT,
-                CloudItemRegistry.get().getCreativeItems().get(creativeItemNetId - 1),
+        ItemStack item = CloudItemRegistry.get().getCreativeItems().get(creativeItemNetId - 1);
+        return !item.isNull() && source.getCraftingInventory().setItem(CloudCraftingGrid.CRAFTING_RESULT_SLOT,
+                item.withAmount(item.getBehavior().getMaxStackSize(item)),
                 false);
     }
 
