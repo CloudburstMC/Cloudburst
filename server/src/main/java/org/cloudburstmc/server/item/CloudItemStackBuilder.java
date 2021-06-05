@@ -50,6 +50,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     }
 
     public CloudItemStackBuilder(CloudItemStack item, boolean transferStackId) {
+        id = item.getId();
         itemType = item.getType();
         amount = item.getAmount();
         itemLore = item.getLore();
