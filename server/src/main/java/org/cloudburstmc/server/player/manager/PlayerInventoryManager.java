@@ -105,11 +105,26 @@ public class PlayerInventoryManager {
                     ));
                     continue;
                 case DESTROY:
+                    source = ((DestroyStackRequestActionData) action).getSource();
+
+                    this.transaction.addAction(
+                            new ConsumeItemAction(
+                                    request.getRequestId(),
+                                    ((DestroyStackRequestActionData) action).getCount(),
+                                    source
+                            )
+                    );
+                    continue;
                 case CONSUME:
                     source = ((ConsumeStackRequestActionData) action).getSource();
-                    this.transaction.addAction(new ConsumeItemAction(request.getRequestId(),
-                            ((ConsumeStackRequestActionData) action).getCount(),
-                            source));
+
+                    this.transaction.addAction(
+                            new ConsumeItemAction(
+                                    request.getRequestId(),
+                                    ((ConsumeStackRequestActionData) action).getCount(),
+                                    source
+                            )
+                    );
                     continue;
                 case CREATE:
                     continue;
