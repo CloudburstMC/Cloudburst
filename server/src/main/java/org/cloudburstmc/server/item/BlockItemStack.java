@@ -23,8 +23,8 @@ public class BlockItemStack extends CloudItemStack {
         this.blockState = state;
     }
 
-    public BlockItemStack(BlockState state, int amount, String itemName, List<String> itemLore, Map<EnchantmentType, EnchantmentInstance> enchantments, Collection<Identifier> canDestroy, Collection<Identifier> canPlaceOn, Map<Class<?>, Object> data, NbtMap nbt, NbtMap dataTag, ItemData networkData, int stackId) {
-        super(state.getType().getId(), state.getType(), amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData, stackId);
+    public BlockItemStack(Identifier id, BlockState state, int amount, String itemName, List<String> itemLore, Map<EnchantmentType, EnchantmentInstance> enchantments, Collection<Identifier> canDestroy, Collection<Identifier> canPlaceOn, Map<Class<?>, Object> data, NbtMap nbt, NbtMap dataTag, ItemData networkData, int stackId) {
+        super(id, state.getType(), amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData, stackId);
         this.blockState = state;
     }
 

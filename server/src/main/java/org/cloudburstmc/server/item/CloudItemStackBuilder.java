@@ -19,11 +19,12 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
 @Nonnull
 @ToString
-//@ParametersAreNonnullByDefault
+@ParametersAreNonnullByDefault
 public class CloudItemStackBuilder implements ItemStackBuilder {
 
     private Identifier id;
@@ -55,8 +56,9 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
         enchantments.putAll(item.getEnchantments());
         canDestroy.addAll(item.getCanDestroy());
         canPlaceOn.addAll(item.getCanPlaceOn());
-        dataTag = item.dataTag; // Access directly to allow for null return
-        nbt = item.nbt;
+        dataTag = null; // Clear cached tags and regenerate NBT after build
+        nbt = null;
+        networkData = null;
         if (transferStackId) {
             stackNetworkId = item.getStackNetworkId();
         }
@@ -287,7 +289,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
                 return CloudItemRegistry.get().AIR;
             }
 
-            return new BlockItemStack(this.blockState, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData, stackNetworkId);
+            return new BlockItemStack(id, this.blockState, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData, stackNetworkId);
         } else {
             return new CloudItemStack(id, itemType, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData, stackNetworkId);
         }
