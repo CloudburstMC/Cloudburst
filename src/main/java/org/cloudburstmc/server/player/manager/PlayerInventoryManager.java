@@ -127,9 +127,7 @@ public class PlayerInventoryManager {
                     );
                     continue;
                 case CREATE:
-                    continue;
                 case BEACON_PAYMENT:
-                    continue;
                 case MINE_BLOCK:
                     continue;
                 case CRAFT_RECIPE:
@@ -137,7 +135,7 @@ public class PlayerInventoryManager {
                             ((CraftRecipeStackRequestActionData) action).getRecipeNetworkId()));
                     continue;
                 case CRAFT_RESULTS_DEPRECATED:
-                    // Don't use deprciated actions!
+                    // Don't use depreciated actions!
                     continue;
                 case CRAFT_CREATIVE:
                     this.transaction.addAction(new CraftCreativeAction(request.getRequestId(),
