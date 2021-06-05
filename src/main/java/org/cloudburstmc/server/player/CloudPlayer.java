@@ -1575,6 +1575,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         settings.setRewindHistorySize(0);
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
+        startGamePacket.setServerEngine("");
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();

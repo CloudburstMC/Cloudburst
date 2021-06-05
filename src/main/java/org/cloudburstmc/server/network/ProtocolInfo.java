@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.v431.Bedrock_v431;
+import com.nukkitx.protocol.bedrock.v440.Bedrock_v440;
 import lombok.extern.log4j.Log4j2;
 
 import javax.annotation.Nonnegative;
@@ -22,7 +22,7 @@ public final class ProtocolInfo {
     private static BedrockPacketCodec DEFAULT_PACKET_CODEC;
 
     static {
-        setDefaultPacketCodec(Bedrock_v431.V431_CODEC);
+        setDefaultPacketCodec(Bedrock_v440.V440_CODEC);
     }
 
     public static BedrockPacketCodec getDefaultPacketCodec() {
