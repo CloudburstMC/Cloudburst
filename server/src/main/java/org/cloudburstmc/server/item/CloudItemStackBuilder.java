@@ -57,6 +57,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
         enchantments.putAll(item.getEnchantments());
         canDestroy.addAll(item.getCanDestroy());
         canPlaceOn.addAll(item.getCanPlaceOn());
+        data.putAll(item.getMetadataMap());
         dataTag = null; // Clear cached tags and regenerate NBT after build
         nbt = null;
         networkData = null;

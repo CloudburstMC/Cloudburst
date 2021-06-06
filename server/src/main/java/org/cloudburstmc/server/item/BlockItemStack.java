@@ -2,6 +2,7 @@ package org.cloudburstmc.server.item;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import lombok.ToString;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+@ToString(callSuper = true)
 public class BlockItemStack extends CloudItemStack {
 
     protected final BlockState blockState;

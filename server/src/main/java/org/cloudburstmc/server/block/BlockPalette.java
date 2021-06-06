@@ -52,6 +52,8 @@ public class BlockPalette {
 
     private final Reference2ReferenceMap<Identifier, BlockType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<Identifier, BlockState> state2identifierMap = new Reference2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<BlockState, Identifier> identifier2stateMap = new Reference2ReferenceOpenHashMap<>();
     private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
     private final SortedMap<String, Set<NbtMap>> sortedPalette = new Object2ReferenceRBTreeMap<>();
     //private final Reference2ReferenceMap<Identifier, BlockState> stateMap = new Reference2ReferenceOpenHashMap<>();
@@ -92,6 +94,8 @@ public class BlockPalette {
                 });
 
                 typeMap.putIfAbsent(id, type);
+                state2identifierMap.putIfAbsent(id, state);
+                identifier2stateMap.putIfAbsent(state, id);
                 stateSerializedMap.put(state, nbt);
                 serializedStateMap.put(nbt, state);
             }
@@ -124,7 +128,11 @@ public class BlockPalette {
     }
 
     public BlockState getState(Identifier id) {
-        return this.defaultStateMap.get(id);
+        return this.state2identifierMap.get(id);
+    }
+
+    public Identifier getIdentifier(BlockState state) {
+        return this.identifier2stateMap.get(state);
     }
 
     public BlockState getState(Identifier id, Map<String, Object> traits) {
@@ -172,7 +180,7 @@ public class BlockPalette {
         return this.serializedStateMap;
     }
 
-    public Map<BlockState, NbtMap> getStateMap() {
+    public Map<BlockState, NbtMap> getState2identifierMap() {
         return this.stateSerializedMap;
     }
 
