@@ -463,7 +463,7 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(HARD_STAINED_GLASS_PANE, NoopBlockBehavior.INSTANCE);
         this.registerVanilla(CHEMICAL_HEAT, NoopBlockBehavior.INSTANCE);
         this.registerVanilla(GRASS_PATH, new BlockBehaviorGrassPath()); //198
-        this.registerVanilla(FRAME, new BlockBehaviorItemFrame()); //199
+        this.registerVanilla(FRAME, new BlockBehaviorItemFrame(), MultiBlockSerializers.FRAME); //199
         this.registerVanilla(CHORUS_FLOWER, new BlockBehaviorChorusFlower()); //200
         this.registerVanilla(PURPUR_BLOCK, new BlockBehaviorPurpur()); //201
         this.registerVanilla(COLORED_TORCH_RG, new BlockBehaviorTorch());
@@ -572,7 +572,56 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(CRYING_OBSIDIAN, NoopBlockBehavior.INSTANCE);//544
         this.registerVanilla(POLISHED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//546
         this.registerVanilla(QUARTZ_BRICKS, NoopBlockBehavior.INSTANCE);//559
+        this.registerVanilla(UNKNOWN, NoopBlockBehavior.INSTANCE); //560
 
-        this.registerVanilla(UNKNOWN, NoopBlockBehavior.INSTANCE);
+        this.registerVanilla(POWDER_SNOW);
+        this.registerVanilla(SCULK_SENSOR);
+        this.registerVanilla(POINTED_DRIPSTONE);
+        this.registerVanilla(COPPER_ORE);
+        this.registerVanilla(LIGHTNING_ROD);
+        this.registerVanilla(DRIPSTONE_BLOCK);
+        this.registerVanilla(DIRT_WITH_ROOTS);
+        this.registerVanilla(HANGING_ROOTS);
+        this.registerVanilla(MOSS_BLOCK);
+        this.registerVanilla(SPORE_BLOSSOM);
+        this.registerVanilla(BIG_DRIPLEAF);
+        this.registerVanilla(AZALEA_LEAVES, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.AZALEA_LEAVES);
+        this.registerVanilla(CALCITE);
+        this.registerVanilla(AMETHYST_BLOCK);
+        this.registerVanilla(BUDDING_AMETHYST);
+        this.registerVanilla(AMETHYST_CLUSTER, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.AMETHYST_CLUSTER);
+        this.registerVanilla(TUFF);
+        this.registerVanilla(TINTED_GLASS);
+        this.registerVanilla(MOSS_CARPET);
+        this.registerVanilla(SMALL_DRIPLEAF);
+        this.registerVanilla(AZALEA, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.AZALEA);
+        this.registerVanilla(COPPER, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.COPPER_BLOCKS);
+        this.registerVanilla(CUT_COPPER, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CUT_COPPER);
+        this.registerVanilla(COPPER_SLAB, NoopBlockBehavior.INSTANCE, SlabSerializer.INSTANCE);
+        this.registerVanilla(COPPER_STAIRS, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.COPPER_STAIRS);
+        this.registerVanilla(CAVE_VINES, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CAVE_VINES);
+        this.registerVanilla(SMOOTH_BASALT);
+        this.registerVanilla(DEEPSLATE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.DEEPSLATE);
+        this.registerVanilla(COBBLED_DEEPSLATE);
+        this.registerVanilla(POLISHED_DEEPSLATE);
+        this.registerVanilla(DEEPSLATE_TILES);
+        this.registerVanilla(DEEPSLATE_BRICKS);
+        this.registerVanilla(CHISELED_DEEPSLATE);
+        this.registerVanilla(DEEPSLATE_LAPIS_ORE);
+        this.registerVanilla(DEEPSLATE_IRON_ORE);
+        this.registerVanilla(DEEPSLATE_GOLD_ORE);
+        this.registerVanilla(DEEPSLATE_REDSTONE_ORE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.DEEPSLATE_REDSTONE_ORE);
+        this.registerVanilla(DEEPSLATE_DIAMOND_ORE);
+        this.registerVanilla(DEEPSLATE_COAL_ORE);
+        this.registerVanilla(DEEPSLATE_EMERALD_ORE);
+        this.registerVanilla(DEEPSLATE_COPPER_ORE);
+        this.registerVanilla(CRACKED_DEEPSLATE_TILES);
+        this.registerVanilla(CRACKED_DEEPSLATE_BRICKS);
+        this.registerVanilla(GLOW_LICHEN);
+        this.registerVanilla(RAW_COPPER_BLOCK);
+        this.registerVanilla(RAW_IRON_BLOCK);
+        this.registerVanilla(RAW_GOLD_BLOCK);
+
+
     }
 }

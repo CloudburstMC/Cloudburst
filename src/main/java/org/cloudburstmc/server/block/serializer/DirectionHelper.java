@@ -31,12 +31,13 @@ public class DirectionHelper {
         register(TYPE_4, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH);
         register(TYPE_5, Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST);
         register(TYPE_6, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST);
+        register(TYPE_7, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.WEST);
 
-        register(TYPE_7, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
         register(TYPE_8, Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST);
         register(TYPE_9, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.UP);
         register(TYPE_10, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
         register(TYPE_11, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.DOWN, Direction.UP);
+        register(TYPE_12, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
 
         registerDefaultMappings();
     }
@@ -78,7 +79,8 @@ public class DirectionHelper {
                 WOODEN_STAIRS,
                 STONE_STAIRS,
                 WOODEN_TRAPDOOR,
-                IRON_TRAPDOOR
+                IRON_TRAPDOOR,
+                COPPER_STAIRS
         );
 
         register(TYPE_6,
@@ -86,20 +88,8 @@ public class DirectionHelper {
         );
 
         register(TYPE_7,
-                HOPPER,
-                DROPPER,
-                DISPENSER,
-                END_ROD,
-                PISTON,
-                PISTON_ARM_COLLISION,
-                LADDER,
-                WALL_SIGN,
-                WALL_BANNER,
-                CHEST,
-                ENDER_CHEST,
-                TRAPPED_CHEST,
-                FURNACE,
-                BLAST_FURNACE
+                BIG_DRIPLEAF,
+                SMALL_DRIPLEAF
         );
 
         register(TYPE_8,
@@ -115,6 +105,23 @@ public class DirectionHelper {
 
         register(TYPE_11,
                 FRAME
+        );
+
+        register(TYPE_12,
+                HOPPER,
+                DROPPER,
+                DISPENSER,
+                END_ROD,
+                PISTON,
+                PISTON_ARM_COLLISION,
+                LADDER,
+                WALL_SIGN,
+                WALL_BANNER,
+                CHEST,
+                ENDER_CHEST,
+                TRAPPED_CHEST,
+                FURNACE,
+                BLAST_FURNACE
         );
     }
 
@@ -150,7 +157,7 @@ public class DirectionHelper {
 
     @SuppressWarnings("ConstantConditions")
     public int serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockType blockType, @Nonnull Map<BlockTrait<?>, Comparable<?>> traits) {
-        SeqType type = mapping.getOrDefault(blockType, TYPE_7); //2 is the most common
+        SeqType type = mapping.getOrDefault(blockType, TYPE_12); //2 is the most common
 
         Direction direction = (Direction) traits.get(BlockTraits.DIRECTION);
 
@@ -178,12 +185,13 @@ public class DirectionHelper {
         TYPE_4,
         TYPE_5,
         TYPE_6, //2 reversed
+        TYPE_7,
 
         //omnidirectional
-        TYPE_7,
         TYPE_8,
         TYPE_9,
         TYPE_10,
         TYPE_11,
+        TYPE_12,
     }
 }

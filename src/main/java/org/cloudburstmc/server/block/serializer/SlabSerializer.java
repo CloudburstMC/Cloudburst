@@ -41,8 +41,10 @@ public class SlabSerializer implements BlockSerializer {
 
         if (blockType == BlockTypes.STONE_SLAB) {
             MultiBlockSerializers.STONE_SLAB.serialize(builder, blockType, traits);
-        } else {
+        } else if (blockType == BlockTypes.WOODEN_SLAB) {
             MultiBlockSerializers.WOODEN_SLAB.serialize(builder, blockType, traits);
+        } else if (blockType == BlockTypes.COPPER_SLAB) {
+            MultiBlockSerializers.COPPER_SLAB.serialize(builder, blockType, traits);
         }
     }
 
