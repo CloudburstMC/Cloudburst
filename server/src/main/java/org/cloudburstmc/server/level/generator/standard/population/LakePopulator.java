@@ -70,7 +70,7 @@ public class LakePopulator extends ChancePopulator.Column {
 
         try (Handle<BitSet> handle = BITSET_CACHE.get()) {
             //BitSet has 8x greater storage density than a boolean[], so the additional overhead is negligible compared to the better cache utilization
-            BitSet points = handle.value();
+            BitSet points = handle.get();
             points.clear();
 
             //generate initial lake shape
