@@ -215,8 +215,7 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     @Override
-    public void spawnTo(Player p) {
-        CloudPlayer player = (CloudPlayer) p;
+    public void spawnTo(CloudPlayer player) {
         if (this != player && !this.hasSpawned.contains(player)) {
             this.hasSpawned.add(player);
 
