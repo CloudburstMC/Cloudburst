@@ -14,10 +14,10 @@ public class BlockTypes {
     public static final BlockType PLANKS = BlockType.of(Identifiers.PLANKS, BlockTraits.TREE_SPECIES);
     public static final BlockType SAPLING = BlockType.of(Identifiers.SAPLING, BlockTraits.TREE_SPECIES_OVERWORLD, BlockTraits.HAS_AGE);
     public static final BlockType BEDROCK = BlockType.of(Identifiers.BEDROCK, BlockTraits.HAS_INFINIBURN);
-    public static final BlockType FLOWING_WATER = BlockType.of(Identifiers.FLOWING_WATER, BlockTraits.LIQUID_DEPTH);
-    public static final BlockType WATER = BlockType.of(Identifiers.WATER, BlockTraits.LIQUID_DEPTH);
-    public static final BlockType FLOWING_LAVA = BlockType.of(Identifiers.FLOWING_LAVA, BlockTraits.LIQUID_DEPTH);
-    public static final BlockType LAVA = BlockType.of(Identifiers.LAVA, BlockTraits.LIQUID_DEPTH);
+    public static final BlockType FLOWING_WATER = BlockType.of(Identifiers.FLOWING_WATER, BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL);
+    public static final BlockType WATER = BlockType.of(Identifiers.WATER, BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL);
+    public static final BlockType FLOWING_LAVA = BlockType.of(Identifiers.FLOWING_LAVA, BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL);
+    public static final BlockType LAVA = BlockType.of(Identifiers.LAVA, BlockTraits.IS_FLOWING, BlockTraits.FLUID_LEVEL);
     public static final BlockType SAND = BlockType.of(Identifiers.SAND, BlockTraits.SAND_TYPE);
     public static final BlockType GRAVEL = BlockType.of(Identifiers.GRAVEL);
     public static final BlockType GOLD_ORE = BlockType.of(Identifiers.GOLD_ORE);
