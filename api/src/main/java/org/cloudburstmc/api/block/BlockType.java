@@ -157,7 +157,7 @@ public final class BlockType implements ItemType {
     }
 
     public boolean isTransparent() {
-        return false;
+        return BlockCategories.inCategory(this, BlockCategory.TRANSPARENT);
     }
 
     public int getTranslucency() {
@@ -169,7 +169,7 @@ public final class BlockType implements ItemType {
     }
 
     public boolean isSolid() {
-        return true;
+        return BlockCategories.inCategory(this, BlockCategory.SOLID);
     }
 
     public boolean isDiggable() {
