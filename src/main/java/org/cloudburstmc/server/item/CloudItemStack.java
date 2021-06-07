@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.ToString;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
@@ -24,7 +25,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.ParametersAreNullableByDefault;
 import javax.annotation.concurrent.Immutable;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 @ToString
 @Immutable
@@ -84,7 +84,7 @@ public class CloudItemStack implements ItemStack {
         this.enchantments = enchantments == null ? ImmutableMap.of() : ImmutableMap.copyOf(enchantments);
         this.canDestroy = canDestroy == null ? ImmutableSet.of() : ImmutableSet.copyOf(canDestroy);
         this.canPlaceOn = canPlaceOn == null ? ImmutableSet.of() : ImmutableSet.copyOf(canPlaceOn);
-        this.data = data == null ? new ConcurrentHashMap<>() : new ConcurrentHashMap<>(data);
+        this.data = data == null ? Collections.emptyMap() : new Reference2ReferenceOpenHashMap<>(data);
         this.nbt = nbt;
         this.dataTag = dataTag;
         this.networkData = networkData;
@@ -131,6 +131,10 @@ public class CloudItemStack implements ItemStack {
         return this.getType() == BlockTypes.AIR;
     }
 
+    public Map<Class<?>, Object> getMetadataMap() {
+        return this.data;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getMetadata(Class<T> metadataClass, T defaultValue) {
@@ -139,7 +143,7 @@ public class CloudItemStack implements ItemStack {
         if (value == null) {
             var serializer = CloudItemRegistry.get().getSerializer(metadataClass);
             if (serializer != null) {
-                value = (T) serializer.deserialize(this.id, getNbt(), getDataTag());
+                value = (T) serializer.deserialize(this.id, getNbt(true), getDataTag());
             }
 
             if (value == null) {
@@ -199,9 +203,18 @@ public class CloudItemStack implements ItemStack {
 //    }
 
     public NbtMap getNbt() {
+        return getNbt(true);
+    }
+
+    public NbtMap getNbt(boolean serialize) {
         if (nbt == null) {
             synchronized (itemLore) {
+                if (!serialize) {
+                    return nbt;
+                }
+
                 if (nbt == null) {
+                    System.out.println("loading");
                     NbtMapBuilder builder = NbtMap.builder();
                     CloudItemRegistry.get().getSerializer(this.type).serialize(this, builder);
                     this.nbt = builder.build();

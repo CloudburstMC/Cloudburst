@@ -296,7 +296,7 @@ public class CloudBlockRegistry implements Registry {
     }
 
     public ImmutableList<BlockState> getBlockStates() {
-        return ImmutableList.copyOf(palette.getStateMap().keySet());
+        return ImmutableList.copyOf(palette.getState2identifierMap().keySet());
     }
 
     private void registerVanillaBlocks() {

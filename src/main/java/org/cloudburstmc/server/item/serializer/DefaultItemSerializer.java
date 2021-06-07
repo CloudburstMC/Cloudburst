@@ -11,6 +11,7 @@ import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.NonSerializable;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.item.BlockItemStack;
@@ -57,6 +58,7 @@ public class DefaultItemSerializer implements ItemSerializer {
         }
 
         if (item instanceof BlockItemStack) {
+            itemTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(item.getBlockState()).toString());
             itemTag.putShort("Damage", (short) BlockStateMetaMappings.getMetaFromState(item.getBlockState()));
         }
 
