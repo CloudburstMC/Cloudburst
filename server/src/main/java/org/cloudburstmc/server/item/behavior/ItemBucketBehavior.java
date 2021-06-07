@@ -28,35 +28,24 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
 public class ItemBucketBehavior extends CloudItemBehavior {
 
     protected static String getName(int meta) {
-        switch (meta) {
-            case 1:
-                return "Milk";
-            case 2:
-                return "Bucket of Cod";
-            case 3:
-                return "Bucket of Salmon";
-            case 4:
-                return "Bucket of Tropical Fish";
-            case 5:
-                return "Bucket of Pufferfish";
-            case 8:
-                return "Water Bucket";
-            case 10:
-                return "Lava Bucket";
-            default:
-                return "Bucket";
-        }
+        return switch (meta) {
+            case 1 -> "Milk";
+            case 2 -> "Bucket of Cod";
+            case 3 -> "Bucket of Salmon";
+            case 4 -> "Bucket of Tropical Fish";
+            case 5 -> "Bucket of Pufferfish";
+            case 8 -> "Water Bucket";
+            case 10 -> "Lava Bucket";
+            default -> "Bucket";
+        };
     }
 
     public static BlockType getBlockIdFromDamage(Bucket data) {
-        switch (data) {
-            case WATER:
-                return FLOWING_WATER;
-            case LAVA:
-                return FLOWING_LAVA;
-            default:
-                return AIR;
-        }
+        return switch (data) {
+            case WATER -> FLOWING_WATER;
+            case LAVA -> FLOWING_LAVA;
+            default -> AIR;
+        };
     }
 
     public Bucket getDamageFromIdentifier(BlockType id) {

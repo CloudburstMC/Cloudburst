@@ -143,7 +143,7 @@ public class CloudItemStack implements ItemStack {
         if (value == null) {
             var serializer = CloudItemRegistry.get().getSerializer(metadataClass);
             if (serializer != null) {
-                value = (T) serializer.deserialize(this.id, getNbt(false), getDataTag());
+                value = (T) serializer.deserialize(this.id, getNbt(true), getDataTag());
             }
 
             if (value == null) {
