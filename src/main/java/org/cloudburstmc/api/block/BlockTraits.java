@@ -45,7 +45,6 @@ public class BlockTraits {
     public static final IntegerBlockTrait FLUID_LEVEL = IntegerBlockTrait.from("fluid_level", 8);
     public static final EnumBlockTrait<FluidType> FLUID_TYPE = EnumBlockTrait.of("fluid_type", FluidType.class);
     public static final IntegerBlockTrait FILL_LEVEL = IntegerBlockTrait.from("fill_level", 7);
-    public static final IntegerBlockTrait LIQUID_DEPTH = IntegerBlockTrait.from("liquid_depth", 16);
     public static final IntegerBlockTrait GROWTH = IntegerBlockTrait.from("growth", 8);
     public static final IntegerBlockTrait HEIGHT = IntegerBlockTrait.from("height", 8);
     public static final IntegerBlockTrait HONEY_LEVEL = IntegerBlockTrait.from("honey_level", 6);
