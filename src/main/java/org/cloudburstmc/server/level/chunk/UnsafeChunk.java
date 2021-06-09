@@ -224,7 +224,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
             CloudChunkSection section = this.sections[sectionY];
             if (section != null) {
                 for (int y = 15; y >= 0; y--) {
-                    if (section.getBlock(x, y, z, 0) != null) {
+                    if (section.getBlock(x, y, z, 0) != BlockStates.AIR) {
                         return (sectionY << 4) | y;
                     }
                 }
