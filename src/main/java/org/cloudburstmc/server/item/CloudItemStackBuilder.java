@@ -279,7 +279,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
         Preconditions.checkArgument(itemType != null, "ItemType has not been set");
 
         if (stackNetworkId == -1) {
-            stackNetworkId = CloudItemRegistry.get().getNetId();
+            stackNetworkId = CloudItemRegistry.get().getNextNetId();
         }
 
         if (amount <= 0) {

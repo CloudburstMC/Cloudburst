@@ -54,8 +54,14 @@ public class ItemUtils {
     }
 
     public static CloudItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag) {
-        CloudItemStackBuilder builder = new CloudItemStackBuilder();
+        return deserializeItem(id, damage, amount, tag, -1);
+    }
 
+    public static CloudItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag, int blockRuntimeId) {
+        CloudItemStackBuilder builder = new CloudItemStackBuilder();
+        if (blockRuntimeId >= 0) {
+            builder.blockState(CloudBlockRegistry.get().getBlock(blockRuntimeId));
+        }
         registry.getSerializer(ItemTypes.byId(id)).deserialize(id, damage, amount, builder, tag);
         builder.networkData(null); // Force rebuild
 
@@ -80,7 +86,6 @@ public class ItemUtils {
 
     public static ItemData toNetwork(CloudItemStack item, boolean useNetId) {
         Identifier identifier = item.getNbt().isEmpty() ? item.getId() : Identifier.fromString(item.getNbt().getString("Name"));
-        int id = registry.getRuntimeId(identifier);
 
         NbtMap tag = item.getNbt();
         short meta;
@@ -89,6 +94,7 @@ public class ItemUtils {
         } else {
             meta = tag.getShort("Damage", (short) 0);
         }
+        int id = registry.getRuntimeId(identifier, meta);
 
         String[] canPlace = item.getCanPlaceOn().stream().map(Identifier::toString).toArray(String[]::new);
         String[] canBreak = item.getCanDestroy().stream().map(Identifier::toString).toArray(String[]::new);
@@ -184,8 +190,12 @@ public class ItemUtils {
         if (id == null) {
             throw new IllegalStateException("Unable to decode item JSON");
         }
+        int blockRuntimeId = -1;
+        if (data.containsKey("blockRuntimeId")) {
+            blockRuntimeId = Utils.toInt(data.get("blockRuntimeId"));
+        }
 
-        return deserializeItem(id, (short) Utils.toInt(data.getOrDefault("damage", 0)), Utils.toInt(data.getOrDefault("count", 1)), tag);
+        return deserializeItem(id, (short) Utils.toInt(data.getOrDefault("damage", 0)), Utils.toInt(data.getOrDefault("count", 1)), tag, blockRuntimeId);
     }
 
     // -- Used by recipes and crafting

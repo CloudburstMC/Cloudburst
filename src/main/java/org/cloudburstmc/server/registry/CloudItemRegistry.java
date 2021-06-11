@@ -1,12 +1,10 @@
 package org.cloudburstmc.server.registry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
@@ -37,6 +35,7 @@ import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
+import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.behavior.*;
 import org.cloudburstmc.server.item.data.serializer.*;
@@ -44,51 +43,31 @@ import org.cloudburstmc.server.item.serializer.*;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
 
 @Log4j2
 public class CloudItemRegistry implements ItemRegistry {
-    private static final CloudItemRegistry INSTANCE;
-    private static final BiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create(); // TODO FIX THIS, it is currently mapping runtime IDs
-
-    static {
-        try (InputStream in = RegistryUtils.getOrAssertResource("data/runtime_item_states.json")) {
-            JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
-            for (JsonNode item : json) {
-                int id = item.get("id").intValue();
-                if (id <= 255) continue;
-                VANILLA_LEGACY_IDS.put(Identifier.fromString(item.get("name").asText()), id);
-            }
-        } catch (IOException e) {
-            throw new RegistryException("Unable to load legacy IDs", e);
-        }
-        INSTANCE = new CloudItemRegistry(CloudBlockRegistry.get()); // Needs to be initialized afterwards
-    }
+    private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(CloudBlockRegistry.get()); // Needs to be initialized afterwards
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<Class<?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemBehavior> behaviorMap = new Reference2ObjectOpenHashMap<>();
-    private final List<ItemStack> creativeItems = new ArrayList<>();
-    private final BiMap<Integer, Identifier> runtimeIdMap = HashBiMap.create();
-    private final AtomicInteger runtimeIdAllocator = new AtomicInteger(256);
     private final CloudBlockRegistry blockRegistry;
     private int hardcodedBlockingId;
-    private List<StartGamePacket.ItemEntry> itemEntries;
-    private volatile CreativeContentPacket creativeContent;
+    private final ItemPalette itemPalette = new ItemPalette(this);
 
     //StackNetId stuff
-    private final AtomicInteger netIdAllocator = new AtomicInteger(1);
     private final Int2ReferenceMap<WeakReference<CloudItemStack>> netIdMap = new Int2ReferenceOpenHashMap();
     private final ReferenceQueue<CloudItemStack> oldIdQueue = new ReferenceQueue<>();
 
@@ -104,8 +83,8 @@ public class CloudItemRegistry implements ItemRegistry {
             this.registerVanillaIdentifiers();
             this.registerVanillaDataSerializers();
 
-            for (Identifier id : VANILLA_LEGACY_IDS.keySet()) {
-                if (!runtimeIdMap.inverse().containsKey(id)) {
+            for (Identifier id : itemPalette.getItemIds()) {
+                if (itemPalette.getRuntimeId(id) == Integer.MAX_VALUE) {
                     System.out.println("Unimplemented item found: " + id.getName());
                     registerType(ItemTypes.UNKNOWN, id);
                 }
@@ -126,7 +105,7 @@ public class CloudItemRegistry implements ItemRegistry {
         this.dataSerializers.put(metadataClass, serializer);
     }
 
-    public int getNetId() {
+    public int getNextNetId() {
         for (int i = 1; i < Integer.MAX_VALUE; i++) {
             if (!netIdMap.containsKey(i) || netIdMap.get(i).refersTo(null)) {
                 return i;
@@ -190,8 +169,7 @@ public class CloudItemRegistry implements ItemRegistry {
         for (Identifier identifier : identifiers) {
             ItemTypes.addType(identifier, type);
             this.typeMap.put(identifier, type);
-            int runtimeId = this.runtimeIdAllocator.getAndIncrement();
-            this.runtimeIdMap.put(runtimeId, identifier);
+            int runtimeId = itemPalette.addItem(identifier);
             if (type == ItemTypes.SHIELD) {
                 this.hardcodedBlockingId = runtimeId;
             }
@@ -200,19 +178,19 @@ public class CloudItemRegistry implements ItemRegistry {
         this.behaviorMap.put(type, behavior);
     }
 
-    private synchronized void registerVanilla(ItemType type /*,int legacyId*/) throws RegistryException {
-        registerVanilla(type, null, NoopItemBehavior.INSTANCE /*,legacyId*/);
+    private synchronized void registerVanilla(ItemType type) throws RegistryException {
+        registerVanilla(type, null, NoopItemBehavior.INSTANCE);
     }
 
-    private synchronized void registerVanilla(ItemType type, ItemBehavior behavior/*, int legacyId*/) throws RegistryException {
-        registerVanilla(type, null, behavior/*, legacyId*/);
+    private synchronized void registerVanilla(ItemType type, ItemBehavior behavior) throws RegistryException {
+        registerVanilla(type, null, behavior);
     }
 
-    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer/*, int legacyId*/) throws RegistryException {
-        registerVanilla(type, serializer, NoopItemBehavior.INSTANCE /*, legacyId*/);
+    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer) throws RegistryException {
+        registerVanilla(type, serializer, NoopItemBehavior.INSTANCE);
     }
 
-    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer, ItemBehavior behavior /*,int legacyId*/) throws RegistryException {
+    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer, ItemBehavior behavior) throws RegistryException {
         Objects.requireNonNull(behavior, "type");
         Objects.requireNonNull(behavior, "behavior");
         checkClosed();
@@ -291,8 +269,12 @@ public class CloudItemRegistry implements ItemRegistry {
         return behaviorMap.getOrDefault(type, NoopItemBehavior.INSTANCE);
     }
 
+    public Identifier fromLegacy(int legacyId, int meta) throws RegistryException {
+        return itemPalette.fromLegacy(legacyId, meta);
+    }
+
     public Identifier fromLegacy(int legacyId) throws RegistryException {
-        return VANILLA_LEGACY_IDS.inverse().get(legacyId);
+        return itemPalette.fromLegacy(legacyId, 0);
     }
 
     @Override
@@ -308,7 +290,7 @@ public class CloudItemRegistry implements ItemRegistry {
                 // ignore
             }
         } else {
-            identifier = runtimeIdMap.get(runtimeId);
+            identifier = itemPalette.getIdByRuntime(runtimeId);
         }
         if (identifier == null) {
             throw new RegistryException("Runtime ID " + runtimeId + " does not exist");
@@ -317,10 +299,14 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     public int getRuntimeId(Identifier identifier) throws RegistryException {
-        int runtimeId = runtimeIdMap.inverse().getOrDefault(identifier, Integer.MAX_VALUE);
+        return getRuntimeId(identifier, 0);
+    }
+
+    public int getRuntimeId(Identifier identifier, int meta) throws RegistryException {
+        int runtimeId = itemPalette.getRuntimeId(identifier, meta);
         if (runtimeId == Integer.MAX_VALUE) {
             try {
-                int blockId = this.blockRegistry.getLegacyId(identifier);
+                int blockId = this.blockRegistry.getRuntimeId(identifier, meta);
                 if (blockId > 255) {
                     blockId = 255 - blockId;
                 }
@@ -334,27 +320,15 @@ public class CloudItemRegistry implements ItemRegistry {
 
     @Override
     public ImmutableList<Identifier> getItems() {
-        return ImmutableList.copyOf(this.runtimeIdMap.values());
+        return itemPalette.getItemIds();
     }
 
     @Override
     public synchronized void close() throws RegistryException {
         checkClosed();
         this.closed = true;
-        this.registerVanillaCreativeItems();
 
-        List<StartGamePacket.ItemEntry> itemEntries = new ArrayList<>();
-
-        for(int runtimeid : runtimeIdMap.keySet()) {
-            itemEntries.add(new StartGamePacket.ItemEntry(runtimeIdMap.get(runtimeid).toString(), (short) runtimeid));
-        }
-
-//        List<Identifier> customBlocks = this.blockRegistry.getCustomBlocks(); //TODO: custom blocks
-//        for (Identifier blockId : customBlocks) {
-//            itemEntries.add(new StartGamePacket.ItemEntry(blockId.toString(), (short) this.getRuntimeId(blockId)));
-//        }
-
-        this.itemEntries = Collections.unmodifiableList(itemEntries);
+        itemPalette.registerVanillaCreativeItems();
     }
 
     private void checkClosed() throws RegistryException {
@@ -364,7 +338,7 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     public List<StartGamePacket.ItemEntry> getItemEntries() {
-        return itemEntries;
+        return itemPalette.getItemPalette();
     }
 
     private void registerVanillaItems() throws RegistryException {
@@ -594,18 +568,26 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.CONCRETE_POWDER);
 
         registerVanilla(ItemTypes.UNKNOWN);
+
+        registerVanilla(ItemTypes.AMETHYST_SHARD);
+        registerVanilla(ItemTypes.GLOW_BERRIES);
+        registerVanilla(ItemTypes.GLOW_INK_SAC);
+        registerVanilla(ItemTypes.GOAT_HORN);
+        registerVanilla(ItemTypes.GLOW_FRAME);
+        registerVanilla(ItemTypes.COPPER_INGOT);
+        registerVanilla(ItemTypes.RAW_COPPER);
+        registerVanilla(ItemTypes.RAW_GOLD);
+        registerVanilla(ItemTypes.RAW_IRON);
+        registerVanilla(ItemTypes.SPYGLASS);
     }
 
     private void registerType(ItemType type, Identifier id/*, int legacyId*/) {
         this.typeMap.put(id, type);
         ItemTypes.addType(id, type);
-        int runtime = this.runtimeIdAllocator.getAndIncrement();
+        int runtime = itemPalette.addItem(id);
         if (type == ItemTypes.SHIELD) {
             this.hardcodedBlockingId = runtime;
         }
-        this.runtimeIdMap.put(runtime, id);
-
-
     }
 
     private void registerType(ItemType type, Identifier... identifiers) {
@@ -745,6 +727,9 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.SPAWN_EGG, ItemIds.PHANTOM_SPAWN_EGG);
         registerType(ItemTypes.SPAWN_EGG, ItemIds.PILLAGER_SPAWN_EGG);
         registerType(ItemTypes.SPAWN_EGG, ItemIds.RAVAGER_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.AXOLOTL_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.GLOW_SQUID_SPAWN_EGG);
+        registerType(ItemTypes.SPAWN_EGG, ItemIds.GOAT_SPAWN_EGG);
 
         registerType(ItemTypes.BUCKET, ItemIds.MILK_BUCKET);
         registerType(ItemTypes.BUCKET, ItemIds.COD_BUCKET);
@@ -753,6 +738,8 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.BUCKET, ItemIds.PUFFERFISH_BUCKET);
         registerType(ItemTypes.BUCKET, ItemIds.WATER_BUCKET);
         registerType(ItemTypes.BUCKET, ItemIds.LAVA_BUCKET);
+        registerType(ItemTypes.BUCKET, ItemIds.AXOLOTL_BUCKET);
+        registerType(ItemTypes.BUCKET, ItemIds.POWDER_SNOW_BUCKET);
 
     }
 
@@ -786,46 +773,24 @@ public class CloudItemRegistry implements ItemRegistry {
 
     public void registerCreativeItem(ItemStack item) {
         Preconditions.checkNotNull(item, "item");
-        this.creativeItems.add(item);
+        itemPalette.addCreativeItem((CloudItemStack) item);
     }
 
-    public List<ItemStack> getCreativeItems() {
-        return ImmutableList.copyOf(creativeItems);
+    public ItemStack getCreativeItemByIndex(int index) {
+        ItemData itemData = itemPalette.getCreativeItems().get(index);
+        ItemType type = typeMap.get(itemPalette.getIdByRuntime(itemData.getId()));
+        return getItem(type, type.getMaximumStackSize());
     }
 
     public CreativeContentPacket getCreativeContent() {
-        if (creativeContent == null) {
-            synchronized (this.creativeItems) {
-                if (creativeContent == null) {
-                    CreativeContentPacket pk = new CreativeContentPacket();
-
-                    var contents = ItemUtils.toNetwork(this.creativeItems, false).toArray(new com.nukkitx.protocol.bedrock.data.inventory.ItemData[0]);
-
-                    for (int i = 0; i < contents.length; i++) {
-                        contents[i].setNetId(i + 1);
-                    }
-
-                    pk.setContents(contents);
-                    creativeContent = pk;
-                }
-            }
-        }
-
-        return creativeContent;
-    }
-
-    private void registerVanillaCreativeItems() {
-        try {
-            URI uri = Thread.currentThread().getContextClassLoader().getResource("data/creative_items.json").toURI();
-            this.loadCreativeItems(uri);
-        } catch (URISyntaxException e) {
-            throw new RegistryException("Unable to load vanilla creative items list.");
-        }
+        return itemPalette.getCreativeContentPacket();
     }
 
     public int getCreativeItemIndex(ItemStack item) {
-        for (int i = 0; i < creativeItems.size(); i++) {
-            if (item.equals(creativeItems.get(i))) {
+        int rid = itemPalette.getRuntimeId(((CloudItemStack) item).getId());
+
+        for (int i = 0; i < itemPalette.getCreativeItems().size(); i++) {
+            if (rid == itemPalette.getCreativeItems().get(i).getId()) {
                 return i;
             }
         }

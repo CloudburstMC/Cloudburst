@@ -91,7 +91,7 @@ public class CloudItemStack implements ItemStack {
 
         if (netId == -1) {
             if (networkData == null) {
-                this.stackNetId = CloudItemRegistry.get().getNetId();
+                this.stackNetId = CloudItemRegistry.get().getNextNetId();
             } else {
                 this.stackNetId = networkData.getNetId();
             }

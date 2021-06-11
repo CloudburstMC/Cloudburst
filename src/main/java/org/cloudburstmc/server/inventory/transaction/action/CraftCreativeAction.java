@@ -21,7 +21,7 @@ public class CraftCreativeAction extends ItemStackAction {
             return false;
         }
 
-        ItemStack item = CloudItemRegistry.get().getCreativeItems().get(creativeItemNetId - 1);
+        ItemStack item = CloudItemRegistry.get().getCreativeItemByIndex(creativeItemNetId - 1);
         log.debug("Item pulled from creative items list: {}", item);
         item = item.withAmount(item.getBehavior().getMaxStackSize(item));
         log.debug("Setting creative output as: {}", item);
