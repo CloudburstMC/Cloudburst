@@ -103,6 +103,17 @@ public class ItemUtils {
         if (item.isBlock()) {
             brid = CloudBlockRegistry.get().getRuntimeId(item.getBlockState());
         }
+
+        int netId = 0;
+        if (useNetId) {
+            if (item.getStackNetworkId() == -1) {
+                netId = CloudItemRegistry.get().getNextNetId();
+                item.stackNetId = netId;
+                CloudItemRegistry.get().addNetId(item);
+            } else {
+                netId = item.getStackNetworkId();
+            }
+        }
         return ItemData.builder()
                 .id(id)
                 .damage(meta)
@@ -111,7 +122,7 @@ public class ItemUtils {
                 .canPlace(canPlace)
                 .canBreak(canBreak)
                 .blockRuntimeId(brid)
-                .netId(useNetId ? item.getStackNetworkId() : 0)
+                .netId(netId)
                 .usingNetId(useNetId)
                 .build();
     }
@@ -178,13 +189,14 @@ public class ItemUtils {
 
         Identifier id;
         if (data.containsKey("id")) {
+
             try {
-                id = registry.fromLegacy(Utils.toInt(data.get("id")));  //try prior format first
+                id = registry.fromLegacy(Utils.toInt(data.get("id")), Utils.toInt(data.getOrDefault("damage", 0)));  //try prior format first
             } catch (NumberFormatException | ClassCastException e) {
                 id = Identifier.fromString(data.get("id").toString());
             }
         } else {
-            id = registry.fromLegacy(Utils.toInt(data.get("legacyId")));
+            id = registry.fromLegacy(Utils.toInt(data.get("legacyId")), Utils.toInt(data.getOrDefault("damage", 0)));
         }
 
         if (id == null) {

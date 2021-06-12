@@ -2,6 +2,7 @@ package org.cloudburstmc.server.crafting;
 
 import lombok.Getter;
 import org.cloudburstmc.api.block.BlockIds;
+import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;

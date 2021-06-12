@@ -87,10 +87,15 @@ public class ItemPalette {
     }
 
     public int getRuntimeId(Identifier id, int meta) {
+        if ((meta & 0x7FFF) == 0x7FFF) meta = 0;
         if (metaMap.containsKey(id)) {
             id = metaMap.get(id).get(meta);
         }
-        return idRuntimeMap.getOrDefault(id, Integer.MAX_VALUE);
+        int rid = idRuntimeMap.getOrDefault(id, Integer.MAX_VALUE);
+        if (rid == Integer.MAX_VALUE) {
+            rid = legacyIdMap.inverse().getOrDefault(id, Integer.MAX_VALUE);
+        }
+        return rid;
     }
 
     public Identifier getIdByRuntime(int runtimeId) {

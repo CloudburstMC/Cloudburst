@@ -3,7 +3,7 @@ package org.cloudburstmc.server.inventory.transaction;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.api.crafting.CraftingGrid;
-import org.cloudburstmc.server.crafting.CraftingRecipe;
+import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 

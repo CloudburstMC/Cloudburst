@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.registry;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
@@ -14,7 +13,6 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import net.minidev.json.JSONArray;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -32,7 +30,6 @@ import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.api.util.data.FireworkData;
-import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
 import org.cloudburstmc.server.item.ItemPalette;
@@ -42,13 +39,10 @@ import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.net.URI;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -199,7 +193,7 @@ public class CloudItemRegistry implements ItemRegistry {
             this.serializers.put(type, serializer);
         }
 
-        this.registerType(type, type.getId()/*, legacyId*/);
+        this.registerType(type, type.getId());
         this.behaviorMap.put(type, behavior);
     }
 
@@ -305,15 +299,7 @@ public class CloudItemRegistry implements ItemRegistry {
     public int getRuntimeId(Identifier identifier, int meta) throws RegistryException {
         int runtimeId = itemPalette.getRuntimeId(identifier, meta);
         if (runtimeId == Integer.MAX_VALUE) {
-            try {
-                int blockId = this.blockRegistry.getRuntimeId(identifier, meta);
-                if (blockId > 255) {
-                    blockId = 255 - blockId;
-                }
-                return blockId;
-            } catch (RegistryException e) {
-                throw new RegistryException(identifier + " is not of a registered item");
-            }
+            throw new RegistryException(identifier + " is not a registered item");
         }
         return runtimeId;
     }
@@ -564,6 +550,8 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.NETHERITE_CHESTPLATE);
         registerVanilla(ItemTypes.NETHERITE_LEGGINGS);
         registerVanilla(ItemTypes.NETHERITE_BOOTS);
+        registerVanilla(ItemTypes.NETHERITE_INGOT);
+        registerVanilla(ItemTypes.NETHERITE_SCRAP);
 
         registerVanilla(ItemTypes.CONCRETE_POWDER);
 
@@ -581,7 +569,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.SPYGLASS);
     }
 
-    private void registerType(ItemType type, Identifier id/*, int legacyId*/) {
+    private void registerType(ItemType type, Identifier id) {
         this.typeMap.put(id, type);
         ItemTypes.addType(id, type);
         int runtime = itemPalette.addItem(id);
@@ -753,22 +741,6 @@ public class CloudItemRegistry implements ItemRegistry {
         this.registerDataSerializer(Potion.class, new PotionSerializer());
         this.registerDataSerializer(Bucket.class, BucketSerializer.INSTANCE);
         this.registerDataSerializer(Coal.class, EnumSerializer.COAL);
-    }
-
-    @SuppressWarnings({"unchecked"})
-    public synchronized void loadCreativeItems(URI jsonFile) {
-        JSONArray json;
-        try {
-            json = Bootstrap.JSON_MAPPER.readValue(jsonFile.toURL(), new TypeReference<Map<String, JSONArray>>(){}).get("items");
-        } catch (IOException e) {
-            throw new RegistryException("Unable to load creative items file: " + jsonFile, e);
-        } catch (Exception e) {
-            throw new RegistryException("Unknown error when loading creative items file.", e);
-        }
-        for (Object item : json) {
-            ItemStack i = ItemUtils.fromJson(((Map<String, Object>) item));
-            this.registerCreativeItem(i);
-        }
     }
 
     public void registerCreativeItem(ItemStack item) {

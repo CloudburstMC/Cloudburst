@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.crafting;
 
 
+import org.cloudburstmc.api.crafting.MixRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;

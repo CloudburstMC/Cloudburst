@@ -58,9 +58,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
         canDestroy.addAll(item.getCanDestroy());
         canPlaceOn.addAll(item.getCanPlaceOn());
         data.putAll(item.getMetadataMap());
-        dataTag = null; // Clear cached tags and regenerate NBT after build
-        nbt = null;
-        networkData = null;
+
         if (transferStackId) {
             stackNetworkId = item.getStackNetworkId();
         }
@@ -277,11 +275,6 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     @Override
     public CloudItemStack build() {
         Preconditions.checkArgument(itemType != null, "ItemType has not been set");
-
-        if (stackNetworkId == -1) {
-            stackNetworkId = CloudItemRegistry.get().getNextNetId();
-        }
-
         if (amount <= 0) {
             return CloudItemRegistry.get().AIR;
         }
