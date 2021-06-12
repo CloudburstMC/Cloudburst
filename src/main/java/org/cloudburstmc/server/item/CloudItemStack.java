@@ -185,10 +185,6 @@ public class CloudItemStack implements ItemStack {
     public boolean isBlock() {
         return false;
     }
-//    @Override
-//    public RecipeItemStackBuilder toRecipeBuilder() {
-//        return new NukkitRecipeItemStackBuilder(this);
-//    }
 
     public NbtMap getNbt() {
         return getNbt(true);
