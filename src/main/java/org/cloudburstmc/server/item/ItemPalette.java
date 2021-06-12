@@ -71,6 +71,11 @@ public class ItemPalette {
 
     public ItemPalette(CloudItemRegistry registry) {
         this.itemRegistry = registry;
+        for (int id : legacyIdMap.keySet()) {
+            //Registering block item IDs since blockstate ids don't directly line up
+            if (id >= 255) continue;
+            itemEntries.add(new StartGamePacket.ItemEntry(legacyIdMap.get(id).toString(), (short) id));
+        }
     }
 
     public int addItem(Identifier identifier) {
