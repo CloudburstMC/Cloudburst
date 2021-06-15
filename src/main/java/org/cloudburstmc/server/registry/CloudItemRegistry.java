@@ -277,19 +277,8 @@ public class CloudItemRegistry implements ItemRegistry {
 
     @Override
     public Identifier getIdentifier(int runtimeId) throws RegistryException {
-        Identifier identifier = null;
-        if (runtimeId < 255) {
-            if (runtimeId < 0) {
-                runtimeId = 255 - runtimeId;
-            }
-            try {
-                identifier = this.blockRegistry.getNameFromLegacyId(runtimeId);
-            } catch (RegistryException e) {
-                // ignore
-            }
-        } else {
-            identifier = itemPalette.getIdByRuntime(runtimeId);
-        }
+        Identifier identifier = itemPalette.getIdByRuntime(runtimeId);
+
         if (identifier == null) {
             throw new RegistryException("Runtime ID " + runtimeId + " does not exist");
         }

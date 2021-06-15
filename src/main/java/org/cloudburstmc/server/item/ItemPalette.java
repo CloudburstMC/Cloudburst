@@ -12,10 +12,9 @@ import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2IntMap;
-import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
+import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
@@ -29,10 +28,14 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Log4j2
 public class ItemPalette {
     private final static BiMap<Integer, Identifier> legacyIdMap = HashBiMap.create();
     private final static Reference2ObjectMap<Identifier, Int2ReferenceMap<Identifier>> metaMap = new Reference2ObjectOpenHashMap<>();
     private final CloudItemRegistry itemRegistry;
+    private final static Reference2ReferenceMap<Identifier, StartGamePacket.ItemEntry> itemEntries = new Reference2ReferenceOpenHashMap<>();
+    private final static Reference2IntMap<Identifier> idRuntimeMap = new Reference2IntOpenHashMap<>();
+    private final static Int2ReferenceMap<Identifier> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
 
     static {
         try (InputStream in = RegistryUtils.getOrAssertResource("data/legacy_item_ids.json")) {
@@ -60,31 +63,41 @@ public class ItemPalette {
         } catch (IOException | NumberFormatException e) {
             throw new RegistryException("Unable to load Legacy Meta Mapping", e);
         }
+
+        try (InputStream in = RegistryUtils.getOrAssertResource("data/runtime_item_states.json")) {
+            JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
+            for (JsonNode item : json) {
+                Identifier id = Identifier.fromString(item.get("name").asText());
+                int runtime = item.get("id").intValue();
+                itemEntries.put(id, new StartGamePacket.ItemEntry(id.toString(), (short) runtime));
+                runtimeIdMap.put(runtime, id);
+                idRuntimeMap.put(id, runtime);
+            }
+        } catch (IOException e) {
+            throw new RegistryException("Unable to load vanilla runtime mapping", e);
+        }
     }
 
-    private final Int2ReferenceMap<Identifier> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
-    private final Reference2IntMap<Identifier> idRuntimeMap = new Reference2IntOpenHashMap<>();
-    private final AtomicInteger runtimeIdAllocator = new AtomicInteger(256);
-    private final List<StartGamePacket.ItemEntry> itemEntries = new ArrayList<>();
+    private final AtomicInteger runtimeIdAllocator = new AtomicInteger(itemEntries.size());
     private volatile CreativeContentPacket creativeContentPacket;
     private final List<ItemData> creativeItems = new ArrayList<>();
 
     public ItemPalette(CloudItemRegistry registry) {
         this.itemRegistry = registry;
-        for (int id : legacyIdMap.keySet()) {
-            //Registering block item IDs since blockstate ids don't directly line up
-            if (id >= 255) continue;
-            itemEntries.add(new StartGamePacket.ItemEntry(legacyIdMap.get(id).toString(), (short) id));
-        }
+        idRuntimeMap.put(BlockIds.AIR, 0);
+        runtimeIdMap.put(0, BlockIds.AIR);
     }
 
     public int addItem(Identifier identifier) {
-        int runtimeId = runtimeIdAllocator.getAndIncrement();
-        runtimeIdMap.put(runtimeId, identifier);
-        idRuntimeMap.putIfAbsent(identifier, runtimeId);
+        if (!itemEntries.containsKey(identifier)) {
+            int runtimeId = runtimeIdAllocator.getAndIncrement();
+            runtimeIdMap.put(runtimeId, identifier);
+            idRuntimeMap.putIfAbsent(identifier, runtimeId);
 
-        itemEntries.add(new StartGamePacket.ItemEntry(identifier.toString(), (short) runtimeId));
-        return runtimeId;
+            itemEntries.put(identifier, new StartGamePacket.ItemEntry(identifier.toString(), (short) runtimeId));
+            return runtimeId;
+        }
+        return -1;
     }
 
     public int getRuntimeId(Identifier id) {
@@ -97,9 +110,6 @@ public class ItemPalette {
             id = metaMap.get(id).get(meta);
         }
         int rid = idRuntimeMap.getOrDefault(id, Integer.MAX_VALUE);
-        if (rid == Integer.MAX_VALUE) {
-            rid = legacyIdMap.inverse().getOrDefault(id, Integer.MAX_VALUE);
-        }
         return rid;
     }
 
@@ -121,7 +131,7 @@ public class ItemPalette {
     }
 
     public List<StartGamePacket.ItemEntry> getItemPalette() {
-        return itemEntries;
+        return ImmutableList.copyOf(itemEntries.values());
     }
 
     public ImmutableList<Identifier> getItemIds() {
