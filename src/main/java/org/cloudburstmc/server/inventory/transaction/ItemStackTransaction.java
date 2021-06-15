@@ -2,13 +2,14 @@ package org.cloudburstmc.server.inventory.transaction;
 
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
-import org.cloudburstmc.server.inventory.transaction.action.ItemStackAction;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Log4j2
 public class ItemStackTransaction extends InventoryTransaction {
     @Getter
     private List<ItemStackResponsePacket.Response> responses = new ArrayList<>();
@@ -22,7 +23,10 @@ public class ItemStackTransaction extends InventoryTransaction {
         if (this.getActions().isEmpty()) return false;
         for (InventoryAction action : this.getActions()) {
             if (!action.isValid(getSource())) {
-                addResponse(new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.ERROR, ((ItemStackAction) action).getRequestId(), new ArrayList<>()));
+                log.debug("Failed validation check on {}", action.getClass().getSimpleName());
+                for (InventoryAction action2 : this.getActions()) {
+                    action2.onExecuteFail(getSource());
+                }
                 return false;
             }
         }

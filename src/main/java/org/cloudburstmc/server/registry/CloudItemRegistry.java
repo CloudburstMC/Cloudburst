@@ -112,7 +112,7 @@ public class CloudItemRegistry implements ItemRegistry {
         if (item.getStackNetworkId() == -1) {
             throw new RegistryException("Invalid network stack id for item: " + item);
         }
-        if (item.getStackNetworkId() == 0 && item.getType() != BlockTypes.AIR) return;
+        if (item.getStackNetworkId() == 0 || item.getType() == BlockTypes.AIR) return;
         WeakReference<CloudItemStack> ref = new WeakReference<>(item, oldIdQueue);
         netIdMap.put(item.getStackNetworkId(), ref);
     }
@@ -235,6 +235,8 @@ public class CloudItemRegistry implements ItemRegistry {
         Preconditions.checkNotNull(state);
         Preconditions.checkArgument(amount > 0, "amount must be positive");
 
+        if (state.getType() == BlockTypes.AIR) return AIR;
+
         var builder = new CloudItemStackBuilder()
                 .blockState(state)
                 .amount(amount);
@@ -246,6 +248,8 @@ public class CloudItemRegistry implements ItemRegistry {
     public ItemStack getItem(ItemType type, int amount, Object... metadata) throws RegistryException {
         Objects.requireNonNull(type, "identifier");
         Preconditions.checkArgument(amount > 0, "amount must be positive");
+
+        if (type == BlockTypes.AIR) return AIR;
 
         var builder = new CloudItemStackBuilder()
                 .itemType(type)

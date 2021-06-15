@@ -14,7 +14,6 @@ import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -102,17 +101,17 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     @Nonnull
     @Override
     public ItemStack getCursorItem() {
-        return getItem(0);
+        return getCursor().getItem(0);
     }
 
     @Override
     public boolean setCursorItem(@Nonnull ItemStack item) {
-        return super.setItem(0, item);
+        return getCursor().setItem(0, item);
     }
 
     @Override
     public void clearCursor() {
-        super.setItem(0, CloudItemRegistry.get().AIR, true);
+        getCursor().setItem(0, CloudItemRegistry.get().AIR, true);
     }
 
     @Override
@@ -140,16 +139,10 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
 
     @Override
     public void onSlotChange(int index, ItemStack before, boolean send) {
-        EntityHuman holder = this.getHolder();
-        if (holder != null && !((Player) holder).isSpawned()) {
+        if (!this.getHolder().isSpawned()) {
             return;
         }
-        if (index >= this.getSize()) {
-            this.sendArmorSlot(index - this.getSize(), this.getViewers());
-            this.sendArmorSlot(index - this.getSize(), this.getHolder().getViewers());
-        } else {
-            super.onSlotChange(index, before, send);
-        }
+        super.onSlotChange(index, before, send);
     }
 
     public int getHotbarSize() {

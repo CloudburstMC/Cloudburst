@@ -123,6 +123,11 @@ public class CloudItemStack implements ItemStack {
         return this.data;
     }
 
+    @Override
+    public <T> boolean hasMetadata(Class<T> metadataClass) {
+        return this.data.containsKey(metadataClass);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getMetadata(Class<T> metadataClass, T defaultValue) {
