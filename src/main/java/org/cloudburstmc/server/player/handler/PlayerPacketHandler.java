@@ -64,6 +64,7 @@ import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
+import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.Sound;
@@ -898,11 +899,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         ItemStackResponsePacket pk = new ItemStackResponsePacket();
         for (ItemStackRequest req : packet.getRequests()) {
             player.getInventoryManager().handle(req);
+            ItemStackTransaction tx = player.getInventoryManager().getTransaction();
+            tx.execute();
+            pk.getEntries().add(new ItemStackResponsePacket.Response(tx.getResponseStatus(), req.getRequestId(), tx.getContainerEntries()));
+            player.getInventoryManager().setTransaction(null);
         }
-        player.getInventoryManager().getTransaction().execute();
-        pk.getEntries().addAll(player.getInventoryManager().getTransaction().getResponses());
         player.sendPacket(pk);
-        player.getInventoryManager().setTransaction(null);
         return true;
     }
 

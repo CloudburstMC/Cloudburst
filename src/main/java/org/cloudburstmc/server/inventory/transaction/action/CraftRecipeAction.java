@@ -87,6 +87,6 @@ public class CraftRecipeAction extends ItemStackAction {
             }
         }
 
-        this.getTransaction().addResponse(new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.OK, getRequestId(), List.of(new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CRAFTING_INPUT, items))));
+        this.getTransaction().addContiner(new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CRAFTING_INPUT, items));
     }
 }

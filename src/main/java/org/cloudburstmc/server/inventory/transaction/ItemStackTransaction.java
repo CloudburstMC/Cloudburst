@@ -2,17 +2,22 @@ package org.cloudburstmc.server.inventory.transaction;
 
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Log4j2
 public class ItemStackTransaction extends InventoryTransaction {
     @Getter
-    private List<ItemStackResponsePacket.Response> responses = new ArrayList<>();
+    private List<ItemStackResponsePacket.ContainerEntry> containerEntries = new ArrayList<>();
+    @Getter
+    @Setter
+    private ItemStackResponsePacket.ResponseStatus responseStatus = ItemStackResponsePacket.ResponseStatus.OK;
 
     public ItemStackTransaction(CloudPlayer source) {
         super(source, new ArrayList<>(), true);
@@ -39,7 +44,12 @@ public class ItemStackTransaction extends InventoryTransaction {
         return true;
     }
 
-    public void addResponse(ItemStackResponsePacket.Response response) {
-        this.responses.add(response);
+    public void addContiner(ItemStackResponsePacket.ContainerEntry container) {
+        this.containerEntries.add(container);
     }
+
+    public void addContaiers(Collection<ItemStackResponsePacket.ContainerEntry> containers) {
+        this.containerEntries.addAll(containers);
+    }
+
 }
