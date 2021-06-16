@@ -71,6 +71,8 @@ public interface ItemStack extends Comparable<ItemStack> {
 
     <T> T getMetadata(Class<T> metadataClass, T defaultValue);
 
+    <T> boolean hasMetadata(Class<T> metadataClass);
+
     boolean hasTag();
 
     ItemStackBuilder toBuilder();

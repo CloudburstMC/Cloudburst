@@ -137,11 +137,12 @@ public final class BlockType implements ItemType {
 
     @Override
     public boolean isPlaceable() {
-        return false;
+        return true;
     }
 
+    //TODO - move a lot of this to block/item behavior classes?
     public boolean blocksMotion() {
-        return true;
+        return this != BlockTypes.AIR;
     }
 
     public boolean blocksWater() {
@@ -199,7 +200,7 @@ public final class BlockType implements ItemType {
     @Nullable
     @Override
     public BlockType getBlock() {
-        return null;
+        return this;
     }
 
     @Nullable

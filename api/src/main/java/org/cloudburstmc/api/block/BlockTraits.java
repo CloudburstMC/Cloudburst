@@ -21,14 +21,18 @@ public class BlockTraits {
     public static final EnumBlockTrait<BambooStalkThickness> BAMBOO_STALK_THICKNESS = EnumBlockTrait.of("bamboo_stalk_thickness", BambooStalkThickness.class);
     public static final IntegerBlockTrait BITE_COUNTER = IntegerBlockTrait.from("bite_counter", 7);
     public static final EnumBlockTrait<Bucket> CAULDRON_TYPE = EnumBlockTrait.of("cauldron_type", Bucket.class, Bucket.WATER, Bucket.LAVA);
+    public static final IntegerBlockTrait CAVE_VINE_AGE = IntegerBlockTrait.from("growing_plant_age", 26);
+    public static final EnumBlockTrait<CaveVineType> CAVE_VINE_TYPE = EnumBlockTrait.of("cave_vine_type", CaveVineType.class);
     public static final IntegerBlockTrait CHORUS_AGE = IntegerBlockTrait.from("chorus_age", "age", 0, 5, 0);
     public static final IntegerBlockTrait COCOA_AGE = IntegerBlockTrait.from("cocoa_age", "age", 0, 2, 0);
     public static final IntegerBlockTrait CORAL_FAN_DIRECTION = IntegerBlockTrait.from("coral_fan_direction", 2);
     public static final EnumBlockTrait<ChemistryTableType> CHEMISTRY_TABLE_TYPE = EnumBlockTrait.of("chemistry_table_type", ChemistryTableType.class);
     public static final EnumBlockTrait<ChiselType> CHISEL_TYPE = EnumBlockTrait.of("chisel_type", ChiselType.class);
     public static final IntegerBlockTrait CLUSTER_COUNT = IntegerBlockTrait.from("cluster_count", 4);
+    public static final EnumBlockTrait<ClusterSize> CLUSTER_SIZE = EnumBlockTrait.of("cluster_size", ClusterSize.class, ClusterSize.SMALL);
     public static final EnumBlockTrait<DyeColor> COLOR = EnumBlockTrait.of("color", DyeColor.class);
     public static final IntegerBlockTrait COMPOSTER_FILL_LEVEL = IntegerBlockTrait.from("composter_fill_level", 9);
+    public static final EnumBlockTrait<CopperType> COPPER_TYPE = EnumBlockTrait.of("copper_type", CopperType.class, CopperType.RAW);
     public static final EnumBlockTrait<DyeColor> CORAL_COLOR = EnumBlockTrait.of("coral_color", DyeColor.class,
             DyeColor.BLUE, DyeColor.PINK, DyeColor.PURPLE, DyeColor.RED, DyeColor.YELLOW);
     public static final EnumBlockTrait<DyeColor> CORAL_HANG_COLOR = EnumBlockTrait.of("coral_color", "coral_hang_type_bit", DyeColor.class,
@@ -38,6 +42,9 @@ public class BlockTraits {
     public static final EnumBlockTrait<AnvilDamage> DAMAGE = EnumBlockTrait.of("damage", AnvilDamage.class, AnvilDamage.UNDAMAGED);
     public static final EnumBlockTrait<DirtType> DIRT_TYPE = EnumBlockTrait.of("dirt_type", DirtType.class);
     public static final EnumBlockTrait<DoublePlantType> DOUBLE_PLANT_TYPE = EnumBlockTrait.of("double_plant_type", DoublePlantType.class);
+    public static final BooleanBlockTrait DRIPLEAF_HEAD = BooleanBlockTrait.of("dripleaf_head", "big_dripleaf_head");
+    public static final EnumBlockTrait<DripleafTilt> DRIPLEAF_TILT = EnumBlockTrait.of("dripleaf_tilt", "big_dripleaf_tilt", DripleafTilt.class);
+    public static final EnumBlockTrait<DripstoneThickness> DRIPSTONE_THICKNESS = EnumBlockTrait.of("dripstone_thickness", DripstoneThickness.class);
     public static final BooleanBlockTrait HAS_DRAG_DOWN = BooleanBlockTrait.of("drag_down");
     public static final EnumBlockTrait<ElementType> ELEMENT_TYPE = EnumBlockTrait.of("element_type", ElementType.class);
     public static final BooleanBlockTrait EXPLODE = BooleanBlockTrait.of("explode", "explode_bit");
@@ -87,7 +94,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_SOUTH = EnumBlockTrait.of("wall_connection_south", "wall_connection_type_south", WallConnectionType.class);
     public static final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_WEST = EnumBlockTrait.of("wall_connection_west", "wall_connection_type_west", WallConnectionType.class);
     public static final IntegerBlockTrait WEEPING_VINES_AGE = IntegerBlockTrait.from("weeping_vines_age", 26);
-
+    public static final IntegerBlockTrait MULTI_FACE_DIRECTION = IntegerBlockTrait.from("multi_face_direction", "multi_face_direction_bits", 0, 63, 0);
     public static final EnumBlockTrait<Direction.Axis> AXIS = EnumBlockTrait.of("axis", "pillar_axis", Direction.Axis.class, ImmutableSet.copyOf(Direction.Axis.values()), Direction.Axis.Y);
     public static final EnumBlockTrait<Direction.Axis> PORTAL_AXIS = EnumBlockTrait.of("portal_axis", Direction.Axis.class,
             Direction.Axis.Y, //TODO: this was null
@@ -111,10 +118,13 @@ public class BlockTraits {
     public static final BooleanBlockTrait IS_DISARMED = BooleanBlockTrait.of("is_disarmed", "disarmed_bit");
     public static final BooleanBlockTrait IS_DOOR_HINGE = BooleanBlockTrait.of("is_door_hinge", "door_hinge_bit", true);
     public static final BooleanBlockTrait IS_EXTINGUISHED = BooleanBlockTrait.of("is_extinguished", "extinguished");
+    public static final BooleanBlockTrait IS_FLOWERED = BooleanBlockTrait.of("is_flowered");
     public static final BooleanBlockTrait IS_FLOWING = BooleanBlockTrait.of("is_flowing");
+    public static final BooleanBlockTrait IS_GLOWING = BooleanBlockTrait.of("is_glowing");
     public static final BooleanBlockTrait IS_HANGING = BooleanBlockTrait.of("is_hanging", "hanging");
     public static final BooleanBlockTrait IS_HEAD_PIECE = BooleanBlockTrait.of("is_head_piece", "head_piece_bit");
     public static final BooleanBlockTrait IS_IN_WALL = BooleanBlockTrait.of("is_in_wall", "in_wall_bit");
+    public static final BooleanBlockTrait IS_INFESTED = BooleanBlockTrait.of("is_infested");
     public static final BooleanBlockTrait IS_OCCUPIED = BooleanBlockTrait.of("is_occupied", "occupied_bit");
     public static final BooleanBlockTrait IS_OPEN = BooleanBlockTrait.of("is_open", "open_bit");
     public static final BooleanBlockTrait IS_OUTPUT_LIT = BooleanBlockTrait.of("is_output_lit", "output_lit_bit");
