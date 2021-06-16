@@ -1,10 +1,14 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
+import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Log4j2
 public class CraftCreativeAction extends ItemStackAction {
@@ -31,5 +35,10 @@ public class CraftCreativeAction extends ItemStackAction {
     @Override
     public boolean execute(CloudPlayer source) {
         return true;
+    }
+
+    @Override
+    protected List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer source) {
+        return new ArrayList<>();
     }
 }

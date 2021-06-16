@@ -1,10 +1,14 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.cloudburstmc.server.inventory.BaseInventory;
 import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+
+import java.util.List;
 
 public class DropItemStackAction extends ItemStackAction {
     private int count;
@@ -18,14 +22,14 @@ public class DropItemStackAction extends ItemStackAction {
 
     @Override
     public boolean isValid(CloudPlayer player) {
-        BaseInventory inv = player.getInventoryManager().getInventoryByType(getSourceData().getContainer());
+        BaseInventory inv = getSourceInventory(player);
         return inv.getItem(getSourceSlot()).equals(getSourceItem(), false, true) &&
                 inv.getItem(getSourceSlot()).getAmount() >= count;
     }
 
     @Override
     public boolean execute(CloudPlayer player) {
-        BaseInventory inv = player.getInventoryManager().getInventoryByType(getSourceData().getContainer());
+        BaseInventory inv = getSourceInventory(player);
         CloudItemStack drop;
 
         if (getSourceItem().getAmount() > count) {
@@ -45,4 +49,9 @@ public class DropItemStackAction extends ItemStackAction {
         return true;
     }
 
+    @Override
+    protected List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer player) {
+        return List.of(new ItemStackResponsePacket.ContainerEntry(getSourceData().getContainer(),
+                List.of(NetworkUtils.itemStackToNetwork(getSourceData(), getSourceInventory(player)))));
+    }
 }

@@ -24,14 +24,14 @@ public class MoveItemStackAction extends ItemStackAction {
     }
 
     @Override
-    public boolean isValid(CloudPlayer source) {
-        BaseInventory inv = source.getInventoryManager().getInventoryByType(getSourceData().getContainer());
+    public boolean isValid(CloudPlayer player) {
+        BaseInventory inv = getSourceInventory(player);
 
-        if (source.isCreative() && getSourceData().getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
+        if (player.isCreative() && getSourceData().getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
             return true;
         }
 
-        BaseInventory targetInv = source.getInventoryManager().getInventoryByType(getTargetData().getContainer());
+        BaseInventory targetInv = getTargetInventory(player);
         return inv.getItem(getSourceSlot()).equals(getSourceItem(), false, true) &&
                 inv.getItem(getSourceSlot()).getAmount() >= this.count
                 && (targetInv.getItem(getTargetSlot()).getType() == BlockTypes.AIR ||
@@ -39,9 +39,9 @@ public class MoveItemStackAction extends ItemStackAction {
     }
 
     @Override
-    public boolean execute(CloudPlayer source) {
-        BaseInventory inv = source.getInventoryManager().getInventoryByType(getSourceData().getContainer());
-        BaseInventory targetInv = source.getInventoryManager().getInventoryByType(getTargetData().getContainer());
+    public boolean execute(CloudPlayer player) {
+        BaseInventory inv = getSourceInventory(player);
+        BaseInventory targetInv = getTargetInventory(player);
 
         CloudItemStack original = inv.getItem(getSourceSlot());
         CloudItemStack old = targetInv.getItem(getTargetSlot());
@@ -50,7 +50,7 @@ public class MoveItemStackAction extends ItemStackAction {
         if (original.getAmount() > count) {
             take = (CloudItemStack) original.withAmount(count);
             original = (CloudItemStack) original.decrementAmount(count);
-        } else if (source.isCreative() && getSourceData().getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
+        } else if (player.isCreative() && getSourceData().getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
             take = (CloudItemStack) original.withAmount(count);
             original = CloudItemRegistry.get().AIR;
         } else {
@@ -90,23 +90,12 @@ public class MoveItemStackAction extends ItemStackAction {
     }
 
     @Override
-    public void onExecuteSuccess(CloudPlayer source) {
-        super.onExecuteSuccess(source);
-        addContainers(source);
-    }
-
-    @Override
-    public void onExecuteFail(CloudPlayer source) {
-        super.onExecuteFail(source);
-        addContainers(source);
-    }
-
-    private void addContainers(CloudPlayer source) {
+    protected List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer player) {
         List<ItemStackResponsePacket.ContainerEntry> containers = new ArrayList<>();
         if (getSourceData().getContainer() != ContainerSlotType.CREATIVE_OUTPUT) {
-            containers.add(new ItemStackResponsePacket.ContainerEntry(getSourceData().getContainer(), List.of(NetworkUtils.itemStackToNetwork(getSourceData(), source.getInventoryManager().getInventoryByType(getSourceData().getContainer())))));
+            containers.add(new ItemStackResponsePacket.ContainerEntry(getSourceData().getContainer(), List.of(NetworkUtils.itemStackToNetwork(getSourceData(), getSourceInventory(player)))));
         }
-        containers.add(new ItemStackResponsePacket.ContainerEntry(getTargetData().getContainer(), List.of(NetworkUtils.itemStackToNetwork(getTargetData(), source.getInventoryManager().getInventoryByType(getTargetData().getContainer())))));
-        getTransaction().addContaiers(containers);
+        containers.add(new ItemStackResponsePacket.ContainerEntry(getTargetData().getContainer(), List.of(NetworkUtils.itemStackToNetwork(getTargetData(), getTargetInventory(player)))));
+        return containers;
     }
 }

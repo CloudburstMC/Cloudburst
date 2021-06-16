@@ -5,11 +5,14 @@ import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.server.inventory.BaseInventory;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+
+import java.util.List;
 
 @Log4j2
 @Getter
@@ -41,20 +44,38 @@ public abstract class ItemStackAction extends InventoryAction {
     @Override
     public void onExecuteSuccess(CloudPlayer source) {
         getTransaction().setResponseStatus(ItemStackResponsePacket.ResponseStatus.OK);
+        this.getTransaction().addContaiers(getContainers(source));
     }
 
     @Override
     public void onExecuteFail(CloudPlayer source) {
         log.debug("Failed on transaction action: {}", this.getClass().getSimpleName());
         getTransaction().setResponseStatus(ItemStackResponsePacket.ResponseStatus.ERROR);
+        this.getTransaction().addContaiers(getContainers(source));
     }
 
-    public int getSourceSlot() {
+    protected int getSourceSlot() {
         return sourceData.getSlot();
     }
 
-    public int getTargetSlot() {
+    protected int getTargetSlot() {
         return targetData.getSlot();
+    }
+
+    @Nullable
+    protected BaseInventory getSourceInventory(CloudPlayer source) {
+        if (sourceData != null) {
+            return source.getInventoryManager().getInventoryByType(sourceData.getContainer());
+        }
+        return null;
+    }
+
+    @Nullable
+    protected BaseInventory getTargetInventory(CloudPlayer source) {
+        if (targetData != null) {
+            return source.getInventoryManager().getInventoryByType(targetData.getContainer());
+        }
+        return null;
     }
 
     @Override
@@ -66,4 +87,6 @@ public abstract class ItemStackAction extends InventoryAction {
     public CloudItemStack getTargetItem() {
         return (CloudItemStack) super.getTargetItem();
     }
+
+    protected abstract List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer source);
 }
