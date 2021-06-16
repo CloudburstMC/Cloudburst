@@ -181,17 +181,22 @@ public class ItemPalette {
                 }
 
                 if (item.has("damage")) {
-                    itemData.damage(item.get("damage").asInt());
+                    int meta = item.get("damage").asInt();
+                    if ((meta & 0x7fff) == 0x7fff) meta = -1;
+                    itemData.damage(meta);
                 }
 
-                if (item.has("nbt_n64")) {
+                if (item.has("nbt_b64")) {
                     try (NBTInputStream stream = NbtUtils.createReaderLE(new ByteArrayInputStream(Base64.getDecoder().decode(item.get("nbt_b64").asText())))) {
                         itemData.tag((NbtMap) stream.readTag());
+                    } catch (Exception e) {
+                        log.error("Exception caused");
+                        e.printStackTrace();
                     }
                 }
 
-                itemData.usingNetId(false);
-
+                itemData.usingNetId(false)
+                        .count(1);
                 creativeItems.add(itemData.build());
             }
         } catch (IOException | NumberFormatException e) {
