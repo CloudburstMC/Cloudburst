@@ -167,6 +167,10 @@ public class NetworkUtils {
             durablility = item.getMetadata(Damageable.class).getDurability();
         }
 
+        if (item.getStackNetworkId() == -1) {
+            item.getNetworkData(); // Will regen and assign stack ID
+        }
+
         return new ItemStackResponsePacket.ItemEntry(data.getSlot(),
                 data.getSlot() >= 0 && data.getSlot() <= 9 ? data.getSlot() : 0,
                 (byte) item.getAmount(),

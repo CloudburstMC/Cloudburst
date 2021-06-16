@@ -70,7 +70,7 @@ public class CloudItemRegistry implements ItemRegistry {
 
     private CloudItemRegistry(CloudBlockRegistry blockRegistry) {
         this.blockRegistry = blockRegistry;
-        AIR = new CloudItemStackBuilder().id(Identifiers.AIR).blockState(BlockStates.AIR).itemType(BlockTypes.AIR).stackNetworkId(0).build();
+        AIR = new CloudItemStackBuilder().id(Identifiers.AIR).blockState(BlockStates.AIR).itemType(BlockTypes.AIR).amount(1).stackNetworkId(0).build();
         this.netIdMap.put(0, new WeakReference<>(AIR, oldIdQueue));
         try {
             this.registerVanillaItems();
