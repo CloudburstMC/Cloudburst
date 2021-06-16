@@ -222,12 +222,19 @@ public class ItemTypes {
     public static final ItemType CROSSBOW = IntItem.builder().id(ItemIds.CROSSBOW).maxStackSize(1).build();
     public static final ItemType SWEET_BERRIES = IntItem.builder().id(ItemIds.SWEET_BERRIES).maxStackSize(64).build();
     public static final ItemType CAMERA = IntItem.builder().id(ItemIds.CAMERA).maxStackSize(64).build();
-    public static final ItemType RECORD = IntItem.builder().id(ItemIds.RECORD_13).maxStackSize(1).build(); //TODO: record types
+    public static final ItemType RECORD = IntItem.builder().id(ItemIds.RECORD_13).maxStackSize(1).build();
+
+    public static final ItemType SUSPICIOUS_STEW = IntItem.builder().id(ItemIds.SUSPICIOUS_STEW).build();
+    public static final ItemType LODESTONE_COMPASS = IntItem.builder().id(ItemIds.LODESTONE_COMPASS).build();
+    public static final ItemType WARPED_FUNGUS_ON_A_STICK = IntItem.builder().id(ItemIds.WARPED_FUNGUS_ON_STICK).build();
+
 
     public static final ItemType SHIELD = IntItem.builder().id(ItemIds.SHIELD).maxStackSize(1).data(Damageable.class).build();
     public static final ItemType CAMPFIRE = IntItem.builder().id(ItemIds.CAMPFIRE).maxStackSize(1).blockType(BlockTypes.CAMPFIRE).build();
     public static final ItemType HONEYCOMB = IntItem.builder().id(ItemIds.HONEYCOMB).maxStackSize(64).build();
     public static final ItemType HONEY_BOTTLE = IntItem.builder().id(ItemIds.HONEY_BOTTLE).maxStackSize(16).build();
+    public static final ItemType NETHERITE_INGOT = IntItem.builder().id(ItemIds.NETHERITE_INGOT).maxStackSize(64).build();
+    public static final ItemType NETHERITE_SCRAP = IntItem.builder().id(ItemIds.NETHERITE_SCRAP).build();
     public static final ItemType NETHERITE_SWORD = IntItem.builder().id(ItemIds.NETHERITE_SWORD).maxStackSize(1).data(Damageable.class).toolType(SWORD).tierType(NETHERITE).attackDamage(9).build();
     public static final ItemType NETHERITE_SHOVEL = IntItem.builder().id(ItemIds.NETHERITE_SHOVEL).maxStackSize(1).data(Damageable.class).toolType(SHOVEL).tierType(NETHERITE).attackDamage(6).build();
     public static final ItemType NETHERITE_PICKAXE = IntItem.builder().id(ItemIds.NETHERITE_PICKAXE).maxStackSize(1).data(Damageable.class).toolType(PICKAXE).tierType(NETHERITE).attackDamage(6).build();
@@ -239,6 +246,17 @@ public class ItemTypes {
     public static final ItemType NETHERITE_BOOTS = IntItem.builder().id(ItemIds.NETHERITE_BOOTS).maxStackSize(1).data(Damageable.class).tierType(NETHERITE).build();
     public static final ItemType CONCRETE_POWDER = IntItem.builder().id(ItemIds.CONCRETE_POWDER).maxStackSize(64).data(DyeColor.class).blockType(BlockTypes.CONCRETE_POWDER).build();
     public static final ItemType UNKNOWN = IntItem.builder().id(Identifiers.UNKNOWN).build();
+
+    public static final ItemType AMETHYST_SHARD = IntItem.builder().id(ItemIds.AMETHYST_SHARD).build();
+    public static final ItemType GLOW_BERRIES = IntItem.builder().id(ItemIds.GLOW_BERRIES).build();
+    public static final ItemType GLOW_INK_SAC = IntItem.builder().id(ItemIds.GLOW_INK_SAC).build();
+    public static final ItemType GOAT_HORN = IntItem.builder().id(ItemIds.GOAT_HORN).build();
+    public static final ItemType GLOW_FRAME = IntItem.builder().id(ItemIds.GLOW_FRAME).build();
+    public static final ItemType RAW_COPPER = IntItem.builder().id(ItemIds.RAW_COPPER).build();
+    public static final ItemType RAW_GOLD = IntItem.builder().id(ItemIds.RAW_GOLD).build();
+    public static final ItemType RAW_IRON = IntItem.builder().id(ItemIds.RAW_IRON).build();
+    public static final ItemType SPYGLASS = IntItem.builder().id(ItemIds.SPYGLASS).build();
+    public static final ItemType COPPER_INGOT = IntItem.builder().id(ItemIds.COPPER_INGOT).build();
 
     public static final class IntItem implements ItemType {
         private final Identifier id;

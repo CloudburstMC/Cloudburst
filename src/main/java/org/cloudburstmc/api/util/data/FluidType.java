@@ -2,5 +2,6 @@ package org.cloudburstmc.api.util.data;
 
 public enum FluidType {
     WATER,
-    LAVA
+    LAVA,
+    POWDER_SNOW
 }

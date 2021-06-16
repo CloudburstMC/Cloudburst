@@ -218,7 +218,32 @@ public class BlockCategories {
                 WOODEN_DOOR,
                 WOODEN_PRESSURE_PLATE,
                 WOODEN_SLAB,
-                WOOL
+                WOOL,
+                COPPER_ORE,
+                DRIPSTONE_BLOCK,
+                DIRT_WITH_ROOTS,
+                MOSS_BLOCK,
+                SPORE_BLOSSOM,
+                CALCITE,
+                TUFF,
+                COPPER,
+                CUT_COPPER,
+                SMOOTH_BASALT,
+                COBBLED_DEEPSLATE,
+                POLISHED_DEEPSLATE,
+                DEEPSLATE_TILES,
+                DEEPSLATE_BRICKS,
+                CRACKED_DEEPSLATE_BRICKS,
+                CRACKED_DEEPSLATE_TILES,
+                CHISELED_DEEPSLATE,
+                DEEPSLATE_LAPIS_ORE,
+                DEEPSLATE_IRON_ORE,
+                DEEPSLATE_GOLD_ORE,
+                DEEPSLATE_REDSTONE_ORE,
+                DEEPSLATE_DIAMOND_ORE,
+                DEEPSLATE_EMERALD_ORE,
+                DEEPSLATE_COAL_ORE,
+                DEEPSLATE_COPPER_ORE
         );
 
         categorize(BlockCategory.TRANSPARENT,
@@ -318,16 +343,33 @@ public class BlockCategories {
                 TRIPWIRE,
                 TRIPWIRE_HOOK,
                 END_PORTAL_FRAME,
-                INVISIBLE_BEDROCK
+                INVISIBLE_BEDROCK,
+                POWDER_SNOW,
+                SCULK_SENSOR,
+                POINTED_DRIPSTONE,
+                LIGHTNING_ROD,
+                HANGING_ROOTS,
+                CAVE_VINES,
+                BIG_DRIPLEAF,
+                AMETHYST_CLUSTER,
+                MOSS_CARPET,
+                SMALL_DRIPLEAF,
+                AZALEA,
+                COPPER_STAIRS,
+                COPPER_SLAB,
+                GLOW_LICHEN
+
         );
 
         categorize(BlockCategory.STAIRS,
                 WOODEN_STAIRS,
-                STONE_STAIRS
+                STONE_STAIRS,
+                COPPER_STAIRS
         );
         categorize(BlockCategory.SLAB,
                 STONE_SLAB,
-                WOODEN_SLAB
+                WOODEN_SLAB,
+                COPPER_SLAB
         );
 
         categorize(BlockCategory.DOOR,

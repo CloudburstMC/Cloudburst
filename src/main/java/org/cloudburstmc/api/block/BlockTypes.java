@@ -171,7 +171,7 @@ public class BlockTypes {
     public static final BlockType HARD_STAINED_GLASS_PANE = BlockType.of(Identifiers.HARD_STAINED_GLASS_PANE, BlockTraits.COLOR);
     public static final BlockType CHEMICAL_HEAT = BlockType.of(Identifiers.CHEMICAL_HEAT);
     public static final BlockType GRASS_PATH = BlockType.of(Identifiers.GRASS_PATH);
-    public static final BlockType FRAME = BlockType.of(Identifiers.FRAME, BlockTraits.FACING_DIRECTION, BlockTraits.HAS_MAP);
+    public static final BlockType FRAME = BlockType.of(Identifiers.FRAME, BlockTraits.IS_GLOWING, BlockTraits.FACING_DIRECTION, BlockTraits.HAS_MAP);
     public static final BlockType CHORUS_FLOWER = BlockType.of(Identifiers.CHORUS_FLOWER, BlockTraits.CHORUS_AGE);
     public static final BlockType PURPUR_BLOCK = BlockType.of(Identifiers.PURPUR_BLOCK, BlockTraits.CHISEL_TYPE, BlockTraits.AXIS);
     public static final BlockType COLORED_TORCH_RG = BlockType.of(Identifiers.COLORED_TORCH_RG, BlockTraits.HAS_COLOR, BlockTraits.TORCH_DIRECTION);
@@ -278,6 +278,55 @@ public class BlockTypes {
     public static final BlockType CRYING_OBSIDIAN = BlockType.of(Identifiers.CRYING_OBSIDIAN);
     public static final BlockType POLISHED_BLACKSTONE = BlockType.of(Identifiers.POLISHED_BLACKSTONE);
     public static final BlockType QUARTZ_BRICKS = BlockType.of(Identifiers.QUARTZ_BRICKS);
+    /* 1.17 Blocks */
+    public static final BlockType POWDER_SNOW = BlockType.of(BlockIds.POWDER_SNOW);
+    public static final BlockType SCULK_SENSOR = BlockType.of(BlockIds.SCULK_SENSOR, BlockTraits.IS_POWERED);
+    public static final BlockType POINTED_DRIPSTONE = BlockType.of(BlockIds.POINTED_DRIPSTONE, BlockTraits.DRIPSTONE_THICKNESS, BlockTraits.IS_HANGING);
+    public static final BlockType COPPER_ORE = BlockType.of(BlockIds.COPPER_ORE);
+    public static final BlockType LIGHTNING_ROD = BlockType.of(BlockIds.LIGHTNING_ROD, BlockTraits.FACING_DIRECTION);
+    public static final BlockType DRIPSTONE_BLOCK = BlockType.of(BlockIds.DRIPSTONE_BLOCK);
+    public static final BlockType DIRT_WITH_ROOTS = BlockType.of(BlockIds.DIRT_WITH_ROOTS);
+    public static final BlockType HANGING_ROOTS = BlockType.of(BlockIds.HANGING_ROOTS);
+    public static final BlockType MOSS_BLOCK = BlockType.of(BlockIds.MOSS_BLOCK);
+    public static final BlockType SPORE_BLOSSOM = BlockType.of(BlockIds.SPORE_BLOSSOM);
+    public static final BlockType BIG_DRIPLEAF = BlockType.of(BlockIds.BIG_DRIPLEAF, BlockTraits.DRIPLEAF_HEAD, BlockTraits.DRIPLEAF_TILT, BlockTraits.DIRECTION);
+    public static final BlockType AZALEA_LEAVES = BlockType.of(BlockIds.AZALEA_LEAVES, BlockTraits.IS_FLOWERED, BlockTraits.IS_PERSISTENT, BlockTraits.HAS_UPDATE);
+    public static final BlockType CALCITE = BlockType.of(BlockIds.CALCITE);
+    public static final BlockType AMETHYST_BLOCK = BlockType.of(BlockIds.AMETHYST_BLOCK);
+    public static final BlockType BUDDING_AMETHYST = BlockType.of(BlockIds.BUDDING_AMETHYST);
+    public static final BlockType AMETHYST_CLUSTER = BlockType.of(BlockIds.AMETHYST_CLUSTER, BlockTraits.CLUSTER_SIZE, BlockTraits.FACING_DIRECTION);
+    public static final BlockType TUFF = BlockType.of(BlockIds.TUFF);
+    public static final BlockType TINTED_GLASS = BlockType.of(BlockIds.TINTED_GLASS);
+    public static final BlockType MOSS_CARPET = BlockType.of(BlockIds.MOSS_CARPET);
+    public static final BlockType SMALL_DRIPLEAF = BlockType.of(BlockIds.SMALL_DRIPLEAF_BLOCK, BlockTraits.DIRECTION, BlockTraits.IS_UPPER_BLOCK);
+    public static final BlockType AZALEA = BlockType.of(BlockIds.AZALEA, BlockTraits.IS_FLOWERED);
+    public static final BlockType COPPER = BlockType.of(BlockIds.COPPER_BLOCK, BlockTraits.COPPER_TYPE);
+    public static final BlockType CUT_COPPER = BlockType.of(BlockIds.CUT_COPPER, BlockTraits.COPPER_TYPE);
+    public static final BlockType COPPER_STAIRS = BlockType.of(BlockIds.CUT_COPPER_STAIRS, BlockTraits.COPPER_TYPE, BlockTraits.IS_UPSIDE_DOWN, BlockTraits.DIRECTION);
+    public static final BlockType COPPER_SLAB = BlockType.of(BlockIds.CUT_COPPER_SLAB, BlockTraits.COPPER_TYPE, BlockTraits.SLAB_SLOT);
+    public static final BlockType CAVE_VINES = BlockType.of(BlockIds.CAVE_VINES, BlockTraits.CAVE_VINE_TYPE, BlockTraits.CAVE_VINE_AGE);
+    public static final BlockType SMOOTH_BASALT = BlockType.of(BlockIds.SMOOTH_BASALT);
+    public static final BlockType DEEPSLATE = BlockType.of(BlockIds.DEEPSLATE, BlockTraits.IS_INFESTED, BlockTraits.AXIS);
+    public static final BlockType COBBLED_DEEPSLATE = BlockType.of(BlockIds.COBBLED_DEEPSLATE);
+    public static final BlockType POLISHED_DEEPSLATE = BlockType.of(BlockIds.POLISHED_DEEPSLATE);
+    public static final BlockType DEEPSLATE_TILES = BlockType.of(BlockIds.DEEPSLATE_TILES);
+    public static final BlockType DEEPSLATE_BRICKS = BlockType.of(BlockIds.DEEPSLATE_BRICKS);
+    public static final BlockType CHISELED_DEEPSLATE = BlockType.of(BlockIds.CHISELED_DEEPSLATE);
+    public static final BlockType DEEPSLATE_LAPIS_ORE = BlockType.of(BlockIds.DEEPSLATE_LAPIS_ORE);
+    public static final BlockType DEEPSLATE_IRON_ORE = BlockType.of(BlockIds.DEEPSLATE_IRON_ORE);
+    public static final BlockType DEEPSLATE_GOLD_ORE = BlockType.of(BlockIds.DEEPSLATE_GOLD_ORE);
+    public static final BlockType DEEPSLATE_REDSTONE_ORE = BlockType.of(BlockIds.DEEPSLATE_REDSTONE_ORE, BlockTraits.IS_EXTINGUISHED);
+    public static final BlockType DEEPSLATE_DIAMOND_ORE = BlockType.of(BlockIds.DEEPSLATE_DIAMOND_ORE);
+    public static final BlockType DEEPSLATE_COAL_ORE = BlockType.of(BlockIds.DEEPSLATE_COAL_ORE);
+    public static final BlockType DEEPSLATE_EMERALD_ORE = BlockType.of(BlockIds.DEEPSLATE_EMERALD_ORE);
+    public static final BlockType DEEPSLATE_COPPER_ORE = BlockType.of(BlockIds.DEEPSLATE_COPPER_ORE);
+    public static final BlockType CRACKED_DEEPSLATE_TILES = BlockType.of(BlockIds.CRACKED_DEEPSLATE_TILES);
+    public static final BlockType CRACKED_DEEPSLATE_BRICKS = BlockType.of(BlockIds.CRACKED_DEEPSLATE_BRICKS);
+    public static final BlockType GLOW_LICHEN = BlockType.of(BlockIds.GLOW_LICHEN, BlockTraits.MULTI_FACE_DIRECTION);
+
+    public static final BlockType RAW_COPPER_BLOCK = BlockType.of(BlockIds.RAW_COPPER_BLOCK);
+    public static final BlockType RAW_IRON_BLOCK = BlockType.of(BlockIds.RAW_IRON_BLOCK);
+    public static final BlockType RAW_GOLD_BLOCK = BlockType.of(BlockIds.RAW_GOLD_BLOCK);
 
     public static final BlockType UNKNOWN = BlockType.of(Identifiers.UNKNOWN);
 }

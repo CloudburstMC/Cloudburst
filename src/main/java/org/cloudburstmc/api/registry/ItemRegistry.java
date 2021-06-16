@@ -11,6 +11,8 @@ public interface ItemRegistry extends Registry {
 
     void register(ItemType type, ItemBehavior behavior, Identifier... identifiers) throws RegistryException;
 
+    void registerCreativeItem(ItemStack item);
+
     default ItemStack getItem(BlockState state) throws RegistryException {
         return getItem(state, 1);
     }
