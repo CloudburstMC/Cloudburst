@@ -743,7 +743,7 @@ public class CloudItemRegistry implements ItemRegistry {
 
     public ItemStack getCreativeItemByIndex(int index) {
         ItemData itemData = itemPalette.getCreativeItems().get(index);
-        ItemType type = typeMap.get(itemPalette.getIdByRuntime(itemData.getId()));
+        ItemType type = ItemTypes.byId(itemPalette.getIdByRuntime(itemData.getId(), itemData.getDamage()));
         return getItem(type, type.getMaximumStackSize());
     }
 

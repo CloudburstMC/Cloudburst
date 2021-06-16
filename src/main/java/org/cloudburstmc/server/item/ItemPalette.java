@@ -114,7 +114,15 @@ public class ItemPalette {
     }
 
     public Identifier getIdByRuntime(int runtimeId) {
-        return runtimeIdMap.get(runtimeId);
+        return getIdByRuntime(runtimeId, 0);
+    }
+
+    public Identifier getIdByRuntime(int runtimeId, int meta) {
+        Identifier id = runtimeIdMap.get(runtimeId);
+        if (metaMap.containsKey(id)) {
+            id = metaMap.get(id).get(meta);
+        }
+        return id;
     }
 
     public CreativeContentPacket getCreativeContentPacket() {
