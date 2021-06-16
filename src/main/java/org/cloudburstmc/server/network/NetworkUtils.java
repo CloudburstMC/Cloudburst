@@ -172,7 +172,7 @@ public class NetworkUtils {
         }
 
         return new ItemStackResponsePacket.ItemEntry(data.getSlot(),
-                data.getSlot() >= 0 && data.getSlot() <= 9 ? data.getSlot() : 0,
+                data.getSlot(),
                 (byte) item.getAmount(),
                 item.getStackNetworkId(),
                 item.getName() == null ? "" : item.getName(),

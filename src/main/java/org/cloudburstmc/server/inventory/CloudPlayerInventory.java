@@ -163,7 +163,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
         if (index < 0 || index >= this.size) {
             return false;
         } else if (item.getType() == BlockTypes.AIR || item.getAmount() <= 0) {
-            return this.clear(index);
+            return this.clear(index, send);
         }
 
         //Armor change --  TODO remove this from here, setArmorItem should be used for changing armor slots
