@@ -316,7 +316,7 @@ public class Identifiers {
     public static final Identifier ICE = Identifier.fromString("ice");
     public static final Identifier INFO_UPDATE = Identifier.fromString("info_update");
     public static final Identifier INFO_UPDATE2 = Identifier.fromString("info_update2");
-    public static final Identifier INVISIBLE_BEDROCK = Identifier.fromString("invisiblebedrock");
+    public static final Identifier INVISIBLE_BEDROCK = Identifier.fromString("invisibleBedrock");
     public static final Identifier IRON_BARS = Identifier.fromString("iron_bars");
     public static final Identifier IRON_BLOCK = Identifier.fromString("iron_block");
     public static final Identifier IRON_DOOR = Identifier.fromString("iron_door");
@@ -366,7 +366,7 @@ public class Identifiers {
     public static final Identifier MOSSY_COBBLESTONE = Identifier.fromString("mossy_cobblestone");
     public static final Identifier MOSSY_COBBLESTONE_STAIRS = Identifier.fromString("mossy_cobblestone_stairs");
     public static final Identifier MOSSY_STONE_BRICK_STAIRS = Identifier.fromString("mossy_stone_brick_stairs");
-    public static final Identifier MOVING_BLOCK = Identifier.fromString("movingblock");
+    public static final Identifier MOVING_BLOCK = Identifier.fromString("movingBlock");
     public static final Identifier MYCELIUM = Identifier.fromString("mycelium");
     public static final Identifier NETHERITE_BLOCK = Identifier.fromString("netherite_block");
     public static final Identifier NETHERRACK = Identifier.fromString("netherrack");
@@ -390,7 +390,7 @@ public class Identifiers {
     public static final Identifier PACKED_ICE = Identifier.fromString("packed_ice");
     public static final Identifier PINK_GLAZED_TERRACOTTA = Identifier.fromString("pink_glazed_terracotta");
     public static final Identifier PISTON = Identifier.fromString("piston");
-    public static final Identifier PISTON_ARM_COLLISION = Identifier.fromString("pistonarmcollision");
+    public static final Identifier PISTON_ARM_COLLISION = Identifier.fromString("pistonArmCollision");
     public static final Identifier PLANKS = Identifier.fromString("planks");
     public static final Identifier PODZOL = Identifier.fromString("podzol");
     public static final Identifier POLISHED_ANDESITE_STAIRS = Identifier.fromString("polished_andesite_stairs");
@@ -449,7 +449,7 @@ public class Identifiers {
     public static final Identifier SAPLING = Identifier.fromString("sapling");
     public static final Identifier SCAFFOLDING = Identifier.fromString("scaffolding");
     public static final Identifier SEAGRASS = Identifier.fromString("seagrass");
-    public static final Identifier SEA_LANTERN = Identifier.fromString("sealantern");
+    public static final Identifier SEA_LANTERN = Identifier.fromString("seaLantern");
     public static final Identifier SEA_PICKLE = Identifier.fromString("sea_pickle");
     public static final Identifier SHROOMLIGHT = Identifier.fromString("shroomlight");
     public static final Identifier SHULKER_BOX = Identifier.fromString("shulker_box");
@@ -484,7 +484,7 @@ public class Identifiers {
     public static final Identifier STAINED_HARDENED_CLAY = Identifier.fromString("stained_hardened_clay");
     public static final Identifier STANDING_BANNER = Identifier.fromString("standing_banner");
     public static final Identifier OAK_STANDING_SIGN = Identifier.fromString("standing_sign");
-    public static final Identifier STICKY_PISTON_ARM_COLLISION = Identifier.fromString("stickypistonarmcollision");
+    public static final Identifier STICKY_PISTON_ARM_COLLISION = Identifier.fromString("stickyPistonArmCollision");
     public static final Identifier STICKY_PISTON = Identifier.fromString("sticky_piston");
     public static final Identifier STONE = Identifier.fromString("stone");
     public static final Identifier STONEBRICK = Identifier.fromString("stonebrick");
@@ -517,7 +517,7 @@ public class Identifiers {
     public static final Identifier TORCH = Identifier.fromString("torch");
     public static final Identifier OAK_TRAPDOOR = Identifier.fromString("trapdoor");
     public static final Identifier TRAPPED_CHEST = Identifier.fromString("trapped_chest");
-    public static final Identifier TRIPWIRE = Identifier.fromString("tripwire");
+    public static final Identifier TRIPWIRE = Identifier.fromString("tripWire");
     public static final Identifier TRIPWIRE_HOOK = Identifier.fromString("tripwire_hook");
     public static final Identifier TURTLE_EGG = Identifier.fromString("turtle_egg");
     public static final Identifier TWISTING_VINES = Identifier.fromString("twisting_vines");
