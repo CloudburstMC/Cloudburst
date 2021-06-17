@@ -67,8 +67,8 @@ public class BlockPalette {
         this.defaultStateMap.put(type.getId(), type.getDefaultState());
 
         type.getStates().forEach(state -> {
-            List<NbtMap> test = (List<NbtMap>) serialize(type, serializer, state.getTraits());
-            for (NbtMap nbt : test) {
+            List<NbtMap> tags = (List<NbtMap>) serialize(type, serializer, state.getTraits());
+            for (NbtMap nbt : tags) {
                 Identifier id;
                 if (nbt.containsKey("name")) {
                     id = Identifier.fromString(nbt.getString("name"));
