@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.crafting;
 
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
+import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;

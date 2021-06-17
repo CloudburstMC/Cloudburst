@@ -2237,7 +2237,7 @@ public class CloudLevel implements Level {
     }
 
     public Location getSafeSpawn(Location pos) {
-        if (pos == null || pos.getY() < 1) {
+        if (pos == null) {
             pos = Location.from(this.getSpawnLocation(), this);
         }
 
@@ -2247,24 +2247,25 @@ public class CloudLevel implements Level {
         int z = v.getFloorZ() & 0x0f;
         if (chunk != null) {
             int y = NukkitMath.clamp(v.getFloorY(), 0, 254);
-            boolean wasAir = !this.isFullBlock(Vector3i.from(x, y + 1, z), chunk.getBlock(x, y + 1, z));
+            BlockState blockState = chunk.getBlock(x, y + 1, z);
+            boolean wasAir = blockState.getBehavior().canPassThrough(blockState);
             for (; y > 0; --y) {
-                BlockState blockState = chunk.getBlock(x, y, z);
-                if (this.isFullBlock(Vector3i.from(x, y, z), blockState)) {
+                blockState = chunk.getBlock(x, y, z);
+                if (blockState.getBehavior().canPassThrough(blockState)) {
                     if (wasAir) {
                         y++;
                         break;
+                    } else {
+                        wasAir = true;
                     }
-                } else {
-                    wasAir = true;
                 }
             }
 
             for (; y >= 0 && y < 255; y++) {
-                BlockState blockState = chunk.getBlock(x, y + 1, z);
-                if (!this.isFullBlock(Vector3i.from(x, y + 1, z), blockState)) {
+                blockState = chunk.getBlock(x, y + 1, z);
+                if (blockState.getBehavior().canPassThrough(blockState)) {
                     blockState = chunk.getBlock(x, y, z);
-                    if (!this.isFullBlock(Vector3i.from(x, y, z), blockState)) {
+                    if (blockState.getBehavior().canPassThrough(blockState)) {
                         return Location.from(pos.getX(), y, pos.getZ(), pos.getYaw(), pos.getPitch(), this);
                     }
                 }

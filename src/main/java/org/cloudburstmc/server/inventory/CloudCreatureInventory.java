@@ -298,4 +298,14 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
             tag.putList("Offhand", NbtType.COMPOUND, ItemUtils.serializeItem(this.offHand));
         }
     }
+
+    @Override
+    public void onSlotChange(int index, ItemStack before, boolean send) {
+        if (index >= this.getSize()) {
+            this.sendArmorSlot(index - this.getSize(), this.getViewers());
+            this.sendArmorSlot(index - this.getSize(), this.getHolder().getViewers());
+        } else {
+            super.onSlotChange(index, before, send);
+        }
+    }
 }

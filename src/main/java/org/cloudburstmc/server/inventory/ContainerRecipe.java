@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.inventory;
 
+import org.cloudburstmc.api.crafting.MixRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.Identifiers;
-import org.cloudburstmc.server.crafting.MixRecipe;
 
 public class ContainerRecipe extends MixRecipe {
     public ContainerRecipe(Identifier id, ItemStack input, ItemStack ingredient, ItemStack output) {
