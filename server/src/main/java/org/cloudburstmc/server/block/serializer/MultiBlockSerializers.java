@@ -55,6 +55,10 @@ public class MultiBlockSerializers {
             .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.BLACKSTONE.name().toLowerCase(), BLACKSTONE_SLAB, true)
             .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.POLISHED_BLACKSTONE.name().toLowerCase(), POLISHED_BLACKSTONE_SLAB, true)
             .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.POLISHED_BLACKSTONE_BRICK.name().toLowerCase(), POLISHED_BLACKSTONE_BRICK_SLAB, true)
+            .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.DEEPSLATE_BRICK.name().toLowerCase(), DEEPSLATE_BRICK_SLAB, true)
+            .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.DEEPSLATE_TILE.name().toLowerCase(), DEEPSLATE_TILE_SLAB, true)
+            .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.COBBLED_DEEPSLATE.name().toLowerCase(), COBBLED_DEEPSLATE_SLAB, true)
+            .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.POLISHED_DEEPSLATE.name().toLowerCase(), POLISHED_DEEPSLATE_SLAB, true)
             .add(
                     BLACKSTONE_DOUBLE_SLAB,
                     Builder.combine(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.BLACKSTONE.name().toLowerCase(), true),
@@ -68,6 +72,26 @@ public class MultiBlockSerializers {
             .add(
                     POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB,
                     Builder.combine(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.POLISHED_BLACKSTONE_BRICK.name().toLowerCase(), true),
+                    Builder.combine("slab_slot")
+            )
+            .add(
+                    DEEPSLATE_BRICK_DOUBLE_SLAB,
+                    Builder.combine(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.DEEPSLATE_BRICK.name().toLowerCase(), true),
+                    Builder.combine("slab_slot")
+            )
+            .add(
+                    DEEPSLATE_TILE_DOUBLE_SLAB,
+                    Builder.combine(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.DEEPSLATE_TILE.name().toLowerCase(), true),
+                    Builder.combine("slab_slot")
+            )
+            .add(
+                    COBBLED_DEEPSLATE_DOUBLE_SLAB,
+                    Builder.combine(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.COBBLED_DEEPSLATE.name().toLowerCase(), true),
+                    Builder.combine("slab_slot")
+            )
+            .add(
+                    POLISHED_DEEPSLATE_DOUBLE_SLAB,
+                    Builder.combine(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.POLISHED_DEEPSLATE.name().toLowerCase(), true),
                     Builder.combine("slab_slot")
             )
             .baseSerializer(NoopBlockSerializer.INSTANCE)
@@ -342,6 +366,91 @@ public class MultiBlockSerializers {
             .add(BedrockStateTags.TAG_STONE_SLAB_TYPE_4, StoneSlabType.class, StoneSlabType::getStairsId)
             .buildSerializer();
 
+    public static final MultiBlockSerializer DEEPSLATE = builder()
+            .removeTrait("is_infested")
+            .add("is_infested", true, INFESTED_DEEPSLATE)
+            .defaultId(BlockIds.DEEPSLATE)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer DEEPSLATE_REDSTONE_ORE = builder()
+            .removeTrait(BedrockStateTags.TAG_EXTINGUISHED)
+            .add(BedrockStateTags.TAG_EXTINGUISHED, false, LIT_DEEPSLATE_REDSTONE_ORE)
+            .defaultId(BlockIds.DEEPSLATE_REDSTONE_ORE)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer COPPER_BLOCKS = builder()
+            .removeTrait("copper_type")
+            .add("copper_type", CopperType.class, CopperType::getBlockId)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer CUT_COPPER = builder()
+            .removeTrait("copper_type")
+            .add("copper_type", CopperType.class, CopperType::getCutId)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer COPPER_SLAB = builder()
+            .removeTrait("copper_type")
+            .add("copper_type", CopperType.class, CopperType::getSlabId)
+            .removeTrait("slab_slot")
+            .add(DOUBLE_CUT_COPPER_SLAB,
+                    Builder.combine("copper_type", CopperType.RAW.name().toLowerCase(), true),
+                    Builder.combine("slab_slot"))
+            .add(EXPOSED_DOUBLE_CUT_COPPER_SLAB,
+                    Builder.combine("copper_type", CopperType.EXPOSED.name().toLowerCase(), true),
+                    Builder.combine("slab_slot"))
+            .add(OXIDIZED_DOUBLE_CUT_COPPER_SLAB,
+                    Builder.combine("copper_type", CopperType.OXIDIZED.name().toLowerCase(), true),
+                    Builder.combine("slab_slot"))
+            .add(WAXED_DOUBLE_CUT_COPPER_SLAB,
+                    Builder.combine("copper_type", CopperType.WAXED.name().toLowerCase(), true),
+                    Builder.combine("slab_slot"))
+            .add(WAXED_EXPOSED_DOUBLE_CUT_COPPER_SLAB,
+                    Builder.combine("copper_type", CopperType.WAXED_EXPOSED.name().toLowerCase(), true),
+                    Builder.combine("slab_slot"))
+            .add(WAXED_OXIDIZED_DOUBLE_CUT_COPPER_SLAB,
+                    Builder.combine("copper_type", CopperType.WAXED_OXIDIZED.name().toLowerCase(), true),
+                    Builder.combine("slab_slot"))
+            .add(WAXED_WEATHERED_DOUBLE_CUT_COPPER_SLAB,
+                    Builder.combine("copper_type", CopperType.WAXED_WEATHERED.name().toLowerCase(), true),
+                    Builder.combine("slab_slot"))
+            .add(WEATHERED_DOUBLE_CUT_COPPER_SLAB,
+                    Builder.combine("copper_type", CopperType.WEATHERED.name().toLowerCase(), true),
+                    Builder.combine("slab_slot"))
+            .baseSerializer(NoopBlockSerializer.INSTANCE)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer COPPER_STAIRS = builder()
+            .removeTrait("copper_type")
+            .add("copper_type", CopperType.class, CopperType::getStairsId)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer AMETHYST_CLUSTER = builder()
+            .removeTrait("cluster_size")
+            .add("cluster_size", ClusterSize.class, clusterSize -> switch (clusterSize) {
+                case FULL -> BlockIds.AMETHYST_CLUSTER;
+                case SMALL -> SMALL_AMETHYST_BUD;
+                case MEDIUM -> MEDIUM_AMETHYST_BUD;
+                case LARGE -> LARGE_AMETHYST_BUD;
+            })
+            .buildSerializer();
+
+    public static final MultiBlockSerializer AZALEA = builder()
+            .removeTrait("is_flowered")
+            .add("is_flowered", true, FLOWERING_AZALEA, true)
+            .defaultId(BlockIds.AZALEA)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer AZALEA_LEAVES = builder()
+            .removeTrait("is_flowered")
+            .add("is_flowered", true, AZALEA_LEAVES_FLOWERED, true)
+            .defaultId(BlockIds.AZALEA_LEAVES)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer CAVE_VINES = builder()
+            .removeTrait("cave_vine_type")
+            .add("cave_vine_type", CaveVineType.class, CaveVineType::getIdentifier, true)
+            .buildSerializer();
+
     public static final MultiBlockSerializer PISTON = builder()
             .removeTrait("is_sticky")
             .add("is_sticky", true, STICKY_PISTON)
@@ -385,6 +494,10 @@ public class MultiBlockSerializers {
             .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.BLACKSTONE.name().toLowerCase(), BLACKSTONE_WALL, true)
             .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.POLISHED_BLACKSTONE.name().toLowerCase(), POLISHED_BLACKSTONE_WALL, true)
             .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.POLISHED_BLACKSTONE_BRICK.name().toLowerCase(), POLISHED_BLACKSTONE_BRICK_WALL, true)
+            .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.DEEPSLATE_BRICK.name().toLowerCase(), DEEPSLATE_BRICK_WALL, true)
+            .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.DEEPSLATE_TILE.name().toLowerCase(), DEEPSLATE_TILE_WALL, true)
+            .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.COBBLED_DEEPSLATE.name().toLowerCase(), COBBLED_DEEPSLATE_WALL, true)
+            .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.POLISHED_DEEPSLATE.name().toLowerCase(), POLISHED_DEEPSLATE_WALL, true)
             .defaultId(COBBLESTONE_WALL)
             .buildSerializer();
 
@@ -408,6 +521,12 @@ public class MultiBlockSerializers {
 
     public static final MultiBlockSerializer ELEMENT = builder()
             .add("element_type", ElementType.class, (e) -> Identifier.fromString(e.name().toLowerCase()), true)
+            .buildSerializer();
+
+    public static final MultiBlockSerializer FRAME = builder()
+            .removeTrait("is_glowing")
+            .add("is_glowing", true, GLOW_FRAME)
+            .defaultId(BlockIds.FRAME)
             .buildSerializer();
 
     public static final MultiBlockSerializer NYLIUM = buildTrait("wood_type", BlockTraits.TREE_SPECIES_NETHER,

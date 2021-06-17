@@ -1,11 +1,10 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.crafting.CraftingGrid;
+import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.server.crafting.CraftingRecipe;
 import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
@@ -69,24 +68,7 @@ public class CraftRecipeAction extends ItemStackAction {
     }
 
     @Override
-    public void onExecuteSuccess(CloudPlayer source) {
-        List<ItemStackResponsePacket.ItemEntry> items = new ArrayList<>();
-        int size = getTransaction().getSource().getCraftingInventory().getCraftingGridSize();
-        for (int r = 0; r < size; r++) {
-            for (int c = 0; c < size; c++) {
-                int slot = (size * r) + c;
-                items.add(new ItemStackResponsePacket.ItemEntry(
-                        (byte) (getTransaction().getSource().getCraftingInventory().getCraftingGridType() == CraftingGrid.Type.CRAFTING_GRID_SMALL ? slot + CloudCraftingGrid.CRAFTING_GRID_SMALL_OFFSET : slot + CloudCraftingGrid.CRAFTING_GRID_LARGE_OFFSET),
-                        (byte) 0,
-                        (byte) 1,
-                        0,
-                        "",
-                        0
-
-                ));
-            }
-        }
-
-        this.getTransaction().addResponse(new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.OK, getRequestId(), List.of(new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CRAFTING_INPUT, items))));
+    protected List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer source) {
+        return new ArrayList<>();
     }
 }

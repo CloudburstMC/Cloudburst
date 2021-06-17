@@ -42,22 +42,18 @@ public class CloudItemStack implements ItemStack {
     protected final Set<Identifier> canDestroy;
     protected final Set<Identifier> canPlaceOn;
     protected final Map<Class<?>, Object> data;
-    protected final int stackNetId;
 
     protected volatile NbtMap nbt;
     protected volatile NbtMap dataTag;
     protected volatile ItemData networkData;
+    protected volatile int stackNetId = -1;
 
     public CloudItemStack(Identifier id, ItemType type) {
-        this(id, type, 1, null, null, null, null, null, null, null, null, null);
+        this(id, type, 1, null, null, null, null, null, null, null, null, null, -1);
     }
 
     public CloudItemStack(Identifier id, ItemType type, int amount) {
-        this(id, type, amount, null, null, null, null, null, null, null, null, null);
-    }
-
-    public CloudItemStack(Identifier id, ItemType type, int amount, String itemName, List<String> itemLore, Map<EnchantmentType, EnchantmentInstance> enchantments, Collection<Identifier> canDestroy, Collection<Identifier> canPlaceOn, Map<Class<?>, Object> data, NbtMap nbt, NbtMap dataTag, ItemData networkData) {
-        this(id, type, amount, itemName, itemLore, enchantments, canDestroy, canPlaceOn, data, nbt, dataTag, networkData, -1);
+        this(id, type, amount, null, null, null, null, null, null, null, null, null, -1);
     }
 
     @ParametersAreNullableByDefault
@@ -89,18 +85,10 @@ public class CloudItemStack implements ItemStack {
         this.dataTag = dataTag;
         this.networkData = networkData;
 
-        if (netId == -1) {
-            if (networkData == null) {
-                this.stackNetId = CloudItemRegistry.get().getNetId();
-            } else {
-                this.stackNetId = networkData.getNetId();
-            }
+        if (netId == -1 && this.networkData != null) {
+            this.stackNetId = this.networkData.getNetId();
         } else {
             this.stackNetId = netId;
-        }
-
-        if (type != BlockTypes.AIR) {
-            CloudItemRegistry.get().addNetId(this);
         }
     }
 
@@ -133,6 +121,11 @@ public class CloudItemStack implements ItemStack {
 
     public Map<Class<?>, Object> getMetadataMap() {
         return this.data;
+    }
+
+    @Override
+    public <T> boolean hasMetadata(Class<T> metadataClass) {
+        return this.data.containsKey(metadataClass);
     }
 
     @SuppressWarnings("unchecked")
@@ -197,10 +190,6 @@ public class CloudItemStack implements ItemStack {
     public boolean isBlock() {
         return false;
     }
-//    @Override
-//    public RecipeItemStackBuilder toRecipeBuilder() {
-//        return new NukkitRecipeItemStackBuilder(this);
-//    }
 
     public NbtMap getNbt() {
         return getNbt(true);
@@ -214,7 +203,6 @@ public class CloudItemStack implements ItemStack {
                 }
 
                 if (nbt == null) {
-                    System.out.println("loading");
                     NbtMapBuilder builder = NbtMap.builder();
                     CloudItemRegistry.get().getSerializer(this.type).serialize(this, builder);
                     this.nbt = builder.build();
@@ -250,7 +238,7 @@ public class CloudItemStack implements ItemStack {
     }
 
     public int getStackNetworkId() {
-        return stackNetId;
+        return this.stackNetId;
     }
 
     @Override

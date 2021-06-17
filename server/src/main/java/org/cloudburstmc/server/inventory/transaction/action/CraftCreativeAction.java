@@ -1,10 +1,16 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
+import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Log4j2
 public class CraftCreativeAction extends ItemStackAction {
     private final int creativeItemNetId;
 
@@ -19,14 +25,20 @@ public class CraftCreativeAction extends ItemStackAction {
             return false;
         }
 
-        ItemStack item = CloudItemRegistry.get().getCreativeItems().get(creativeItemNetId - 1);
+        ItemStack item = CloudItemRegistry.get().getCreativeItemByIndex(creativeItemNetId - 1);
+        item = item.withAmount(item.getType().getMaximumStackSize());
         return !item.isNull() && source.getCraftingInventory().setItem(CloudCraftingGrid.CRAFTING_RESULT_SLOT,
-                item.withAmount(item.getBehavior().getMaxStackSize(item)),
+                item,
                 false);
     }
 
     @Override
     public boolean execute(CloudPlayer source) {
         return true;
+    }
+
+    @Override
+    protected List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer source) {
+        return new ArrayList<>();
     }
 }

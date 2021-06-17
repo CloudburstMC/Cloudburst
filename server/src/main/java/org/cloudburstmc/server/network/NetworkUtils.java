@@ -163,12 +163,16 @@ public class NetworkUtils {
     public static ItemStackResponsePacket.ItemEntry itemStackToNetwork(StackRequestSlotInfoData data, BaseInventory inv) {
         int durablility = 0;
         CloudItemStack item = inv.getItem(data.getSlot());
-        if (item.getMetadata(Damageable.class, null) != null) {
+        if (item.hasMetadata(Damageable.class)) {
             durablility = item.getMetadata(Damageable.class).getDurability();
         }
 
+        if (item.getStackNetworkId() == -1) {
+            item.getNetworkData(); // Will regen and assign stack ID
+        }
+
         return new ItemStackResponsePacket.ItemEntry(data.getSlot(),
-                data.getSlot() >= 0 && data.getSlot() <= 9 ? data.getSlot() : 0,
+                data.getSlot(),
                 (byte) item.getAmount(),
                 item.getStackNetworkId(),
                 item.getName() == null ? "" : item.getName(),

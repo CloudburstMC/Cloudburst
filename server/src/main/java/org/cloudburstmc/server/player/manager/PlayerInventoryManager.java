@@ -65,7 +65,7 @@ public class PlayerInventoryManager {
                     source = ((TakeStackRequestActionData) action).getSource();
                     target = ((TakeStackRequestActionData) action).getDestination();
 
-                    this.transaction.addAction(new TakeItemStackAction(
+                    this.transaction.addAction(new MoveItemStackAction(
                             request.getRequestId(),
                             ((TakeStackRequestActionData) action).getCount(),
                             source,
@@ -76,7 +76,7 @@ public class PlayerInventoryManager {
                     source = ((PlaceStackRequestActionData) action).getSource();
                     target = ((PlaceStackRequestActionData) action).getDestination();
 
-                    this.transaction.addAction(new PlaceItemStackAction(
+                    this.transaction.addAction(new MoveItemStackAction(
                             request.getRequestId(),
                             ((PlaceStackRequestActionData) action).getCount(),
                             source,

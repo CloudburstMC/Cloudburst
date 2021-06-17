@@ -10,6 +10,7 @@ import lombok.ToString;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.ItemStackBuilder;
@@ -58,9 +59,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
         canDestroy.addAll(item.getCanDestroy());
         canPlaceOn.addAll(item.getCanPlaceOn());
         data.putAll(item.getMetadataMap());
-        dataTag = null; // Clear cached tags and regenerate NBT after build
-        nbt = null;
-        networkData = null;
+
         if (transferStackId) {
             stackNetworkId = item.getStackNetworkId();
         }
@@ -277,12 +276,7 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     @Override
     public CloudItemStack build() {
         Preconditions.checkArgument(itemType != null, "ItemType has not been set");
-
-        if (stackNetworkId == -1) {
-            stackNetworkId = CloudItemRegistry.get().getNetId();
-        }
-
-        if (amount <= 0) {
+        if (amount <= 0 && itemType != BlockTypes.AIR) {
             return CloudItemRegistry.get().AIR;
         }
 

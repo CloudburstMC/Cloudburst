@@ -95,7 +95,6 @@ import org.cloudburstmc.server.inventory.CloudEnderChestInventory;
 import org.cloudburstmc.server.inventory.CloudPlayerInventory;
 import org.cloudburstmc.server.inventory.PlayerCursorInventory;
 import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
@@ -500,7 +499,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(((CloudItemStack) this.getInventory().getItemInHand()).getNetworkData());
+        packet.setHand(this.getInventory().getItemInHand().getNetworkData());
         packet.setPlatformChatId("");
         packet.setDeviceId("");
         packet.getAdventureSettings().setCommandPermission((this.isOp() ? CommandPermission.OPERATOR : CommandPermission.NORMAL));
@@ -1575,6 +1574,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         settings.setRewindHistorySize(0);
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
+        startGamePacket.setServerEngine("");
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
