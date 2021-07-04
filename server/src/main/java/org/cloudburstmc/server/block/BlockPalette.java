@@ -5,8 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.*;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
@@ -17,9 +16,12 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -110,14 +112,33 @@ public class BlockPalette {
             return;
         }
 
-        sortedPalette.forEach((id, states) -> {
-            for (NbtMap nbt : states) {
-                BlockState state = serializedStateMap.get(nbt);
-                int runtimeId = runtimeIdAllocator.getAndIncrement();
-                this.runtimeStateMap.put(runtimeId, state);
-                this.stateRuntimeMap.put(state, runtimeId);
+        List<NbtMap> vanillaPalette;
+        InputStream stream = Bootstrap.class.getClassLoader().getResourceAsStream("data/block_palette.nbt");
+
+        if (stream == null) {
+            throw new AssertionError("Unable to load block palette");
+        }
+
+        try (NBTInputStream nbtStream = NbtUtils.createGZIPReader(stream)) {
+            NbtMap tag = (NbtMap) nbtStream.readTag();
+            vanillaPalette = tag.getList("blocks", NbtType.COMPOUND);
+        } catch (IOException e) {
+            throw new AssertionError("Unable to load block palette");
+        }
+
+        for (int i = 0; i < vanillaPalette.size(); i++) {
+            NbtMap nbt = vanillaPalette.get(i);
+
+            BlockState state = serializedStateMap.get(nbt);
+
+            if (state == null) {
+                log.warn("Block state not implemented for nbt {}", nbt);
+                continue;
             }
-        });
+
+            this.runtimeStateMap.put(i, state);
+            this.stateRuntimeMap.putIfAbsent(state, i);
+        }
     }
 
     public Map<String, Set<Object>> getVanillaTraitMap() {

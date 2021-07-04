@@ -35,9 +35,10 @@ public class BlockBehaviorFurnace extends BlockBehaviorSolid {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
+        Direction direction = player != null ? player.getHorizontalDirection().getOpposite() : Direction.NORTH;
         placeBlock(block,
                 item.getBehavior().getBlock(item)
-                        .withTrait(BlockTraits.FACING_DIRECTION, player != null ? player.getHorizontalDirection() : Direction.NORTH)
+                        .withTrait(BlockTraits.FACING_DIRECTION, direction)
                         .withTrait(BlockTraits.IS_EXTINGUISHED, true)
         );
 
