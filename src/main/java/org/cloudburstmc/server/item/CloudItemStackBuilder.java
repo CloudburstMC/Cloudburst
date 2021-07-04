@@ -276,12 +276,18 @@ public class CloudItemStackBuilder implements ItemStackBuilder {
     @Override
     public CloudItemStack build() {
         Preconditions.checkArgument(itemType != null, "ItemType has not been set");
+
+        CloudItemRegistry registry = CloudItemRegistry.get();
         if (amount <= 0 && itemType != BlockTypes.AIR) {
-            return CloudItemRegistry.get().AIR;
+            return registry.AIR;
+        }
+
+        if (registry != null) {
+            registry.getSerializer(itemType).getDefaultMetadataValues().forEach(this.data::putIfAbsent);
         }
 
         if (blockState != null) {
-            if (blockState == BlockStates.AIR && CloudItemRegistry.get() != null) {
+            if (blockState == BlockStates.AIR && registry != null) {
                 return CloudItemRegistry.get().AIR;
             }
 

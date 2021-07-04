@@ -1,11 +1,14 @@
 package org.cloudburstmc.server.item.serializer;
 
+import com.google.common.base.Preconditions;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
+
+import java.util.Map;
 
 public class EnumDamageSerializer extends DefaultItemSerializer {
 
@@ -17,6 +20,8 @@ public class EnumDamageSerializer extends DefaultItemSerializer {
     public EnumDamageSerializer(Class<? extends Enum<?>> enumClass) {
         this.enumClass = enumClass;
         this.values = enumClass.getEnumConstants();
+
+        Preconditions.checkArgument(values.length > 0, "Enum must contain at least one constant");
     }
 
     @Override
@@ -30,5 +35,10 @@ public class EnumDamageSerializer extends DefaultItemSerializer {
     public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
         super.deserialize(id, meta, amount, builder, tag);
         builder.itemData(values[meta % values.length]);
+    }
+
+    @Override
+    public Map<Class<?>, Object> getDefaultMetadataValues() {
+        return Map.of(enumClass, values[0]);
     }
 }

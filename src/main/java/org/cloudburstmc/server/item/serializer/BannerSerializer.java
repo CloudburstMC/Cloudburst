@@ -8,7 +8,15 @@ import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
 
+import java.util.Map;
+
 public class BannerSerializer extends DefaultItemSerializer {
+
+    private static final Map<Class<?>, Object> DEFAULT_VALUES;
+
+    static {
+        DEFAULT_VALUES = Map.of(DyeColor.class, DyeColor.WHITE);
+    }
 
     @Override
     public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
@@ -31,5 +39,10 @@ public class BannerSerializer extends DefaultItemSerializer {
         nbtBuilder.putCompound("tag", tagBuilder.putInt("Base", meta).build());
 
         super.deserialize(id, meta, amount, builder, nbtBuilder.build());
+    }
+
+    @Override
+    public Map<Class<?>, Object> getDefaultMetadataValues() {
+        return DEFAULT_VALUES;
     }
 }
