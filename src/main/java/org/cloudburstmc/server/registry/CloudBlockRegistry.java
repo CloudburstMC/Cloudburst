@@ -1,6 +1,12 @@
 package org.cloudburstmc.server.registry;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
@@ -16,10 +22,15 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ToolType;
+import org.cloudburstmc.api.item.ToolTypes;
 import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.block.BlockAttributes;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.behavior.*;
 import org.cloudburstmc.server.block.serializer.*;
@@ -29,10 +40,12 @@ import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.*;
@@ -63,9 +76,12 @@ public class CloudBlockRegistry implements Registry {
     private volatile boolean closed;
     private transient NbtList<NbtMap> serializedPalette;
 
+    private final Map<String, BlockAttributes> blockAttributes = new HashMap<>();
+
     private CloudBlockRegistry() {
         BlockTraitSerializers.init();
         this.registerVanillaBlocks();
+        this.loadBlockAttributes();
 
         // Check legacy IDs
         behaviorMap.forEach((bt, b) -> {
@@ -623,5 +639,67 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(RAW_GOLD_BLOCK);
 
 
+    }
+
+    private void loadBlockAttributes() {
+        var mapper = Bootstrap.JSON_MAPPER.copy();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.registerModule(
+                new SimpleModule()
+                        .addDeserializer(AxisAlignedBB.class, new JsonDeserializer<>() {
+
+                            private final Pattern regex = Pattern.compile("\\((\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?)\\)");
+
+                            @Override
+                            public AxisAlignedBB deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+                                var matcher = regex.matcher(jsonParser.getText());
+
+                                if (matcher.matches()) {
+                                    return new SimpleAxisAlignedBB(
+                                            Float.parseFloat(matcher.group(1)),
+                                            Float.parseFloat(matcher.group(2)),
+                                            Float.parseFloat(matcher.group(3)),
+                                            Float.parseFloat(matcher.group(4)),
+                                            Float.parseFloat(matcher.group(5)),
+                                            Float.parseFloat(matcher.group(6))
+                                    );
+                                }
+
+                                return null;
+                            }
+                        })
+                        .addDeserializer(ToolType.class, new JsonDeserializer<>() {
+
+                            @Override
+                            public ToolType deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+                                var toolName = jsonParser.getText().substring(10);
+
+                                return switch (toolName.toLowerCase()) {
+                                    case "sword" -> ToolTypes.SWORD;
+                                    case "shovel" -> ToolTypes.SHOVEL;
+                                    case "pickaxe" -> ToolTypes.PICKAXE;
+                                    case "axe" -> ToolTypes.AXE;
+                                    case "hoe" -> ToolTypes.HOE;
+                                    case "shears" -> ToolTypes.SHEARS;
+                                    default -> throw new IllegalArgumentException(toolName);
+                                };
+                            }
+                        })
+        );
+
+        try (InputStream in = RegistryUtils.getOrAssertResource("data/block_attributes.json")) {
+            var blocks = mapper.readValue(in, new TypeReference<List<Map<String, Object>>>() {
+            });
+
+            for (Map<String, Object> blockEntry : blocks) {
+                this.blockAttributes.put(
+                        (String) blockEntry.get("name"),
+                        mapper.convertValue(blockEntry, new TypeReference<>() {
+                        })
+                );
+            }
+        } catch (IOException e) {
+            throw new RegistryException("Error loading vanilla block attributes", e);
+        }
     }
 }
