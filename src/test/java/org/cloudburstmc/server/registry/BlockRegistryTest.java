@@ -28,7 +28,7 @@ public class BlockRegistryTest {
     @Test
     public void blockPaletteTest() throws IOException {
         LinkedList<NbtMap> vanillaPalette;
-        InputStream stream = BlockRegistryTest.class.getClassLoader().getResourceAsStream("block_palette.nbt");
+        InputStream stream = BlockRegistryTest.class.getClassLoader().getResourceAsStream("data/block_palette.nbt");
         try (NBTInputStream nbtStream = NbtUtils.createGZIPReader(stream)) {
             NbtMap tag = (NbtMap) nbtStream.readTag();
             vanillaPalette = new LinkedList<>(tag.getList("blocks", NbtType.COMPOUND));
