@@ -93,7 +93,8 @@ public class DirectionHelper {
         );
 
         register(TYPE_8,
-                OBSERVER
+                OBSERVER,
+                END_ROD
         );
 
         register(TYPE_9,
@@ -111,7 +112,6 @@ public class DirectionHelper {
                 HOPPER,
                 DROPPER,
                 DISPENSER,
-                END_ROD,
                 PISTON,
                 PISTON_ARM_COLLISION,
                 LADDER,

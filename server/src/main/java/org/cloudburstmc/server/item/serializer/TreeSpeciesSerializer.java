@@ -11,7 +11,11 @@ import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
 
+import java.util.Map;
+
 public class TreeSpeciesSerializer extends DefaultItemSerializer {
+
+    private static final Map<Class<?>, Object> DEFAULT_VALUES;
 
     public static final TreeSpeciesSerializer DOOR = new TreeSpeciesSerializer(ItemIds.WOODEN_DOOR, ItemIds.SPRUCE_DOOR, ItemIds.BIRCH_DOOR, ItemIds.JUNGLE_DOOR, ItemIds.ACACIA_DOOR, ItemIds.DARK_OAK_DOOR, ItemIds.CRIMSON_DOOR, ItemIds.WARPED_DOOR);
     public static final TreeSpeciesSerializer SIGN = new TreeSpeciesSerializer(ItemIds.SIGN, ItemIds.SPRUCE_SIGN, ItemIds.BIRCH_SIGN, ItemIds.JUNGLE_SIGN, ItemIds.ACACIA_SIGN, ItemIds.DARK_OAK_SIGN, ItemIds.CRIMSON_SIGN, ItemIds.WARPED_SIGN);
@@ -19,6 +23,10 @@ public class TreeSpeciesSerializer extends DefaultItemSerializer {
 
     private final Identifier[] identifiers;
     private final Reference2ObjectMap<Identifier, TreeSpecies> dataMap = new Reference2ObjectOpenHashMap<>();
+
+    static {
+        DEFAULT_VALUES = Map.of(TreeSpecies.class, TreeSpecies.OAK);
+    }
 
     public TreeSpeciesSerializer(Identifier... identifiers) {
         Preconditions.checkNotNull(identifiers, "identifiers");
@@ -41,5 +49,10 @@ public class TreeSpeciesSerializer extends DefaultItemSerializer {
     public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
         super.deserialize(id, meta, amount, builder, tag);
         builder.itemData(dataMap.getOrDefault(id, TreeSpecies.OAK));
+    }
+
+    @Override
+    public Map<Class<?>, Object> getDefaultMetadataValues() {
+        return DEFAULT_VALUES;
     }
 }

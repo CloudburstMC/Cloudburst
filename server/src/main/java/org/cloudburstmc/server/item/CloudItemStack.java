@@ -41,8 +41,8 @@ public class CloudItemStack implements ItemStack {
     protected final ImmutableMap<EnchantmentType, EnchantmentInstance> enchantments;
     protected final Set<Identifier> canDestroy;
     protected final Set<Identifier> canPlaceOn;
-    protected final Map<Class<?>, Object> data;
 
+    protected volatile Map<Class<?>, Object> data;
     protected volatile NbtMap nbt;
     protected volatile NbtMap dataTag;
     protected volatile ItemData networkData;
@@ -80,7 +80,7 @@ public class CloudItemStack implements ItemStack {
         this.enchantments = enchantments == null ? ImmutableMap.of() : ImmutableMap.copyOf(enchantments);
         this.canDestroy = canDestroy == null ? ImmutableSet.of() : ImmutableSet.copyOf(canDestroy);
         this.canPlaceOn = canPlaceOn == null ? ImmutableSet.of() : ImmutableSet.copyOf(canPlaceOn);
-        this.data = data == null ? Collections.emptyMap() : new Reference2ReferenceOpenHashMap<>(data);
+        this.data = data == null ? new Reference2ReferenceOpenHashMap<>() : new Reference2ReferenceOpenHashMap<>(data);
         this.nbt = nbt;
         this.dataTag = dataTag;
         this.networkData = networkData;
@@ -131,26 +131,27 @@ public class CloudItemStack implements ItemStack {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getMetadata(Class<T> metadataClass, T defaultValue) {
-        T value = (T) this.data.get(metadataClass);
-
-        if (value == null) {
-            var serializer = CloudItemRegistry.get().getSerializer(metadataClass);
-            if (serializer != null) {
-                value = (T) serializer.deserialize(this.id, getNbt(true), getDataTag());
-            }
-
-            if (value == null) {
-                value = (T) NONE_VALUE;
-            }
-
-            this.data.put(metadataClass, value);
-        }
+        T value = (T) this.data.getOrDefault(metadataClass, NONE_VALUE);
 
         if (value == NONE_VALUE) {
-            return defaultValue;
+            synchronized (this.canPlaceOn) {
+                value = (T) this.data.getOrDefault(metadataClass, NONE_VALUE);
+
+                if (value == NONE_VALUE) {
+                    var serializer = CloudItemRegistry.get().getSerializer(metadataClass);
+                    if (serializer != null) {
+                        value = (T) serializer.deserialize(this.id, getNbt(true), getDataTag());
+                    }
+
+                    Map<Class<?>, Object> copy = new Reference2ReferenceOpenHashMap<>(this.data);
+                    copy.put(metadataClass, value);
+
+                    this.data = copy;
+                }
+            }
         }
 
-        return value;
+        return value == null ? defaultValue : value;
     }
 
     public ImmutableMap<Class<?>, Object> getData() {
