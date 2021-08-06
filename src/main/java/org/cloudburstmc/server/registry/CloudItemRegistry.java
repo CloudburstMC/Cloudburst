@@ -3,7 +3,6 @@ package org.cloudburstmc.server.registry;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
@@ -742,9 +741,7 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     public ItemStack getCreativeItemByIndex(int index) {
-        ItemData itemData = itemPalette.getCreativeItems().get(index);
-        ItemType type = ItemTypes.byId(itemPalette.getIdByRuntime(itemData.getId(), itemData.getDamage()));
-        return getItem(type, type.getMaximumStackSize());
+        return ItemUtils.fromNetwork(itemPalette.getCreativeItems().get(index));
     }
 
     public CreativeContentPacket getCreativeContent() {

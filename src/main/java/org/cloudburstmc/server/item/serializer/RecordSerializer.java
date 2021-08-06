@@ -8,7 +8,15 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.CloudItemStackBuilder;
 
+import java.util.Map;
+
 public class RecordSerializer extends DefaultItemSerializer {
+
+    private static final Map<Class<?>, Object> DEFAULT_VALUES;
+
+    static {
+        DEFAULT_VALUES = Map.of(Record.class, Record.CAT);
+    }
 
     @Override
     public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
@@ -131,5 +139,10 @@ public class RecordSerializer extends DefaultItemSerializer {
         }
 
         builder.itemData(Record.THIRTEEN);
+    }
+
+    @Override
+    public Map<Class<?>, Object> getDefaultMetadataValues() {
+        return DEFAULT_VALUES;
     }
 }

@@ -6,8 +6,10 @@ import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.event.block.BlockRedstoneEvent;
 import org.cloudburstmc.api.event.block.DoorToggleEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 
@@ -218,6 +220,11 @@ public abstract class BlockBehaviorDoor extends BlockBehaviorTransparent {
             BlockState right = block.getSide(direction.rotateY()).getState();
 
             BlockState door = item.getBehavior().getBlock(item).withTrait(BlockTraits.DIRECTION, direction);
+
+            if (item.getType() == ItemTypes.WOODEN_DOOR) {
+                door = door.withTrait(BlockTraits.TREE_SPECIES, item.getMetadata(TreeSpecies.class));
+            }
+
             placeBlock(block, door);
 
             door = door.withTrait(BlockTraits.IS_UPPER_BLOCK, true);
