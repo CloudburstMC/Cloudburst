@@ -19,7 +19,7 @@ public interface BlockRegistry extends Registry {
 
     int getRuntimeId(BlockState state);
 
-    int getRundtimeId(Identifier id, int meta);
+    int getRuntimeId(Identifier id, int meta);
 
     BlockState getBlock(BlockType type);
 
