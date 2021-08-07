@@ -24,7 +24,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ToolType;
 import org.cloudburstmc.api.item.ToolTypes;
-import org.cloudburstmc.api.registry.BlockRegistry;
+import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Identifier;
@@ -51,7 +51,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
 @Log4j2
-public class CloudBlockRegistry implements BlockRegistry {
+public class CloudBlockRegistry implements Registry {
     private static final CloudBlockRegistry INSTANCE;
     private static final HashBiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create();
 
@@ -165,7 +165,7 @@ public class CloudBlockRegistry implements BlockRegistry {
         }
     }
 
-    public boolean isBlock(Identifier id) {
+    boolean isBlock(Identifier id) {
         return this.VANILLA_LEGACY_IDS.containsKey(id);
     }
 
@@ -173,7 +173,6 @@ public class CloudBlockRegistry implements BlockRegistry {
         return this.palette.getRuntimeId(blockState);
     }
 
-    @Override
     public int getRuntimeId(Identifier identifier, int meta) {
         NbtMap tag = NbtMap.builder()
                 .putString("name", identifier.toString())
