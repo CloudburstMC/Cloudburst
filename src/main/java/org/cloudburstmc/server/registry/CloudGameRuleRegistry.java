@@ -75,31 +75,33 @@ public class CloudGameRuleRegistry implements GameRuleRegistry, Registry {
 
     private void registerVanilla() {
         this.register(GameRules.COMMAND_BLOCK_OUTPUT);
+        this.register(GameRules.COMMAND_BLOCKS_ENABLED);
         this.register(GameRules.DO_DAYLIGHT_CYCLE);
         this.register(GameRules.DO_ENTITY_DROPS);
         this.register(GameRules.DO_FIRE_TICK);
+        this.register(GameRules.DO_IMMEDIATE_RESPAWN);
+        this.register(GameRules.DO_INSOMNIA);
         this.register(GameRules.DO_MOB_LOOT);
         this.register(GameRules.DO_MOB_SPAWNING);
         this.register(GameRules.DO_TILE_DROPS);
         this.register(GameRules.DO_WEATHER_CYCLE);
         this.register(GameRules.DROWNING_DAMAGE);
+        this.register(GameRules.EXPERIMENTAL_GAME_PLAY);
         this.register(GameRules.FALL_DAMAGE);
         this.register(GameRules.FIRE_DAMAGE);
-        this.register(GameRules.KEEP_INVENTORY);
-        this.register(GameRules.MOB_GRIEFING);
-        this.register(GameRules.PVP);
-        this.register(GameRules.SHOW_COORDINATES);
-        this.register(GameRules.NATURAL_REGENERATION);
-        this.register(GameRules.TNT_EXPLODES);
-        this.register(GameRules.SEND_COMMAND_FEEDBACK);
-        this.register(GameRules.EXPERIMENTAL_GAME_PLAY);
-        this.register(GameRules.MAX_COMMAND_CHAIN_LENGTH);
-        this.register(GameRules.DO_INSOMNIA);
-        this.register(GameRules.COMMAND_BLOCKS_ENABLED);
-        this.register(GameRules.RANDOM_TICK_SPEED);
-        this.register(GameRules.DO_IMMEDIATE_RESPAWN);
-        this.register(GameRules.SHOW_DEATH_MESSAGES);
+        this.register(GameRules.FREEZE_DAMAGE);
         this.register(GameRules.FUNCTION_COMMAND_LIMIT);
+        this.register(GameRules.KEEP_INVENTORY);
+        this.register(GameRules.MAX_COMMAND_CHAIN_LENGTH);
+        this.register(GameRules.MOB_GRIEFING);
+        this.register(GameRules.NATURAL_REGENERATION);
+        this.register(GameRules.PVP);
+        this.register(GameRules.RANDOM_TICK_SPEED);
+        this.register(GameRules.SEND_COMMAND_FEEDBACK);
+        this.register(GameRules.SHOW_COORDINATES);
+        this.register(GameRules.SHOW_DEATH_MESSAGES);
+        this.register(GameRules.SHOW_TAGS);
         this.register(GameRules.SPAWN_RADIUS);
+        this.register(GameRules.TNT_EXPLODES);
     }
 }

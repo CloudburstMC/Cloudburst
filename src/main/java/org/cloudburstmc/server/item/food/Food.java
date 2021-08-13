@@ -33,7 +33,7 @@ public abstract class Food implements org.cloudburstmc.api.item.Food {
     public static final Food apple_golden_enchanted = registerFood(APPLE_ENCHANTED, new FoodEffective(4, 9.6F)
             .addEffect(new CloudEffect(EffectTypes.REGENERATION).setAmplifier(4).setDuration(30 * 20))
             .addEffect(new CloudEffect(EffectTypes.ABSORPTION).setDuration(2 * 60 * 20).setAmplifier(3))
-            .addEffect(new CloudEffect(EffectTypes.DAMAGE_RESISTANCE).setDuration(5 * 60 * 20))
+            .addEffect(new CloudEffect(EffectTypes.RESISTANCE).setDuration(5 * 60 * 20))
             .addEffect(new CloudEffect(EffectTypes.FIRE_RESISTANCE).setDuration(5 * 60 * 20)));
     public static final Food beef_raw = registerFood(BEEF, new FoodNormal(3, 1.8F));
     public static final Food beetroot = registerFood(BEETROOT, new FoodNormal(1, 1.2F));

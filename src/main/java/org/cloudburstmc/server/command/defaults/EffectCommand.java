@@ -79,7 +79,7 @@ public class EffectCommand extends Command {
             } catch (NumberFormatException a) {
                 return false;
             }
-            if(effect.getType() == EffectTypes.HEALING || effect.getType() == EffectTypes.HARMING) {
+            if (effect.getType() == EffectTypes.INSTANT_HEALTH || effect.getType() == EffectTypes.INSTANT_DAMAGE) {
                 duration *= 1;
             } else {
                 duration *= 20;
