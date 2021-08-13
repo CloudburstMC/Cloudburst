@@ -298,9 +298,9 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
                         }
 
                         for (CloudEffect effect : cloudEffects) {
-                            if (effect.getType() == EffectTypes.HEALING || effect.getType() == EffectTypes.HARMING) {
+                            if (effect.getType() == EffectTypes.INSTANT_HEALTH || effect.getType() == EffectTypes.INSTANT_DAMAGE) {
                                 boolean damage = false;
-                                if (effect.getType() == EffectTypes.HARMING) {
+                                if (effect.getType() == EffectTypes.INSTANT_DAMAGE) {
                                     damage = true;
                                 }
                                 if (collidingEntity.isUndead()) {

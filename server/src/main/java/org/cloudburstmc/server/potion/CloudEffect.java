@@ -119,7 +119,7 @@ public class CloudEffect extends Effect {
 
             player.sendPacket(packet);
 
-            if (this.getType() == EffectTypes.SWIFTNESS) {
+            if (this.getType() == EffectTypes.SPEED) {
                 if (oldEffect != null) {
                     player.setMovementSpeed(player.getMovementSpeed() / (1 + 0.2f * (oldEffect.getAmplifier() + 1)), false);
                 }
@@ -154,7 +154,7 @@ public class CloudEffect extends Effect {
 
             ((CloudPlayer) entity).sendPacket(packet);
 
-            if (this.getType() == EffectTypes.SWIFTNESS) {
+            if (this.getType() == EffectTypes.SPEED) {
                 ((Player) entity).setMovementSpeed(((Player) entity).getMovementSpeed() / (1 + 0.2f * (this.getAmplifier() + 1)));
             }
             if (this.getType() == EffectTypes.SLOWNESS) {
