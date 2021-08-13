@@ -11,8 +11,6 @@ import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import static org.cloudburstmc.api.potion.EffectTypes.HARMING;
-
 /**
  * author: MagicDroidX
  * Nukkit Project
@@ -65,12 +63,12 @@ public class CloudPotion extends Potion {
 
         applyEffect = event.getApplyEffect();
 
-        if (potion.getType() == EffectTypes.HEALING) {
+        if (potion.getType() == EffectTypes.INSTANT_HEALTH) {
             if (entity.isUndead())
                 entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.MAGIC, (float) (health * (double) (6 << (applyEffect.getAmplifier() + 1)))));
             else
                 entity.heal(new EntityRegainHealthEvent(entity, (float) (health * (double) (4 << (applyEffect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
-        } else if (potion.getType() == HARMING) {
+        } else if (potion.getType() == EffectTypes.INSTANT_DAMAGE) {
             if (entity.isUndead())
                 entity.heal(new EntityRegainHealthEvent(entity, (float) (health * (double) (4 << (applyEffect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
             else
