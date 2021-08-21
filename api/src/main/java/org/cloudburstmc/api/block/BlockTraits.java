@@ -30,7 +30,14 @@ public class BlockTraits {
     public static final EnumBlockTrait<ChiselType> CHISEL_TYPE = EnumBlockTrait.of("chisel_type", ChiselType.class);
     public static final IntegerBlockTrait CLUSTER_COUNT = IntegerBlockTrait.from("cluster_count", 4);
     public static final EnumBlockTrait<ClusterSize> CLUSTER_SIZE = EnumBlockTrait.of("cluster_size", ClusterSize.class, ClusterSize.SMALL);
-    public static final EnumBlockTrait<DyeColor> COLOR = EnumBlockTrait.of("color", DyeColor.class);
+    // Default 16 Colors
+    public static final EnumBlockTrait<DyeColor> COLOR = EnumBlockTrait.of("color", DyeColor.class, DyeColor.BLACK, DyeColor.RED, DyeColor.GREEN, DyeColor.BROWN, DyeColor.BLUE, DyeColor.PURPLE, DyeColor.CYAN, DyeColor.LIGHT_GRAY, DyeColor.GRAY, DyeColor.PINK, DyeColor.LIME, DyeColor.YELLOW, DyeColor.LIGHT_BLUE, DyeColor.MAGENTA, DyeColor.ORANGE, DyeColor.WHITE);
+    // Includes "None" and "Silver"
+    public static final EnumBlockTrait<DyeColor> COLOR_ALL = EnumBlockTrait.of("color", DyeColor.class, DyeColor.NONE);
+    // Used for Candle and Candle_Cake blockstates
+    public static final EnumBlockTrait<DyeColor> COLOR_CANDLE = EnumBlockTrait.of("color", DyeColor.class, DyeColor.NONE, DyeColor.BLACK, DyeColor.RED, DyeColor.GREEN, DyeColor.BROWN, DyeColor.BLUE, DyeColor.PURPLE, DyeColor.CYAN, DyeColor.LIGHT_GRAY, DyeColor.GRAY, DyeColor.PINK, DyeColor.LIME, DyeColor.YELLOW, DyeColor.LIGHT_BLUE, DyeColor.MAGENTA, DyeColor.ORANGE, DyeColor.WHITE);
+    // Glazed Terracotta colors, where Light Gray = Silver
+    public static final EnumBlockTrait<DyeColor> COLOR_TERRACOTTA = EnumBlockTrait.of("color", DyeColor.class, DyeColor.BLACK, DyeColor.RED, DyeColor.GREEN, DyeColor.BROWN, DyeColor.BLUE, DyeColor.PURPLE, DyeColor.CYAN, DyeColor.SILVER, DyeColor.GRAY, DyeColor.PINK, DyeColor.LIME, DyeColor.YELLOW, DyeColor.LIGHT_BLUE, DyeColor.MAGENTA, DyeColor.ORANGE, DyeColor.WHITE);
     public static final IntegerBlockTrait COMPOSTER_FILL_LEVEL = IntegerBlockTrait.from("composter_fill_level", 9);
     public static final EnumBlockTrait<CopperType> COPPER_TYPE = EnumBlockTrait.of("copper_type", CopperType.class, CopperType.RAW);
     public static final EnumBlockTrait<DyeColor> CORAL_COLOR = EnumBlockTrait.of("coral_color", DyeColor.class,
@@ -152,6 +159,9 @@ public class BlockTraits {
     public static final BooleanBlockTrait HAS_STABILITY_CHECK = BooleanBlockTrait.of("has_stability_check", "stability_check");
     public static final BooleanBlockTrait HAS_UPDATE = BooleanBlockTrait.of("has_update", "update_bit");
     public static final BooleanBlockTrait HAS_MAP = BooleanBlockTrait.of("has_map", "item_frame_map_bit");
+
+    public static final BooleanBlockTrait IS_LIT = BooleanBlockTrait.of("is_lit", "lit");
+    public static final IntegerBlockTrait CANDLES = IntegerBlockTrait.from("candles", 0, 3);
 
     @Deprecated
     public static final IntegerBlockTrait DEPRECATED = IntegerBlockTrait.from("deprecated", 4);

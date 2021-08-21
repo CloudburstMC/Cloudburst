@@ -189,7 +189,7 @@ public class BlockTypes {
     public static final BlockType BONE_BLOCK = BlockType.of(Identifiers.BONE_BLOCK, BlockTraits.DEPRECATED, BlockTraits.AXIS);
     public static final BlockType STRUCTURE_VOID = BlockType.of(Identifiers.STRUCTURE_VOID, BlockTraits.STRUCTURE_VOID_TYPE);
     public static final BlockType SHULKER_BOX = BlockType.of(Identifiers.SHULKER_BOX, BlockTraits.COLOR);
-    public static final BlockType GLAZED_TERRACOTTA = BlockType.of(Identifiers.WHITE_GLAZED_TERRACOTTA, BlockTraits.FACING_DIRECTION, BlockTraits.COLOR);
+    public static final BlockType GLAZED_TERRACOTTA = BlockType.of(Identifiers.WHITE_GLAZED_TERRACOTTA, BlockTraits.FACING_DIRECTION, BlockTraits.COLOR_TERRACOTTA);
     public static final BlockType CONCRETE = BlockType.of(Identifiers.CONCRETE, BlockTraits.COLOR);
     public static final BlockType CONCRETE_POWDER = BlockType.of(Identifiers.CONCRETE_POWDER, BlockTraits.COLOR);
     public static final BlockType CHEMISTRY_TABLE = BlockType.of(Identifiers.CHEMISTRY_TABLE, BlockTraits.CHEMISTRY_TABLE_TYPE, BlockTraits.DIRECTION);
@@ -327,6 +327,9 @@ public class BlockTypes {
     public static final BlockType RAW_COPPER_BLOCK = BlockType.of(BlockIds.RAW_COPPER_BLOCK);
     public static final BlockType RAW_IRON_BLOCK = BlockType.of(BlockIds.RAW_IRON_BLOCK);
     public static final BlockType RAW_GOLD_BLOCK = BlockType.of(BlockIds.RAW_GOLD_BLOCK);
+
+    public static final BlockType CANDLE = BlockType.of(BlockIds.CANDLE, BlockTraits.CANDLES, BlockTraits.IS_LIT, BlockTraits.COLOR_CANDLE);
+    public static final BlockType CANDLE_CAKE = BlockType.of(BlockIds.CANDLE_CAKE, BlockTraits.IS_LIT, BlockTraits.COLOR_CANDLE);
 
     public static final BlockType UNKNOWN = BlockType.of(Identifiers.UNKNOWN);
 }

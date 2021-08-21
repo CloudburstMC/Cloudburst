@@ -37,6 +37,8 @@ public class BlockStates {
     public static final BlockState CAKE = BlockTypes.CAKE.getDefaultState();
     public static final BlockState CAMERA = BlockTypes.CAMERA.getDefaultState();
     public static final BlockState CAMPFIRE = BlockTypes.CAMPFIRE.getDefaultState();
+    public static final BlockState CANDLE = BlockTypes.CANDLE.getDefaultState();
+    public static final BlockState CANDLE_CAKE = BlockTypes.CANDLE_CAKE.getDefaultState();
     public static final BlockState CARPET = BlockTypes.CARPET.getDefaultState();
     public static final BlockState CARROTS = BlockTypes.CARROTS.getDefaultState();
     public static final BlockState CARTOGRAPHY_TABLE = BlockTypes.CARTOGRAPHY_TABLE.getDefaultState();

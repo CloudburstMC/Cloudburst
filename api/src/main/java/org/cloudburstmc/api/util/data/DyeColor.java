@@ -2,7 +2,7 @@ package org.cloudburstmc.api.util.data;
 
 public enum DyeColor {
 
-
+    NONE(-1, -1, "", "No Color", BlockColor.TRANSPARENT_BLOCK_COLOR),
     BLACK(0, 15, "Black", "Ink Sac", BlockColor.BLACK_BLOCK_COLOR),
     RED(1, 14, "Red", "Rose Red", BlockColor.RED_BLOCK_COLOR),
     GREEN(2, 13, "Green", "Cactus Green", BlockColor.GREEN_BLOCK_COLOR),
@@ -18,7 +18,8 @@ public enum DyeColor {
     LIGHT_BLUE(12, 3, "Light Blue", BlockColor.LIGHT_BLUE_BLOCK_COLOR),
     MAGENTA(13, 2, "Magenta", BlockColor.MAGENTA_BLOCK_COLOR),
     ORANGE(14, 1, "Orange", BlockColor.ORANGE_BLOCK_COLOR),
-    WHITE(15, 0, "White", "Bone Meal", BlockColor.WHITE_BLOCK_COLOR);
+    WHITE(15, 0, "White", "Bone Meal", BlockColor.WHITE_BLOCK_COLOR),
+    SILVER(7, 8, "Silver", "Silver", BlockColor.LIGHT_GRAY_BLOCK_COLOR);
 
 
     private int dyeColorMeta;

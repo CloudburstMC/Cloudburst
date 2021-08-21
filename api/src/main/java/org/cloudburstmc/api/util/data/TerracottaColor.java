@@ -20,7 +20,7 @@ public class TerracottaColor {
         register(BlockIds.BLUE_GLAZED_TERRACOTTA, DyeColor.BLUE, BlockColor.BLUE_TERRACOTA_BLOCK_COLOR);
         register(BlockIds.PURPLE_GLAZED_TERRACOTTA, DyeColor.PURPLE, BlockColor.PURPLE_TERRACOTA_BLOCK_COLOR);
         register(BlockIds.CYAN_GLAZED_TERRACOTTA, DyeColor.CYAN, BlockColor.CYAN_TERRACOTA_BLOCK_COLOR);
-        register(BlockIds.SILVER_GLAZED_TERRACOTTA, DyeColor.LIGHT_GRAY, BlockColor.LIGHT_GRAY_TERRACOTA_BLOCK_COLOR);
+        register(BlockIds.SILVER_GLAZED_TERRACOTTA, DyeColor.SILVER, BlockColor.LIGHT_GRAY_TERRACOTA_BLOCK_COLOR);
         register(BlockIds.GRAY_GLAZED_TERRACOTTA, DyeColor.GRAY, BlockColor.GRAY_TERRACOTA_BLOCK_COLOR);
         register(BlockIds.PINK_GLAZED_TERRACOTTA, DyeColor.PINK, BlockColor.PINK_TERRACOTA_BLOCK_COLOR);
         register(BlockIds.LIME_GLAZED_TERRACOTTA, DyeColor.LIME, BlockColor.LIME_TERRACOTA_BLOCK_COLOR);

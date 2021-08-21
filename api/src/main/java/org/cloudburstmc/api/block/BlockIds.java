@@ -52,8 +52,12 @@ public final class BlockIds {
     public static final Identifier BLACKSTONE_SLAB = Identifier.fromString("blackstone_slab");
     public static final Identifier BLACKSTONE_STAIRS = Identifier.fromString("blackstone_stairs");
     public static final Identifier BLACKSTONE_WALL = Identifier.fromString("blackstone_wall");
+    public static final Identifier BLACK_CANDLE = Identifier.fromString("black_candle");
+    public static final Identifier BLACK_CANDLE_CAKE = Identifier.fromString("black_candle_cake");
     public static final Identifier BLACK_GLAZED_TERRACOTTA = Identifier.fromString("black_glazed_terracotta");
     public static final Identifier BLAST_FURNACE = Identifier.fromString("blast_furnace");
+    public static final Identifier BLUE_CANDLE = Identifier.fromString("blue_candle");
+    public static final Identifier BLUE_CANDLE_CAKE = Identifier.fromString("blue_candle_cake");
     public static final Identifier BLUE_GLAZED_TERRACOTTA = Identifier.fromString("blue_glazed_terracotta");
     public static final Identifier BLUE_ICE = Identifier.fromString("blue_ice");
     public static final Identifier BONE_BLOCK = Identifier.fromString("bone_block");
@@ -62,6 +66,8 @@ public final class BlockIds {
     public static final Identifier BREWING_STAND = Identifier.fromString("brewing_stand");
     public static final Identifier BRICK_BLOCK = Identifier.fromString("brick_block");
     public static final Identifier BRICK_STAIRS = Identifier.fromString("brick_stairs");
+    public static final Identifier BROWN_CANDLE = Identifier.fromString("brown_candle");
+    public static final Identifier BROWN_CANDLE_CAKE = Identifier.fromString("brown_candle_cake");
     public static final Identifier BROWN_GLAZED_TERRACOTTA = Identifier.fromString("brown_glazed_terracotta");
     public static final Identifier BROWN_MUSHROOM = Identifier.fromString("brown_mushroom");
     public static final Identifier BROWN_MUSHROOM_BLOCK = Identifier.fromString("brown_mushroom_block");
@@ -72,6 +78,8 @@ public final class BlockIds {
     public static final Identifier CALCITE = Identifier.fromString("calcite");
     public static final Identifier CAMERA = Identifier.fromString("camera");
     public static final Identifier CAMPFIRE = Identifier.fromString("campfire");
+    public static final Identifier CANDLE = Identifier.fromString("candle");
+    public static final Identifier CANDLE_CAKE = Identifier.fromString("candle_cake");
     public static final Identifier CARPET = Identifier.fromString("carpet");
     public static final Identifier CARROTS = Identifier.fromString("carrots");
     public static final Identifier CARTOGRAPHY_TABLE = Identifier.fromString("cartography_table");
@@ -143,6 +151,8 @@ public final class BlockIds {
     public static final Identifier CUT_COPPER = Identifier.fromString("cut_copper");
     public static final Identifier CUT_COPPER_SLAB = Identifier.fromString("cut_copper_slab");
     public static final Identifier CUT_COPPER_STAIRS = Identifier.fromString("cut_copper_stairs");
+    public static final Identifier CYAN_CANDLE = Identifier.fromString("cyan_candle");
+    public static final Identifier CYAN_CANDLE_CAKE = Identifier.fromString("cyan_candle_cake");
     public static final Identifier CYAN_GLAZED_TERRACOTTA = Identifier.fromString("cyan_glazed_terracotta");
     public static final Identifier DARK_OAK_STANDING_SIGN = Identifier.fromString("darkoak_standing_sign");
     public static final Identifier DARK_OAK_WALL_SIGN = Identifier.fromString("darkoak_wall_sign");
@@ -355,7 +365,11 @@ public final class BlockIds {
     public static final Identifier GRASS = Identifier.fromString("grass");
     public static final Identifier GRASS_PATH = Identifier.fromString("grass_path");
     public static final Identifier GRAVEL = Identifier.fromString("gravel");
+    public static final Identifier GRAY_CANDLE = Identifier.fromString("gray_candle");
+    public static final Identifier GRAY_CANDLE_CAKE = Identifier.fromString("gray_candle_cake");
     public static final Identifier GRAY_GLAZED_TERRACOTTA = Identifier.fromString("gray_glazed_terracotta");
+    public static final Identifier GREEN_CANDLE = Identifier.fromString("green_candle");
+    public static final Identifier GREEN_CANDLE_CAKE = Identifier.fromString("green_candle_cake");
     public static final Identifier GREEN_GLAZED_TERRACOTTA = Identifier.fromString("green_glazed_terracotta");
     public static final Identifier GRINDSTONE = Identifier.fromString("grindstone");
     public static final Identifier HANGING_ROOTS = Identifier.fromString("hanging_roots");
@@ -402,9 +416,15 @@ public final class BlockIds {
     public static final Identifier LECTERN = Identifier.fromString("lectern");
     public static final Identifier LEVER = Identifier.fromString("lever");
     public static final Identifier LIGHT_BLOCK = Identifier.fromString("light_block");
+    public static final Identifier LIGHT_BLUE_CANDLE = Identifier.fromString("light_blue_candle");
+    public static final Identifier LIGHT_BLUE_CANDLE_CAKE = Identifier.fromString("light_blue_candle_cake");
     public static final Identifier LIGHT_BLUE_GLAZED_TERRACOTTA = Identifier.fromString("light_blue_glazed_terracotta");
+    public static final Identifier LIGHT_GRAY_CANDLE = Identifier.fromString("light_gray_candle");
+    public static final Identifier LIGHT_GRAY_CANDLE_CAKE = Identifier.fromString("light_gray_candle_cake");
     public static final Identifier LIGHT_WEIGHTED_PRESSURE_PLATE = Identifier.fromString("light_weighted_pressure_plate");
     public static final Identifier LIGHTNING_ROD = Identifier.fromString("lightning_rod");
+    public static final Identifier LIME_CANDLE = Identifier.fromString("lime_candle");
+    public static final Identifier LIME_CANDLE_CAKE = Identifier.fromString("lime_candle_cake");
     public static final Identifier LIME_GLAZED_TERRACOTTA = Identifier.fromString("lime_glazed_terracotta");
     public static final Identifier LIT_BLAST_FURNACE = Identifier.fromString("lit_blast_furnace");
     public static final Identifier LIT_DEEPSLATE_REDSTONE_ORE = Identifier.fromString("lit_deepslate_redstone_ore");
@@ -417,6 +437,8 @@ public final class BlockIds {
     public static final Identifier LOG = Identifier.fromString("log");
     public static final Identifier LOG2 = Identifier.fromString("log2");
     public static final Identifier LOOM = Identifier.fromString("loom");
+    public static final Identifier MAGENTA_CANDLE = Identifier.fromString("magenta_candle");
+    public static final Identifier MAGENTA_CANDLE_CAKE = Identifier.fromString("magenta_candle_cake");
     public static final Identifier MAGENTA_GLAZED_TERRACOTTA = Identifier.fromString("magenta_glazed_terracotta");
     public static final Identifier MAGMA = Identifier.fromString("magma");
     public static final Identifier MEDIUM_AMETHYST_BUD = Identifier.fromString("medium_amethyst_bud");
@@ -449,6 +471,8 @@ public final class BlockIds {
     public static final Identifier OAK_STAIRS = Identifier.fromString("oak_stairs");
     public static final Identifier OBSERVER = Identifier.fromString("observer");
     public static final Identifier OBSIDIAN = Identifier.fromString("obsidian");
+    public static final Identifier ORANGE_CANDLE = Identifier.fromString("orange_candle");
+    public static final Identifier ORANGE_CANDLE_CAKE = Identifier.fromString("orange_candle_cake");
     public static final Identifier ORANGE_GLAZED_TERRACOTTA = Identifier.fromString("orange_glazed_terracotta");
     public static final Identifier OXIDIZED_COPPER = Identifier.fromString("oxidized_copper");
     public static final Identifier OXIDIZED_CUT_COPPER = Identifier.fromString("oxidized_cut_copper");
@@ -456,6 +480,8 @@ public final class BlockIds {
     public static final Identifier OXIDIZED_CUT_COPPER_STAIRS = Identifier.fromString("oxidized_cut_copper_stairs");
     public static final Identifier OXIDIZED_DOUBLE_CUT_COPPER_SLAB = Identifier.fromString("oxidized_double_cut_copper_slab");
     public static final Identifier PACKED_ICE = Identifier.fromString("packed_ice");
+    public static final Identifier PINK_CANDLE = Identifier.fromString("pink_candle");
+    public static final Identifier PINK_CANDLE_CAKE = Identifier.fromString("pink_candle_cake");
     public static final Identifier PINK_GLAZED_TERRACOTTA = Identifier.fromString("pink_glazed_terracotta");
     public static final Identifier PISTON = Identifier.fromString("piston");
     public static final Identifier PISTON_ARM_COLLISION = Identifier.fromString("pistonArmCollision");
@@ -493,6 +519,8 @@ public final class BlockIds {
     public static final Identifier PRISMARINE_STAIRS = Identifier.fromString("prismarine_stairs");
     public static final Identifier PUMPKIN = Identifier.fromString("pumpkin");
     public static final Identifier PUMPKIN_STEM = Identifier.fromString("pumpkin_stem");
+    public static final Identifier PURPLE_CANDLE = Identifier.fromString("purple_candle");
+    public static final Identifier PURPLE_CANDLE_CAKE = Identifier.fromString("purple_candle_cake");
     public static final Identifier PURPLE_GLAZED_TERRACOTTA = Identifier.fromString("purple_glazed_terracotta");
     public static final Identifier PURPUR_BLOCK = Identifier.fromString("purpur_block");
     public static final Identifier PURPUR_STAIRS = Identifier.fromString("purpur_stairs");
@@ -510,6 +538,8 @@ public final class BlockIds {
     public static final Identifier REDSTONE_TORCH = Identifier.fromString("redstone_torch");
     public static final Identifier REDSTONE_WIRE = Identifier.fromString("redstone_wire");
     public static final Identifier RED_FLOWER = Identifier.fromString("red_flower");
+    public static final Identifier RED_CANDLE = Identifier.fromString("red_candle");
+    public static final Identifier RED_CANDLE_CAKE = Identifier.fromString("red_candle_cake");
     public static final Identifier RED_GLAZED_TERRACOTTA = Identifier.fromString("red_glazed_terracotta");
     public static final Identifier RED_MUSHROOM = Identifier.fromString("red_mushroom");
     public static final Identifier RED_MUSHROOM_BLOCK = Identifier.fromString("red_mushroom_block");
@@ -663,12 +693,16 @@ public final class BlockIds {
     public static final Identifier WEB = Identifier.fromString("web");
     public static final Identifier WEEPING_VINES = Identifier.fromString("weeping_vines");
     public static final Identifier WHEAT = Identifier.fromString("wheat");
+    public static final Identifier WHITE_CANDLE = Identifier.fromString("white_candle");
+    public static final Identifier WHITE_CANDLE_CAKE = Identifier.fromString("white_candle_cake");
     public static final Identifier WHITE_GLAZED_TERRACOTTA = Identifier.fromString("white_glazed_terracotta");
     public static final Identifier WITHER_ROSE = Identifier.fromString("wither_rose");
     public static final Identifier WOOD = Identifier.fromString("wood");
     public static final Identifier WOODEN_SLAB = Identifier.fromString("wooden_slab");
     public static final Identifier WOOL = Identifier.fromString("wool");
     public static final Identifier YELLOW_FLOWER = Identifier.fromString("yellow_flower");
+    public static final Identifier YELLOW_CANDLE = Identifier.fromString("yellow_candle");
+    public static final Identifier YELLOW_CANDLE_CAKE = Identifier.fromString("yellow_candle_cake");
     public static final Identifier YELLOW_GLAZED_TERRACOTTA = Identifier.fromString("yellow_glazed_terracotta");
 
 }
