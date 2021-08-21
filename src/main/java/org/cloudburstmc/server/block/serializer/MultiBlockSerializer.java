@@ -53,7 +53,7 @@ public class MultiBlockSerializer implements BlockSerializer {
             return multiBlock.getDefaultId();
         }
 
-        log.info(states);
+        log.info("{}:\n{}", id, states);
         throw new IllegalArgumentException("Invalid block state");
     }
 }
