@@ -19,6 +19,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.cloudburstmc.api.block.BlockIds.*;
 
@@ -156,6 +157,46 @@ public class MultiBlockSerializers {
 //            .add(BedrockStateTags.TAG_SAPLING_TYPE, TreeSpecies.WARPED.name().toLowerCase(), WARPED_FUNGUS, true)
 //            .defaultId(BlockIds.SAPLING)
 //            .buildSerializer();
+
+    public static final MultiBlockSerializer CANDLES = buildTrait(BedrockStateTags.TAG_COLOR, BlockTraits.COLOR_CANDLE,
+            CANDLE,
+            BLACK_CANDLE,
+            RED_CANDLE,
+            GREEN_CANDLE,
+            BROWN_CANDLE,
+            BLUE_CANDLE,
+            PURPLE_CANDLE,
+            CYAN_CANDLE,
+            LIGHT_GRAY_CANDLE,
+            GRAY_CANDLE,
+            PINK_CANDLE,
+            LIME_CANDLE,
+            YELLOW_CANDLE,
+            LIGHT_BLUE_CANDLE,
+            MAGENTA_CANDLE,
+            ORANGE_CANDLE,
+            WHITE_CANDLE
+    );
+
+    public static final MultiBlockSerializer CANDLE_CAKES = buildTrait(BedrockStateTags.TAG_COLOR, BlockTraits.COLOR_CANDLE,
+            CANDLE_CAKE,
+            BLACK_CANDLE_CAKE,
+            RED_CANDLE_CAKE,
+            GREEN_CANDLE_CAKE,
+            BROWN_CANDLE_CAKE,
+            BLUE_CANDLE_CAKE,
+            PURPLE_CANDLE_CAKE,
+            CYAN_CANDLE_CAKE,
+            LIGHT_GRAY_CANDLE_CAKE,
+            GRAY_CANDLE_CAKE,
+            PINK_CANDLE_CAKE,
+            LIME_CANDLE_CAKE,
+            YELLOW_CANDLE_CAKE,
+            LIGHT_BLUE_CANDLE_CAKE,
+            MAGENTA_CANDLE_CAKE,
+            ORANGE_CANDLE_CAKE,
+            WHITE_CANDLE_CAKE
+    );
 
     public static final MultiBlockSerializer PLANKS = builder()
             .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.WARPED.name().toLowerCase(), WARPED_PLANKS, true)
@@ -486,8 +527,9 @@ public class MultiBlockSerializers {
 
     public static final MultiBlockSerializer TERRACOTTA = builder()
             .removeTrait(BedrockStateTags.TAG_COLOR)
-            .add(BedrockStateTags.TAG_COLOR, DyeColor.class, TerracottaColor::fromDyeColor)
-            .add(BedrockStateTags.TAG_COLOR, "silver", SILVER_GLAZED_TERRACOTTA)
+            .add(BedrockStateTags.TAG_COLOR, BlockTraits.COLOR_TERRACOTTA.getPossibleValues().stream().collect(Collectors.toMap(k -> k.name().toLowerCase(), TerracottaColor::fromDyeColor)))
+            //.add(BedrockStateTags.TAG_COLOR, DyeColor.class, TerracottaColor::fromDyeColor)
+            //.add(BedrockStateTags.TAG_COLOR, "silver", SILVER_GLAZED_TERRACOTTA)
             .buildSerializer();
 
     public static final MultiBlockSerializer WALL = builder()
@@ -548,7 +590,6 @@ public class MultiBlockSerializers {
             CRIMSON_FUNGUS,
             WARPED_FUNGUS
     );
-
 
     public static MultiBlockSerializer buildTreeSpecies(String traitName, Identifier... ids) {
         return buildTrait(traitName, BlockTraits.TREE_SPECIES, ids);

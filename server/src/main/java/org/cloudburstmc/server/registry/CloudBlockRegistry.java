@@ -638,6 +638,9 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(RAW_IRON_BLOCK);
         this.registerVanilla(RAW_GOLD_BLOCK);
 
+        this.registerVanilla(CANDLE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CANDLES);
+        this.registerVanilla(CANDLE_CAKE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CANDLE_CAKES);
+
 
     }
 
