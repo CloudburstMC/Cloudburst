@@ -30,7 +30,7 @@ public class ItemFireworkBehavior extends CloudItemBehavior {
         if (block.getState().getBehavior().canPassThrough(block.getState())) {
             this.spawnFirework(itemStack, (CloudLevel) level, clickPos.toInt().toFloat().add(0.5, 0.5, 0.5));
 
-            if (player.isSurvival()) {
+            if (player.isSurvival() || player.isAdventure()) {
                 return itemStack.decrementAmount();
             }
         }

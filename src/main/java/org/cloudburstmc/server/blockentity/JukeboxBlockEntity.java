@@ -100,4 +100,9 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     public boolean isSpawnable() {
         return true;
     }
+
+    @Override
+    public void onBreak() {
+        this.dropItem();
+    }
 }

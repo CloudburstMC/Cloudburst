@@ -52,6 +52,14 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
     }
 
     @Override
+    protected void initEntity() {
+        super.initEntity();
+        if (this.age > 0) {
+            this.close();
+        }
+    }
+
+    @Override
     public float getWidth() {
         return 0.2f;
     }
@@ -228,7 +236,6 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
             CloudServer.broadcastPacket(this.getViewers(), packet);
         }
         if (!this.closed) {
-            this.kill();
             this.close();
         }
     }

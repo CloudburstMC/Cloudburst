@@ -20,8 +20,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.cloudburstmc.api.block.BlockTypes.GLOWSTONE;
-import static org.cloudburstmc.api.block.BlockTypes.REDSTONE_WIRE;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 
 public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
 
@@ -270,7 +269,7 @@ public class BlockBehaviorRedstoneWire extends FloodableBlockBehavior {
     }
 
     public boolean canBePlacedOn(BlockState state) {
-        return state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT) && state.getType() != GLOWSTONE;
+        return (state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT) && state.getType() != GLOWSTONE) || state.getType() == HOPPER;
     }
 
     @Override

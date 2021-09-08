@@ -4,6 +4,8 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.Ghast;
 import org.cloudburstmc.api.level.Location;
 
+import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
+
 /**
  * @author PikyCZ
  */
@@ -17,6 +19,9 @@ public class EntityGhast extends EntityHostile implements Ghast {
     protected void initEntity() {
         super.initEntity();
         this.setMaxHealth(10);
+
+        this.fireProof = true;
+        this.data.setFlag(FIRE_IMMUNE, true);
     }
 
     @Override

@@ -219,6 +219,13 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(EmotePacket packet) {
+        if (!player.isSpawned()) {
+            return false;
+        }
+        if (packet.getRuntimeEntityId() != player.getRuntimeId()) {
+            log.warn(player.getName() + " sent EmotePacket with invalid entity id: " + packet.getRuntimeEntityId() + " != " + player.getRuntimeId());
+            return false;
+        }
         for (CloudPlayer p : this.player.getViewers()) {
             p.sendPacket(packet);
         }
@@ -1032,7 +1039,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                         if (player.canInteract(blockVector.toFloat().add(0.5, 0.5, 0.5), player.isCreative() ? 13 : 7) &&
                                 (i = player.getLevel().useBreakOn(blockVector, face, i, player, true)) != null) {
-                            if (player.isSurvival()) {
+                            if (player.isSurvival() || player.isAdventure()) {
                                 player.getFoodData().updateFoodExpLevel(0.025);
                                 if (!i.equals(oldItem) || i.getAmount() != oldItem.getAmount()) {
                                     player.getInventory().setItemInHand(i);
@@ -1203,7 +1210,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             }
                         }
 
-                        if (behavior.isTool(serverItem) && player.isSurvival()) {
+                        if (behavior.isTool(serverItem) && (player.isSurvival() || player.isAdventure())) {
                             var result = behavior.useOn(serverItem, target);
                             if (result == null && serverItem.getMetadata(Damageable.class).getDurability() >= behavior.getMaxDurability()) {
                                 player.getInventory().setItemInHand(CloudItemRegistry.get().AIR);

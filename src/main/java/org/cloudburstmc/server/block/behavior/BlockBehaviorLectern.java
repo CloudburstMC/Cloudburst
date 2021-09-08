@@ -81,7 +81,7 @@ public class BlockBehaviorLectern extends BlockBehaviorTransparent {
             ItemStack currentBook = lectern.getBook();
             if (currentBook != null && currentBook.isNull()) {
                 if (item.getType() == ItemTypes.WRITTEN_BOOK || item.getType() == ItemTypes.WRITABLE_BOOK) {
-                    if (player.isSurvival()) {
+                    if (player.isSurvival() || player.isAdventure()) {
                         player.getInventory().decrementHandCount();
                     }
 

@@ -224,7 +224,7 @@ public class EntityHuman extends EntityCreature implements Human {
             }
 
             if (this instanceof CloudPlayer)
-                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), ((CloudPlayer) this).getSerializedSkin(), ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
+                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), ((CloudPlayer) this).getDisplayName(), ((CloudPlayer) this).getSerializedSkin(), ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
             else
                 this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), SkinUtils.fromSkin(this.skin), new CloudPlayer[]{player});
 

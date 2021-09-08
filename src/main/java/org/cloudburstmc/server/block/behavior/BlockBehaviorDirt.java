@@ -8,9 +8,9 @@ import org.cloudburstmc.api.util.data.DirtType;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
+import static org.cloudburstmc.api.block.BlockStates.AIR;
 import static org.cloudburstmc.api.block.BlockTraits.DIRT_TYPE;
-import static org.cloudburstmc.api.block.BlockTypes.DIRT;
-import static org.cloudburstmc.api.block.BlockTypes.FARMLAND;
+import static org.cloudburstmc.api.block.BlockTypes.*;
 
 public class BlockBehaviorDirt extends BlockBehaviorSolid {
 
@@ -24,9 +24,17 @@ public class BlockBehaviorDirt extends BlockBehaviorSolid {
     public boolean onActivate(Block block, ItemStack item, Player player) {
         var behavior = item.getBehavior();
         if (behavior.isHoe()) {
-            behavior.useOn(item, block.getState());
-            block.set(CloudBlockRegistry.get().getBlock(block.getState().ensureTrait(DIRT_TYPE) == DirtType.NORMAL ? FARMLAND : DIRT), true);
-            return true;
+            if (block.up().getState() == AIR) {
+                behavior.useOn(item, block.getState());
+                block.set(CloudBlockRegistry.get().getBlock(block.getState().ensureTrait(DIRT_TYPE) == DirtType.NORMAL ? FARMLAND : DIRT), true);
+                return true;
+            }
+        } else if (behavior.isShovel()) {
+            if (block.up().getState() == AIR) {
+                behavior.useOn(item, block.getState());
+                block.set(CloudBlockRegistry.get().getBlock(GRASS_PATH));
+                return true;
+            }
         }
 
         return false;

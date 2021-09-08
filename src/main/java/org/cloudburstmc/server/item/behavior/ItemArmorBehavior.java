@@ -11,6 +11,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.TierType;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static org.cloudburstmc.api.item.TierTypes.*;
 
@@ -32,7 +33,7 @@ abstract public class ItemArmorBehavior extends CloudItemBehavior {
         equipSounds.put(GOLD, SoundEvent.ARMOR_EQUIP_GOLD);
         equipSounds.put(IRON, SoundEvent.ARMOR_EQUIP_IRON);
         equipSounds.put(LEATHER, SoundEvent.ARMOR_EQUIP_LEATHER);
-        equipSounds.put(NETHERITE, SoundEvent.ARMOR_EQUIP_DIAMOND); //TODO: sound
+        equipSounds.put(NETHERITE, SoundEvent.EQUIP_NETHERITE);
     }
 
     @Override
@@ -64,25 +65,31 @@ abstract public class ItemArmorBehavior extends CloudItemBehavior {
     public boolean onClickAir(ItemStack item, Vector3f directionVector, Player p) {
         CloudPlayer player = (CloudPlayer) p;
         boolean equip = false;
-        if (this.isHelmet() && player.getInventory().getHelmet().isNull()) {
+        ItemStack oldSlotItem = CloudItemRegistry.get().AIR;
+
+        if (this.isHelmet()) {
+            oldSlotItem = player.getInventory().getHelmet();
             if (player.getInventory().setHelmet(item)) {
                 equip = true;
             }
-        } else if (this.isChestplate() && player.getInventory().getChestplate().isNull()) {
+        } else if (this.isChestplate()) {
+            oldSlotItem = player.getInventory().getChestplate();
             if (player.getInventory().setChestplate(item)) {
                 equip = true;
             }
-        } else if (this.isLeggings() && player.getInventory().getLeggings().isNull()) {
+        } else if (this.isLeggings()) {
+            oldSlotItem = player.getInventory().getLeggings();
             if (player.getInventory().setLeggings(item)) {
                 equip = true;
             }
-        } else if (this.isBoots() && player.getInventory().getBoots().isNull()) {
+        } else if (this.isBoots()) {
+            oldSlotItem = player.getInventory().getBoots();
             if (player.getInventory().setBoots(item)) {
                 equip = true;
             }
         }
         if (equip) {
-            player.getInventory().decrementCount(player.getInventory().getHeldItemIndex());
+            player.getInventory().setItem(player.getInventory().getHeldItemIndex(), oldSlotItem);
             var tier = getTier(item);
             if (tier != null) {
                 player.getLevel().addLevelSoundEvent(player.getPosition(), equipSounds.getOrDefault(tier, SoundEvent.ARMOR_EQUIP_GENERIC));

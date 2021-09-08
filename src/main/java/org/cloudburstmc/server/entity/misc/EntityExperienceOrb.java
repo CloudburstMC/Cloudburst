@@ -132,7 +132,7 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
             }
 
             if (this.closestPlayer == null || this.closestPlayer.getPosition().distanceSquared(this.getPosition()) > 64.0D) {
-                for (CloudPlayer p : level.getPlayers().values()) {
+                for (CloudPlayer p : this.getViewers()) {
                     if (!p.isSpectator() && p.getPosition().distance(this.getPosition()) <= 8) {
                         this.closestPlayer = p;
                         break;

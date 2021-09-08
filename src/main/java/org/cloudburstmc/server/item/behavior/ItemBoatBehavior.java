@@ -34,7 +34,7 @@ public class ItemBoatBehavior extends CloudItemBehavior {
 
         boat.spawnToAll();
 
-        if (player.isSurvival()) {
+        if (player.isSurvival() || player.isAdventure()) {
             return item.decrementAmount();
         }
 
