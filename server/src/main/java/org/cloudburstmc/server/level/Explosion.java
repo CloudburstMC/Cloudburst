@@ -10,6 +10,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.block.BlockUpdateEvent;
@@ -32,6 +33,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
+import static org.cloudburstmc.api.block.BlockTypes.WATER;
+
 /**
  * author: Angelic47
  * Nukkit Project
@@ -43,6 +47,7 @@ public class Explosion {
     private final CloudLevel level;
     private final Vector3f source;
     private final double size;
+    private boolean doesDamage = true;
 
     private List<Block> affectedBlockStates = new ArrayList<>();
     private final double stepLen = 0.3d;
@@ -71,6 +76,15 @@ public class Explosion {
      * @return bool
      */
     public boolean explodeA() {
+        if (what instanceof Explosive) {
+            Vector3f pos = ((Entity) what).getPosition();
+            var b = this.level.getBlockState(pos.getFloorX(), pos.getFloorY(), pos.getFloorZ()).getType();
+            if (b == WATER || b == FLOWING_WATER) {
+                this.doesDamage = false;
+                return true;
+            }
+        }
+
         if (this.size < 0.1) {
             return false;
         }
@@ -162,7 +176,7 @@ public class Explosion {
                 Vector3f motion = entity.getPosition().sub(this.source).normalize();
                 int exposure = 1;
                 double impact = (1 - distance) * exposure;
-                int damage = (int) (((impact * impact + impact) / 2) * 8 * explosionSize + 1);
+                int damage = this.doesDamage ? (int) (((impact * impact + impact) / 2) * 8 * explosionSize + 1) : 0;
 
                 if (this.what instanceof Entity) {
                     entity.attack(new EntityDamageByEntityEvent((Entity) this.what, entity, EntityDamageEvent.DamageCause.ENTITY_EXPLOSION, damage));

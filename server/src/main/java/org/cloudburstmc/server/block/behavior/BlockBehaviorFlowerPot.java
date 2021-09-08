@@ -61,7 +61,7 @@ public class BlockBehaviorFlowerPot extends FloodableBlockBehavior {
         block.set(block.getState().withTrait(BlockTraits.HAS_UPDATE, true), true);
         blockEntity.spawnToAll();
 
-        if (player.isSurvival()) {
+        if (player.isSurvival() || player.isAdventure()) {
             player.getInventory().decrementHandCount();
         }
         return true;

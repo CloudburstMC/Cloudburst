@@ -103,7 +103,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                         }
                     }
 
-                    if (player.isSurvival()) {
+                    if (player.isSurvival() || player.isAdventure()) {
                         if(itemStack.getAmount() == 1) {
                             player.getInventory().setItemInHand(ev.getItem());
                         } else {
@@ -154,7 +154,7 @@ public class ItemBucketBehavior extends CloudItemBehavior {
                 if (target.getLevel().setBlockState(emptyTarget.getPosition(), layer, bucketContents, true, true)) {
                     target.getLevel().scheduleUpdate(emptyTarget.getPosition(), bucketContents.getBehavior().tickRate());
                 }
-                if (player.isSurvival()) {
+                if (player.isSurvival() || player.isAdventure()) {
                     if(itemStack.getAmount() == 1) {
                         player.getInventory().setItemInHand(ev.getItem());
                     } else {

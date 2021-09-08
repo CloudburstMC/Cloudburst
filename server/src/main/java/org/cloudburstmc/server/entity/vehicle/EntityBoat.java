@@ -24,7 +24,6 @@ import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
-import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -125,9 +124,6 @@ public class EntityBoat extends EntityVehicle implements Boat {
         for (Entity passenger : this.passengers) {
             passenger.dismount(this);
         }
-
-        SmokeParticle particle = new SmokeParticle(this.getPosition());
-        this.getLevel().addParticle(particle);
     }
 
     @Override

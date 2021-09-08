@@ -45,7 +45,7 @@ public class ItemFireChargeBehavior extends CloudItemBehavior {
                     ((CloudLevel) level).addSound(clickPos, Sound.MOB_GHAST_FIREBALL);
                     level.scheduleUpdate(clickPos.toInt(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
                 }
-                if (player.isSurvival()) {
+                if (player.isSurvival() || player.isAdventure()) {
                     return itemStack.decrementAmount();
                 }
             }

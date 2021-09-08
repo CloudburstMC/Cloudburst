@@ -1331,6 +1331,10 @@ public abstract class BaseEntity implements Entity {
     }
 
     public void fall(float fallDistance) {
+        if (this.hasEffect(EffectTypes.SLOW_FALLING)) {
+            return;
+        }
+
         if (this.isPlayer && !level.getGameRules().get(GameRules.FALL_DAMAGE)) {
             return;
         }

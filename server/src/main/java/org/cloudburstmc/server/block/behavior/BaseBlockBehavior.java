@@ -73,7 +73,7 @@ public abstract class BaseBlockBehavior extends BlockBehavior {
         float speed = 1.0f / baseTime;
         boolean isWoolBlock = id == WOOL, isCobweb = id == WEB;
         if (correctTool) speed *= toolBreakTimeBonus0(toolType, toolTier, isWoolBlock, isCobweb);
-        speed += speedBonusByEfficiencyLore0(efficiencyLoreLevel);
+        speed += correctTool ? speedBonusByEfficiencyLore0(efficiencyLoreLevel) : 0;
         speed *= speedRateByHasteLore0(hasteEffectLevel);
         if (insideOfWaterWithoutAquaAffinity) speed *= 0.2f;
         if (outOfWaterButNotOnGround) speed *= 0.2f;

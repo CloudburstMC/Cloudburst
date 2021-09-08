@@ -42,7 +42,7 @@ public class ItemFlintSteelBehavior extends ItemToolBehavior {
         var targetState = target.getState();
         if (block.getState() == BlockStates.AIR && targetState.getBehavior().isSolid(targetState) || targetState.getType() == BlockTypes.LEAVES) {
             PORTAL:
-            if (targetState.getType() == OBSIDIAN) {
+            if (targetState.getType() == OBSIDIAN && ((CloudLevel) player.getLevel()).getDimension() != CloudLevel.DIMENSION_THE_END) {
                 final Vector3i pos = clickPos.toInt();
                 final int targX = pos.getX();
                 final int targY = pos.getY();

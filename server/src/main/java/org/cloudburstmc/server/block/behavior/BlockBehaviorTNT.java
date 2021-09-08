@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.behavior;
 import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.PrimedTnt;
@@ -13,7 +14,6 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -61,14 +61,14 @@ public class BlockBehaviorTNT extends BlockBehaviorSolid {
 
     @Override
     public boolean onActivate(Block block, ItemStack item, Player player) {
-        if (item.getType() == ItemTypes.FLINT_AND_STEEL) {
+        if (item.getType() == ItemTypes.FLINT_AND_STEEL || item.getEnchantment(EnchantmentTypes.FIRE_ASPECT) != null) {
             item.getBehavior().useOn(item, block.getState());
             this.prime(block, 80, player);
             return true;
-        }
-        if (item.getType() == ItemTypes.FIREBALL) {
-            if (!player.isCreative())
-                player.getInventory().removeItem(CloudItemRegistry.get().getItem(ItemTypes.FIREBALL));
+        } else if (item.getType() == ItemTypes.FIREBALL) {
+            if (!player.isCreative()) {
+                player.getInventory().getItemInHand().decrementAmount();
+            }
             ((CloudLevel) block.getLevel()).addSound(player.getPosition(), Sound.MOB_GHAST_FIREBALL);
             this.prime(block, 80, player);
             return true;

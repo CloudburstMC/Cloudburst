@@ -11,6 +11,8 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.Explosion;
 
+import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
+
 /**
  * Created by PetteriM1
  */
@@ -23,6 +25,9 @@ public class EntityEnderCrystal extends BaseEntity implements EnderCrystal, Expl
     @Override
     protected void initEntity() {
         super.initEntity();
+
+        this.fireProof = true;
+        this.data.setFlag(FIRE_IMMUNE, true);
     }
 
     @Override

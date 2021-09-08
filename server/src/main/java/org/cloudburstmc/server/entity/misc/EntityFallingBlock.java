@@ -20,6 +20,7 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.VARIANT;
+import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.ANVIL;
 
@@ -30,6 +31,14 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
 
     public EntityFallingBlock(EntityType<FallingBlock> type, Location location) {
         super(type, location);
+    }
+
+    @Override
+    protected void initEntity() {
+        super.initEntity();
+
+        this.fireProof = true;
+        this.data.setFlag(FIRE_IMMUNE, true);
     }
 
     @Override

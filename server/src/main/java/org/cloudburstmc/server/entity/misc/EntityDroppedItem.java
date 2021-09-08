@@ -159,7 +159,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);
                         packet.setData(newAmount);
-                        CloudServer.broadcastPacket(this.getLevel().getPlayers().values().toArray(new CloudPlayer[0]), packet);
+                        CloudServer.broadcastPacket(this.getViewers().toArray(new CloudPlayer[0]), packet);
                     }
                 }
             }
@@ -188,14 +188,12 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
             }
 
             Vector3f pos = this.getPosition();
-            var b = this.level.getBlockState(pos.getFloorX(), (int) this.boundingBox.getMaxY(), pos.getFloorZ()).getType();
+            var b = this.level.getBlockState(pos.getFloorX(), pos.getFloorY(), pos.getFloorZ()).getType();
 
-            if (b == FLOWING_WATER || b == WATER) { //item is fully in water or in still water
-                this.motion = this.motion.sub(0, this.getGravity() * -0.015, 0);
-            } else if (this.isInsideOfWater()) {
-                this.motion = Vector3f.from(this.motion.getX(), this.getGravity() - 0.06, this.motion.getZ()); //item is going up in water, don't let it go back down too fast
-            } else {
-                this.motion = this.motion.sub(0, this.getGravity(), 0); //item is not in water
+            if (b == FLOWING_WATER || b == WATER) {
+                this.motion = Vector3f.from(this.motion.getX(), this.getGravity() - 0.06, this.motion.getZ());
+            } else if (!this.isOnGround()) {
+                this.motion = this.motion.sub(0, this.getGravity(), 0);
             }
 
             if (this.checkObstruction(pos)) {

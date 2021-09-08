@@ -5,6 +5,8 @@ import org.cloudburstmc.api.entity.Smiteable;
 import org.cloudburstmc.api.entity.hostile.WitherSkeleton;
 import org.cloudburstmc.api.level.Location;
 
+import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
+
 /**
  * @author PikyCZ
  */
@@ -17,6 +19,10 @@ public class EntityWitherSkeleton extends EntityHostile implements WitherSkeleto
     @Override
     protected void initEntity() {
         super.initEntity();
+        this.setMaxHealth(20);
+
+        this.fireProof = true;
+        this.data.setFlag(FIRE_IMMUNE, true);
     }
 
     @Override

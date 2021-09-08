@@ -4,6 +4,7 @@ import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
+import org.cloudburstmc.server.CloudServer;
 
 /**
  * author: MagicDroidX
@@ -26,8 +27,10 @@ public class EnchantmentFireAspect extends EnchantmentBehavior {
         int duration = Math.max(entity.getFireTicks() / 20, enchantment.getLevel() * 4);
 
         EntityCombustByEntityEvent ev = new EntityCombustByEntityEvent(attacker, entity, duration);
+        CloudServer.getInstance().getEventManager().fire(ev);
 
-        if (!ev.isCancelled())
+        if (!ev.isCancelled()) {
             entity.setOnFire(ev.getDuration());
+        }
     }
 }

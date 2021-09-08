@@ -76,7 +76,7 @@ public abstract class Food implements org.cloudburstmc.api.item.Food {
     public static final Food pufferfish = registerFood(PUFFERFISH, new FoodEffective(1, 0.2F)
             .addEffect(new CloudEffect(EffectTypes.HUNGER).setAmplifier(2).setDuration(15 * 20))
             .addEffect(new CloudEffect(EffectTypes.NAUSEA).setAmplifier(1).setDuration(15 * 20))
-            .addEffect(new CloudEffect(EffectTypes.POISON).setAmplifier(4).setDuration(60 * 20)));
+            .addEffect(new CloudEffect(EffectTypes.POISON).setAmplifier(3).setDuration(60 * 20)));
     public static final Food dried_kelp = registerFood(DRIED_KELP, new FoodNormal(1, 0.6F));
     public static final Food sweet_berries = registerFood(SWEET_BERRIES, new FoodNormal(2, 0.4F));
     public static final Food honey = registerFood(HONEY_BOTTLE, new FoodHoney(6, 2.4F));

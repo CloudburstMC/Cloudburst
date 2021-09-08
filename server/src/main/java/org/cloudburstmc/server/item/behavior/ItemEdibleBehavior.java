@@ -34,7 +34,7 @@ public abstract class ItemEdibleBehavior extends CloudItemBehavior {
         }
 
         Food food = Food.getByRelative(item);
-        if (player.isSurvival() && food != null && food.eatenBy(player)) {
+        if ((player.isSurvival() || player.isAdventure()) && food != null && food.eatenBy(player)) {
             return item.decrementAmount();
         }
         return null;

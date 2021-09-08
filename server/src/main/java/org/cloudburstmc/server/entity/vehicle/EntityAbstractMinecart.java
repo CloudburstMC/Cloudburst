@@ -23,7 +23,6 @@ import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -311,9 +310,6 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         for (Entity entity : passengers) {
             entity.dismount(this);
         }
-
-        SmokeParticle particle = new SmokeParticle(this.getPosition());
-        this.getLevel().addParticle(particle);
     }
 
     @Override

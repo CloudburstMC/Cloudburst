@@ -88,7 +88,7 @@ public class ItemPaintingBehavior extends CloudItemBehavior {
 
         entity.spawnToAll();
 
-        if (player.isSurvival()) {
+        if (player.isSurvival() || player.isAdventure()) {
             return itemStack.decrementAmount();
         }
 

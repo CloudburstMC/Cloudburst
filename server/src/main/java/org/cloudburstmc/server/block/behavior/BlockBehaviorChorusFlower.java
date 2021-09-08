@@ -8,6 +8,8 @@ public class BlockBehaviorChorusFlower extends BlockBehaviorTransparent {
 
     @Override
     public ItemStack[] getDrops(Block block, ItemStack hand) {
-        return new ItemStack[0];
+        return new ItemStack[]{
+                toItem(block)
+        };
     }
 }
