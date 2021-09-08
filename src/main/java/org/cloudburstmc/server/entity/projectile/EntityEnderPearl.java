@@ -75,7 +75,7 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
 
     private void teleport() {
         Entity owner = this.getOwner();
-        if (owner != null) {
+        if (owner != null && owner.getLevel().getId().equals(this.getLevel().getId())) {
             owner.teleport(this.getPosition().floor().add(0.5, 0, 0.5), PlayerTeleportEvent.TeleportCause.ENDER_PEARL);
             if (((CloudPlayer) owner).isAdventure() || ((CloudPlayer) owner).isSurvival()) {
                 owner.attack(new EntityDamageByEntityEvent(this, owner, EntityDamageEvent.DamageCause.PROJECTILE, 5f, 0f));

@@ -42,7 +42,7 @@ public class ItemEndCrystalBehavior extends CloudItemBehavior {
 
         enderCrystal.spawnToAll();
 
-        if (player.isSurvival()) {
+        if (player.isSurvival() || player.isAdventure()) {
             return itemStack.decrementAmount();
         }
 

@@ -4,6 +4,8 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.MagmaCube;
 import org.cloudburstmc.api.level.Location;
 
+import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
+
 /**
  * @author PikyCZ
  */
@@ -17,6 +19,9 @@ public class EntityMagmaCube extends EntityHostile implements MagmaCube {
     protected void initEntity() {
         super.initEntity();
         this.setMaxHealth(16);
+
+        this.fireProof = true;
+        this.data.setFlag(FIRE_IMMUNE, true);
     }
 
     @Override

@@ -42,7 +42,7 @@ public class ItemMinecartBehavior extends CloudItemBehavior {
             Minecart minecart = EntityRegistry.get().newEntity(EntityTypes.MINECART, Location.from(pos, level));
             minecart.spawnToAll();
 
-            if (player.isSurvival()) {
+            if (player.isSurvival() || player.isAdventure()) {
                 return itemStack.decrementAmount();
             }
         }

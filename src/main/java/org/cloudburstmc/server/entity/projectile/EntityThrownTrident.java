@@ -137,11 +137,6 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
             this.setCritical(false);
         }
 
-        if (this.age > 1200) {
-            this.close();
-            hasUpdate = true;
-        }
-
         this.timing.stopTiming();
 
         return hasUpdate;

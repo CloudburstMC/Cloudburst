@@ -749,8 +749,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     public void setButtonText(String text) {
-        this.buttonText = text;
-        this.data.setString(INTERACTIVE_TAG, this.buttonText);
+        if (!text.equals(buttonText)) {
+            this.buttonText = text;
+            this.data.setString(INTERACTIVE_TAG, this.buttonText);
+        }
     }
 
     public Location getSpawn() {
@@ -1105,7 +1107,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.resetFallDistance();
 
         this.getInventory().sendContents(this);
-        this.getInventory().sendContents(this.getViewers());
         this.getInventory().sendHeldItem(this.hasSpawned);
         this.getInventory().sendOffHandContents(this);
         this.getInventory().sendOffHandContents(this.getViewers());
@@ -1383,8 +1384,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.lastUpdate = currentTick;
 
         try (Timing ignored = this.timing.startTiming()) {
-            if (this.fishing != null) {
-                if (this.getPosition().distance(fishing.getPosition()) > 80) {
+            if (this.fishing != null && this.server.getTick() % 20 == 0) {
+                if (this.getPosition().distance(fishing.getPosition()) > 33) {
                     this.stopFishing(false);
                 }
             }
@@ -1455,7 +1456,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             }
 
             this.checkTeleportPosition();
-            this.checkInteractNearby();
+
+            if (currentTick % 10 == 0) {
+                this.checkInteractNearby();
+            }
 
             if (this.spawned && this.dummyBossBars.size() > 0 && currentTick % 100 == 0) {
                 this.dummyBossBars.values().forEach(DummyBossBar::updateBossEntityPosition);
@@ -3093,8 +3097,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         pk.setAddress(hostName);
         pk.setPort(port);
         this.sendPacket(pk);
-        String message = "Transferred to " + hostName + ":" + port;
-        this.close(message, message, false);
     }
 
     public LoginChainData getLoginChainData() {
@@ -3168,10 +3170,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.sendPacket(blockEntityDataPacket);
     }
 
+    /**
+     * Start fishing
+     * @param fishingRod fishing rod item
+     */
     public void startFishing(ItemStack fishingRod) {
         Location location = Location.from(this.getPosition().add(0, this.getEyeHeight(), 0), this.getYaw(),
                 this.getPitch(), this.getLevel());
-        double f = 1;
+        double f = 1.1;
         FishingHook fishingHook = EntityRegistry.get().newEntity(EntityTypes.FISHING_HOOK, location);
         fishingHook.setPosition(location.getPosition());
         fishingHook.setOwner(this);
@@ -3180,7 +3186,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         ProjectileLaunchEvent ev = new ProjectileLaunchEvent(fishingHook);
         this.getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
-            fishingHook.kill();
+            fishingHook.close();
         } else {
             fishingHook.spawnToAll();
             this.fishing = fishingHook;
@@ -3188,11 +3194,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
     }
 
+    /**
+     * Stop fishing
+     * @param click clicked or forced
+     */
     public void stopFishing(boolean click) {
-        if (click) {
+        if (this.fishing != null && click) {
             fishing.reelLine();
         } else if (this.fishing != null) {
-            this.fishing.kill();
             this.fishing.close();
         }
 
@@ -3351,6 +3360,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
 
         return false;
+    }
+
+    @Override
+    public boolean canTriggerPressurePlate() {
+        return !this.isSpectator();
     }
 
     @Override

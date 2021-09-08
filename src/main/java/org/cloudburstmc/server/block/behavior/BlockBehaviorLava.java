@@ -139,7 +139,7 @@ public class BlockBehaviorLava extends BlockBehaviorLiquid {
 
     @Override
     public int tickRate() {
-        return 30;
+        return 30; // TODO: 10 if in nether
     }
 
     @Override

@@ -30,10 +30,6 @@ public class EnchantmentDamageAll extends EnchantmentDamage {
 
     @Override
     public float getDamageBonus(EnchantmentInstance enchantment, Entity entity) {
-        if (enchantment.getLevel() <= 0) {
-            return 0;
-        }
-
-        return 0.5f + enchantment.getLevel() * 0.5f;
+        return enchantment.getLevel() * 1.25f; //https://minecraft.fandom.com/wiki/Sharpness#Usage
     }
 }

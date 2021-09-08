@@ -56,20 +56,6 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
         return false;
     }
 
-    @Override
-    public boolean onBreak(Block block, ItemStack item) {
-        if (super.onBreak(block, item)) {
-            BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
-
-            if (blockEntity instanceof Jukebox) {
-                ((Jukebox) blockEntity).dropItem();
-            }
-            return true;
-        }
-
-        return false;
-    }
-
     private BlockEntity createBlockEntity(Block block) {
         return BlockEntityRegistry.get().newEntity(JUKEBOX, block);
     }

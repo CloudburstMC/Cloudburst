@@ -107,7 +107,7 @@ public class WhitelistCommand extends Command {
     }
 
     private boolean badPerm(CommandSender sender, String perm) {
-        if (!sender.hasPermission("cloudburst.command.whitelist" + perm)) {
+        if (!sender.hasPermission("cloudburst.command.whitelist." + perm)) {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
 
             return true;

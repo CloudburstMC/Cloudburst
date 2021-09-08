@@ -92,8 +92,6 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
     @Override
     public void close() {
         if (!closed) {
-            unpair();
-
             for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
                 player.removeWindow(this.getInventory());
             }
@@ -107,6 +105,9 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
 
     @Override
     public void onBreak() {
+        if (this.isPaired()) {
+            unpair();
+        }
         for (ItemStack content : inventory.getContents().values()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
