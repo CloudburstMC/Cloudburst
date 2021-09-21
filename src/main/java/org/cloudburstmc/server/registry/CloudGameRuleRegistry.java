@@ -97,7 +97,9 @@ public class CloudGameRuleRegistry implements GameRuleRegistry, Registry {
         this.register(GameRules.NATURAL_REGENERATION);
         this.register(GameRules.PVP);
         this.register(GameRules.RANDOM_TICK_SPEED);
+        this.register(GameRules.RESPAWN_BLOCKS_EXPLODE);
         this.register(GameRules.SEND_COMMAND_FEEDBACK);
+        this.register(GameRules.SHOW_BORDER_EFFECT);
         this.register(GameRules.SHOW_COORDINATES);
         this.register(GameRules.SHOW_DEATH_MESSAGES);
         this.register(GameRules.SHOW_TAGS);
