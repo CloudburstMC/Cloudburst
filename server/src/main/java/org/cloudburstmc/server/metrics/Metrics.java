@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.metrics;
 
+import com.nimbusds.jose.shaded.json.JSONArray;
+import com.nimbusds.jose.shaded.json.JSONObject;
 import lombok.extern.log4j.Log4j2;
-import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.ByteArrayOutputStream;
