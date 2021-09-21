@@ -26,7 +26,9 @@ public class GameRules {
     public static final BooleanGameRule NATURAL_REGENERATION = BooleanGameRule.of("naturalregeneration", true);
     public static final BooleanGameRule PVP = BooleanGameRule.of("pvp", true);
     public static final IntegerGameRule RANDOM_TICK_SPEED = IntegerGameRule.of("randomtickspeed", 1);
+    public static final BooleanGameRule RESPAWN_BLOCKS_EXPLODE = BooleanGameRule.of("respawnblocksexplode", true);
     public static final BooleanGameRule SEND_COMMAND_FEEDBACK = BooleanGameRule.of("sendcommandfeedback", true);
+    public static final BooleanGameRule SHOW_BORDER_EFFECT = BooleanGameRule.of("showbordereffect", true);
     public static final BooleanGameRule SHOW_COORDINATES = BooleanGameRule.of("showcoordinates", false);
     public static final BooleanGameRule SHOW_DEATH_MESSAGES = BooleanGameRule.of("showdeathmessages", true);
     public static final BooleanGameRule SHOW_TAGS = BooleanGameRule.of("showtags", true);
