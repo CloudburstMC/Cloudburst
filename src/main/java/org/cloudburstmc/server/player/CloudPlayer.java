@@ -1562,7 +1562,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setBroadcastingToLan(true);
         NetworkUtils.gameRulesToNetwork(this.getLevel().getGameRules(), startGamePacket.getGamerules());
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
-        startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default level name
+        startGamePacket.setLevelName(this.getServer().getNetwork().getMotd()); // We might as well use the MOTD instead of the default level name
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
         startGamePacket.setItemEntries(CloudItemRegistry.get().getItemEntries());
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.event.server.QueryRegenerateEvent;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.network.query.QueryHandler;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.handler.LoginPacketHandler;
 import org.cloudburstmc.server.utils.Utils;
@@ -20,6 +21,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -28,9 +30,11 @@ import java.util.function.Consumer;
 
 @Log4j2
 @ParametersAreNonnullByDefault
-public class BedrockInterface implements AdvancedSourceInterface, BedrockServerEventHandler {
+public class BedrockInterface implements BedrockServerEventHandler, SourceInterface {
 
     private final CloudServer server;
+
+    private final QueryHandler queryHandler;
 
     private final BedrockServer bedrock;
     private final BedrockPong advertisement = new BedrockPong();
@@ -38,6 +42,7 @@ public class BedrockInterface implements AdvancedSourceInterface, BedrockServerE
 
     public BedrockInterface(CloudServer server) throws Exception {
         this.server = server;
+        this.queryHandler = server.getNetwork().getQueryHandler();
 
         InetSocketAddress bindAddress = new InetSocketAddress(this.server.getIp(), this.server.getPort());
 
@@ -86,7 +91,7 @@ public class BedrockInterface implements AdvancedSourceInterface, BedrockServerE
     }
 
     @Override
-    public void setNetwork(Network network) {
+    public void setNetworkManager(NetworkManager networkManager) {
         // no-op
     }
 
@@ -97,15 +102,34 @@ public class BedrockInterface implements AdvancedSourceInterface, BedrockServerE
 
     @Override
     public void onUnhandledDatagram(ChannelHandlerContext ctx, DatagramPacket packet) {
-        this.server.handlePacket(packet.sender(), packet.content());
+        this.handlePacket(packet.sender(), packet.content());
+    }
+
+    public void handlePacket(InetSocketAddress address, ByteBuf payload) {
+        try {
+            if (!payload.isReadable(3)) {
+                return;
+            }
+            byte[] prefix = new byte[2];
+            payload.readBytes(prefix);
+
+            if (!Arrays.equals(prefix, new byte[]{(byte) 0xfe, (byte) 0xfd})) {
+                return;
+            }
+            if (this.queryHandler != null) {
+                this.queryHandler.handle(address, payload);
+            }
+        } catch (Exception e) {
+            log.error("Error whilst handling packet", e);
+            this.server.getNetwork().blockAddress(address.getAddress());
+        }
     }
 
     @Override
-    public void setName(String name) {
+    public void setMotd(String motd0, String subMotd0) {
         QueryRegenerateEvent info = this.server.getQueryInformation();
-        String[] names = name.split("!@#");  //Split double names within the program
-        String motd = Utils.rtrim(names[0].replace(";", "\\;"), '\\');
-        String subMotd = names.length > 1 ? Utils.rtrim(names[1].replace(";", "\\;"), '\\') : "";
+        String motd = Utils.rtrim(motd0.replace(";", "\\;"), '\\');
+        String subMotd = Utils.rtrim(subMotd0.replace(";", "\\;"), '\\');
         String gm = this.server.getDefaultGamemode().getName();
 
         this.advertisement.setEdition("MCPE");

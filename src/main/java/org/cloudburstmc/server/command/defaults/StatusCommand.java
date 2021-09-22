@@ -54,9 +54,9 @@ public class StatusCommand extends Command {
 
         sender.sendMessage(TextFormat.YELLOW + "Load: " + tpsColor + server.getTickUsage() + "%");
 
-        sender.sendMessage(TextFormat.YELLOW + "Network upload: " + TextFormat.GREEN + NukkitMath.round((server.getNetwork().getUpload() / 1024 * 1000), 2) + " kB/s");
+        sender.sendMessage(TextFormat.YELLOW + "Network upload: " + TextFormat.GREEN + NukkitMath.round((server.getNetwork().getStatistics().getUpload() / 1024 * 1000), 2) + " kB/s");
 
-        sender.sendMessage(TextFormat.YELLOW + "Network download: " + TextFormat.GREEN + NukkitMath.round((server.getNetwork().getDownload() / 1024 * 1000), 2) + " kB/s");
+        sender.sendMessage(TextFormat.YELLOW + "Network download: " + TextFormat.GREEN + NukkitMath.round((server.getNetwork().getStatistics().getDownload() / 1024 * 1000), 2) + " kB/s");
 
         sender.sendMessage(TextFormat.YELLOW + "Thread count: " + TextFormat.GREEN + Thread.getAllStackTraces().size());
 
