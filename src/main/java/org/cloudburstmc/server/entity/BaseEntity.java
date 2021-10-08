@@ -19,14 +19,13 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import com.spotify.futures.CompletableFutures;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.entity.Attribute;
-import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Rideable;
+import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.component.EntityComponent;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.Event;
@@ -1964,5 +1963,20 @@ public abstract class BaseEntity implements Entity {
     @Override
     public String toString() {
         return "Entity(type=" + type.getIdentifier() + ", id=" + getUniqueId() + ")";
+    }
+
+    @Override
+    public @NonNull Set<Class<? extends EntityComponent>> providedComponents() {
+        return null;
+    }
+
+    @Override
+    public <C extends EntityComponent> boolean provides(EntityComponentType<C> type) {
+        return false;
+    }
+
+    @Override
+    public @NonNull <C extends EntityComponent> Optional<C> get(EntityComponentType<C> type) {
+        return Optional.empty();
     }
 }
