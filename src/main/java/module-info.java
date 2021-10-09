@@ -41,6 +41,7 @@ module org.cloudburstmc.server {
     requires random;
     requires jopt.simple;
     requires natives;
+    requires jdk.unsupported;
 
     exports org.cloudburstmc.server;
 }
