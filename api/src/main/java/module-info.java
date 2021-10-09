@@ -1,5 +1,5 @@
 module org.cloudburstmc.api {
-    requires org.checkerframework.checker.qual;
+    requires static org.checkerframework.checker.qual;
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.annotation;
@@ -7,9 +7,9 @@ module org.cloudburstmc.api {
     requires com.fasterxml.jackson.dataformat.yaml;
     requires com.google.common;
     requires com.google.guice;
-    requires javax.inject;
+    requires static javax.inject;
     requires java.desktop;
-    requires lombok;
+    requires static lombok;
     requires com.nukkitx.math;
     requires org.slf4j;
 
