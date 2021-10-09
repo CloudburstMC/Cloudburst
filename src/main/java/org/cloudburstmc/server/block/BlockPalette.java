@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static net.daporkchop.lib.random.impl.FastPRandom.mix32;
+import static net.daporkchop.lib.common.math.PMath.mix32;
 
 @Log4j2
 public class BlockPalette {

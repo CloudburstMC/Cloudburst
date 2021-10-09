@@ -8,8 +8,8 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 import java.util.Objects;
 
-import static net.daporkchop.lib.random.impl.FastPRandom.mix32;
-import static net.daporkchop.lib.random.impl.FastPRandom.mix64;
+import static net.daporkchop.lib.common.math.PMath.mix32;
+import static net.daporkchop.lib.common.math.PMath.mix64;
 
 /**
  * Base implementation of a {@link BiomeFilter}.

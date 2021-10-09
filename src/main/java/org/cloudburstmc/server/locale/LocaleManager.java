@@ -39,9 +39,9 @@ public class LocaleManager {
     }
 
     public static LocaleManager from(String languagesPath, String... textPaths) {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        languagesPath = "/" + languagesPath;
         try {
-            URI uri = classLoader.getResource(languagesPath).toURI();
+            URI uri = LocaleManager.class.getResource(languagesPath).toURI();
             Path langsPath;
             try {
                 langsPath = Paths.get(uri);
@@ -52,7 +52,7 @@ public class LocaleManager {
 
             Path[] paths = new Path[textPaths.length];
             for (int i = 0; i < textPaths.length; i++) {
-                paths[i] = Paths.get(classLoader.getResource(textPaths[i]).toURI());
+                paths[i] = Paths.get(LocaleManager.class.getResource("/" + textPaths[i]).toURI());
             }
             return from(langsPath, paths);
         } catch (IOException | URISyntaxException | NullPointerException e) {
