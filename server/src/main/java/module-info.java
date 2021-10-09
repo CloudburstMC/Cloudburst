@@ -12,9 +12,9 @@ module org.cloudburstmc.server {
     requires com.nukkitx.math;
     requires com.nukkitx.natives;
     requires common;
-    requires lombok;
-    requires javax.inject;
-    requires jsr305;
+    requires static lombok;
+    requires static javax.inject;
+    requires static jsr305;
     requires io.netty.buffer;
     requires io.netty.common;
     requires io.netty.transport;
@@ -35,7 +35,7 @@ module org.cloudburstmc.server {
     requires org.jline.reader;
     requires org.objectweb.asm;
     requires org.slf4j;
-    requires org.checkerframework.checker.qual;
+    requires static org.checkerframework.checker.qual;
     requires block.state.updater;
     requires noise;
     requires random;
