@@ -1,4 +1,4 @@
-module org.cloudburstmc.api {
+open module org.cloudburstmc.api {
     requires static org.checkerframework.checker.qual;
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
