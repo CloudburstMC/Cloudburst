@@ -9,7 +9,7 @@ import java.io.InputStream;
 public class RegistryUtils {
 
     public static InputStream getOrAssertResource(String resourcePath) {
-        InputStream stream = CloudServer.class.getClassLoader().getResourceAsStream(resourcePath);
+        InputStream stream = CloudServer.class.getResourceAsStream("/" + resourcePath);
         if (stream == null) {
             throw new AssertionError("Unable to locate " + resourcePath);
         }

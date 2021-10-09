@@ -10,7 +10,7 @@ import net.daporkchop.lib.common.ref.Ref;
  */
 @UtilityClass
 public class StandardGeneratorStores {
-    private final Ref<GenerationBiomeStore> GENERATION_BIOME_STORE_CACHE = Ref.late(GenerationBiomeStore::new);
+    private final Ref<GenerationBiomeStore> GENERATION_BIOME_STORE_CACHE = Ref.lazy(GenerationBiomeStore::new);
 
     public GenerationBiomeStore generationBiome() {
         return GENERATION_BIOME_STORE_CACHE.get();
