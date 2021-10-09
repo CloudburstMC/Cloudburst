@@ -407,7 +407,7 @@ public abstract class BaseInventory implements Inventory {
     private synchronized Int2ObjectMap<ItemStack> findMergable(@Nonnull ItemStack item) {
         Int2ObjectMap<ItemStack> mergable = new Int2ObjectOpenHashMap<>();
 
-        for (val entry : this.slots.int2ObjectEntrySet()) {
+        for (var entry : this.slots.int2ObjectEntrySet()) {
             ItemStack content = entry.getValue();
 
             if (content != null && content.isMergeable(item)) {
