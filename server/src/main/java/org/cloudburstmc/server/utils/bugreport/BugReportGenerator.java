@@ -1,17 +1,18 @@
 package org.cloudburstmc.server.utils.bugreport;
 
-import com.sun.management.OperatingSystemMXBean;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.locale.LocaleManager;
 import org.cloudburstmc.server.utils.Utils;
 
+import javax.management.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -24,6 +25,16 @@ import java.util.Date;
  */
 @Log4j2
 public class BugReportGenerator extends Thread {
+
+    private static final ObjectName OPERATING_SYSTEM_NAME;
+
+    static {
+        try {
+            OPERATING_SYSTEM_NAME = ObjectName.getInstance("java.lang:type=OperatingSystem");
+        } catch (MalformedObjectNameException e) {
+            throw new AssertionError("Unable to create ObjectName");
+        }
+    }
 
     private Throwable throwable;
 
@@ -84,11 +95,18 @@ public class BugReportGenerator extends Thread {
         String content = Utils.readFile(this.getClass().getClassLoader().getResourceAsStream("report_template.md"));
 
         String cpuType = System.getenv("PROCESSOR_IDENTIFIER");
-        OperatingSystemMXBean osMXBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        OperatingSystemMXBean osMXBean = ManagementFactory.getOperatingSystemMXBean();
+        long physicalMemory;
+        try {
+            physicalMemory = (Long) ManagementFactory.getPlatformMBeanServer().getAttribute(OPERATING_SYSTEM_NAME, "TotalPhysicalMemorySize");
+        } catch (MBeanException | AttributeNotFoundException | InstanceNotFoundException | ReflectionException e) {
+            physicalMemory = 0;
+        }
+
         content = content.replace("${CLOUDBURST_VERSION}", Bootstrap.VERSION);
         content = content.replace("${JAVA_VERSION}", System.getProperty("java.vm.name") + " (" + System.getProperty("java.runtime.version") + ")");
         content = content.replace("${HOSTOS}", osMXBean.getName() + "-" + osMXBean.getArch() + " [" + osMXBean.getVersion() + "]");
-        content = content.replace("${MEMORY}", getCount(osMXBean.getTotalPhysicalMemorySize(), true));
+        content = content.replace("${MEMORY}", getCount(physicalMemory, true));
         content = content.replace("${STORAGE_SIZE}", getCount(totalDiskSpace, true));
         content = content.replace("${CPU_TYPE}", cpuType == null ? "UNKNOWN" : cpuType);
         content = content.replace("${AVAILABLE_CORE}", String.valueOf(osMXBean.getAvailableProcessors()));
