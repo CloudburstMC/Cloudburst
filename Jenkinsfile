@@ -57,12 +57,12 @@ pipeline {
                     steps {
                         rtMavenRun(
                                 pom: 'pom.xml',
-                                goals: 'clean javadoc:aggregate-jar source:jar install',
+                                goals: 'clean source:jar install',
                                 deployerId: "maven-deployer",
                                 resolverId: "maven-resolver"
                         )
                      //   sh 'mvn javadoc:javadoc -DskipTests'
-                        step([$class: 'JavadocArchiver', javadocDir: 'target/site/apidocs', keepAll: false])
+//                        step([$class: 'JavadocArchiver', javadocDir: 'target/site/apidocs', keepAll: false])
                     }
                 }
 
@@ -75,7 +75,7 @@ pipeline {
                     steps {
                         rtMavenRun(
                                 pom: 'pom.xml',
-                                goals: 'clean javadoc:aggregate-jar source:jar install',
+                                goals: 'clean source:jar install',
                                 deployerId: "maven-deployer",
                                 resolverId: "maven-resolver"
                         )
