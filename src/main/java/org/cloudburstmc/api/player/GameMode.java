@@ -11,6 +11,7 @@ public class GameMode {
     private static final Map<String, GameMode> nameMap = new HashMap<>();
 
     public static final GameMode SURVIVAL = GameMode.builder(0, "survival", "s")
+            .set(AdventureSetting.WORLD_IMMUTABLE, false)
             .set(AdventureSetting.BUILD, true)
             .set(AdventureSetting.MINE, true)
             .set(AdventureSetting.WORLD_BUILDER, true)
