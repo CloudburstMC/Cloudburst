@@ -57,9 +57,12 @@ public class BlockState {
         return this.blockStates.get(trait)[trait.getIndex(value)];
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> T ensureTrait(BlockTrait<T> trait) {
         checkNotNull(trait, "trait");
-        return (T) this.traits.get(trait);
+        T val = (T) this.traits.get(trait);
+        checkNotNull(val, "Trait '%s' does not exist for type '%s'", trait, this.type);
+        return val;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
