@@ -1435,38 +1435,45 @@ public class CloudLevel implements Level {
             return false;
         }
         Chunk chunk = this.getChunk(x >> 4, z >> 4);
-        BlockState previousState = chunk.getAndSetBlock(x & 0xF, y, z & 0xF, layer, state);
-        if (previousState == state) {
+        BlockState oldState = chunk.getAndSetBlock(x & 0xF, y, z & 0xF, layer, state);
+        if (oldState == state) {
             return false;
         }
         int cx = x >> 4;
         int cz = z >> 4;
         long index = CloudChunk.key(cx, cz);
 
-        Block block = new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
+        Vector3i position = Vector3i.from(x, y, z);
+
+        Block oldBlock = new CloudBlock(this, position, new BlockState[]{
+                layer == 0 ? oldState : chunk.getBlock(x & 0xf, y, z & 0xf),
+                layer == 1 ? oldState : chunk.getBlock(x & 0xf, y, z & 0xf, 1)
+        });
+
+        Block newBlock = new CloudBlock(this, position, new BlockState[]{
                 layer == 0 ? state : chunk.getBlock(x & 0xf, y, z & 0xf),
                 layer == 1 ? state : chunk.getBlock(x & 0xf, y, z & 0xf, 1)
         });
         if (direct) {
-            this.sendBlocks(this.getChunkPlayers(cx, cz).toArray(new Player[0]), new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+            this.sendBlocks(this.getChunkPlayers(cx, cz).toArray(new Player[0]), new Block[]{newBlock}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
         } else {
             addBlockChange(index, x, y, z, layer);
         }
 
         if (update) {
             BlockBehavior behavior = state.getBehavior();
-            BlockBehavior previousBehavior = previousState.getBehavior();
-            if (previousBehavior.isTransparent(previousState) != behavior.isTransparent(state) ||
-                    previousBehavior.getLightLevel(block) != behavior.getLightLevel(block)) {
+            BlockBehavior oldBehavior = oldState.getBehavior();
+            if (oldBehavior.isTransparent(oldState) != behavior.isTransparent(state) ||
+                    oldBehavior.getLightLevel(oldBlock) != behavior.getLightLevel(newBlock)) {
                 addLightUpdate(x, y, z);
             }
-            BlockUpdateEvent ev = new BlockUpdateEvent(block);
+            BlockUpdateEvent ev = new BlockUpdateEvent(newBlock);
             this.server.getEventManager().fire(ev);
             if (!ev.isCancelled()) {
                 for (Entity entity : this.getNearbyEntities(new SimpleAxisAlignedBB(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
                     this.scheduleEntityUpdate(entity);
                 }
-                behavior.onUpdate(block, BLOCK_UPDATE_NORMAL);
+                behavior.onUpdate(newBlock, BLOCK_UPDATE_NORMAL);
                 this.updateAround(x, y, z);
             }
         }
