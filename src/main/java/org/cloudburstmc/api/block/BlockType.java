@@ -19,15 +19,14 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public final class BlockType implements ItemType {
+public final class BlockType extends ItemType {
 
-    private final Identifier id;
     private final Set<BlockTrait<?>> traits;
     private final List<BlockState> states;
     private final BlockState defaultState;
 
     private BlockType(Identifier id, BlockTrait<?>[] traits) {
-        this.id = id;
+        super(id, null);
         this.traits = ImmutableSet.copyOf(traits);
         this.states = getPermutations(this, traits);
 
@@ -43,10 +42,6 @@ public final class BlockType implements ItemType {
         for (BlockState state : this.states) {
             state.initialize(blockStateMap);
         }
-    }
-
-    public Identifier getId() {
-        return id;
     }
 
     public Set<BlockTrait<?>> getTraits() {
@@ -65,9 +60,19 @@ public final class BlockType implements ItemType {
         this.states.forEach(action);
     }
 
+    private static final BlockTrait<?>[] EMPTY = new BlockTrait[0];
+
+    public static BlockType of(Identifier id) {
+        return of(id, EMPTY);
+    }
+
     public static BlockType of(Identifier id, BlockTrait<?>... traits) {
         checkNotNull(id, "id");
         checkNotNull(traits, "traits");
+
+        if (traits == EMPTY) {
+            return new BlockType(id, EMPTY);
+        }
 
         // Check for duplicate block traits.
         LinkedHashSet<BlockTrait<?>> traitSet = new LinkedHashSet<>();
@@ -128,129 +133,6 @@ public final class BlockType implements ItemType {
         }
 
         return states.build();
-    }
-
-    @Override
-    public boolean isBlock() {
-        return true;
-    }
-
-    @Override
-    public boolean isPlaceable() {
-        return true;
-    }
-
-    //TODO - move a lot of this to block/item behavior classes?
-    public boolean blocksMotion() {
-        return this != BlockTypes.AIR;
-    }
-
-    public boolean blocksWater() {
-        return true;
-    }
-
-    public boolean isFloodable() {
-        return false;
-    }
-
-    public boolean isReplaceable() {
-        return false;
-    }
-
-    public boolean isTransparent() {
-        return BlockCategories.inCategory(this, BlockCategory.TRANSPARENT);
-    }
-
-    public int getTranslucency() {
-        return 0;
-    }
-
-    public int getFilterLevel() {
-        return 0;
-    }
-
-    public boolean isSolid() {
-        return BlockCategories.inCategory(this, BlockCategory.SOLID);
-    }
-
-    public boolean isDiggable() {
-        return false;
-    }
-
-    public int getBurnChance() {
-        return 0;
-    }
-
-    public int getBurnAbility() {
-        return 0;
-    }
-
-    public float getHardness() {
-        return 0f;
-    }
-
-    public float getFriction() {
-        return 0f;
-    }
-
-    public float getResistance() {
-        return 0f;
-    }
-
-    @Nullable
-    @Override
-    public BlockType getBlock() {
-        return this;
-    }
-
-    @Nullable
-    @Override
-    public Class<?> getMetadataClass() {
-        return null;
-    }
-
-    @Override
-    public int getMaximumStackSize() {
-        return 64;
-    }
-
-    @Override
-    public ItemStack createItem(int amount, Object... metadata) {
-        return null; // TODO - Need to inject an Item or Block Registry? Or make ItemStack not an interface so we can create a new instance?
-    }
-
-    @Nullable
-    @Override
-    public ToolType getToolType() {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public TierType getTierType() {
-        return null;
-    }
-
-    public AxisAlignedBB getBoundingBox() {
-        return  null;
-        //TODO
-    }
-
-    // Move these to BlockBehavior instead?
-    public boolean isPowerSource() {
-        return false;
-    }
-
-    public boolean canBeSilkTouched() {
-        return true;
-    }
-
-    public boolean waterlogsSource() {
-        return false;
-    }
-
-    public boolean breaksFlowing() {
-        return false;
     }
 
     @Override

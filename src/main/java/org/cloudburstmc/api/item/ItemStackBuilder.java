@@ -1,63 +1,64 @@
 package org.cloudburstmc.api.item;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.util.Identifier;
 
 import java.util.Collection;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
-public interface ItemStackBuilder {
+import static com.google.common.base.Preconditions.checkArgument;
+import static lombok.Lombok.checkNotNull;
+import static org.cloudburstmc.api.item.ItemKeys.BLOCK_STATE;
 
-    ItemStackBuilder itemType(@NonNull ItemType itemType);
+public final class ItemStackBuilder {
 
-    ItemStackBuilder blockState(BlockState blockState);
+    private ItemType itemType;
+    private int amount;
+    private final Map<DataKey<?, ?>, Object> metadata;
 
-    ItemStackBuilder amount(int amount);
+    ItemStackBuilder(ItemType itemType, int amount, Map<DataKey<?, ?>, ?> metadata) {
+        this.itemType = itemType;
+        this.amount = amount;
+        this.metadata = new IdentityHashMap<>(metadata);
+    }
 
-    ItemStackBuilder name(@NonNull String name);
+    public ItemStackBuilder itemType(@NonNull ItemType itemType) {
+        checkNotNull(itemType, "itemType is null");
+        this.itemType = itemType;
+        return this;
+    }
 
-    ItemStackBuilder clearName();
+    public ItemStackBuilder amount(@NonNegative int amount) {
+        checkArgument(amount > 0, "amount cannot be less than zero");
+        this.amount = amount;
+        return this;
+    }
 
-    ItemStackBuilder lore(List<String> lines);
+    public ItemStackBuilder clearData() {
+        this.metadata.clear();
+        return this;
+    }
 
-    ItemStackBuilder clearLore();
+    public <T, M> ItemStackBuilder data(DataKey<T, M> key, M value) {
+        checkNotNull(key, "key");
+        checkNotNull(value, "value");
+        this.metadata.put(key, key.getImmutableFunction().apply(value));
+        return this;
+    }
 
-    ItemStackBuilder itemData(Object data);
-
-    ItemStackBuilder itemData(Class<?> metadataClass, Object data);
-
-    ItemStackBuilder clearData();
-
-    ItemStackBuilder clearData(Class<?> metadataClass);
-
-    ItemStackBuilder addEnchantment(EnchantmentInstance enchantment);
-
-    ItemStackBuilder addEnchantments(Collection<EnchantmentInstance> enchantmentInstanceCollection);
-
-    ItemStackBuilder clearEnchantments();
-
-    ItemStackBuilder removeEnchantment(EnchantmentType enchantment);
-
-    ItemStackBuilder removeEnchantments(Collection<EnchantmentType> enchantments);
-
-    ItemStackBuilder addCanPlaceOn(Identifier id);
-
-    ItemStackBuilder addCanPlaceOn(ItemType type);
-
-    ItemStackBuilder removeCanPlaceOn(Identifier id);
-
-    ItemStackBuilder clearCanPlaceOn();
-
-    ItemStackBuilder addCanDestroy(Identifier id);
-
-    ItemStackBuilder addCanDestroy(ItemType type);
-
-    ItemStackBuilder removeCanDestroy(Identifier id);
-
-    ItemStackBuilder clearCanDestroy();
-
-    ItemStack build();
+    public ItemStack build() {
+        checkNotNull(this.itemType, "itemType is null");
+        checkArgument(this.amount > 0, "amount cannot be less than zero");
+        checkArgument(!(this.itemType instanceof BlockType) || this.metadata.containsKey(BLOCK_STATE),
+                "ItemStack with a BlockType requires BlockState data");
+        return new ItemStack(itemType, amount, metadata);
+    }
 }
