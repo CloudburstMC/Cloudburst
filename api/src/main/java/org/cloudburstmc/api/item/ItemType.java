@@ -2,60 +2,47 @@ package org.cloudburstmc.api.item;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Identifier;
 
-public sealed interface ItemType permits BlockType, ItemTypes.IntItem {
-    Identifier getId();
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 
-    boolean isBlock();
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-    boolean isPlaceable();
+public sealed class ItemType permits BlockType {
 
-    @Nullable
-    BlockType getBlock();
+    private final Identifier id;
+    private final Class<?> metadataClass;
 
-    @Nullable
-    Class<?> getMetadataClass();
-
-    int getMaximumStackSize();
-
-    default ItemStack createItem() {
-        return createItem(1);
+    protected ItemType(Identifier id, Class<?> metadataClass) {
+        this.id = id;
+        this.metadataClass = metadataClass;
     }
 
-    ItemStack createItem(int amount, Object... metadata);
-
-    default int getAttackDamage() {
-        return 2;
-    }
-
-    default int getArmorPoints() {
-        return 0;
-    }
-
-    default int getToughness() {
-        return 0;
-    }
-
-    default int getDurability() {
-        return 0;
-    }
-
-    default short getFuelTime() {
-        return 0;
-    }
-
-    default BlockType getBlockType() {
-        return null;
-    }
-
-    default boolean isStackable() {
-        return getMaximumStackSize() > 1;
+    public final Identifier getId() {
+        return id;
     }
 
     @Nullable
-    ToolType getToolType();
+    public final Class<?> getMetadataClass() {
+        return metadataClass;
+    }
 
-    @Nullable
-    TierType getTierType();
+    @Override
+    public String toString() {
+        return "ItemType{id=" + id + ')';
+    }
+
+    public static ItemType of(Identifier id) {
+        return of(id, null);
+    }
+
+    public static ItemType of(Identifier id, Class<?> metadataClass) {
+        checkNotNull(id, "id");
+
+        return new ItemType(id, metadataClass);
+    }
 }
