@@ -15,7 +15,7 @@ public class PluginClassVisitor extends ClassVisitor {
     private PluginAnnotationVisitor annotationVisitor;
 
     public PluginClassVisitor() {
-        super(Opcodes.ASM5);
+        super(Opcodes.ASM9);
     }
 
     @Override
