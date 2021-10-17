@@ -191,6 +191,10 @@
                     <groupId>com.nukkitx.fastutil</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -255,6 +259,11 @@
             <groupId>org.cloudburstmc</groupId>
             <artifactId>upnp</artifactId>
             <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>9.2</version>
         </dependency>
     </dependencies>
 
