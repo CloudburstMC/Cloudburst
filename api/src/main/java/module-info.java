@@ -58,6 +58,6 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.potion;
     exports org.cloudburstmc.api.registry;
     exports org.cloudburstmc.api.util;
+    exports org.cloudburstmc.api.util.behavior;
     exports org.cloudburstmc.api.util.data;
-    exports org.cloudburstmc.api.util.function;
 }
