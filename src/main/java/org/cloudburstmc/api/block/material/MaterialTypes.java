@@ -84,5 +84,9 @@ public class MaterialTypes {
 
     public static MaterialType DECORATION_FLAMMABLE = MaterialType.builder().translucency(1.0f).alwaysDestroyable().blockingPrecipitation().flammable().build();
 
-    public static MaterialType ANY = MaterialType.builder().alwaysDestroyable().blockingPrecipitation().solid().build();
+    public static MaterialType DECORATION_SOLID = MaterialType.builder().translucency(1.0f).alwaysDestroyable().blockingPrecipitation().flammable().build();
+
+    public static MaterialType DRIPSTONE = MaterialType.builder().translucency(1.0f).alwaysDestroyable().blockingPrecipitation().flammable().build();
+
+    public static MaterialType SCULK = MaterialType.builder().translucency(1.0f).alwaysDestroyable().blockingPrecipitation().flammable().build();
 }

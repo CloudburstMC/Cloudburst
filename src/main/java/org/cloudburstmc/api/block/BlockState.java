@@ -1,10 +1,10 @@
 package org.cloudburstmc.api.block;
 
 import com.google.common.collect.ImmutableMap;
-import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.util.behavior.Behavior;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -18,19 +18,19 @@ public class BlockState {
     private final BlockType type;
     private final Map<BlockTrait<?>, Comparable<?>> traits;
     private Map<BlockTrait<?>, BlockState[]> blockStates;
-    private BlockBehavior behavior;
+    private Behavior behavior;
 
     public BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits) {
         this(type, traits, null);
     }
 
-    public BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockBehavior behavior) {
+    public BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, Behavior behavior) {
         this.type = type;
         this.traits = traits;
         this.behavior = behavior;
     }
 
-    public void setBehavior(BlockBehavior behavior) {
+    public void setBehavior(Behavior behavior) {
         this.behavior = behavior;
     }
 
@@ -104,7 +104,7 @@ public class BlockState {
         return builder.toString();
     }
 
-    public BlockBehavior getBehavior() {
+    public Behavior getBehavior() {
         return this.behavior;
     }
 
