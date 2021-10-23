@@ -6,7 +6,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface FallOnBlockBehavior {
 
-    void onFallOn(Behavior behavior, Block block, Entity entity);
+    void onFallOn(Behavior<Executor> behavior, Block block, Entity entity);
 
     @FunctionalInterface
     interface Executor {

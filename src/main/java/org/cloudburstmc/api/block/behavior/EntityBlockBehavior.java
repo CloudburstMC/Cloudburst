@@ -6,7 +6,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface EntityBlockBehavior {
 
-    void execute(Behavior behavior, Block block, Entity entity);
+    void execute(Behavior<Executor> behavior, Block block, Entity entity);
 
     @FunctionalInterface
     interface Executor {

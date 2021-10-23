@@ -5,7 +5,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface NeighborBlockBehavior {
 
-    void onNeighborChanged(Behavior behavior, Block block, Block neighbor);
+    void onNeighborChanged(Behavior<Executor> behavior, Block block, Block neighbor);
 
     @FunctionalInterface
     interface Executor {

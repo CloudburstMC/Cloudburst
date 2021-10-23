@@ -4,12 +4,9 @@ import org.cloudburstmc.api.block.behavior.*;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.data.DataKey;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.behavior.Behavior;
 
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 public final class BlockBehaviors {
 
@@ -46,7 +43,7 @@ public final class BlockBehaviors {
 
 //    public static final BehaviorKey<ToFloatTriFunction<Behavior, BlockState, RandomGenerator>, FloatBlockBehavior.Executor> GET_EXPLOSION_RESISTANCE = DataKey.behavior(Identifier.fromString("get_explosion_resistance"), ToFloatTriFunction.class, FloatBlockBehavior.Executor.class);
 
-    public static final BehaviorKey<BiFunction<Behavior, Block, ItemStack>, ItemStack> GET_SILK_TOUCH_ITEM_STACK = DataKey.behavior(Identifier.fromString("get_silk_touch_item_stack"), BiFunction.class, ItemStack.class);
+//    public static final BehaviorKey<BiFunction<Behavior, Block, ItemStack>, ItemStack> GET_SILK_TOUCH_ITEM_STACK = DataKey.behavior(Identifier.fromString("get_silk_touch_item_stack"), BiFunction.class, ItemStack.class);
 
 //    public static final BehaviorKey<BasicBlockBehavior<BlockState>, BasicBlockBehavior.Executor<BlockState>> GET_STRIPPED_BLOCK = DataKey.behavior(Identifier.fromString("get_stripped_block"), BasicBlockBehavior.class, BasicBlockBehavior.Executor.class);
 

@@ -7,7 +7,7 @@ import java.util.random.RandomGenerator;
 
 public interface ExpBlockBehavior {
 
-    int getExperience(Behavior behavior, BlockState state, RandomGenerator random);
+    int getExperience(Behavior<Executor> behavior, BlockState state, RandomGenerator random);
 
     @FunctionalInterface
     interface Executor {
