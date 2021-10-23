@@ -32,8 +32,7 @@ public final class BlockBreakEvent extends BlockEvent implements Cancellable {
     }
 
     public BlockBreakEvent(Player player, Block block, ItemStack item, ItemStack[] drops, boolean instaBreak, boolean fastBreak) {
-        this(player, block, null, item, drops,
-                block.getState().getBehavior().getDropExp(), instaBreak, fastBreak);
+        this(player, block, null, item, drops, 0, instaBreak, fastBreak);
     }
 
     public BlockBreakEvent(Player player, Block block, Direction face, ItemStack item, ItemStack[] drops, int dropExp, boolean instaBreak, boolean fastBreak) {
