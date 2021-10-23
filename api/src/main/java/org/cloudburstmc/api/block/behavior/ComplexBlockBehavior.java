@@ -5,7 +5,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface ComplexBlockBehavior {
 
-    void execute(Behavior behavior, Block block);
+    void execute(Behavior<Executor> behavior, Block block);
 
     @FunctionalInterface
     interface Executor {

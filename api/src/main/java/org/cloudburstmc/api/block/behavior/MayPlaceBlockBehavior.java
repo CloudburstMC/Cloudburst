@@ -6,7 +6,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface MayPlaceBlockBehavior {
 
-    boolean mayPlace(Behavior behavior, Block block, Direction direction);
+    boolean mayPlace(Behavior<Executor> behavior, Block block, Direction direction);
 
     @FunctionalInterface
     interface Executor {

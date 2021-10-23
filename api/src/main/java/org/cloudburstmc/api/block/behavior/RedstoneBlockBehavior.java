@@ -5,7 +5,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface RedstoneBlockBehavior {
 
-    int onRedstoneUpdate(Behavior behavior, Block block);
+    int onRedstoneUpdate(Behavior<Executor> behavior, Block block);
 
     @FunctionalInterface
     interface Executor {

@@ -6,7 +6,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface AABBBlockBehavior {
 
-    AxisAlignedBB getBoundingBox(Behavior behavior, BlockState state);
+    AxisAlignedBB getBoundingBox(Behavior<Executor> behavior, BlockState state);
 
     @FunctionalInterface
     interface Executor {

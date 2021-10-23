@@ -5,7 +5,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface BooleanBlockBehavior {
 
-    boolean test(Behavior behavior, BlockState state);
+    boolean test(Behavior<Executor> behavior, BlockState state);
 
     @FunctionalInterface
     interface Executor {

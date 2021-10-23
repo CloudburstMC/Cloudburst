@@ -5,7 +5,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface DescriptionBlockBehavior {
 
-    String getDescription(Behavior behavior, BlockState state);
+    String getDescription(Behavior<Executor> behavior, BlockState state);
 
     @FunctionalInterface
     interface Executor {

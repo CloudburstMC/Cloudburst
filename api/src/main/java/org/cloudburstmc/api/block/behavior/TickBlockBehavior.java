@@ -7,7 +7,7 @@ import java.util.random.RandomGenerator;
 
 public interface TickBlockBehavior {
 
-    void onTick(Behavior behavior, Block block, RandomGenerator random);
+    void onTick(Behavior<Executor> behavior, Block block, RandomGenerator random);
 
     @FunctionalInterface
     interface Executor {

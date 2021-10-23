@@ -5,7 +5,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface FloatBlockBehavior {
 
-    float getProperty(Behavior behavior, BlockState state);
+    float getProperty(Behavior<Executor> behavior, BlockState state);
 
     @FunctionalInterface
     interface Executor {

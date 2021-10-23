@@ -7,7 +7,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface UseBlockBehavior {
 
-    boolean use(Behavior behavior, Block block, Player player, Direction direction);
+    boolean use(Behavior<Executor> behavior, Block block, Player player, Direction direction);
 
     @FunctionalInterface
     interface Executor {
