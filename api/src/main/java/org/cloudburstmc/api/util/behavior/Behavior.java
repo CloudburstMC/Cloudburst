@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.util.behavior;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.api.data.DataKey;
+import org.cloudburstmc.api.data.BehaviorKey;
 
 public interface Behavior<T> {
 
@@ -11,7 +11,7 @@ public interface Behavior<T> {
      * @return function
      */
     @NonNull
-    T getSuper();
+    T parent();
 
     /**
      * Get a behavior for a specified key
@@ -20,5 +20,5 @@ public interface Behavior<T> {
      * @param <U> function type
      * @return behavior function
      */
-    <U> U getBehavior(DataKey<?, U> key);
+    <U> U getBehavior(BehaviorKey<?, U> key);
 }

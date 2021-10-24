@@ -7,7 +7,7 @@ import java.util.function.Function;
 
 public interface BehaviorRegistry extends Registry {
 
-    <T, R> void registerItemBehavior(BehaviorKey<T, R> key, T defaultBehavior, Function<Behavior, R> executorFactory);
+    <T, R> void registerItemBehavior(BehaviorKey<T, R> key, T defaultBehavior, Function<Behavior<R>, R> executorFactory);
 
-    <T, R> void registerBlockBehavior(BehaviorKey<T, R> key, T defaultBehavior, Function<Behavior, R> executorFactory);
+    <T, R> void registerBlockBehavior(BehaviorKey<T, R> key, T defaultBehavior, Function<Behavior<R>, R> executorFactory);
 }

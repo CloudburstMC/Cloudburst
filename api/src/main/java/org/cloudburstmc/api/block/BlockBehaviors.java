@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.block;
 
 import org.cloudburstmc.api.block.behavior.*;
+import org.cloudburstmc.api.block.material.MaterialType;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.data.DataKey;
@@ -67,11 +68,25 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<EntityBlockBehavior, EntityBlockBehavior.Executor> ON_PROJECTILE_HIT = DataKey.behavior(Identifier.fromString("on_projectile_hit"), EntityBlockBehavior.class, EntityBlockBehavior.Executor.class);
 
-    public static final BehaviorKey<RedstoneBlockBehavior, RedstoneBlockBehavior.Executor> ON_REDSTONE_UPDATE = DataKey.behavior(Identifier.fromString("on_redstone_update"), RedstoneBlockBehavior.class, RedstoneBlockBehavior.Executor.class);
+    public static final BehaviorKey<ComplexBlockBehavior, ComplexBlockBehavior.Executor> ON_REDSTONE_UPDATE = DataKey.behavior(Identifier.fromString("on_redstone_update"), ComplexBlockBehavior.class, ComplexBlockBehavior.Executor.class);
 
     public static final BehaviorKey<ComplexBlockBehavior, ComplexBlockBehavior.Executor> ON_REMOVE = DataKey.behavior(Identifier.fromString("on_remove"), ComplexBlockBehavior.class, ComplexBlockBehavior.Executor.class);
 
     public static final BehaviorKey<TickBlockBehavior, TickBlockBehavior.Executor> ON_RANDOM_TICK = DataKey.behavior(Identifier.fromString("on_random_tick"), TickBlockBehavior.class, TickBlockBehavior.Executor.class);
 
     public static final BehaviorKey<UseBlockBehavior, BooleanBlockBehavior.Executor> USE = DataKey.behavior(Identifier.fromString("use"), UseBlockBehavior.class, BooleanBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<EntityBlockBehavior, EntityBlockBehavior.Executor> ON_STAND_ON = DataKey.behavior(Identifier.fromString("on_stand_on"), EntityBlockBehavior.class, EntityBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<EntityBlockBehavior, EntityBlockBehavior.Executor> ON_STEP_ON = DataKey.behavior(Identifier.fromString("on_step_on"), EntityBlockBehavior.class, EntityBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<EntityBlockBehavior, EntityBlockBehavior.Executor> ON_STEP_OFF = DataKey.behavior(Identifier.fromString("on_step_off"), EntityBlockBehavior.class, EntityBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<MaterialType, MaterialType> GET_MATERIAL = DataKey.behavior(Identifier.fromString("get_material"), MaterialType.class, MaterialType.class);
+
+    public static final BehaviorKey<ResourceBlockBehavior, ResourceBlockBehavior.Executor> GET_SILK_TOUCH_RESOURCE = DataKey.behavior(Identifier.fromString("get_silk_touch_resource"), ResourceBlockBehavior.class, ResourceBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<ResourceBlockBehavior, ResourceBlockBehavior.Executor> GET_RESOURCE = DataKey.behavior(Identifier.fromString("get_resource"), ResourceBlockBehavior.class, ResourceBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<ResourceCountBlockBehavior, ResourceCountBlockBehavior.Executor> GET_RESOURCE_COUNT = DataKey.behavior(Identifier.fromString("get_resource_count"), ResourceCountBlockBehavior.class, ResourceCountBlockBehavior.Executor.class);
 }
