@@ -15,7 +15,7 @@ public interface BlockRegistry extends Registry {
     BehaviorCollection getBehaviors(BlockType type);
 
     default <T> T getBehavior(BlockType type, BehaviorKey<?, T> key) {
-        return getBehaviors(type).getBehavior(key);
+        return getBehaviors(type).get(key);
     }
 
     boolean isBlock(Identifier id);
