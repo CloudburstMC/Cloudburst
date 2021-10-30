@@ -11,7 +11,7 @@ public interface BehaviorCollection {
      * @param <T> function type
      * @return function
      */
-    <T> T getBehavior(BehaviorKey<?, T> key);
+    <T> T get(BehaviorKey<?, T> key);
 
     /**
      * Extend existing functionality for this key

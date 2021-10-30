@@ -5,6 +5,7 @@ import com.nukkitx.math.vector.Vector4i;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 
 public interface Block extends BlockSnapshot {
 
@@ -17,6 +18,10 @@ public interface Block extends BlockSnapshot {
     Chunk getChunk();
 
     Vector3i getPosition();
+
+    BehaviorCollection getBehaviors();
+
+    int getBrightness();
 
     default int getX() {
         return getPosition().getX();
