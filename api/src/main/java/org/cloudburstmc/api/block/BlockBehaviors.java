@@ -89,4 +89,22 @@ public final class BlockBehaviors {
     public static final BehaviorKey<ResourceBlockBehavior, ResourceBlockBehavior.Executor> GET_RESOURCE = DataKey.behavior(Identifier.fromString("get_resource"), ResourceBlockBehavior.class, ResourceBlockBehavior.Executor.class);
 
     public static final BehaviorKey<ResourceCountBlockBehavior, ResourceCountBlockBehavior.Executor> GET_RESOURCE_COUNT = DataKey.behavior(Identifier.fromString("get_resource_count"), ResourceCountBlockBehavior.class, ResourceCountBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<Float, Float> GET_TRANSLUCENCY = DataKey.behavior(Identifier.fromString("get_translucency"), Float.class);
+
+    public static final BehaviorKey<Boolean, Boolean> IS_SOLID = DataKey.behavior(Identifier.fromString("is_solid"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> IS_LIQUID = DataKey.behavior(Identifier.fromString("is_liquid"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> IS_TOP_SOLID = DataKey.behavior(Identifier.fromString("is_top_solid"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> IS_STAIRS = DataKey.behavior(Identifier.fromString("is_stairs"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> IS_SLAB = DataKey.behavior(Identifier.fromString("is_slab"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> IS_REPLACEABLE = DataKey.behavior(Identifier.fromString("is_replaceable"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> IS_SUPER_HOT = DataKey.behavior(Identifier.fromString("is_super_hot"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> IS_FLAMMABLE = DataKey.behavior(Identifier.fromString("is_flammable"), Boolean.class);
 }
