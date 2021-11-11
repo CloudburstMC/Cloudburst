@@ -12,6 +12,8 @@ public class EnchantmentType {
     private final short id;
     private final Identifier type;
     private final int maxLevel;
-    private final int weight;
+    private final EnchantmentRarity rarity;
+    private final boolean treasure;
+    private final boolean cursed;
     private final EnchantmentTarget target;
 }
