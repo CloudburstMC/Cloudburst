@@ -1,13 +1,19 @@
 package org.cloudburstmc.api.enchantment.behavior;
 
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.EnchantmentRarity;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 
 public abstract class EnchantmentBehavior {
+
+    public EnchantmentRarity getRarity(EnchantmentInstance enchantment) {
+        return enchantment.getType().getRarity();
+    }
+
     public int getWeight(EnchantmentInstance enchantment) {
-        return enchantment.getType().getWeight();
+        return this.getRarity(enchantment).getWeight();
     }
 
     public int getMaxLevel(EnchantmentInstance enchantment) {

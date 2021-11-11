@@ -1,19 +1,18 @@
 package org.cloudburstmc.api.enchantment;
 
 public enum EnchantmentTarget {
-    ALL,
     ARMOR,
-    ARMOR_HEAD,
-    ARMOR_TORSO,
-    ARMOR_LEGS,
+    ARMOR_CHEST,
     ARMOR_FEET,
-    SWORD,
-    DIGGER,
-    FISHING_ROD,
-    BREAKABLE,
+    ARMOR_HEAD,
+    ARMOR_LEGS,
     BOW,
-    WEARABLE,
+    BREAKABLE,
+    CROSSBOW,
+    FISHING_ROD,
+    TOOL,
     TRIDENT,
-    CROSSBOW
-
+    VANISHABLE,
+    WEAPON,
+    WEARABLE
 }
