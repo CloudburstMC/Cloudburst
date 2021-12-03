@@ -4,7 +4,7 @@ open module org.cloudburstmc.server {
     requires com.fasterxml.jackson.databind;
     requires java.management;
     requires nbt;
-    requires com.nukkitx.protocol.bedrock.v465;
+    requires com.nukkitx.protocol.bedrock.v475;
     requires com.nukkitx.protocol.bedrock.common;
     requires com.nukkitx.protocol.common;
     requires com.nukkitx.network.common;
