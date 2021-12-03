@@ -60,12 +60,12 @@ public class ItemBowBehavior extends ItemToolBehavior {
 
         float damage = 2;
 
-        EnchantmentInstance bowDamage = item.getEnchantment(EnchantmentTypes.BOW_POWER);
+        EnchantmentInstance bowDamage = item.getEnchantment(EnchantmentTypes.POWER);
         if (bowDamage != null && bowDamage.getLevel() > 0) {
             damage += 0.25f * (bowDamage.getLevel() + 1);
         }
 
-        EnchantmentInstance flameEnchant = item.getEnchantment(EnchantmentTypes.BOW_FLAME);
+        EnchantmentInstance flameEnchant = item.getEnchantment(EnchantmentTypes.FLAME);
         boolean flame = flameEnchant != null && flameEnchant.getLevel() > 0;
 
         Vector3f position = Vector3f.from(player.getX(), player.getY() + player.getEyeHeight(), player.getZ());
@@ -100,7 +100,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
             player.getInventory().sendContents(player);
         } else {
             entityShootBowEvent.getProjectile().setMotion(entityShootBowEvent.getProjectile().getMotion().mul(entityShootBowEvent.getForce()));
-            EnchantmentInstance infinityEnchant = item.getEnchantment(EnchantmentTypes.BOW_INFINITY);
+            EnchantmentInstance infinityEnchant = item.getEnchantment(EnchantmentTypes.INFINITY);
             boolean infinity = infinityEnchant != null && infinityEnchant.getLevel() > 0;
             Entity projectile;
             if (infinity && (projectile = entityShootBowEvent.getProjectile()) instanceof Arrow) {
@@ -113,7 +113,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
                 if (!this.isUnbreakable(item)) {
                     var dmg = item.getMetadata(Damageable.class);
                     if (dmg != null) {
-                        EnchantmentInstance durability = item.getEnchantment(EnchantmentTypes.DURABILITY);
+                        EnchantmentInstance durability = item.getEnchantment(EnchantmentTypes.UNBREAKING);
                         if (!(durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100))) {
                             if (dmg.getDurability() + 1 >= getMaxDurability()) {
                                 item = item.decrementAmount();

@@ -112,7 +112,7 @@ public abstract class ItemToolBehavior extends CloudItemBehavior {
             return false;
         }
 
-        EnchantmentInstance durability = item.getEnchantment(EnchantmentTypes.DURABILITY);
+        EnchantmentInstance durability = item.getEnchantment(EnchantmentTypes.UNBREAKING);
         return durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100);
     }
 
