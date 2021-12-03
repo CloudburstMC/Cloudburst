@@ -21,6 +21,6 @@ public class EnchantmentMending extends EnchantmentBehavior {
 
     @Override
     public boolean isCompatibleWith(EnchantmentInstance first, EnchantmentInstance enchantment) {
-        return super.isCompatibleWith(first, enchantment) && enchantment.getType() != EnchantmentTypes.BOW_INFINITY;
+        return super.isCompatibleWith(first, enchantment) && enchantment.getType() != EnchantmentTypes.INFINITY;
     }
 }

@@ -41,7 +41,7 @@ public abstract class BaseBlockBehavior extends BlockBehavior {
         int hasteEffectLevel = Optional.ofNullable(player).map((p1) -> p1.getEffect(EffectTypes.HASTE))
                 .map(Effect::getAmplifier).orElse(0);
         boolean insideOfWaterWithoutAquaAffinity = player != null && player.isInsideOfWater() &&
-                Optional.ofNullable(player.getInventory().getHelmet().getEnchantment(EnchantmentTypes.WATER_WORKER))
+                Optional.ofNullable(player.getInventory().getHelmet().getEnchantment(EnchantmentTypes.AQUA_AFFINITY))
                         .map(EnchantmentInstance::getLevel).map(l -> l >= 1).orElse(false);
         boolean outOfWaterButNotOnGround = player != null && (!player.isInsideOfWater()) && (!player.isOnGround());
         return breakTime0(blockHardness, correctTool, canHarvestWithHand, blockType, itemToolType, itemTier,
