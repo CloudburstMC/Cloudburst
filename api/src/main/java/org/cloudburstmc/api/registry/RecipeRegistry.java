@@ -8,7 +8,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.UUID;
 
-public interface RecipeRegistry extends Registry {
+public interface RecipeRegistry {
 
     void register(Recipe recipe) throws RegistryException;
 

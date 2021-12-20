@@ -210,4 +210,7 @@ public interface Level extends ChunkManager {
 
     Set<? extends Entity> getNearbyEntities(AxisAlignedBB bb, Entity entity, boolean loadChunks);
 
+    int getMinHeight();
+
+    int getMaxHeight();
 }

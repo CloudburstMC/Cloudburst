@@ -20,5 +20,5 @@ public interface Behavior<T> {
      * @param <U> function type
      * @return behavior function
      */
-    <U> U getBehavior(BehaviorKey<?, U> key);
+    <U> U get(BehaviorKey<?, U> key);
 }

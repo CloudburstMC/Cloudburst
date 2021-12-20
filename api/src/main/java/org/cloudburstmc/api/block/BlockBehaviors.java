@@ -74,6 +74,10 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<TickBlockBehavior, TickBlockBehavior.Executor> ON_RANDOM_TICK = DataKey.behavior(Identifier.fromString("on_random_tick"), TickBlockBehavior.class, TickBlockBehavior.Executor.class);
 
+    public static final BehaviorKey<Boolean, Boolean> CAN_RANDOM_TICK = DataKey.behavior(Identifier.fromString("can_random_tick"), Boolean.class);
+
+    public static final BehaviorKey<TickBlockBehavior, TickBlockBehavior.Executor> ON_TICK = DataKey.behavior(Identifier.fromString("on_tick"), TickBlockBehavior.class, TickBlockBehavior.Executor.class);
+
     public static final BehaviorKey<UseBlockBehavior, BooleanBlockBehavior.Executor> USE = DataKey.behavior(Identifier.fromString("use"), UseBlockBehavior.class, BooleanBlockBehavior.Executor.class);
 
     public static final BehaviorKey<EntityBlockBehavior, EntityBlockBehavior.Executor> ON_STAND_ON = DataKey.behavior(Identifier.fromString("on_stand_on"), EntityBlockBehavior.class, EntityBlockBehavior.Executor.class);
@@ -86,7 +90,7 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<ResourceBlockBehavior, ResourceBlockBehavior.Executor> GET_SILK_TOUCH_RESOURCE = DataKey.behavior(Identifier.fromString("get_silk_touch_resource"), ResourceBlockBehavior.class, ResourceBlockBehavior.Executor.class);
 
-    public static final BehaviorKey<ResourceBlockBehavior, ResourceBlockBehavior.Executor> GET_RESOURCE = DataKey.behavior(Identifier.fromString("get_resource"), ResourceBlockBehavior.class, ResourceBlockBehavior.Executor.class);
+    public static final BehaviorKey<ResourceBlockBehavior, ResourceBlockBehavior.Executor> GET_RESOURCE_ITEM = DataKey.behavior(Identifier.fromString("get_resource_item"), ResourceBlockBehavior.class, ResourceBlockBehavior.Executor.class);
 
     public static final BehaviorKey<ResourceCountBlockBehavior, ResourceCountBlockBehavior.Executor> GET_RESOURCE_COUNT = DataKey.behavior(Identifier.fromString("get_resource_count"), ResourceCountBlockBehavior.class, ResourceCountBlockBehavior.Executor.class);
 
@@ -107,4 +111,26 @@ public final class BlockBehaviors {
     public static final BehaviorKey<Boolean, Boolean> IS_SUPER_HOT = DataKey.behavior(Identifier.fromString("is_super_hot"), Boolean.class);
 
     public static final BehaviorKey<Boolean, Boolean> IS_FLAMMABLE = DataKey.behavior(Identifier.fromString("is_flammable"), Boolean.class);
+
+    public static final BehaviorKey<ColorBlockBehavior, ColorBlockBehavior.Executor> GET_COLOR = DataKey.behavior(Identifier.fromString("get_color"), ColorBlockBehavior.class, ColorBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<Integer, Integer> GET_LIGHT = DataKey.behavior(Identifier.fromString("get_light"), Integer.class);
+
+    public static final BehaviorKey<Boolean, Boolean> IS_ALWAYS_DESTROYABLE = DataKey.behavior(Identifier.fromString("is_always_destroyable"), Boolean.class);
+
+    public static final BehaviorKey<Integer, Integer> GET_TICK_DELAY = DataKey.behavior(Identifier.fromString("get_tick_delay"), Integer.class);
+
+    public static final BehaviorKey<SurviveBlockBehavior, SurviveBlockBehavior.Executor> CAN_SURVIVE = DataKey.behavior(Identifier.fromString("can_survive"), SurviveBlockBehavior.class, SurviveBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<ComplexBlockBehavior, ComplexBlockBehavior.Executor> CHECK_ALIVE = DataKey.behavior(Identifier.fromString("check_alive"), ComplexBlockBehavior.class, ComplexBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<Boolean, Boolean> IS_FLOODABLE = DataKey.behavior(Identifier.fromString("is_floodable"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> CAN_INSTATICK = DataKey.behavior(Identifier.fromString("is_instaticking"), Boolean.class);
+
+    public static final BehaviorKey<BooleanBlockBehavior, BooleanBlockBehavior.Executor> CAN_SLIDE = DataKey.behavior(Identifier.fromString("can_slide"), BooleanBlockBehavior.class, BooleanBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<BooleanBlockBehavior, BooleanBlockBehavior.Executor> IS_FREE_TO_FALL = DataKey.behavior(Identifier.fromString("is_free_to_fall"), BooleanBlockBehavior.class, BooleanBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<ComplexBlockBehavior, ComplexBlockBehavior.Executor> START_FALLING = DataKey.behavior(Identifier.fromString("start_falling"), ComplexBlockBehavior.class, ComplexBlockBehavior.Executor.class);
 }
