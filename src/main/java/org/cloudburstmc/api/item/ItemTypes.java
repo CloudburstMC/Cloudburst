@@ -1,22 +1,7 @@
 package org.cloudburstmc.api.item;
 
 import lombok.experimental.UtilityClass;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.item.data.Bucket;
-import org.cloudburstmc.api.item.data.Coal;
-import org.cloudburstmc.api.item.data.Damageable;
-import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.Identifiers;
-import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.api.util.data.TreeSpecies;
-
-import java.util.IdentityHashMap;
-import java.util.Map;
-
-import static org.cloudburstmc.api.item.TierTypes.*;
-import static org.cloudburstmc.api.item.ToolTypes.*;
 
 @UtilityClass
 public class ItemTypes {
@@ -256,4 +241,6 @@ public class ItemTypes {
     public static final ItemType RAW_IRON = ItemType.of(ItemIds.RAW_IRON); //.build();
     public static final ItemType SPYGLASS = ItemType.of(ItemIds.SPYGLASS); //.build();
     public static final ItemType COPPER_INGOT = ItemType.of(ItemIds.COPPER_INGOT); //.build();
+
+    public static final ItemType LAPIS_LAZULI = ItemType.of(ItemIds.LAPIS_LAZULI);
 }

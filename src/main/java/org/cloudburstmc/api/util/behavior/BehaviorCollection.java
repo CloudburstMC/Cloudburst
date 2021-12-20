@@ -32,4 +32,11 @@ public interface BehaviorCollection {
      * @return this behavior collection
      */
     <T, R> BehaviorCollection overwrite(BehaviorKey<T, R> key, T function);
+
+    /**
+     * Applies all behaviors in a {@link BehaviorBuilder} to the specified collection.
+     *
+     * @param builder builder
+     */
+    void apply(BehaviorBuilder builder);
 }

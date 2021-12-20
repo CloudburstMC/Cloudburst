@@ -3,9 +3,9 @@ package org.cloudburstmc.api.block.behavior;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.util.behavior.Behavior;
 
-public interface BooleanBlockBehavior {
+public interface SurviveBlockBehavior {
 
-    boolean test(Behavior<Executor> behavior, Block block);
+    boolean canSurvive(Behavior<Executor> behavior, Block block);
 
     @FunctionalInterface
     interface Executor {

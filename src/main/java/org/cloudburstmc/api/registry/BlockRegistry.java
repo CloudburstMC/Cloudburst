@@ -8,7 +8,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 
-public interface BlockRegistry extends Registry {
+public interface BlockRegistry extends BehaviorRegistry {
 
     BehaviorCollection register(BlockType type) throws RegistryException;
 

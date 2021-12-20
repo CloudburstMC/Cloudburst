@@ -2,13 +2,14 @@ package org.cloudburstmc.api.block.behavior;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.util.behavior.Behavior;
+import org.cloudburstmc.api.util.data.BlockColor;
 
-public interface BooleanBlockBehavior {
+public interface ColorBlockBehavior {
 
-    boolean test(Behavior<Executor> behavior, Block block);
+    BlockColor execute(Behavior<Executor> behavior, Block block);
 
     @FunctionalInterface
     interface Executor {
-        boolean execute(Block block);
+        BlockColor execute(Block block);
     }
 }

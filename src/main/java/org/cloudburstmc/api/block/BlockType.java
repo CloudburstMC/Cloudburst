@@ -3,13 +3,9 @@ package org.cloudburstmc.api.block;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.trait.BlockTrait;
-import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemType;
-import org.cloudburstmc.api.item.TierType;
-import org.cloudburstmc.api.item.ToolType;
-import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Identifier;
 
 import java.util.*;
@@ -26,7 +22,7 @@ public final class BlockType extends ItemType {
     private final BlockState defaultState;
 
     private BlockType(Identifier id, BlockTrait<?>[] traits) {
-        super(id, null);
+        super(id, Collections.singleton(ItemKeys.BLOCK_STATE));
         this.traits = ImmutableSet.copyOf(traits);
         this.states = getPermutations(this, traits);
 

@@ -1,17 +1,21 @@
 package org.cloudburstmc.api.item;
 
 import com.google.common.collect.ImmutableMap;
-import com.nukkitx.math.GenericMath;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.data.DataStore;
 
 import java.util.Collections;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public final class ItemStack implements DataStore, Comparable<ItemStack> {
+
+    public static final ItemStack AIR = new ItemStack(BlockTypes.AIR, 0, Collections.emptyMap());
 
     private final ItemType type;
     private final int amount;
@@ -25,6 +29,35 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
 
     public static ItemStackBuilder builder() {
         return new ItemStackBuilder(null, 1, Collections.emptyMap());
+    }
+
+    public static ItemStackBuilder builder(BlockState state) {
+        return new ItemStackBuilder(state.getType(), 1, Collections.emptyMap())
+                .data(ItemKeys.BLOCK_STATE, state);
+    }
+
+    public static ItemStackBuilder builder(ItemType type) {
+        return new ItemStackBuilder(type, 1, Collections.emptyMap());
+    }
+
+    public static ItemStack from(BlockState state) {
+        return from(state, 1);
+    }
+
+    public static ItemStack from(BlockState state, @NonNegative int amount) {
+        checkNotNull(state, "state");
+        checkArgument(amount > 0, "Amount cannot be negative");
+        return new ItemStack(state.getType(), amount, Map.of(ItemKeys.BLOCK_STATE, state));
+    }
+
+    public static ItemStack from(ItemType type) {
+        return from(type, 1);
+    }
+
+    public static ItemStack from(ItemType type, @NonNegative int amount) {
+        checkNotNull(type, "type");
+        checkArgument(amount > 0, "Amount cannot be negative");
+        return new ItemStack(type, amount, Collections.emptyMap());
     }
 
     public ItemType getType() {
@@ -61,6 +94,10 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
     @SuppressWarnings("unchecked")
     public <T> T getData(DataKey<T, ?> key) {
         return (T) metadata.get(key);
+    }
+
+    public BlockState getBlockState() {
+        return getData(ItemKeys.BLOCK_STATE);
     }
 
     @Override
