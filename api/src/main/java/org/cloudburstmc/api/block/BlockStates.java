@@ -53,6 +53,7 @@ public class BlockStates {
     public static final BlockState CHORUS_FLOWER = BlockTypes.CHORUS_FLOWER.getDefaultState();
     public static final BlockState CHORUS_PLANT = BlockTypes.CHORUS_PLANT.getDefaultState();
     public static final BlockState CLAY = BlockTypes.CLAY.getDefaultState();
+    public static final BlockState CLIENT_REQUEST_PLACEHOLDER_BLOCK = BlockTypes.CLIENT_REQUEST_PLACEHOLDER_BLOCK.getDefaultState();
     public static final BlockState COAL_BLOCK = BlockTypes.COAL_BLOCK.getDefaultState();
     public static final BlockState COAL_ORE = BlockTypes.COAL_ORE.getDefaultState();
     public static final BlockState COBBLESTONE = BlockTypes.COBBLESTONE.getDefaultState();
@@ -105,6 +106,7 @@ public class BlockStates {
     public static final BlockState FLOWING_LAVA = BlockTypes.FLOWING_LAVA.getDefaultState();
     public static final BlockState FLOWING_WATER = BlockTypes.FLOWING_WATER.getDefaultState();
     public static final BlockState FRAME = BlockTypes.FRAME.getDefaultState();
+    public static final BlockState FROG_EGG = BlockTypes.FROG_EGG.getDefaultState();
     public static final BlockState FROSTED_ICE = BlockTypes.FROSTED_ICE.getDefaultState();
     public static final BlockState FURNACE = BlockTypes.FURNACE.getDefaultState();
     public static final BlockState GILDED_BLACKSTONE = BlockTypes.GILDED_BLACKSTONE.getDefaultState();
@@ -113,6 +115,7 @@ public class BlockStates {
     public static final BlockState GLAZED_TERRACOTTA = BlockTypes.GLAZED_TERRACOTTA.getDefaultState();
     public static final BlockState GLOWING_OBSIDIAN = BlockTypes.GLOWING_OBSIDIAN.getDefaultState();
     public static final BlockState GLOWSTONE = BlockTypes.GLOWSTONE.getDefaultState();
+    public static final BlockState GLOW_FRAME = BlockTypes.GLOW_FRAME.getDefaultState();
     public static final BlockState GOLDEN_RAIL = BlockTypes.GOLDEN_RAIL.getDefaultState();
     public static final BlockState GOLD_BLOCK = BlockTypes.GOLD_BLOCK.getDefaultState();
     public static final BlockState GOLD_ORE = BlockTypes.GOLD_ORE.getDefaultState();
@@ -164,6 +167,8 @@ public class BlockStates {
     public static final BlockState MOSSY_COBBLESTONE = BlockTypes.MOSSY_COBBLESTONE.getDefaultState();
     public static final BlockState MOVING_BLOCK = BlockTypes.MOVING_BLOCK.getDefaultState();
     public static final BlockState MYCELIUM = BlockTypes.MYCELIUM.getDefaultState();
+    public static final BlockState MYSTERIOUS_FRAME = BlockTypes.MYSTERIOUS_FRAME.getDefaultState();
+    public static final BlockState MYSTERIOUS_FRAME_SLOT = BlockTypes.MYSTERIOUS_FRAME_SLOT.getDefaultState();
     public static final BlockState NETHERITE_BLOCK = BlockTypes.NETHERITE_BLOCK.getDefaultState();
     public static final BlockState NETHERRACK = BlockTypes.NETHERRACK.getDefaultState();
     public static final BlockState NETHER_BRICK = BlockTypes.NETHER_BRICK.getDefaultState();
@@ -179,7 +184,9 @@ public class BlockStates {
     public static final BlockState NOTEBLOCK = BlockTypes.NOTEBLOCK.getDefaultState();
     public static final BlockState OBSERVER = BlockTypes.OBSERVER.getDefaultState();
     public static final BlockState OBSIDIAN = BlockTypes.OBSIDIAN.getDefaultState();
+    public static final BlockState OCHRE_FROGLIGHT = BlockTypes.OCHRE_FROGLIGHT.getDefaultState();
     public static final BlockState PACKED_ICE = BlockTypes.PACKED_ICE.getDefaultState();
+    public static final BlockState PEARLESCENT_FROGLIGHT = BlockTypes.PEARLESCENT_FROGLIGHT.getDefaultState();
     public static final BlockState PISTON = BlockTypes.PISTON.getDefaultState();
     public static final BlockState PISTON_ARM_COLLISION = BlockTypes.PISTON_ARM_COLLISION.getDefaultState();
     public static final BlockState PLANKS = BlockTypes.PLANKS.getDefaultState();
@@ -214,6 +221,10 @@ public class BlockStates {
     public static final BlockState SANDSTONE = BlockTypes.SANDSTONE.getDefaultState();
     public static final BlockState SAPLING = BlockTypes.SAPLING.getDefaultState();
     public static final BlockState SCAFFOLDING = BlockTypes.SCAFFOLDING.getDefaultState();
+    public static final BlockState SCULK = BlockTypes.SCULK.getDefaultState();
+    public static final BlockState SCULK_CATALYST = BlockTypes.SCULK_CATALYST.getDefaultState();
+    public static final BlockState SCULK_SHRIEKER = BlockTypes.SCULK_SHRIEKER.getDefaultState();
+    public static final BlockState SCULK_VEIN = BlockTypes.SCULK_VEIN.getDefaultState();
     public static final BlockState SEAGRASS = BlockTypes.SEAGRASS.getDefaultState();
     public static final BlockState SEA_LANTERN = BlockTypes.SEA_LANTERN.getDefaultState();
     public static final BlockState SEA_PICKLE = BlockTypes.SEA_PICKLE.getDefaultState();
@@ -258,6 +269,7 @@ public class BlockStates {
     public static final BlockState TWISTING_VINES = BlockTypes.TWISTING_VINES.getDefaultState();
     public static final BlockState UNDERWATER_TORCH = BlockTypes.UNDERWATER_TORCH.getDefaultState();
     public static final BlockState UNDYED_SHULKER_BOX = BlockTypes.UNDYED_SHULKER_BOX.getDefaultState();
+    public static final BlockState VERDANT_FROGLIGHT = BlockTypes.VERDANT_FROGLIGHT.getDefaultState();
     public static final BlockState VINE = BlockTypes.VINE.getDefaultState();
     public static final BlockState WALL_BANNER = BlockTypes.WALL_BANNER.getDefaultState();
     public static final BlockState WALL_SIGN = BlockTypes.WALL_SIGN.getDefaultState();
