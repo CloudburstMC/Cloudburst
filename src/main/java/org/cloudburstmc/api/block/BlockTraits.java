@@ -116,8 +116,13 @@ public class BlockTraits {
     public static final EnumBlockTrait<CardinalDirection> CARDINAL_DIRECTION = EnumBlockTrait.of("cardinal_direction", "ground_sign_direction", CardinalDirection.class);
     public static final EnumBlockTrait<LeverDirection> LEVER_DIRECTION = EnumBlockTrait.of("lever_direction", LeverDirection.class);
 
+    public static final BooleanBlockTrait IS_ACTIVE = BooleanBlockTrait.of("is_active", "active");
     public static final BooleanBlockTrait IS_ALLOWED_UNDERWATER = BooleanBlockTrait.of("is_allowed_underwater", "allow_underwater_bit");
     public static final BooleanBlockTrait IS_ATTACHED = BooleanBlockTrait.of("is_attached", "attached_bit");
+    public static final BooleanBlockTrait IS_BLOOMING = BooleanBlockTrait.of("is_blooming", "bloom");
+    public static final BooleanBlockTrait IS_BREWING_A = BooleanBlockTrait.of("is_brewing_a", "brewing_stand_slot_a_bit");
+    public static final BooleanBlockTrait IS_BREWING_B = BooleanBlockTrait.of("is_brewing_b", "brewing_stand_slot_b_bit");
+    public static final BooleanBlockTrait IS_BREWING_C = BooleanBlockTrait.of("is_brewing_c", "brewing_stand_slot_c_bit");
     public static final BooleanBlockTrait IS_BUTTON_PRESSED = BooleanBlockTrait.of("is_button_pressed", "button_pressed_bit");
     public static final BooleanBlockTrait IS_CONDITIONAL = BooleanBlockTrait.of("is_conditional", "conditional_bit");
     public static final BooleanBlockTrait IS_COVERED = BooleanBlockTrait.of("is_covered", "covered_bit");
@@ -132,6 +137,7 @@ public class BlockTraits {
     public static final BooleanBlockTrait IS_HEAD_PIECE = BooleanBlockTrait.of("is_head_piece", "head_piece_bit");
     public static final BooleanBlockTrait IS_IN_WALL = BooleanBlockTrait.of("is_in_wall", "in_wall_bit");
     public static final BooleanBlockTrait IS_INFESTED = BooleanBlockTrait.of("is_infested");
+    public static final BooleanBlockTrait IS_LIT = BooleanBlockTrait.of("is_lit", "lit");
     public static final BooleanBlockTrait IS_OCCUPIED = BooleanBlockTrait.of("is_occupied", "occupied_bit");
     public static final BooleanBlockTrait IS_OPEN = BooleanBlockTrait.of("is_open", "open_bit");
     public static final BooleanBlockTrait IS_OUTPUT_LIT = BooleanBlockTrait.of("is_output_lit", "output_lit_bit");
@@ -146,21 +152,18 @@ public class BlockTraits {
     public static final BooleanBlockTrait IS_TRIGGERED = BooleanBlockTrait.of("is_triggered", "triggered_bit");
     public static final BooleanBlockTrait IS_UPPER_BLOCK = BooleanBlockTrait.of("is_upper_block", "upper_block_bit");
     public static final BooleanBlockTrait IS_UPSIDE_DOWN = BooleanBlockTrait.of("is_upside_down", "upside_down_bit");
-    public static final BooleanBlockTrait IS_BREWING_A = BooleanBlockTrait.of("is_brewing_a", "brewing_stand_slot_a_bit");
-    public static final BooleanBlockTrait IS_BREWING_B = BooleanBlockTrait.of("is_brewing_b", "brewing_stand_slot_b_bit");
-    public static final BooleanBlockTrait IS_BREWING_C = BooleanBlockTrait.of("is_brewing_c", "brewing_stand_slot_c_bit");
     public static final BooleanBlockTrait IS_STICKY = BooleanBlockTrait.of("is_sticky");
     public static final BooleanBlockTrait HAS_AGE = BooleanBlockTrait.of("has_age", "age_bit");
     public static final BooleanBlockTrait HAS_COLOR = BooleanBlockTrait.of("has_color", "color_bit");
     public static final BooleanBlockTrait HAS_END_PORTAL_EYE = BooleanBlockTrait.of("has_end_portal_eye", "end_portal_eye_bit");
     public static final BooleanBlockTrait HAS_INFINIBURN = BooleanBlockTrait.of("has_infiniburn", "infiniburn_bit");
+    public static final BooleanBlockTrait HAS_MAP = BooleanBlockTrait.of("has_map", "item_frame_map_bit");
+    public static final BooleanBlockTrait HAS_PHOTO = BooleanBlockTrait.of("has_photo", "item_frame_photo_bit");
     public static final BooleanBlockTrait HAS_NO_DROP = BooleanBlockTrait.of("has_no_drop", "no_drop_bit");
-    public static final BooleanBlockTrait HAS_POST = BooleanBlockTrait.of("has_post", "wall_post_bit");
     public static final BooleanBlockTrait HAS_STABILITY_CHECK = BooleanBlockTrait.of("has_stability_check", "stability_check");
     public static final BooleanBlockTrait HAS_UPDATE = BooleanBlockTrait.of("has_update", "update_bit");
-    public static final BooleanBlockTrait HAS_MAP = BooleanBlockTrait.of("has_map", "item_frame_map_bit");
+    public static final BooleanBlockTrait HAS_POST = BooleanBlockTrait.of("has_post", "wall_post_bit");
 
-    public static final BooleanBlockTrait IS_LIT = BooleanBlockTrait.of("is_lit", "lit");
     public static final IntegerBlockTrait CANDLES = IntegerBlockTrait.from("candles", 0, 3);
 
     @Deprecated
