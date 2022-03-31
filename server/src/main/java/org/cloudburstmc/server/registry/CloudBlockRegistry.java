@@ -611,6 +611,7 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(MOSS_CARPET);
         this.registerVanilla(SMALL_DRIPLEAF);
         this.registerVanilla(AZALEA, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.AZALEA);
+        this.registerVanilla(GLOW_FRAME);
         this.registerVanilla(COPPER, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.COPPER_BLOCKS);
         this.registerVanilla(CUT_COPPER, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CUT_COPPER);
         this.registerVanilla(COPPER_SLAB, NoopBlockBehavior.INSTANCE, SlabSerializer.INSTANCE);
@@ -634,14 +635,22 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(CRACKED_DEEPSLATE_TILES);
         this.registerVanilla(CRACKED_DEEPSLATE_BRICKS);
         this.registerVanilla(GLOW_LICHEN);
-        this.registerVanilla(RAW_COPPER_BLOCK);
-        this.registerVanilla(RAW_IRON_BLOCK);
-        this.registerVanilla(RAW_GOLD_BLOCK);
-
         this.registerVanilla(CANDLE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CANDLES);
         this.registerVanilla(CANDLE_CAKE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CANDLE_CAKES);
-
-
+        this.registerVanilla(RAW_IRON_BLOCK);
+        this.registerVanilla(RAW_COPPER_BLOCK);
+        this.registerVanilla(RAW_GOLD_BLOCK);
+        this.registerVanilla(SCULK);
+        this.registerVanilla(SCULK_VEIN);
+        this.registerVanilla(SCULK_CATALYST);
+        this.registerVanilla(SCULK_SHRIEKER);
+        this.registerVanilla(CLIENT_REQUEST_PLACEHOLDER_BLOCK);
+        this.registerVanilla(MYSTERIOUS_FRAME);
+        this.registerVanilla(MYSTERIOUS_FRAME_SLOT);
+        this.registerVanilla(FROG_EGG);
+        this.registerVanilla(PEARLESCENT_FROGLIGHT);
+        this.registerVanilla(VERDANT_FROGLIGHT);
+        this.registerVanilla(OCHRE_FROGLIGHT);
     }
 
     private void loadBlockAttributes() {
