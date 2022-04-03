@@ -37,7 +37,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
             return false;
         }
         var down = block.down().getState().getType();
-        if (down == GRASS || down == DIRT || down == PODZOL) {
+        if (down == GRASS || down == DIRT || down == FARMLAND || down == PODZOL || down == MYCELIUM) {
             placeBlock(block, itemBlock);
             return true;
         }

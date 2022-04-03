@@ -13,6 +13,7 @@ import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -97,4 +98,8 @@ public abstract class BaseBlockBehavior extends BlockBehavior {
         return 1.0f + (0.2f * hasteLoreLevel);
     }
 
+    @Override
+    public ItemStack toItem(Block block) {
+        return CloudItemRegistry.get().getItem(block.getState());
+    }
 }

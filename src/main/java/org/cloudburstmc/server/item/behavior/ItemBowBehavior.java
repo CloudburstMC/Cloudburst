@@ -62,7 +62,7 @@ public class ItemBowBehavior extends ItemToolBehavior {
 
         EnchantmentInstance bowDamage = item.getEnchantment(EnchantmentTypes.POWER);
         if (bowDamage != null && bowDamage.getLevel() > 0) {
-            damage += 0.25f * (bowDamage.getLevel() + 1);
+            damage += (double) bowDamage.getLevel() * 0.5 + 0.5;
         }
 
         EnchantmentInstance flameEnchant = item.getEnchantment(EnchantmentTypes.FLAME);

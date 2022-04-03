@@ -27,7 +27,7 @@ public class BlockBehaviorSapling extends FloodableBlockBehavior {
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         var type = block.down().getState().getType();
-        if (type == GRASS || type == DIRT || type == FARMLAND || type == PODZOL) {
+        if (type == GRASS || type == DIRT || type == FARMLAND || type == PODZOL || type == MYCELIUM) {
             placeBlock(block, item);
             return true;
         }

@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.pack.Pack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.PlayerLoginData;
 
@@ -25,6 +26,8 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
     private final CloudServer server;
 
     private PlayerLoginData loginData;
+
+    private static final int RESOURCE_PACK_CHUNK_SIZE = 8 * 1024; // 8KB
 
     public ResourcePackPacketHandler(BedrockServerSession session, CloudServer server, PlayerLoginData loginData) {
         this.session = session;
@@ -49,8 +52,8 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                     ResourcePackDataInfoPacket dataInfoPacket = new ResourcePackDataInfoPacket();
                     dataInfoPacket.setPackId(pack.getId());
                     dataInfoPacket.setPackVersion(pack.getVersion().toString());
-                    dataInfoPacket.setMaxChunkSize(1048576); //megabyte
-                    dataInfoPacket.setChunkCount(pack.getSize() / dataInfoPacket.getMaxChunkSize());
+                    dataInfoPacket.setMaxChunkSize(RESOURCE_PACK_CHUNK_SIZE);
+                    dataInfoPacket.setChunkCount(MathHelper.ceil(pack.getSize() / (float) RESOURCE_PACK_CHUNK_SIZE));
                     dataInfoPacket.setCompressedPackSize(pack.getSize());
                     dataInfoPacket.setHash(pack.getHash());
                     dataInfoPacket.setType(ResourcePackType.values()[pack.getType().ordinal()]);
@@ -93,8 +96,8 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
         dataPacket.setPackId(packet.getPackId());
         dataPacket.setPackVersion(packet.getPackVersion());
         dataPacket.setChunkIndex(packet.getChunkIndex());
-        dataPacket.setData(resourcePack.getChunk(1048576 * packet.getChunkIndex(), 1048576));
-        dataPacket.setProgress(1048576 * packet.getChunkIndex());
+        dataPacket.setData(resourcePack.getChunk(RESOURCE_PACK_CHUNK_SIZE * packet.getChunkIndex(), RESOURCE_PACK_CHUNK_SIZE));
+        dataPacket.setProgress((long) RESOURCE_PACK_CHUNK_SIZE * packet.getChunkIndex());
         session.sendPacket(dataPacket);
         return true;
     }

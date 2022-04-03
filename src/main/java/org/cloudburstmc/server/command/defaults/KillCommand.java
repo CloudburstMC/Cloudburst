@@ -74,6 +74,10 @@ public class KillCommand extends Command {
                     sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
                     return true;
                 }
+                if (!(sender instanceof CloudPlayer)) {
+                    sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
+                    return true;
+                }
                 EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
                 sender.getServer().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
