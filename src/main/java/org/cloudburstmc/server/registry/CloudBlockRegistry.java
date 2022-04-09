@@ -24,6 +24,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ToolType;
 import org.cloudburstmc.api.item.ToolTypes;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.AxisAlignedBB;
@@ -51,7 +52,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
 @Log4j2
-public class CloudBlockRegistry implements Registry {
+public class CloudBlockRegistry implements BlockRegistry {
     private static final CloudBlockRegistry INSTANCE;
     private static final HashBiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create();
 
@@ -165,8 +166,8 @@ public class CloudBlockRegistry implements Registry {
         }
     }
 
-    boolean isBlock(Identifier id) {
-        return this.VANILLA_LEGACY_IDS.containsKey(id);
+    public boolean isBlock(Identifier id) {
+        return VANILLA_LEGACY_IDS.containsKey(id);
     }
 
     public int getRuntimeId(BlockState blockState) {
