@@ -241,6 +241,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     public long lastSkinChange;
 
+    private int healthScale;
+
     public CloudPlayer(BedrockServerSession session, ClientChainData chainData) {
         super(EntityTypes.PLAYER, Location.from(CloudServer.getInstance().getDefaultLevel()));
         this.session = session;
@@ -268,6 +270,39 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.setNameTag(this.username);
 
         this.creationTime = System.currentTimeMillis();
+    }
+
+    public void setHealthScale(int scale) {
+        this.healthScale = scale;
+    }
+
+    public int getHealthScale(){
+        return healthScale;
+    }
+
+    public boolean isHealthScaled(){
+        return healthScale > 0;
+    }
+
+    public float getScaledHealth(){
+        if (isHealthScaled()){
+            float health = this.health + this.absorption;
+            float scaledHealth = health * healthScale / getMaxHealth();
+            if (health > 0 && scaledHealth < 1){
+                scaledHealth = 1;
+            }
+            return scaledHealth;
+        } else {
+            var max = getMaxHealth();
+            return health > 0 ? (health < max ? health : max) : 0;
+        }
+    }
+
+    public int getScaledMaxHealth(){
+        return isHealthScaled() ?
+                healthScale :
+                //TODO: Remove it in future! This a hack to solve the client-side absorption bug! WFT Mojang (Half a yellow heart cannot be shown, we can test it in local gaming)
+                this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth(); // this.getMaxHealth();
     }
 
     public int getStartActionTick() {
@@ -1157,7 +1192,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         UpdateAttributesPacket pk = new UpdateAttributesPacket();
         pk.setRuntimeEntityId(this.getRuntimeId());
         List<AttributeData> attributes = pk.getAttributes();
-        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0)));
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getScaledMaxHealth()).setValue(getScaledHealth())));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.getFoodData().getLevel())));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(this.getMovementSpeed())));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXPERIENCE_LEVEL).setValue(this.getExperienceLevel())));
@@ -2133,9 +2168,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
 
         super.setHealth(health);
-        //TODO: Remove it in future! This a hack to solve the client-side absorption bug! WFT Mojang (Half a yellow heart cannot be shown, we can test it in local gaming)
-        Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0);
         if (this.spawned) {
+            Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getScaledMaxHealth()).setValue(this.getScaledHealth());
             UpdateAttributesPacket packet = new UpdateAttributesPacket();
             packet.getAttributes().add(NetworkUtils.attributeToNetwork(attr));
             packet.setRuntimeEntityId(this.getRuntimeId());
@@ -2147,8 +2181,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public void setMaxHealth(int maxHealth) {
         super.setMaxHealth(maxHealth);
 
-        Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0);
         if (this.spawned) {
+            Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getScaledMaxHealth()).setValue(this.getScaledHealth());
             UpdateAttributesPacket packet = new UpdateAttributesPacket();
             packet.getAttributes().add(NetworkUtils.attributeToNetwork(attr));
             packet.setRuntimeEntityId(this.getRuntimeId());
