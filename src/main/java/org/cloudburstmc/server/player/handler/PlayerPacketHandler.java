@@ -566,6 +566,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         Vector3i pickPos = packet.getBlockPosition();
         Block block = player.getLevel().getBlock(pickPos.getX(), pickPos.getY(), pickPos.getZ());
         ItemStack serverItem = block.getState().getBehavior().toItem(block);
+        if (serverItem == null) {
+            return true;
+        }
 
         if (packet.isAddUserData()) {
             BaseBlockEntity blockEntity = (BaseBlockEntity) player.getLevel().getLoadedBlockEntity(
