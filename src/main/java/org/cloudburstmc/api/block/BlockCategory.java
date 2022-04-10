@@ -19,5 +19,6 @@ public enum BlockCategory {
     STEM,
     BUTTON,
     PRESSURE_PLATE,
-    RAIL
+    RAIL,
+    GROUND
 }
