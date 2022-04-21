@@ -446,7 +446,8 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.CAULDRON);
         registerVanilla(ItemTypes.ENDER_EYE);
         registerVanilla(ItemTypes.SPECKLED_MELON);
-        registerVanilla(ItemTypes.SPAWN_EGG, new ItemSpawnEggBehavior());
+//        registerVanilla(ItemTypes.SPAWN_EGG, new ItemSpawnEggBehavior());
+        registerVanilla(ItemTypes.SPAWN_EGG, new SpawnEggSerializer());
         registerVanilla(ItemTypes.EXPERIENCE_BOTTLE, new ItemProjectileBehavior(EntityTypes.XP_BOTTLE, 1f));
         registerVanilla(ItemTypes.FIREBALL, new ItemFireChargeBehavior());
         registerVanilla(ItemTypes.WRITABLE_BOOK);
