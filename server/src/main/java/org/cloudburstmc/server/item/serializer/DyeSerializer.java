@@ -21,60 +21,61 @@ public class DyeSerializer extends DefaultItemSerializer {
     @Override
     public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
-        Identifier id;
+        Identifier id = item.getId();
         DyeColor color = item.getMetadata(DyeColor.class);
 
-        switch (color) {
-            default:
-            case BLACK:
-                id = ItemIds.INK_SAC;
-                break;
-            case RED:
-                id = ItemIds.RED_DYE;
-                break;
-            case GREEN:
-                id = ItemIds.GREEN_DYE;
-                break;
-            case BROWN:
-                id = ItemIds.COCOA_BEANS;
-                break;
-            case BLUE:
-                id = ItemIds.LAPIS_LAZULI;
-                break;
-            case PURPLE:
-                id = ItemIds.PURPLE_DYE;
-                break;
-            case CYAN:
-                id = ItemIds.CYAN_DYE;
-                break;
-            case LIGHT_GRAY:
-                id = ItemIds.LIGHT_GRAY_DYE;
-                break;
-            case GRAY:
-                id = ItemIds.GRAY_DYE;
-                break;
-            case PINK:
-                id = ItemIds.PINK_DYE;
-                break;
-            case LIME:
-                id = ItemIds.LIME_DYE;
-                break;
-            case YELLOW:
-                id = ItemIds.YELLOW_DYE;
-                break;
-            case LIGHT_BLUE:
-                id = ItemIds.LIGHT_BLUE_DYE;
-                break;
-            case MAGENTA:
-                id = ItemIds.MAGENTA_DYE;
-                break;
-            case ORANGE:
-                id = ItemIds.ORANGE_DYE;
-                break;
-            case WHITE:
-                id = ItemIds.BONE_MEAL;
-                break;
-        }
+        //TODO: Should this be chosen here? Because there are multiple options for Black, Brown, White and Blue dye
+//        switch (color) {
+//            default:
+//            case BLACK:
+//                id = ItemIds.INK_SAC;
+//                break;
+//            case RED:
+//                id = ItemIds.RED_DYE;
+//                break;
+//            case GREEN:
+//                id = ItemIds.GREEN_DYE;
+//                break;
+//            case BROWN:
+//                id = ItemIds.COCOA_BEANS;
+//                break;
+//            case BLUE:
+//                id = ItemIds.LAPIS_LAZULI;
+//                break;
+//            case PURPLE:
+//                id = ItemIds.PURPLE_DYE;
+//                break;
+//            case CYAN:
+//                id = ItemIds.CYAN_DYE;
+//                break;
+//            case LIGHT_GRAY:
+//                id = ItemIds.LIGHT_GRAY_DYE;
+//                break;
+//            case GRAY:
+//                id = ItemIds.GRAY_DYE;
+//                break;
+//            case PINK:
+//                id = ItemIds.PINK_DYE;
+//                break;
+//            case LIME:
+//                id = ItemIds.LIME_DYE;
+//                break;
+//            case YELLOW:
+//                id = ItemIds.YELLOW_DYE;
+//                break;
+//            case LIGHT_BLUE:
+//                id = ItemIds.LIGHT_BLUE_DYE;
+//                break;
+//            case MAGENTA:
+//                id = ItemIds.MAGENTA_DYE;
+//                break;
+//            case ORANGE:
+//                id = ItemIds.ORANGE_DYE;
+//                break;
+//            case WHITE:
+//                id = ItemIds.BONE_MEAL;
+//                break;
+//        }
 
         itemTag.putString(NAME_TAG, id.toString());
     }
