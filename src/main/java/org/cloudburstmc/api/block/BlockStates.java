@@ -106,7 +106,7 @@ public class BlockStates {
     public static final BlockState FLOWING_LAVA = BlockTypes.FLOWING_LAVA.getDefaultState();
     public static final BlockState FLOWING_WATER = BlockTypes.FLOWING_WATER.getDefaultState();
     public static final BlockState FRAME = BlockTypes.FRAME.getDefaultState();
-    public static final BlockState FROG_EGG = BlockTypes.FROG_EGG.getDefaultState();
+    public static final BlockState FROG_SPAWN = BlockTypes.FROG_SPAWN.getDefaultState();
     public static final BlockState FROSTED_ICE = BlockTypes.FROSTED_ICE.getDefaultState();
     public static final BlockState FURNACE = BlockTypes.FURNACE.getDefaultState();
     public static final BlockState GILDED_BLACKSTONE = BlockTypes.GILDED_BLACKSTONE.getDefaultState();
@@ -167,8 +167,6 @@ public class BlockStates {
     public static final BlockState MOSSY_COBBLESTONE = BlockTypes.MOSSY_COBBLESTONE.getDefaultState();
     public static final BlockState MOVING_BLOCK = BlockTypes.MOVING_BLOCK.getDefaultState();
     public static final BlockState MYCELIUM = BlockTypes.MYCELIUM.getDefaultState();
-    public static final BlockState MYSTERIOUS_FRAME = BlockTypes.MYSTERIOUS_FRAME.getDefaultState();
-    public static final BlockState MYSTERIOUS_FRAME_SLOT = BlockTypes.MYSTERIOUS_FRAME_SLOT.getDefaultState();
     public static final BlockState NETHERITE_BLOCK = BlockTypes.NETHERITE_BLOCK.getDefaultState();
     public static final BlockState NETHERRACK = BlockTypes.NETHERRACK.getDefaultState();
     public static final BlockState NETHER_BRICK = BlockTypes.NETHER_BRICK.getDefaultState();
@@ -263,7 +261,7 @@ public class BlockStates {
     public static final BlockState TNT = BlockTypes.TNT.getDefaultState();
     public static final BlockState TORCH = BlockTypes.TORCH.getDefaultState();
     public static final BlockState TRAPPED_CHEST = BlockTypes.TRAPPED_CHEST.getDefaultState();
-    public static final BlockState TRIPWIRE = BlockTypes.TRIPWIRE.getDefaultState();
+    public static final BlockState TRIPWIRE = BlockTypes.TRIP_WIRE.getDefaultState();
     public static final BlockState TRIPWIRE_HOOK = BlockTypes.TRIPWIRE_HOOK.getDefaultState();
     public static final BlockState TURTLE_EGG = BlockTypes.TURTLE_EGG.getDefaultState();
     public static final BlockState TWISTING_VINES = BlockTypes.TWISTING_VINES.getDefaultState();
@@ -289,6 +287,17 @@ public class BlockStates {
     public static final BlockState WOODEN_STAIRS = BlockTypes.WOODEN_STAIRS.getDefaultState();
     public static final BlockState WOODEN_TRAPDOOR = BlockTypes.WOODEN_TRAPDOOR.getDefaultState();
     public static final BlockState WOOL = BlockTypes.WOOL.getDefaultState();
+    public static final BlockState MANGROVE_LEAVES = BlockTypes.MANGROVE_LEAVES.getDefaultState();
+    public static final BlockState MANGROVE_PROPAGULE = BlockTypes.MANGROVE_PROPAGULE.getDefaultState();
+    public static final BlockState MANGROVE_PROPAGULE_HANGING = BlockTypes.MANGROVE_PROPAGULE_HANGING.getDefaultState();
+    public static final BlockState MUD = BlockTypes.MUD.getDefaultState();
+    public static final BlockState MUD_BRICK_DOUBLE_SLAB = BlockTypes.MUD_BRICK_DOUBLE_SLAB.getDefaultState();
+    public static final BlockState MUD_BRICK_SLAB = BlockTypes.MUD_BRICK_SLAB.getDefaultState();
+    public static final BlockState MUD_BRICK_STAIRS = BlockTypes.MUD_BRICK_STAIRS.getDefaultState();
+    public static final BlockState MUD_BRICK_WALL = BlockTypes.MUD_BRICK_WALL.getDefaultState();
+    public static final BlockState MUD_BRICKS = BlockTypes.MUD_BRICKS.getDefaultState();
+    public static final BlockState PACKED_MUD = BlockTypes.PACKED_MUD.getDefaultState();
+    public static final BlockState REINFORCED_DEEPSLATE = BlockTypes.REINFORCED_DEEPSLATE.getDefaultState();
 
     public static final BlockState[] EMPTY = new BlockState[]{AIR, AIR};
 }

@@ -340,7 +340,7 @@ public class BlockCategories {
                 LEVER,
                 REDSTONE_WIRE,
                 REDSTONE_TORCH,
-                TRIPWIRE,
+                TRIP_WIRE,
                 TRIPWIRE_HOOK,
                 END_PORTAL_FRAME,
                 INVISIBLE_BEDROCK,

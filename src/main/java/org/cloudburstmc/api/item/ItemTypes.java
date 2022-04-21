@@ -53,7 +53,7 @@ public class ItemTypes {
     public static final ItemType GOLDEN_SHOVEL = IntItem.builder().id(ItemIds.GOLDEN_SHOVEL).maxStackSize(1).data(Damageable.class).toolType(SHOVEL).tierType(GOLD).attackDamage(2).build();
     public static final ItemType GOLDEN_PICKAXE = IntItem.builder().id(ItemIds.GOLDEN_PICKAXE).maxStackSize(1).data(Damageable.class).toolType(PICKAXE).tierType(GOLD).attackDamage(2).build();
     public static final ItemType GOLDEN_AXE = IntItem.builder().id(ItemIds.GOLDEN_AXE).maxStackSize(1).data(Damageable.class).toolType(AXE).tierType(GOLD).attackDamage(4).build();
-    public static final ItemType STRING = IntItem.builder().id(ItemIds.STRING).maxStackSize(64).blockType(BlockTypes.TRIPWIRE).build();
+    public static final ItemType STRING = IntItem.builder().id(ItemIds.STRING).maxStackSize(64).blockType(BlockTypes.TRIP_WIRE).build();
     public static final ItemType FEATHER = IntItem.builder().id(ItemIds.FEATHER).maxStackSize(64).build();
     public static final ItemType GUNPOWDER = IntItem.builder().id(ItemIds.GUNPOWDER).maxStackSize(64).build();
     public static final ItemType WOODEN_HOE = IntItem.builder().id(ItemIds.WOODEN_HOE).maxStackSize(1).data(Damageable.class).toolType(HOE).tierType(WOOD).attackDamage(2).fuelTime((short) 200).build();
