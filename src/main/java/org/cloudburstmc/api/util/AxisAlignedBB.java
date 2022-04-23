@@ -17,6 +17,10 @@ public interface AxisAlignedBB extends Cloneable {
         return this;
     }
 
+    default AxisAlignedBB addCoord(Vector3i v) {
+        return addCoord(v.getX(), v.getY(), v.getZ());
+    }
+
     default AxisAlignedBB addCoord(Vector3f v) {
         return addCoord(v.getX(), v.getY(), v.getZ());
     }
