@@ -4,8 +4,10 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.data.ListDataKey;
+import org.cloudburstmc.api.data.MapDataKey;
 import org.cloudburstmc.api.data.SimpleDataKey;
 import org.cloudburstmc.api.enchantment.Enchantment;
+import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.item.data.Record;
@@ -26,7 +28,7 @@ public final class ItemKeys {
 
     public static final SimpleDataKey<DyeColor> COLOR = DataKey.simple(Identifier.fromString("dye_color"), DyeColor.class);
 
-    public static final ListDataKey<Enchantment> ENCHANTMENTS = DataKey.list(Identifier.fromString("enchantments"), Enchantment.class);
+    public static final MapDataKey<EnchantmentType, Enchantment> ENCHANTMENTS = DataKey.map(Identifier.fromString("enchantments"), EnchantmentType.class, Enchantment.class);
 
     public static final SimpleDataKey<FireworkData> FIREWORK_DATA = DataKey.simple(Identifier.fromString("firework_data"), FireworkData.class);
 
