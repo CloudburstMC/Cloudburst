@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.util.behavior;
 
 import org.cloudburstmc.api.data.BehaviorKey;
+import org.cloudburstmc.api.registry.BehaviorRegistry;
 
 public interface BehaviorCollection {
 
@@ -39,4 +40,11 @@ public interface BehaviorCollection {
      * @param builder builder
      */
     void apply(BehaviorBuilder builder);
+
+    /**
+     * Get the registry that this behavior collection belongs to.
+     *
+     * @return behavior registry
+     */
+    BehaviorRegistry<?> getRegistry();
 }

@@ -133,4 +133,8 @@ public final class BlockBehaviors {
     public static final BehaviorKey<BooleanBlockBehavior, BooleanBlockBehavior.Executor> IS_FREE_TO_FALL = DataKey.behavior(Identifier.fromString("is_free_to_fall"), BooleanBlockBehavior.class, BooleanBlockBehavior.Executor.class);
 
     public static final BehaviorKey<ComplexBlockBehavior, ComplexBlockBehavior.Executor> START_FALLING = DataKey.behavior(Identifier.fromString("start_falling"), ComplexBlockBehavior.class, ComplexBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<FloatBlockBehavior, FloatBlockBehavior.Executor> GET_LIQUID_HEIGHT = DataKey.behavior(Identifier.fromString("get_fluid_height"), FloatBlockBehavior.class, FloatBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<EntityBlockBehavior, EntityBlockBehavior.Executor> ON_ENTITY_COLLIDE = DataKey.behavior(Identifier.fromString("on_entity_collide"), EntityBlockBehavior.class, EntityBlockBehavior.Executor.class);
 }
