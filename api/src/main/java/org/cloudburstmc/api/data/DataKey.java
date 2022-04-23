@@ -21,16 +21,16 @@ public sealed interface DataKey<T, M> permits BehaviorKey, ListDataKey, SimpleDa
         return new ListDataKey<>(id, type);
     }
 
-    static <T> BehaviorKey<T, T> behavior(Identifier id, Class<T> type) {
+    static <F> BehaviorKey<F, F> behavior(Identifier id, Class<F> type) {
         return behavior(id, type, type);
     }
 
     @SuppressWarnings("unchecked")
-    static <T, R> BehaviorKey<T, R> behavior(Identifier id, Class<? super T> functionType, Class<? super R> returnType) {
+    static <F, E> BehaviorKey<F, E> behavior(Identifier id, Class<? super F> functionType, Class<? super E> returnType) {
         checkNotNull(id, "id");
         checkNotNull(functionType, "functionType");
         checkNotNull(returnType, "returnType");
-        return new BehaviorKey<>(id, (Class<T>) functionType, (Class<R>) returnType);
+        return new BehaviorKey<>(id, (Class<F>) functionType, (Class<E>) returnType);
     }
 
     Identifier getId();

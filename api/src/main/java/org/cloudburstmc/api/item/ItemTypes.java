@@ -14,6 +14,7 @@ public class ItemTypes {
     public static final ItemType BOW = ItemType.of(ItemIds.BOW); //.maxStackSize(1).fuelTime((short) 200).build();
     public static final ItemType ARROW = ItemType.of(ItemIds.ARROW); //.maxStackSize(64).build();
     public static final ItemType COAL = ItemType.of(ItemIds.COAL); //.maxStackSize(64).data(Coal.class).fuelTime((short) 1600).build();
+    public static final ItemType CHARCOAL = ItemType.of(ItemIds.CHARCOAL);
     public static final ItemType DIAMOND = ItemType.of(ItemIds.DIAMOND); //.maxStackSize(64).build();
     public static final ItemType IRON_INGOT = ItemType.of(ItemIds.IRON_INGOT); //.maxStackSize(64).build();
     public static final ItemType GOLD_INGOT = ItemType.of(ItemIds.GOLD_INGOT); //.maxStackSize(64).build();
@@ -76,6 +77,13 @@ public class ItemTypes {
     public static final ItemType SIGN = ItemType.of(ItemIds.SIGN); //.maxStackSize(16).blockType(BlockTypes.STANDING_SIGN).data(TreeSpecies.class).build();
     public static final ItemType WOODEN_DOOR = ItemType.of(ItemIds.WOODEN_DOOR); //.maxStackSize(64).blockType(BlockTypes.WOODEN_DOOR).data(TreeSpecies.class).build();
     public static final ItemType BUCKET = ItemType.of(ItemIds.BUCKET); //.data(Bucket.class).maxStackSize(16).build();
+    public static final ItemType MILK_BUCKET = ItemType.of(ItemIds.MILK_BUCKET);
+    public static final ItemType COD_BUCKET = ItemType.of(ItemIds.COD_BUCKET);
+    public static final ItemType SALMON_BUCKET = ItemType.of(ItemIds.SALMON_BUCKET);
+    public static final ItemType TROPICAL_FISH_BUCKET = ItemType.of(ItemIds.TROPICAL_FISH_BUCKET);
+    public static final ItemType PUFFERFISH_BUCKET = ItemType.of(ItemIds.PUFFERFISH_BUCKET);
+    public static final ItemType WATER_BUCKET = ItemType.of(ItemIds.WATER_BUCKET);
+    public static final ItemType LAVA_BUCKET = ItemType.of(ItemIds.LAVA_BUCKET);
     public static final ItemType MINECART = ItemType.of(ItemIds.MINECART); //.maxStackSize(1).build();
     public static final ItemType SADDLE = ItemType.of(ItemIds.SADDLE); //.maxStackSize(1).build();
     public static final ItemType IRON_DOOR = ItemType.of(ItemIds.IRON_DOOR); //.maxStackSize(64).blockType(BlockTypes.IRON_DOOR).build();

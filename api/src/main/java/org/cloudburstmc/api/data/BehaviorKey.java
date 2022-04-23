@@ -4,13 +4,13 @@ import org.cloudburstmc.api.util.Identifier;
 
 import java.util.function.Function;
 
-public final class BehaviorKey<T, R> implements DataKey<T, R> {
+public final class BehaviorKey<F, E> implements DataKey<F, E> {
 
     private final Identifier id;
-    private final Class<T> functionType;
-    private final Class<R> executorType;
+    private final Class<F> functionType;
+    private final Class<E> executorType;
 
-    BehaviorKey(Identifier id, Class<T> functionType, Class<R> executorType) {
+    BehaviorKey(Identifier id, Class<F> functionType, Class<E> executorType) {
         this.id = id;
         this.functionType = functionType;
         this.executorType = executorType;
@@ -22,26 +22,26 @@ public final class BehaviorKey<T, R> implements DataKey<T, R> {
     }
 
     @Override
-    public Class<T> getType() {
+    public Class<F> getType() {
         return functionType;
     }
 
     @Override
-    public Class<R> getMutableType() {
+    public Class<E> getMutableType() {
         return executorType;
     }
 
-    public Class<R> getExecutorType() {
+    public Class<E> getExecutorType() {
         return executorType;
     }
 
     @Override
-    public Function<R, T> getImmutableFunction() {
+    public Function<E, F> getImmutableFunction() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Function<T, R> getMutableFunction() {
+    public Function<F, E> getMutableFunction() {
         throw new UnsupportedOperationException();
     }
 }

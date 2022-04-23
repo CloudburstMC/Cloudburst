@@ -2,7 +2,9 @@ package org.cloudburstmc.api.item;
 
 import com.google.common.collect.ImmutableMap;
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.data.DataStore;
@@ -18,12 +20,12 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
     public static final ItemStack AIR = new ItemStack(BlockTypes.AIR, 0, Collections.emptyMap());
 
     private final ItemType type;
-    private final int amount;
+    private final int count;
     private final ImmutableMap<DataKey<?, ?>, ?> metadata;
 
-    ItemStack(ItemType type, int amount, Map<DataKey<?, ?>, ?> metadata) {
+    ItemStack(ItemType type, int count, Map<DataKey<?, ?>, ?> metadata) {
         this.type = type;
-        this.amount = amount;
+        this.count = count;
         this.metadata = ImmutableMap.copyOf(metadata);
     }
 
@@ -64,46 +66,60 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         return type;
     }
 
-    public int getAmount() {
-        return amount;
+    public int getCount() {
+        return count;
     }
 
     public ItemStackBuilder toBuilder() {
-        return new ItemStackBuilder(this.type, this.amount, this.metadata);
+        return new ItemStackBuilder(this.type, this.count, this.metadata);
     }
 
-    public ItemStack reduceAmount() {
-        return withAmount(this.amount - 1);
+    public ItemStack decreaseCount() {
+        return withCount(-1);
     }
 
-    public ItemStack increaseAmount() {
-        return addAmount(1);
+    public ItemStack decreaseCount(int count) {
+        return withCount(-count);
     }
 
-    public ItemStack addAmount(int delta) {
-        return withAmount(this.amount + delta);
+    public ItemStack increaseCount() {
+        return addCount(1);
     }
 
-    public ItemStack withAmount(int amount) {
-        if (this.amount == amount) {
+    public ItemStack increaseCount(int count) {
+        return addCount(count);
+    }
+
+    public ItemStack addCount(int delta) {
+        return withCount(this.count + delta);
+    }
+
+    public ItemStack withCount(int amount) {
+        if (this.count == amount) {
             return this;
         }
         return toBuilder().amount(amount).build();
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T getData(DataKey<T, ?> key) {
+    @Override
+    public <T> T get(DataKey<T, ?> key) {
         return (T) metadata.get(key);
     }
 
+    @Nullable
     public BlockState getBlockState() {
-        return getData(ItemKeys.BLOCK_STATE);
+        return isBlock() ? get(ItemKeys.BLOCK_STATE) : null;
+    }
+
+    public boolean isBlock() {
+        return type instanceof BlockType;
     }
 
     @Override
     public int compareTo(ItemStack other) {
         if (other.getType().equals(this.getType())) {
-            return this.getAmount() - other.getAmount();
+            return this.getCount() - other.getCount();
         }
         return this.getType().getId().compareTo(other.getType().getId());
     }
