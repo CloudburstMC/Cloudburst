@@ -597,6 +597,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.CRIMSON_DOOR);
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.WARPED_DOOR);
 
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_CAT);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_BLOCKS);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_CHIRP);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_FAR);
@@ -607,6 +608,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WARD);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_11);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WAIT);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_PIGSTEP);
 
         registerType(ItemTypes.COAL, ItemIds.CHARCOAL);
 
