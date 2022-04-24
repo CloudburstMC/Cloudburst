@@ -18,7 +18,7 @@ public abstract class Fuel {
         duration.put(ItemIds.COAL, (short) 1600);
         duration.put(BlockIds.COAL_BLOCK, (short) 16000);
         duration.put(BlockIds.LOG, (short) 300);
-        duration.put(BlockIds.PLANKS, (short) 300);
+        duration.put(BlockIds.OAK_PLANKS, (short) 300);
         duration.put(BlockIds.SAPLING, (short) 100);
         duration.put(ItemIds.WOODEN_AXE, (short) 200);
         duration.put(ItemIds.WOODEN_PICKAXE, (short) 200);
@@ -55,7 +55,7 @@ public abstract class Fuel {
         duration.put(BlockIds.DAYLIGHT_DETECTOR_INVERTED, (short) 300);
         duration.put(BlockIds.JUKEBOX, (short) 300);
         duration.put(BlockIds.NOTEBLOCK, (short) 300);
-        duration.put(BlockIds.WOODEN_SLAB, (short) 300);
+        duration.put(BlockIds.OAK_SLAB, (short) 300);
         duration.put(BlockIds.DOUBLE_WOODEN_SLAB, (short) 300);
         duration.put(ItemIds.BOAT, (short) 1200);
         duration.put(ItemIds.BLAZE_ROD, (short) 2400);
