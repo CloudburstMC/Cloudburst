@@ -14,7 +14,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import static org.cloudburstmc.api.block.BlockTypes.TRIPWIRE;
+import static org.cloudburstmc.api.block.BlockTypes.TRIP_WIRE;
 
 public class BlockBehaviorTripWire extends FloodableBlockBehavior {
 
@@ -70,7 +70,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
                     break;
                 }
 
-                if (state.getType() != TRIPWIRE) {
+                if (state.getType() != TRIP_WIRE) {
                     break;
                 }
             }
@@ -108,7 +108,7 @@ public class BlockBehaviorTripWire extends FloodableBlockBehavior {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        var state = CloudBlockRegistry.get().getBlock(TRIPWIRE);
+        var state = CloudBlockRegistry.get().getBlock(TRIP_WIRE);
         placeBlock(block, state);
         this.updateHook(block, state, false);
 

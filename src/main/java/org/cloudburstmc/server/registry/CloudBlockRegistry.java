@@ -393,6 +393,7 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(CACTUS, new BlockBehaviorCactus()); //81
         this.registerVanilla(CLAY, new BlockBehaviorClay()); //82
         this.registerVanilla(REEDS, new ReedsBlockBehavior()); //83
+        this.registerVanilla(REINFORCED_DEEPSLATE);
         this.registerVanilla(JUKEBOX, new BlockBehaviorJukebox()); //84
         this.registerVanilla(WOODEN_FENCE, new BlockBehaviorFenceWooden(), MultiBlockSerializers.WOOD_FENCE); //85
         this.registerVanilla(PUMPKIN, new BlockBehaviorPumpkin()); //86
@@ -435,7 +436,7 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(EMERALD_ORE, new BlockBehaviorOreEmerald()); //129
         this.registerVanilla(ENDER_CHEST, new BlockBehaviorEnderChest()); //130
         this.registerVanilla(TRIPWIRE_HOOK, new BlockBehaviorTripWireHook()); //131
-        this.registerVanilla(TRIPWIRE, new BlockBehaviorTripWire()); //132
+        this.registerVanilla(TRIP_WIRE, new BlockBehaviorTripWire()); //132
         this.registerVanilla(EMERALD_BLOCK, new BlockBehaviorEmerald()); //133
         this.registerVanilla(COMMAND_BLOCK, NoopBlockBehavior.INSTANCE);
         this.registerVanilla(BEACON, new BlockBehaviorBeacon()); //138
@@ -493,6 +494,9 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(DENY, NoopBlockBehavior.INSTANCE);
         this.registerVanilla(BORDER_BLOCK, NoopBlockBehavior.INSTANCE);
         this.registerVanilla(MAGMA, new BlockBehaviorMagma()); //213
+        this.registerVanilla(MANGROVE_LEAVES);
+        this.registerVanilla(MANGROVE_PROPAGULE);
+        this.registerVanilla(MANGROVE_PROPAGULE_HANGING);
         this.registerVanilla(NETHER_WART_BLOCK, new BlockNetherWartBlockBehavior(), MultiBlockSerializers.WART_BLOCK); //214
         this.registerVanilla(BONE_BLOCK, new BlockBehaviorBone()); //216
         this.registerVanilla(STRUCTURE_VOID, NoopBlockBehavior.INSTANCE);
@@ -513,6 +517,10 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(INFO_UPDATE, NoopBlockBehavior.INSTANCE);
         this.registerVanilla(INFO_UPDATE2, NoopBlockBehavior.INSTANCE);
         this.registerVanilla(MOVING_BLOCK, NoopBlockBehavior.INSTANCE);
+        this.registerVanilla(MUD);
+        this.registerVanilla(MUD_BRICKS);
+//        this.registerVanilla(MUD_BRICK_WALL); // Shouldn't this be in the StoneSlabType class?
+        this.registerVanilla(PACKED_MUD);
         this.registerVanilla(OBSERVER, new BlockBehaviorObserver()); //251
         this.registerVanilla(STRUCTURE_BLOCK, NoopBlockBehavior.INSTANCE); //252
         this.registerVanilla(HARD_GLASS, NoopBlockBehavior.INSTANCE);
@@ -645,9 +653,9 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(SCULK_CATALYST);
         this.registerVanilla(SCULK_SHRIEKER);
         this.registerVanilla(CLIENT_REQUEST_PLACEHOLDER_BLOCK);
-        this.registerVanilla(MYSTERIOUS_FRAME);
-        this.registerVanilla(MYSTERIOUS_FRAME_SLOT);
-        this.registerVanilla(FROG_EGG);
+//        this.registerVanilla(MYSTERIOUS_FRAME);
+//        this.registerVanilla(MYSTERIOUS_FRAME_SLOT);
+        this.registerVanilla(FROG_SPAWN);
         this.registerVanilla(PEARLESCENT_FROGLIGHT);
         this.registerVanilla(VERDANT_FROGLIGHT);
         this.registerVanilla(OCHRE_FROGLIGHT);
