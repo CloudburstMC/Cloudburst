@@ -123,6 +123,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongConsumer;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.BED_POSITION;
@@ -1756,7 +1757,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         for (String msg : message.split("\n")) {
             if (!msg.trim().isEmpty() && msg.length() <= 255 && this.messageCounter-- > 0) {
-                PlayerChatEvent chatEvent = new PlayerChatEvent(this, msg);
+                PlayerChatEvent chatEvent = new PlayerChatEvent(this, msg, "chat.type.text",
+                        //TODO this is way to hacky
+                        new HashSet<>(this.getServer().getOnlinePlayers().values()));
                 this.server.getEventManager().fire(chatEvent);
                 if (!chatEvent.isCancelled()) {
                     this.server.broadcastMessage(this.getServer().getLanguage().translate(chatEvent.getFormat(), chatEvent.getPlayer().getDisplayName(), chatEvent.getMessage()), chatEvent.getRecipients());

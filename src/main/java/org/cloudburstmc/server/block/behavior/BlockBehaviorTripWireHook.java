@@ -91,7 +91,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
                 break;
             }
 
-            if (b.getType() != TRIPWIRE && i != pos) {
+            if (b.getType() != TRIP_WIRE && i != pos) {
                 blockStates[i] = null;
                 canConnect = false;
             } else {
@@ -99,7 +99,7 @@ public class BlockBehaviorTripWireHook extends FloodableBlockBehavior {
                     b = blockState != null ? blockState : b;
                 }
 
-                if (b.getType() == TRIPWIRE) {
+                if (b.getType() == TRIP_WIRE) {
                     var behavior = (BlockBehaviorTripWire) b.getBehavior();
 
                     boolean disarmed = !behavior.isDisarmed(b);

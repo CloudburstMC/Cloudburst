@@ -29,7 +29,7 @@ public class SpawnEggSerializer extends DefaultItemSerializer {
         if (Bat.class.isAssignableFrom(type)) {
             itemTag.putString(NAME_TAG, ItemIds.BAT_SPAWN_EGG.toString());
         } else if (Cow.class.isAssignableFrom(type)) {
-            itemTag.putString(NAME_TAG, ItemIds.BAT_SPAWN_EGG.toString());
+            itemTag.putString(NAME_TAG, ItemIds.COW_SPAWN_EGG.toString());
         } else if (Chicken.class.isAssignableFrom(type)) {
             itemTag.putString(NAME_TAG, ItemIds.CHICKEN_SPAWN_EGG.toString());
         } else if (Bee.class.isAssignableFrom(type)) {
@@ -161,6 +161,130 @@ public class SpawnEggSerializer extends DefaultItemSerializer {
     @Override
     public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
         super.deserialize(id, meta, amount, builder, tag);
+
+        if(id.equals(ItemIds.BAT_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.BAT);
+        } else if(id.equals(ItemIds.COW_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.COW);
+        } else if(id.equals(ItemIds.CHICKEN_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.CHICKEN);
+        } else if(id.equals(ItemIds.BEE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.BEE);
+        } else if(id.equals(ItemIds.PIG_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.PIG);
+        } else if(id.equals(ItemIds.SHEEP_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.SHEEP);
+        } else if(id.equals(ItemIds.WOLF_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.WOLF);
+        } else if(id.equals(ItemIds.POLAR_BEAR_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.POLAR_BEAR);
+        } else if(id.equals(ItemIds.OCELOT_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.OCELOT);
+        } else if(id.equals(ItemIds.CAT_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.CAT);
+        } else if(id.equals(ItemIds.MOOSHROOM_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.MOOSHROOM);
+        } else if(id.equals(ItemIds.PARROT_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.PARROT);
+        } else if(id.equals(ItemIds.RABBIT_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.RABBIT);
+        } else if(id.equals(ItemIds.LLAMA_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.LLAMA);
+        } else if(id.equals(ItemIds.HORSE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.HORSE);
+        } else if(id.equals(ItemIds.DONKEY_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.DONKEY);
+        } else if(id.equals(ItemIds.MULE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.MULE);
+        } else if(id.equals(ItemIds.SKELETON_HORSE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.SKELETON_HORSE);
+        } else if(id.equals(ItemIds.ZOMBIE_HORSE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.ZOMBIE_HORSE);
+        } else if(id.equals(ItemIds.TROPICAL_FISH_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.TROPICALFISH);
+        } else if(id.equals(ItemIds.COD_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.COD);
+        } else if(id.equals(ItemIds.PUFFERFISH_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.PUFFERFISH);
+        } else if(id.equals(ItemIds.SALMON_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.SALMON);
+        } else if(id.equals(ItemIds.DOLPHIN_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.DOLPHIN);
+        } else if(id.equals(ItemIds.TURTLE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.TURTLE);
+        } else if(id.equals(ItemIds.PANDA_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.PANDA);
+        } else if(id.equals(ItemIds.FOX_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.FOX);
+        } else if(id.equals(ItemIds.CREEPER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.CREEPER);
+        } else if(id.equals(ItemIds.ENDERMAN_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.ENDERMAN);
+        } else if(id.equals(ItemIds.SILVERFISH_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.SILVERFISH);
+        } else if(id.equals(ItemIds.SKELETON_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.SKELETON);
+        } else if(id.equals(ItemIds.SLIME_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.SLIME);
+        } else if(id.equals(ItemIds.SPIDER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.SPIDER);
+        } else if(id.equals(ItemIds.ZOMBIE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.ZOMBIE);
+        } else if(id.equals(ItemIds.ZOMBIE_PIGMAN_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.ZOMBIE_PIGMAN);
+        } else if(id.equals(ItemIds.HUSK_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.HUSK);
+        } else if(id.equals(ItemIds.DROWNED_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.DROWNED);
+        } else if(id.equals(ItemIds.SQUID_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.SQUID);
+        } else if(id.equals(ItemIds.CAVE_SPIDER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.CAVE_SPIDER);
+        } else if(id.equals(ItemIds.WITCH_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.WITCH);
+        } else if(id.equals(ItemIds.GUARDIAN_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.GUARDIAN);
+        } else if(id.equals(ItemIds.ELDER_GUARDIAN_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.ELDER_GUARDIAN);
+        } else if(id.equals(ItemIds.ENDERMITE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.ENDERMITE);
+        } else if(id.equals(ItemIds.MAGMA_CUBE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.MAGMA_CUBE);
+        } else if(id.equals(ItemIds.STRIDER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.STRIDER);
+        } else if(id.equals(ItemIds.HOGLIN_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.HOGLIN);
+        } else if(id.equals(ItemIds.PIGLIN_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.PIGLIN);
+        } else if(id.equals(ItemIds.ZOGLIN_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.ZOGLIN);
+        } else if(id.equals(ItemIds.PIGLIN_BRUTE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.PIGLIN_BRUTE);
+        } else if(id.equals(ItemIds.GHAST_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.GHAST);
+        } else if(id.equals(ItemIds.BLAZE_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.BLAZE);
+        } else if(id.equals(ItemIds.SHULKER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.SHULKER);
+        } else if(id.equals(ItemIds.VINDICATOR_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.VINDICATOR);
+        } else if(id.equals(ItemIds.EVOKER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.EVOCATION_ILLAGER);
+        } else if(id.equals(ItemIds.VEX_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.VEX);
+        } else if(id.equals(ItemIds.VILLAGER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.VILLAGER);
+        } else if(id.equals(ItemIds.WANDERING_TRADER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.WANDERING_TRADER);
+        } else if(id.equals(ItemIds.ZOMBIE_VILLAGER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.ZOMBIE_VILLAGER);
+        } else if(id.equals(ItemIds.PHANTOM_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.PHANTOM);
+        } else if(id.equals(ItemIds.PILLAGER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.PILLAGER);
+        } else if(id.equals(ItemIds.RAVAGER_SPAWN_EGG)) {
+            builder.itemData(EntityType.class, EntityTypes.RAVAGER);
+        }
     }
 
     @Override
