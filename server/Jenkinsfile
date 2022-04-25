@@ -9,11 +9,11 @@ pipeline {
     }
     stages {
         stage ('Build') {
-            when { anyOf {
+            when { not { anyOf {
                 branch 'stable'
                 branch 'beta'
                 branch 'bleeding'
-            }}
+            }}}
 
             steps {
                 sh 'mvn clean package'
