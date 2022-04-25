@@ -179,6 +179,13 @@ public class ItemPalette {
                 ItemData.Builder itemData = ItemData.builder();
                 itemData.id(getRuntimeId(Identifier.fromString(item.get("id").asText())));
 
+                if (item.has("block_state_b64")) {
+                    NbtMap blockState = decodeNbt(item.get("block_state_b64").asText());
+                    BlockState state = BlockPalette.INSTANCE.getBlockState(blockState);
+                    if (state != null) {
+                        itemData.blockRuntimeId(BlockPalette.INSTANCE.getRuntimeId(state));
+                    }
+                }
                 if (item.has("blockRuntimeId")) {
                     itemData.blockRuntimeId(item.get("blockRuntimeId").asInt());
                 }
@@ -190,12 +197,7 @@ public class ItemPalette {
                 }
 
                 if (item.has("nbt_b64")) {
-                    try (NBTInputStream stream = NbtUtils.createReaderLE(new ByteArrayInputStream(Base64.getDecoder().decode(item.get("nbt_b64").asText())))) {
-                        itemData.tag((NbtMap) stream.readTag());
-                    } catch (Exception e) {
-                        log.error("Exception caused");
-                        e.printStackTrace();
-                    }
+                    itemData.tag(decodeNbt(item.get("nbt_b64").asText()));
                 }
 
                 itemData.usingNetId(false)
@@ -204,6 +206,15 @@ public class ItemPalette {
             }
         } catch (IOException | NumberFormatException e) {
             throw new RegistryException("Error loading Vanilla Creative Items", e);
+        }
+    }
+
+    private NbtMap decodeNbt(String base64) {
+        byte[] nbtBytes = Base64.getDecoder().decode(base64);
+        try (NBTInputStream stream = NbtUtils.createReaderLE(new ByteArrayInputStream(nbtBytes))) {
+            return (NbtMap) stream.readTag();
+        } catch (Exception e) {
+            throw new AssertionError("Unable to decode NBT value", e);
         }
     }
 

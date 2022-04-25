@@ -471,6 +471,10 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(HARD_GLASS);
         this.registerVanilla(HARD_STAINED_GLASS);
         this.registerVanilla(RESERVED6);
+        this.registerVanilla(PACKED_MUD);
+        this.registerVanilla(MUD_BRICKS);
+        this.registerVanilla(MUD);
+//        this.registerVanilla(MUD_BRICK_WALL); // Shouldn't this be in the StoneSlabType class?
         //256: unknown
         this.registerVanilla(BLUE_ICE); //266
         this.registerVanilla(ELEMENT, MultiBlockSerializers.ELEMENT);
@@ -587,12 +591,25 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(CRACKED_DEEPSLATE_TILES);
         this.registerVanilla(CRACKED_DEEPSLATE_BRICKS);
         this.registerVanilla(GLOW_LICHEN);
-        this.registerVanilla(RAW_COPPER_BLOCK);
+        this.registerVanilla(CANDLE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CANDLES);
+        this.registerVanilla(CANDLE_CAKE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CANDLE_CAKES);
         this.registerVanilla(RAW_IRON_BLOCK);
+        this.registerVanilla(RAW_COPPER_BLOCK);
         this.registerVanilla(RAW_GOLD_BLOCK);
 
         this.registerVanilla(CANDLE, MultiBlockSerializers.CANDLES);
         this.registerVanilla(CANDLE_CAKE, MultiBlockSerializers.CANDLE_CAKES);
 
+        this.registerVanilla(SCULK);
+        this.registerVanilla(SCULK_VEIN);
+        this.registerVanilla(SCULK_CATALYST);
+        this.registerVanilla(SCULK_SHRIEKER);
+        this.registerVanilla(CLIENT_REQUEST_PLACEHOLDER_BLOCK);
+//        this.registerVanilla(MYSTERIOUS_FRAME);
+//        this.registerVanilla(MYSTERIOUS_FRAME_SLOT);
+        this.registerVanilla(FROG_SPAWN);
+        this.registerVanilla(PEARLESCENT_FROGLIGHT);
+        this.registerVanilla(VERDANT_FROGLIGHT);
+        this.registerVanilla(OCHRE_FROGLIGHT);
     }
 }

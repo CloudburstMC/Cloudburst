@@ -22,7 +22,7 @@
 
 
 ### Crashdump, Backtrace or Other Files
-<!--- USE https://hastebin.com FOR ANY LOGS OR DUMPS -->
+<!--- We recommend using https://gist.github.com for any logs or dumps -->
 
 **Checklist**:
 <!--- Make sure you've completed the following steps (put an "X" between of brackets): -->

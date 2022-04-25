@@ -60,6 +60,7 @@ public class MultiBlockSerializers {
             .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.DEEPSLATE_TILE.name().toLowerCase(), DEEPSLATE_TILE_SLAB, true)
             .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.COBBLED_DEEPSLATE.name().toLowerCase(), COBBLED_DEEPSLATE_SLAB, true)
             .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.POLISHED_DEEPSLATE.name().toLowerCase(), POLISHED_DEEPSLATE_SLAB, true)
+            .add(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.MUD_BRICK.name().toLowerCase(), MUD_BRICK_SLAB, true)
             .add(
                     BLACKSTONE_DOUBLE_SLAB,
                     Builder.combine(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.BLACKSTONE.name().toLowerCase(), true),
@@ -93,6 +94,10 @@ public class MultiBlockSerializers {
             .add(
                     POLISHED_DEEPSLATE_DOUBLE_SLAB,
                     Builder.combine(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.POLISHED_DEEPSLATE.name().toLowerCase(), true),
+                    Builder.combine("slab_slot")
+            ).add(
+                    MUD_BRICK_DOUBLE_SLAB,
+                    Builder.combine(BedrockStateTags.TAG_STONE_SLAB_TYPE, StoneSlabType.MUD_BRICK.name().toLowerCase(), true),
                     Builder.combine("slab_slot")
             )
             .baseSerializer(NoopBlockSerializer.INSTANCE)
@@ -201,7 +206,7 @@ public class MultiBlockSerializers {
     public static final MultiBlockSerializer PLANKS = builder()
             .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.WARPED.name().toLowerCase(), WARPED_PLANKS, true)
             .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.CRIMSON.name().toLowerCase(), CRIMSON_PLANKS, true)
-            .defaultId(BlockIds.PLANKS)
+            .defaultId(BlockIds.OAK_PLANKS)
             .buildSerializer();
 
     public static final MultiBlockSerializer WOOD_STAIRS = buildTreeSpecies(BedrockStateTags.TAG_WOOD_TYPE,
@@ -338,7 +343,7 @@ public class MultiBlockSerializers {
                     Builder.combine("slab_slot")
             )
             .baseSerializer(NoopBlockSerializer.INSTANCE)
-            .defaultId(BlockIds.WOODEN_SLAB)
+            .defaultId(BlockIds.OAK_SLAB)
             .buildSerializer();
 
     public static final MultiBlockSerializer REDSTONE_TORCH = builder()
@@ -540,6 +545,7 @@ public class MultiBlockSerializers {
             .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.DEEPSLATE_TILE.name().toLowerCase(), DEEPSLATE_TILE_WALL, true)
             .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.COBBLED_DEEPSLATE.name().toLowerCase(), COBBLED_DEEPSLATE_WALL, true)
             .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.POLISHED_DEEPSLATE.name().toLowerCase(), POLISHED_DEEPSLATE_WALL, true)
+            .add(BedrockStateTags.TAG_WALL_BLOCK_TYPE, WallBlockType.MUD_BRICK.name().toLowerCase(), MUD_BRICK_WALL, true)
             .defaultId(COBBLESTONE_WALL)
             .buildSerializer();
 

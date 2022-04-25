@@ -3,7 +3,7 @@ package org.cloudburstmc.server;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
@@ -56,9 +56,9 @@ public class Bootstrap {
     public static final JsonMapper JSON_MAPPER = new JsonMapper();
     public static final YAMLMapper YAML_MAPPER = new YAMLMapper();
     public static final YAMLMapper KEBAB_CASE_YAML_MAPPER = (YAMLMapper) new YAMLMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+            .setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
     public static final JavaPropsMapper JAVA_PROPS_MAPPER = (JavaPropsMapper) new JavaPropsMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+            .setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
     public static final long START_TIME = System.currentTimeMillis();
     public static boolean ANSI = true;
     public static boolean TITLE = false;
