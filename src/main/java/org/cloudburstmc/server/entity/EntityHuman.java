@@ -333,7 +333,7 @@ public class EntityHuman extends EntityCreature implements Human {
                         }
                     }
 
-                    EnchantmentInstance durability = armor.getEnchantment(EnchantmentTypes.DURABILITY);
+                    EnchantmentInstance durability = armor.getEnchantment(EnchantmentTypes.UNBREAKING);
                     if (durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100))
                         continue;
                 }

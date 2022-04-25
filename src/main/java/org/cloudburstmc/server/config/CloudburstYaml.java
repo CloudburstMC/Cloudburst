@@ -6,6 +6,9 @@ import lombok.*;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.config.serializer.WorldConfigDeserializer;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,29 +22,32 @@ import java.util.Map;
 @NoArgsConstructor
 public class CloudburstYaml {
 
-    @SneakyThrows
     public static CloudburstYaml fromFile(Path file) {
         final CloudburstYaml yaml = new CloudburstYaml();
-        CloudburstYaml mapped = Bootstrap.KEBAB_CASE_YAML_MAPPER.readerForUpdating(yaml).readValue(file.toFile());
-        //fix: when writing commandAlias in yaml but have no item, mapper will treat it as null
-        if(mapped.getAliases() == null) {
-            mapped = new CloudburstYaml(
-                    Collections.emptyMap(),
-                    mapped.timings,
-                    mapped.settings,
-                    mapped.network,
-                    mapped.levelSettings,
-                    mapped.chunkSending,
-                    mapped.chunkTicking,
-                    mapped.chunkGeneration,
-                    mapped.spawnLimits,
-                    mapped.ticksPer,
-                    mapped.debug,
-                    mapped.player,
-                    mapped.worlds
-            );
+        try (InputStream stream = Files.newInputStream(file)) {
+            CloudburstYaml mapped = Bootstrap.KEBAB_CASE_YAML_MAPPER.readerForUpdating(yaml).readValue(stream);
+            //fix: when writing commandAlias in yaml but have no item, mapper will treat it as null
+            if (mapped.getAliases() == null) {
+                mapped = new CloudburstYaml(
+                        Collections.emptyMap(),
+                        mapped.timings,
+                        mapped.settings,
+                        mapped.network,
+                        mapped.levelSettings,
+                        mapped.chunkSending,
+                        mapped.chunkTicking,
+                        mapped.chunkGeneration,
+                        mapped.spawnLimits,
+                        mapped.ticksPer,
+                        mapped.debug,
+                        mapped.player,
+                        mapped.worlds
+                );
+            }
+            return mapped;
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to read configuration file", e);
         }
-        return mapped;
     }
 
     @Builder.Default

@@ -106,38 +106,40 @@ public class EnchantmentRegistry implements Registry {
     private void registerVanillaEnchantments() {
         this.registerVanilla(EnchantmentTypes.PROTECTION, new EnchantmentProtectionAll());
         this.registerVanilla(EnchantmentTypes.FIRE_PROTECTION, new EnchantmentProtectionFire());
-        this.registerVanilla(EnchantmentTypes.FALL_PROTECTION, new EnchantmentProtectionFall());
-        this.registerVanilla(EnchantmentTypes.EXPLOSION_PROTECTION, new EnchantmentProtectionExplosion());
+        this.registerVanilla(EnchantmentTypes.FEATHER_FALLING, new EnchantmentProtectionFall());
+        this.registerVanilla(EnchantmentTypes.BLAST_PROTECTION, new EnchantmentProtectionExplosion());
         this.registerVanilla(EnchantmentTypes.PROJECTILE_PROTECTION, new EnchantmentProtectionProjectile());
         this.registerVanilla(EnchantmentTypes.THORNS, new EnchantmentThorns());
-        this.registerVanilla(EnchantmentTypes.WATER_BREATHING, new EnchantmentWaterBreath());
-        this.registerVanilla(EnchantmentTypes.WATER_WORKER, new EnchantmentWaterWorker());
-        this.registerVanilla(EnchantmentTypes.WATER_WALKER, new EnchantmentWaterWalker());
-        this.registerVanilla(EnchantmentTypes.DAMAGE_SHARPNESS, new EnchantmentDamageAll());
-        this.registerVanilla(EnchantmentTypes.DAMAGE_SMITE, new EnchantmentDamageSmite());
-        this.registerVanilla(EnchantmentTypes.DAMAGE_ARTHOPODS, new EnchantmentDamageArthropods());
+        this.registerVanilla(EnchantmentTypes.RESPIRATION, new EnchantmentWaterBreath());
+        this.registerVanilla(EnchantmentTypes.DEPTH_STRIDER, new EnchantmentWaterWalker());
+        this.registerVanilla(EnchantmentTypes.AQUA_AFFINITY, new EnchantmentWaterWorker());
+        this.registerVanilla(EnchantmentTypes.SHARPNESS, new EnchantmentDamageAll());
+        this.registerVanilla(EnchantmentTypes.SMITE, new EnchantmentDamageSmite());
+        this.registerVanilla(EnchantmentTypes.BANE_OF_ARTHROPODS, new EnchantmentDamageArthropods());
         this.registerVanilla(EnchantmentTypes.KNOCKBACK, new EnchantmentKnockback());
         this.registerVanilla(EnchantmentTypes.FIRE_ASPECT, new EnchantmentFireAspect());
         this.registerVanilla(EnchantmentTypes.LOOTING, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.EFFICIENCY, new EnchantmentEfficiency());
         this.registerVanilla(EnchantmentTypes.SILK_TOUCH, new EnchantmentSilkTouch());
-        this.registerVanilla(EnchantmentTypes.DURABILITY, new EnchantmentDurability());
+        this.registerVanilla(EnchantmentTypes.UNBREAKING, new EnchantmentDurability());
         this.registerVanilla(EnchantmentTypes.FORTUNE, NoopEnchantmentBehavior.INSTANCE);
-        this.registerVanilla(EnchantmentTypes.BOW_POWER, new EnchantmentBowPower());
-        this.registerVanilla(EnchantmentTypes.BOW_PUNCH, new EnchantmentBowKnockback());
-        this.registerVanilla(EnchantmentTypes.BOW_FLAME, new EnchantmentBowFlame());
-        this.registerVanilla(EnchantmentTypes.BOW_INFINITY, new EnchantmentBowInfinity());
+        this.registerVanilla(EnchantmentTypes.POWER, new EnchantmentBowPower());
+        this.registerVanilla(EnchantmentTypes.PUNCH, new EnchantmentBowKnockback());
+        this.registerVanilla(EnchantmentTypes.FLAME, new EnchantmentBowFlame());
+        this.registerVanilla(EnchantmentTypes.INFINITY, new EnchantmentBowInfinity());
+        this.registerVanilla(EnchantmentTypes.LUCK_OF_THE_SEA, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.LURE, new EnchantmentLure());
         this.registerVanilla(EnchantmentTypes.FROST_WALKER, new EnchantmentFrostWalker());
         this.registerVanilla(EnchantmentTypes.MENDING, new EnchantmentMending());
-        this.registerVanilla(EnchantmentTypes.BINDING_CURSE, new EnchantmentBindingCurse());
-        this.registerVanilla(EnchantmentTypes.VANISHING_CURSE, new EnchantmentVanishingCurse());
-        this.registerVanilla(EnchantmentTypes.TRIDENT_IMPALING, new EnchantmentTridentImpaling());
-        this.registerVanilla(EnchantmentTypes.TRIDENT_RIPTIDE, new EnchantmentTridentRiptide());
-        this.registerVanilla(EnchantmentTypes.TRIDENT_LOYALTY, new EnchantmentTridentLoyalty());
-        this.registerVanilla(EnchantmentTypes.TRIDENT_CHANNELING, new EnchantmentTridentChanneling());
-        this.registerVanilla(EnchantmentTypes.CROSSBOW_MULTISHOT, NoopEnchantmentBehavior.INSTANCE); //TODO: implement
-        this.registerVanilla(EnchantmentTypes.CROSSBOW_PIERCING, NoopEnchantmentBehavior.INSTANCE);
-        this.registerVanilla(EnchantmentTypes.CROSSBOW_QUICK_CHARGE, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.BINDING, new EnchantmentBindingCurse());
+        this.registerVanilla(EnchantmentTypes.VANISHING, new EnchantmentVanishingCurse());
+        this.registerVanilla(EnchantmentTypes.IMPALING, new EnchantmentTridentImpaling());
+        this.registerVanilla(EnchantmentTypes.RIPTIDE, new EnchantmentTridentRiptide());
+        this.registerVanilla(EnchantmentTypes.LOYALTY, new EnchantmentTridentLoyalty());
+        this.registerVanilla(EnchantmentTypes.CHANNELING, new EnchantmentTridentChanneling());
+        this.registerVanilla(EnchantmentTypes.MULTISHOT, NoopEnchantmentBehavior.INSTANCE); //TODO: implement
+        this.registerVanilla(EnchantmentTypes.PIERCING, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.QUICK_CHARGE, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.SOUL_SPEED, NoopEnchantmentBehavior.INSTANCE);
     }
 }

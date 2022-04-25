@@ -366,16 +366,16 @@ public class CloudServer implements Server {
                     "locale/cloudburst/configs");
             configLocaleManager.setLocale(locale);
 
-            File configFile = configPath.toFile();
             InputStream stream = Bootstrap.class.getClassLoader().getResourceAsStream("cloudburst.yml");
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFile)))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(configPath), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (!line.isEmpty()) {
                         line = configLocaleManager.translate(line);
                     }
-                    writer.write(line + '\n');
+                    writer.write(line);
+                    writer.newLine();
                 }
             }
         }
