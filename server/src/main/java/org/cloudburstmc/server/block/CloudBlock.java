@@ -6,6 +6,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockSnapshot;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
@@ -35,6 +36,17 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     @Override
     public Vector3i getPosition() {
         return position;
+    }
+
+    @Override
+    public BehaviorCollection getBehaviors() {
+        //TODO implementation
+        return null;
+    }
+
+    @Override
+    public int getBrightness() {
+        return this.level.getBlockLightAt(this.position.getX(), this.position.getY(), this.position.getZ());
     }
 
     @Override

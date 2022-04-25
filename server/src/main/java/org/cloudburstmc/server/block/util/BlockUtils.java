@@ -137,7 +137,7 @@ public class BlockUtils {
         String idText = matcher.group(1);
         Identifier blockId = Identifier.fromString(idText);
 
-        checkArgument(CloudBlockRegistry.get().getBlock(blockId) != null, "unknown block: \"%s\"", idText);
+        checkArgument(CloudBlockRegistry.REGISTRY.getBlock(blockId) != null, "unknown block: \"%s\"", idText);
 
         Map<String, Object> traits = new HashMap<>();
         String traitsTxt = matcher.group(2);
@@ -175,7 +175,7 @@ public class BlockUtils {
 
         String idText = matcher.group(1);
         Identifier blockId = Identifier.fromString(idText);
-        checkArgument(CloudBlockRegistry.get().getBlock(blockId) != null, "unknown block: \"%s\"", idText);
+        checkArgument(CloudBlockRegistry.REGISTRY.getBlock(blockId) != null, "unknown block: \"%s\"", idText);
 
         List<Map<String, Object>> variants = new ArrayList<>();
 

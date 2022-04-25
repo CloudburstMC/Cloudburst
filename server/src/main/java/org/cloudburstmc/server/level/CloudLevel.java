@@ -100,8 +100,7 @@ import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.cloudburstmc.api.block.BlockBehaviors.GET_LIGHT;
-import static org.cloudburstmc.api.block.BlockBehaviors.GET_TRANSLUCENCY;
+import static org.cloudburstmc.api.block.BlockBehaviors.*;
 import static org.cloudburstmc.api.item.ItemBehaviors.CAN_DESTROY;
 
 /**
@@ -1403,7 +1402,7 @@ public class CloudLevel implements Level {
             Block block = this.getBlock(x, y, z);
             BlockState state = block.getState();
 
-            int lightLevel = this.getBlockLightAt(x, y, z) - state.getBehavior().getFilterLevel(state);
+            int lightLevel = this.getBlockLightAt(x, y, z) - block.getBehaviors().get(GET_FILTERED_LIGHT);
 
             if (lightLevel >= 1) {
                 this.computeSpreadBlockLight(x - 1, y, z, lightLevel, lightPropagationQueue, visited);

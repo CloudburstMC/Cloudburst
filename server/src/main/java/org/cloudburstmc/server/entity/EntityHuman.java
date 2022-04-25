@@ -300,7 +300,8 @@ public class EntityHuman extends EntityCreature implements Human {
             int toughness = 0;
 
             for (ItemStack armor : getInventory().getArmorContents()) {
-                armorPoints += armor.getBehavior().getArmorPoints(armor);
+//                TODO: Needs implementation
+//                armorPoints += armor.getBlockState().getBehavior().getArmorPoints(armor);
                 epf += calculateEnchantmentProtectionFactor(armor, source);
                 //toughness += armor.getToughness();
             }
@@ -324,19 +325,20 @@ public class EntityHuman extends EntityCreature implements Human {
 
             for (int slot = 0; slot < 4; slot++) {
                 ItemStack armor = this.getInventory().getArmorItem(slot);
-                List<Enchantment> enchantments = armor.get(ItemKeys.ENCHANTMENTS);
-
-                if (enchantments != null) {
-                    if (damager != null) {
-                        for (EnchantmentInstance enchantment : armor.getEnchantments().values()) {
-                            enchantment.getBehavior().doPostAttack(enchantment, damager, this);
-                        }
-                    }
-
-                    EnchantmentInstance durability = armor.getEnchantment(EnchantmentTypes.UNBREAKING);
-                    if (durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100))
-                        continue;
-                }
+                //TODO: Enchantments implementation
+//                List<Enchantment> enchantments = armor.get(ItemKeys.ENCHANTMENTS);
+//
+//                if (enchantments != null) {
+//                    if (damager != null) {
+//                        for (EnchantmentInstance enchantment : armor.getEnchantments().values()) {
+//                            enchantment.getBehavior().doPostAttack(enchantment, damager, this);
+//                        }
+//                    }
+//
+//                    EnchantmentInstance durability = armor.getEnchantment(EnchantmentTypes.UNBREAKING);
+//                    if (durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100))
+//                        continue;
+//                }
 
                 var damage = armor.get(ItemKeys.DAMAGE);
                 Boolean unbreakable = armor.get(ItemKeys.UNBREAKABLE);
@@ -365,11 +367,12 @@ public class EntityHuman extends EntityCreature implements Human {
         }
     }
 
+    //TODO: Enchantments implementation
     protected double calculateEnchantmentProtectionFactor(ItemStack item, EntityDamageEvent source) {
-        List<Enchantment> enchantments = item.get(ItemKeys.ENCHANTMENTS);
-        if (enchantments == null) {
-            return 0;
-        }
+//        List<Enchantment> enchantments = item.get(ItemKeys.ENCHANTMENTS);
+//        if (enchantments == null) {
+//            return 0;
+//        }
 
         double epf = 0;
 
@@ -384,13 +387,14 @@ public class EntityHuman extends EntityCreature implements Human {
     public void setOnFire(int seconds) {
         int level = 0;
 
-        for (ItemStack armor : this.getInventory().getArmorContents()) {
-            EnchantmentInstance fireProtection = armor.getEnchantment(EnchantmentTypes.FIRE_PROTECTION);
-
-            if (fireProtection != null && fireProtection.getLevel() > 0) {
-                level = Math.max(level, fireProtection.getLevel());
-            }
-        }
+        //TODO: Enchantments implementation
+//        for (ItemStack armor : this.getInventory().getArmorContents()) {
+//            EnchantmentInstance fireProtection = armor.getEnchantment(EnchantmentTypes.FIRE_PROTECTION);
+//
+//            if (fireProtection != null && fireProtection.getLevel() > 0) {
+//                level = Math.max(level, fireProtection.getLevel());
+//            }
+//        }
 
         seconds = (int) (seconds * (1 - level * 0.15));
 

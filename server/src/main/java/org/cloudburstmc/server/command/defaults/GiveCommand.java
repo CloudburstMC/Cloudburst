@@ -60,7 +60,7 @@ public class GiveCommand extends Command {
         }
 
         CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
-        var registry = CloudItemRegistry.get();
+        CloudItemRegistry registry = CloudItemRegistry.get();
         ItemType type;
 
         try {
