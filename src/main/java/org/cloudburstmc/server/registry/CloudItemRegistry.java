@@ -25,6 +25,7 @@ import org.cloudburstmc.api.item.data.BannerData;
 import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.item.data.WrittenBook;
+import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -47,7 +48,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry, Registry {
+public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry<ItemType>, Registry {
     private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(); // Needs to be initialized afterwards
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
@@ -99,6 +100,18 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         super.registerBehavior(key, defaultBehavior, executorFactory);
     }
 
+    @Override
+    public BehaviorCollection getBehaviors(ItemType type) {
+        //TODO Implementation
+        return null;
+    }
+
+    @Override
+    public GlobalRegistry global() {
+        //TODO Implementation
+        return null;
+    }
+
     public int getNextNetId() {
         for (int i = 1; i < Integer.MAX_VALUE; i++) {
             if (!netIdMap.containsKey(i) || netIdMap.get(i).refersTo(null)) {
@@ -128,7 +141,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     public void clearQueue() { //TODO - call this how often? Every server tick, every x minutes on a new thread? need to syncronize?
         java.lang.ref.Reference<? extends ItemStack> ref;
         while ((ref = oldIdQueue.poll()) != null) {
-            if (ref.get() != null && !ref.get().isNull())
+            if (ref.get() != null && ref.get() != ItemStack.AIR)
                 netIdMap.remove(ref.get().getStackNetworkId());
         }
     }
@@ -227,19 +240,6 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     @Override
     public void register(ItemType itemType, ItemBehavior itemBehavior, Identifier... identifiers) throws RegistryException {
         this.register(itemType,DefaultItemSerializer.INSTANCE,itemBehavior,identifiers);
-    }
-
-    @Override
-    public ItemStack getItem(BlockState state, int amount) throws RegistryException {
-        Preconditions.checkNotNull(state);
-        Preconditions.checkArgument(amount > 0, "amount must be positive");
-
-        if (state.getType() == BlockTypes.AIR) return ItemStack.AIR;
-
-        var builder = ItemStack.builder(state)
-                .amount(amount);
-
-        return builder.build();
     }
 
     public Collection<Identifier> getIdentifiers(ItemType type) {
@@ -726,11 +726,6 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         itemPalette.addCreativeItem(item);
     }
 
-    @Override
-    public BehaviorCollection getBehaviors(ItemType type) {
-        return null;
-    }
-
     public ItemStack getCreativeItemByIndex(int index) {
         return ItemUtils.fromNetwork(itemPalette.getCreativeItems().get(index));
     }
@@ -740,7 +735,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     }
 
     public int getCreativeItemIndex(ItemStack item) {
-        int rid = itemPalette.getRuntimeId(item);
+        int rid = itemPalette.getRuntimeId(item.getType().getId());
 
         for (int i = 0; i < itemPalette.getCreativeItems().size(); i++) {
             if (rid == itemPalette.getCreativeItems().get(i).getId()) {

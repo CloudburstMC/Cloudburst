@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Identifier;
@@ -196,23 +197,24 @@ public class ParticleCommand extends Command {
                 return new BlockForceFieldParticle(pos);
         }
 
-        if (name.startsWith("iconcrack_")) {
-            String[] d = name.split("_");
-            if (d.length == 3) {
-                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.byId(Identifier.fromString(d[1])), Integer.parseInt(d[2])));
-            }
-        } else if (name.startsWith("blockcrack_")) {
-            String[] d = name.split("_");
-            if (d.length == 2) {
-                return new TerrainParticle(pos, CloudBlockRegistry.get().getBlock(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
-            }
-        } else if (name.startsWith("blockdust_")) {
-            String[] d = name.split("_");
-            if (d.length >= 4) {
-                return new DustParticle(pos, Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[2]) & 0xff,
-                        Integer.parseInt(d[3]) & 0xff, d.length >= 5 ? Integer.parseInt(d[4]) & 0xff : 255);
-            }
-        }
+//        TODO Just ignore it and pretent it doesn't exist
+//        if (name.startsWith("iconcrack_")) {
+//            String[] d = name.split("_");
+//            if (d.length == 3) {
+//                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.byId(Identifier.fromString(d[1])), Integer.parseInt(d[2])));
+//            }
+//        } else if (name.startsWith("blockcrack_")) {
+//            String[] d = name.split("_");
+//            if (d.length == 2) {
+//                return new TerrainParticle(pos, CloudBlockRegistry.get().getBlock(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
+//            }
+//        } else if (name.startsWith("blockdust_")) {
+//            String[] d = name.split("_");
+//            if (d.length >= 4) {
+//                return new DustParticle(pos, Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[2]) & 0xff,
+//                        Integer.parseInt(d[3]) & 0xff, d.length >= 5 ? Integer.parseInt(d[4]) & 0xff : 255);
+//            }
+//        }
 
         return null;
     }

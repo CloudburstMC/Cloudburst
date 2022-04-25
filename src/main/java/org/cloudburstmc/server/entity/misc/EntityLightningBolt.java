@@ -13,6 +13,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -51,18 +52,19 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
 
             if (state.getType() == AIR || state.getType() == TALL_GRASS) {
 
-                if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.downState()) || BlockBehaviorFire.canNeighborBurn(block)) {
-
-                    BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
-                    getServer().getEventManager().fire(e);
-
-                    if (!e.isCancelled()) {
-                        var fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
-                        block.set(fire);
-
-                        level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
-                    }
-                }
+//                TODO
+//                if (BlockBehaviorFire.isBlockTopFacingSurfaceSolid(block.getSideState(Direction.DOWN, 1)) || BlockBehaviorFire.canNeighborBurn(block)) {
+//
+//                    BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
+//                    getServer().getEventManager().fire(e);
+//
+//                    if (!e.isCancelled()) {
+//                        var fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
+//                        block.set(fire);
+//
+//                        level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
+//                    }
+//                }
             }
         }
     }
@@ -119,17 +121,18 @@ public class EntityLightningBolt extends BaseEntity implements LightningBolt {
                     Block block = this.getLevel().getBlock(this.getPosition().toInt());
                     var state = block.getState();
 
-                    if (state.getType() == AIR || state.getType() == TALL_GRASS) {
-                        BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
-                        getServer().getEventManager().fire(e);
-
-                        if (!e.isCancelled()) {
-                            BlockState fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
-                            block.set(fire);
-
-                            this.getLevel().scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate());
-                        }
-                    }
+//                    TODO
+//                    if (state.getType() == AIR || state.getType() == TALL_GRASS) {
+//                        BlockIgniteEvent e = new BlockIgniteEvent(block, null, this, BlockIgniteEvent.BlockIgniteCause.LIGHTNING);
+//                        getServer().getEventManager().fire(e);
+//
+//                        if (!e.isCancelled()) {
+//                            BlockState fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
+//                            block.set(fire);
+//
+//                            this.getLevel().scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate());
+//                        }
+//                    }
                 }
             }
         }

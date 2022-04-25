@@ -32,36 +32,26 @@ public class DefaultItemSerializer implements ItemSerializer {
     @Override
     public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         itemTag.putString("Name", item.getType().getId().toString())
-                .putByte("Count", (byte) item.getCount())
-                .putShort("Damage", (short) 0);
+                .putByte("Count", (byte) item.getCount());
 
-        if (!item.get().isEmpty()) {
-            var registry = CloudItemRegistry.get();
-            NbtMapBuilder dataTag = NbtMap.builder();
+        NbtMapBuilder dataTag = NbtMap.builder();
 
-            item.get().forEach((clazz, value) -> {
-                ItemDataSerializer serializer = registry.getSerializer(clazz);
-                if (serializer == null) {
-                    if (!(value instanceof NonSerializable)) {
-                        log.debug("Unregistered item metadata class {}", clazz);
-                    }
-                    return;
+        item.getAllMetadata().forEach((dataKey, value) -> {
+            ItemDataSerializer serializer = CloudItemRegistry.get().getSerializer(dataKey);
+            if (serializer == null) {
+                if (!(value instanceof NonSerializable)) {
+                    log.debug("Unregistered item metadata class {}", dataKey);
                 }
-
-                serializer.serialize(item, dataTag, value);
-            });
-
-            if (!dataTag.isEmpty()) {
-                itemTag.putCompound("tag", dataTag.build());
+                return;
             }
-        }
+
+            serializer.serialize(item, dataTag, value);
+        });
 
         if (item.isBlock()) {
             itemTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(item.getBlockState()).toString());
             itemTag.putShort("Damage", (short) BlockStateMetaMappings.getMetaFromState(item.getBlockState()));
         }
-
-        NbtMapBuilder dataTag = NbtMap.builder();
 
         if (item.get(ItemKeys.CUSTOM_NAME) != null || !item.getLore().isEmpty()) {
             NbtMapBuilder display = NbtMap.builder();
@@ -76,18 +66,19 @@ public class DefaultItemSerializer implements ItemSerializer {
             dataTag.putCompound("display", display.build());
         }
 
-        if (!item.getEnchantments().isEmpty()) {
-            List<NbtMap> enchantments = new ArrayList<>(item.getEnchantments().size());
-            for (EnchantmentInstance enchantment : item.getEnchantments().values()) {
-                enchantments.add(NbtMap.builder()
-                        .putShort("id", (enchantment.getType()).getId())
-                        .putShort("lvl", (short) enchantment.getLevel())
-                        .build()
-                );
-            }
-
-            dataTag.putList("ench", NbtType.COMPOUND, enchantments);
-        }
+//        TODO Enchantments implementation
+//        if (!item.getEnchantments().isEmpty()) {
+//            List<NbtMap> enchantments = new ArrayList<>(item.getEnchantments().size());
+//            for (EnchantmentInstance enchantment : item.getEnchantments().values()) {
+//                enchantments.add(NbtMap.builder()
+//                        .putShort("id", (enchantment.getType()).getId())
+//                        .putShort("lvl", (short) enchantment.getLevel())
+//                        .build()
+//                );
+//            }
+//
+//            dataTag.putList("ench", NbtType.COMPOUND, enchantments);
+//        }
 
         serializeCanInteract(dataTag, item.get(ItemKeys.CAN_DESTROY), "CanDestroy");
 
@@ -109,6 +100,7 @@ public class DefaultItemSerializer implements ItemSerializer {
         }
     }
 
+    //TODO Keep the old Damage value tags for the conversion of old world formats
     @Override
     public void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag) {
         if (amount <= 0) {

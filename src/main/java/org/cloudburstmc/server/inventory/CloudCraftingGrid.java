@@ -102,7 +102,7 @@ public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
         List<ItemStack> drops = new ArrayList<>();
         if (!isEmpty()) {
             for (ItemStack item : this.getContents().values()) {
-                if (!item.isNull()) {
+                if (item != ItemStack.AIR) {
                     drops.add(item);
                 }
             }

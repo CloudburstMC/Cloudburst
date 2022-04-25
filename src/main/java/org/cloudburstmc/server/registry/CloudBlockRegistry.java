@@ -388,7 +388,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(EMERALD_ORE); //129
         this.registerVanilla(ENDER_CHEST); //130
         this.registerVanilla(TRIPWIRE_HOOK); //131
-        this.registerVanilla(TRIPWIRE); //132
+        this.registerVanilla(TRIP_WIRE); //132
         this.registerVanilla(EMERALD_BLOCK); //133
         this.registerVanilla(COMMAND_BLOCK);
         this.registerVanilla(BEACON); //138
@@ -591,8 +591,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(CRACKED_DEEPSLATE_TILES);
         this.registerVanilla(CRACKED_DEEPSLATE_BRICKS);
         this.registerVanilla(GLOW_LICHEN);
-        this.registerVanilla(CANDLE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CANDLES);
-        this.registerVanilla(CANDLE_CAKE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CANDLE_CAKES);
+        this.registerVanilla(CANDLE, MultiBlockSerializers.CANDLES);
+        this.registerVanilla(CANDLE_CAKE, MultiBlockSerializers.CANDLE_CAKES);
         this.registerVanilla(RAW_IRON_BLOCK);
         this.registerVanilla(RAW_COPPER_BLOCK);
         this.registerVanilla(RAW_GOLD_BLOCK);

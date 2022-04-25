@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -31,6 +32,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -77,6 +79,7 @@ import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.LoginChainData;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudAdventureSettings;
@@ -1036,13 +1039,12 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         boolean portal = false;
 
         for (Block block : this.getCollisionBlocks()) {
-            var state = block.getState();
-            if (state.getType() == BlockTypes.PORTAL) {
+            if (block.getState().getType() == BlockTypes.PORTAL) {
                 portal = true;
                 continue;
             }
 
-            state.getBehavior().onEntityCollide(block, this);
+            block.getBehaviors().get(BlockBehaviors.ON_ENTITY_COLLIDE).execute(block, this);
         }
 
         if (portal) {
@@ -1178,20 +1180,20 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             realBB.setMaxY(realBB.getMinY() + 0.1f);
             realBB.setMinY(realBB.getMinY() - 0.2f);
 
-            int minX = NukkitMath.floorDouble(bb.getMinX());
-            int minY = NukkitMath.floorDouble(bb.getMinY());
-            int minZ = NukkitMath.floorDouble(bb.getMinZ());
-            int maxX = NukkitMath.ceilDouble(bb.getMaxX());
-            int maxY = NukkitMath.ceilDouble(bb.getMaxY());
-            int maxZ = NukkitMath.ceilDouble(bb.getMaxZ());
+            int minX = GenericMath.floor(bb.getMinX());
+            int minY = GenericMath.floor(bb.getMinY());
+            int minZ = GenericMath.floor(bb.getMinZ());
+            int maxX = GenericMath.ceil(bb.getMaxX());
+            int maxY = GenericMath.ceil(bb.getMaxY());
+            int maxZ = GenericMath.ceil(bb.getMaxZ());
 
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
                         Block block = this.getLevel().getBlock(x, y, z);
-                        var behavior = block.getState().getBehavior();
+                        BehaviorCollection behavior = block.getBehaviors();
 
-                        if (!behavior.canPassThrough(block.getState()) && behavior.collidesWithBB(block, realBB)) {
+                        if (!behavior.get(BlockBehaviors.IS_SOLID) && behavior.get(BlockBehaviors.GET_BOUNDING_BOX).execute(block.getState()).addCoord(x, y, z).intersectsWith(realBB)) {
                             onGround = true;
                             break;
                         }
@@ -2300,7 +2302,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             return false;
         }
 
-        if (item.isNull()) {
+        if (item == ItemStack.AIR) {
             log.debug(this.getName() + " attempted to drop a null item (" + item + ")");
             return true;
         }
@@ -3329,30 +3331,31 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                 this.getLevel().addSound(this.getPosition(), Sound.RANDOM_ORB);
                 pickedXPOrb = tick;
 
-                //Mending
-                ArrayList<Integer> itemsWithMending = new ArrayList<>();
-                for (int i = 0; i < 4; i++) {
-                    if (getInventory().getArmorItem(i).getEnchantment(EnchantmentTypes.MENDING) != null) {
-                        itemsWithMending.add(getInventory().getSize() + i);
-                    }
-                }
-                if (getInventory().getItemInHand().getEnchantment(EnchantmentTypes.MENDING) != null) {
-                    itemsWithMending.add(getInventory().getHeldItemIndex());
-                }
-                if (itemsWithMending.size() > 0) {
-                    Random rand = new Random();
-                    Integer itemToRepair = itemsWithMending.get(rand.nextInt(itemsWithMending.size()));
-                    ItemStack toRepair = getInventory().getItem(itemToRepair);
-                    var behavior = toRepair.getBehavior();
-                    if (behavior.isTool(toRepair) || behavior.isArmor()) {
-                        var damage = toRepair.getMetadata(Damageable.class);
-
-                        if (damage.getDurability() > 0) {
-                            getInventory().setItem(itemToRepair, toRepair.withData(damage.repair(2)));
-                            return true;
-                        }
-                    }
-                }
+//                TODO Enchantments implementation
+//                //Mending
+//                ArrayList<Integer> itemsWithMending = new ArrayList<>();
+//                for (int i = 0; i < 4; i++) {
+//                    if (getInventory().getArmorItem(i).getEnchantment(EnchantmentTypes.MENDING) != null) {
+//                        itemsWithMending.add(getInventory().getSize() + i);
+//                    }
+//                }
+//                if (getInventory().getItemInHand().getEnchantment(EnchantmentTypes.MENDING) != null) {
+//                    itemsWithMending.add(getInventory().getHeldItemIndex());
+//                }
+//                if (itemsWithMending.size() > 0) {
+//                    Random rand = new Random();
+//                    Integer itemToRepair = itemsWithMending.get(rand.nextInt(itemsWithMending.size()));
+//                    ItemStack toRepair = getInventory().getItem(itemToRepair);
+//                    var behavior = toRepair.getBehavior();
+//                    if (behavior.isTool(toRepair) || behavior.isArmor()) {
+//                        var damage = toRepair.getMetadata(Damageable.class);
+//
+//                        if (damage.getDurability() > 0) {
+//                            getInventory().setItem(itemToRepair, toRepair.withData(damage.repair(2)));
+//                            return true;
+//                        }
+//                    }
+//                }
 
                 this.addExperience(exp);
                 return true;

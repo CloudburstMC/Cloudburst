@@ -7,6 +7,7 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Sheep;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
@@ -59,6 +60,7 @@ public class EntitySheep extends Animal implements Sheep {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
+        //TODO: Kinda hacky but works for now
         tag.listenForByte("Color", this::setColor);
         tag.listenForBoolean("Sheared", this::setSheared);
     }
@@ -74,7 +76,7 @@ public class EntitySheep extends Animal implements Sheep {
     @Override
     public boolean onInteract(Player player, ItemStack item) {
         if (item.getType() == ItemTypes.DYE) {
-            this.setColor(item.getBlockState().ensureTrait(BlockTraits.COLOR).getWoolData());
+            this.setColor(item.get(ItemKeys.COLOR));
             return true;
         }
 
@@ -119,7 +121,11 @@ public class EntitySheep extends Animal implements Sheep {
         return DyeColor.getByWoolData(this.data.getByte(COLOR));
     }
 
-    public void setColor(int color) {
+    public void setColor(DyeColor color) {
+        this.data.setByte(COLOR, color.getWoolData());
+    }
+
+    private void setColor(int color) {
         this.data.setByte(COLOR, color);
     }
 

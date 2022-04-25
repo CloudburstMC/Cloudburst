@@ -5,6 +5,8 @@ import com.google.common.cache.CacheBuilder;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.block.BlockBehaviors;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -62,7 +64,7 @@ public class ItemUtils {
     public static ItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag, int blockRuntimeId) {
         ItemStackBuilder builder = ItemStack.builder();
         if (blockRuntimeId >= 0) {
-            builder.data(ItemKeys.BLOCK_STATE, CloudBlockRegistry.get().getBlock(blockRuntimeId));
+            builder.data(ItemKeys.BLOCK_STATE, CloudBlockRegistry.REGISTRY.getBlock(blockRuntimeId));
         }
         ItemType type = CloudItemRegistry.get().getType(id, damage);
         registry.getSerializer(type).deserialize(id, damage, amount, builder, tag);
@@ -87,7 +89,7 @@ public class ItemUtils {
     }
 
     public static ItemData toNetwork(ItemStack item, boolean useNetId) {
-        Identifier identifier = item.getNbt().isEmpty() ? item.getId() : Identifier.fromString(item.getNbt().getString("Name"));
+        Identifier identifier = item.getNbt().isEmpty() ? item.getType().getId() : Identifier.fromString(item.getNbt().getString("Name"));
 
         NbtMap tag = item.getNbt();
         short meta;
@@ -98,13 +100,10 @@ public class ItemUtils {
         }
         int id = registry.getRuntimeId(identifier, meta);
 
-        String[] canPlace = item.getCanPlaceOn().stream().map(Identifier::toString).toArray(String[]::new);
-        String[] canBreak = item.getCanDestroy().stream().map(Identifier::toString).toArray(String[]::new);
+        String[] canPlace = item.get(ItemKeys.CAN_PLACE_ON).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
+        String[] canBreak = item.get(ItemKeys.CAN_DESTROY).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
 
-        int blockRuntimeId = 0;
-        if (item.isBlock()) {
-            blockRuntimeId = CloudBlockRegistry.get().getRuntimeId(item.getBlockState());
-        }
+        int blockRuntimeId = item.getBlockState().map(CloudBlockRegistry.REGISTRY::getRuntimeId).orElse(0);
 
         int netId = 0;
         if (useNetId) {
@@ -120,7 +119,8 @@ public class ItemUtils {
                 .id(id)
                 .damage(meta)
                 .count(item.getCount())
-                .tag(item.getDataTag().isEmpty() ? null : item.getDataTag())
+//                TODO :D
+//                .tag(item.getDataTag().isEmpty() ? null : item.getDataTag())
                 .canPlace(canPlace)
                 .canBreak(canBreak)
                 .blockRuntimeId(blockRuntimeId)
@@ -131,7 +131,7 @@ public class ItemUtils {
 
     public static ItemStack fromNetwork(ItemData data) {
         Identifier id = registry.getIdentifier(data.getId());
-        ItemType type = ItemTypes.byId(id);
+        ItemType type = ItemType.of(id);
 
         String[] canBreak = data.getCanBreak();
         String[] canPlace = data.getCanPlace();
@@ -165,7 +165,7 @@ public class ItemUtils {
     }
 
     public static boolean isNull(ItemStack item) {
-        return item == null || item.isNull();
+        return item == null || item == ItemStack.AIR;
     }
 
     public static ItemStack fromJson(Map<String, Object> data) {
@@ -214,7 +214,7 @@ public class ItemUtils {
 
     // -- Used by recipes and crafting
     public static int getItemHash(ItemStack item) {
-        return Objects.hash(System.identityHashCode(item.getId()), item.getNbt().getInt("Damage", 0), item.getCount());
+        return Objects.hash(System.identityHashCode(item.getType().getId()), item.getNbt().getInt("Damage", 0), item.getCount());
     }
 
     public static UUID getMultiItemHash(List<ItemStack> items) {
