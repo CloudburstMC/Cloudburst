@@ -137,4 +137,7 @@ public final class BlockBehaviors {
     public static final BehaviorKey<FloatBlockBehavior, FloatBlockBehavior.Executor> GET_LIQUID_HEIGHT = DataKey.behavior(Identifier.fromString("get_fluid_height"), FloatBlockBehavior.class, FloatBlockBehavior.Executor.class);
 
     public static final BehaviorKey<EntityBlockBehavior, EntityBlockBehavior.Executor> ON_ENTITY_COLLIDE = DataKey.behavior(Identifier.fromString("on_entity_collide"), EntityBlockBehavior.class, EntityBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<Integer, Integer> GET_FILTERED_LIGHT = DataKey.behavior(Identifier.fromString("get_filtered_light"), Integer.class, Integer.class);
+
 }

@@ -11,6 +11,7 @@ import org.cloudburstmc.api.data.DataStore;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -107,9 +108,21 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         return (T) metadata.get(key);
     }
 
+    public Optional<BlockState> getBlockState() {
+        return Optional.ofNullable(this.isBlock() ? this.get(ItemKeys.BLOCK_STATE) : null);
+    }
+
+    public ImmutableMap<DataKey<?, ?>, ?> getAllMetadata() {
+        return metadata;
+    }
+
     @Nullable
-    public BlockState getBlockState() {
-        return isBlock() ? get(ItemKeys.BLOCK_STATE) : null;
+    public BlockState getEnsuringBlockState() {
+        if(!this.isBlock()) {
+            throw new NullPointerException("Current Item isn't a block so it can't have a BlockState.");
+        }
+
+        return this.get(ItemKeys.BLOCK_STATE);
     }
 
     public boolean isBlock() {
