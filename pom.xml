@@ -15,6 +15,7 @@
         <jline.version>3.21.0</jline.version>
         <jackson.version>2.13.2</jackson.version>
         <fastutil.version>8.5.3</fastutil.version>
+        <checkerframework.version>3.18.1</checkerframework.version>
     </properties>
 
     <repositories>
@@ -48,6 +49,18 @@
             <version>1.18.22</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.checkerframework</groupId>
+            <artifactId>checker-qual</artifactId>
+            <version>${checkerframework.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.checkerframework</groupId>
+            <artifactId>checker</artifactId>
+            <version>${checkerframework.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -71,6 +84,14 @@
                 <exclusion>
                     <groupId>com.nukkitx.fastutil</groupId>
                     <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.checkerframework</groupId>
+                    <artifactId>checker</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.checkerframework</groupId>
+                    <artifactId>checker-qual</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
