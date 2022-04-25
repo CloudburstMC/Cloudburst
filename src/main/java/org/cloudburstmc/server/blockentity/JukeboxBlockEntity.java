@@ -39,6 +39,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
         SOUND_MAP.put(Record.WARD, SoundEvent.RECORD_WARD);
         SOUND_MAP.put(Record.ELEVEN, SoundEvent.RECORD_11);
         SOUND_MAP.put(Record.WAIT, SoundEvent.RECORD_WAIT);
+        SOUND_MAP.put(Record.PIGSTEP, SoundEvent.RECORD_PIGSTEP);
     }
 
     private ItemStack recordItem;
