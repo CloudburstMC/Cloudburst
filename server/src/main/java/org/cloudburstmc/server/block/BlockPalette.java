@@ -14,7 +14,6 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
-import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
@@ -83,7 +82,6 @@ public class BlockPalette {
                 var traitMap = stateTraitMap.computeIfAbsent(id, v -> new Object2ReferenceOpenHashMap<>());
                 traitMap.put(statesTag, state);
 
-                ItemTypes.addType(id, type);
                 if (id != type.getId()) {
                     defaultStateMap.putIfAbsent(id, state);
                 }

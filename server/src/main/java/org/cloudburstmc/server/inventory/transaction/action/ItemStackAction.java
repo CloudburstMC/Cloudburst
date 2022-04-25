@@ -5,10 +5,10 @@ import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.BaseInventory;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -23,8 +23,8 @@ public abstract class ItemStackAction extends InventoryAction {
     private ItemStackTransaction transaction;
 
     public ItemStackAction(int reqId, @Nullable StackRequestSlotInfoData sourceData, @Nullable StackRequestSlotInfoData targetData) {
-        super(sourceData != null ? CloudItemRegistry.get().getItemByNetId(sourceData.getStackNetworkId()) : CloudItemRegistry.get().AIR,
-                targetData != null ? CloudItemRegistry.get().getItemByNetId(targetData.getStackNetworkId()) : CloudItemRegistry.get().AIR);
+        super(sourceData != null ? CloudItemRegistry.get().getItemByNetId(sourceData.getStackNetworkId()) : ItemStack.AIR,
+                targetData != null ? CloudItemRegistry.get().getItemByNetId(targetData.getStackNetworkId()) : ItemStack.AIR);
         this.requestId = reqId;
         this.sourceData = sourceData;
         this.targetData = targetData;
@@ -76,16 +76,6 @@ public abstract class ItemStackAction extends InventoryAction {
             return source.getInventoryManager().getInventoryByType(targetData.getContainer());
         }
         return null;
-    }
-
-    @Override
-    public CloudItemStack getSourceItem() {
-        return (CloudItemStack) super.getSourceItem();
-    }
-
-    @Override
-    public CloudItemStack getTargetItem() {
-        return (CloudItemStack) super.getTargetItem();
     }
 
     protected abstract List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer source);

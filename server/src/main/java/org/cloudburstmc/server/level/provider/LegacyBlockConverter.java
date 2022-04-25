@@ -1,8 +1,5 @@
 package org.cloudburstmc.server.level.provider;
 
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLog;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLog2;
-
 public class LegacyBlockConverter {
     private static final LegacyBlockConverter INSTANCE = new LegacyBlockConverter();
 

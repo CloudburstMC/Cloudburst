@@ -6,7 +6,6 @@ import org.cloudburstmc.api.entity.passive.SkeletonHorse;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * @author PikyCZ
@@ -35,7 +34,7 @@ public class EntitySkeletonHorse extends Animal implements SkeletonHorse, Smitea
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.BONE)};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.BONE).build()};
     }
 
     @Override

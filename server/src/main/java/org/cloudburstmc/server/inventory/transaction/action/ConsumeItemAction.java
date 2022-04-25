@@ -3,11 +3,10 @@ package org.cloudburstmc.server.inventory.transaction.action;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.BaseInventory;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.List;
 
@@ -23,18 +22,18 @@ public class ConsumeItemAction extends ItemStackAction {
     public boolean isValid(CloudPlayer player) {
         BaseInventory inv = getSourceInventory(player);
         return inv.getItem(getSourceSlot()).equals(getSourceItem(), false, true)
-                && inv.getItem(getSourceSlot()).getAmount() >= count;
+                && inv.getItem(getSourceSlot()).getCount() >= count;
     }
 
     @Override
     public boolean execute(CloudPlayer player) {
         BaseInventory inv = getSourceInventory(player);
-        CloudItemStack item = inv.getItem(getSourceSlot());
+        ItemStack item = inv.getItem(getSourceSlot());
 
-        CloudItemStack replace = CloudItemRegistry.get().AIR;
+        ItemStack replace = ItemStack.AIR;
 
-        if (item.getAmount() > count) {
-            replace = (CloudItemStack) item.withAmount(item.getAmount() - count);
+        if (item.getCount() > count) {
+            replace = (ItemStack) item.withCount(item.getCount() - count);
         }
 
         return inv.setItem(getSourceSlot(), replace, false);

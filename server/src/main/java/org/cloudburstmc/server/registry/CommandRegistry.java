@@ -7,7 +7,6 @@ import com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.plugin.PluginContainer;
-import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;

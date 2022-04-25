@@ -6,7 +6,6 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.level.ChunkManager;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomRed;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
 /**

@@ -2,6 +2,8 @@ package org.cloudburstmc.server.entity.passive;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Sheep;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
@@ -10,13 +12,11 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.nukkitx.protocol.bedrock.data.entity.EntityData.COLOR;
 import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.SHEARED;
-import static org.cloudburstmc.api.block.BlockTypes.WOOL;
 
 /**
  * Author: BeYkeRYkt Nukkit Project
@@ -67,14 +67,14 @@ public class EntitySheep extends Animal implements Sheep {
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.putByte("Color", (byte) this.getColor());
+        tag.putByte("Color", (byte) this.getColor().getWoolData());
         tag.putBoolean("Sheared", this.isSheared());
     }
 
     @Override
     public boolean onInteract(Player player, ItemStack item) {
         if (item.getType() == ItemTypes.DYE) {
-            this.setColor(item.getMetadata(DyeColor.class).getWoolData());
+            this.setColor(item.getBlockState().ensureTrait(BlockTraits.COLOR).getWoolData());
             return true;
         }
 
@@ -89,14 +89,20 @@ public class EntitySheep extends Animal implements Sheep {
         this.setSheared(true);
         this.data.setFlag(SHEARED, true);
 
-        this.level.dropItem(this.getPosition(), CloudItemRegistry.get().getItem(WOOL, ThreadLocalRandom.current().nextInt(2) + 1, DyeColor.getByWoolData(getColor())));
+        ItemStack itemStack = ItemStack.builder(BlockStates.WOOL.withTrait(BlockTraits.COLOR, getColor()))
+                .amount(ThreadLocalRandom.current().nextInt(2) + 1)
+                .build();
+
+        this.level.dropItem(this.getPosition(), itemStack);
         return true;
     }
 
     @Override
     public ItemStack[] getDrops() {
         if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
-            return new ItemStack[]{CloudItemRegistry.get().getItem(WOOL, 1, DyeColor.getByWoolData(getColor()))};
+            return new ItemStack[]{ItemStack.builder(BlockStates.WOOL.withTrait(BlockTraits.COLOR, getColor()))
+                    .amount(1)
+                    .build()};
         }
         return new ItemStack[0];
     }
@@ -109,8 +115,8 @@ public class EntitySheep extends Animal implements Sheep {
         this.data.setFlag(SHEARED, sheared);
     }
 
-    public int getColor() {
-        return this.data.getByte(COLOR);
+    public DyeColor getColor() {
+        return DyeColor.getByWoolData(this.data.getByte(COLOR));
     }
 
     public void setColor(int color) {

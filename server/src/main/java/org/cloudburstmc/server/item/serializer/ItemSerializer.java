@@ -2,9 +2,9 @@ package org.cloudburstmc.server.item.serializer;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.CloudItemStackBuilder;
 
 import java.util.Collections;
 import java.util.Map;
@@ -18,7 +18,7 @@ public interface ItemSerializer {
         return Collections.emptyMap();
     }
 
-    void serialize(CloudItemStack item, NbtMapBuilder itemTag);
+    void serialize(ItemStack item, NbtMapBuilder itemTag);
 
-    void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag);
+    void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag);
 }

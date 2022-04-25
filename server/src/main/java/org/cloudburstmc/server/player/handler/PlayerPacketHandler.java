@@ -52,7 +52,6 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLectern;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -73,7 +72,6 @@ import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.network.protocol.types.InventoryTransactionUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
@@ -309,6 +307,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     //improved player to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
                     //Done by lmlstarqaq
                     double breakTime = Math.ceil(targetState.getBehavior().getBreakTime(targetState, player.getInventory().getItemInHand(), player) * 20);
+                    log.info("Break time {} for {}", breakTime, targetState.getBehavior().getClass().getSimpleName());
                     if (breakTime > 0) {
                         LevelEventPacket levelEvent = new LevelEventPacket();
                         levelEvent.setType(LevelEventType.BLOCK_START_BREAK);
@@ -573,7 +572,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             if (blockEntity != null) {
                 NbtMap nbt = blockEntity.getItemTag();
                 if (nbt != null) {
-//                    CloudItemStackBuilder builder = (CloudItemStackBuilder) serverItem.toBuilder(); //TODO
+//                    ItemStackBuilder builder = (ItemStackBuilder) serverItem.toBuilder(); //TODO
 //                    builder.nbt()
 //                    serverItem.addTag(nbt);
 //                    serverItem.setLore("+(DATA)");
@@ -826,7 +825,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!itemFrameDropItemEvent.isCancelled()) {
             if (itemDrop.getType() != AIR) {
                 player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
-                itemFrame.setItem(CloudItemRegistry.get().AIR);
+                itemFrame.setItem(ItemStack.AIR);
                 itemFrame.setItemRotation(0);
                 player.getLevel().addSound(player.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
             }
@@ -1006,7 +1005,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 if ((serverHand = player.getLevel().useItemOn(blockVector, serverHand, face,
                                         packet.getClickPosition(), player)) != null) {
                                     if (!serverHand.equals(oldItem) ||
-                                            serverHand.getAmount() != oldItem.getAmount()) {
+                                            serverHand.getCount() != oldItem.getCount()) {
                                         player.getInventory().setItemInHand(serverHand);
                                         player.getInventory().sendHeldItem(player.getViewers());
                                     }
@@ -1041,7 +1040,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 (i = player.getLevel().useBreakOn(blockVector, face, i, player, true)) != null) {
                             if (player.isSurvival() || player.isAdventure()) {
                                 player.getFoodData().updateFoodExpLevel(0.025);
-                                if (!i.equals(oldItem) || i.getAmount() != oldItem.getAmount()) {
+                                if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
                                     player.getInventory().setItemInHand(i);
                                     player.getInventory().sendHeldItem(player.getViewers());
                                 }
@@ -1142,10 +1141,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             var behavior = serverItem.getBehavior();
                             var result = behavior.useOn(serverItem, target);
                             if (result == null) {
-                                if (serverItem.getAmount() > 1) {
+                                if (serverItem.getCount() > 1) {
                                     serverItem = serverItem.decrementAmount();
                                 } else {
-                                    serverItem = CloudItemRegistry.get().AIR;
+                                    serverItem = ItemStack.AIR;
                                 }
                             } else {
                                 serverItem = result;
@@ -1213,7 +1212,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         if (behavior.isTool(serverItem) && (player.isSurvival() || player.isAdventure())) {
                             var result = behavior.useOn(serverItem, target);
                             if (result == null && serverItem.getMetadata(Damageable.class).getDurability() >= behavior.getMaxDurability()) {
-                                player.getInventory().setItemInHand(CloudItemRegistry.get().AIR);
+                                player.getInventory().setItemInHand(ItemStack.AIR);
                             } else {
                                 player.getInventory().setItemInHand(result);
                             }

@@ -136,6 +136,7 @@ public class BlockUtils {
 
         String idText = matcher.group(1);
         Identifier blockId = Identifier.fromString(idText);
+
         checkArgument(CloudBlockRegistry.get().getBlock(blockId) != null, "unknown block: \"%s\"", idText);
 
         Map<String, Object> traits = new HashMap<>();

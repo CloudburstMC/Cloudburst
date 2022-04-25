@@ -14,7 +14,6 @@ import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -84,14 +83,14 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     }
 
     @Override
-    public CloudItemStack getHotbarSlot(int slot) {
-        if (!isHotbarSlot(slot)) return CloudItemRegistry.get().AIR;
+    public ItemStack getHotbarSlot(int slot) {
+        if (!isHotbarSlot(slot)) return ItemStack.AIR;
         return super.getItem(slot);
     }
 
     @Override
-    public List<CloudItemStack> getHotbar() {
-        ImmutableList.Builder<CloudItemStack> builder = ImmutableList.builder();
+    public List<ItemStack> getHotbar() {
+        ImmutableList.Builder<ItemStack> builder = ImmutableList.builder();
         for (int i = 0; i < this.getHotbarSize(); i++) {
             builder.add(getItem(i));
         }
@@ -111,7 +110,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
 
     @Override
     public void clearCursor() {
-        getCursor().setItem(0, CloudItemRegistry.get().AIR, true);
+        getCursor().setItem(0, ItemStack.AIR, true);
     }
 
     @Override
@@ -162,7 +161,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     private boolean setItem(int index, ItemStack item, boolean send, boolean ignoreArmorEvents) {
         if (index < 0 || index >= this.size) {
             return false;
-        } else if (item.getType() == BlockTypes.AIR || item.getAmount() <= 0) {
+        } else if (item.getType() == BlockTypes.AIR || item.getCount() <= 0) {
             return this.clear(index, send);
         }
 
@@ -193,7 +192,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            ItemStack item = CloudItemRegistry.get().AIR;
+            ItemStack item = ItemStack.AIR;
             ItemStack old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);

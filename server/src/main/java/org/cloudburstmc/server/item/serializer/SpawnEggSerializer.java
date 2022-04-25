@@ -7,9 +7,10 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.hostile.*;
 import org.cloudburstmc.api.entity.passive.*;
 import org.cloudburstmc.api.item.ItemIds;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.CloudItemStackBuilder;
 
 import java.util.Map;
 
@@ -22,9 +23,9 @@ public class SpawnEggSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
-        Class<?> type = item.getMetadata(EntityType.class).getEntityClass();
+        Class<?> type = item.get(ItemKeys.SPAWN_EGG_TYPE).getEntityClass();
 
         if (Bat.class.isAssignableFrom(type)) {
             itemTag.putString(NAME_TAG, ItemIds.BAT_SPAWN_EGG.toString());
@@ -159,7 +160,7 @@ public class SpawnEggSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
+    public void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag) {
         super.deserialize(id, meta, amount, builder, tag);
     }
 

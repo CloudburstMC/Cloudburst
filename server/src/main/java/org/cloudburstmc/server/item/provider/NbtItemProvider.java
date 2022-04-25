@@ -2,8 +2,8 @@ package org.cloudburstmc.server.item.provider;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.CloudItemStack;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +12,7 @@ public class NbtItemProvider extends ItemDataProvider {
 
     private final Integer meta;
 
-    public NbtItemProvider(CloudItemStack item, Integer meta, NbtMap nbt) {
+    public NbtItemProvider(ItemStack item, Integer meta, NbtMap nbt) {
         super(item, nbt);
         this.meta = meta;
     }

@@ -11,7 +11,6 @@ import org.cloudburstmc.api.blockentity.Campfire;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.ItemEdibleBehavior;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 /**
@@ -58,7 +57,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
         for (int i = 0; i < 4; i++) {
             ItemStack item = this.items[i];
-            if (item != null && !item.isNull()) {
+            if (item != null) {
                 tag.putCompound(ITEM_TAGS[i], ItemUtils.serializeItem(item));
                 tag.putInt(TIME_TAGS[i], this.itemTimes[i]);
             }
@@ -126,43 +125,44 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     public boolean putItemInFire(ItemStack item) {
-        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
-
-        if (CloudRecipeRegistry.get().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
-            for (int i = 0; i < items.length; i++) {
-                if (items[i] == null) {
-                    items[i] = item.withAmount(1);
-                    itemTimes[i] = 0;
-                    this.spawnToAll();
-                    this.scheduleUpdate();
-                    return true;
-                }
-            }
-        }
+//        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
+//
+//        if (CloudRecipeRegistry.get().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
+//            for (int i = 0; i < items.length; i++) {
+//                if (items[i] == null) {
+//                    items[i] = item.withAmount(1);
+//                    itemTimes[i] = 0;
+//                    this.spawnToAll();
+//                    this.scheduleUpdate();
+//                    return true;
+//                }
+//            }
+//        }
         return false;
     }
 
     @Override
     public boolean putItemInFire(ItemStack item, int index, boolean overwrite) {
         if (index < 0 || index >= items.length) return false;
-        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
-
-        item = item.withAmount(1);
-
-        boolean addedFood = false;
-        if (items[index] == null) {
-            items[index] = item;
-            addedFood = true;
-        } else if (overwrite) {
-            items[index] = item;
-            itemTimes[index] = 0;
-            addedFood = true;
-        }
-        if (addedFood) {
-            spawnToAll();
-            this.scheduleUpdate();
-        }
-        return addedFood;
+//        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
+//
+//        item = item.withAmount(1);
+//
+//        boolean addedFood = false;
+//        if (items[index] == null) {
+//            items[index] = item;
+//            addedFood = true;
+//        } else if (overwrite) {
+//            items[index] = item;
+//            itemTimes[index] = 0;
+//            addedFood = true;
+//        }
+//        if (addedFood) {
+//            spawnToAll();
+//            this.scheduleUpdate();
+//        }
+//        return addedFood;
+        return false;
     }
 
     /**

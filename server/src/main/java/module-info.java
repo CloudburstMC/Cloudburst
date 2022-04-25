@@ -92,7 +92,6 @@ open module org.cloudburstmc.server {
     exports org.cloudburstmc.server.inventory.transaction.action;
     exports org.cloudburstmc.server.inventory.transaction.data;
     exports org.cloudburstmc.server.item;
-    exports org.cloudburstmc.server.item.behavior;
     exports org.cloudburstmc.server.item.data.serializer;
     exports org.cloudburstmc.server.item.food;
     exports org.cloudburstmc.server.item.provider;
@@ -150,6 +149,7 @@ open module org.cloudburstmc.server {
     exports org.cloudburstmc.server.plugin.util;
     exports org.cloudburstmc.server.potion;
     exports org.cloudburstmc.server.registry;
+    exports org.cloudburstmc.server.registry.behavior;
     exports org.cloudburstmc.server.scheduler;
     exports org.cloudburstmc.server.timings;
     exports org.cloudburstmc.server.utils;

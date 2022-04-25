@@ -190,9 +190,9 @@ public class CloudServer implements Server {
     private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
     private final StorageRegistry storageRegistry = StorageRegistry.get();
     private final EnchantmentRegistry enchantmentRegistry = EnchantmentRegistry.get();
-    private final CloudBlockRegistry blockRegistry = CloudBlockRegistry.get();
-    private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
     private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
+    private final CloudBlockRegistry blockRegistry = new CloudBlockRegistry(itemRegistry);
+    private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
     private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
     private final EntityRegistry entityRegistry = EntityRegistry.get();
     private final BiomeRegistry biomeRegistry = BiomeRegistry.get();

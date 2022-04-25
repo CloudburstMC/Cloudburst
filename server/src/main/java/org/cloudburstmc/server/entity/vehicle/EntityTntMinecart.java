@@ -16,7 +16,6 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -113,7 +112,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.TNT_MINECART));
+        this.getLevel().dropItem(this.getPosition(), ItemStack.builder().itemType(ItemTypes.TNT_MINECART).build());
     }
 
     @Override

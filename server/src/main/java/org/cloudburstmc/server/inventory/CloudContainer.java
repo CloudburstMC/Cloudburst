@@ -77,7 +77,7 @@ public abstract class CloudContainer extends BaseInventory implements ContainerI
                 ItemStack item = inv.getItem(slot);
 
                 if (item.getType() != AIR) {
-                    averageCount += (float) item.getAmount() / (float) Math.min(inv.getMaxStackSize(), item.getBehavior().getMaxStackSize(item));
+                    averageCount += (float) item.getCount() / (float) Math.min(inv.getMaxStackSize(), item.getBehavior().getMaxStackSize(item));
                     ++itemCount;
                 }
             }

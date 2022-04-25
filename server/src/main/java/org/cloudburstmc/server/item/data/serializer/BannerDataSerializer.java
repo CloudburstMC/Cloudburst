@@ -16,9 +16,9 @@ import java.util.List;
 public class BannerDataSerializer implements ItemDataSerializer<BannerData> {
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, BannerData value) {
-        dataTag.putInt("Base", value.getBase().getDyeData());
-        dataTag.putInt("Type", value.getType());
+    public void serialize(ItemStack item, NbtMapBuilder tag, BannerData value) {
+        tag.putInt("Base", value.getBase().getDyeData());
+        tag.putInt("Type", value.getType());
 
         if (!value.getPatterns().isEmpty()) {
             List<NbtMap> patternsTag = new ArrayList<>();
@@ -28,16 +28,16 @@ public class BannerDataSerializer implements ItemDataSerializer<BannerData> {
                         putString("Pattern", pattern.getType().getName())
                         .build());
             }
-            dataTag.putList("Patterns", NbtType.COMPOUND, patternsTag);
+            tag.putList("Patterns", NbtType.COMPOUND, patternsTag);
         }
     }
 
     @Override
-    public BannerData deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
-        var base = DyeColor.getByDyeData(dataTag.getInt("Base", 0));
-        var bannerType = dataTag.getInt("Type", 0);
+    public BannerData deserialize(Identifier id, NbtMap tag) {
+        var base = DyeColor.getByDyeData(tag.getInt("Base", 0));
+        var bannerType = tag.getInt("Type", 0);
 
-        var patternTags = dataTag.getList("Patterns", NbtType.COMPOUND);
+        var patternTags = tag.getList("Patterns", NbtType.COMPOUND);
         List<BannerPattern> patterns;
 
         if (patternTags != null) {

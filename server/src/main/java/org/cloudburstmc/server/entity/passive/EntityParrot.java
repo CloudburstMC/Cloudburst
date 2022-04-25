@@ -5,7 +5,6 @@ import org.cloudburstmc.api.entity.passive.Parrot;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * @author PikyCZ
@@ -38,6 +37,6 @@ public class EntityParrot extends Animal implements Parrot {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.FEATHER)};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.FEATHER).build()};
     }
 }

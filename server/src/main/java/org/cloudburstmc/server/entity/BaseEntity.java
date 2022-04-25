@@ -19,10 +19,7 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import com.spotify.futures.CompletableFutures;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockCategory;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -44,11 +41,10 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorNetherPortal;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EnumLevel;
@@ -58,7 +54,6 @@ import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import javax.annotation.Nullable;
@@ -844,8 +839,6 @@ public abstract class BaseEntity implements Entity {
         float diffY = y - j;
         float diffZ = z - k;
 
-        CloudBlockRegistry registry = CloudBlockRegistry.get();
-
         if (!this.level.getBlockState(i, j, k).inCategory(BlockCategory.TRANSPARENT)) {
             boolean flag = this.level.getBlockState(i - 1, j, k).inCategory(BlockCategory.TRANSPARENT);
             boolean flag1 = this.level.getBlockState(i + 1, j, k).inCategory(BlockCategory.TRANSPARENT);
@@ -1010,7 +1003,7 @@ public abstract class BaseEntity implements Entity {
                             }
 
                             this.teleport(newLoc.add(1.5f, 1, 0.5f));
-                            BlockBehaviorNetherPortal.spawnPortal(newLoc.getPosition(), newLoc.getLevel());
+//                            BlockBehaviorNetherPortal.spawnPortal(newLoc.getPosition(), newLoc.getLevel());
                         });
                     }
                 }
@@ -1361,7 +1354,7 @@ public abstract class BaseEntity implements Entity {
                 if (ev.isCancelled()) {
                     return;
                 }
-                this.level.setBlockState(down.getPosition(), CloudBlockRegistry.get().getBlock(BlockTypes.DIRT), false, true);
+                this.level.setBlockState(down.getPosition(), BlockStates.DIRT, false, true);
             }
         }
     }
@@ -1466,8 +1459,9 @@ public abstract class BaseEntity implements Entity {
 
         float percent;
 
-        if (blockType == WATER || blockType == FLOWING_WATER) {
-            percent = BlockBehaviorLiquid.getFluidHeightPercent(state);
+        BehaviorCollection behaviors = block.getBehaviors();
+        if (behaviors.get(BlockBehaviors.IS_LIQUID)) {
+            percent = behaviors.get(BlockBehaviors.GET_LIQUID_HEIGHT).execute(state);
         } else {
             return false;
         }
@@ -1485,7 +1479,9 @@ public abstract class BaseEntity implements Entity {
             return true;
         }
 
-        AxisAlignedBB bb = state.getBehavior().getBoundingBox(pos, state);
+        BehaviorCollection behaviors = this.server.getBlockRegistry().getBehaviors(state.getType());
+        AxisAlignedBB bb = behaviors.get(BlockBehaviors.GET_BOUNDING_BOX).execute(state)
+                .getOffsetBoundingBox(pos.getX(), pos.getY(), pos.getZ());
 
         return bb != null && state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT) && bb.intersectsWith(this.getBoundingBox());
 
@@ -1688,9 +1684,10 @@ public abstract class BaseEntity implements Entity {
             this.collisionBlockStates = new ArrayList<>();
 
             for (Block b : getBlocksAround()) {
-                if (b.getState().getBehavior().collidesWithBB(b, this.getBoundingBox(), true)) {
-                    this.collisionBlockStates.add(b);
-                }
+                BehaviorCollection behaviors = b.getBehaviors();
+//                if (b.getState().getBehavior().collidesWithBB(b, this.getBoundingBox(), true)) {
+//                    this.collisionBlockStates.add(b);
+//                } // FIXME: Add method for this
             }
         }
 
@@ -1717,9 +1714,9 @@ public abstract class BaseEntity implements Entity {
                 continue;
             }
 
-            var behavior = state.getBehavior();
-            behavior.onEntityCollide(block, this);
-            vector = behavior.addVelocityToEntity(block, vector, this);
+            var behaviors = block.getBehaviors();
+            behaviors.get(BlockBehaviors.ON_ENTITY_COLLIDE).execute(block, this);
+//            vector = behaviors.addVelocityToEntity(block, vector, this); FIXME
         }
 
         if (portal) {

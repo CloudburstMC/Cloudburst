@@ -5,7 +5,6 @@ import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
@@ -38,7 +37,7 @@ public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
     }
 
     @Override
-    public CloudItemStack getCraftingResult() {
+    public ItemStack getCraftingResult() {
         return super.getItem(CRAFTING_RESULT_SLOT);
     }
 
@@ -57,7 +56,7 @@ public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
     }
 
     @Override
-    public @NonNull CloudItemStack getItem(int index) {
+    public @NonNull ItemStack getItem(int index) {
         if (index <= 10) {
             return super.getItem(index);
         }

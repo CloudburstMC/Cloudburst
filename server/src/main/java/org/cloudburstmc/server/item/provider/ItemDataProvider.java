@@ -3,8 +3,8 @@ package org.cloudburstmc.server.item.provider;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
 
 import java.util.HashSet;
@@ -13,10 +13,10 @@ import java.util.Set;
 
 public abstract class ItemDataProvider {
 
-    protected final CloudItemStack item;
+    protected final ItemStack item;
     protected final NbtMap tag;
 
-    public ItemDataProvider(CloudItemStack item, NbtMap tag) {
+    public ItemDataProvider(ItemStack item, NbtMap tag) {
         this.item = item;
         this.tag = tag;
     }

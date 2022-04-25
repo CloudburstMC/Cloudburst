@@ -13,7 +13,6 @@ import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.entity.EntityHuman;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.NetworkUtils;
@@ -89,7 +88,7 @@ public class CloudEnderChestInventory extends CloudContainer implements Containe
     public void saveInventory(NbtMapBuilder tag) {
         List<NbtMap> enderItems = new ArrayList<>();
         for (Map.Entry<Integer, ItemStack> slot : this.getContents().entrySet()) {
-            CloudItemStack item = (CloudItemStack) slot.getValue();
+            ItemStack item = (ItemStack) slot.getValue();
             if (item != null && !item.isNull()) {
                 enderItems.add(ItemUtils.serializeItem(item, slot.getKey()));
             }

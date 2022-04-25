@@ -11,7 +11,6 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Created by Snake1999 on 2016/1/30.
@@ -45,7 +44,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.CHEST_MINECART));
+        this.getLevel().dropItem(this.getPosition(), ItemStack.builder().itemType(ItemTypes.CHEST_MINECART).build());
     }
 
     @Override

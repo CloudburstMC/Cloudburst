@@ -16,7 +16,6 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.item.CloudItemStack;
 
 @UtilityClass
 @Log4j2
@@ -66,7 +65,7 @@ public class BlockStateMetaMappings {
     }
 
     public BlockState getStateFromMeta(ItemStack item) {
-        var cloudItem = (CloudItemStack) item;
+        var cloudItem = (ItemStack) item;
         return getStateFromMeta(cloudItem.getId(), cloudItem.getNetworkData().getDamage());
     }
 

@@ -25,9 +25,8 @@ import it.unimi.dsi.fastutil.shorts.ShortSet;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.*;
-import org.cloudburstmc.api.block.behavior.BlockBehavior;
 import org.cloudburstmc.api.blockentity.BlockEntity;
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -41,6 +40,7 @@ import org.cloudburstmc.api.event.block.BlockUpdateEvent;
 import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.api.event.level.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Bucket;
@@ -56,17 +56,19 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.registry.BlockRegistry;
+import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.behavior.Behavior;
+import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlock;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorLiquid;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorRedstoneDiode;
 import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.BaseEntity;
@@ -81,7 +83,6 @@ import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.registry.GeneratorRegistry;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
@@ -92,12 +93,16 @@ import org.cloudburstmc.server.utils.TextFormat;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.cloudburstmc.api.block.BlockBehaviors.GET_LIGHT;
+import static org.cloudburstmc.api.block.BlockBehaviors.GET_TRANSLUCENCY;
+import static org.cloudburstmc.api.item.ItemBehaviors.CAN_DESTROY;
 
 /**
  * author: MagicDroidX Nukkit Project
@@ -218,6 +223,12 @@ public class CloudLevel implements Level {
     private final LevelData levelData;
 
     private Generator generator;
+
+    @Inject
+    BlockRegistry blockRegistry;
+
+    @Inject
+    ItemRegistry itemRegistry;
 
     CloudLevel(CloudServer server, String id, LevelProvider levelProvider, LevelData levelData) {
         this.id = id;
@@ -633,7 +644,7 @@ public class CloudLevel implements Level {
 
             Block block;
             while ((block = this.normalUpdateQueue.poll()) != null) {
-                block.getState().getBehavior().onUpdate(block, BLOCK_UPDATE_NORMAL);
+                block.getBehaviors().get(BlockBehaviors.ON_TICK).execute(block, ThreadLocalRandom.current());
             }
 
             TimingsHistory.entityTicks += this.updateEntities.size();
@@ -960,7 +971,8 @@ public class CloudLevel implements Level {
                                             section.getBlock(x, y, z, 1)
                                     });
 
-                                    state.getBehavior().onUpdate(block, BLOCK_UPDATE_RANDOM);
+                                    block.getBehaviors().get(BlockBehaviors.ON_RANDOM_TICK)
+                                            .execute(block, ThreadLocalRandom.current());
                                 }
                             }
                         }
@@ -981,7 +993,7 @@ public class CloudLevel implements Level {
             }
 
             Block block = this.getBlock(side.getOffset(pos));
-            block.getState().getBehavior().onUpdate(block, BLOCK_UPDATE_REDSTONE);
+            block.getBehaviors().get(BlockBehaviors.ON_REDSTONE_UPDATE).execute(block);
         }
     }
 
@@ -992,17 +1004,18 @@ public class CloudLevel implements Level {
             if (this.isChunkLoaded(pos)) {
                 Block block = this.getBlock(pos);
 
-                BlockBehavior behavior = block.getState().getBehavior();
-                if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
-                    behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
-                } else if (behavior.isNormalBlock(block)) {
-                    pos = face.getOffset(pos);
-                    block = this.getBlock(pos);
-
-                    if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
-                        behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
-                    }
-                }
+                BehaviorCollection behaviors = block.getBehaviors();
+                // FIXME: Needs reimplementation
+//                if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
+//                    behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
+//                } else if (behavior.isNormalBlock(block)) {
+//                    pos = face.getOffset(pos);
+//                    block = this.getBlock(pos);
+//
+//                    if (BlockBehaviorRedstoneDiode.isDiode(behavior)) {
+//                        behavior.onUpdate(block, BLOCK_UPDATE_REDSTONE);
+//                    }
+//                }
             }
         }
     }
@@ -1106,8 +1119,12 @@ public class CloudLevel implements Level {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
                         Block block = this.getLoadedBlock(x, y, z);
-                        if (block != null && block.getState() != BlockStates.AIR && block.getState().getBehavior().collidesWithBB(block, bb)) {
-                            return new Block[]{block};
+
+                        if (block != null && block.getState() != BlockStates.AIR) {
+                            AxisAlignedBB boundingBox = this.blockRegistry.getBehavior(block.getState().getType(), BlockBehaviors.GET_BOUNDING_BOX).execute(block.getState());
+                            if (boundingBox.addCoord(x, y, z).intersectsWith(bb)) {
+                                return new Block[]{block};
+                            }
                         }
                     }
                 }
@@ -1117,8 +1134,12 @@ public class CloudLevel implements Level {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
                         Block block = this.getLoadedBlock(x, y, z);
-                        if (block != null && block.getState() != BlockStates.AIR && block.getState().getBehavior().collidesWithBB(block, bb)) {
-                            collides.add(block);
+
+                        if (block != null && block.getState() != BlockStates.AIR) {
+                            AxisAlignedBB boundingBox = this.blockRegistry.getBehavior(block.getState().getType(), BlockBehaviors.GET_BOUNDING_BOX).execute(block.getState());
+                            if (boundingBox.addCoord(x, y, z).intersectsWith(bb)) {
+                                collides.add(block);
+                            }
                         }
                     }
                 }
@@ -1154,9 +1175,10 @@ public class CloudLevel implements Level {
             for (int x = minX; x <= maxX; ++x) {
                 for (int y = minY; y <= maxY; ++y) {
                     Block block = this.getBlock(x, y, z); //TODO: check loaded block
-                    BlockBehavior behavior = block.getState().getBehavior();
-                    if (!behavior.canPassThrough(block.getState()) && behavior.collidesWithBB(block, bb)) {
-                        collides.add(behavior.getBoundingBox(block));
+                    BehaviorCollection behaviors = block.getBehaviors();
+                    AxisAlignedBB blockBB = behaviors.get(BlockBehaviors.GET_BOUNDING_BOX).execute(block.getState());
+                    if (behaviors.get(BlockBehaviors.IS_SOLID) && blockBB.intersectsWith(bb)) {
+                        collides.add(blockBB);
                     }
                 }
             }
@@ -1174,11 +1196,13 @@ public class CloudLevel implements Level {
     }
 
     public boolean isFullBlock(Vector3i pos, BlockState state) {
-        BlockBehavior behavior = state.getBehavior();
-        if (behavior.isSolid(state)) {
+        BehaviorCollection behaviors = this.blockRegistry.getBehaviors(state.getType());
+        if (behaviors.get(BlockBehaviors.IS_SOLID)) {
             return true;
         }
-        AxisAlignedBB bb = behavior.getBoundingBox(pos, state);
+
+        AxisAlignedBB bb = behaviors.get(BlockBehaviors.GET_BOUNDING_BOX).execute(state)
+                .addCoord(pos);
 
         return bb != null && bb.getAverageEdgeLength() >= 1;
     }
@@ -1196,8 +1220,9 @@ public class CloudLevel implements Level {
                 for (int y = minY; y <= maxY; ++y) {
                     Block block = this.getLoadedBlock(Vector3i.from(x, y, z));
                     if (block == null) return true; // Shouldn't walk into unloaded chunks.
-                    BlockBehavior behavior = block.getState().getBehavior();
-                    if (!behavior.canPassThrough(block.getState()) && behavior.collidesWithBB(block, bb)) {
+                    BehaviorCollection behaviors = block.getBehaviors();
+                    AxisAlignedBB blockBB = behaviors.get(BlockBehaviors.GET_BOUNDING_BOX).execute(block.getState());
+                    if (behaviors.get(BlockBehaviors.IS_SOLID) && blockBB.intersectsWith(bb)) {
                         return true;
                     }
                 }
@@ -1329,7 +1354,8 @@ public class CloudLevel implements Level {
                             chunk.getBlock(lcx, position.getY(), lcz, 0),
                             chunk.getBlock(lcx, position.getY(), lcz, 1)
                     });
-                    int newLevel = block.getState().getBehavior().getLightLevel(block);
+                    BehaviorCollection behaviors = block.getBehaviors();
+                    int newLevel = behaviors.get(GET_LIGHT);
                     if (oldLevel != newLevel) {
                         this.setBlockLightAt(position.getX(), position.getY(), position.getZ(), newLevel);
                         if (newLevel < oldLevel) {
@@ -1461,10 +1487,10 @@ public class CloudLevel implements Level {
         }
 
         if (update) {
-            BlockBehavior behavior = state.getBehavior();
-            BlockBehavior oldBehavior = oldState.getBehavior();
-            if (oldBehavior.isTransparent(oldState) != behavior.isTransparent(state) ||
-                    oldBehavior.getLightLevel(oldBlock) != behavior.getLightLevel(newBlock)) {
+            BehaviorCollection behaviors = this.blockRegistry.getBehaviors(state.getType());
+            BehaviorCollection oldBehaviors = this.blockRegistry.getBehaviors(oldState.getType());
+            if (oldBehaviors.get(GET_TRANSLUCENCY) != (float) behaviors.get(GET_TRANSLUCENCY) ||
+                    oldBehaviors.get(GET_LIGHT) != (int) behaviors.get(GET_LIGHT)) {
                 addLightUpdate(x, y, z);
             }
             BlockUpdateEvent ev = new BlockUpdateEvent(newBlock);
@@ -1473,7 +1499,7 @@ public class CloudLevel implements Level {
                 for (Entity entity : this.getNearbyEntities(new SimpleAxisAlignedBB(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
                     this.scheduleEntityUpdate(entity);
                 }
-                behavior.onUpdate(newBlock, BLOCK_UPDATE_NORMAL);
+                behaviors.get(BlockBehaviors.ON_TICK).execute(newBlock, new Random()); // TODO: Use level specific Random
                 this.updateAround(x, y, z);
             }
         }
@@ -1506,7 +1532,7 @@ public class CloudLevel implements Level {
     public DroppedItem dropItem(Vector3f source, ItemStack item, Vector3f motion, boolean dropAround, int delay) {
         checkNotNull(source, "source");
         checkNotNull(item, "item");
-        checkArgument(!item.isNull(), "invalid item");
+        checkArgument(item != ItemStack.AIR, "invalid item");
 
         if (motion == null) {
             if (dropAround) {
@@ -1562,21 +1588,22 @@ public class CloudLevel implements Level {
         }
         Block target = this.getBlock(pos);
         ItemStack[] drops;
-        BlockBehavior targetBehavior = target.getState().getBehavior();
-        int dropExp = targetBehavior.getDropExp();
+        BehaviorCollection targetBehaviors = target.getBehaviors();
+        int dropExp = targetBehaviors.get(BlockBehaviors.GET_EXPERIENCE_DROP).execute(target.getState(), new Random()); // TODO: Use global level RNG
 
         if (item == null) {
-            item = CloudItemRegistry.get().AIR;
+            item = ItemStack.AIR;
         }
 
-        boolean isSilkTouch = item.getEnchantment(EnchantmentTypes.SILK_TOUCH) != null;
+        boolean isSilkTouch = item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.SILK_TOUCH) != null;
 
         if (player != null) {
-            if (player.getGamemode() == GameMode.ADVENTURE && !item.canDestroy(target.getState())) {
+            BehaviorCollection itemBehaviors = this.itemRegistry.getBehaviors(item.getType());
+            if (player.getGamemode() == GameMode.ADVENTURE && !itemBehaviors.get(CAN_DESTROY).execute(target)) {
                 return null;
             }
 
-            double breakTime = targetBehavior.getBreakTime(target.getState(), item, player);
+            double breakTime = targetBehaviors.get(BlockBehaviors.GET_DESTROY_SPEED).execute(target.getState());
             // this in
             // block
             // class
@@ -1593,10 +1620,10 @@ public class CloudLevel implements Level {
                 breakTime *= 1 - (0.3 * (player.getEffect(EffectTypes.MINING_FATIGUE).getAmplifier() + 1));
             }
 
-            EnchantmentInstance eff = item.getEnchantment(EnchantmentTypes.EFFICIENCY);
+            Enchantment eff = item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.EFFICIENCY);
 
-            if (eff != null && eff.getLevel() > 0) {
-                breakTime *= 1 - (0.3 * eff.getLevel());
+            if (eff != null && eff.level() > 0) {
+                breakTime *= 1 - (0.3 * eff.level());
             }
 
             breakTime -= 0.15;
@@ -1604,16 +1631,16 @@ public class CloudLevel implements Level {
             ItemStack[] eventDrops;
             if (!player.isSurvival()) {
                 eventDrops = new ItemStack[0];
-            } else if (isSilkTouch && targetBehavior.canSilkTouch(target.getState())) {
-                eventDrops = new ItemStack[]{targetBehavior.toItem(target)};
+            } else if (isSilkTouch && targetBehaviors.canSilkTouch(target.getState())) {
+                eventDrops = new ItemStack[]{targetBehaviors.toItem(target)};
             } else {
-                eventDrops = targetBehavior.getDrops(target, item);
+                eventDrops = targetBehaviors.getDrops(target, item);
             }
 
             BlockBreakEvent ev = new BlockBreakEvent(player, target, face, item, eventDrops, dropExp, player.isCreative(),
                     (((CloudPlayer) player).lastBreak + breakTime * 1000) > System.currentTimeMillis());
 
-            if (player.isSurvival() && !targetBehavior.isBreakable(target.getState(), item)) {
+            if (player.isSurvival() && !targetBehaviors.isBreakable(target.getState(), item)) {
                 ev.setCancelled();
             } else if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
                 ev.setCancelled();
@@ -1632,12 +1659,12 @@ public class CloudLevel implements Level {
 
             drops = ev.getDrops();
             dropExp = ev.getDropExp();
-        } else if (!targetBehavior.isBreakable(target.getState(), item)) {
+        } else if (!targetBehaviors.isBreakable(target.getState(), item)) {
             return null;
         } else if (item.getEnchantment(EnchantmentTypes.SILK_TOUCH) != null) {
-            drops = new ItemStack[]{targetBehavior.toItem(target)};
+            drops = new ItemStack[]{targetBehaviors.toItem(target)};
         } else {
-            drops = targetBehavior.getDrops(target, item);
+            drops = targetBehaviors.getDrops(target, item);
         }
 
         Block above = this.getLoadedBlock(target.getPosition().add(0, 1, 0));
@@ -1663,12 +1690,12 @@ public class CloudLevel implements Level {
             this.updateComparatorOutputLevel(target.getPosition());
         }
 
-        targetBehavior.onBreak(target, item, player);
+        targetBehaviors.onBreak(target, item, player);
 
         var itemBehavior = item.getBehavior();
         itemBehavior.useOn(item, target.getState());
         if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-            item = CloudItemRegistry.get().AIR;
+            item = ItemStack.AIR;
         }
 
         if (this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
@@ -1678,7 +1705,7 @@ public class CloudLevel implements Level {
 
             if (player == null || player.isSurvival()) {
                 for (ItemStack drop : drops) {
-                    if (drop.getAmount() > 0) {
+                    if (drop.getCount() > 0) {
                         this.dropItem(pos.toFloat().add(0.5, 0.5, 0.5), drop);
                     }
                 }
@@ -1726,9 +1753,9 @@ public class CloudLevel implements Level {
 
     public ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos, Player player, boolean playSound) {
         Block target = this.getBlock(vector);
-        BlockBehavior targetBehavior = target.getState().getBehavior();
+        Behavior targetBehavior = target.getState().getBehavior();
         Block block = target.getSide(face);
-        BlockBehavior behavior = block.getState().getBehavior();
+        Behavior behavior = block.getState().getBehavior();
         Vector3i blockPos = block.getPosition();
 
         if (blockPos.getY() > 255 || blockPos.getY() < 0) {
@@ -1757,7 +1784,7 @@ public class CloudLevel implements Level {
                 targetBehavior.onUpdate(target, BLOCK_UPDATE_TOUCH);
                 if ((!player.isSneaking() || player.getInventory().getItemInHand().isNull()) && targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item, player)) {
                     if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-                        item = CloudItemRegistry.get().AIR;
+                        item = ItemStack.AIR;
                     }
                     return item;
                 }
@@ -1766,8 +1793,8 @@ public class CloudLevel implements Level {
                     var result = itemBehavior.onActivate(item, player, block, target, face, clickPos, this);
                     if (result != null) {
                         item = result;
-                        if (item.getAmount() <= 0) {
-                            item = CloudItemRegistry.get().AIR;
+                        if (item.getCount() <= 0) {
+                            item = ItemStack.AIR;
                             return item;
                         }
                     }
@@ -1780,7 +1807,7 @@ public class CloudLevel implements Level {
             }
         } else if (targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item)) {
             if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
-                item = CloudItemRegistry.get().AIR;
+                item = ItemStack.AIR;
             }
             return item;
         }
@@ -1801,7 +1828,7 @@ public class CloudLevel implements Level {
         }
 
         BlockState handState = CloudBlockRegistry.get().getBlock(hand.getType());
-        BlockBehavior handBehavior = handState.getBehavior();
+        Behavior handBehavior = handState.getBehavior();
 
         AxisAlignedBB handBB = handBehavior.getBoundingBox(block.getPosition(), hand);
         if (!handBehavior.canPassThrough(handState) && handBB != null) {
@@ -1844,7 +1871,7 @@ public class CloudLevel implements Level {
             }
         }
 
-        BlockBehavior liquidBehavior = block.getState().getBehavior();
+        Behavior liquidBehavior = block.getState().getBehavior();
         BlockState air = block.getExtra();
 
         Vector3i pos = null;
@@ -1885,8 +1912,8 @@ public class CloudLevel implements Level {
             this.addLevelSoundEvent(block.getPosition().toFloat(), SoundEvent.PLACE, CloudBlockRegistry.get().getRuntimeId(hand));
         }
 
-        if (item.getAmount() <= 0) {
-            item = CloudItemRegistry.get().AIR;
+        if (item.getCount() <= 0) {
+            item = ItemStack.AIR;
         }
         return item;
     }
@@ -1978,6 +2005,17 @@ public class CloudLevel implements Level {
         }
 
         return entities == null ? ImmutableSet.of() : entities.build();
+    }
+
+    @Override
+    public int getMinHeight() {
+        // TODO: Support custom world heights.
+        return this.getDimension() == DIMENSION_OVERWORLD ? 64 : 0;
+    }
+
+    @Override
+    public int getMaxHeight() {
+        return this.getDimension() == DIMENSION_NETHER ? 128 : 256;
     }
 
     public Set<BlockEntity> getBlockEntities() {

@@ -21,7 +21,7 @@ import static org.cloudburstmc.api.block.BlockTypes.AIR;
  */
 public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
 
-    private BlockState plant = CloudBlockRegistry.get().getBlock(AIR);
+    private BlockState plant = BlockStates.AIR;
 
     public FlowerPotBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);

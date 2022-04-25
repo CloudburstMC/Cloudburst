@@ -14,7 +14,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.MovingObjectPosition;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -63,7 +62,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
         super.initEntity();
 
         this.damage = 8;
-        this.trident = CloudItemRegistry.get().AIR;
+        this.trident = ItemStack.AIR;
         closeOnCollide = false;
     }
 
@@ -83,7 +82,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
 
     @Override
     public ItemStack getTrident() {
-        return this.trident != null ? this.trident : CloudItemRegistry.get().AIR;
+        return this.trident != null ? this.trident : ItemStack.AIR;
     }
 
     @Override

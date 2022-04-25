@@ -11,12 +11,12 @@ import org.cloudburstmc.server.registry.EntityRegistry;
 public class EntityTypeSerializer implements ItemDataSerializer<EntityType> {
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, EntityType value) {
-        dataTag.putString("ItemIdentifier", value.getIdentifier().toString());
+    public void serialize(ItemStack item, NbtMapBuilder tag, EntityType value) {
+        tag.putString("ItemIdentifier", value.getIdentifier().toString());
     }
 
     @Override
-    public EntityType deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
-        return EntityRegistry.get().getEntityType(Identifier.fromString(dataTag.getString("ItemIdentifier", "unknown")));
+    public EntityType deserialize(Identifier id, NbtMap tag) {
+        return EntityRegistry.get().getEntityType(Identifier.fromString(tag.getString("ItemIdentifier", "unknown")));
     }
 }

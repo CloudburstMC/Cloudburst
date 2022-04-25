@@ -3240,7 +3240,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         if (near) {
             if (entity instanceof Arrow && entity.getMotion().lengthSquared() == 0) {
-                ItemStack item = CloudItemRegistry.get().getItem(ItemTypes.ARROW);
+                ItemStack item = ItemStack.builder().itemType(ItemTypes.ARROW).build();
                 if (this.isSurvival() && !this.getInventory().canAddItem(item)) {
                     return false;
                 }
