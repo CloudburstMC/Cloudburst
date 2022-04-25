@@ -11,7 +11,6 @@ import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.scheduler.Task;
 
@@ -41,7 +40,7 @@ public class CraftingTransaction extends InventoryTransaction {
         super(source, actions, false);
 
         this.gridSize = (source.getInventory().getCraftingGrid().getCraftingGridType() == CraftingGrid.Type.CRAFTING_GRID_BIG) ? 3 : 2;
-        ItemStack air = CloudItemRegistry.get().AIR;
+        ItemStack air = ItemStack.AIR;
         this.inputs = new ItemStack[gridSize][gridSize];
         for (ItemStack[] a : this.inputs) {
             Arrays.fill(a, air);

@@ -106,15 +106,15 @@ public class InventoryTransaction {
                 var haveItem = haveIterator.next();
 
                 if (needItem.equals(haveItem)) {
-                    int amount = Math.min(haveItem.getAmount(), needItem.getAmount());
+                    int amount = Math.min(haveItem.getCount(), needItem.getCount());
 
-                    if (haveItem.getAmount() - amount <= 0) {
+                    if (haveItem.getCount() - amount <= 0) {
                         haveIterator.remove();
                     } else {
                         haveIterator.set(haveItem.decrementAmount(amount));
                     }
 
-                    if (needItem.getAmount() - amount <= 0) {
+                    if (needItem.getCount() - amount <= 0) {
                         needIterator.remove();
                         break;
                     } else {
@@ -210,9 +210,9 @@ public class InventoryTransaction {
                         list.remove(i);
                         sortedThisLoop++;
                     } else if (actionSource.equals(lastTargetItem)) {
-                        lastTargetItem = lastTargetItem.decrementAmount(actionSource.getAmount());
+                        lastTargetItem = lastTargetItem.decrementAmount(actionSource.getCount());
                         list.remove(i);
-                        if (lastTargetItem.getAmount() == 0) sortedThisLoop++;
+                        if (lastTargetItem.getCount() == 0) sortedThisLoop++;
                     }
                 }
             } while (sortedThisLoop > 0);
@@ -268,7 +268,7 @@ public class InventoryTransaction {
         }
 
         if (who != null && to != null) {
-            if (from.getTargetItem().getAmount() > from.getSourceItem().getAmount()) {
+            if (from.getTargetItem().getCount() > from.getSourceItem().getCount()) {
                 from = to;
             }
 

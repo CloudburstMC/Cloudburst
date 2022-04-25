@@ -25,7 +25,6 @@ import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Rail;
 
 import java.util.Iterator;
@@ -291,7 +290,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.MINECART));
+        this.getLevel().dropItem(this.getPosition(), ItemStack.builder().itemType(ItemTypes.MINECART).build());
     }
 
     @Override

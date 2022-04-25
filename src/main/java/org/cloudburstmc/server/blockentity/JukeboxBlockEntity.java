@@ -11,7 +11,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Record;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
 
 import java.util.EnumMap;
@@ -61,7 +60,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
         super.saveAdditionalData(tag);
 
         if (this.recordItem != null && !this.recordItem.isNull()) {
-            tag.putCompound("RecordItem", ((CloudItemStack) this.recordItem).getNbt());
+            tag.putCompound("RecordItem", ((ItemStack) this.recordItem).getNbt());
         }
     }
 

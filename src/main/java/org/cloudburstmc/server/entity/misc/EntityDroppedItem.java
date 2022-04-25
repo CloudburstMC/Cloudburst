@@ -18,7 +18,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -136,7 +135,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         this.timing.startTiming();
 
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
-            if (this.getItem().getAmount() < this.getItem().getBehavior().getMaxStackSize(getItem())) {
+            if (this.getItem().getCount() < this.getItem().getBehavior().getMaxStackSize(getItem())) {
                 for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
                     if (entity instanceof EntityDroppedItem) {
                         if (!entity.isAlive()) {
@@ -149,12 +148,12 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                         if (!entity.isOnGround()) {
                             continue;
                         }
-                        int newAmount = this.getItem().getAmount() + closeItem.getAmount();
+                        int newAmount = this.getItem().getCount() + closeItem.getCount();
                         if (newAmount > this.getItem().getBehavior().getMaxStackSize(getItem())) {
                             continue;
                         }
                         entity.close();
-                        this.item = getItem().withAmount(newAmount);
+                        this.item = getItem().withCount(newAmount);
                         EntityEventPacket packet = new EntityEventPacket();
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);
@@ -271,7 +270,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         addEntity.setPosition(this.getPosition());
         addEntity.setMotion(this.getMotion());
         this.data.putAllIn(addEntity.getMetadata());
-        addEntity.setItemInHand(((CloudItemStack) this.getItem()).getNetworkData());
+        addEntity.setItemInHand(((ItemStack) this.getItem()).getNetworkData());
         return addEntity;
     }
 

@@ -6,7 +6,6 @@ import org.cloudburstmc.api.entity.hostile.Phantom;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Created by PetteriM1
@@ -40,7 +39,7 @@ public class EntityPhantom extends EntityHostile implements Phantom, Smiteable {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.PHANTOM_MEMBRANE)};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.PHANTOM_MEMBRANE).build()};
     }
 
     @Override

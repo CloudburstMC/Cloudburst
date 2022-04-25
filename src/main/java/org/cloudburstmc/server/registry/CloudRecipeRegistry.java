@@ -33,7 +33,6 @@ import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.crafting.*;
 import org.cloudburstmc.server.inventory.ContainerRecipe;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.utils.TextFormat;
 
@@ -46,7 +45,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.cloudburstmc.api.block.BlockIds.LIT_BLAST_FURNACE;
 
 @Log4j2
-public class CloudRecipeRegistry implements RecipeRegistry {
+public class CloudRecipeRegistry implements RecipeRegistry, Registry {
     private static final String UNLABELED_PREFIX = "minecraft:crafting_recipe_";
     private static final String UNLABELED_POTION_PREFIX = "minecraft:potion_";
     private static final String UNLABELED_CONTAINER_PREFIX = "minecraft:container_";
@@ -58,7 +57,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     public static final Comparator<ItemStack> recipeComparator = Comparator.comparing((ItemStack i) -> i.getType().getId())
-            .thenComparingInt(i -> ((CloudItemStack) i).getNetworkData().getDamage()).thenComparingInt(ItemStack::getAmount);
+            .thenComparingInt(i -> ((ItemStack) i).getNetworkData().getDamage()).thenComparingInt(ItemStack::getCount);
 
     private final CloudItemRegistry itemRegistry;
     private final Map<Identifier, Recipe> recipeMap = new Object2ReferenceOpenHashMap<>();
@@ -104,7 +103,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         if (this.closed) {
             throw new RegistryException("Unable to unregister recipes after registry closes");
         }
-        int outputHash = ItemUtils.getItemHash((CloudItemStack) recipe.getResult());
+        int outputHash = ItemUtils.getItemHash((ItemStack) recipe.getResult());
         UUID id = getInputHash(recipe);
         var hashMap = recipeHashMap.get(outputHash);
         if (hashMap.size() <= 1) {
@@ -131,7 +130,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             outputHash = Objects.hash(System.identityHashCode(recipe.getId()));
             id = ((MultiRecipe) recipe).getUuid();
         } else {
-            outputHash = ItemUtils.getItemHash((CloudItemStack) recipe.getResult());
+            outputHash = ItemUtils.getItemHash((ItemStack) recipe.getResult());
             id = getInputHash(recipe);
         }
         register0(recipe.getId(), id, outputHash, recipe);
@@ -293,7 +292,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     @Override
     public Recipe matchRecipe(ItemStack[][] inputMap, ItemStack output, ItemStack[][] extraOutputMap, Identifier craftingBlock) {
-        int key = ItemUtils.getItemHash((CloudItemStack) output);
+        int key = ItemUtils.getItemHash((ItemStack) output);
         if (!recipeHashMap.containsKey(key)) {
             return null;
         }
@@ -334,7 +333,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     public FurnaceRecipe matchFurnaceRecipe(ItemStack input, ItemStack output, Identifier craftingBlock) {
-        int hash = ItemUtils.getItemHash((CloudItemStack) output);
+        int hash = ItemUtils.getItemHash((ItemStack) output);
 
         if (craftingBlock == BlockIds.LIT_SMOKER) {
             craftingBlock = BlockIds.SMOKER;
@@ -378,7 +377,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     public MixRecipe matchBrewingRecipe(ItemStack input, ItemStack potion) {
-        int hash = ItemUtils.getItemHash((CloudItemStack) potion);
+        int hash = ItemUtils.getItemHash((ItemStack) potion);
         if (!recipeHashMap.containsKey(hash)) return null;
 
         Map<UUID, Identifier> map = recipeHashMap.get(hash);
@@ -446,8 +445,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                         break;
                     case FURNACE:
                         assert recipe instanceof FurnaceRecipe;
-                        ItemData inputData = ItemUtils.toNetwork((CloudItemStack) ((FurnaceRecipe) recipe).getInput(), false);
-                        ItemData outputData = ItemUtils.toNetwork((CloudItemStack) recipe.getResult(), false);
+                        ItemData inputData = ItemUtils.toNetwork((ItemStack) ((FurnaceRecipe) recipe).getInput(), false);
+                        ItemData outputData = ItemUtils.toNetwork((ItemStack) recipe.getResult(), false);
 
                         packet.getCraftingData().add(CraftingData.fromFurnace(
                                 inputData.getId(),
@@ -457,11 +456,11 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                         break;
                     case FURNACE_DATA:
                         assert recipe instanceof FurnaceRecipe;
-                        inputData = ItemUtils.toNetwork((CloudItemStack) ((FurnaceRecipe) recipe).getInput(), false);
-                        outputData = ItemUtils.toNetwork((CloudItemStack) recipe.getResult(), false);
+                        inputData = ItemUtils.toNetwork((ItemStack) ((FurnaceRecipe) recipe).getInput(), false);
+                        outputData = ItemUtils.toNetwork((ItemStack) recipe.getResult(), false);
 
                         packet.getCraftingData().add(CraftingData.fromFurnaceData(
-                                ((CloudItemStack) ((FurnaceRecipe) recipe).getInput()).getNetworkData().getId(),
+                                ((ItemStack) ((FurnaceRecipe) recipe).getInput()).getNetworkData().getId(),
                                 inputData.getDamage(),
                                 outputData,
                                 recipe.getBlock().getName(),
@@ -474,9 +473,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                         break;
                     case POTION:
                         assert recipe instanceof BrewingRecipe;
-                        ItemData reagentData = ItemUtils.toNetwork((CloudItemStack) ((BrewingRecipe) recipe).getIngredient(), false);
-                        inputData = ItemUtils.toNetwork((CloudItemStack) ((BrewingRecipe) recipe).getInput(), false);
-                        outputData = ItemUtils.toNetwork((CloudItemStack) recipe.getResult(), false);
+                        ItemData reagentData = ItemUtils.toNetwork((ItemStack) ((BrewingRecipe) recipe).getIngredient(), false);
+                        inputData = ItemUtils.toNetwork((ItemStack) ((BrewingRecipe) recipe).getInput(), false);
+                        outputData = ItemUtils.toNetwork((ItemStack) recipe.getResult(), false);
 
                         packet.getPotionMixData().add(new PotionMixData(
                                 inputData.getId(),
@@ -488,9 +487,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                         break;
                     case CONTAINER:
                         assert recipe instanceof ContainerRecipe;
-                        reagentData = ItemUtils.toNetwork((CloudItemStack) ((ContainerRecipe) recipe).getIngredient(), false);
-                        inputData = ItemUtils.toNetwork((CloudItemStack) ((ContainerRecipe) recipe).getInput(), false);
-                        outputData = ItemUtils.toNetwork((CloudItemStack) recipe.getResult(), false);
+                        reagentData = ItemUtils.toNetwork((ItemStack) ((ContainerRecipe) recipe).getIngredient(), false);
+                        inputData = ItemUtils.toNetwork((ItemStack) ((ContainerRecipe) recipe).getInput(), false);
+                        outputData = ItemUtils.toNetwork((ItemStack) recipe.getResult(), false);
 
                         packet.getContainerMixData().add(new ContainerMixData(
                                 inputData.getId(),

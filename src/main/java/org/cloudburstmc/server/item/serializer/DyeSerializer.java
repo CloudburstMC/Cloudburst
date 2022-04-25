@@ -3,10 +3,11 @@ package org.cloudburstmc.server.item.serializer;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.item.ItemIds;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.CloudItemStackBuilder;
 
 import java.util.Map;
 
@@ -19,138 +20,106 @@ public class DyeSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
         Identifier id;
-        DyeColor color = item.getMetadata(DyeColor.class);
+        DyeColor color = item.get(ItemKeys.COLOR);
 
-        switch (color) {
-            default:
-            case BLACK:
-                id = ItemIds.INK_SAC;
-                break;
-            case RED:
-                id = ItemIds.RED_DYE;
-                break;
-            case GREEN:
-                id = ItemIds.GREEN_DYE;
-                break;
-            case BROWN:
-                id = ItemIds.COCOA_BEANS;
-                break;
-            case BLUE:
-                id = ItemIds.LAPIS_LAZULI;
-                break;
-            case PURPLE:
-                id = ItemIds.PURPLE_DYE;
-                break;
-            case CYAN:
-                id = ItemIds.CYAN_DYE;
-                break;
-            case LIGHT_GRAY:
-                id = ItemIds.LIGHT_GRAY_DYE;
-                break;
-            case GRAY:
-                id = ItemIds.GRAY_DYE;
-                break;
-            case PINK:
-                id = ItemIds.PINK_DYE;
-                break;
-            case LIME:
-                id = ItemIds.LIME_DYE;
-                break;
-            case YELLOW:
-                id = ItemIds.YELLOW_DYE;
-                break;
-            case LIGHT_BLUE:
-                id = ItemIds.LIGHT_BLUE_DYE;
-                break;
-            case MAGENTA:
-                id = ItemIds.MAGENTA_DYE;
-                break;
-            case ORANGE:
-                id = ItemIds.ORANGE_DYE;
-                break;
-            case WHITE:
-                id = ItemIds.BONE_MEAL;
-                break;
-        }
+        id = switch (color) {
+            case BLACK -> ItemIds.INK_SAC;
+            case RED -> ItemIds.RED_DYE;
+            case GREEN -> ItemIds.GREEN_DYE;
+            case BROWN -> ItemIds.COCOA_BEANS;
+            case BLUE -> ItemIds.LAPIS_LAZULI;
+            case PURPLE -> ItemIds.PURPLE_DYE;
+            case CYAN -> ItemIds.CYAN_DYE;
+            case LIGHT_GRAY -> ItemIds.LIGHT_GRAY_DYE;
+            case GRAY -> ItemIds.GRAY_DYE;
+            case PINK -> ItemIds.PINK_DYE;
+            case LIME -> ItemIds.LIME_DYE;
+            case YELLOW -> ItemIds.YELLOW_DYE;
+            case LIGHT_BLUE -> ItemIds.LIGHT_BLUE_DYE;
+            case MAGENTA -> ItemIds.MAGENTA_DYE;
+            case ORANGE -> ItemIds.ORANGE_DYE;
+            case WHITE -> ItemIds.BONE_MEAL;
+            default -> ItemIds.BONE_MEAL;
+        };
 
         itemTag.putString(NAME_TAG, id.toString());
     }
 
     @Override
-    public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
+    public void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag) {
         super.deserialize(id, meta, amount, builder, tag);
 
         if (id == ItemIds.INK_SAC || id == ItemIds.BLACK_DYE) {
-            builder.itemData(DyeColor.BLACK);
+            builder.data(ItemKeys.COLOR, DyeColor.BLACK);
             return;
         }
 
         if (id == ItemIds.RED_DYE) {
-            builder.itemData(DyeColor.RED);
+            builder.data(ItemKeys.COLOR, DyeColor.RED);
             return;
         }
 
         if (id == ItemIds.GREEN_DYE) {
-            builder.itemData(DyeColor.GREEN);
+            builder.data(ItemKeys.COLOR, DyeColor.GREEN);
             return;
         }
         if (id == ItemIds.COCOA_BEANS || id == ItemIds.BROWN_DYE) {
-            builder.itemData(DyeColor.BROWN);
+            builder.data(ItemKeys.COLOR, DyeColor.BROWN);
             return;
         }
         if (id == ItemIds.LAPIS_LAZULI || id == ItemIds.BLUE_DYE) {
-            builder.itemData(DyeColor.BLUE);
+            builder.data(ItemKeys.COLOR, DyeColor.BLUE);
             return;
         }
         if (id == ItemIds.PURPLE_DYE) {
-            builder.itemData(DyeColor.PURPLE);
+            builder.data(ItemKeys.COLOR, DyeColor.PURPLE);
             return;
         }
         if (id == ItemIds.CYAN_DYE) {
-            builder.itemData(DyeColor.CYAN);
+            builder.data(ItemKeys.COLOR, DyeColor.CYAN);
             return;
         }
         if (id == ItemIds.LIGHT_GRAY_DYE) {
-            builder.itemData(DyeColor.LIGHT_GRAY);
+            builder.data(ItemKeys.COLOR, DyeColor.LIGHT_GRAY);
             return;
         }
         if (id == ItemIds.GRAY_DYE) {
-            builder.itemData(DyeColor.GRAY);
+            builder.data(ItemKeys.COLOR, DyeColor.GRAY);
             return;
         }
         if (id == ItemIds.PINK_DYE) {
-            builder.itemData(DyeColor.PINK);
+            builder.data(ItemKeys.COLOR, DyeColor.PINK);
             return;
         }
         if (id == ItemIds.LIME_DYE) {
-            builder.itemData(DyeColor.LIME);
+            builder.data(ItemKeys.COLOR, DyeColor.LIME);
             return;
         }
         if (id == ItemIds.YELLOW_DYE) {
-            builder.itemData(DyeColor.YELLOW);
+            builder.data(ItemKeys.COLOR, DyeColor.YELLOW);
             return;
         }
         if (id == ItemIds.LIGHT_BLUE_DYE) {
-            builder.itemData(DyeColor.LIGHT_BLUE);
+            builder.data(ItemKeys.COLOR, DyeColor.LIGHT_BLUE);
             return;
         }
         if (id == ItemIds.MAGENTA_DYE) {
-            builder.itemData(DyeColor.MAGENTA);
+            builder.data(ItemKeys.COLOR, DyeColor.MAGENTA);
             return;
         }
         if (id == ItemIds.ORANGE_DYE) {
-            builder.itemData(DyeColor.ORANGE);
+            builder.data(ItemKeys.COLOR, DyeColor.ORANGE);
             return;
         }
         if (id == ItemIds.BONE_MEAL || id == ItemIds.WHITE_DYE) {
-            builder.itemData(DyeColor.WHITE);
+            builder.data(ItemKeys.COLOR, DyeColor.WHITE);
             return;
         }
 
-        builder.itemData(DyeColor.BLACK);
+        builder.data(ItemKeys.COLOR, DyeColor.BLACK);
     }
 
     @Override

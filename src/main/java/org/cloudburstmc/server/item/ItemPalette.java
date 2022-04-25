@@ -15,10 +15,10 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockIds;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.RegistryUtils;
 
@@ -146,21 +146,16 @@ public class ItemPalette {
         return ImmutableList.copyOf(runtimeIdMap.values());
     }
 
-    public void addCreativeItem(CloudItemStack item) {
+    public void addCreativeItem(ItemStack item) {
         int damage = 0, brid = 0;
-        NbtMap tag = item.getNbt(false);
-
-        if (!tag.isEmpty() && tag.containsKey("Damage")) {
-            damage = tag.getInt("Damage");
-        }
 
         if (item.isBlock()) {
-            brid = CloudBlockRegistry.get().getRuntimeId(item.getBlockState());
+//            brid = CloudBlockRegistry.get().getRuntimeId(item.getBlockState());
         }
 
         this.creativeItems.add(ItemData.builder()
                 .usingNetId(false)
-                .id(getRuntimeId(item.getId()))
+                .id(getRuntimeId(item.getType().getId()))
                 .damage(damage)
                 .blockRuntimeId(brid)
                 .build());
@@ -169,7 +164,7 @@ public class ItemPalette {
     public Identifier fromLegacy(int legacyId, int meta) {
         Identifier id = legacyIdMap.get(legacyId);
         if (id == null) {
-            throw new RegistryException("Unknkown legacy Id: " + legacyId);
+            throw new RegistryException("Unknown legacy Id: " + legacyId);
         }
         if (metaMap.containsKey(id)) {
             return metaMap.get(id).get(meta);

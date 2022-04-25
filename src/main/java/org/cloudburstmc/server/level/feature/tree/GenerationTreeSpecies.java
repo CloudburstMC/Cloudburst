@@ -9,8 +9,6 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.TreeSpecies;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomBrown;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorHugeMushroomRed;
 import org.cloudburstmc.server.level.feature.FeatureChorusTree;
 import org.cloudburstmc.server.level.feature.FeatureFallenTree;
 import org.cloudburstmc.server.level.feature.WorldFeature;

@@ -1,12 +1,6 @@
 package org.cloudburstmc.server.registry;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
@@ -17,71 +11,61 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.behavior.BlockBehavior;
-import org.cloudburstmc.api.blockentity.BlockEntityTypes;
+import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ToolType;
-import org.cloudburstmc.api.item.ToolTypes;
-import org.cloudburstmc.api.registry.Registry;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
-import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.behavior.Behavior;
+import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.server.Bootstrap;
-import org.cloudburstmc.server.block.BlockAttributes;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.behavior.*;
 import org.cloudburstmc.server.block.serializer.*;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
+import org.cloudburstmc.server.registry.behavior.CloudBehaviorCollection;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.regex.Pattern;
+import java.util.function.BiFunction;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
 @Log4j2
-public class CloudBlockRegistry implements Registry {
-    private static final CloudBlockRegistry INSTANCE;
+public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> implements BlockRegistry, Registry {
+    public static CloudBlockRegistry REGISTRY;
     private static final HashBiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create();
 
     static {
         InputStream stream = RegistryUtils.getOrAssertResource("data/legacy_block_ids.json");
 
         try {
-            VANILLA_LEGACY_IDS.putAll(Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<Map<Identifier, Integer>>() {
-            }));
+            VANILLA_LEGACY_IDS.putAll(Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<Map<Identifier, Integer>>() {}));
         } catch (IOException e) {
             throw new AssertionError("Unable to load legacy IDs", e);
         }
-
-        INSTANCE = new CloudBlockRegistry(); // Needs to be initialized afterwards
     }
 
-    private final Reference2ReferenceMap<BlockType, BlockBehavior> behaviorMap = new Reference2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<BlockType, BehaviorCollection> behaviorMap = new Reference2ReferenceOpenHashMap<>();
     //private final HashBiMap<Identifier, Integer> idLegacyMap = HashBiMap.create();
     private final AtomicInteger customIdAllocator = new AtomicInteger(1000);
     private final BlockPalette palette = BlockPalette.INSTANCE;
     private NbtMap propertiesTag;
     private volatile boolean closed;
     private transient NbtList<NbtMap> serializedPalette;
+    private final CloudItemRegistry itemRegistry;
 
-    private final Map<String, BlockAttributes> blockAttributes = new HashMap<>();
-
-    private CloudBlockRegistry() {
+    public CloudBlockRegistry(CloudItemRegistry itemRegistry) {
+        this.itemRegistry = itemRegistry;
         BlockTraitSerializers.init();
         this.registerVanillaBlocks();
-        this.loadBlockAttributes();
 
         // Check legacy IDs
         behaviorMap.forEach((bt, b) -> {
@@ -89,84 +73,57 @@ public class CloudBlockRegistry implements Registry {
                 log.debug("Unable to map legacy id for blockType: {}", bt.getId());
             }
         });
+        REGISTRY = this; // TODO: Remove at some point
     }
 
-    public static CloudBlockRegistry get() {
-        return INSTANCE;
-    }
-
-    public synchronized void register(BlockType type, BlockBehavior behavior) throws RegistryException {
+    @Override
+    public synchronized CloudBehaviorCollection register(BlockType type) throws RegistryException {
         checkNotNull(type, "type");
-        registerVanilla(type, behavior);
+        CloudBehaviorCollection behaviors = registerVanilla(type);
 
         // generate legacy ID (Not sure why we need to but it's a requirement)
         int legacyId = this.customIdAllocator.getAndIncrement();
         VANILLA_LEGACY_IDS.put(type.getId(), legacyId);
+        return behaviors;
     }
 
-    private void registerVanilla(BlockType type) throws RegistryException {
-        registerVanilla(type, NoopBlockBehavior.INSTANCE);
+    @Override
+    public <F, E> void registerBehavior(BehaviorKey<F, E> key, F defaultBehavior, BiFunction<Behavior<E>, F, E> executorFactory) {
+        checkArgument(this.isBehaviorRegistered(key), "Behaviour '%s' already registered", key);
+        checkArgument(this.itemRegistry.isBehaviorRegistered(key), "Item Behaviour '%s' already registered", key);
+        super.registerBehavior(key, defaultBehavior, executorFactory);
     }
 
-    private void registerVanilla(BlockType type, BlockBehavior behavior) throws RegistryException {
-        this.registerVanilla(type, behavior, DefaultBlockSerializer.INSTANCE);
+    @Override
+    public BehaviorCollection getBehaviors(BlockType type) {
+        return behaviorMap.get(type);
     }
 
-    private synchronized void registerVanilla(BlockType type, BlockBehavior behavior, BlockSerializer serializer) throws RegistryException {
+    private CloudBehaviorCollection registerVanilla(BlockType type) throws RegistryException {
+        return this.registerVanilla(type, DefaultBlockSerializer.INSTANCE);
+    }
+
+    private synchronized CloudBehaviorCollection registerVanilla(BlockType type, BlockSerializer serializer) throws RegistryException {
         checkNotNull(type, "type");
         checkNotNull(serializer, "serializer");
         checkClosed();
 
+        CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
+
         synchronized (this.behaviorMap) {
-            if (this.behaviorMap.putIfAbsent(type, behavior) != null)
+            if (this.behaviorMap.putIfAbsent(type, collection) != null) {
                 throw new RegistryException(type + " is already registered");
-        }
-
-        type.forEachPermutation(state -> state.setBehavior(behavior));
-
-        this.palette.addBlock(type, serializer);
-    }
-
-    /**
-     * Extends current behavior with delegated one provided by the factory.
-     * All methods are delegated to the previous {@link BlockBehavior} instance by default.
-     * <p>
-     * Extending behavior must extend {@link BlockBehaviorDelegate} class accepting
-     * parent behavior as a constructor parameter.
-     * Parent behavior instance is supplied as an argument to the factory function.
-     *
-     * @param type    type to register the behavior for
-     * @param factory factory providing BlockBehaviorDelegate instance
-     * @throws RegistryException if there's no behavior registered for the specified type
-     */
-    public void extendBehavior(BlockType type, Function<BlockBehavior, BlockBehaviorDelegate> factory) {
-        checkNotNull(type, "type");
-        checkNotNull(factory, "factory");
-
-        synchronized (this.behaviorMap) {
-            if (this.behaviorMap.computeIfPresent(type, (key, existing) -> factory.apply(existing)) == null) {
-                throw new RegistryException(type + " has not been registered");
             }
         }
+
+        this.palette.addBlock(type, serializer);
+
+        return collection;
     }
 
-    /**
-     * Overwrites existing or registers new {@link BlockBehavior} instance if absent
-     *
-     * @param type     type to register the behavior for
-     * @param behavior overwriting behavior instance
-     */
-    public void overwriteBehavior(BlockType type, BlockBehavior behavior) {
-        checkNotNull(type, "type");
-        checkNotNull(behavior, behavior);
-
-        synchronized (this.behaviorMap) {
-            this.behaviorMap.put(type, behavior);
-        }
-    }
-
-    boolean isBlock(Identifier id) {
-        return this.VANILLA_LEGACY_IDS.containsKey(id);
+    @Override
+    public boolean isBlock(Identifier id) {
+        return VANILLA_LEGACY_IDS.containsKey(id);
     }
 
     public int getRuntimeId(BlockState blockState) {
@@ -307,288 +264,284 @@ public class CloudBlockRegistry implements Registry {
         return propertiesTag;
     }
 
-    public BlockBehavior getBehavior(BlockType blockType) {
-        return this.behaviorMap.get(blockType);
-    }
-
     public ImmutableList<BlockState> getBlockStates() {
         return ImmutableList.copyOf(palette.getSerializedPalette().values());
     }
 
     private void registerVanillaBlocks() {
-        this.registerVanilla(AIR, new BlockBehaviorAir()); //0
-        this.registerVanilla(STONE, new BlockBehaviorStone()); //1
-        this.registerVanilla(GRASS, new BlockBehaviorGrass()); //2
-        this.registerVanilla(DIRT, new BlockBehaviorDirt()); //3
-        this.registerVanilla(COBBLESTONE, new BlockBehaviorCobblestone()); //4
-        this.registerVanilla(PLANKS, new BlockBehaviorPlanks(), MultiBlockSerializers.PLANKS); //5
-        this.registerVanilla(SAPLING, new BlockBehaviorSapling()); //6
-        this.registerVanilla(BEDROCK, new BlockBehaviorBedrock()); //7
-        this.registerVanilla(FLOWING_WATER, new BlockBehaviorWater(), FluidBlockSerializer.INSTANCE); //8
-        this.registerVanilla(WATER, new BlockBehaviorWater(), FluidBlockSerializer.INSTANCE); //9
-        this.registerVanilla(FLOWING_LAVA, new BlockBehaviorLava(), FluidBlockSerializer.INSTANCE); //10
-        this.registerVanilla(LAVA, new BlockBehaviorLava(), FluidBlockSerializer.INSTANCE); //11
-        this.registerVanilla(SAND, new BlockBehaviorSand()); //12
-        this.registerVanilla(GRAVEL, new BlockBehaviorGravel()); //13
+        this.registerVanilla(AIR); // 0
+        this.registerVanilla(STONE); // 1
+        this.registerVanilla(GRASS); // 2
+        this.registerVanilla(DIRT); // 3
+        this.registerVanilla(COBBLESTONE); // 4
+        this.registerVanilla(PLANKS, MultiBlockSerializers.PLANKS); // 5
+        this.registerVanilla(SAPLING); // 6
+        this.registerVanilla(BEDROCK); // 7
+        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE); // 8
+        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE); // 9
+        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE); //10
+        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE); //11
+        this.registerVanilla(SAND); //12
+        this.registerVanilla(GRAVEL); //13
         this.registerVanilla(GOLD_ORE); //14
         this.registerVanilla(IRON_ORE); //15
-        this.registerVanilla(COAL_ORE, new BlockBehaviorOreCoal()); //16
-        this.registerVanilla(LOG, new BlockBehaviorLog(), MultiBlockSerializers.LOG); //17
-        this.registerVanilla(LEAVES, new BlockBehaviorLeaves(), MultiBlockSerializers.LEAVES); //18
-        this.registerVanilla(SPONGE, new BlockBehaviorSponge()); //19
-        this.registerVanilla(GLASS, new BlockBehaviorGlass()); //20
-        this.registerVanilla(LAPIS_ORE, new BlockBehaviorOreLapis()); //21
-        this.registerVanilla(LAPIS_BLOCK, new BlockBehaviorLapis()); //22
-        this.registerVanilla(DISPENSER, new BlockBehaviorDispenser()); //23
-        this.registerVanilla(SANDSTONE, new BlockBehaviorSandstone()); //24
-        this.registerVanilla(NOTEBLOCK, new BlockBehaviorNoteblock()); //25
-        this.registerVanilla(BED, new BlockBehaviorBed()); //26
-        this.registerVanilla(GOLDEN_RAIL, new BlockBehaviorRailPowered()); //27
-        this.registerVanilla(DETECTOR_RAIL, new BlockBehaviorRailDetector()); //28
-        this.registerVanilla(WEB, new BlockBehaviorCobweb()); //30
-        this.registerVanilla(TALL_GRASS, new BlockBehaviorTallGrass()); //31
-        this.registerVanilla(DEADBUSH, new BlockBehaviorDeadBush()); //32
-        this.registerVanilla(PISTON, new BlockBehaviorPiston(), MultiBlockSerializers.PISTON); //33
-        this.registerVanilla(PISTON_ARM_COLLISION, new BlockBehaviorPistonHead(), MultiBlockSerializers.PISTON_ARM_COLLISION); //34
-        this.registerVanilla(WOOL, new BlockBehaviorWool()); //35
-        this.registerVanilla(FLOWER, new BlockBehaviorFlower(), MultiBlockSerializers.FLOWER); //37 - 38
-        this.registerVanilla(BROWN_MUSHROOM, new BlockBehaviorMushroomBrown()); //39
-        this.registerVanilla(RED_MUSHROOM, new BlockBehaviorMushroomRed()); //40
-        this.registerVanilla(GOLD_BLOCK, new BlockBehaviorGold()); //41
-        this.registerVanilla(IRON_BLOCK, new BlockBehaviorIron()); //42
-        this.registerVanilla(STONE_SLAB, new BlockBehaviorSlab(), SlabSerializer.INSTANCE); //44
-        this.registerVanilla(BRICK_BLOCK, new BlockBehaviorBricks()); //45
-        this.registerVanilla(TNT, new BlockBehaviorTNT()); //46
-        this.registerVanilla(BOOKSHELF, new BlockBehaviorBookshelf()); //47
-        this.registerVanilla(MOSSY_COBBLESTONE, new BlockBehaviorCobblestone()); //48
-        this.registerVanilla(OBSIDIAN, new BlockBehaviorObsidian()); //49
-        this.registerVanilla(TORCH, new BlockBehaviorTorch(), MultiBlockSerializers.TORCH); //50
-        this.registerVanilla(FIRE, new BlockBehaviorFire()); //51
-        this.registerVanilla(MOB_SPAWNER, new BlockBehaviorMobSpawner()); //52
-        this.registerVanilla(WOODEN_STAIRS, new BlockBehaviorStairsWood(), MultiBlockSerializers.WOOD_STAIRS); //53
-        this.registerVanilla(CHEST, new BlockBehaviorChest()); //54
-        this.registerVanilla(REDSTONE_WIRE, new BlockBehaviorRedstoneWire()); //55
-        this.registerVanilla(DIAMOND_ORE, new BlockBehaviorOreDiamond()); //56
-        this.registerVanilla(DIAMOND_BLOCK, new BlockBehaviorDiamond()); //57
-        this.registerVanilla(CRAFTING_TABLE, new BlockBehaviorCraftingTable()); //58
-        this.registerVanilla(WHEAT, new BlockBehaviorWheat()); //59
-        this.registerVanilla(FARMLAND, new BlockBehaviorFarmland()); //60
-        this.registerVanilla(FURNACE, new BlockBehaviorFurnace(BlockEntityTypes.FURNACE), MultiBlockSerializers.FURNACE); //61
-        this.registerVanilla(STANDING_SIGN, new BlockBehaviorSignPost(), MultiBlockSerializers.WOOD_STANDING_SIGN); //63
-        this.registerVanilla(WOODEN_DOOR, new BlockBehaviorDoorWood(), MultiBlockSerializers.WOOD_DOOR); //64
-        this.registerVanilla(LADDER, new BlockBehaviorLadder()); //65
-        this.registerVanilla(RAIL, new BlockBehaviorRail(RAIL, BlockTraits.RAIL_DIRECTION)); //66
-        this.registerVanilla(STONE_STAIRS, new BlockBehaviorStairsCobblestone(), MultiBlockSerializers.STONE_STAIRS); //67
-        this.registerVanilla(WALL_SIGN, new BlockBehaviorWallSign(), MultiBlockSerializers.WOOD_WALL_SIGN); //68
-        this.registerVanilla(LEVER, new BlockBehaviorLever()); //69
-        this.registerVanilla(STONE_PRESSURE_PLATE, new BlockBehaviorPressurePlateStone(), MultiBlockSerializers.STONE_PRESSURE_PLATE); //70
-        this.registerVanilla(IRON_DOOR, new BlockBehaviorDoorIron()); //71
-        this.registerVanilla(WOODEN_PRESSURE_PLATE, new BlockBehaviorPressurePlateWood(), MultiBlockSerializers.WOOD_PRESSURE_PLATE); //72
-        this.registerVanilla(REDSTONE_ORE, new BlockBehaviorOreRedstone(), MultiBlockSerializers.REDSTONE_ORE); //73, 74
-        this.registerVanilla(REDSTONE_TORCH, new BlockBehaviorRedstoneTorch(), MultiBlockSerializers.REDSTONE_TORCH); //75, 76
-        this.registerVanilla(STONE_BUTTON, new BlockBehaviorButton(), MultiBlockSerializers.STONE_BUTTON); //77
-        this.registerVanilla(SNOW_LAYER, new BlockBehaviorSnowLayer()); //78
-        this.registerVanilla(ICE, new BlockBehaviorIce()); //79
-        this.registerVanilla(SNOW, new BlockBehaviorSnow()); //80
-        this.registerVanilla(CACTUS, new BlockBehaviorCactus()); //81
-        this.registerVanilla(CLAY, new BlockBehaviorClay()); //82
-        this.registerVanilla(REEDS, new ReedsBlockBehavior()); //83
-        this.registerVanilla(JUKEBOX, new BlockBehaviorJukebox()); //84
-        this.registerVanilla(WOODEN_FENCE, new BlockBehaviorFenceWooden(), MultiBlockSerializers.WOOD_FENCE); //85
-        this.registerVanilla(PUMPKIN, new BlockBehaviorPumpkin()); //86
-        this.registerVanilla(NETHERRACK, new BlockBehaviorNetherrack()); //87
-        this.registerVanilla(SOUL_SAND, new BlockBehaviorSoulSand()); //88
-        this.registerVanilla(GLOWSTONE, new BlockBehaviorGlowstone()); //89
-        this.registerVanilla(PORTAL, new BlockBehaviorNetherPortal()); //90
-        this.registerVanilla(LIT_PUMPKIN, new BlockBehaviorPumpkin()); //91
-        this.registerVanilla(CAKE, new BlockBehaviorCake()); //92
-        this.registerVanilla(REPEATER, new BlockBehaviorRedstoneRepeater(), MultiBlockSerializers.REPEATER); //93, 94
-        this.registerVanilla(INVISIBLE_BEDROCK, new BlockBehaviorBedrockInvisible()); //95
-        this.registerVanilla(WOODEN_TRAPDOOR, new BlockBehaviorTrapdoor(), MultiBlockSerializers.WOOD_TRAPDOOR); //96
-        this.registerVanilla(MONSTER_EGG, new BlockBehaviorMonsterEgg()); //97
+        this.registerVanilla(COAL_ORE); //16
+        this.registerVanilla(LOG, MultiBlockSerializers.LOG); //17
+        this.registerVanilla(LEAVES, MultiBlockSerializers.LEAVES); //18
+        this.registerVanilla(SPONGE); //19
+        this.registerVanilla(GLASS); //20
+        this.registerVanilla(LAPIS_ORE); //21
+        this.registerVanilla(LAPIS_BLOCK); //22
+        this.registerVanilla(DISPENSER); //23
+        this.registerVanilla(SANDSTONE); //24
+        this.registerVanilla(NOTEBLOCK); //25
+        this.registerVanilla(BED); //26
+        this.registerVanilla(GOLDEN_RAIL); //27
+        this.registerVanilla(DETECTOR_RAIL); //28
+        this.registerVanilla(WEB); //30
+        this.registerVanilla(TALL_GRASS); //31
+        this.registerVanilla(DEADBUSH); //32
+        this.registerVanilla(PISTON, MultiBlockSerializers.PISTON); //33
+        this.registerVanilla(PISTON_ARM_COLLISION, MultiBlockSerializers.PISTON_ARM_COLLISION); //34
+        this.registerVanilla(WOOL); //35
+        this.registerVanilla(FLOWER, MultiBlockSerializers.FLOWER); //37 - 38
+        this.registerVanilla(BROWN_MUSHROOM); //39
+        this.registerVanilla(RED_MUSHROOM); //40
+        this.registerVanilla(GOLD_BLOCK); //41
+        this.registerVanilla(IRON_BLOCK); //42
+        this.registerVanilla(STONE_SLAB,SlabSerializer.INSTANCE); //44
+        this.registerVanilla(BRICK_BLOCK); //45
+        this.registerVanilla(TNT); //46
+        this.registerVanilla(BOOKSHELF); //47
+        this.registerVanilla(MOSSY_COBBLESTONE); //48
+        this.registerVanilla(OBSIDIAN); //49
+        this.registerVanilla(TORCH, MultiBlockSerializers.TORCH); //50
+        this.registerVanilla(FIRE); //51
+        this.registerVanilla(MOB_SPAWNER); //52
+        this.registerVanilla(WOODEN_STAIRS, MultiBlockSerializers.WOOD_STAIRS); //53
+        this.registerVanilla(CHEST); //54
+        this.registerVanilla(REDSTONE_WIRE); //55
+        this.registerVanilla(DIAMOND_ORE); //56
+        this.registerVanilla(DIAMOND_BLOCK); //57
+        this.registerVanilla(CRAFTING_TABLE); //58
+        this.registerVanilla(WHEAT); //59
+        this.registerVanilla(FARMLAND); //60
+        this.registerVanilla(FURNACE, MultiBlockSerializers.FURNACE); //61
+        this.registerVanilla(STANDING_SIGN, MultiBlockSerializers.WOOD_STANDING_SIGN); //63
+        this.registerVanilla(WOODEN_DOOR, MultiBlockSerializers.WOOD_DOOR); //64
+        this.registerVanilla(LADDER); //65
+        this.registerVanilla(RAIL); //66
+        this.registerVanilla(STONE_STAIRS, MultiBlockSerializers.STONE_STAIRS); //67
+        this.registerVanilla(WALL_SIGN, MultiBlockSerializers.WOOD_WALL_SIGN); //68
+        this.registerVanilla(LEVER); //69
+        this.registerVanilla(STONE_PRESSURE_PLATE, MultiBlockSerializers.STONE_PRESSURE_PLATE); //70
+        this.registerVanilla(IRON_DOOR); //71
+        this.registerVanilla(WOODEN_PRESSURE_PLATE, MultiBlockSerializers.WOOD_PRESSURE_PLATE); //72
+        this.registerVanilla(REDSTONE_ORE, MultiBlockSerializers.REDSTONE_ORE); //73, 74
+        this.registerVanilla(REDSTONE_TORCH, MultiBlockSerializers.REDSTONE_TORCH); //75, 76
+        this.registerVanilla(STONE_BUTTON, MultiBlockSerializers.STONE_BUTTON); //77
+        this.registerVanilla(SNOW_LAYER); //78
+        this.registerVanilla(ICE); //79
+        this.registerVanilla(SNOW); //80
+        this.registerVanilla(CACTUS); //81
+        this.registerVanilla(CLAY); //82
+        this.registerVanilla(REEDS); //83
+        this.registerVanilla(JUKEBOX); //84
+        this.registerVanilla(WOODEN_FENCE, MultiBlockSerializers.WOOD_FENCE); //85
+        this.registerVanilla(PUMPKIN); //86
+        this.registerVanilla(NETHERRACK); //87
+        this.registerVanilla(SOUL_SAND); //88
+        this.registerVanilla(GLOWSTONE); //89
+        this.registerVanilla(PORTAL); //90
+        this.registerVanilla(LIT_PUMPKIN); //91
+        this.registerVanilla(CAKE); //92
+        this.registerVanilla(REPEATER, MultiBlockSerializers.REPEATER); //93, 94
+        this.registerVanilla(INVISIBLE_BEDROCK); //95
+        this.registerVanilla(WOODEN_TRAPDOOR, MultiBlockSerializers.WOOD_TRAPDOOR); //96
+        this.registerVanilla(MONSTER_EGG); //97
         this.registerVanilla(STONEBRICK); //98
-        this.registerVanilla(BROWN_MUSHROOM_BLOCK, new BlockBehaviorHugeMushroomBrown()); //99
-        this.registerVanilla(RED_MUSHROOM_BLOCK, new BlockBehaviorHugeMushroomRed()); //100
-        this.registerVanilla(IRON_BARS, new BlockBehaviorIronBars()); //101
-        this.registerVanilla(GLASS_PANE, new BlockBehaviorGlassPane()); //102
-        this.registerVanilla(MELON_BLOCK, new BlockBehaviorMelon()); //103
-        this.registerVanilla(PUMPKIN_STEM, new BlockBehaviorStemPumpkin()); //104
-        this.registerVanilla(MELON_STEM, new BlockBehaviorStemMelon()); //105
-        this.registerVanilla(VINE, new BlockBehaviorVine()); //106
-        this.registerVanilla(WOODEN_FENCE_GATE, new BlockBehaviorFenceGate(), MultiBlockSerializers.WOOD_FENCE_GATE); //107
-        this.registerVanilla(MYCELIUM, new BlockBehaviorMycelium()); //110
-        this.registerVanilla(WATERLILY, new BlockBehaviorWaterLily()); //111
-        this.registerVanilla(NETHER_BRICK, new BlockBehaviorBricksNether(), MultiBlockSerializers.NETHER_BRICKS); //112
-        this.registerVanilla(NETHER_BRICK_FENCE, new BlockBehaviorFenceNetherBrick()); //113
-        this.registerVanilla(NETHER_WART, new BlockBehaviorNetherWart()); //115
-        this.registerVanilla(ENCHANTING_TABLE, new BlockBehaviorEnchantingTable()); //116
-        this.registerVanilla(BREWING_STAND, new BlockBehaviorBrewingStand()); //117
-        this.registerVanilla(CAULDRON, new BlockBehaviorCauldron(), MultiBlockSerializers.CAULDRON); //118
-        this.registerVanilla(END_PORTAL, new BlockBehaviorEndPortal()); //119
-        this.registerVanilla(END_PORTAL_FRAME, new BlockBehaviorEndPortalFrame()); //120
-        this.registerVanilla(END_STONE, new BlockBehaviorEndStone()); //121
-        this.registerVanilla(DRAGON_EGG, new BlockBehaviorDragonEgg()); //122
-        this.registerVanilla(REDSTONE_LAMP, new BlockBehaviorRedstoneLamp(), MultiBlockSerializers.REDSTONE_LAMP); //123
-        this.registerVanilla(DROPPER, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(ACTIVATOR_RAIL, new BlockBehaviorRailActivator()); //126
-        this.registerVanilla(COCOA, new BlockBehaviorCocoa()); //127
-        this.registerVanilla(EMERALD_ORE, new BlockBehaviorOreEmerald()); //129
-        this.registerVanilla(ENDER_CHEST, new BlockBehaviorEnderChest()); //130
-        this.registerVanilla(TRIPWIRE_HOOK, new BlockBehaviorTripWireHook()); //131
-        this.registerVanilla(TRIPWIRE, new BlockBehaviorTripWire()); //132
-        this.registerVanilla(EMERALD_BLOCK, new BlockBehaviorEmerald()); //133
-        this.registerVanilla(COMMAND_BLOCK, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(BEACON, new BlockBehaviorBeacon()); //138
-        this.registerVanilla(STONE_WALL, new BlockBehaviorWall(), MultiBlockSerializers.WALL); //139
-        this.registerVanilla(FLOWER_POT, new BlockBehaviorFlowerPot()); //140
-        this.registerVanilla(CARROTS, new BlockBehaviorCarrot()); //141
-        this.registerVanilla(POTATOES, new BlockBehaviorPotato()); //142
-        this.registerVanilla(WOODEN_BUTTON, new BlockBehaviorButton(), MultiBlockSerializers.WOOD_BUTTON); //143
-        this.registerVanilla(SKULL, new BlockBehaviorSkull()); //144
-        this.registerVanilla(ANVIL, new BlockBehaviorAnvil()); //145
-        this.registerVanilla(TRAPPED_CHEST, new BlockBehaviorTrappedChest()); //146
-        this.registerVanilla(LIGHT_WEIGHTED_PRESSURE_PLATE, new BlockBehaviorWeightedPressurePlateLight()); //147
-        this.registerVanilla(HEAVY_WEIGHTED_PRESSURE_PLATE, new BlockBehaviorWeightedPressurePlateHeavy()); //148
-        this.registerVanilla(COMPARATOR, new BlockBehaviorRedstoneComparator(), MultiBlockSerializers.COMPARATOR); //150
-        this.registerVanilla(DAYLIGHT_DETECTOR, new BlockBehaviorDaylightDetector()); //151
-        this.registerVanilla(REDSTONE_BLOCK, new BlockBehaviorRedstone()); //152
-        this.registerVanilla(QUARTZ_ORE, new BlockBehaviorOreQuartz()); //153
-        this.registerVanilla(HOPPER, new BlockBehaviorHopper()); //154
-        this.registerVanilla(QUARTZ_BLOCK, new BlockBehaviorQuartz()); //155
-        this.registerVanilla(WOODEN_SLAB, new BlockBehaviorSlabWood(), SlabSerializer.INSTANCE); //158
-        this.registerVanilla(STAINED_HARDENED_CLAY, new BlockBehaviorTerracottaStained()); //159
-        this.registerVanilla(STAINED_GLASS_PANE, new BlockBehaviorGlassPaneStained()); //160
-        this.registerVanilla(SLIME, new BlockBehaviorSlime()); //165
+        this.registerVanilla(BROWN_MUSHROOM_BLOCK); //99
+        this.registerVanilla(RED_MUSHROOM_BLOCK); //100
+        this.registerVanilla(IRON_BARS); //101
+        this.registerVanilla(GLASS_PANE); //102
+        this.registerVanilla(MELON_BLOCK); //103
+        this.registerVanilla(PUMPKIN_STEM); //104
+        this.registerVanilla(MELON_STEM); //105
+        this.registerVanilla(VINE); //106
+        this.registerVanilla(WOODEN_FENCE_GATE, MultiBlockSerializers.WOOD_FENCE_GATE); //107
+        this.registerVanilla(MYCELIUM); //110
+        this.registerVanilla(WATERLILY); // 111
+        this.registerVanilla(NETHER_BRICK, MultiBlockSerializers.NETHER_BRICKS); //112
+        this.registerVanilla(NETHER_BRICK_FENCE); //113
+        this.registerVanilla(NETHER_WART); //115
+        this.registerVanilla(ENCHANTING_TABLE); //116
+        this.registerVanilla(BREWING_STAND); //117
+        this.registerVanilla(CAULDRON, MultiBlockSerializers.CAULDRON); //118
+        this.registerVanilla(END_PORTAL); //119
+        this.registerVanilla(END_PORTAL_FRAME); //120
+        this.registerVanilla(END_STONE); //121
+        this.registerVanilla(DRAGON_EGG); //122
+        this.registerVanilla(REDSTONE_LAMP, MultiBlockSerializers.REDSTONE_LAMP); //123
+        this.registerVanilla(DROPPER);
+        this.registerVanilla(ACTIVATOR_RAIL); //126
+        this.registerVanilla(COCOA); //127
+        this.registerVanilla(EMERALD_ORE); //129
+        this.registerVanilla(ENDER_CHEST); //130
+        this.registerVanilla(TRIPWIRE_HOOK); //131
+        this.registerVanilla(TRIPWIRE); //132
+        this.registerVanilla(EMERALD_BLOCK); //133
+        this.registerVanilla(COMMAND_BLOCK);
+        this.registerVanilla(BEACON); //138
+        this.registerVanilla(STONE_WALL, MultiBlockSerializers.WALL); //139
+        this.registerVanilla(FLOWER_POT); //140
+        this.registerVanilla(CARROTS); //141
+        this.registerVanilla(POTATOES); //142
+        this.registerVanilla(WOODEN_BUTTON, MultiBlockSerializers.WOOD_BUTTON); //143
+        this.registerVanilla(SKULL); //144
+        this.registerVanilla(ANVIL); //145
+        this.registerVanilla(TRAPPED_CHEST); //146
+        this.registerVanilla(LIGHT_WEIGHTED_PRESSURE_PLATE); //147
+        this.registerVanilla(HEAVY_WEIGHTED_PRESSURE_PLATE); //148
+        this.registerVanilla(COMPARATOR, MultiBlockSerializers.COMPARATOR); //150
+        this.registerVanilla(DAYLIGHT_DETECTOR); //151
+        this.registerVanilla(REDSTONE_BLOCK); //152
+        this.registerVanilla(QUARTZ_ORE); //153
+        this.registerVanilla(HOPPER); //154
+        this.registerVanilla(QUARTZ_BLOCK); //155
+        this.registerVanilla(WOODEN_SLAB, SlabSerializer.INSTANCE); //158
+        this.registerVanilla(STAINED_HARDENED_CLAY); //159
+        this.registerVanilla(STAINED_GLASS_PANE); //160
+        this.registerVanilla(SLIME); //165
         //166: glow_stick
-        this.registerVanilla(IRON_TRAPDOOR, new BlockBehaviorTrapdoorIron()); //167
-        this.registerVanilla(PRISMARINE, new BlockBehaviorPrismarine()); //168
-        this.registerVanilla(SEA_LANTERN, new BlockBehaviorSeaLantern()); //169
-        this.registerVanilla(HAY_BLOCK, new BlockBehaviorHayBale()); //170
-        this.registerVanilla(CARPET, new BlockBehaviorCarpet()); //171
-        this.registerVanilla(HARDENED_CLAY, new BlockBehaviorTerracotta()); //172
-        this.registerVanilla(COAL_BLOCK, new BlockBehaviorCoal()); //173
-        this.registerVanilla(PACKED_ICE, new BlockBehaviorIcePacked()); //174
-        this.registerVanilla(DOUBLE_PLANT, new BlockBehaviorDoublePlant()); //175
-        this.registerVanilla(STANDING_BANNER, new BlockBehaviorBanner()); //176
-        this.registerVanilla(WALL_BANNER, new BlockBehaviorWallBanner()); //177
-        this.registerVanilla(DAYLIGHT_DETECTOR_INVERTED, new BlockBehaviorDaylightDetectorInverted()); //178
-        this.registerVanilla(RED_SANDSTONE, new BlockBehaviorRedSandstone()); //179
-        this.registerVanilla(REPEATING_COMMAND_BLOCK, NoopBlockBehavior.INSTANCE); //188
-        this.registerVanilla(CHAIN_COMMAND_BLOCK, NoopBlockBehavior.INSTANCE); //189
-        this.registerVanilla(HARD_GLASS_PANE, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(HARD_STAINED_GLASS_PANE, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(CHEMICAL_HEAT, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(GRASS_PATH, new BlockBehaviorGrassPath()); //198
-        this.registerVanilla(FRAME, new BlockBehaviorItemFrame(), MultiBlockSerializers.FRAME); //199
-        this.registerVanilla(CHORUS_FLOWER, new BlockBehaviorChorusFlower()); //200
-        this.registerVanilla(PURPUR_BLOCK, new BlockBehaviorPurpur()); //201
-        this.registerVanilla(COLORED_TORCH_RG, new BlockBehaviorTorch());
-        this.registerVanilla(COLORED_TORCH_BP, new BlockBehaviorTorch());
-        this.registerVanilla(UNDYED_SHULKER_BOX, new BlockBehaviorUndyedShulkerBox()); //205
-        this.registerVanilla(END_BRICKS, new BlockBehaviorBricksEndStone()); //206
-        this.registerVanilla(FROSTED_ICE, NoopBlockBehavior.INSTANCE); //206
-        this.registerVanilla(END_ROD, new BlockBehaviorEndRod()); //208
-        this.registerVanilla(END_GATEWAY, new BlockBehaviorEndGateway()); //209
-        this.registerVanilla(ALLOW, NoopBlockBehavior.INSTANCE); //210
-        this.registerVanilla(DENY, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(BORDER_BLOCK, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(MAGMA, new BlockBehaviorMagma()); //213
-        this.registerVanilla(NETHER_WART_BLOCK, new BlockNetherWartBlockBehavior(), MultiBlockSerializers.WART_BLOCK); //214
-        this.registerVanilla(BONE_BLOCK, new BlockBehaviorBone()); //216
-        this.registerVanilla(STRUCTURE_VOID, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(SHULKER_BOX, new BlockBehaviorShulkerBox()); //218
-        this.registerVanilla(GLAZED_TERRACOTTA, new BlockBehaviorTerracottaGlazed(), MultiBlockSerializers.TERRACOTTA); //219 - 235
-        this.registerVanilla(CONCRETE, new BlockBehaviorConcrete()); //236
-        this.registerVanilla(CONCRETE_POWDER, new BlockBehaviorConcretePowder()); //237
-        this.registerVanilla(CHEMISTRY_TABLE, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(UNDERWATER_TORCH, new BlockBehaviorTorch());
-        this.registerVanilla(CHORUS_PLANT, new BlockBehaviorChorusPlant()); //240
-        this.registerVanilla(STAINED_GLASS, new BlockBehaviorGlassStained()); //241
-        this.registerVanilla(CAMERA, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(PODZOL, new BlockBehaviorPodzol()); //243
-        this.registerVanilla(BEETROOT, new BlockBehaviorBeetroot()); //244
+        this.registerVanilla(IRON_TRAPDOOR); //167
+        this.registerVanilla(PRISMARINE); //168
+        this.registerVanilla(SEA_LANTERN); //169
+        this.registerVanilla(HAY_BLOCK); //170
+        this.registerVanilla(CARPET); //171
+        this.registerVanilla(HARDENED_CLAY); //172
+        this.registerVanilla(COAL_BLOCK); //173
+        this.registerVanilla(PACKED_ICE); //174
+        this.registerVanilla(DOUBLE_PLANT); //175
+        this.registerVanilla(STANDING_BANNER); //176
+        this.registerVanilla(WALL_BANNER); //177
+        this.registerVanilla(DAYLIGHT_DETECTOR_INVERTED); //178
+        this.registerVanilla(RED_SANDSTONE); //179
+        this.registerVanilla(REPEATING_COMMAND_BLOCK); //188
+        this.registerVanilla(CHAIN_COMMAND_BLOCK); //189
+        this.registerVanilla(HARD_GLASS_PANE);
+        this.registerVanilla(HARD_STAINED_GLASS_PANE);
+        this.registerVanilla(CHEMICAL_HEAT);
+        this.registerVanilla(GRASS_PATH); //198
+        this.registerVanilla(FRAME, MultiBlockSerializers.FRAME); //199
+        this.registerVanilla(CHORUS_FLOWER); //200
+        this.registerVanilla(PURPUR_BLOCK); //201
+        this.registerVanilla(COLORED_TORCH_RG);
+        this.registerVanilla(COLORED_TORCH_BP);
+        this.registerVanilla(UNDYED_SHULKER_BOX); //205
+        this.registerVanilla(END_BRICKS); //206
+        this.registerVanilla(FROSTED_ICE); //206
+        this.registerVanilla(END_ROD); //208
+        this.registerVanilla(END_GATEWAY); //209
+        this.registerVanilla(ALLOW); //210
+        this.registerVanilla(DENY);
+        this.registerVanilla(BORDER_BLOCK);
+        this.registerVanilla(MAGMA); //213
+        this.registerVanilla(NETHER_WART_BLOCK, MultiBlockSerializers.WART_BLOCK); //214
+        this.registerVanilla(BONE_BLOCK); //216
+        this.registerVanilla(STRUCTURE_VOID);
+        this.registerVanilla(SHULKER_BOX); //218
+        this.registerVanilla(GLAZED_TERRACOTTA, MultiBlockSerializers.TERRACOTTA); //219 - 235
+        this.registerVanilla(CONCRETE); //236
+        this.registerVanilla(CONCRETE_POWDER); //237
+        this.registerVanilla(CHEMISTRY_TABLE);
+        this.registerVanilla(UNDERWATER_TORCH);
+        this.registerVanilla(CHORUS_PLANT); //240
+        this.registerVanilla(STAINED_GLASS); //241
+        this.registerVanilla(CAMERA);
+        this.registerVanilla(PODZOL); //243
+        this.registerVanilla(BEETROOT); //244
         this.registerVanilla(STONECUTTER); //245
-        this.registerVanilla(GLOWING_OBSIDIAN, new BlockBehaviorObsidianGlowing()); //246
-        this.registerVanilla(NETHER_REACTOR, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(INFO_UPDATE, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(INFO_UPDATE2, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(MOVING_BLOCK, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(OBSERVER, new BlockBehaviorObserver()); //251
-        this.registerVanilla(STRUCTURE_BLOCK, NoopBlockBehavior.INSTANCE); //252
-        this.registerVanilla(HARD_GLASS, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(HARD_STAINED_GLASS, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(RESERVED6, NoopBlockBehavior.INSTANCE);
+        this.registerVanilla(GLOWING_OBSIDIAN); //246
+        this.registerVanilla(NETHER_REACTOR);
+        this.registerVanilla(INFO_UPDATE);
+        this.registerVanilla(INFO_UPDATE2);
+        this.registerVanilla(MOVING_BLOCK);
+        this.registerVanilla(OBSERVER); //251
+        this.registerVanilla(STRUCTURE_BLOCK); //252
+        this.registerVanilla(HARD_GLASS);
+        this.registerVanilla(HARD_STAINED_GLASS);
+        this.registerVanilla(RESERVED6);
         //256: unknown
-        this.registerVanilla(BLUE_ICE, new BlockBehaviorBlueIce()); //266
-        this.registerVanilla(ELEMENT, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.ELEMENT);
-        this.registerVanilla(SEAGRASS, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(CORAL, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(CORAL_BLOCK, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(CORAL_FAN, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(CORAL_FAN_DEAD, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(CORAL_FAN_HANG, NoopBlockBehavior.INSTANCE, new CoralHangBlockSerializer());
-        this.registerVanilla(KELP, new BlockBehaviorKelp());//393
-        this.registerVanilla(DRIED_KELP_BLOCK, new BlockBehaviorDriedKelp()); //394
-        this.registerVanilla(CARVED_PUMPKIN, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(SEA_PICKLE, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(CONDUIT, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(TURTLE_EGG, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(BUBBLE_COLUMN, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(BARRIER, new BlockBehaviorBarrier()); //415
-        this.registerVanilla(BAMBOO, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(BAMBOO_SAPLING, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(SCAFFOLDING, NoopBlockBehavior.INSTANCE);
+        this.registerVanilla(BLUE_ICE); //266
+        this.registerVanilla(ELEMENT, MultiBlockSerializers.ELEMENT);
+        this.registerVanilla(SEAGRASS);
+        this.registerVanilla(CORAL);
+        this.registerVanilla(CORAL_BLOCK);
+        this.registerVanilla(CORAL_FAN);
+        this.registerVanilla(CORAL_FAN_DEAD);
+        this.registerVanilla(CORAL_FAN_HANG, new CoralHangBlockSerializer());
+        this.registerVanilla(KELP);//393
+        this.registerVanilla(DRIED_KELP_BLOCK); //394
+        this.registerVanilla(CARVED_PUMPKIN);
+        this.registerVanilla(SEA_PICKLE);
+        this.registerVanilla(CONDUIT);
+        this.registerVanilla(TURTLE_EGG);
+        this.registerVanilla(BUBBLE_COLUMN);
+        this.registerVanilla(BARRIER); //415
+        this.registerVanilla(BAMBOO);
+        this.registerVanilla(BAMBOO_SAPLING);
+        this.registerVanilla(SCAFFOLDING);
         this.registerVanilla(SMOOTH_STONE); // 437
-        this.registerVanilla(LECTERN, new BlockBehaviorLectern()); //448
-        this.registerVanilla(GRINDSTONE, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(BLAST_FURNACE, new BlockBehaviorFurnace(BlockEntityTypes.BLAST_FURNACE), MultiBlockSerializers.BLAST_FURNACE); // 450
-        this.registerVanilla(STONECUTTER_BLOCK, NoopBlockBehavior.INSTANCE); // 451
-        this.registerVanilla(SMOKER, new BlockBehaviorFurnace(BlockEntityTypes.FURNACE), MultiBlockSerializers.SMOKER); //452
-        this.registerVanilla(CARTOGRAPHY_TABLE, NoopBlockBehavior.INSTANCE); //454
-        this.registerVanilla(FLETCHING_TABLE, NoopBlockBehavior.INSTANCE); //455
-        this.registerVanilla(SMITHING_TABLE, NoopBlockBehavior.INSTANCE); //456
-        this.registerVanilla(BARREL, new BlockBehaviorBarrel()); // 457
-        this.registerVanilla(LOOM, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(BELL, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(SWEET_BERRY_BUSH, NoopBlockBehavior.INSTANCE);
-        this.registerVanilla(LANTERN, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.LANTERN);
-        this.registerVanilla(CAMPFIRE, new BlockBehaviorCampfire(), MultiBlockSerializers.CAMPFIRE);//464
-        this.registerVanilla(JIGSAW, NoopBlockBehavior.INSTANCE, new JigsawSerializer());//466
-        this.registerVanilla(WOOD, new BlockBehaviorWood(), MultiBlockSerializers.WOOD); //467
-        this.registerVanilla(COMPOSTER, NoopBlockBehavior.INSTANCE);//468
-        this.registerVanilla(LIGHT_BLOCK, new BlockBehaviorLight());//470
-        this.registerVanilla(WITHER_ROSE, NoopBlockBehavior.INSTANCE);//471
-        this.registerVanilla(BEE_NEST, NoopBlockBehavior.INSTANCE);//473
-        this.registerVanilla(BEEHIVE, NoopBlockBehavior.INSTANCE);//474
-        this.registerVanilla(HONEY_BLOCK, NoopBlockBehavior.INSTANCE);//475
-        this.registerVanilla(HONEYCOMB_BLOCK, new BlockHoneycombBlockBehavior()); //476
-        this.registerVanilla(LODESTONE, NoopBlockBehavior.INSTANCE);//477
-        this.registerVanilla(NETHER_ROOTS, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.ROOTS);//478
-        this.registerVanilla(NETHER_FUNGUS, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.FUNGUS);//482
-        this.registerVanilla(SHROOMLIGHT, NoopBlockBehavior.INSTANCE);//484
-        this.registerVanilla(WEEPING_VINES, NoopBlockBehavior.INSTANCE);//485
-        this.registerVanilla(NETHER_NYLIUM, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.NYLIUM);//486
-        this.registerVanilla(BASALT, NoopBlockBehavior.INSTANCE);//490
-        this.registerVanilla(POLISHED_BASALT, NoopBlockBehavior.INSTANCE);//590
-        this.registerVanilla(SOUL_SOIL, NoopBlockBehavior.INSTANCE);//491
-        this.registerVanilla(SOUL_FIRE, NoopBlockBehavior.INSTANCE);//492
-        this.registerVanilla(NETHER_SPROUTS, NoopBlockBehavior.INSTANCE);//493
-        this.registerVanilla(TARGET, NoopBlockBehavior.INSTANCE);//494
-        this.registerVanilla(NETHERITE_BLOCK, NoopBlockBehavior.INSTANCE);//525
-        this.registerVanilla(ANCIENT_DEBRIS, NoopBlockBehavior.INSTANCE);//526
-        this.registerVanilla(RESPAWN_ANCHOR, NoopBlockBehavior.INSTANCE);//527
-        this.registerVanilla(BLACKSTONE, NoopBlockBehavior.INSTANCE);//528
-        this.registerVanilla(POLISHED_BLACKSTONE_BRICKS, NoopBlockBehavior.INSTANCE);//529
-        this.registerVanilla(CHISELED_POLISHED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//534
-        this.registerVanilla(CRACKED_POLISHED_BLACKSTONE_BRICKS, NoopBlockBehavior.INSTANCE);//535
-        this.registerVanilla(GILDED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//536
-        this.registerVanilla(CHAIN, NoopBlockBehavior.INSTANCE);//541
-        this.registerVanilla(TWISTING_VINES, NoopBlockBehavior.INSTANCE);//542
-        this.registerVanilla(NETHER_GOLD_ORE, NoopBlockBehavior.INSTANCE);//543
-        this.registerVanilla(CRYING_OBSIDIAN, NoopBlockBehavior.INSTANCE);//544
-        this.registerVanilla(POLISHED_BLACKSTONE, NoopBlockBehavior.INSTANCE);//546
-        this.registerVanilla(QUARTZ_BRICKS, NoopBlockBehavior.INSTANCE);//559
-        this.registerVanilla(UNKNOWN, NoopBlockBehavior.INSTANCE); //560
+        this.registerVanilla(LECTERN); //448
+        this.registerVanilla(GRINDSTONE);
+        this.registerVanilla(BLAST_FURNACE, MultiBlockSerializers.BLAST_FURNACE); // 450
+        this.registerVanilla(STONECUTTER_BLOCK); // 451
+        this.registerVanilla(SMOKER, MultiBlockSerializers.SMOKER); //452
+        this.registerVanilla(CARTOGRAPHY_TABLE); //454
+        this.registerVanilla(FLETCHING_TABLE); //455
+        this.registerVanilla(SMITHING_TABLE); //456
+        this.registerVanilla(BARREL); // 457
+        this.registerVanilla(LOOM);
+        this.registerVanilla(BELL);
+        this.registerVanilla(SWEET_BERRY_BUSH);
+        this.registerVanilla(LANTERN, MultiBlockSerializers.LANTERN);
+        this.registerVanilla(CAMPFIRE, MultiBlockSerializers.CAMPFIRE);//464
+        this.registerVanilla(JIGSAW, new JigsawSerializer());//466
+        this.registerVanilla(WOOD, MultiBlockSerializers.WOOD); //467
+        this.registerVanilla(COMPOSTER);//468
+        this.registerVanilla(LIGHT_BLOCK);//470
+        this.registerVanilla(WITHER_ROSE);//471
+        this.registerVanilla(BEE_NEST);//473
+        this.registerVanilla(BEEHIVE);//474
+        this.registerVanilla(HONEY_BLOCK);//475
+        this.registerVanilla(HONEYCOMB_BLOCK); // 476
+        this.registerVanilla(LODESTONE);//477
+        this.registerVanilla(NETHER_ROOTS, MultiBlockSerializers.ROOTS);//478
+        this.registerVanilla(NETHER_FUNGUS, MultiBlockSerializers.FUNGUS);//482
+        this.registerVanilla(SHROOMLIGHT);//484
+        this.registerVanilla(WEEPING_VINES);//485
+        this.registerVanilla(NETHER_NYLIUM, MultiBlockSerializers.NYLIUM);//486
+        this.registerVanilla(BASALT);//490
+        this.registerVanilla(POLISHED_BASALT);//590
+        this.registerVanilla(SOUL_SOIL);//491
+        this.registerVanilla(SOUL_FIRE);//492
+        this.registerVanilla(NETHER_SPROUTS);//493
+        this.registerVanilla(TARGET);//494
+        this.registerVanilla(NETHERITE_BLOCK);//525
+        this.registerVanilla(ANCIENT_DEBRIS);//526
+        this.registerVanilla(RESPAWN_ANCHOR);//527
+        this.registerVanilla(BLACKSTONE);//528
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICKS);//529
+        this.registerVanilla(CHISELED_POLISHED_BLACKSTONE);//534
+        this.registerVanilla(CRACKED_POLISHED_BLACKSTONE_BRICKS);//535
+        this.registerVanilla(GILDED_BLACKSTONE);//536
+        this.registerVanilla(CHAIN);//541
+        this.registerVanilla(TWISTING_VINES);//542
+        this.registerVanilla(NETHER_GOLD_ORE);//543
+        this.registerVanilla(CRYING_OBSIDIAN);//544
+        this.registerVanilla(POLISHED_BLACKSTONE);//546
+        this.registerVanilla(QUARTZ_BRICKS);//559
+        this.registerVanilla(UNKNOWN); //560
 
         this.registerVanilla(POWDER_SNOW);
         this.registerVanilla(SCULK_SENSOR);
@@ -601,23 +554,23 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(MOSS_BLOCK);
         this.registerVanilla(SPORE_BLOSSOM);
         this.registerVanilla(BIG_DRIPLEAF);
-        this.registerVanilla(AZALEA_LEAVES, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.AZALEA_LEAVES);
+        this.registerVanilla(AZALEA_LEAVES, MultiBlockSerializers.AZALEA_LEAVES);
         this.registerVanilla(CALCITE);
         this.registerVanilla(AMETHYST_BLOCK);
         this.registerVanilla(BUDDING_AMETHYST);
-        this.registerVanilla(AMETHYST_CLUSTER, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.AMETHYST_CLUSTER);
+        this.registerVanilla(AMETHYST_CLUSTER, MultiBlockSerializers.AMETHYST_CLUSTER);
         this.registerVanilla(TUFF);
         this.registerVanilla(TINTED_GLASS);
         this.registerVanilla(MOSS_CARPET);
         this.registerVanilla(SMALL_DRIPLEAF);
-        this.registerVanilla(AZALEA, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.AZALEA);
-        this.registerVanilla(COPPER, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.COPPER_BLOCKS);
-        this.registerVanilla(CUT_COPPER, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CUT_COPPER);
-        this.registerVanilla(COPPER_SLAB, NoopBlockBehavior.INSTANCE, SlabSerializer.INSTANCE);
-        this.registerVanilla(COPPER_STAIRS, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.COPPER_STAIRS);
-        this.registerVanilla(CAVE_VINES, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CAVE_VINES);
+        this.registerVanilla(AZALEA, MultiBlockSerializers.AZALEA);
+        this.registerVanilla(COPPER, MultiBlockSerializers.COPPER_BLOCKS);
+        this.registerVanilla(CUT_COPPER, MultiBlockSerializers.CUT_COPPER);
+        this.registerVanilla(COPPER_SLAB, SlabSerializer.INSTANCE);
+        this.registerVanilla(COPPER_STAIRS, MultiBlockSerializers.COPPER_STAIRS);
+        this.registerVanilla(CAVE_VINES, MultiBlockSerializers.CAVE_VINES);
         this.registerVanilla(SMOOTH_BASALT);
-        this.registerVanilla(DEEPSLATE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.DEEPSLATE);
+        this.registerVanilla(DEEPSLATE, MultiBlockSerializers.DEEPSLATE);
         this.registerVanilla(COBBLED_DEEPSLATE);
         this.registerVanilla(POLISHED_DEEPSLATE);
         this.registerVanilla(DEEPSLATE_TILES);
@@ -626,7 +579,7 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(DEEPSLATE_LAPIS_ORE);
         this.registerVanilla(DEEPSLATE_IRON_ORE);
         this.registerVanilla(DEEPSLATE_GOLD_ORE);
-        this.registerVanilla(DEEPSLATE_REDSTONE_ORE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.DEEPSLATE_REDSTONE_ORE);
+        this.registerVanilla(DEEPSLATE_REDSTONE_ORE, MultiBlockSerializers.DEEPSLATE_REDSTONE_ORE);
         this.registerVanilla(DEEPSLATE_DIAMOND_ORE);
         this.registerVanilla(DEEPSLATE_COAL_ORE);
         this.registerVanilla(DEEPSLATE_EMERALD_ORE);
@@ -638,71 +591,8 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(RAW_IRON_BLOCK);
         this.registerVanilla(RAW_GOLD_BLOCK);
 
-        this.registerVanilla(CANDLE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CANDLES);
-        this.registerVanilla(CANDLE_CAKE, NoopBlockBehavior.INSTANCE, MultiBlockSerializers.CANDLE_CAKES);
+        this.registerVanilla(CANDLE, MultiBlockSerializers.CANDLES);
+        this.registerVanilla(CANDLE_CAKE, MultiBlockSerializers.CANDLE_CAKES);
 
-
-    }
-
-    private void loadBlockAttributes() {
-        var mapper = Bootstrap.JSON_MAPPER.copy();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.registerModule(
-                new SimpleModule()
-                        .addDeserializer(AxisAlignedBB.class, new JsonDeserializer<>() {
-
-                            private final Pattern regex = Pattern.compile("\\((\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?),(\\d+(?:\\.\\d+)?)\\)");
-
-                            @Override
-                            public AxisAlignedBB deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-                                var matcher = regex.matcher(jsonParser.getText());
-
-                                if (matcher.matches()) {
-                                    return new SimpleAxisAlignedBB(
-                                            Float.parseFloat(matcher.group(1)),
-                                            Float.parseFloat(matcher.group(2)),
-                                            Float.parseFloat(matcher.group(3)),
-                                            Float.parseFloat(matcher.group(4)),
-                                            Float.parseFloat(matcher.group(5)),
-                                            Float.parseFloat(matcher.group(6))
-                                    );
-                                }
-
-                                return null;
-                            }
-                        })
-                        .addDeserializer(ToolType.class, new JsonDeserializer<>() {
-
-                            @Override
-                            public ToolType deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-                                var toolName = jsonParser.getText().substring(10);
-
-                                return switch (toolName.toLowerCase()) {
-                                    case "sword" -> ToolTypes.SWORD;
-                                    case "shovel" -> ToolTypes.SHOVEL;
-                                    case "pickaxe" -> ToolTypes.PICKAXE;
-                                    case "axe" -> ToolTypes.AXE;
-                                    case "hoe" -> ToolTypes.HOE;
-                                    case "shears" -> ToolTypes.SHEARS;
-                                    default -> throw new IllegalArgumentException(toolName);
-                                };
-                            }
-                        })
-        );
-
-        try (InputStream in = RegistryUtils.getOrAssertResource("data/block_attributes.json")) {
-            var blocks = mapper.readValue(in, new TypeReference<List<Map<String, Object>>>() {
-            });
-
-            for (Map<String, Object> blockEntry : blocks) {
-                this.blockAttributes.put(
-                        (String) blockEntry.get("name"),
-                        mapper.convertValue(blockEntry, new TypeReference<>() {
-                        })
-                );
-            }
-        } catch (IOException e) {
-            throw new RegistryException("Error loading vanilla block attributes", e);
-        }
     }
 }

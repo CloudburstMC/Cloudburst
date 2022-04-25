@@ -10,7 +10,7 @@ public interface ItemDataSerializer<T> {
     String ITEM_TAG = "tag";
     String NAME_TAG = "tag";
 
-    void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, T value);
+    void serialize(ItemStack item, NbtMapBuilder tag, T value);
 
-    T deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag);
+    T deserialize(Identifier id, NbtMap tag);
 }

@@ -3,10 +3,11 @@ package org.cloudburstmc.server.item.serializer;
 import com.google.common.base.Preconditions;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.CloudItemStackBuilder;
 
 import java.util.Map;
 
@@ -25,16 +26,17 @@ public class EnumDamageSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
-        var val = item.getMetadata(enumClass);
-        itemTag.putShort("Damage", (short) (val == null ? 0 : val.ordinal()));
+        var val = item.get(ItemKeys.COLOR);
+        itemTag.
+        itemTag.putShort("Damage", (short) (val == null ? 0 : val));
     }
 
     @Override
-    public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
+    public void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag) {
         super.deserialize(id, meta, amount, builder, tag);
-        builder.itemData(values[meta % values.length]);
+        builder.data(ItemKeys.COLOR, values[meta % values.length]);
     }
 
     @Override

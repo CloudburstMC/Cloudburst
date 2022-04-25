@@ -145,7 +145,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                     continue;
                 }
 
-                item = item.withAmount(1);
+                item = item.withCount(1);
 
                 if (!this.inventory.canAddItem(item)) {
                     continue;
@@ -188,7 +188,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 continue;
             }
 
-            int originalCount = item.getAmount();
+            int originalCount = item.getCount();
 
             if (!this.inventory.canAddItem(item)) {
                 continue;
@@ -209,9 +209,9 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 continue;
             }
 
-            if (items[0].getAmount() != originalCount) {
+            if (items[0].getCount() != originalCount) {
                 pickedUpItem = true;
-                itemEntity.setItem(item.withAmount(items[0].getAmount()));
+                itemEntity.setItem(item.withCount(items[0].getCount()));
             }
         }
 
@@ -267,11 +267,11 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 for (int slot : slots) {
                     ItemStack target = inv.getItem(slot);
 
-                    if (!target.isNull() && (!target.equals(item) || target.getAmount() >= item.getBehavior().getMaxStackSize(item))) {
+                    if (!target.isNull() && (!target.equals(item) || target.getCount() >= item.getBehavior().getMaxStackSize(item))) {
                         continue;
                     }
 
-                    item = item.withAmount(1);
+                    item = item.withCount(1);
 
                     InventoryMoveItemEvent event = new InventoryMoveItemEvent(this.inventory, inv, this, item, InventoryMoveItemEvent.Action.SLOT_CHANGE);
                     this.server.getEventManager().fire(event);

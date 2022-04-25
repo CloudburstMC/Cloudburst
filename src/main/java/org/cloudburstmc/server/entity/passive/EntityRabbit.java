@@ -5,7 +5,6 @@ import org.cloudburstmc.api.entity.passive.Rabbit;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Author: BeYkeRYkt Nukkit Project
@@ -39,7 +38,7 @@ public class EntityRabbit extends Animal implements Rabbit {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.RABBIT), CloudItemRegistry.get().getItem(ItemTypes.RABBIT_HIDE), CloudItemRegistry.get().getItem(ItemTypes.RABBIT_FOOT)};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.RABBIT).build(), ItemStack.builder().itemType(ItemTypes.RABBIT_HIDE).build(), ItemStack.builder().itemType(ItemTypes.RABBIT_FOOT).build()};
     }
 
     @Override

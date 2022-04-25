@@ -1,13 +1,10 @@
 package org.cloudburstmc.server.level.feature;
 
-import org.cloudburstmc.api.block.BlockIds;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * Provides helper methods for other {@link WorldFeature} to quickly check if a block can be replaced.
@@ -22,12 +19,8 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
     }
 
     public boolean testOrLiquid(BlockState state) {
-        Identifier id = state.getType().getId();
-        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || state.getType().isReplaceable();
-    }
-
-    public boolean testOrLiquid(int runtimeId) {
-        return runtimeId == 0 || this.testOrLiquid(CloudBlockRegistry.get().getBlock(runtimeId));
+        BlockType type = state.getType();
+        return type == BlockTypes.AIR || type == BlockTypes.LEAVES || state.getType().isReplaceable();
     }
 
     /**

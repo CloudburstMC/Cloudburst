@@ -10,7 +10,6 @@ import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -91,7 +90,10 @@ public class EntityCreeper extends EntityHostile implements Creeper {
     @Override
     public ItemStack[] getDrops() {
         if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
-            return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.GUNPOWDER, ThreadLocalRandom.current().nextInt(2) + 1)};
+            return new ItemStack[]{ItemStack.builder()
+                    .itemType(ItemTypes.GUNPOWDER)
+                    .amount(ThreadLocalRandom.current().nextInt(2) + 1)
+                    .build()};
         }
         return new ItemStack[0];
     }

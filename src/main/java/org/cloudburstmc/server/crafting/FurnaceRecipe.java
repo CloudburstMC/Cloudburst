@@ -5,7 +5,6 @@ import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.CloudItemStack;
 
 import javax.annotation.concurrent.Immutable;
 import java.util.Collections;
@@ -46,7 +45,7 @@ public class FurnaceRecipe implements CraftingRecipe {
 
     @Override
     public RecipeType getType() {
-        return ((CloudItemStack) ingredient).getNetworkData().getDamage() >= 0 ? RecipeType.FURNACE_DATA : RecipeType.FURNACE;
+        return ((ItemStack) ingredient).getNetworkData().getDamage() >= 0 ? RecipeType.FURNACE_DATA : RecipeType.FURNACE;
     }
 
     @Override
@@ -75,8 +74,8 @@ public class FurnaceRecipe implements CraftingRecipe {
     }
 
     public CraftingData toNetwork(int netId) {
-        var ingredientData = ((CloudItemStack) ingredient).getNetworkData();
-        var outputData = ((CloudItemStack) output).getNetworkData();
+        var ingredientData = ((ItemStack) ingredient).getNetworkData();
+        var outputData = ((ItemStack) output).getNetworkData();
 
         if (ingredientData.getDamage() >= 0) {
             return CraftingData.fromFurnaceData(ingredientData.getId(), ingredientData.getDamage(), outputData, block.getName(), netId);

@@ -9,14 +9,13 @@ import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.FireworksRocket;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -160,13 +159,15 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
 
     @Override
     public FireworkData getFireworkData() {
-        return this.firework != null ? this.firework.getMetadata(FireworkData.class) : null;
+        return this.firework != null ? this.firework.get(ItemKeys.FIREWORK_DATA) : null;
     }
 
     @Override
     public void setFireworkData(FireworkData data) {
-        this.firework = CloudItemRegistry.get().getItem(ItemTypes.FIREWORKS, 1, data);
-        this.data.setTag(DISPLAY_ITEM, ((CloudItemStack) this.firework).getNbt());
+        this.firework = ItemStack.builder(ItemTypes.FIREWORKS)
+                .data(ItemKeys.FIREWORK_DATA, data)
+                .build();
+        this.data.setTag(DISPLAY_ITEM, ((ItemStack) this.firework).getNbt());
     }
 
     @Override

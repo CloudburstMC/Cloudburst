@@ -23,7 +23,6 @@ import org.cloudburstmc.server.crafting.FurnaceRecipe;
 import org.cloudburstmc.server.inventory.CloudFurnaceInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 import java.util.ArrayList;
@@ -136,11 +135,11 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                 p.sendPacket(packet);
             }
 
-            if (fuel.getAmount() <= 1) {
+            if (fuel.getCount() <= 1) {
                 if (fuel.getType() == ItemTypes.BUCKET && fuel.getMetadata(Bucket.class) == Bucket.LAVA) {
                     fuel = fuel.toBuilder().amount(1).itemData(Bucket.EMPTY).build();
                 } else {
-                    fuel = CloudItemRegistry.get().AIR;
+                    fuel = ItemStack.AIR;
                 }
             } else {
                 fuel = fuel.decrementAmount();
@@ -164,10 +163,10 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         BlockState state = getBlockState();
         BlockType blockType = state.getType();
         FurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
-        boolean canSmelt = (smelt != null && raw.getAmount() > 0 && ((smelt.getResult().equals(product)
-                && product.getAmount() < product.getBehavior().getMaxStackSize(product)) || product.isNull()));
+        boolean canSmelt = (smelt != null && raw.getCount() > 0 && ((smelt.getResult().equals(product)
+                && product.getCount() < product.getBehavior().getMaxStackSize(product)) || product.isNull()));
 
-        if (burnTime <= 0 && canSmelt && fuel.getBehavior().getFuelTime(fuel) != 0 && fuel.getAmount() > 0) {
+        if (burnTime <= 0 && canSmelt && fuel.getBehavior().getFuelTime(fuel) != 0 && fuel.getCount() > 0) {
             this.checkFuel(fuel);
         }
 
@@ -183,8 +182,8 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                     this.server.getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         this.inventory.setResult(ev.getResult());
-                        if (raw.getAmount() <= 1) {
-                            raw = CloudItemRegistry.get().AIR;
+                        if (raw.getCount() <= 1) {
+                            raw = ItemStack.AIR;
                         } else {
                             raw = raw.decrementAmount();
                         }

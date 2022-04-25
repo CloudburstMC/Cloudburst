@@ -9,13 +9,13 @@ import org.cloudburstmc.api.util.Identifier;
 public class DamageableSerializer implements ItemDataSerializer<Damageable> {
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, Damageable value) {
-        dataTag.putInt("Damage", value.getDurability());
-        dataTag.putBoolean("Unbreakable", value.isUnbreakable());
+    public void serialize(ItemStack item, NbtMapBuilder tag, Damageable value) {
+        tag.putInt("Damage", value.getDurability());
+        tag.putBoolean("Unbreakable", value.isUnbreakable());
     }
 
     @Override
-    public Damageable deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
+    public Damageable deserialize(Identifier id, NbtMap dataTag) {
         return Damageable.of(
                 dataTag.getInt("Damage", 0),
                 dataTag.getBoolean("Unbreakable", false)

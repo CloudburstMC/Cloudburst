@@ -1,12 +1,11 @@
 package org.cloudburstmc.server.item;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemType;
-import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -17,12 +16,15 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import static org.cloudburstmc.api.block.BlockTypes.AIR;
-
 @UtilityClass
 public class ItemUtils {
 
     private static final CloudItemRegistry registry = CloudItemRegistry.get();
+
+    private static final Cache<ItemStack, NbtMap> ENCODED_CACHE = CacheBuilder.newBuilder()
+            .weakKeys()
+            .softValues()
+            .build();
 
     public static NbtMap serializeItem(ItemStack item) {
         return serializeItem(item, -1);
@@ -31,7 +33,7 @@ public class ItemUtils {
     public static NbtMap serializeItem(ItemStack item, int slot) {
         NbtMapBuilder tag = NbtMap.builder();
 
-        registry.getSerializer(item.getType()).serialize((CloudItemStack) item, tag);
+        registry.getSerializer(item.getType()).serialize(item, tag);
 
         if (slot >= 0) {
             tag.putByte("Slot", (byte) slot);
@@ -42,7 +44,7 @@ public class ItemUtils {
 
     public static ItemStack deserializeItem(NbtMap tag) {
         if (!tag.containsKey("Name", NbtType.STRING) || !tag.containsKey("Count", NbtType.BYTE)) {
-            return registry.getItem(AIR);
+            return ItemStack.AIR;
         }
 
         return deserializeItem(
@@ -53,17 +55,17 @@ public class ItemUtils {
         );
     }
 
-    public static CloudItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag) {
+    public static ItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag) {
         return deserializeItem(id, damage, amount, tag, -1);
     }
 
-    public static CloudItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag, int blockRuntimeId) {
-        CloudItemStackBuilder builder = new CloudItemStackBuilder();
+    public static ItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag, int blockRuntimeId) {
+        ItemStackBuilder builder = ItemStack.builder();
         if (blockRuntimeId >= 0) {
-            builder.blockState(CloudBlockRegistry.get().getBlock(blockRuntimeId));
+            builder.data(ItemKeys.BLOCK_STATE, CloudBlockRegistry.get().getBlock(blockRuntimeId));
         }
-        registry.getSerializer(ItemTypes.byId(id)).deserialize(id, damage, amount, builder, tag);
-        builder.networkData(null); // Force rebuild
+        ItemType type = CloudItemRegistry.get().getType(id, damage);
+        registry.getSerializer(type).deserialize(id, damage, amount, builder, tag);
 
         return builder.build();
     }
@@ -75,16 +77,16 @@ public class ItemUtils {
     public static List<ItemData> toNetwork(Collection<ItemStack> items, boolean useNetId) {
         List<ItemData> data = new ArrayList<>();
         for (ItemStack item : items) {
-            data.add(ItemUtils.toNetwork((CloudItemStack) item, useNetId));
+            data.add(ItemUtils.toNetwork(item, useNetId));
         }
         return data;
     }
 
-    public static ItemData toNetwork(CloudItemStack itemStack) {
+    public static ItemData toNetwork(ItemStack itemStack) {
         return toNetwork(itemStack, true);
     }
 
-    public static ItemData toNetwork(CloudItemStack item, boolean useNetId) {
+    public static ItemData toNetwork(ItemStack item, boolean useNetId) {
         Identifier identifier = item.getNbt().isEmpty() ? item.getId() : Identifier.fromString(item.getNbt().getString("Name"));
 
         NbtMap tag = item.getNbt();
@@ -99,9 +101,9 @@ public class ItemUtils {
         String[] canPlace = item.getCanPlaceOn().stream().map(Identifier::toString).toArray(String[]::new);
         String[] canBreak = item.getCanDestroy().stream().map(Identifier::toString).toArray(String[]::new);
 
-        int brid = 0;
+        int blockRuntimeId = 0;
         if (item.isBlock()) {
-            brid = CloudBlockRegistry.get().getRuntimeId(item.getBlockState());
+            blockRuntimeId = CloudBlockRegistry.get().getRuntimeId(item.getBlockState());
         }
 
         int netId = 0;
@@ -117,17 +119,17 @@ public class ItemUtils {
         return ItemData.builder()
                 .id(id)
                 .damage(meta)
-                .count(item.getAmount())
+                .count(item.getCount())
                 .tag(item.getDataTag().isEmpty() ? null : item.getDataTag())
                 .canPlace(canPlace)
                 .canBreak(canBreak)
-                .blockRuntimeId(brid)
+                .blockRuntimeId(blockRuntimeId)
                 .netId(netId)
                 .usingNetId(useNetId)
                 .build();
     }
 
-    public static CloudItemStack fromNetwork(ItemData data) {
+    public static ItemStack fromNetwork(ItemData data) {
         Identifier id = registry.getIdentifier(data.getId());
         ItemType type = ItemTypes.byId(id);
 
@@ -155,7 +157,7 @@ public class ItemUtils {
             tag = nbt.build();
         }
 
-        CloudItemStackBuilder builder = new CloudItemStackBuilder();
+        ItemStackBuilder builder = ItemStack.builder();
         builder.stackNetworkId(data.getNetId());
         registry.getSerializer(type).deserialize(id, (short) data.getDamage(), data.getCount(), builder, tag);
 
@@ -211,20 +213,16 @@ public class ItemUtils {
     }
 
     // -- Used by recipes and crafting
-    public static int getItemHash(CloudItemStack item) {
-        return Objects.hash(System.identityHashCode(item.getId()), item.getNbt().getInt("Damage", 0), item.getAmount());
+    public static int getItemHash(ItemStack item) {
+        return Objects.hash(System.identityHashCode(item.getId()), item.getNbt().getInt("Damage", 0), item.getCount());
     }
 
     public static UUID getMultiItemHash(List<ItemStack> items) {
         ByteBuffer buffer = ByteBuffer.allocate(items.size() * 8);
         for (ItemStack item : items) {
             if (item != null)
-                buffer.putInt(getItemHash((CloudItemStack) item));
+                buffer.putInt(getItemHash((ItemStack) item));
         }
         return UUID.nameUUIDFromBytes(buffer.array());
-    }
-
-    public static ItemStack createBlockItem(BlockType block, int amount, Object... metadata) {
-       return CloudItemRegistry.get().getItem(block, amount, metadata);
     }
 }

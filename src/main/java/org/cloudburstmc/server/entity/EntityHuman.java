@@ -15,6 +15,7 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -22,15 +23,14 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.SkinUtils;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -256,7 +256,7 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(((CloudItemStack) this.getInventory().getItemInHand()).getNetworkData());
+        packet.setHand(((ItemStack) this.getInventory().getItemInHand()).getNetworkData());
         packet.setPlatformChatId("");
         packet.setDeviceId("");
         packet.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
@@ -324,8 +324,9 @@ public class EntityHuman extends EntityCreature implements Human {
 
             for (int slot = 0; slot < 4; slot++) {
                 ItemStack armor = this.getInventory().getArmorItem(slot);
+                List<Enchantment> enchantments = armor.get(ItemKeys.ENCHANTMENTS);
 
-                if (armor.hasEnchantments()) {
+                if (enchantments != null) {
                     if (damager != null) {
                         for (EnchantmentInstance enchantment : armor.getEnchantments().values()) {
                             enchantment.getBehavior().doPostAttack(enchantment, damager, this);
@@ -337,17 +338,21 @@ public class EntityHuman extends EntityCreature implements Human {
                         continue;
                 }
 
-                var damageable = armor.getMetadata(Damageable.class);
+                var damage = armor.get(ItemKeys.DAMAGE);
+                Boolean unbreakable = armor.get(ItemKeys.UNBREAKABLE);
 
-                if (damageable != null) {
-                    if (damageable.isUnbreakable()) {
+                if (damage != null) {
+                    if (unbreakable != null && unbreakable) {
                         continue;
                     }
 
-                    armor = armor.withData(damageable.damage());
+                    armor = armor.toBuilder()
+                            .data(ItemKeys.DAMAGE, damage - 1)
+                            .build();
 
-                    if (damageable.getDurability() + 1 >= armor.getBehavior().getMaxDurability()) {
-                        getInventory().setArmorItem(slot, CloudItemRegistry.get().AIR);
+                    int maxDurability = this.server.getItemRegistry().getBehavior(armor.getType(), ItemBehaviors.GET_MAX_DURABILITY).execute();
+                    if (damage + 1 >= maxDurability) {
+                        getInventory().setArmorItem(slot, ItemStack.AIR);
                     } else {
                         getInventory().setArmorItem(slot, armor, true);
                     }
@@ -361,15 +366,16 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     protected double calculateEnchantmentProtectionFactor(ItemStack item, EntityDamageEvent source) {
-        if (!item.hasEnchantments()) {
+        List<Enchantment> enchantments = item.get(ItemKeys.ENCHANTMENTS);
+        if (enchantments == null) {
             return 0;
         }
 
         double epf = 0;
 
-        for (EnchantmentInstance ench : item.getEnchantments().values()) {
-            epf += ench.getBehavior().getProtectionFactor(ench, source);
-        }
+//        for (EnchantmentInstance ench : enchantments) {
+//            epf += ench.getBehavior().getProtectionFactor(ench, source);
+//        }
 
         return epf;
     }

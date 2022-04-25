@@ -13,14 +13,12 @@ import java.util.Map;
  * so you dont have to care about where the config actually lies
  */
 public class ServerConfig {
-
     @Data
     @Setter(AccessLevel.PRIVATE)
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Network {
-
         @Builder.Default
         private int compressionLevel = 7;
 
@@ -29,9 +27,7 @@ public class ServerConfig {
 
         @Builder.Default
         private int batchThreshold = 256;
-
     }
-
     @Data
     @Setter(AccessLevel.PRIVATE)
     @Builder

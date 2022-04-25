@@ -3,6 +3,7 @@ package org.cloudburstmc.server.command.defaults;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Identifier;
@@ -166,9 +167,9 @@ public class ParticleCommand extends Command {
             case "reddust":
                 return new RedstoneParticle(pos, data != -1 ? data : 1);
             case "snowballpoof":
-                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.SNOWBALL));
+                return new ItemBreakParticle(pos, ItemStack.builder().itemType(ItemTypes.SNOWBALL).build());
             case "slime":
-                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.SLIME_BALL));
+                return new ItemBreakParticle(pos, ItemStack.builder().itemType(ItemTypes.SLIME_BALL).build());
             case "itembreak":
                 if (data != -1 && data != 0) {
 //                    return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(data)); //TODO: item name

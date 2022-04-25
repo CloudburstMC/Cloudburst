@@ -22,10 +22,8 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorTNT;
 import org.cloudburstmc.server.level.particle.HugeExplodeSeedParticle;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Hash;
 
 import java.util.ArrayList;
@@ -192,7 +190,7 @@ public class Explosion {
             }
         }
 
-        ItemStack air = CloudItemRegistry.get().AIR;
+        ItemStack air = ItemStack.AIR;
 
         //Iterator iter = this.affectedBlocks.entrySet().iterator();
         for (Block block : this.affectedBlockStates) {

@@ -11,7 +11,6 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public class EntityHopperMinecart extends EntityAbstractMinecart implements HopperMinecart {
 
@@ -43,7 +42,7 @@ public class EntityHopperMinecart extends EntityAbstractMinecart implements Hopp
 
     @Override
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.HOPPER_MINECART));
+        this.getLevel().dropItem(this.getPosition(), ItemStack.builder().itemType(ItemTypes.HOPPER_MINECART).build());
     }
 
     @Override

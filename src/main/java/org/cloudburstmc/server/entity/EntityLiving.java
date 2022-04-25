@@ -13,6 +13,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.*;
@@ -275,7 +276,7 @@ public abstract class EntityLiving extends BaseEntity implements Damageable, Liv
 
             // Used to check collisions with magma blocks
             Block block = this.getLevel().getBlock(this.getPosition().sub(0, 1, 0).toInt());
-            if (block.getState().getType() == MAGMA) block.getState().getBehavior().onEntityCollide(block, this);
+            if (block.getState().getType() == MAGMA) block.getBehaviors().get(BlockBehaviors.ON_ENTITY_COLLIDE).execute(block, this);
             return hasUpdate;
         }
     }

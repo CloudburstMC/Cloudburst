@@ -7,16 +7,15 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemType;
-import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.NonSerializable;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
-import org.cloudburstmc.server.item.BlockItemStack;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.CloudItemStackBuilder;
 import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
@@ -31,16 +30,16 @@ public class DefaultItemSerializer implements ItemSerializer {
     public static final DefaultItemSerializer INSTANCE = new DefaultItemSerializer();
 
     @Override
-    public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         itemTag.putString("Name", item.getType().getId().toString())
-                .putByte("Count", (byte) item.getAmount())
+                .putByte("Count", (byte) item.getCount())
                 .putShort("Damage", (short) 0);
 
-        if (!item.getData().isEmpty()) {
+        if (!item.get().isEmpty()) {
             var registry = CloudItemRegistry.get();
             NbtMapBuilder dataTag = NbtMap.builder();
 
-            item.getData().forEach((clazz, value) -> {
+            item.get().forEach((clazz, value) -> {
                 ItemDataSerializer serializer = registry.getSerializer(clazz);
                 if (serializer == null) {
                     if (!(value instanceof NonSerializable)) {
@@ -49,7 +48,7 @@ public class DefaultItemSerializer implements ItemSerializer {
                     return;
                 }
 
-                serializer.serialize(item, itemTag, dataTag, value);
+                serializer.serialize(item, dataTag, value);
             });
 
             if (!dataTag.isEmpty()) {
@@ -57,14 +56,14 @@ public class DefaultItemSerializer implements ItemSerializer {
             }
         }
 
-        if (item instanceof BlockItemStack) {
+        if (item.isBlock()) {
             itemTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(item.getBlockState()).toString());
             itemTag.putShort("Damage", (short) BlockStateMetaMappings.getMetaFromState(item.getBlockState()));
         }
 
         NbtMapBuilder dataTag = NbtMap.builder();
 
-        if (item.getName() != null || !item.getLore().isEmpty()) {
+        if (item.get(ItemKeys.CUSTOM_NAME) != null || !item.getLore().isEmpty()) {
             NbtMapBuilder display = NbtMap.builder();
             if (item.getName() != null) {
                 display.putString("Name", item.getName());
@@ -90,40 +89,36 @@ public class DefaultItemSerializer implements ItemSerializer {
             dataTag.putList("ench", NbtType.COMPOUND, enchantments);
         }
 
-        if (!item.getCanDestroy().isEmpty()) {
-            List<String> canDestroy = new ArrayList<>(item.getCanDestroy().size());
-            for (Identifier identifier : item.getCanDestroy()) {
-                canDestroy.add(identifier.toString());
-            }
+        serializeCanInteract(dataTag, item.get(ItemKeys.CAN_DESTROY), "CanDestroy");
 
-            dataTag.putList("CanDestroy", NbtType.STRING, canDestroy);
-        }
-
-        if (!item.getCanPlaceOn().isEmpty()) {
-            List<String> canPlaceOn = new ArrayList<>(item.getCanPlaceOn().size());
-            for (Identifier identifier : item.getCanPlaceOn()) {
-                canPlaceOn.add(identifier.toString());
-            }
-
-            dataTag.putList("CanPlaceOn", NbtType.STRING, canPlaceOn);
-        }
+        serializeCanInteract(dataTag, item.get(ItemKeys.CAN_PLACE_ON), "CanPlaceOn");
 
         if (!dataTag.isEmpty()) {
             itemTag.putCompound("tag", dataTag.build());
         }
     }
 
+    private static void serializeCanInteract(NbtMapBuilder tag, List<BlockType> blockTypes, String name) {
+        if (blockTypes != null && !blockTypes.isEmpty()) {
+            List<String> tagList = new ArrayList<>(blockTypes.size());
+            for (BlockType type : blockTypes) {
+                tagList.add(type.getId().toString()); // FIXME: Blocks can be mapped to multiple identifiers.
+            }
+
+            tag.putList(name, NbtType.STRING, tagList);
+        }
+    }
+
     @Override
-    public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
+    public void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag) {
         if (amount <= 0) {
             builder.itemType(BlockTypes.AIR);
             return;
         }
 
-        ItemType type = ItemTypes.byId(id);
-        builder.id(id);
+        ItemType type = CloudItemRegistry.get().getType(id, meta);
         builder.itemType(type);
-        builder.amount(amount, false);
+        builder.amount(amount);
 
         var tagBuilder = NbtMap.builder();
         tagBuilder.putString("Name", id.toString());

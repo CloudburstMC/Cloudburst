@@ -2,11 +2,11 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Squid;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * @author PikyCZ
@@ -37,6 +37,8 @@ public class EntitySquid extends EntityWaterAnimal implements Squid {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.DYE, DyeColor.BLACK.getDyeData())};
+        return new ItemStack[]{ItemStack.builder(ItemTypes.DYE)
+                .data(ItemKeys.COLOR, DyeColor.BLACK)
+                .build()};
     }
 }
