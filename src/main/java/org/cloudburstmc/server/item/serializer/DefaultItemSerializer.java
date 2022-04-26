@@ -31,6 +31,10 @@ public class DefaultItemSerializer implements ItemSerializer {
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder itemTag) {
+        if(SerializationCache.ITEM_CACHE.getIfPresent(item) != null) {
+            //TODO handle cache
+        }
+
         itemTag.putString("Name", item.getType().getId().toString())
                 .putByte("Count", (byte) item.getCount());
 
@@ -49,18 +53,18 @@ public class DefaultItemSerializer implements ItemSerializer {
         });
 
         if (item.isBlock()) {
-            itemTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(item.getBlockState()).toString());
-            itemTag.putShort("Damage", (short) BlockStateMetaMappings.getMetaFromState(item.getBlockState()));
+            itemTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(item.get(ItemKeys.BLOCK_STATE)).toString());
+            itemTag.putShort("Damage", (short) BlockStateMetaMappings.getMetaFromState(item.get(ItemKeys.BLOCK_STATE)));
         }
 
-        if (item.get(ItemKeys.CUSTOM_NAME) != null || !item.getLore().isEmpty()) {
+        if (item.get(ItemKeys.CUSTOM_NAME) != null || (item.get(ItemKeys.CUSTOM_LORE) != null && !item.get(ItemKeys.CUSTOM_LORE).isEmpty())) {
             NbtMapBuilder display = NbtMap.builder();
-            if (item.getName() != null) {
-                display.putString("Name", item.getName());
+            if (item.get(ItemKeys.CUSTOM_NAME) != null) {
+                display.putString("Name", item.get(ItemKeys.CUSTOM_NAME));
             }
 
-            if (!item.getLore().isEmpty()) {
-                display.putList("Lore", NbtType.STRING, item.getLore());
+            if (item.get(ItemKeys.CUSTOM_LORE) != null && !item.get(ItemKeys.CUSTOM_LORE).isEmpty()) {
+                display.putList("Lore", NbtType.STRING, item.get(ItemKeys.CUSTOM_LORE));
             }
 
             dataTag.putCompound("display", display.build());
@@ -80,8 +84,8 @@ public class DefaultItemSerializer implements ItemSerializer {
 //            dataTag.putList("ench", NbtType.COMPOUND, enchantments);
 //        }
 
+        //TODO: This should get it's own Serializer, but for now this should work
         serializeCanInteract(dataTag, item.get(ItemKeys.CAN_DESTROY), "CanDestroy");
-
         serializeCanInteract(dataTag, item.get(ItemKeys.CAN_PLACE_ON), "CanPlaceOn");
 
         if (!dataTag.isEmpty()) {
@@ -108,15 +112,18 @@ public class DefaultItemSerializer implements ItemSerializer {
             return;
         }
 
+        //TODO: Somewhere here it should create a SerializedItem instance including the required tags and storing it in the cache (?)
+
         ItemType type = CloudItemRegistry.get().getType(id, meta);
         builder.itemType(type);
         builder.amount(amount);
 
-        var tagBuilder = NbtMap.builder();
+        NbtMapBuilder tagBuilder = NbtMap.builder();
         tagBuilder.putString("Name", id.toString());
         tagBuilder.putShort("Damage", meta);
         tagBuilder.putByte("Count", (byte) amount);
         if (!tag.isEmpty()) {
+            //TODO DataTags
             builder.dataTag(tag);
             tagBuilder.putCompound("tag", tag);
         }
@@ -126,7 +133,7 @@ public class DefaultItemSerializer implements ItemSerializer {
             var blockState = BlockStateMetaMappings.getStateFromMeta(id, meta);
 
             if (blockState != null) {
-                builder.blockState(blockState);
+                builder.data(ItemKeys.BLOCK_STATE, blockState);
             }
         }
 
@@ -136,23 +143,24 @@ public class DefaultItemSerializer implements ItemSerializer {
 
         var display = tag.getCompound("display");
         if (display != null && !display.isEmpty()) {
-            builder.name(display.getString("Name"));
-            builder.lore(display.getList("Lore", NbtType.STRING, null));
+            builder.data(ItemKeys.CUSTOM_NAME, display.getString("Name"));
+            builder.data(ItemKeys.CUSTOM_LORE, display.getList("Lore", NbtType.STRING, null));
         }
 
-        var ench = tag.getList("ench", NbtType.COMPOUND, null);
-        if (ench != null && !ench.isEmpty()) {
-            for (NbtMap entry : ench) {
-                var enchantmentType = EnchantmentRegistry.get().getType(entry.getShort("id"));
-
-                if (enchantmentType == null) {
-                    log.debug("Unknown enchantment id: {}", entry.getShort("id"));
-                    continue;
-                }
-
-                builder.addEnchantment(new CloudEnchantmentInstance(enchantmentType, entry.getShort("lvl", (short) 1)));
-            }
-        }
+//        TODO: Implement Enchantments
+//        var ench = tag.getList("ench", NbtType.COMPOUND, null);
+//        if (ench != null && !ench.isEmpty()) {
+//            for (NbtMap entry : ench) {
+//                var enchantmentType = EnchantmentRegistry.get().getType(entry.getShort("id"));
+//
+//                if (enchantmentType == null) {
+//                    log.debug("Unknown enchantment id: {}", entry.getShort("id"));
+//                    continue;
+//                }
+//
+//                builder.addEnchantment(new CloudEnchantmentInstance(enchantmentType, entry.getShort("lvl", (short) 1)));
+//            }
+//        }
 
         var canPlaceOn = tag.getList("CanPlaceOn", NbtType.STRING, null);
         if (canPlaceOn != null && !canPlaceOn.isEmpty()) {
