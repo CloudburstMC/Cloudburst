@@ -22,6 +22,8 @@ public final class ItemKeys {
 
     public static final SimpleDataKey<String> CUSTOM_NAME = DataKey.simple(Identifier.fromString("custom_name"), String.class);
 
+    public static final ListDataKey<String> CUSTOM_LORE = DataKey.list(Identifier.fromString("custom_lore"), String.class);
+
     public static final SimpleDataKey<Integer> DAMAGE = DataKey.simple(Identifier.fromString("item_damage"), Integer.class);
 
     public static final SimpleDataKey<Boolean> UNBREAKABLE = DataKey.simple(Identifier.fromString("unbreakable"), Boolean.class);
