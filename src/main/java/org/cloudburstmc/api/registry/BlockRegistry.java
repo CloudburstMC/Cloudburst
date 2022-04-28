@@ -5,10 +5,11 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 
-public interface BlockRegistry extends BehaviorRegistry {
+public interface BlockRegistry extends BehaviorRegistry<BlockType> {
 
     BehaviorCollection register(BlockType type) throws RegistryException;
 

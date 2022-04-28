@@ -8,7 +8,7 @@ import org.cloudburstmc.api.item.behavior.ItemBehavior;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 
-public interface ItemRegistry extends BehaviorRegistry {
+public interface ItemRegistry extends BehaviorRegistry<ItemType> {
 
     void register(ItemType type, ItemBehavior behavior, Identifier... identifiers) throws RegistryException;
 
