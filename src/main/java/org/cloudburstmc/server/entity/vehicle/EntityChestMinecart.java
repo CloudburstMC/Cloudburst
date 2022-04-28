@@ -26,7 +26,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
     public void initEntity() {
         super.initEntity();
 
-        this.setDisplayBlock(CloudBlockRegistry.get().getBlock(BlockTypes.CHEST));
+        this.setDisplayBlock(CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.CHEST));
         this.setDisplay(true);
     }
 

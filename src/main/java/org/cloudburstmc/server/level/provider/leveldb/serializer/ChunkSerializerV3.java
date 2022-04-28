@@ -96,7 +96,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                                     short value = extraDataMap.get(CloudChunk.blockKey(x, y, z));
                                     int blockId = value & 0xff;
                                     int blockData = (value >> 8) & 0xf;
-                                    blockStorage[1].setBlock(CloudChunkSection.blockIndex(x, y, z), CloudBlockRegistry.get().getBlock(blockId, blockData));
+                                    blockStorage[1].setBlock(CloudChunkSection.blockIndex(x, y, z), CloudBlockRegistry.REGISTRY.getBlock(blockId, blockData));
                                 }
                             }
                         }

@@ -42,13 +42,14 @@ public final class Fishing {
     public static ItemStack getFishingResult(ItemStack rod) {
         int fortuneLevel = 0;
         int lureLevel = 0;
-        if (rod != null) {
-            if (rod.getEnchantment(EnchantmentTypes.FORTUNE) != null) {
-                fortuneLevel = rod.getEnchantment(EnchantmentTypes.FORTUNE).getLevel();
-            } else if (rod.getEnchantment(EnchantmentTypes.LURE) != null) {
-                lureLevel = rod.getEnchantment(EnchantmentTypes.LURE).getLevel();
-            }
-        }
+//        TODO Enchantment implementation
+//        if (rod != null) {
+//            if (rod.getEnchantment(EnchantmentTypes.FORTUNE) != null) {
+//                fortuneLevel = rod.getEnchantment(EnchantmentTypes.FORTUNE).getLevel();
+//            } else if (rod.getEnchantment(EnchantmentTypes.LURE) != null) {
+//                lureLevel = rod.getEnchantment(EnchantmentTypes.LURE).getLevel();
+//            }
+//        }
         return getFishingResult(fortuneLevel, lureLevel);
     }
 

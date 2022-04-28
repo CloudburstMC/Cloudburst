@@ -17,7 +17,7 @@ public class DestroyBlockParticle extends Particle {
 
     public DestroyBlockParticle(Vector3f pos, BlockState blockState) {
         super(pos);
-        this.data = CloudBlockRegistry.get().getRuntimeId(blockState);
+        this.data = CloudBlockRegistry.REGISTRY.getRuntimeId(blockState);
     }
 
     @Override

@@ -31,7 +31,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        CloudBlockRegistry registry = CloudBlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
 
         if (tag.containsKey("item") && tag.containsKey("mData")) {
             short id = tag.getShort("item");
@@ -41,7 +41,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
         } else if (tag.containsKey("PlantBlock", NbtType.COMPOUND)) {
             NbtMap plantTag = tag.getCompound("PlantBlock");
 
-            this.plant = CloudBlockRegistry.get().getBlock(plantTag);
+            this.plant = CloudBlockRegistry.REGISTRY.getBlock(plantTag);
         }
     }
 
@@ -64,7 +64,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     public void setPlant(BlockState blockState) {
-        this.plant = blockState == null ? CloudBlockRegistry.get().getBlock(AIR) : blockState;
+        this.plant = blockState == null ? CloudBlockRegistry.REGISTRY.getBlock(AIR) : blockState;
     }
 
     @Override

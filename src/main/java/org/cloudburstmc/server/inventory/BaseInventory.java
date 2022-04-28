@@ -400,7 +400,7 @@ public abstract class BaseInventory implements Inventory {
         int count = 0;
 
         for (ItemStack item : this.slots.values()) {
-            if (item == null || item == ItemStack.AIR) {
+            if (ItemUtils.isNull(item)) {
                 count++;
             }
         }
@@ -556,7 +556,7 @@ public abstract class BaseInventory implements Inventory {
         InventoryContentPacket packet = new InventoryContentPacket();
         List<ItemData> contents = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
-            contents.add(i, this.getItem(i).getNetworkData());
+            contents.add(i, ItemUtils.toNetwork(this.getItem(i)));
         }
         packet.setContents(contents);
 
@@ -578,7 +578,7 @@ public abstract class BaseInventory implements Inventory {
         }
 
         for (ItemStack item : this.slots.values()) {
-            if (item == null || item == ItemStack.AIR || item.getCount() < this.getMaxStackSize() ||
+            if (ItemUtils.isNull(item) || item.getCount() < this.getMaxStackSize() ||
                     item.getCount() < this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute()) {
                 return false;
             }
@@ -594,7 +594,7 @@ public abstract class BaseInventory implements Inventory {
         }
 
         for (ItemStack item : this.slots.values()) {
-            if (item != null && item != ItemStack.AIR) {
+            if (!ItemUtils.isNull(item)) {
                 return false;
             }
         }
@@ -625,7 +625,7 @@ public abstract class BaseInventory implements Inventory {
     public void sendSlot(int index, Player... players) {
         InventorySlotPacket packet = new InventorySlotPacket();
         packet.setSlot(index);
-        packet.setItem(this.getItem(index).getNetworkData());
+        packet.setItem(ItemUtils.toNetwork(this.getItem(index)));
 
         for (Player player : players) {
             int id = player.getWindowId(this);

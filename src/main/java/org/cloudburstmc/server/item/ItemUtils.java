@@ -9,6 +9,7 @@ import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.item.serializer.SerializationCache;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Utils;
@@ -17,16 +18,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @UtilityClass
 public class ItemUtils {
 
     private static final CloudItemRegistry registry = CloudItemRegistry.get();
-
-    private static final Cache<ItemStack, NbtMap> ENCODED_CACHE = CacheBuilder.newBuilder()
-            .weakKeys()
-            .softValues()
-            .build();
+    private static final AtomicInteger NET_ID_CACHE = new AtomicInteger();
 
     public static NbtMap serializeItem(ItemStack item) {
         return serializeItem(item, -1);
@@ -34,7 +32,6 @@ public class ItemUtils {
 
     public static NbtMap serializeItem(ItemStack item, int slot) {
         NbtMapBuilder tag = NbtMap.builder();
-
         registry.getSerializer(item.getType()).serialize(item, tag);
 
         if (slot >= 0) {
@@ -89,15 +86,9 @@ public class ItemUtils {
     }
 
     public static ItemData toNetwork(ItemStack item, boolean useNetId) {
-        Identifier identifier = item.getNbt().isEmpty() ? item.getType().getId() : Identifier.fromString(item.getNbt().getString("Name"));
+        Identifier identifier = item.getType().getId();
+        short meta = 0;
 
-        NbtMap tag = item.getNbt();
-        short meta;
-        if (tag.isEmpty()) {
-            meta = 0;
-        } else {
-            meta = tag.getShort("Damage", (short) 0);
-        }
         int id = registry.getRuntimeId(identifier, meta);
 
         String[] canPlace = item.get(ItemKeys.CAN_PLACE_ON).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);

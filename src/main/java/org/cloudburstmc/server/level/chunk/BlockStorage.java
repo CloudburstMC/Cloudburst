@@ -75,7 +75,7 @@ public class BlockStorage {
 
         VarInts.writeInt(buffer, palette.size());
 
-        CloudBlockRegistry registry = CloudBlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
         palette.forEach(state -> VarInts.writeInt(buffer, registry.getRuntimeId(state)));
     }
 
@@ -120,7 +120,7 @@ public class BlockStorage {
                 try {
                     NbtMap tag = (NbtMap) nbtInputStream.readTag();
 
-                    BlockState state = CloudBlockRegistry.get().getBlock(tag);
+                    BlockState state = CloudBlockRegistry.REGISTRY.getBlock(tag);
 
                     if (this.palette.contains(state)) {
                         log.warn("Palette contains block state ({}) twice! ({}) (palette: {})", state, tag, this.palette);

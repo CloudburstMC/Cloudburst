@@ -59,7 +59,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        if (this.recordItem != null && !this.recordItem.isNull()) {
+        if (!ItemUtils.isNull(this.recordItem)) {
             tag.putCompound("RecordItem", ((ItemStack) this.recordItem).getNbt());
         }
     }
@@ -88,7 +88,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     public void dropItem() {
-        if (this.recordItem != null && !this.recordItem.isNull()) {
+        if (!ItemUtils.isNull(this.recordItem)) {
             this.stop();
             this.getLevel().dropItem(this.getPosition().add(UP), this.recordItem);
             this.recordItem = null;

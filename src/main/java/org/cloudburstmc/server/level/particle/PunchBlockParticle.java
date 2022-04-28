@@ -22,7 +22,7 @@ public class PunchBlockParticle extends Particle {
 
     public PunchBlockParticle(Vector3f pos, Identifier blockId, int blockDamage, Direction face) {
         super(pos);
-        this.data = CloudBlockRegistry.get().getRuntimeId(blockId, blockDamage) | (face.getIndex() << 24);
+        this.data = CloudBlockRegistry.REGISTRY.getRuntimeId(blockId, blockDamage) | (face.getIndex() << 24);
     }
 
     @Override

@@ -502,7 +502,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(this.getInventory().getItemInHand().getNetworkData());
+        packet.setHand(ItemUtils.toNetwork(this.getInventory().getItemInHand()));
         packet.setPlatformChatId("");
         packet.setDeviceId("");
         packet.getAdventureSettings().setCommandPermission((this.isOp() ? CommandPermission.OPERATOR : CommandPermission.NORMAL));

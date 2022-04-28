@@ -57,7 +57,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
     }
 
     public static final Comparator<ItemStack> recipeComparator = Comparator.comparing((ItemStack i) -> i.getType().getId())
-            .thenComparingInt(i -> ((ItemStack) i).getNetworkData().getDamage()).thenComparingInt(ItemStack::getCount);
+            .thenComparingInt(i -> ItemUtils.toNetwork(i).getDamage()).thenComparingInt(ItemStack::getCount);
 
     private final CloudItemRegistry itemRegistry;
     private final Map<Identifier, Recipe> recipeMap = new Object2ReferenceOpenHashMap<>();
@@ -460,7 +460,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                         outputData = ItemUtils.toNetwork((ItemStack) recipe.getResult(), false);
 
                         packet.getCraftingData().add(CraftingData.fromFurnaceData(
-                                ((ItemStack) ((FurnaceRecipe) recipe).getInput()).getNetworkData().getId(),
+                                ItemUtils.toNetwork(((FurnaceRecipe) recipe).getInput()).getId(),
                                 inputData.getDamage(),
                                 outputData,
                                 recipe.getBlock().getName(),

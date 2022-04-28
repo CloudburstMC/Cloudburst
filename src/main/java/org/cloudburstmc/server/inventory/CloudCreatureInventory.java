@@ -87,7 +87,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
         ItemStack item = this.getItemInHand();
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
-        packet.setItem(item.getNetworkData());
+        packet.setItem(ItemUtils.toNetwork(item));
         packet.setInventorySlot(this.getHeldItemIndex());
         packet.setHotbarSlot(this.getHeldItemIndex());
 
@@ -159,7 +159,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setItem(((ItemStack) offHand).getNetworkData());
+        packet.setItem(ItemUtils.toNetwork(offHand));
         packet.setContainerId(ContainerId.OFFHAND);
         packet.setInventorySlot(1);
 
@@ -188,7 +188,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
 
         MobEquipmentPacket packet = new MobEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setItem(((ItemStack) offhand).getNetworkData());
+        packet.setItem(ItemUtils.toNetwork(offhand));
         packet.setContainerId(ContainerId.OFFHAND);
         packet.setInventorySlot(1);
 
@@ -196,7 +196,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
             if (player.equals(this.getHolder())) {
                 InventorySlotPacket slotPacket = new InventorySlotPacket();
                 slotPacket.setContainerId(ContainerId.OFFHAND);
-                slotPacket.setItem(((ItemStack) offhand).getNetworkData());
+                slotPacket.setItem(ItemUtils.toNetwork(offhand));
                 slotPacket.setSlot(0); // Not sure why offhand uses slot 0 in SlotPacket and 1 in MobEq Packet
                 player.sendPacket(slotPacket);
             } else {
@@ -212,10 +212,10 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
     public void sendArmorContents(CloudPlayer[] players) {
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setHelmet(((ItemStack) getHelmet()).getNetworkData());
-        packet.setChestplate(((ItemStack) getChestplate()).getNetworkData());
-        packet.setLeggings(((ItemStack) getLeggings()).getNetworkData());
-        packet.setBoots(((ItemStack) getBoots()).getNetworkData());
+        packet.setHelmet(ItemUtils.toNetwork(getHelmet()));
+        packet.setChestplate(ItemUtils.toNetwork(getChestplate()));
+        packet.setLeggings(ItemUtils.toNetwork(getLeggings()));
+        packet.setBoots(ItemUtils.toNetwork(getBoots()));
 
         for (CloudPlayer player : players) {
             if (player.equals(this.getHolder())) {
@@ -260,17 +260,17 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
     public void sendArmorSlot(int index, CloudPlayer[] players) {
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
         packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setHelmet(((ItemStack) getHelmet()).getNetworkData());
-        packet.setChestplate(((ItemStack) getChestplate()).getNetworkData());
-        packet.setLeggings(((ItemStack) getLeggings()).getNetworkData());
-        packet.setBoots(((ItemStack) getBoots()).getNetworkData());
+        packet.setHelmet(ItemUtils.toNetwork(getHelmet()));
+        packet.setChestplate(ItemUtils.toNetwork(getChestplate()));
+        packet.setLeggings(ItemUtils.toNetwork(getLeggings()));
+        packet.setBoots(ItemUtils.toNetwork(getBoots()));
 
         for (CloudPlayer player : players) {
             if (player.equals(this.getHolder())) {
                 InventorySlotPacket packet2 = new InventorySlotPacket();
                 packet2.setContainerId(ContainerId.ARMOR);
                 packet2.setSlot(index);
-                packet2.setItem(this.armorSlots.get(index).getNetworkData());
+                packet2.setItem(ItemUtils.toNetwork(this.armorSlots.get(index)));
                 player.sendPacket(packet2);
             } else {
                 player.sendPacket(packet);

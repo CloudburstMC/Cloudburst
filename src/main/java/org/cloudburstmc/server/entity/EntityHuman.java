@@ -29,6 +29,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.SkinUtils;
@@ -256,7 +257,7 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(((ItemStack) this.getInventory().getItemInHand()).getNetworkData());
+        packet.setHand(ItemUtils.toNetwork(this.getInventory().getItemInHand()));
         packet.setPlatformChatId("");
         packet.setDeviceId("");
         packet.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);

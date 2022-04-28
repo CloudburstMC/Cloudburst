@@ -4,6 +4,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
@@ -16,14 +17,15 @@ import org.cloudburstmc.api.util.NonSerializable;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
+import org.cloudburstmc.server.item.SerializedItem;
 import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@SuppressWarnings({"unchecked", "rawtypes"})
 @Log4j2
 public class DefaultItemSerializer implements ItemSerializer {
 
@@ -31,15 +33,12 @@ public class DefaultItemSerializer implements ItemSerializer {
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder itemTag) {
-        if(SerializationCache.ITEM_CACHE.getIfPresent(item) != null) {
-            //TODO handle cache
-        }
-
         itemTag.putString("Name", item.getType().getId().toString())
                 .putByte("Count", (byte) item.getCount());
 
         NbtMapBuilder dataTag = NbtMap.builder();
 
+//        TODO: Item Serializers
         item.getAllMetadata().forEach((dataKey, value) -> {
             ItemDataSerializer serializer = CloudItemRegistry.get().getSerializer(dataKey);
             if (serializer == null) {
@@ -53,8 +52,10 @@ public class DefaultItemSerializer implements ItemSerializer {
         });
 
         if (item.isBlock()) {
-            itemTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(item.get(ItemKeys.BLOCK_STATE)).toString());
-            itemTag.putShort("Damage", (short) BlockStateMetaMappings.getMetaFromState(item.get(ItemKeys.BLOCK_STATE)));
+            BlockState blockState = item.get(ItemKeys.BLOCK_STATE);
+
+            itemTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(blockState).toString());
+            itemTag.putShort("Damage", (short) 0);
         }
 
         if (item.get(ItemKeys.CUSTOM_NAME) != null || (item.get(ItemKeys.CUSTOM_LORE) != null && !item.get(ItemKeys.CUSTOM_LORE).isEmpty())) {
@@ -85,22 +86,19 @@ public class DefaultItemSerializer implements ItemSerializer {
 //        }
 
         //TODO: This should get it's own Serializer, but for now this should work
-        serializeCanInteract(dataTag, item.get(ItemKeys.CAN_DESTROY), "CanDestroy");
-        serializeCanInteract(dataTag, item.get(ItemKeys.CAN_PLACE_ON), "CanPlaceOn");
+        // FIXME: Blocks can be mapped to multiple identifiers.
+        if(item.get(ItemKeys.CAN_DESTROY) != null) {
+            List<String> blocks = item.get(ItemKeys.CAN_DESTROY).stream().map(blockType -> blockType.getId().toString()).toList();
+            dataTag.putList("CanDestroy", NbtType.STRING, blocks);
+        }
+
+        if(item.get(ItemKeys.CAN_PLACE_ON) != null) {
+            List<String> blocks = item.get(ItemKeys.CAN_PLACE_ON).stream().map(blockType -> blockType.getId().toString()).toList();
+            dataTag.putList("CanPlaceOn", NbtType.STRING, blocks);
+        }
 
         if (!dataTag.isEmpty()) {
             itemTag.putCompound("tag", dataTag.build());
-        }
-    }
-
-    private static void serializeCanInteract(NbtMapBuilder tag, List<BlockType> blockTypes, String name) {
-        if (blockTypes != null && !blockTypes.isEmpty()) {
-            List<String> tagList = new ArrayList<>(blockTypes.size());
-            for (BlockType type : blockTypes) {
-                tagList.add(type.getId().toString()); // FIXME: Blocks can be mapped to multiple identifiers.
-            }
-
-            tag.putList(name, NbtType.STRING, tagList);
         }
     }
 
@@ -162,18 +160,14 @@ public class DefaultItemSerializer implements ItemSerializer {
 //            }
 //        }
 
-        var canPlaceOn = tag.getList("CanPlaceOn", NbtType.STRING, null);
-        if (canPlaceOn != null && !canPlaceOn.isEmpty()) {
-            for (String s : canPlaceOn) {
-                builder.addCanPlaceOn(Identifier.fromString(s));
-            }
+        if(tag.containsKey("CanPlaceOn", NbtType.LIST)) {
+            List<BlockType> list = tag.getList("CanPlaceOn", NbtType.STRING, null).stream().map(Identifier::fromString).map(BlockType::of).toList();
+            builder.data(ItemKeys.CAN_PLACE_ON, list);
         }
 
-        var canDestroy = tag.getList("CanDestroy", NbtType.STRING, null);
-        if (canDestroy != null && !canDestroy.isEmpty()) {
-            for (String s : canDestroy) {
-                builder.addCanDestroy(Identifier.fromString(s));
-            }
+        if(tag.containsKey("CanDestroy", NbtType.LIST)) {
+            List<BlockType> list = tag.getList("CanDestroy", NbtType.STRING, null).stream().map(Identifier::fromString).map(BlockType::of).toList();
+            builder.data(ItemKeys.CAN_DESTROY, list);
         }
     }
 }

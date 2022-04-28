@@ -24,7 +24,7 @@ public class EntityHopperMinecart extends EntityAbstractMinecart implements Hopp
     public void initEntity() {
         super.initEntity();
 
-        this.setDisplayBlock(CloudBlockRegistry.get().getBlock(BlockTypes.HOPPER));
+        this.setDisplayBlock(CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.HOPPER));
         this.setDisplay(true);
     }
 

@@ -163,8 +163,8 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         BlockState state = getBlockState();
         BlockType blockType = state.getType();
         FurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
-        boolean canSmelt = (smelt != null && raw.getCount() > 0 && ((smelt.getResult().equals(product)
-                && product.getCount() < product.getBehavior().getMaxStackSize(product)) || product.isNull()));
+        boolean canSmelt = smelt != null && raw.getCount() > 0 &&
+                (product == ItemStack.AIR || (smelt.getResult().equals(product) && product.getCount() < product.getBehavior().getMaxStackSize(product)));
 
         if (burnTime <= 0 && canSmelt && fuel.getBehavior().getFuelTime(fuel) != 0 && fuel.getCount() > 0) {
             this.checkFuel(fuel);
@@ -176,7 +176,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             if (smelt != null && canSmelt) {
                 cookTime++;
                 if (cookTime >= (200 / getBurnRate())) {
-                    product = smelt.getResult().incrementAmount();
+                    product = smelt.getResult().increaseCount();
 
                     FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
                     this.server.getEventManager().fire(ev);
@@ -185,7 +185,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                         if (raw.getCount() <= 1) {
                             raw = ItemStack.AIR;
                         } else {
-                            raw = raw.decrementAmount();
+                            raw = raw.decreaseCount();
                         }
                         this.inventory.setSmelting(raw);
                     }

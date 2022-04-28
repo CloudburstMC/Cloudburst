@@ -604,7 +604,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
 
             for (int slot = 0; slot < player.getInventory().getHotbarSize(); slot++) {
-                if (player.getInventory().getItem(slot).isNull()) {
+                if (player.getInventory().getItem(slot) == ItemStack.AIR) {
                     if (!itemExists && player.isCreative()) {
                         player.getInventory().setHeldItemSlot(slot);
                         player.getInventory().setItemInHand(pickEvent.getItem());
@@ -623,7 +623,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.getInventory().setItemInHand(pickEvent.getItem());
                 if (!player.getInventory().isFull()) {
                     for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
-                        if (player.getInventory().getItem(slot).isNull()) {
+                        if (player.getInventory().getItem(slot) == ItemStack.AIR) {
                             player.getInventory().setItem(slot, itemInHand);
                             break;
                         }
@@ -1142,7 +1142,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             var result = behavior.useOn(serverItem, target);
                             if (result == null) {
                                 if (serverItem.getCount() > 1) {
-                                    serverItem = serverItem.decrementAmount();
+                                    serverItem = serverItem.decreaseCount();
                                 } else {
                                     serverItem = ItemStack.AIR;
                                 }

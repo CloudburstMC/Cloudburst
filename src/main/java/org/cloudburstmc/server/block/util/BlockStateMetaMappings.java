@@ -64,11 +64,6 @@ public class BlockStateMetaMappings {
         return state2meta.getOrDefault(state, -1);
     }
 
-    public BlockState getStateFromMeta(ItemStack item) {
-        var cloudItem = (ItemStack) item;
-        return getStateFromMeta(cloudItem.getId(), cloudItem.getNetworkData().getDamage());
-    }
-
     public BlockState getStateFromMeta(Identifier type, int meta) {
         Int2ReferenceMap<BlockState> states = meta2state.get(type);
 

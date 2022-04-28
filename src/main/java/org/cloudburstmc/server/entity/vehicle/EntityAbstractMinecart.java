@@ -128,7 +128,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
             int id;
             int meta;
-            CloudBlockRegistry registry = CloudBlockRegistry.get();
+            CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
             if (tag.containsKey("DisplayTile") && tag.containsKey("DisplayData")) {
                 id = tag.getInt("DisplayTile");
                 meta = tag.getInt("DisplayData");
@@ -717,11 +717,11 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     public BlockState getDisplayBlock() {
         int runtimeId = this.data.getInt(DISPLAY_ITEM);
-        return CloudBlockRegistry.get().getBlock(runtimeId);
+        return CloudBlockRegistry.REGISTRY.getBlock(runtimeId);
     }
 
     public void setDisplayBlock(BlockState blockState) {
-        int runtimeId = CloudBlockRegistry.get().getRuntimeId(blockState);
+        int runtimeId = CloudBlockRegistry.REGISTRY.getRuntimeId(blockState);
         this.data.setInt(DISPLAY_ITEM, runtimeId);
     }
 
