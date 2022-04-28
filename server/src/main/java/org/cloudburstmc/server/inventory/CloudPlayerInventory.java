@@ -14,6 +14,7 @@ import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -220,7 +221,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
                 item = ev.getNewItem();
             }
 
-            if (!item.isNull()) {
+            if (item != ItemStack.AIR) {
                 this.slots.put(index, item);
             } else {
                 this.slots.remove(index);
@@ -244,7 +245,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     public void sendContents(Player[] players) {
         List<ItemData> itemData = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
-            itemData.add(i, this.getItem(i).getNetworkData());
+            itemData.add(i, ItemUtils.toNetwork(this.getItem(i)));
         }
 
         for (Player p : players) {
@@ -265,7 +266,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
 
     @Override
     public void sendSlot(int index, Player... players) {
-        ItemData itemData = this.getItem(index).getNetworkData();
+        ItemData itemData = ItemUtils.toNetwork(this.getItem(index));
 
         for (Player player : players) {
             InventorySlotPacket packet = new InventorySlotPacket();

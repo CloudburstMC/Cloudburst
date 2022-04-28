@@ -15,10 +15,12 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockIds;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.RegistryUtils;
 
@@ -181,9 +183,10 @@ public class ItemPalette {
 
                 if (item.has("block_state_b64")) {
                     NbtMap blockState = decodeNbt(item.get("block_state_b64").asText());
-                    BlockState state = BlockPalette.INSTANCE.getBlockState(blockState);
+
+                    BlockState state = CloudBlockRegistry.REGISTRY.getBlock(blockState);
                     if (state != null) {
-                        itemData.blockRuntimeId(BlockPalette.INSTANCE.getRuntimeId(state));
+                        itemData.blockRuntimeId(CloudBlockRegistry.REGISTRY.getRuntimeId(state));
                     }
                 }
                 if (item.has("blockRuntimeId")) {

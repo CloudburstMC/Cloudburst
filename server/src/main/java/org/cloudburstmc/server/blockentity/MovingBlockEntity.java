@@ -31,7 +31,7 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        CloudBlockRegistry registry = CloudBlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
         if (tag.containsKey("movingBlockId") && tag.containsKey("movingBlockData")) {
             int id = tag.getByte("movingBlockId") & 0xff;
             int meta = tag.getByte("movingBlockData");

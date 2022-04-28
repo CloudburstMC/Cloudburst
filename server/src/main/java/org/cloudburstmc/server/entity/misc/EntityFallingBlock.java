@@ -82,7 +82,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
 
         int id;
         int meta;
-        CloudBlockRegistry registry = CloudBlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
         if (tag.containsKey("Tile") && tag.containsKey("Data")) {
             id = tag.getByte("Tile") & 0xff;
             meta = tag.getByte("Data");
@@ -180,12 +180,12 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
     }
 
     public BlockState getBlock() {
-        return CloudBlockRegistry.get().getBlock(this.data.getInt(VARIANT));
+        return CloudBlockRegistry.REGISTRY.getBlock(this.data.getInt(VARIANT));
     }
 
     @Override
     public void setBlock(BlockState blockState) {
-        int runtimeId = CloudBlockRegistry.get().getRuntimeId(blockState);
+        int runtimeId = CloudBlockRegistry.REGISTRY.getRuntimeId(blockState);
         this.data.setInt(VARIANT, runtimeId);
     }
 

@@ -50,7 +50,7 @@ public class AnvilConverter {
 
         // Reusable array for performance
         final int[] blockState = new int[2];
-        CloudBlockRegistry blockRegistry = CloudBlockRegistry.get();
+        CloudBlockRegistry blockRegistry = CloudBlockRegistry.REGISTRY;
         LegacyBlockConverter legacyBlockConverter = LegacyBlockConverter.get();
 
         // Chunk sections

@@ -141,7 +141,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             for (int slot : slots) {
                 ItemStack item = inv.getItem(slot);
 
-                if (item.isNull()) {
+                if (item == ItemStack.AIR) {
                     continue;
                 }
 
@@ -184,7 +184,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             DroppedItem itemEntity = (DroppedItem) entity;
             ItemStack item = itemEntity.getItem();
 
-            if (item.isNull()) {
+            if (item == ItemStack.AIR) {
                 continue;
             }
 
@@ -254,7 +254,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             for (int i = 0; i < this.inventory.getSize(); i++) {
                 ItemStack item = this.inventory.getItem(i);
 
-                if (item.isNull()) {
+                if (item == ItemStack.AIR) {
                     continue;
                 }
 
@@ -267,7 +267,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 for (int slot : slots) {
                     ItemStack target = inv.getItem(slot);
 
-                    if (!target.isNull() && (!target.equals(item) || target.getCount() >= item.getBehavior().getMaxStackSize(item))) {
+                    if (target != ItemStack.AIR && (!target.equals(item) || target.getCount() >= item.getBehavior().getMaxStackSize(item))) {
                         continue;
                     }
 
@@ -280,7 +280,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                         return false;
                     }
 
-                    if (target.isNull()) {
+                    if (target == ItemStack.AIR) {
                         inv.setItem(slot, item);
                     } else {
                         inv.incrementCount(slot);

@@ -40,7 +40,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
-        if (this.item != null && !this.item.isNull()) {
+        if (!ItemUtils.isNull(this.item)) {
             tag.putCompound("Item", ItemUtils.serializeItem(this.item));
             tag.putFloat("ItemRotation", this.itemRotation);
             tag.putFloat("ItemDropChance", this.itemDropChance);
@@ -99,7 +99,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public int getAnalogOutput() {
-        return this.getItem() == null || this.getItem().isNull() ? 0 : this.getItemRotation() % 8 + 1;
+        return this.getItem() == null || this.getItem() == ItemStack.AIR ? 0 : this.getItemRotation() % 8 + 1;
     }
 
     @Override

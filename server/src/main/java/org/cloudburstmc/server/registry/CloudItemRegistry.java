@@ -48,7 +48,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry<ItemType>, Registry {
+public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry, Registry {
     private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(); // Needs to be initialized afterwards
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
@@ -57,14 +57,9 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     private int hardcodedBlockingId;
     private final ItemPalette itemPalette = new ItemPalette(this);
 
-    //StackNetId stuff
-    private final Int2ReferenceMap<WeakReference<ItemStack>> netIdMap = new Int2ReferenceOpenHashMap<>();
-    private final ReferenceQueue<ItemStack> oldIdQueue = new ReferenceQueue<>();
-
     private volatile boolean closed;
 
     private CloudItemRegistry() {
-        this.netIdMap.put(0, new WeakReference<>(ItemStack.AIR, oldIdQueue));
         try {
             this.registerVanillaItems();
             this.registerVanillaIdentifiers();
@@ -96,6 +91,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         super.registerBehavior(key, defaultBehavior, executorFactory);
     }
 
+
     <F, E> void registerBehavior0(BehaviorKey<F, E> key, F defaultBehavior, BiFunction<Behavior<E>, F, E> executorFactory) {
         super.registerBehavior(key, defaultBehavior, executorFactory);
     }
@@ -110,40 +106,6 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     public GlobalRegistry global() {
         //TODO Implementation
         return null;
-    }
-
-    public int getNextNetId() {
-        for (int i = 1; i < Integer.MAX_VALUE; i++) {
-            if (!netIdMap.containsKey(i) || netIdMap.get(i).refersTo(null)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public void addNetId(@Nonnull ItemStack item) {
-        if (item.getStackNetworkId() == -1) {
-            throw new RegistryException("Invalid network stack id for item: " + item);
-        }
-        if (item.getStackNetworkId() == 0 || item.getType() == BlockTypes.AIR) return;
-        WeakReference<ItemStack> ref = new WeakReference<>(item, oldIdQueue);
-        netIdMap.put(item.getStackNetworkId(), ref);
-    }
-
-    @Nonnull
-    public ItemStack getItemByNetId(@Nonnull int stackNetId) {
-        WeakReference<ItemStack> ref = netIdMap.getOrDefault(stackNetId, null);
-        if (ref == null || ref.refersTo(null)) return ItemStack.AIR;
-        return Objects.requireNonNull(ref.get());
-
-    }
-
-    public void clearQueue() { //TODO - call this how often? Every server tick, every x minutes on a new thread? need to syncronize?
-        java.lang.ref.Reference<? extends ItemStack> ref;
-        while ((ref = oldIdQueue.poll()) != null) {
-            if (ref.get() != null && ref.get() != ItemStack.AIR)
-                netIdMap.remove(ref.get().getStackNetworkId());
-        }
     }
 
     public int getHardcodedBlockingId() {

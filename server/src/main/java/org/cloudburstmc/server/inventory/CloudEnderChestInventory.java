@@ -88,8 +88,8 @@ public class CloudEnderChestInventory extends CloudContainer implements Containe
     public void saveInventory(NbtMapBuilder tag) {
         List<NbtMap> enderItems = new ArrayList<>();
         for (Map.Entry<Integer, ItemStack> slot : this.getContents().entrySet()) {
-            ItemStack item = (ItemStack) slot.getValue();
-            if (item != null && !item.isNull()) {
+            ItemStack item = slot.getValue();
+            if (!ItemUtils.isNull(item)) {
                 enderItems.add(ItemUtils.serializeItem(item, slot.getKey()));
             }
         }

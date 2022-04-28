@@ -43,10 +43,10 @@ public class CloudEnchantmentInstance implements EnchantmentInstance {
 
     @Override
     public boolean canEnchantItem(ItemStack item) {
-        EnchantmentTarget target = this.getType().getTarget();
-        if(target == EnchantmentTarget.ALL) {
-            return true;
-        }
+//        EnchantmentTarget target = this.getType().getTarget();
+//        if(target == EnchantmentTarget.ALL) {
+//            return true;
+//        }
 
 //        ItemBehavior behavior = item.getBehavior();
 //        if(target == EnchantmentTarget.BREAKABLE && behavior.getMaxDurability() >= 0) {

@@ -15,6 +15,7 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.BlockRegistry;
+import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.behavior.Behavior;
@@ -92,6 +93,11 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         checkArgument(this.isBehaviorRegistered(key), "Behaviour '%s' already registered", key);
         checkArgument(this.itemRegistry.isBehaviorRegistered(key), "Item Behaviour '%s' already registered", key);
         super.registerBehavior(key, defaultBehavior, executorFactory);
+    }
+
+    @Override
+    public GlobalRegistry global() {
+        return null;
     }
 
     @Override

@@ -9,6 +9,7 @@ import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.ChestBlockEntity;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -160,7 +161,7 @@ public class CloudDoubleChestInventory extends CloudContainer implements Invento
             }
             InventorySlotPacket packet = new InventorySlotPacket();
             packet.setSlot(inv == this.right ? this.left.getSize() + index : index);
-            packet.setItem(((ItemStack) inv.getItem(index)).getNetworkData());
+            packet.setItem(ItemUtils.toNetwork(inv.getItem(index)));
             packet.setContainerId(id);
             player.sendPacket(packet);
         }

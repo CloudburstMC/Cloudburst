@@ -2,6 +2,7 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
@@ -64,8 +65,8 @@ public class EnchantCommand extends Command {
         }
 
         ItemStack item = player.getInventory().getItemInHand();
-        if (item.isNull()) {
-            sender.sendMessage(new TranslationContainer("%commands.enchant.noItem", item.getName()));
+        if (item == ItemStack.AIR) {
+            sender.sendMessage(new TranslationContainer("%commands.enchant.noItem", item.get(ItemKeys.CUSTOM_NAME)));
             return true;
         }
 

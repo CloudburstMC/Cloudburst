@@ -63,7 +63,7 @@ public class CraftingTransaction extends InventoryTransaction {
         int y = index / this.gridSize;
         int x = index % this.gridSize;
 
-        if (this.inputs[y][x].isNull()) {
+        if (this.inputs[y][x] == ItemStack.AIR) {
             inputs[y][x] = item;
         } else if (!inputs[y][x].equals(item)) {
             throw new RuntimeException("Input " + index + " has already been set and does not match the current item (expected " + inputs[y][x] + ", got " + item + ")");
@@ -78,7 +78,7 @@ public class CraftingTransaction extends InventoryTransaction {
         int y = (index / this.gridSize);
         int x = index % gridSize;
 
-        if (secondaryOutputs[y][x].isNull()) {
+        if (secondaryOutputs[y][x] == ItemStack.AIR) {
             secondaryOutputs[y][x] = item;
         } else if (!secondaryOutputs[y][x].equals(item)) {
             throw new RuntimeException("Output " + index + " has already been set and does not match the current item (expected " + secondaryOutputs[y][x] + ", got " + item + ")");
@@ -114,7 +114,7 @@ public class CraftingTransaction extends InventoryTransaction {
             for (int x = 0; x < row.length; x++) {
                 ItemStack item = row[x];
 
-                if (!item.isNull()) {
+                if (item != ItemStack.AIR) {
                     xMin = Math.min(x, xMin);
                     yMin = Math.min(y, yMin);
 

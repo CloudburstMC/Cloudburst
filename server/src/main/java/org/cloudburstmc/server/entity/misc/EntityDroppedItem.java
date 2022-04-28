@@ -13,6 +13,7 @@ import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
@@ -235,7 +236,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
     @Override
     public String getName() {
-        return this.hasNameTag() ? this.getNameTag() : (this.item.hasName() ? this.item.getName() : this.item.getName());
+        return this.hasNameTag() ? this.getNameTag() : this.item.get(ItemKeys.CUSTOM_NAME);
     }
 
     public ItemStack getItem() {
@@ -270,7 +271,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         addEntity.setPosition(this.getPosition());
         addEntity.setMotion(this.getMotion());
         this.data.putAllIn(addEntity.getMetadata());
-        addEntity.setItemInHand(((ItemStack) this.getItem()).getNetworkData());
+        addEntity.setItemInHand(ItemUtils.toNetwork(this.getItem()));
         return addEntity;
     }
 

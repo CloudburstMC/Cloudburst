@@ -124,7 +124,7 @@ public class ShapelessRecipe implements CraftingRecipe {
 
     private boolean matchItemList(List<ItemStack> haveItems, List<ItemStack> needItems) {
         // Remove any air blocks that may have gotten through.
-        haveItems.removeIf(ItemStack::isNull);
+        haveItems.removeIf(item -> item == ItemStack.AIR);
 
         if (haveItems.size() != needItems.size()) {
             return false;
