@@ -140,4 +140,6 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<Integer, Integer> GET_FILTERED_LIGHT = DataKey.behavior(Identifier.fromString("get_filtered_light"), Integer.class, Integer.class);
 
+    public static final BehaviorKey<Boolean, Boolean> CAN_DAMAGE_ITEM = DataKey.behavior(Identifier.fromString("can_damage_item"), Boolean.class);
+
 }
