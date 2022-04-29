@@ -42,6 +42,7 @@ open module org.cloudburstmc.server {
     requires jopt.simple;
     requires natives;
     requires jdk.unsupported;
+    requires java.desktop;
 
     exports co.aikar.timings;
     exports org.cloudburstmc.server;

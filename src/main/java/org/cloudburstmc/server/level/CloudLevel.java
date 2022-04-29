@@ -40,11 +40,11 @@ import org.cloudburstmc.api.event.block.BlockUpdateEvent;
 import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.api.event.level.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Bucket;
-import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.LevelException;
@@ -65,7 +65,6 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.behavior.Behavior;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
-import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlock;
@@ -94,7 +93,10 @@ import org.cloudburstmc.server.utils.TextFormat;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.awt.*;
 import java.io.IOException;
+import java.util.List;
+import java.util.Queue;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -963,7 +965,7 @@ public class CloudLevel implements Level {
                                 int y = lcg >>> 8 & 0x0f;
                                 int z = lcg >>> 16 & 0x0f;
 
-                                var state = section.getBlock(x, y, z, 0);
+                                BlockState state = section.getBlock(x, y, z, 0);
                                 if (randomTickBlocks.contains(state.getType().getId())) {
                                     Block block = new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
                                             state,
@@ -1630,10 +1632,14 @@ public class CloudLevel implements Level {
             ItemStack[] eventDrops;
             if (!player.isSurvival()) {
                 eventDrops = new ItemStack[0];
-            } else if (isSilkTouch && targetBehaviors.canSilkTouch(target.getState())) {
-                eventDrops = new ItemStack[]{targetBehaviors.toItem(target)};
+            } else if (isSilkTouch && targetBehaviors.get(CAN_BE_SILK_TOUCHED).execute(target)) {
+                ItemStack itemStack = targetBehaviors.get(GET_SILK_TOUCH_RESOURCE).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
+                eventDrops = new ItemStack[]{itemStack};
             } else {
-                eventDrops = targetBehaviors.getDrops(target, item);
+                ItemStack itemStack = targetBehaviors.get(GET_RESOURCE_ITEM).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
+                int count = targetBehaviors.get(GET_RESOURCE_COUNT).execute(target, new Random(), 0);
+                eventDrops = new ItemStack[count];
+                Arrays.fill(eventDrops, itemStack);
             }
 
             BlockBreakEvent ev = new BlockBreakEvent(player, target, face, item, eventDrops, dropExp, player.isCreative(),
@@ -1660,10 +1666,14 @@ public class CloudLevel implements Level {
             dropExp = ev.getDropExp();
         } else if (!targetBehaviors.isBreakable(target.getState(), item)) {
             return null;
-        } else if (item.getEnchantment(EnchantmentTypes.SILK_TOUCH) != null) {
-            drops = new ItemStack[]{targetBehaviors.toItem(target)};
+        } else if (item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.SILK_TOUCH) != null) {
+            ItemStack itemStack = targetBehaviors.get(GET_SILK_TOUCH_RESOURCE).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
+            drops = new ItemStack[]{itemStack};
         } else {
-            drops = targetBehaviors.getDrops(target, item);
+            ItemStack itemStack = targetBehaviors.get(GET_RESOURCE_ITEM).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
+            int count = targetBehaviors.get(GET_RESOURCE_COUNT).execute(target, new Random(), 0);
+            drops = new ItemStack[count];
+            Arrays.fill(drops, itemStack);
         }
 
         Block above = this.getLoadedBlock(target.getPosition().add(0, 1, 0));
@@ -1691,9 +1701,9 @@ public class CloudLevel implements Level {
 
         targetBehaviors.onBreak(target, item, player);
 
-        var itemBehavior = item.getBehavior();
-        itemBehavior.useOn(item, target.getState());
-        if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
+        BehaviorCollection itemBehaviors = this.itemRegistry.getBehaviors(item.getType());
+        itemBehaviors.useOn(item, target.getState());
+        if (itemBehaviors.isTool(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
             item = ItemStack.AIR;
         }
 
@@ -1752,9 +1762,9 @@ public class CloudLevel implements Level {
 
     public ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos, Player player, boolean playSound) {
         Block target = this.getBlock(vector);
-        Behavior targetBehavior = target.getState().getBehavior();
+        BehaviorCollection targetBehaviors = target.getBehaviors();
         Block block = target.getSide(face);
-        Behavior behavior = block.getState().getBehavior();
+        BehaviorCollection behaviors = block.getBehaviors();
         Vector3i blockPos = block.getPosition();
 
         if (blockPos.getY() > 255 || blockPos.getY() < 0) {
@@ -1765,7 +1775,7 @@ public class CloudLevel implements Level {
             return null;
         }
 
-        var itemBehavior = item.getBehavior();
+        BehaviorCollection itemBehaviors = this.itemRegistry.getBehaviors(item.getType());
 
         if (player != null) {
             PlayerInteractEvent ev = new PlayerInteractEvent(player, item, target, face, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK);
@@ -1780,16 +1790,16 @@ public class CloudLevel implements Level {
 
             this.server.getEventManager().fire(ev);
             if (!ev.isCancelled()) {
-                targetBehavior.onUpdate(target, BLOCK_UPDATE_TOUCH);
-                if ((!player.isSneaking() || player.getInventory().getItemInHand().isNull()) && targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item, player)) {
-                    if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
+                targetBehaviors.get(ON_TICK).execute(target, new Random());
+                if ((!player.isSneaking() || player.getInventory().getItemInHand() == ItemStack.AIR) && targetBehaviors.canBeActivated(target) && targetBehaviors.onActivate(target, item, player)) {
+                    if (itemBehaviors.isTool(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
                         item = ItemStack.AIR;
                     }
                     return item;
                 }
 
-                if (itemBehavior.canBeActivated()) {
-                    var result = itemBehavior.onActivate(item, player, block, target, face, clickPos, this);
+                if (itemBehaviors.canBeActivated()) {
+                    var result = itemBehaviors.onActivate(item, player, block, target, face, clickPos, this);
                     if (result != null) {
                         item = result;
                         if (item.getCount() <= 0) {
@@ -1799,30 +1809,30 @@ public class CloudLevel implements Level {
                     }
                 }
             } else {
-                if (item.getType() == ItemTypes.BUCKET && item.getMetadata(Bucket.class) == Bucket.WATER) {
+                if (item.getType() == ItemTypes.BUCKET && item.get(ItemKeys.BUCKET_DATA) == Bucket.WATER) {
                     ((CloudLevel) player.getLevel()).sendBlocks(new Player[]{player}, new Block[]{new CloudBlock(this, block.getPosition(), new BlockState[]{BlockStates.AIR, BlockStates.AIR})}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
                 }
                 return null;
             }
-        } else if (targetBehavior.canBeActivated(target) && targetBehavior.onActivate(target, item)) {
-            if (itemBehavior.isTool(item) && item.getMetadata(Damageable.class).getDurability() >= itemBehavior.getMaxDurability()) {
+        } else if (targetBehaviors.canBeActivated(target) && targetBehaviors.onActivate(target, item)) {
+            if (itemBehaviors.isTool(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
                 item = ItemStack.AIR;
             }
             return item;
         }
         BlockState hand;
-        if (itemBehavior.canBePlaced(item)) {
-            hand = itemBehavior.getBlock(item);
+        if (itemBehaviors.canBePlaced(item)) {
+            hand = itemBehaviors.getBlock(item);
         } else {
             return null;
         }
 
-        if (!(behavior.canBeReplaced(block)
+        if (!(behaviors.canBeReplaced(block)
                 || (hand.inCategory(BlockCategory.SLAB) && (block.getState().inCategory(BlockCategory.SLAB) || target.getState().inCategory(BlockCategory.SLAB))))) {
             return null;
         }
 
-        if (targetBehavior.canBeReplaced(target)) {
+        if (targetBehaviors.canBeReplaced(target)) {
             block = target;
         }
 
@@ -1903,7 +1913,7 @@ public class CloudLevel implements Level {
 
         if (player != null) {
             if (!player.isCreative()) {
-                item = item.decrementAmount();
+                item = item.decreaseCount();
             }
         }
 
@@ -2163,19 +2173,19 @@ public class CloudLevel implements Level {
         return this.getChunk(x >> 4, z >> 4).getHighestBlock(x & 0x0f, z & 0x0f);
     }
 
-    public BlockColor getMapColorAt(int x, int z) {
+    public Color getMapColorAt(int x, int z) {
         Chunk chunk = this.getChunk(x >> 4, z >> 4);
         int y = chunk.getHighestBlock(x & 0x0f, z & 0x0f);
         while (y > 1) {
             Block block = getBlock(Vector3i.from(x, y, z));
-            BlockColor blockColor = block.getState().getBehavior().getColor(block);
-            if (blockColor.getAlpha() == 0x00) {
+            Color mapColor = block.getBehaviors().get(GET_MAP_COLOR).execute(block);
+            if (mapColor.getAlpha() == 0x00) {
                 y--;
             } else {
-                return blockColor;
+                return mapColor;
             }
         }
-        return BlockColor.VOID_BLOCK_COLOR;
+        return Color.BLACK;
     }
 
     public boolean isChunkLoaded(Vector4i pos) {
@@ -2535,94 +2545,6 @@ public class CloudLevel implements Level {
         return this.getHighestBlockAt(x, z) < y;
     }
 
-    public int getStrongPower(Vector3i pos, Direction direction) {
-        Block block = this.getBlock(pos);
-        return block.getState().getBehavior().getStrongPower(block, direction);
-    }
-
-    public int getStrongPower(Vector3i pos) {
-        int i = 0;
-
-        for (Direction face : Direction.values()) {
-            i = Math.max(i, this.getStrongPower(face.getOffset(pos), face));
-
-            if (i >= 15) {
-                return i;
-            }
-        }
-
-        return i;
-//        i = Math.max(i, this.getStrongPower(pos.down(), BlockFace.DOWN));
-//
-//        if (i >= 15) {
-//            return i;
-//        } else {
-//            i = Math.max(i, this.getStrongPower(pos.up(), BlockFace.UP));
-//
-//            if (i >= 15) {
-//                return i;
-//            } else {
-//                i = Math.max(i, this.getStrongPower(pos.north(), BlockFace.NORTH));
-//
-//                if (i >= 15) {
-//                    return i;
-//                } else {
-//                    i = Math.max(i, this.getStrongPower(pos.south(), BlockFace.SOUTH));
-//
-//                    if (i >= 15) {
-//                        return i;
-//                    } else {
-//                        i = Math.max(i, this.getStrongPower(pos.west(), BlockFace.WEST));
-//
-//                        if (i >= 15) {
-//                            return i;
-//                        } else {
-//                            i = Math.max(i, this.getStrongPower(pos.east(), BlockFace.EAST));
-//                            return i >= 15 ? i : i;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-    }
-
-    public boolean isSidePowered(Vector3i pos, Direction face) {
-        return this.getRedstonePower(pos, face) > 0;
-    }
-
-    public int getRedstonePower(Vector3i pos, Direction face) {
-        Block block = this.getBlock(pos);
-        var behavior = block.getState().getBehavior();
-        return behavior.isNormalBlock(block) ? this.getStrongPower(pos) : behavior.getWeakPower(block, face);
-    }
-
-    public boolean isBlockPowered(Vector3i pos) {
-        for (Direction face : Direction.values()) {
-            if (this.getRedstonePower(face.getOffset(pos), face) > 0) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public int isBlockIndirectlyGettingPowered(Vector3i pos) {
-        int power = 0;
-
-        for (Direction face : Direction.values()) {
-            int blockPower = this.getRedstonePower(face.getOffset(pos), face);
-
-            if (blockPower >= 15) {
-                return 15;
-            }
-
-            if (blockPower > power) {
-                power = blockPower;
-            }
-        }
-
-        return power;
-    }
 
     public boolean isAreaLoaded(AxisAlignedBB bb) {
         if (bb.getMaxY() < 0 || bb.getMinY() >= 256) {
@@ -2656,54 +2578,4 @@ public class CloudLevel implements Level {
     public String toString() {
         return "Level(id=" + id + ")";
     }
-
-    //    private static void orderGetRidings(Entity entity, LongSet set) {
-//        if (entity.riding != null) {
-//            if(!set.add(entity.riding.getId())) {
-//                throw new RuntimeException("Circular entity link detected (id = "+entity.riding.getId()+")");
-//            }
-//            orderGetRidings(entity.riding, set);
-//        }
-//    }
-//
-//    public List<Entity> orderChunkEntitiesForSpawn(int chunkX, int chunkZ) {
-//        return orderChunkEntitiesForSpawn(getChunk(chunkX, chunkZ, false));
-//    }
-//
-//    public List<Entity> orderChunkEntitiesForSpawn(Chunk chunk) {
-//        Comparator<Entity> comparator = (o1, o2) -> {
-//            if (o1.riding == null) {
-//                if(o2 == null) {
-//                    return 0;
-//                }
-//
-//                return -1;
-//            }
-//
-//            if (o2.riding == null) {
-//                return 1;
-//            }
-//
-//            LongSet ridings = new LongOpenHashSet();
-//            orderGetRidings(o1, ridings);
-//
-//            if(ridings.contains(o2.getId())) {
-//                return 1;
-//            }
-//
-//            ridings.clear();
-//            orderGetRidings(o2, ridings);
-//
-//            if(ridings.contains(o1.getId())) {
-//                return -1;
-//            }
-//
-//            return 0;
-//        };
-//
-//        List<Entity> sorted = new ArrayList<>(chunk.getEntities().values());
-//        sorted.sort(comparator);
-//
-//        return sorted;
-//    }
 }
