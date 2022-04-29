@@ -142,4 +142,6 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<Boolean, Boolean> CAN_DAMAGE_ITEM = DataKey.behavior(Identifier.fromString("can_damage_item"), Boolean.class);
 
+    public static final BehaviorKey<MapColorBehavior, MapColorBehavior.Executor> GET_MAP_COLOR = DataKey.behavior(Identifier.fromString("get_map_color"), MapColorBehavior.class, MapColorBehavior.Executor.class);
+
 }
