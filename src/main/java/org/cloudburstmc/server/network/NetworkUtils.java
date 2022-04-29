@@ -176,9 +176,4 @@ public class NetworkUtils {
                 customName == null ? "" : customName,
                 damage == null ? 0 : damage);
     }
-
-    public static ItemStack itemStackFromNetwork(ItemData data) {
-        int runtimeId = data.getId();
-        return ItemUtils.deserializeItem(CloudItemRegistry.get().getIdentifier(runtimeId), (short) data.getDamage(), data.getCount(), data.getTag() == null ? NbtMap.EMPTY : data.getTag());
-    }
 }

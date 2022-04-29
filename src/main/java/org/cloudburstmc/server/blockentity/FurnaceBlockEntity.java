@@ -157,76 +157,78 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         this.timing.startTiming();
 
         boolean ret = false;
-        ItemStack fuel = this.inventory.getFuel();
-        ItemStack raw = this.inventory.getSmelting();
-        ItemStack product = this.inventory.getResult();
-        BlockState state = getBlockState();
-        BlockType blockType = state.getType();
-        FurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
-        boolean canSmelt = smelt != null && raw.getCount() > 0 &&
-                (product == ItemStack.AIR || (smelt.getResult().equals(product) && product.getCount() < product.getBehavior().getMaxStackSize(product)));
 
-        if (burnTime <= 0 && canSmelt && fuel.getBehavior().getFuelTime(fuel) != 0 && fuel.getCount() > 0) {
-            this.checkFuel(fuel);
-        }
-
-        if (burnTime > 0) {
-            burnTime--;
-
-            if (smelt != null && canSmelt) {
-                cookTime++;
-                if (cookTime >= (200 / getBurnRate())) {
-                    product = smelt.getResult().increaseCount();
-
-                    FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
-                    this.server.getEventManager().fire(ev);
-                    if (!ev.isCancelled()) {
-                        this.inventory.setResult(ev.getResult());
-                        if (raw.getCount() <= 1) {
-                            raw = ItemStack.AIR;
-                        } else {
-                            raw = raw.decreaseCount();
-                        }
-                        this.inventory.setSmelting(raw);
-                    }
-
-                    cookTime -= (200 / getBurnRate());
-                }
-            } else if (burnTime <= 0) {
-                burnTime = 0;
-                cookTime = 0;
-            } else {
-                cookTime = 0;
-            }
-            ret = true;
-        } else {
-            if (!state.ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
-                extinguishFurnace();
-            }
-            burnTime = 0;
-            cookTime = 0;
-        }
-
-        for (CloudPlayer player : this.getInventory().getViewers()) {
-            byte windowId = player.getWindowId(this.getInventory());
-            if (windowId > 0) {
-                ContainerSetDataPacket packet = new ContainerSetDataPacket();
-                packet.setWindowId(windowId);
-                packet.setProperty(ContainerSetDataPacket.FURNACE_TICK_COUNT);
-                packet.setValue(cookTime);
-                player.sendPacket(packet);
-
-                packet = new ContainerSetDataPacket();
-                packet.setWindowId(windowId);
-                packet.setProperty(ContainerSetDataPacket.FURNACE_LIT_TIME);
-                packet.setValue(burnTime);
-                player.sendPacket(packet);
-            }
-        }
-
-        this.lastUpdate = System.currentTimeMillis();
-
-        this.timing.stopTiming();
+//        TODO Recipe Implementation (version 0.x.x)
+//        ItemStack fuel = this.inventory.getFuel();
+//        ItemStack raw = this.inventory.getSmelting();
+//        ItemStack product = this.inventory.getResult();
+//        BlockState state = getBlockState();
+//        BlockType blockType = state.getType();
+//        FurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
+//        boolean canSmelt = smelt != null && raw.getCount() > 0 &&
+//                (product == ItemStack.AIR || (smelt.getResult().equals(product) && product.getCount() < product.getBehavior().getMaxStackSize(product)));
+//
+//        if (burnTime <= 0 && canSmelt && fuel.getBehavior().getFuelTime(fuel) != 0 && fuel.getCount() > 0) {
+//            this.checkFuel(fuel);
+//        }
+//
+//        if (burnTime > 0) {
+//            burnTime--;
+//
+//            if (smelt != null && canSmelt) {
+//                cookTime++;
+//                if (cookTime >= (200 / getBurnRate())) {
+//                    product = smelt.getResult().increaseCount();
+//
+//                    FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
+//                    this.server.getEventManager().fire(ev);
+//                    if (!ev.isCancelled()) {
+//                        this.inventory.setResult(ev.getResult());
+//                        if (raw.getCount() <= 1) {
+//                            raw = ItemStack.AIR;
+//                        } else {
+//                            raw = raw.decreaseCount();
+//                        }
+//                        this.inventory.setSmelting(raw);
+//                    }
+//
+//                    cookTime -= (200 / getBurnRate());
+//                }
+//            } else if (burnTime <= 0) {
+//                burnTime = 0;
+//                cookTime = 0;
+//            } else {
+//                cookTime = 0;
+//            }
+//            ret = true;
+//        } else {
+//            if (!state.ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
+//                extinguishFurnace();
+//            }
+//            burnTime = 0;
+//            cookTime = 0;
+//        }
+//
+//        for (CloudPlayer player : this.getInventory().getViewers()) {
+//            byte windowId = player.getWindowId(this.getInventory());
+//            if (windowId > 0) {
+//                ContainerSetDataPacket packet = new ContainerSetDataPacket();
+//                packet.setWindowId(windowId);
+//                packet.setProperty(ContainerSetDataPacket.FURNACE_TICK_COUNT);
+//                packet.setValue(cookTime);
+//                player.sendPacket(packet);
+//
+//                packet = new ContainerSetDataPacket();
+//                packet.setWindowId(windowId);
+//                packet.setProperty(ContainerSetDataPacket.FURNACE_LIT_TIME);
+//                packet.setValue(burnTime);
+//                player.sendPacket(packet);
+//            }
+//        }
+//
+//        this.lastUpdate = System.currentTimeMillis();
+//
+//        this.timing.stopTiming();
 
         return ret;
     }
