@@ -90,18 +90,20 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
         boolean haveUpdate = false;
         boolean itemChange = false;
-        for (int i = 0; i < items.length; i++) {
-            if (items[i] != null) {
-                if (++itemTimes[i] >= 600) {
-                    ItemStack output = CloudRecipeRegistry.get().matchFurnaceRecipe(items[i], BlockIds.CAMPFIRE).getResult();
-                    this.getLevel().dropItem(this.getPosition(), output);
-                    items[i] = null;
-                    itemTimes[i] = 0;
-                    itemChange = true;
-                }
-                haveUpdate = true;
-            }
-        }
+
+//        TODO Recipe Implementation (version 0.x.x)
+//        for (int i = 0; i < items.length; i++) {
+//            if (items[i] != null) {
+//                if (++itemTimes[i] >= 600) {
+//                    ItemStack output = CloudRecipeRegistry.get().matchFurnaceRecipe(items[i], BlockIds.CAMPFIRE).getResult();
+//                    this.getLevel().dropItem(this.getPosition(), output);
+//                    items[i] = null;
+//                    itemTimes[i] = 0;
+//                    itemChange = true;
+//                }
+//                haveUpdate = true;
+//            }
+//        }
 
         this.lastUpdate = System.currentTimeMillis();
         if (itemChange) spawnToAll();

@@ -125,16 +125,16 @@ public enum GenerationTreeSpecies {
             return new FeatureDarkOakTree(FeatureDarkOakTree.DEFAULT_HEIGHT, this);
         }
     },
-    MUSHROOM_RED(BlockStates.RED_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.STEM),
-            BlockStates.RED_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.ALL),
+    MUSHROOM_RED(BlockStates.RED_MUSHROOM_BLOCK,//.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.STEM),
+            BlockStates.RED_MUSHROOM_BLOCK,//.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.ALL),
             BlockIds.RED_MUSHROOM, 0) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {
             return new FeatureMushroomRed(height);
         }
     },
-    MUSHROOM_BROWN(BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.STEM),
-            BlockStates.BROWN_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.ALL),
+    MUSHROOM_BROWN(BlockStates.BROWN_MUSHROOM_BLOCK,//.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.STEM),
+            BlockStates.BROWN_MUSHROOM_BLOCK,//.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.ALL),
             BlockIds.BROWN_MUSHROOM, 0) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {

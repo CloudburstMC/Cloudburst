@@ -187,14 +187,17 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         return getType(getIdentifier(legacyId));
     }
 
+    @Deprecated
     public ItemStack getItemLegacy(int legacyId) {
         return ItemStack.from(getType(legacyId), 1);
     }
 
+    @Deprecated
     public ItemStack getItemLegacy(int legacyId, short damage) {
         return getItemLegacy(legacyId, damage, 1);
     }
 
+    @Deprecated
     public ItemStack getItemLegacy(int legacyId, short damage, int amount) {
         return ItemUtils.deserializeItem(getIdentifier(legacyId), damage, amount, NbtMap.EMPTY);
     }

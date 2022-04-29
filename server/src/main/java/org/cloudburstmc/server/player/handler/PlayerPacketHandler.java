@@ -43,6 +43,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.player.*;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Damageable;
@@ -306,6 +307,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 if (!player.isCreative()) {
                     //improved player to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
                     //Done by lmlstarqaq
+
                     double breakTime = Math.ceil(targetState.getBehavior().getBreakTime(targetState, player.getInventory().getItemInHand(), player) * 20);
                     log.info("Break time {} for {}", breakTime, targetState.getBehavior().getClass().getSimpleName());
                     if (breakTime > 0) {
@@ -749,19 +751,20 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(CraftingEventPacket packet) {
-        CraftingRecipe recipe = (CraftingRecipe) CloudRecipeRegistry.get().getRecipe(packet.getUuid());
-        if (recipe != null) {
-            CraftItemStackTransaction transaction = new CraftItemStackTransaction(player, recipe);
-            transaction.setPrimaryOutput(NetworkUtils.itemStackFromNetwork(packet.getOutputs().remove(0)));
-            if (packet.getOutputs().size() >= 1) {
-                int slot = 0;
-                for (ItemData data : packet.getOutputs()) {
-                    transaction.setExtraOutput(slot++, NetworkUtils.itemStackFromNetwork(data));
-                }
-            }
-            player.getInventoryManager().setTransaction(transaction);
-            return true;
-        }
+//        TODO Recipe Implementation (version 0.x.x)
+//        CraftingRecipe recipe = (CraftingRecipe) CloudRecipeRegistry.get().getRecipe(packet.getUuid());
+//        if (recipe != null) {
+//            CraftItemStackTransaction transaction = new CraftItemStackTransaction(player, recipe);
+//            transaction.setPrimaryOutput(NetworkUtils.itemStackFromNetwork(packet.getOutputs().remove(0)));
+//            if (packet.getOutputs().size() >= 1) {
+//                int slot = 0;
+//                for (ItemData data : packet.getOutputs()) {
+//                    transaction.setExtraOutput(slot++, NetworkUtils.itemStackFromNetwork(data));
+//                }
+//            }
+//            player.getInventoryManager().setTransaction(transaction);
+//            return true;
+//        }
         log.warn("Received invalid recipe UUID({}) in CraftingEventPacket", packet.getUuid());
         return true;
     }

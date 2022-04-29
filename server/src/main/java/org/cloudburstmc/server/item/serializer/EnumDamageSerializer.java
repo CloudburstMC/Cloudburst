@@ -28,15 +28,16 @@ public class EnumDamageSerializer extends DefaultItemSerializer {
     @Override
     public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
-        var val = item.get(ItemKeys.COLOR);
-        itemTag.
-        itemTag.putShort("Damage", (short) (val == null ? 0 : val));
+        //TODO sometime
+//        var val = item.get(ItemKeys.COLOR);
+//        itemTag.
+//        itemTag.putShort("Damage", (short) (val == null ? 0 : val));
     }
 
     @Override
     public void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag) {
         super.deserialize(id, meta, amount, builder, tag);
-        builder.data(ItemKeys.COLOR, values[meta % values.length]);
+//        builder.data(ItemKeys.COLOR, values[meta % values.length]);
     }
 
     @Override
