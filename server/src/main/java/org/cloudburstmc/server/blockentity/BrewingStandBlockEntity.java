@@ -188,28 +188,29 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
                 BrewFinishEvent e = new BrewFinishEvent(this);
                 this.server.getEventManager().fire(e);
 
-                if (!e.isCancelled()) {
-                    for (int i = 1; i <= 3; i++) {
-                        ItemStack potion = this.inventory.getItem(i);
-
-                        ContainerRecipe containerRecipe = (ContainerRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
-                        if (containerRecipe != null) {
-                            ItemStack result = containerRecipe.getResult();
-//                            result.setMeta(potion.getMeta()); //TODO: check
-                            this.inventory.setItem(i, result);
-                        } else {
-                            BrewingRecipe recipe = (BrewingRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
-                            if (recipe != null) {
-                                this.inventory.setItem(i, recipe.getResult());
-                            }
-                        }
-                    }
-                    this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.POTION_BREWED);
-                    this.inventory.decrementCount(CloudBrewingInventory.SLOT_INGREDIENT);
-
-                    this.fuelAmount--;
-                    this.sendFuel();
-                }
+//                TODO Recipe Implementation (version 0.x.x)
+//                if (!e.isCancelled()) {
+//                    for (int i = 1; i <= 3; i++) {
+//                        ItemStack potion = this.inventory.getItem(i);
+//
+//                        ContainerRecipe containerRecipe = (ContainerRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
+//                        if (containerRecipe != null) {
+//                            ItemStack result = containerRecipe.getResult();
+////                            result.setMeta(potion.getMeta()); //TODO: check
+//                            this.inventory.setItem(i, result);
+//                        } else {
+//                            BrewingRecipe recipe = (BrewingRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
+//                            if (recipe != null) {
+//                                this.inventory.setItem(i, recipe.getResult());
+//                            }
+//                        }
+//                    }
+//                    this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.POTION_BREWED);
+//                    this.inventory.decrementCount(CloudBrewingInventory.SLOT_INGREDIENT);
+//
+//                    this.fuelAmount--;
+//                    this.sendFuel();
+//                }
 
                 this.cookTime = MAX_COOK_TIME;
             }

@@ -105,7 +105,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         tag.putShort("PickupDelay", (short) this.pickupDelay);
         tag.putShort("Age", (short) this.age);
         tag.putLong("OwnerID", this.data.getLong(OWNER_EID));
-        tag.putCompound("Item", ItemUtils.serializeItem(this.item).toBuilder().build());
+        tag.putCompound("Item", ItemUtils.serializeItem(this.item));
     }
 
     @Override

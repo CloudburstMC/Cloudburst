@@ -58,7 +58,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
         if (this.book != null) {
             tag.putBoolean(TAG_HAS_BOOK, true);
-            tag.putCompound(TAG_BOOK, ItemUtils.serializeItem(this.book).toBuilder().build());
+            tag.putCompound(TAG_BOOK, ItemUtils.serializeItem(this.book));
             tag.putInt(TAG_PAGE, this.page);
             tag.putInt(TAG_TOTAL_PAGES, this.totalPages);
         }
