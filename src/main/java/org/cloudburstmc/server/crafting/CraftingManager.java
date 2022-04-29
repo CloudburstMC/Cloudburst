@@ -15,10 +15,9 @@ import javax.inject.Singleton;
 @Singleton
 public class CraftingManager {
 
-    private CloudRecipeRegistry registry = CloudRecipeRegistry.get();
-
     public void sendRecipesTo(CloudPlayer player) {
-        player.sendPacket(registry.getNetworkData());
+//        TODO Recipe Implementation (version 0.x.x)
+//        player.sendPacket(registry.getNetworkData());
     }
 
     private ItemStack[][] cloneItemMap(ItemStack[][] map) {

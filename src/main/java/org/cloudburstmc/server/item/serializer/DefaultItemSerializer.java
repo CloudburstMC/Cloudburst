@@ -7,7 +7,6 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
@@ -16,15 +15,10 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.NonSerializable;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
-import org.cloudburstmc.server.item.SerializedItem;
 import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.registry.EnchantmentRegistry;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Log4j2
 public class DefaultItemSerializer implements ItemSerializer {
