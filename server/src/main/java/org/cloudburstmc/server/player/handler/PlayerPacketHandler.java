@@ -32,7 +32,7 @@ import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.crafting.CraftingRecipe;
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
@@ -43,13 +43,12 @@ import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.player.*;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.item.data.Damageable;
+import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
+import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
@@ -75,6 +74,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
+import javax.inject.Inject;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -92,6 +92,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     protected double lastRightClickTime = 0.0;
 
     private Vector3i lastBreakPosition = Vector3i.ZERO;
+
+    @Inject
+    GlobalRegistry globalRegistry;
 
     public PlayerPacketHandler(CloudPlayer player) {
         this.player = player;
@@ -1154,10 +1157,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
                         break;
                     case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-                        var behavior = serverItem.getBehavior();
+                        var behavior = this.globalRegistry.getRegistry(ItemType.class).getBehaviors(serverItem.getType());
                         float itemDamage = behavior.getAttackDamage(serverItem);
 
-                        for (EnchantmentInstance enchantment : serverItem.getEnchantments().values()) {
+                        for (Enchantment enchantment : serverItem.get(ItemKeys.ENCHANTMENTS).values()) {
                             itemDamage += enchantment.getBehavior().getDamageBonus(enchantment, target);
                         }
 
@@ -1176,9 +1179,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                         int knockback = 0;
 
-                        EnchantmentInstance enchKnockback = player.getInventory().getItemInHand().getEnchantment(EnchantmentTypes.KNOCKBACK);
+                        Enchantment enchKnockback = player.getInventory().getItemInHand().get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.KNOCKBACK);
                         if (enchKnockback != null) {
-                            knockback = enchKnockback.getLevel();
+                            knockback = enchKnockback.level();
                         }
 
                         EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(player, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage);
@@ -1204,14 +1207,14 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                                 player.setSprinting(false);
                             }
 
-                            for (EnchantmentInstance enchantment : serverItem.getEnchantments().values()) {
+                            for (Enchantment enchantment : serverItem.get(ItemKeys.ENCHANTMENTS).values()) {
                                 enchantment.getBehavior().doPostAttack(enchantment, player, target);
                             }
                         }
 
                         if (behavior.isTool(serverItem) && (player.isSurvival() || player.isAdventure())) {
                             var result = behavior.useOn(serverItem, target);
-                            if (result == null && serverItem.getMetadata(Damageable.class).getDurability() >= behavior.getMaxDurability()) {
+                            if (result == null && serverItem.get(ItemKeys.DAMAGE) >= behavior.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
                                 player.getInventory().setItemInHand(ItemStack.AIR);
                             } else {
                                 player.getInventory().setItemInHand(result);
