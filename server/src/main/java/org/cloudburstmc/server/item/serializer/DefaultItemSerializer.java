@@ -7,6 +7,8 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.enchantment.Enchantment;
+import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
@@ -17,8 +19,13 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.server.registry.EnchantmentRegistry;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Log4j2
 public class DefaultItemSerializer implements ItemSerializer {
@@ -26,31 +33,19 @@ public class DefaultItemSerializer implements ItemSerializer {
     public static final DefaultItemSerializer INSTANCE = new DefaultItemSerializer();
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder itemTag) {
-        itemTag.putString("Name", item.getType().getId().toString())
-                .putByte("Count", (byte) item.getCount());
-
-        NbtMapBuilder dataTag = NbtMap.builder();
-
+    public void serialize(ItemStack item, NbtMapBuilder tag) {
 //        TODO: Item Serializers
-        item.getAllMetadata().forEach((dataKey, value) -> {
-            ItemDataSerializer serializer = CloudItemRegistry.get().getSerializer(dataKey);
-            if (serializer == null) {
-                if (!(value instanceof NonSerializable)) {
-                    log.debug("Unregistered item metadata class {}", dataKey);
-                }
-                return;
-            }
-
-            serializer.serialize(item, dataTag, value);
-        });
-
-        if (item.isBlock()) {
-            BlockState blockState = item.get(ItemKeys.BLOCK_STATE);
-
-            itemTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(blockState).toString());
-            itemTag.putShort("Damage", (short) 0);
-        }
+//        item.getAllMetadata().forEach((dataKey, value) -> {
+//            ItemDataSerializer serializer = CloudItemRegistry.get().getSerializer(dataKey);
+//            if (serializer == null) {
+//                if (!(value instanceof NonSerializable)) {
+//                    log.debug("Unregistered item metadata class {}", dataKey);
+//                }
+//                return;
+//            }
+//
+//            serializer.serialize(item, dataTag, value);
+//        });
 
         if (item.get(ItemKeys.CUSTOM_NAME) != null || (item.get(ItemKeys.CUSTOM_LORE) != null && !item.get(ItemKeys.CUSTOM_LORE).isEmpty())) {
             NbtMapBuilder display = NbtMap.builder();
@@ -62,106 +57,57 @@ public class DefaultItemSerializer implements ItemSerializer {
                 display.putList("Lore", NbtType.STRING, item.get(ItemKeys.CUSTOM_LORE));
             }
 
-            dataTag.putCompound("display", display.build());
+            tag.putCompound("display", display.build());
         }
 
-//        TODO Enchantments implementation
-//        if (!item.getEnchantments().isEmpty()) {
-//            List<NbtMap> enchantments = new ArrayList<>(item.getEnchantments().size());
-//            for (EnchantmentInstance enchantment : item.getEnchantments().values()) {
-//                enchantments.add(NbtMap.builder()
-//                        .putShort("id", (enchantment.getType()).getId())
-//                        .putShort("lvl", (short) enchantment.getLevel())
-//                        .build()
-//                );
-//            }
-//
-//            dataTag.putList("ench", NbtType.COMPOUND, enchantments);
-//        }
+        if (!item.get(ItemKeys.ENCHANTMENTS).isEmpty()) {
+            List<NbtMap> enchantments = item.get(ItemKeys.ENCHANTMENTS).values().stream().map(enchantment ->
+                    NbtMap.builder()
+                            .putShort("id", enchantment.type().getId())
+                            .putShort("lvl", (short) enchantment.level())
+                            .build()
+            ).toList();
 
-        //TODO: This should get it's own Serializer, but for now this should work
-        // FIXME: Blocks can be mapped to multiple identifiers.
-        if(item.get(ItemKeys.CAN_DESTROY) != null) {
-            List<String> blocks = item.get(ItemKeys.CAN_DESTROY).stream().map(blockType -> blockType.getId().toString()).toList();
-            dataTag.putList("CanDestroy", NbtType.STRING, blocks);
-        }
-
-        if(item.get(ItemKeys.CAN_PLACE_ON) != null) {
-            List<String> blocks = item.get(ItemKeys.CAN_PLACE_ON).stream().map(blockType -> blockType.getId().toString()).toList();
-            dataTag.putList("CanPlaceOn", NbtType.STRING, blocks);
-        }
-
-        if (!dataTag.isEmpty()) {
-            itemTag.putCompound("tag", dataTag.build());
+            tag.putList("ench", NbtType.COMPOUND, enchantments);
         }
     }
 
-    //TODO Keep the old Damage value tags for the conversion of old world formats
     @Override
-    public void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag) {
-        if (amount <= 0) {
-            builder.itemType(BlockTypes.AIR);
-            return;
-        }
-
-        //TODO: Somewhere here it should create a SerializedItem instance including the required tags and storing it in the cache (?)
-
-        ItemType type = CloudItemRegistry.get().getType(id, meta);
-        builder.itemType(type);
-        builder.amount(amount);
-
-        NbtMapBuilder tagBuilder = NbtMap.builder();
-        tagBuilder.putString("Name", id.toString());
-        tagBuilder.putShort("Damage", meta);
-        tagBuilder.putByte("Count", (byte) amount);
-        if (!tag.isEmpty()) {
-            //TODO DataTags
-            builder.dataTag(tag);
-            tagBuilder.putCompound("tag", tag);
-        }
-        builder.nbt(tagBuilder.build());
-
-        if (type instanceof BlockType) {
-            var blockState = BlockStateMetaMappings.getStateFromMeta(id, meta);
-
-            if (blockState != null) {
-                builder.data(ItemKeys.BLOCK_STATE, blockState);
-            }
-        }
-
+    public void deserialize(ItemStackBuilder builder, NbtMap tag) {
         if (tag.isEmpty()) {
             return;
         }
 
-        var display = tag.getCompound("display");
-        if (display != null && !display.isEmpty()) {
-            builder.data(ItemKeys.CUSTOM_NAME, display.getString("Name"));
-            builder.data(ItemKeys.CUSTOM_LORE, display.getList("Lore", NbtType.STRING, null));
+        if (tag.containsKey("display", NbtType.COMPOUND)) {
+            NbtMap display = tag.getCompound("display");
+            if(display.containsKey("Name", NbtType.STRING)) {
+                builder.data(ItemKeys.CUSTOM_NAME, display.getString("Name"));
+            }
+
+            if(display.containsKey("Lore", NbtType.LIST)) {
+                List<String> lore = display.getList("Lore", NbtType.STRING, Collections.emptyList());
+                if(!lore.isEmpty()) {
+                    builder.data(ItemKeys.CUSTOM_LORE, lore);
+                }
+            }
         }
 
-//        TODO: Implement Enchantments
-//        var ench = tag.getList("ench", NbtType.COMPOUND, null);
-//        if (ench != null && !ench.isEmpty()) {
-//            for (NbtMap entry : ench) {
-//                var enchantmentType = EnchantmentRegistry.get().getType(entry.getShort("id"));
-//
-//                if (enchantmentType == null) {
-//                    log.debug("Unknown enchantment id: {}", entry.getShort("id"));
-//                    continue;
-//                }
-//
-//                builder.addEnchantment(new CloudEnchantmentInstance(enchantmentType, entry.getShort("lvl", (short) 1)));
-//            }
-//        }
+        List<NbtMap> enchantmentNbt = tag.getList("ench", NbtType.COMPOUND, Collections.emptyList());
+        if(!enchantmentNbt.isEmpty()) {
+            //TODO something else than a HashMap?
+            Map<EnchantmentType, Enchantment> enchantments = new HashMap<>();
+            enchantmentNbt.forEach(enchantment -> {
+                EnchantmentType type = EnchantmentRegistry.get().getType(enchantment.getShort("id"));
 
-        if(tag.containsKey("CanPlaceOn", NbtType.LIST)) {
-            List<BlockType> list = tag.getList("CanPlaceOn", NbtType.STRING, null).stream().map(Identifier::fromString).map(BlockType::of).toList();
-            builder.data(ItemKeys.CAN_PLACE_ON, list);
-        }
+                if(type == null) {
+                    log.debug("Unknown enchantment id: {}", enchantment.getShort("id"));
+                    return;
+                }
 
-        if(tag.containsKey("CanDestroy", NbtType.LIST)) {
-            List<BlockType> list = tag.getList("CanDestroy", NbtType.STRING, null).stream().map(Identifier::fromString).map(BlockType::of).toList();
-            builder.data(ItemKeys.CAN_DESTROY, list);
+                enchantments.put(type, new Enchantment(type, enchantment.getShort("lvl", (short) 1)));
+            });
+
+            builder.data(ItemKeys.ENCHANTMENTS, enchantments);
         }
     }
 }
