@@ -92,19 +92,19 @@ public abstract class Food implements org.cloudburstmc.api.item.Food {
         if (food.metadata.isEmpty()) {
             return food;
         }
-
-        setlooop:
-        for (Set<Object> data : food.metadata) {
-            if (data.isEmpty()) {
-                return food;
-            }
-
-            for (Object value : data) {
-                if (item.getMetadata(value.getClass()) != value) {
-                    continue setlooop;
-                }
-            }
-        }
+//
+//        setlooop:
+//        for (Set<Object> data : food.metadata) {
+//            if (data.isEmpty()) {
+//                return food;
+//            }
+//
+//            for (Object value : data) {
+//                if (item.getMetadata(value.getClass()) != value) {
+//                    continue setlooop;
+//                }
+//            }
+//        }
 
         return null;
     }

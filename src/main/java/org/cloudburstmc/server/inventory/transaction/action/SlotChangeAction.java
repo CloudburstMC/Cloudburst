@@ -52,7 +52,7 @@ public class SlotChangeAction extends InventoryAction {
     public boolean isValid(CloudPlayer source) {
         ItemStack check = inventory.getItem(this.inventorySlot);
 
-        return check.equals(this.sourceItem, true);
+        return check.isMergeable(this.sourceItem);
     }
 
     /**

@@ -19,8 +19,8 @@ public class SwapItemStackAction extends ItemStackAction {
         BaseInventory inv = getSourceInventory(player);
         BaseInventory targetInv = getTargetInventory(player);
 
-        return inv.getItem(getSourceSlot()).equals(getSourceItem(), true, true) &&
-                targetInv.getItem(getTargetSlot()).equals(getTargetItem(), true, true);
+        return inv.getItem(getSourceSlot()).isMergeable(getSourceItem()) &&
+                targetInv.getItem(getTargetSlot()).isMergeable(getTargetItem());
     }
 
     @Override

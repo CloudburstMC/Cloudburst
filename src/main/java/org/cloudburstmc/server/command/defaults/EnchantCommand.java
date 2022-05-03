@@ -2,6 +2,7 @@ package org.cloudburstmc.server.command.defaults;
 
 import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.command.Command;
@@ -70,7 +71,8 @@ public class EnchantCommand extends Command {
             return true;
         }
 
-        item = item.withEnchantment(enchantment);
+        //TODO new format?
+        item.get(ItemKeys.ENCHANTMENTS).put(registry.getType(enchantId), new Enchantment(registry.getType(enchantId), enchantLevel));
 
         player.getInventory().setItemInHand(item);
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.enchant.success", sender.getName()));
