@@ -64,21 +64,24 @@ public class ItemUtils {
             nbtTag.putList("CanPlaceOn", NbtType.STRING, blocks);
         }
 
+        NbtMap tag = ItemUtils.getSerializedTag(item);
+        if (!tag.isEmpty()) {
+            nbtTag.put("tag", tag);
+        }
+
+        return nbtTag.build();
+    }
+
+    private static NbtMap getSerializedTag(ItemStack item) {
         try {
-            NbtMap tag = ITEM_CACHE.get(item, () -> {
+            return ITEM_CACHE.get(item, () -> {
                 NbtMapBuilder tagBuilder = NbtMap.builder();
                 registry.getSerializer(item.getType()).serialize(item, tagBuilder);
                 return tagBuilder.build();
             });
-
-            if (!tag.isEmpty()) {
-                nbtTag.put("tag", tag);
-            }
         } catch (ExecutionException e) {
             throw new IllegalStateException("Invalid state while serializing item " + item, e);
         }
-
-        return nbtTag.build();
     }
 
     public static NbtMap serializeItem(ItemStack item, int slot) {
@@ -136,28 +139,28 @@ public class ItemUtils {
         }
         return builder.build();
     }
-//
-//    public static ItemData toNetwork(ItemStack item) {
-//
-//    }
-//
-//    public static ItemData toNetworkNetId(ItemStack item) {
-//
-//    }
-
-    public static List<ItemData> toNetwork(Collection<ItemStack> items) {
-        List<ItemData> data = new ArrayList<>();
-        for (ItemStack item : items) {
-            data.add(ItemUtils.toNetwork(item));
-        }
-        return data;
-    }
 
     public static ItemData toNetwork(ItemStack item) {
-        Identifier identifier = item.getType().getId();
-        short meta = 0;
+        return ItemUtils.toNetworkBuilder(item)
+                .netId(0)
+                .usingNetId(false)
+                .build();
+    }
 
-        int id = registry.getRuntimeId(identifier, meta);
+    public static ItemData toNetworkNetId(ItemStack item) {
+        int netId = NET_ID_CACHE.getAndIncrement();
+        WeakReference<ItemStack> reference = new WeakReference<>(item);
+        NET_ID_REFERENCE.put(netId, reference);
+
+        return ItemUtils.toNetworkBuilder(item)
+                .netId(netId)
+                .usingNetId(true)
+                .build();
+    }
+
+    private static ItemData.Builder toNetworkBuilder(ItemStack item) {
+        Identifier identifier = item.getType().getId();
+        int runtimeId = registry.getRuntimeId(identifier);
 
         String[] canPlace = new String[0];
         if (item.get(ItemKeys.CAN_PLACE_ON) != null) {
@@ -168,24 +171,17 @@ public class ItemUtils {
             canPlace = item.get(ItemKeys.CAN_DESTROY).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
         }
 
-        int netId = NET_ID_CACHE.getAndIncrement();
-        WeakReference<ItemStack> reference = new WeakReference<>(item);
-        NET_ID_REFERENCE.put(netId, reference);
-
         int blockRuntimeId = item.getBlockState().map(CloudBlockRegistry.REGISTRY::getRuntimeId).orElse(0);
+        NbtMap tag = ItemUtils.getSerializedTag(item);
 
         return ItemData.builder()
-                .id(id)
-                .damage(meta)
+                .id(runtimeId)
+                .damage(0)
                 .count(item.getCount())
-//                TODO :D
-//                .tag(item.getDataTag().isEmpty() ? null : item.getDataTag())
+                .tag(tag.isEmpty() ? null : tag)
                 .canPlace(canPlace)
                 .canBreak(canBreak)
-                .blockRuntimeId(blockRuntimeId)
-                .netId(netId)
-                .usingNetId(true)
-                .build();
+                .blockRuntimeId(blockRuntimeId);
     }
 
     public static ItemStack fromNetwork(ItemData data) {
@@ -202,8 +198,6 @@ public class ItemUtils {
         }
 
         Identifier id = registry.getIdentifier(data.getId());
-        ItemType type = ItemType.of(id);
-
         NbtMap tag = data.getTag();
         if (tag == null) {
             tag = NbtMap.EMPTY;
@@ -211,10 +205,7 @@ public class ItemUtils {
 
         parseBreakPlaceData(data, tag);
 
-        ItemStackBuilder builder = ItemStack.builder();
-        registry.getSerializer(type).deserialize(id, (short) data.getDamage(), data.getCount(), builder, tag);
-
-        return builder.build();
+        return ItemUtils.deserializeItem(id, (short) 0, data.getCount(), tag);
     }
 
     private static void parseBreakPlaceData(ItemData data, NbtMap tag) {
