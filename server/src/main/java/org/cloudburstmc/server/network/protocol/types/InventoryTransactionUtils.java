@@ -228,7 +228,7 @@ public class InventoryTransactionUtils {
                                 // Outputs should only be in slot 0.
                                 return null;
                             }
-                            if (ItemStack.builder(ItemTypes.DYE).data(ItemKeys.COLOR, DyeColor.BLUE).equals(newItem, true, false)) {
+                            if (ItemStack.builder(ItemTypes.DYE).data(ItemKeys.COLOR, DyeColor.BLUE).build().isSimilar(newItem)) {
                                 slot = 2; // Fake slot to store used material
                                 if (newItem.getCount() < 1 || newItem.getCount() > 3) {
                                     // Invalid material
@@ -245,7 +245,7 @@ public class InventoryTransactionUtils {
                             } else {
                                 ItemStack toEnchant = enchant.getItem(0);
                                 ItemStack material = enchant.getItem(1);
-                                if (toEnchant.equals(newItem, true, true) &&
+                                if (toEnchant.isMergeable(newItem) &&
                                         (material.getType() == ItemTypes.DYE && material.get(ItemKeys.COLOR) == DyeColor.BLUE || player.isCreative())) {
                                     slot = 3; // Fake slot to store the resultant item.
 

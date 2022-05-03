@@ -117,7 +117,8 @@ public class Explosion {
                             if (block != null && block.getState() != BlockStates.AIR) {
                                 var state = block.getState();
                                 BlockState layer1 = block.getExtra();
-                                double resistance = Math.max(state.getBehavior().getResistance(state), layer1.getBehavior().getResistance(layer1));
+
+                                double resistance = Math.max(CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.GET_RESISTANCE), CloudBlockRegistry.REGISTRY.getBehavior(layer1.getType(), BlockBehaviors.GET_RESISTANCE));
                                 blastForce -= (resistance / 5 + 0.3d) * this.stepLen;
                                 if (blastForce > 0) {
                                     if (!this.affectedBlockStates.contains(block)) {

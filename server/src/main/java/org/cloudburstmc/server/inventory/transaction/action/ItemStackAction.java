@@ -9,6 +9,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.BaseInventory;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -23,8 +24,8 @@ public abstract class ItemStackAction extends InventoryAction {
     private ItemStackTransaction transaction;
 
     public ItemStackAction(int reqId, @Nullable StackRequestSlotInfoData sourceData, @Nullable StackRequestSlotInfoData targetData) {
-        super(sourceData != null ? CloudItemRegistry.get().getItemByNetId(sourceData.getStackNetworkId()) : ItemStack.AIR,
-                targetData != null ? CloudItemRegistry.get().getItemByNetId(targetData.getStackNetworkId()) : ItemStack.AIR);
+        super(sourceData != null ? ItemUtils.getFromNetworkId(sourceData.getStackNetworkId()).orElse(ItemStack.AIR) : ItemStack.AIR,
+                targetData != null ? ItemUtils.getFromNetworkId(targetData.getStackNetworkId()).orElse(ItemStack.AIR) : ItemStack.AIR);
         this.requestId = reqId;
         this.sourceData = sourceData;
         this.targetData = targetData;

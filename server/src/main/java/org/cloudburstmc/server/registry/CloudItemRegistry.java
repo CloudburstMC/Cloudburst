@@ -142,25 +142,14 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
                 this.hardcodedBlockingId = runtimeId;
             }
         }
-
-        this.behaviorMap.put(type, behavior);
     }
 
     private synchronized void registerVanilla(ItemType type) throws RegistryException {
-        registerVanilla(type, null, NoopItemBehavior.INSTANCE);
-    }
-
-    private synchronized void registerVanilla(ItemType type, ItemBehavior behavior) throws RegistryException {
-        registerVanilla(type, null, behavior);
+        registerVanilla(type, null);
     }
 
     private synchronized void registerVanilla(ItemType type, ItemSerializer serializer) throws RegistryException {
-        registerVanilla(type, serializer, NoopItemBehavior.INSTANCE);
-    }
-
-    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer, ItemBehavior behavior) throws RegistryException {
-        Objects.requireNonNull(behavior, "type");
-        Objects.requireNonNull(behavior, "behavior");
+        Objects.requireNonNull(type, "type");
         checkClosed();
 
         if (serializer != null) {
@@ -168,7 +157,6 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         }
 
         this.registerType(type, type.getId());
-        this.behaviorMap.put(type, behavior);
     }
 
     public ItemSerializer getSerializer(ItemType type) {

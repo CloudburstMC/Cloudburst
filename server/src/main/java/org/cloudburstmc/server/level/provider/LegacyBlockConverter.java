@@ -11,10 +11,11 @@ public class LegacyBlockConverter {
     }
 
     public void convertBlockState(final int[] blockState) {
-        if (blockState[0] == 17) { // minecraft:log
-            BlockBehaviorLog.upgradeLegacyBlock(blockState);
-        } else if (blockState[0] == 162) { // minecraft:log2
-            BlockBehaviorLog2.upgradeLegacyBlock(blockState);
-        }
+//        TODO Convert old block types
+//        if (blockState[0] == 17) { // minecraft:log
+//            BlockBehaviorLog.upgradeLegacyBlock(blockState);
+//        } else if (blockState[0] == 162) { // minecraft:log2
+//            BlockBehaviorLog2.upgradeLegacyBlock(blockState);
+//        }
     }
 }

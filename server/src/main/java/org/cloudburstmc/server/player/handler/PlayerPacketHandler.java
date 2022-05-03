@@ -856,7 +856,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 continue;
             }
 
-            var data = item1.getMetadata(MapItem.class);
+            MapItem data = item1.get(ItemKeys.MAP_DATA);
 
             if (data == null) {
                 continue;
@@ -878,7 +878,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         continue;
                     }
 
-                    var data = frameItem.getMetadata(MapItem.class);
+                    MapItem data = itemFrame1.getItem().get(ItemKeys.MAP_DATA);
 
                     if (data == null) {
                         continue;
@@ -1134,7 +1134,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                 ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
 
-                if (!clientHand.equals(player.getInventory().getItemInHand(), true)) {
+                if (!clientHand.isMergeable(player.getInventory().getItemInHand())) {
                     player.getInventory().sendHeldItem(player);
                 }
 

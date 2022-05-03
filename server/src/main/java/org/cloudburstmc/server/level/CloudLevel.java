@@ -1836,7 +1836,7 @@ public class CloudLevel implements Level {
             block = target;
         }
 
-        BlockState handState = CloudBlockRegistry.get().getBlock(hand.getType());
+        BlockState handState = CloudBlockRegistry.REGISTRY.getBlock(hand.getType());
         Behavior handBehavior = handState.getBehavior();
 
         AxisAlignedBB handBB = handBehavior.getBoundingBox(block.getPosition(), hand);
@@ -1884,6 +1884,7 @@ public class CloudLevel implements Level {
         BlockState air = block.getExtra();
 
         Vector3i pos = null;
+
         if (air == BlockStates.AIR && (liquidBehavior instanceof BlockBehaviorLiquid) && ((BlockBehaviorLiquid) liquidBehavior).usesWaterLogging()
                 && (block.getState().ensureTrait(BlockTraits.FLUID_LEVEL) == 0) // Remove this line when MCPE-33345 is resolved
         ) {
@@ -1918,7 +1919,7 @@ public class CloudLevel implements Level {
         }
 
         if (playSound) {
-            this.addLevelSoundEvent(block.getPosition().toFloat(), SoundEvent.PLACE, CloudBlockRegistry.get().getRuntimeId(hand));
+            this.addLevelSoundEvent(block.getPosition().toFloat(), SoundEvent.PLACE, CloudBlockRegistry.REGISTRY.getRuntimeId(hand));
         }
 
         if (item.getCount() <= 0) {

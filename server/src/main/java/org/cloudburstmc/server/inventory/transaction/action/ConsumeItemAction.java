@@ -21,7 +21,7 @@ public class ConsumeItemAction extends ItemStackAction {
     @Override
     public boolean isValid(CloudPlayer player) {
         BaseInventory inv = getSourceInventory(player);
-        return inv.getItem(getSourceSlot()).equals(getSourceItem(), false, true)
+        return inv.getItem(getSourceSlot()).isSimilarMetadata(getSourceItem())
                 && inv.getItem(getSourceSlot()).getCount() >= count;
     }
 

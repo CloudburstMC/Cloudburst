@@ -147,7 +147,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                             continue;
                         }
                         ItemStack closeItem = ((EntityDroppedItem) entity).getItem();
-                        if (!closeItem.equals(getItem(), true)) {
+                        if (!closeItem.isMergeable(getItem())) {
                             continue;
                         }
                         if (!entity.isOnGround()) {

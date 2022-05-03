@@ -36,6 +36,11 @@ public class ItemUtils {
     private static final Int2ReferenceMap<WeakReference<ItemStack>> NET_ID_REFERENCE = new Int2ReferenceOpenHashMap<>();
     private static final Cache<ItemStack, NbtMap> ITEM_CACHE = CacheBuilder.newBuilder().weakKeys().softValues().build();
 
+    public static Optional<ItemStack> getFromNetworkId(int netId) {
+        //TODO Should this be a get or a remove?
+        return Optional.ofNullable(NET_ID_REFERENCE.remove(netId).get());
+    }
+
     public static NbtMap serializeItem(ItemStack item) {
         NbtMapBuilder nbtTag = NbtMap.builder();
 

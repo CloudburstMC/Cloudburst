@@ -39,7 +39,7 @@ public class MoveItemStackAction extends ItemStackAction {
         }
 
         BaseInventory targetInv = getTargetInventory(player);
-        return inv.getItem(getSourceSlot()).equals(getSourceItem(), false, true) &&
+        return inv.getItem(getSourceSlot()).isSimilarMetadata(getSourceItem()) &&
                 inv.getItem(getSourceSlot()).getCount() >= this.count
                 && (targetInv.getItem(getTargetSlot()).getType() == BlockTypes.AIR ||
                 targetInv.getItem(getTargetSlot()).getType() == inv.getItem(getSourceSlot()).getType());

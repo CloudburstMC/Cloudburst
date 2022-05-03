@@ -205,7 +205,7 @@ public class InventoryTransaction {
                     SlotChangeAction action = list.get(i);
 
                     ItemStack actionSource = action.getSourceItem();
-                    if (actionSource.equals(lastTargetItem, true)) {
+                    if (actionSource.isMergeable(lastTargetItem)) {
                         lastTargetItem = action.getTargetItem();
                         list.remove(i);
                         sortedThisLoop++;

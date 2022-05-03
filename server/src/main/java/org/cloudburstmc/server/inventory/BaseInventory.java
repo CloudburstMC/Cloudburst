@@ -351,7 +351,7 @@ public abstract class BaseInventory implements Inventory {
             for (int j = 0; j < copy.size(); j++) {
                 ItemStack slot = copy.get(j);
 
-                if (slot.equals(item, false) && item.getCount() < maxStack) {
+                if (slot.isSimilarMetadata(item) && item.getCount() < maxStack) {
                     int amount = Math.min(maxStack - item.getCount(), slot.getCount());
                     amount = Math.min(amount, this.getMaxStackSize());
                     if (amount > 0) {
@@ -613,7 +613,7 @@ public abstract class BaseInventory implements Inventory {
                 continue;
             }
 
-            if (slot.equals(item, true)) {
+            if (slot.isMergeable(item)) {
                 space += maxStackSize - slot.getCount();
             }
         }
