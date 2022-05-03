@@ -147,6 +147,12 @@
                             <version>1.18.22</version>
                         </path>
                     </annotationProcessorPaths>
+                    <compilerArgs>
+                        <arg>-Xmaxerrs</arg>
+                        <arg>1000</arg>
+                        <arg>-Xmaxwarns</arg>
+                        <arg>2000</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
         </plugins>
