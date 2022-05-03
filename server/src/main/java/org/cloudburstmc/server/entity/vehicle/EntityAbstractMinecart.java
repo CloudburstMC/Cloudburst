@@ -449,8 +449,6 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         boolean isPowered = powered != null ? powered : false;
         boolean isSlowed = !isPowered;
 
-        var behavior = block.getState().getBehavior();
-
         float motionX = this.motion.getX();
         float motionY = this.motion.getY();
         float motionZ = this.motion.getZ();

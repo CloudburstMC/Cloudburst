@@ -15,6 +15,7 @@ import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.inventory.InventoryMoveItemEvent;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.AxisAlignedBB;
@@ -23,6 +24,7 @@ import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.server.inventory.CloudHopperInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -267,7 +269,9 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 for (int slot : slots) {
                     ItemStack target = inv.getItem(slot);
 
-                    if (target != ItemStack.AIR && (!target.equals(item) || target.getCount() >= item.getBehavior().getMaxStackSize(item))) {
+
+                    if (target != ItemStack.AIR && (!target.equals(item) ||
+                            target.getCount() >= CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute())) {
                         continue;
                     }
 

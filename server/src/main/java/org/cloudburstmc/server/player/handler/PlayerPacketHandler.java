@@ -24,6 +24,7 @@ import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -50,6 +51,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.registry.GlobalRegistry;
+import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
@@ -72,6 +74,8 @@ import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.network.protocol.types.InventoryTransactionUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
@@ -311,8 +315,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     //improved player to take stuff like swimming, ladders, enchanted tools into account, fix wrong tool break time calculations for bad tools (pmmp/PocketMine-MP#211)
                     //Done by lmlstarqaq
 
-                    double breakTime = Math.ceil(targetState.getBehavior().getBreakTime(targetState, player.getInventory().getItemInHand(), player) * 20);
-                    log.info("Break time {} for {}", breakTime, targetState.getBehavior().getClass().getSimpleName());
+                    double breakTime = Math.ceil(CloudBlockRegistry.REGISTRY.getBehavior(targetState.getType(), BlockBehaviors.GET_DESTROY_SPEED).execute(targetState) * 20);
+//                    log.info("Break time {} for {}", breakTime, targetState.getBehavior().getClass().getSimpleName());
                     if (breakTime > 0) {
                         LevelEventPacket levelEvent = new LevelEventPacket();
                         levelEvent.setType(LevelEventType.BLOCK_START_BREAK);
@@ -569,7 +573,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     public boolean handle(BlockPickRequestPacket packet) {
         Vector3i pickPos = packet.getBlockPosition();
         Block block = player.getLevel().getBlock(pickPos.getX(), pickPos.getY(), pickPos.getZ());
-        ItemStack serverItem = block.getState().getBehavior().toItem(block);
+
+
+        ItemStack serverItem = ItemStack.from(block.getState());
 
         if (packet.isAddUserData()) {
             BaseBlockEntity blockEntity = (BaseBlockEntity) player.getLevel().getLoadedBlockEntity(
@@ -1161,6 +1167,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         break;
                     case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
                         var behavior = this.globalRegistry.getRegistry(ItemType.class).getBehaviors(serverItem.getType());
+
                         float itemDamage = behavior.getAttackDamage(serverItem);
 
                         for (Enchantment enchantment : serverItem.get(ItemKeys.ENCHANTMENTS).values()) {

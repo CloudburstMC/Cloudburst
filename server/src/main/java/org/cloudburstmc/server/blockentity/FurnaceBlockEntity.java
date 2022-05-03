@@ -14,6 +14,8 @@ import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.inventory.FurnaceInventory;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Bucket;
@@ -23,6 +25,8 @@ import org.cloudburstmc.server.crafting.FurnaceRecipe;
 import org.cloudburstmc.server.inventory.CloudFurnaceInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 import java.util.ArrayList;
@@ -111,8 +115,8 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     protected void checkFuel(ItemStack fuel) {
-        var behavior = fuel.getBehavior();
-        FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel, behavior.getFuelTime(fuel));
+        FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel,
+                CloudItemRegistry.get().getBehavior(fuel.getType(), ItemBehaviors.GET_FUEL_DURATION).shortValue());
         this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return;
@@ -136,13 +140,13 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             }
 
             if (fuel.getCount() <= 1) {
-                if (fuel.getType() == ItemTypes.BUCKET && fuel.getMetadata(Bucket.class) == Bucket.LAVA) {
-                    fuel = fuel.toBuilder().amount(1).itemData(Bucket.EMPTY).build();
+                if (fuel.getType() == ItemTypes.BUCKET && fuel.get(ItemKeys.BUCKET_DATA) == Bucket.LAVA) {
+                    fuel = fuel.toBuilder().amount(1).data(ItemKeys.BUCKET_DATA, Bucket.EMPTY).build();
                 } else {
                     fuel = ItemStack.AIR;
                 }
             } else {
-                fuel = fuel.decrementAmount();
+                fuel = fuel.decreaseCount();
             }
             this.inventory.setFuel(fuel);
         }

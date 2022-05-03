@@ -9,12 +9,14 @@ import org.cloudburstmc.api.inventory.ContainerInventory;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Map;
 
@@ -77,7 +79,8 @@ public abstract class CloudContainer extends BaseInventory implements ContainerI
                 ItemStack item = inv.getItem(slot);
 
                 if (item.getType() != AIR) {
-                    averageCount += (float) item.getCount() / (float) Math.min(inv.getMaxStackSize(), item.getBehavior().getMaxStackSize(item));
+                    int maxStackSize = CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute();
+                    averageCount += (float) item.getCount() / (float) Math.min(inv.getMaxStackSize(), maxStackSize);
                     ++itemCount;
                 }
             }

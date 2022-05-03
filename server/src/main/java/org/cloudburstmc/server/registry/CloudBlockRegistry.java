@@ -157,7 +157,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
     }
 
     public BlockState getBlock(ItemStack item) {
-        return BlockStateMetaMappings.getStateFromMeta(item);
+        return BlockStateMetaMappings.getStateFromMeta(item.getType().getId(), 0);
     }
 
     public BlockState getBlock(Identifier identifier) {

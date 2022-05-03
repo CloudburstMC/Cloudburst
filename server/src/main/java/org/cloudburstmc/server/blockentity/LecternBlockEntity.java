@@ -7,6 +7,8 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.WrittenBook;
@@ -124,7 +126,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     private void updateTotalPages(boolean updateRedstone) {
         if (hasBook()) {
-            this.totalPages = this.book.getMetadata(WrittenBook.class).getPages().size();
+            this.totalPages = this.book.get(ItemKeys.BOOK_DATA).getPages().size();
         } else {
             this.totalPages = 0;
         }

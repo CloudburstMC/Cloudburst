@@ -72,8 +72,8 @@ public class RecordSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag) {
-        super.deserialize(id, meta, amount, builder, tag);
+    public void deserialize(ItemStackBuilder builder, NbtMap tag) {
+        super.deserialize(builder, tag);
         if (id == ItemIds.RECORD_13) {
             builder.data(ItemKeys.RECORD_TYPE, Record.THIRTEEN);
             return;

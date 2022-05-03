@@ -1,11 +1,13 @@
 package org.cloudburstmc.server.enchantment.behavior;
 
+import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.entity.EntityHuman;
 
@@ -29,18 +31,16 @@ public class EnchantmentThorns extends EnchantmentBehavior {
 
     //@Override
     public void doPostAttack(EnchantmentInstance enchantment, Entity entity, Entity attacker) {
-        if (!(entity instanceof EntityHuman)) {
+        if (!(entity instanceof EntityHuman human)) {
             return;
         }
-
-        EntityHuman human = (EntityHuman) entity;
 
         int thornsLevel = 0;
 
         for (ItemStack armor : human.getInventory().getArmorContents()) {
-            EnchantmentInstance thorns = armor.getEnchantment(EnchantmentTypes.THORNS);
+            Enchantment thorns = armor.get(ItemKeys.ENCHANTMENTS).getOrDefault(EnchantmentTypes.THORNS, null);
             if (thorns != null) {
-                thornsLevel = Math.max(thorns.getLevel(), thornsLevel);
+                thornsLevel = Math.max(thorns.level(), thornsLevel);
             }
         }
 

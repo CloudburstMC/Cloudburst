@@ -16,6 +16,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.item.ItemUtils;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -167,7 +168,7 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
         this.firework = ItemStack.builder(ItemTypes.FIREWORKS)
                 .data(ItemKeys.FIREWORK_DATA, data)
                 .build();
-        this.data.setTag(DISPLAY_ITEM, ((ItemStack) this.firework).getNbt());
+        this.data.setTag(DISPLAY_ITEM, ItemUtils.serializeItem(this.firework));
     }
 
     @Override

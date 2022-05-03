@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.level.generator.standard.misc.filter;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.function.Predicate;
 
@@ -15,7 +17,7 @@ import java.util.function.Predicate;
 public interface BlockFilter extends Predicate<BlockState> {
     BlockFilter AIR = state -> state == BlockStates.AIR;
 
-    BlockFilter REPLACEABLE = state -> state.getType().isReplaceable();
+    BlockFilter REPLACEABLE = state -> CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_REPLACEABLE);
 
     @Override
     boolean test(BlockState state);

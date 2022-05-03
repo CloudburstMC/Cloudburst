@@ -7,12 +7,14 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.AddItemEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -21,6 +23,8 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import javax.annotation.Nonnull;
 
@@ -136,7 +140,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         this.timing.startTiming();
 
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
-            if (this.getItem().getCount() < this.getItem().getBehavior().getMaxStackSize(getItem())) {
+            if (this.getItem().getCount() < CloudItemRegistry.get().getBehavior(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute()) {
                 for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
                     if (entity instanceof EntityDroppedItem) {
                         if (!entity.isAlive()) {
@@ -150,7 +154,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                             continue;
                         }
                         int newAmount = this.getItem().getCount() + closeItem.getCount();
-                        if (newAmount > this.getItem().getBehavior().getMaxStackSize(getItem())) {
+                        if (newAmount > CloudItemRegistry.get().getBehavior(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute()) {
                             continue;
                         }
                         entity.close();
@@ -206,7 +210,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
                 var block = this.getLevel().getBlockState(pos.add(0, -1, -1).toInt());
-                friction *= block.getBehavior().getFrictionFactor(block);
+                friction *= CloudBlockRegistry.REGISTRY.getBehavior(block.getType(), BlockBehaviors.GET_FRICTION).execute(block);
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);
