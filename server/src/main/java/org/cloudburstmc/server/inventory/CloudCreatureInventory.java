@@ -167,7 +167,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
             if (player.equals(this.getHolder())) {
                 InventoryContentPacket invPacket = new InventoryContentPacket();
                 invPacket.setContainerId(ContainerId.OFFHAND);
-                invPacket.setContents(ItemUtils.toNetwork(Collections.singleton(offHand)));
+                invPacket.setContents(Collections.singletonList(ItemUtils.toNetworkNetId(offHand)));
                 player.sendPacket(invPacket);
             } else {
                 player.sendPacket(packet);
@@ -221,7 +221,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
             if (player.equals(this.getHolder())) {
                 InventoryContentPacket packet2 = new InventoryContentPacket();
                 packet2.setContainerId(ContainerId.ARMOR);
-                packet2.setContents(ItemUtils.toNetwork(new ArrayList<>(getArmorContents())));
+                packet2.setContents(getArmorContents().stream().map(ItemUtils::toNetworkNetId).toList());
                 player.sendPacket(packet2);
             } else {
                 player.sendPacket(packet);
