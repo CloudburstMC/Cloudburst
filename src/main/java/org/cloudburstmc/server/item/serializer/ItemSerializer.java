@@ -18,7 +18,7 @@ public interface ItemSerializer {
         return Collections.emptyMap();
     }
 
-    void serialize(ItemStack item, NbtMapBuilder itemTag);
+    void serialize(ItemStack item, NbtMapBuilder tag);
 
-    void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag);
+    void deserialize(ItemStackBuilder builder, NbtMap tag);
 }

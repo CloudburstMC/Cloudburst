@@ -8,9 +8,13 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Utils;
@@ -33,16 +37,48 @@ public class ItemUtils {
     private static final Cache<ItemStack, NbtMap> ITEM_CACHE = CacheBuilder.newBuilder().weakKeys().softValues().build();
 
     public static NbtMap serializeItem(ItemStack item) {
-        //TODO only cache the 'tag' compound and not the whole item
+        NbtMapBuilder nbtTag = NbtMap.builder();
+
+        nbtTag.putString("Name", item.getType().getId().toString())
+                .putByte("Count", (byte) item.getCount())
+                .putShort("Damage", (short) 0);
+
+        if (item.isBlock()) {
+            NbtMapBuilder blockTag = NbtMap.builder();
+            BlockState blockState = item.get(ItemKeys.BLOCK_STATE);
+
+            blockTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(blockState).toString());
+            blockTag.putShort("Damage", (short) 0);
+
+            nbtTag.put("Block", blockTag);
+        }
+
+        // FIXME: Blocks can be mapped to multiple identifiers.
+        if (item.get(ItemKeys.CAN_DESTROY) != null) {
+            List<String> blocks = item.get(ItemKeys.CAN_DESTROY).stream().map(blockType -> blockType.getId().toString()).toList();
+            nbtTag.putList("CanDestroy", NbtType.STRING, blocks);
+        }
+
+        if (item.get(ItemKeys.CAN_PLACE_ON) != null) {
+            List<String> blocks = item.get(ItemKeys.CAN_PLACE_ON).stream().map(blockType -> blockType.getId().toString()).toList();
+            nbtTag.putList("CanPlaceOn", NbtType.STRING, blocks);
+        }
+
         try {
-            return ITEM_CACHE.get(item, () -> {
-                NbtMapBuilder tag = NbtMap.builder();
-                registry.getSerializer(item.getType()).serialize(item, tag);
-                return tag.build();
+            NbtMap tag = ITEM_CACHE.get(item, () -> {
+                NbtMapBuilder tagBuilder = NbtMap.builder();
+                registry.getSerializer(item.getType()).serialize(item, tagBuilder);
+                return tagBuilder.build();
             });
+
+            if (!tag.isEmpty()) {
+                nbtTag.put("tag", tag);
+            }
         } catch (ExecutionException e) {
             throw new IllegalStateException("Invalid state while serializing item " + item, e);
         }
+
+        return nbtTag.build();
     }
 
     public static NbtMap serializeItem(ItemStack item, int slot) {
@@ -60,26 +96,44 @@ public class ItemUtils {
             return ItemStack.AIR;
         }
 
-        return deserializeItem(
+        ItemStackBuilder builder = ItemUtils.deserializeItem(
                 Identifier.fromString(tag.getString("Name")),
                 tag.getShort("Damage", (short) 0),
                 tag.getByte("Count"),
-                tag.getCompound("tag", NbtMap.EMPTY)
-        );
+                tag.getCompound("tag", NbtMap.EMPTY)).toBuilder();
+
+        if (tag.containsKey("CanPlaceOn", NbtType.LIST)) {
+            List<BlockType> list = tag.getList("CanPlaceOn", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::fromString).map(BlockType::of).toList();
+            builder.data(ItemKeys.CAN_PLACE_ON, list);
+        }
+
+        if (tag.containsKey("CanDestroy", NbtType.LIST)) {
+            List<BlockType> list = tag.getList("CanDestroy", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::fromString).map(BlockType::of).toList();
+            builder.data(ItemKeys.CAN_DESTROY, list);
+        }
+
+        return builder.build();
     }
 
     public static ItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag) {
-        return deserializeItem(id, damage, amount, tag, -1);
-    }
-
-    public static ItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag, int blockRuntimeId) {
         ItemStackBuilder builder = ItemStack.builder();
-        if (blockRuntimeId >= 0) {
-            builder.data(ItemKeys.BLOCK_STATE, CloudBlockRegistry.REGISTRY.getBlock(blockRuntimeId));
-        }
-        ItemType type = CloudItemRegistry.get().getType(id, damage);
-        registry.getSerializer(type).deserialize(id, damage, amount, builder, tag);
+        if(amount > 0) {
+            ItemType type = CloudItemRegistry.get().getType(id, damage);
+            builder.itemType(type);
+            builder.amount(amount);
 
+            if(type instanceof BlockType) {
+                BlockState blockState = BlockStateMetaMappings.getStateFromMeta(id, damage);
+
+                if(blockState != null) {
+                    builder.data(ItemKeys.BLOCK_STATE, blockState);
+                }
+            }
+
+            registry.getSerializer(type).deserialize(builder, tag);
+        } else {
+            builder.itemType(BlockTypes.AIR);
+        }
         return builder.build();
     }
 //
@@ -106,11 +160,11 @@ public class ItemUtils {
         int id = registry.getRuntimeId(identifier, meta);
 
         String[] canPlace = new String[0];
-        if(item.get(ItemKeys.CAN_PLACE_ON) != null) {
+        if (item.get(ItemKeys.CAN_PLACE_ON) != null) {
             canPlace = item.get(ItemKeys.CAN_PLACE_ON).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
         }
         String[] canBreak = new String[0];
-        if(item.get(ItemKeys.CAN_DESTROY) != null) {
+        if (item.get(ItemKeys.CAN_DESTROY) != null) {
             canPlace = item.get(ItemKeys.CAN_DESTROY).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
         }
 
@@ -135,12 +189,12 @@ public class ItemUtils {
     }
 
     public static ItemStack fromNetwork(ItemData data) {
-        if(data.isUsingNetId()) {
+        if (data.isUsingNetId()) {
             int netId = data.getNetId();
 
             WeakReference<ItemStack> weakReference = NET_ID_REFERENCE.remove(netId);
 
-            if(weakReference == null || weakReference.get() == null) {
+            if (weakReference == null || weakReference.get() == null) {
                 log.trace("Trying to find cached ItemStack for netId {} but it doesn't exists", netId);
             } else {
                 return weakReference.get();
