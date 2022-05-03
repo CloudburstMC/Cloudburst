@@ -133,7 +133,7 @@ public class ItemUtils {
                 }
             }
 
-            registry.getSerializer(type).deserialize(builder, tag);
+            registry.getSerializer(type).deserialize(id, builder, tag);
         } else {
             builder.itemType(BlockTypes.AIR);
         }

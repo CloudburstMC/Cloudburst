@@ -73,7 +73,7 @@ public class DefaultItemSerializer implements ItemSerializer {
     }
 
     @Override
-    public void deserialize(ItemStackBuilder builder, NbtMap tag) {
+    public void deserialize(Identifier id, ItemStackBuilder builder, NbtMap tag) {
         if (tag.isEmpty()) {
             return;
         }

@@ -28,18 +28,11 @@ public class BannerSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void deserialize(Identifier id, short meta, int amount, ItemStackBuilder builder, NbtMap tag) {
-        var nbtBuilder = tag.toBuilder();
-        NbtMapBuilder tagBuilder;
-        if (tag.containsKey("tag", NbtType.COMPOUND)) {
-            tagBuilder = tag.getCompound("tag").toBuilder();
-        } else {
-            tagBuilder = NbtMap.builder();
-        }
+    public void deserialize(Identifier id, ItemStackBuilder builder, NbtMap tag) {
+        //TODO ???
+//        nbtBuilder.putCompound("tag", tagBuilder.putInt("Base", meta).build());
 
-        nbtBuilder.putCompound("tag", tagBuilder.putInt("Base", meta).build());
-
-        super.deserialize(id, meta, amount, builder, nbtBuilder.build());
+        super.deserialize(id, builder, tag);
     }
 
     @Override

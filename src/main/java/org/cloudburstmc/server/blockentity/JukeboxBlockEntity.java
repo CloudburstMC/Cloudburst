@@ -7,6 +7,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Jukebox;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Record;
@@ -60,7 +61,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
         super.saveAdditionalData(tag);
 
         if (!ItemUtils.isNull(this.recordItem)) {
-            tag.putCompound("RecordItem", ((ItemStack) this.recordItem).getNbt());
+            tag.putCompound("RecordItem", ItemUtils.serializeItem(this.recordItem));
         }
     }
 
@@ -79,7 +80,8 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
 
     public void play() {
         if (this.recordItem.getType() == ItemTypes.RECORD) {
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.getMetadata(Record.class)));
+
+            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.get(ItemKeys.RECORD_TYPE)));
         }
     }
 
