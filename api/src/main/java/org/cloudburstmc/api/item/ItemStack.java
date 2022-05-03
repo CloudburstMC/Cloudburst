@@ -136,4 +136,16 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         }
         return this.getType().getId().compareTo(other.getType().getId());
     }
+
+    public boolean isSimilar(ItemStack other) {
+        return this.getType().equals(other.getType());
+    }
+
+    public boolean isSimilarMetadata(ItemStack other) {
+        return getAllMetadata().equals(other.getAllMetadata());
+    }
+
+    public boolean isMergeable(ItemStack other) {
+        return isSimilar(other) && isSimilarMetadata(other);
+    }
 }
