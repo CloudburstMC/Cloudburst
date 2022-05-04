@@ -6,6 +6,7 @@ import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.item.behavior.*;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.behavior.FloatBehavior;
 import org.cloudburstmc.api.util.behavior.IntBehavior;
 
 @UtilityClass
@@ -32,4 +33,7 @@ public class ItemBehaviors {
     public static final BehaviorKey<UseOnBehavior, UseOnBehavior.Executor> USE_ON = DataKey.behavior(Identifier.fromString("use_on"), UseOnBehavior.class, UseOnBehavior.Executor.class);
 
     public static final BehaviorKey<Float, Float> GET_FUEL_DURATION = DataKey.behavior(Identifier.fromString("get_fuel_duration"), Float.class);
+
+    public static final BehaviorKey<FloatBehavior, FloatBehavior.Executor> GET_ATTACH_DAMAGE = DataKey.behavior(Identifier.fromString("get_attack_damage"), FloatBehavior.class, FloatBehavior.Executor.class);
+
 }
