@@ -2,7 +2,7 @@ package org.cloudburstmc.api.util.behavior;
 
 public interface FloatBehavior {
 
-    float getProperty(Behavior<FloatBehavior> behavior);
+    float get(Behavior<Executor> behavior);
 
     @FunctionalInterface
     interface Executor {
