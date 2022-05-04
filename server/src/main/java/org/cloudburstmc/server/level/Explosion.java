@@ -192,37 +192,38 @@ public class Explosion {
 
         ItemStack air = ItemStack.AIR;
 
-        //Iterator iter = this.affectedBlocks.entrySet().iterator();
-        for (Block block : this.affectedBlockStates) {
-            var state = block.getState();
-            var behavior = state.getBehavior();
-            //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
-            if (state.getType() == BlockTypes.TNT) {
-                ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
-            } else if (Math.random() * 100 < yield) {
-                for (ItemStack drop : behavior.getDrops(block, air)) {
-                    this.level.dropItem(block.getPosition(), drop);
-                }
-            }
-
-            behavior.onBreak(block, air);
-
-            for (Direction side : Direction.values()) {
-                Block sideBlock = block.getSide(side);
-                Vector3i sidePos = sideBlock.getPosition();
-                long index = Hash.hashBlock(sidePos.getX(), sidePos.getY(), sidePos.getZ());
-                if (!this.affectedBlockStates.contains(sideBlock) && !updateBlocks.contains(index)) {
-                    BlockUpdateEvent ev = new BlockUpdateEvent(sideBlock);
-                    this.level.getServer().getEventManager().fire(ev);
-                    if (!ev.isCancelled()) {
-                        var b = ev.getBlock();
-                        b.getState().getBehavior().onUpdate(b, CloudLevel.BLOCK_UPDATE_NORMAL);
-                    }
-
-                    updateBlocks.add(index);
-                }
-            }
-        }
+//        TODO For now no explosions
+//        //Iterator iter = this.affectedBlocks.entrySet().iterator();
+//        for (Block block : this.affectedBlockStates) {
+//            var state = block.getState();
+//            var behavior = state.getBehavior();
+//            //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
+//            if (state.getType() == BlockTypes.TNT) {
+//                ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
+//            } else if (Math.random() * 100 < yield) {
+//                for (ItemStack drop : behavior.getDrops(block, air)) {
+//                    this.level.dropItem(block.getPosition(), drop);
+//                }
+//            }
+//
+//            behavior.onBreak(block, air);
+//
+//            for (Direction side : Direction.values()) {
+//                Block sideBlock = block.getSide(side);
+//                Vector3i sidePos = sideBlock.getPosition();
+//                long index = Hash.hashBlock(sidePos.getX(), sidePos.getY(), sidePos.getZ());
+//                if (!this.affectedBlockStates.contains(sideBlock) && !updateBlocks.contains(index)) {
+//                    BlockUpdateEvent ev = new BlockUpdateEvent(sideBlock);
+//                    this.level.getServer().getEventManager().fire(ev);
+//                    if (!ev.isCancelled()) {
+//                        var b = ev.getBlock();
+//                        b.getState().getBehavior().onUpdate(b, CloudLevel.BLOCK_UPDATE_NORMAL);
+//                    }
+//
+//                    updateBlocks.add(index);
+//                }
+//            }
+//        }
 
         this.level.addParticle(new HugeExplodeSeedParticle(this.source));
         this.level.addLevelSoundEvent(source, SoundEvent.EXPLODE);

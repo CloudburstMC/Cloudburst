@@ -4,10 +4,8 @@ import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -772,6 +770,8 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     private boolean _isNormalBlock(Block block) {
-        return block.getState().getBehavior().isNormalBlock(block);
+        return true;
+//        TODO Implement block traits
+//        return block.getState().getBehavior().isNormalBlock(block);
     }
 }

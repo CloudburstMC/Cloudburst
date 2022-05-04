@@ -6,6 +6,7 @@ import com.nukkitx.math.vector.Vector4i;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockBehaviors;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -57,15 +58,19 @@ public class BlockUpdateScheduler {
                     Vector3i pos = entry.pos;
                     if (level.isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) {
                         Block block = level.getBlock(entry.pos);
-                        var state = block.getState();
-                        var extra = block.getExtra();
+                        BlockState state = block.getState();
+                        BlockState extra = block.getExtra();
 
                         if (entry.block.getState() == state) {
-                            state.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);
+                            //TODO ???
+                            CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.ON_TICK).execute(block, null);
+//                            state.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);
                         }
 
                         if (entry.block.getExtra() == extra && extra != BlockStates.AIR) {
-                            extra.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);
+                            //TODO ???
+                            CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.ON_TICK).execute(block, null);
+//                            extra.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);
                         }
                     } else {
                         level.scheduleUpdate(entry.block, entry.pos, 0);
