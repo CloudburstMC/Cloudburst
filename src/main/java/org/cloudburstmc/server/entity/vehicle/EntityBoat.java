@@ -8,6 +8,7 @@ import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.Boat;
@@ -292,9 +293,11 @@ public class EntityBoat extends EntityVehicle implements Boat {
                 BlockState state = block.getState();
 
                 if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {
-                    double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
+//                    TODO This is broken :(
+//                    block.getY() + 1 - (state.getTraits().get(BlockTraits.FLUID_LEVEL)/ 8)
+//                    double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
 
-                    diffY = Math.min(maxY - level, diffY);
+                    diffY = Math.min(maxY, diffY);
                 }
             }
 

@@ -27,11 +27,11 @@ public abstract class EnchantmentDamage extends EnchantmentBehavior {
     public boolean isCompatibleWith(EnchantmentInstance first, EnchantmentInstance enchantment) {
         return !(enchantment.getBehavior() instanceof EnchantmentDamage);
     }
-
-    @Override
-    public boolean canEnchant(EnchantmentInstance enchantment, ItemStack item) {
-        return item.getBehavior().isAxe() || super.canEnchant(enchantment, item);
-    }
+//
+//    @Override
+//    public boolean canEnchant(EnchantmentInstance enchantment, ItemStack item) {
+//        return item.getBehavior().isAxe() || super.canEnchant(enchantment, item);
+//    }
 
     @Override
     public boolean isMajor() {

@@ -3,6 +3,7 @@ package org.cloudburstmc.server.enchantment.behavior;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 
 /**
  * author: MagicDroidX
@@ -22,7 +23,7 @@ public class EnchantmentEfficiency extends EnchantmentBehavior {
 
     @Override
     public boolean canEnchant(EnchantmentInstance enchantment, ItemStack item) {
-        return item.getBehavior().isShears() || super.canEnchant(enchantment, item);
+        return item.getType() == ItemTypes.SHEARS || super.canEnchant(enchantment, item);
     }
 
 }

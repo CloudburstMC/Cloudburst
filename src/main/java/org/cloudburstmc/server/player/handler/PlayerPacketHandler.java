@@ -23,10 +23,7 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockBehaviors;
-import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.blockentity.Lectern;
@@ -1096,7 +1093,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             player.getInventory().sendHeldItem(player);
                             return true;
                         }
-
+                                                
                         if (serverItem.getBehavior().onClickAir(serverItem, directionVector, player)) {
                             if (player.getGamemode().isSurvival()) {
                                 player.getInventory().setItemInHand(serverItem);
@@ -1166,13 +1163,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
                         break;
                     case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-                        var behavior = this.globalRegistry.getRegistry(ItemType.class).getBehaviors(serverItem.getType());
-
-                        float itemDamage = behavior.getAttackDamage(serverItem);
-
-                        for (Enchantment enchantment : serverItem.get(ItemKeys.ENCHANTMENTS).values()) {
-                            itemDamage += enchantment.getBehavior().getDamageBonus(enchantment, target);
-                        }
+                        float itemDamage = globalRegistry.getRegistry(ItemStack.class).getBehavior(serverItem, ItemBehaviors.GET_ATTACH_DAMAGE).execute();
+//                        TODO Move this into the function above?
+//                        for (Enchantment enchantment : serverItem.get(ItemKeys.ENCHANTMENTS).values()) {
+//                            itemDamage += enchantment.getBehavior().getDamageBonus(enchantment, target);
+//                        }
 
                         Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
                         damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
@@ -1223,6 +1218,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
 
                         if (behavior.isTool(serverItem) && (player.isSurvival() || player.isAdventure())) {
+
                             var result = behavior.useOn(serverItem, target);
                             if (result == null && serverItem.get(ItemKeys.DAMAGE) >= behavior.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
                                 player.getInventory().setItemInHand(ItemStack.AIR);
@@ -1321,31 +1317,32 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(LecternUpdatePacket packet) {
-        Vector3i blockPosition = packet.getBlockPosition();
-
-        if (packet.isDroppingBook()) {
-            Block block = player.getLevel().getBlock(blockPosition);
-            var state = block.getState();
-            if (state.getType() == BlockTypes.LECTERN) {
-                ((BlockBehaviorLectern) state.getBehavior()).dropBook(block, player);
-            }
-        } else {
-            BlockEntity blockEntity = player.getLevel().getBlockEntity(blockPosition);
-            if (blockEntity instanceof Lectern) {
-                Lectern lectern = (Lectern) blockEntity;
-                LecternPageChangeEvent lecternPageChangeEvent = new LecternPageChangeEvent(player, lectern, packet.getPage());
-                player.getServer().getEventManager().fire(lecternPageChangeEvent);
-                if (!lecternPageChangeEvent.isCancelled()) {
-                    lectern.setPage(lecternPageChangeEvent.getNewRawPage());
-                    lectern.spawnToAll();
-                    var block = lectern.getBlock();
-                    var state = block.getState();
-                    if (state.getType() == BlockTypes.LECTERN) {
-                        ((BlockBehaviorLectern) state.getBehavior()).executeRedstonePulse(block);
-                    }
-                }
-            }
-        }
+//        TODO Implement lectern
+//        Vector3i blockPosition = packet.getBlockPosition();
+//
+//        if (packet.isDroppingBook()) {
+//            Block block = player.getLevel().getBlock(blockPosition);
+//            var state = block.getState();
+//            if (state.getType() == BlockTypes.LECTERN) {
+//                ((BlockBehaviorLectern) state.getBehavior()).dropBook(block, player);
+//            }
+//        } else {
+//            BlockEntity blockEntity = player.getLevel().getBlockEntity(blockPosition);
+//            if (blockEntity instanceof Lectern) {
+//                Lectern lectern = (Lectern) blockEntity;
+//                LecternPageChangeEvent lecternPageChangeEvent = new LecternPageChangeEvent(player, lectern, packet.getPage());
+//                player.getServer().getEventManager().fire(lecternPageChangeEvent);
+//                if (!lecternPageChangeEvent.isCancelled()) {
+//                    lectern.setPage(lecternPageChangeEvent.getNewRawPage());
+//                    lectern.spawnToAll();
+//                    var block = lectern.getBlock();
+//                    var state = block.getState();
+//                    if (state.getType() == BlockTypes.LECTERN) {
+//                        ((BlockBehaviorLectern) state.getBehavior()).executeRedstonePulse(block);
+//                    }
+//                }
+//            }
+//        }
         return true;
     }
 

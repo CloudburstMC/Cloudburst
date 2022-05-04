@@ -35,7 +35,8 @@ public class EnchantmentDurability extends EnchantmentBehavior {
         return CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.GET_MAX_DURABILITY).execute() >= 0 || super.canEnchant(enchantment, item);
     }
 
-    public static boolean negateDamage(ItemStack item, int level, Random random) {
-        return !(item.getBehavior().isArmor() && random.nextFloat() < 0.6f) && random.nextInt(level + 1) > 0;
-    }
+//    TODO Method isn't used?
+//    public static boolean negateDamage(ItemStack item, int level, Random random) {
+//        return !(item.getBehavior().isArmor() && random.nextFloat() < 0.6f) && random.nextInt(level + 1) > 0;
+//    }
 }
