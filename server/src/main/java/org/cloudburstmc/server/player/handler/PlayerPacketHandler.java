@@ -1317,32 +1317,33 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(LecternUpdatePacket packet) {
-//        TODO Implement lectern
-//        Vector3i blockPosition = packet.getBlockPosition();
-//
-//        if (packet.isDroppingBook()) {
-//            Block block = player.getLevel().getBlock(blockPosition);
-//            var state = block.getState();
-//            if (state.getType() == BlockTypes.LECTERN) {
+        Vector3i blockPosition = packet.getBlockPosition();
+
+        if (packet.isDroppingBook()) {
+            Block block = player.getLevel().getBlock(blockPosition);
+            var state = block.getState();
+            if (state.getType() == BlockTypes.LECTERN) {
+//                TODO Drop Lectern book
 //                ((BlockBehaviorLectern) state.getBehavior()).dropBook(block, player);
-//            }
-//        } else {
-//            BlockEntity blockEntity = player.getLevel().getBlockEntity(blockPosition);
-//            if (blockEntity instanceof Lectern) {
-//                Lectern lectern = (Lectern) blockEntity;
-//                LecternPageChangeEvent lecternPageChangeEvent = new LecternPageChangeEvent(player, lectern, packet.getPage());
-//                player.getServer().getEventManager().fire(lecternPageChangeEvent);
-//                if (!lecternPageChangeEvent.isCancelled()) {
-//                    lectern.setPage(lecternPageChangeEvent.getNewRawPage());
-//                    lectern.spawnToAll();
-//                    var block = lectern.getBlock();
-//                    var state = block.getState();
-//                    if (state.getType() == BlockTypes.LECTERN) {
+            }
+        } else {
+            BlockEntity blockEntity = player.getLevel().getBlockEntity(blockPosition);
+            if (blockEntity instanceof Lectern) {
+                Lectern lectern = (Lectern) blockEntity;
+                LecternPageChangeEvent lecternPageChangeEvent = new LecternPageChangeEvent(player, lectern, packet.getPage());
+                player.getServer().getEventManager().fire(lecternPageChangeEvent);
+                if (!lecternPageChangeEvent.isCancelled()) {
+                    lectern.setPage(lecternPageChangeEvent.getNewRawPage());
+                    lectern.spawnToAll();
+                    var block = lectern.getBlock();
+                    var state = block.getState();
+                    if (state.getType() == BlockTypes.LECTERN) {
+                        block.getBehaviors().get(BlockBehaviors.ON_REDSTONE_UPDATE).execute(block);
 //                        ((BlockBehaviorLectern) state.getBehavior()).executeRedstonePulse(block);
-//                    }
-//                }
-//            }
-//        }
+                    }
+                }
+            }
+        }
         return true;
     }
 
