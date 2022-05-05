@@ -36,4 +36,6 @@ public class ItemBehaviors {
 
     public static final BehaviorKey<FloatBehavior, FloatBehavior.Executor> GET_ATTACH_DAMAGE = DataKey.behavior(Identifier.fromString("get_attack_damage"), FloatBehavior.class, FloatBehavior.Executor.class);
 
+    public static final BehaviorKey<BooleanItemBehavior, BooleanItemBehavior.Executor> IS_TOOL = DataKey.behavior(Identifier.fromString("is_tool"), BooleanItemBehavior.class, BooleanItemBehavior.Executor.class);
+
 }

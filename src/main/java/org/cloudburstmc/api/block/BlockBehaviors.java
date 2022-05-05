@@ -146,4 +146,8 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<MapColorBehavior, MapColorBehavior.Executor> GET_MAP_COLOR = DataKey.behavior(Identifier.fromString("get_map_color"), MapColorBehavior.class, MapColorBehavior.Executor.class);
 
+    public static final BehaviorKey<BooleanBlockBehavior, BooleanBlockBehavior.Executor> CAN_PASS_THROUGH = DataKey.behavior(Identifier.fromString("can_pass_through"), BooleanBlockBehavior.class, BooleanBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<CanBreakBlockBehavior, CanBreakBlockBehavior.Executor> IS_BREAKABLE = DataKey.behavior(Identifier.fromString("is_breakable"), CanBreakBlockBehavior.class, CanBreakBlockBehavior.Executor.class);
+
 }
