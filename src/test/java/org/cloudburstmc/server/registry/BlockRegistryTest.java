@@ -47,7 +47,7 @@ public class BlockRegistryTest {
         int build = version & 0xFF;
         System.out.printf("Latest block state version: %d.%d.%d.%d%n", major, minor, patch, build);
 
-        CloudBlockRegistry.get().close(); // init
+        CloudBlockRegistry.REGISTRY.close(); // init
 
         Map<NbtMap, BlockState> serverPalette = BlockPalette.INSTANCE.getSerializedPalette();
         Map<Integer, BlockState> runtimeIdMap = BlockPalette.INSTANCE.getRuntimeMap();

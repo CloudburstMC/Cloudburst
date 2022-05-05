@@ -603,9 +603,6 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(RAW_COPPER_BLOCK);
         this.registerVanilla(RAW_GOLD_BLOCK);
 
-        this.registerVanilla(CANDLE, MultiBlockSerializers.CANDLES);
-        this.registerVanilla(CANDLE_CAKE, MultiBlockSerializers.CANDLE_CAKES);
-
         this.registerVanilla(SCULK);
         this.registerVanilla(SCULK_VEIN);
         this.registerVanilla(SCULK_CATALYST);
