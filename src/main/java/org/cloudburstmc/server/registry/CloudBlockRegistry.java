@@ -10,6 +10,7 @@ import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.data.BehaviorKey;
@@ -22,6 +23,7 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.behavior.DefaultBlockBehaviours;
 import org.cloudburstmc.server.block.serializer.*;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -66,6 +68,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
     public CloudBlockRegistry(CloudItemRegistry itemRegistry) {
         this.itemRegistry = itemRegistry;
         BlockTraitSerializers.init();
+        this.registerVanillaBehaviors();
         this.registerVanillaBlocks();
 
         // Check legacy IDs
@@ -90,8 +93,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
 
     @Override
     public <F, E> void registerBehavior(BehaviorKey<F, E> key, F defaultBehavior, BiFunction<Behavior<E>, F, E> executorFactory) {
-        checkArgument(this.isBehaviorRegistered(key), "Behaviour '%s' already registered", key);
-        checkArgument(this.itemRegistry.isBehaviorRegistered(key), "Item Behaviour '%s' already registered", key);
+        checkArgument(!this.isBehaviorRegistered(key), "Behaviour '%s' already registered", key);
+        checkArgument(!this.itemRegistry.isBehaviorRegistered(key), "Item Behaviour '%s' already registered", key);
         super.registerBehavior(key, defaultBehavior, executorFactory);
     }
 
@@ -275,23 +278,23 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
     }
 
     private void registerVanillaBlocks() {
-        this.registerVanilla(AIR); // 0
-        this.registerVanilla(STONE); // 1
-        this.registerVanilla(GRASS); // 2
-        this.registerVanilla(DIRT); // 3
-        this.registerVanilla(COBBLESTONE); // 4
-        this.registerVanilla(PLANKS, MultiBlockSerializers.PLANKS); // 5
-        this.registerVanilla(SAPLING); // 6
-        this.registerVanilla(BEDROCK); // 7
-        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE); // 8
-        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE); // 9
-        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE); //10
-        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE); //11
-        this.registerVanilla(SAND); //12
-        this.registerVanilla(GRAVEL); //13
-        this.registerVanilla(GOLD_ORE); //14
-        this.registerVanilla(IRON_ORE); //15
-        this.registerVanilla(COAL_ORE); //16
+        this.registerVanilla(AIR).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_LIQUID, false); // 0
+        this.registerVanilla(STONE).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 1
+        this.registerVanilla(GRASS).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 2
+        this.registerVanilla(DIRT).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 3
+        this.registerVanilla(COBBLESTONE).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 4
+        this.registerVanilla(PLANKS, MultiBlockSerializers.PLANKS).extend(BlockBehaviors.IS_LIQUID, false); // 5
+        this.registerVanilla(SAPLING).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 6
+        this.registerVanilla(BEDROCK).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 7
+        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_LIQUID, true); // 8
+        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_LIQUID, true); // 9
+        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_LIQUID, true); //10
+        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_LIQUID, true); //11
+        this.registerVanilla(SAND).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); //12
+        this.registerVanilla(GRAVEL).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); //13
+        this.registerVanilla(GOLD_ORE).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); //14
+        this.registerVanilla(IRON_ORE).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); //15
+        this.registerVanilla(COAL_ORE).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); //16
         this.registerVanilla(LOG, MultiBlockSerializers.LOG); //17
         this.registerVanilla(LEAVES, MultiBlockSerializers.LEAVES); //18
         this.registerVanilla(SPONGE); //19
@@ -614,5 +617,20 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(PEARLESCENT_FROGLIGHT);
         this.registerVanilla(VERDANT_FROGLIGHT);
         this.registerVanilla(OCHRE_FROGLIGHT);
+    }
+
+    private void registerVanillaBehaviors() {
+        // ??
+        log.info(this.behaviors);
+        log.info(this.isBehaviorRegistered(BlockBehaviors.IS_SOLID));
+        this.registerBehavior(BlockBehaviors.IS_SOLID, true, (behavior, value) -> {
+            log.info("Behavior implementation? {} - {}", behavior, value);
+            return value;
+        });
+        this.registerBehavior(BlockBehaviors.IS_LIQUID, false, (behavior, value) -> {
+            log.info("Behavior implementation? {} - {}", behavior, value);
+            return value;
+        });
+        log.info(this.behaviors);
     }
 }

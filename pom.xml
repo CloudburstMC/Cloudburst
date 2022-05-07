@@ -46,7 +46,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.22</version>
+            <version>1.18.24</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -201,7 +201,7 @@
         <!-- Miscellaneous -->
         <dependency>
             <groupId>com.nukkitx.protocol</groupId>
-            <artifactId>bedrock-v503</artifactId>
+            <artifactId>bedrock-beta</artifactId>
             <version>2.9.6-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
@@ -326,7 +326,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.22</version>
+                            <version>1.18.24</version>
                         </path>
                     </annotationProcessorPaths>
                     <compilerArgs>

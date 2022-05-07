@@ -61,6 +61,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
 
     private CloudItemRegistry() {
         try {
+            this.registerVanillaBehaviors();
             this.registerVanillaItems();
             this.registerVanillaIdentifiers();
             this.registerVanillaDataSerializers();
@@ -672,6 +673,10 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         this.registerDataSerializer(MapItem.class, new MapSerializer());
         this.registerDataSerializer(WrittenBook.class, new WrittenBookSerializer());
         this.registerDataSerializer(EntityType.class, new EntityTypeSerializer());
+    }
+
+    private void registerVanillaBehaviors() {
+
     }
 
     public void registerCreativeItem(ItemStack item) {

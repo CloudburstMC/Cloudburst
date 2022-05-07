@@ -120,10 +120,13 @@ public class LakePopulator extends ChancePopulator.Column {
                             BlockState state = level.getBlockState(blockX + x, blockY + y, blockZ + z, 0);
 
                             if (y < 4) {
-                                if (state != block && !CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_SOLID)) {
+//                                log.info("Getting behavior for {}", state.getType());
+                                boolean isSolid = CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_SOLID);
+                                if (state != block && !isSolid) {
                                     return;
                                 }
                             } else {
+//                                log.info("Getting behavior for {}", state.getType());
                                 if (CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_LIQUID)) {
                                     return;
                                 }
