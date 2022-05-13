@@ -145,7 +145,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         }
     }
 
-    private synchronized void registerVanilla(ItemType type) throws RegistryException {
+    protected synchronized void registerVanilla(ItemType type) throws RegistryException {
         registerVanilla(type, null);
     }
 
@@ -220,7 +220,12 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
 
     @Override
     public ItemType getType(Identifier runtimeId, int data) {
-        return null;
+        return typeMap.getOrDefault(runtimeId, BlockTypes.AIR);
+//
+//        log.info(runtimeId);
+//        log.info(typeMap.get(runtimeId));
+//        return getType(runtimeId);
+////        return null;
     }
 
     @Override
