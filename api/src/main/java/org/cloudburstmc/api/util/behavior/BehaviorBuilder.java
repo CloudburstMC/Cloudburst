@@ -43,7 +43,7 @@ public final class BehaviorBuilder {
     public <T, R> BehaviorBuilder overwrite(BehaviorKey<T, R> key, T function) {
         checkNotNull(key, "key");
         checkNotNull(function, "function");
-        checkArgument(key.getType() == function.getClass(), "%s does not match expected type of %s for '%s'",
+        checkArgument(key.getType().isInstance(function), "%s does not match expected type of %s for '%s'",
                 function.getClass(), key.getType(), key.getId());
 
         List<Object> functions = this.behaviors.computeIfAbsent(key, behaviorKey -> new ArrayList<>());
