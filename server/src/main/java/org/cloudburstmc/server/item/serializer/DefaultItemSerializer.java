@@ -60,7 +60,7 @@ public class DefaultItemSerializer implements ItemSerializer {
             tag.putCompound("display", display.build());
         }
 
-        if (!item.get(ItemKeys.ENCHANTMENTS).isEmpty()) {
+        if (item.get(ItemKeys.ENCHANTMENTS) != null && !item.get(ItemKeys.ENCHANTMENTS).isEmpty()) {
             List<NbtMap> enchantments = item.get(ItemKeys.ENCHANTMENTS).values().stream().map(enchantment ->
                     NbtMap.builder()
                             .putShort("id", enchantment.type().getId())
