@@ -13,6 +13,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.behavior.BooleanBlockBehavior;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.BlockRegistry;
@@ -118,6 +119,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         checkClosed();
 
         CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
+        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
 
         synchronized (this.behaviorMap) {
             if (this.behaviorMap.putIfAbsent(type, collection) != null) {
@@ -278,23 +280,23 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
     }
 
     private void registerVanillaBlocks() {
-        this.registerVanilla(AIR).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_LIQUID, false); // 0
-        this.registerVanilla(STONE).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 1
-        this.registerVanilla(GRASS).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 2
-        this.registerVanilla(DIRT).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 3
-        this.registerVanilla(COBBLESTONE).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 4
-        this.registerVanilla(PLANKS, MultiBlockSerializers.PLANKS).extend(BlockBehaviors.IS_LIQUID, false); // 5
-        this.registerVanilla(SAPLING).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 6
-        this.registerVanilla(BEDROCK).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); // 7
-        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_LIQUID, true); // 8
-        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_LIQUID, true); // 9
-        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_LIQUID, true); //10
-        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_LIQUID, true); //11
-        this.registerVanilla(SAND).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); //12
-        this.registerVanilla(GRAVEL).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); //13
-        this.registerVanilla(GOLD_ORE).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); //14
-        this.registerVanilla(IRON_ORE).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); //15
-        this.registerVanilla(COAL_ORE).extend(BlockBehaviors.IS_SOLID, true).extend(BlockBehaviors.IS_LIQUID, false); //16
+        this.registerVanilla(AIR).extend(BlockBehaviors.IS_SOLID, false); // 0
+        this.registerVanilla(STONE); // 1
+        this.registerVanilla(GRASS); // 2
+        this.registerVanilla(DIRT); // 3
+        this.registerVanilla(COBBLESTONE); // 4
+        this.registerVanilla(PLANKS, MultiBlockSerializers.PLANKS); // 5
+        this.registerVanilla(SAPLING); // 6
+        this.registerVanilla(BEDROCK); // 7
+        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE); // 8
+        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE); // 9
+        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true); //10
+        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true); //11
+        this.registerVanilla(SAND); //12
+        this.registerVanilla(GRAVEL); //13
+        this.registerVanilla(GOLD_ORE); //14
+        this.registerVanilla(IRON_ORE); //15
+        this.registerVanilla(COAL_ORE); //16
         this.registerVanilla(LOG, MultiBlockSerializers.LOG); //17
         this.registerVanilla(LEAVES, MultiBlockSerializers.LEAVES); //18
         this.registerVanilla(SPONGE); //19
@@ -631,6 +633,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
             log.info("Behavior implementation? {} - {}", behavior, value);
             return value;
         });
+        this.registerBehavior(BlockBehaviors.CAN_PASS_THROUGH, (behavior, block) -> false, //TODO Implement Supreme);
         log.info(this.behaviors);
     }
 }

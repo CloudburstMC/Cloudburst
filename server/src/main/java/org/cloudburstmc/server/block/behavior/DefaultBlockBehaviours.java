@@ -9,8 +9,20 @@ import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.behavior.BehaviorBuilder;
+
+import static org.cloudburstmc.api.block.BlockBehaviors.*;
 
 public class DefaultBlockBehaviours {
+
+    public static final BehaviorBuilder BLOCK_BEHAVIOR_BASE = BehaviorBuilder.create()
+            .overwrite(IS_SOLID, true)
+            .overwrite(IS_LIQUID, false)
+            .overwrite(CAN_PASS_THROUGH, (behavior, block) -> false);
+
+
+
+
 
     public static final EntityBlockBehavior ON_PROJECTILE_HIT = (behavior, block, entity) -> {};
 
