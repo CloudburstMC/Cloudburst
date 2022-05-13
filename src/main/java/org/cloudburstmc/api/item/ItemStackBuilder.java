@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static lombok.Lombok.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.item.ItemKeys.BLOCK_STATE;
 
 public final class ItemStackBuilder {
