@@ -52,10 +52,11 @@ public class ItemUtils {
             NbtMapBuilder blockTag = NbtMap.builder();
             BlockState blockState = item.get(ItemKeys.BLOCK_STATE);
 
+            log.info(item.getType() + " - " + blockState + " - " + BlockPalette.INSTANCE.getIdentifier(blockState));
             blockTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(blockState).toString());
             blockTag.putShort("Damage", (short) 0);
 
-            nbtTag.put("Block", blockTag);
+            nbtTag.put("Block", blockTag.build());
         }
 
         // FIXME: Blocks can be mapped to multiple identifiers.
@@ -127,6 +128,7 @@ public class ItemUtils {
         ItemStackBuilder builder = ItemStack.builder();
         if(amount > 0) {
             ItemType type = CloudItemRegistry.get().getType(id, damage);
+            log.info(id + " - " + damage + " > " + type + " - " + type.getId());
             builder.itemType(type);
             builder.amount(amount);
 
