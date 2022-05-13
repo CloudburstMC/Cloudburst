@@ -13,7 +13,6 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.behavior.BooleanBlockBehavior;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.BlockRegistry;
@@ -633,7 +632,10 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
             log.info("Behavior implementation? {} - {}", behavior, value);
             return value;
         });
-        this.registerBehavior(BlockBehaviors.CAN_PASS_THROUGH, (behavior, block) -> false, //TODO Implement Supreme);
+        this.registerBehavior(BlockBehaviors.CAN_PASS_THROUGH, (behavior, block) -> false, (behavior, value) -> {
+            log.info("Behavior implementation? {} - {}", behavior, value);
+            return block -> value.test(behavior, block);
+        });
         log.info(this.behaviors);
     }
 }
