@@ -9,6 +9,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import static org.cloudburstmc.api.block.BlockStates.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
@@ -40,8 +41,9 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public BehaviorCollection getBehaviors() {
-        //TODO implementation
-        return null;
+        return CloudBlockRegistry.REGISTRY.getBehaviors(this.getState().getType());
+//        //TODO implementation
+//        return null;
     }
 
     @Override
