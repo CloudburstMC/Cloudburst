@@ -1581,6 +1581,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
         startGamePacket.setServerEngine("");
+        startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
+        //TODO Add the correct UUID if it's necessary
+        startGamePacket.setWorldTemplateId(new UUID(0, 0));
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
@@ -19,6 +20,7 @@ import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.behavior.Behavior;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.server.Bootstrap;
@@ -622,20 +624,11 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
 
     private void registerVanillaBehaviors() {
         // ??
-        log.info(this.behaviors);
-        log.info(this.isBehaviorRegistered(BlockBehaviors.IS_SOLID));
-        this.registerBehavior(BlockBehaviors.IS_SOLID, true, (behavior, value) -> {
-            log.info("Behavior implementation? {} - {}", behavior, value);
-            return value;
-        });
-        this.registerBehavior(BlockBehaviors.IS_LIQUID, false, (behavior, value) -> {
-            log.info("Behavior implementation? {} - {}", behavior, value);
-            return value;
-        });
-        this.registerBehavior(BlockBehaviors.CAN_PASS_THROUGH, (behavior, block) -> false, (behavior, value) -> {
-            log.info("Behavior implementation? {} - {}", behavior, value);
-            return block -> value.test(behavior, block);
-        });
-        log.info(this.behaviors);
+        this.registerBehavior(BlockBehaviors.IS_SOLID, true, (behavior, value) -> value);
+        this.registerBehavior(BlockBehaviors.IS_LIQUID, false, (behavior, value) -> value);
+        this.registerBehavior(BlockBehaviors.CAN_PASS_THROUGH, (behavior, block) -> false, (behavior, value) ->
+                block -> value.test(behavior, block));
+        this.registerBehavior(BlockBehaviors.GET_BOUNDING_BOX, (behavior, block) -> new SimpleAxisAlignedBB(Vector3i.ZERO, Vector3i.ONE), (behavior, value) ->
+                block -> value.getBoundingBox(behavior, block));
     }
 }
