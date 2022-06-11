@@ -35,7 +35,7 @@ public class BlockBehaviorJukebox extends BlockBehaviorSolid {
         }
 
         Jukebox jukebox = (Jukebox) blockEntity;
-        if (jukebox.getRecordItem().getType() != AIR) {
+        if (jukebox.getRecordItem() != null && jukebox.getRecordItem().getType() != AIR) {
             jukebox.dropItem();
         } else if (item.getType() == ItemTypes.RECORD) {
             jukebox.setRecordItem(item);
