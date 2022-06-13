@@ -40,7 +40,10 @@ import org.cloudburstmc.api.event.block.BlockUpdateEvent;
 import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.api.event.level.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
-import org.cloudburstmc.api.item.*;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
@@ -60,7 +63,6 @@ import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.api.util.behavior.Behavior;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPalette;
@@ -101,8 +103,7 @@ import java.util.concurrent.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockBehaviors.*;
-import static org.cloudburstmc.api.item.ItemBehaviors.CAN_DESTROY;
-import static org.cloudburstmc.api.item.ItemBehaviors.USE_ON;
+import static org.cloudburstmc.api.item.ItemBehaviors.*;
 
 /**
  * author: MagicDroidX Nukkit Project
@@ -1778,141 +1779,141 @@ public class CloudLevel implements Level {
 
         BehaviorCollection itemBehaviors = this.itemRegistry.getBehaviors(item.getType());
 
-//        if (player != null) {
-//            PlayerInteractEvent ev = new PlayerInteractEvent(player, item, target, face, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK);
-//
-//            if (player.getGamemode() == GameMode.SPECTATOR) {
-//                ev.setCancelled();
-//            }
-//
-//            if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
-//                ev.setCancelled();
-//            }
-//
-//            this.server.getEventManager().fire(ev);
-//            if (!ev.isCancelled()) {
-//                targetBehaviors.get(ON_TICK).execute(target, new Random());
-//                if ((!player.isSneaking() || player.getInventory().getItemInHand() == ItemStack.AIR) && targetBehaviors.canBeActivated(target) && targetBehaviors.onActivate(target, item, player)) {
-//                    if (CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
-//                        item = ItemStack.AIR;
-//                    }
-//                    return item;
-//                }
-//
-//                if (itemBehaviors.canBeActivated()) {
-//                    var result = itemBehaviors.onActivate(item, player, block, target, face, clickPos, this);
-//                    if (result != null) {
-//                        item = result;
-//                        if (item.getCount() <= 0) {
-//                            item = ItemStack.AIR;
-//                            return item;
-//                        }
-//                    }
-//                }
-//            } else {
-//                if (item.getType() == ItemTypes.BUCKET && item.get(ItemKeys.BUCKET_DATA) == Bucket.WATER) {
-//                    ((CloudLevel) player.getLevel()).sendBlocks(new Player[]{player}, new Block[]{new CloudBlock(this, block.getPosition(), new BlockState[]{BlockStates.AIR, BlockStates.AIR})}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-//                }
-//                return null;
-//            }
-//        } else if (targetBehaviors.canBeActivated(target) && targetBehaviors.onActivate(target, item)) {
-//            if (CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
-//                item = ItemStack.AIR;
-//            }
-//            return item;
-//        }
-//        BlockState hand;
-//        if (itemBehaviors.canBePlaced(item)) {
-//            hand = itemBehaviors.getBlock(item);
-//        } else {
-//            return null;
-//        }
-//
-//        if (!(behaviors.canBeReplaced(block)
-//                || (hand.inCategory(BlockCategory.SLAB) && (block.getState().inCategory(BlockCategory.SLAB) || target.getState().inCategory(BlockCategory.SLAB))))) {
-//            return null;
-//        }
-//
-//        if (targetBehaviors.canBeReplaced(target)) {
-//            block = target;
-//        }
-//
-//        BlockState handState = CloudBlockRegistry.REGISTRY.getBlock(hand.getType());
-//
-//
-//        AxisAlignedBB handBB = blockRegistry.getBehavior(block.getState().getType(), GET_BOUNDING_BOX).execute(hand);
-//        if (!handBehavior.canPassThrough(handState) && handBB != null) {
-//            Vector3f blockPosF = block.getPosition().toFloat();
-//            Set<Entity> entities = this.getCollidingEntities(handBB);
-//            int realCount = 0;
-//            for (Entity e : entities) {
-//                if (e instanceof EntityArrow || e instanceof DroppedItem || (e instanceof CloudPlayer && ((CloudPlayer) e).isSpectator())) {
-//                    continue;
-//                }
-//                ++realCount;
-//            }
-//
-//            if (player != null) {
-//                Vector3f diff = ((CloudPlayer) player).getNextPosition().sub(player.getPosition());
-//                if (diff.lengthSquared() > 0.00001) {
-//                    AxisAlignedBB bb = player.getBoundingBox().getOffsetBoundingBox(diff);
-//                    if (handBB.addCoord(blockPosF).intersectsWith(bb)) {
-//                        ++realCount;
-//                    }
-//                }
-//            }
-//
-//            if (realCount > 0) {
-//                return null; // Entity in block
-//            }
-//        }
-//
-//        if (player != null) {
-//            BlockPlaceEvent event = new BlockPlaceEvent(player, hand, block, target, item);
-//            if (player.getGamemode() == GameMode.ADVENTURE && !item.canPlaceOn(target.getState())) {
-//                event.setCancelled();
-//            }
-//            if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
-//                event.setCancelled();
-//            }
-//            this.server.getEventManager().fire(event);
-//            if (event.isCancelled()) {
-//                return null;
-//            }
-//        }
+        if (player != null) {
+            PlayerInteractEvent ev = new PlayerInteractEvent(player, item, target, face, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK);
+
+            if (player.getGamemode() == GameMode.SPECTATOR) {
+                ev.setCancelled();
+            }
+
+            if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
+                ev.setCancelled();
+            }
+
+            this.server.getEventManager().fire(ev);
+            if (!ev.isCancelled()) {
+                targetBehaviors.get(ON_TICK).execute(target, new Random());
+
+                if ((!player.isSneaking() || player.getInventory().getItemInHand() == ItemStack.AIR) && targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, player, face)) { //TODO: update the item from the behavior
+                    if (CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
+                        item = ItemStack.AIR;
+                    }
+                    return item;
+                }
+
+                if (itemBehaviors.get(ItemBehaviors.CAN_BE_USED).execute(item)) {
+                    var result = itemBehaviors.get(USE_ON).execute(item, player, target.getPosition(), face, clickPos);
+                    //                        if (item.getCount() <= 0) {
+                    //                            item = ItemStack.AIR;
+                    //                            return item;
+                    //                        }
+                    item = Objects.requireNonNullElse(result, ItemStack.AIR);
+                }
+            } else {
+                if (item.getType() == ItemTypes.BUCKET && item.get(ItemKeys.BUCKET_DATA) == Bucket.WATER) {
+                    ((CloudLevel) player.getLevel()).sendBlocks(new Player[]{player}, new Block[]{new CloudBlock(this, block.getPosition(), new BlockState[]{BlockStates.AIR, BlockStates.AIR})}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                }
+                return null;
+            }
+        } else if (targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, null, face)) {
+            if (CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
+                item = ItemStack.AIR; //TODO: update the item from the behavior
+            }
+            return item;
+        }
+        BlockState hand = itemBehaviors.get(ItemBehaviors.GET_BLOCK).execute(item).orElse(null);
+
+        if (hand == null) {
+            return null;
+        }
+
+        if (!(behaviors.get(IS_REPLACEABLE)
+                || (hand.inCategory(BlockCategory.SLAB) && (block.getState().inCategory(BlockCategory.SLAB) || target.getState().inCategory(BlockCategory.SLAB))))) {
+            return null;
+        }
+
+        if (targetBehaviors.get(IS_REPLACEABLE)) {
+            block = target;
+        }
+
+        var handBehaviors = this.blockRegistry.getBehaviors(hand.getType());
+        AxisAlignedBB handBB = handBehaviors.get(GET_BOUNDING_BOX).execute(hand);
+
+        if (!handBehaviors.get(CAN_PASS_THROUGH).execute(hand) && handBB != null) {
+            handBB.offset(block.getPosition());
+
+            Vector3f blockPosF = block.getPosition().toFloat();
+            Set<Entity> entities = this.getCollidingEntities(handBB);
+            int realCount = 0;
+            for (Entity e : entities) {
+                if (e instanceof EntityArrow || e instanceof DroppedItem || (e instanceof CloudPlayer && ((CloudPlayer) e).isSpectator())) {
+                    continue;
+                }
+                ++realCount;
+            }
+
+            if (player != null) {
+                Vector3f diff = ((CloudPlayer) player).getNextPosition().sub(player.getPosition());
+                if (diff.lengthSquared() > 0.00001) {
+                    AxisAlignedBB bb = player.getBoundingBox().getOffsetBoundingBox(diff);
+                    if (handBB.addCoord(blockPosF).intersectsWith(bb)) {
+                        ++realCount;
+                    }
+                }
+            }
+
+            if (realCount > 0) {
+                return null; // Entity in block
+            }
+        }
+
+        if (player != null) {
+            BlockPlaceEvent event = new BlockPlaceEvent(player, hand, block, target, item);
+            if (player.getGamemode() == GameMode.ADVENTURE && !itemRegistry.getBehavior(item.getType(), CAN_BE_PLACED_ON).execute(item, target)) {
+                event.setCancelled();
+            }
+            if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
+                event.setCancelled();
+            }
+            this.server.getEventManager().fire(event);
+            if (event.isCancelled()) {
+                return null;
+            }
+        }
 
 //        Behavior liquidBehavior = block.getState().getBehavior();
+        var blockBehaviors = blockRegistry.getBehaviors(block.getState().getType());
         BlockState air = block.getExtra();
 
         Vector3i pos = null;
 
 //        TODO Water logging?
-//        if (air == BlockStates.AIR && (liquidBehavior instanceof BlockBehaviorLiquid) && ((BlockBehaviorLiquid) liquidBehavior).usesWaterLogging()
-//                && (block.getState().ensureTrait(BlockTraits.FLUID_LEVEL) == 0) // Remove this line when MCPE-33345 is resolved
-//        ) {
-//            pos = block.getPosition();
-//
-//            block.set(block.getState(), 1, false, false);
-//            block.set(air, false, false);
-//
-//            this.scheduleUpdate(block, 1);
-//        }
-//
-//        try {
-//            if (!handBehavior.place(item, block, target, face, clickPos, player)) {
-//                if (pos != null) {
-//                    this.setBlockState(pos, 0, block.getState(), false, false);
-//                    this.setBlockState(pos, 1, air, false, false);
-//                }
-//                return null;
-//            }
-//        } catch (Exception e) {
-//            if (pos != null) {
-//                this.setBlockState(pos, 0, block.getState(), false, false);
-//                this.setBlockState(pos, 1, air, false, false);
-//            }
-//            throw e;
-//        }
+        if (air == BlockStates.AIR && blockBehaviors.get(IS_LIQUID) && blockBehaviors.get(USES_WATERLOGGING)
+                && (block.getState().ensureTrait(BlockTraits.FLUID_LEVEL) == 0) // Remove this line when MCPE-33345 is resolved
+        ) {
+            pos = block.getPosition();
+
+            block.set(block.getState(), 1, false, false);
+            block.set(air, false, false);
+
+            this.scheduleUpdate(block, 1);
+        }
+
+        try {
+            if (!handBehaviors.get(ON_PLACE).execute(hand, player, block.getPosition(), face, clickPos)) {
+                if (pos != null) {
+                    this.setBlockState(pos, 0, block.getState(), false, false);
+                    this.setBlockState(pos, 1, air, false, false);
+                }
+                return null;
+            }
+        } catch (Exception e) {
+            if (pos != null) {
+                this.setBlockState(pos, 0, block.getState(), false, false);
+                this.setBlockState(pos, 1, air, false, false);
+            }
+            throw e;
+        }
 
         if (player != null) {
             if (!player.isCreative()) {
@@ -2306,11 +2307,11 @@ public class CloudLevel implements Level {
             int y = NukkitMath.clamp(v.getFloorY(), 0, 254);
             BlockState blockState = chunk.getBlock(x, y + 1, z);
 
-            boolean wasAir = CloudBlockRegistry.REGISTRY.getBehavior(blockState.getType(), CAN_PASS_THROUGH).execute(this.getBlock(x, y + 1, z));
+            boolean wasAir = CloudBlockRegistry.REGISTRY.getBehavior(blockState.getType(), CAN_PASS_THROUGH).execute(this.getBlockState(x, y + 1, z));
 //            boolean wasAir = blockState.getBehavior().canPassThrough(blockState);
             for (; y > 0; --y) {
                 blockState = chunk.getBlock(x, y, z);
-                if (CloudBlockRegistry.REGISTRY.getBehavior(blockState.getType(), CAN_PASS_THROUGH).execute(this.getBlock(x, y, z))) {
+                if (CloudBlockRegistry.REGISTRY.getBehavior(blockState.getType(), CAN_PASS_THROUGH).execute(this.getBlockState(x, y, z))) {
                     if (wasAir) {
                         y++;
                         break;
@@ -2322,9 +2323,9 @@ public class CloudLevel implements Level {
 
             for (; y >= 0 && y < 255; y++) {
                 blockState = chunk.getBlock(x, y + 1, z);
-                if (CloudBlockRegistry.REGISTRY.getBehavior(blockState.getType(), CAN_PASS_THROUGH).execute(this.getBlock(x, y + 1, z))) {
+                if (CloudBlockRegistry.REGISTRY.getBehavior(blockState.getType(), CAN_PASS_THROUGH).execute(this.getBlockState(x, y + 1, z))) {
                     blockState = chunk.getBlock(x, y, z);
-                    if (CloudBlockRegistry.REGISTRY.getBehavior(blockState.getType(), CAN_PASS_THROUGH).execute(this.getBlock(x, y, z))) {
+                    if (CloudBlockRegistry.REGISTRY.getBehavior(blockState.getType(), CAN_PASS_THROUGH).execute(this.getBlockState(x, y, z))) {
                         return Location.from(pos.getX(), y, pos.getZ(), pos.getYaw(), pos.getPitch(), this);
                     }
                 }
