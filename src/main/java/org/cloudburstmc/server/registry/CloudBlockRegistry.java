@@ -14,7 +14,6 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.BlockRegistry;
@@ -37,7 +36,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
@@ -334,7 +332,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(FIRE); //51
         this.registerVanilla(MOB_SPAWNER); //52
         this.registerVanilla(WOODEN_STAIRS, MultiBlockSerializers.WOOD_STAIRS); //53
-        this.registerVanilla(CHEST).extend(BlockBehaviors.GET_BLOCK_ENTITY, Optional.of(BlockEntityTypes.CHEST)); //54
+        this.registerVanilla(CHEST); //54
         this.registerVanilla(REDSTONE_WIRE); //55
         this.registerVanilla(DIAMOND_ORE); //56
         this.registerVanilla(DIAMOND_BLOCK); //57
