@@ -25,7 +25,6 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.behavior.DefaultBlockBehaviours;
 import org.cloudburstmc.server.block.serializer.*;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -36,6 +35,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
@@ -121,7 +121,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         checkClosed();
 
         CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
-        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
+//        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
+
+        collection.bake();
 
         synchronized (this.behaviorMap) {
             if (this.behaviorMap.putIfAbsent(type, collection) != null) {
@@ -625,11 +627,408 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
 
     private void registerVanillaBehaviors() {
         // ??
-        this.registerBehavior(BlockBehaviors.IS_SOLID, true, (behavior, value) -> value);
-        this.registerBehavior(BlockBehaviors.IS_LIQUID, false, (behavior, value) -> value);
-        this.registerBehavior(BlockBehaviors.CAN_PASS_THROUGH, (behavior, block) -> false, (behavior, value) ->
-                block -> value.test(behavior, block));
-        this.registerBehavior(BlockBehaviors.GET_BOUNDING_BOX, (behavior, block) -> new SimpleAxisAlignedBB(Vector3i.ZERO, Vector3i.ONE), (behavior, value) ->
-                block -> value.getBoundingBox(behavior, block));
+        this.registerBehavior(
+                BlockBehaviors.IS_SOLID,
+                true,
+                (behavior, value) -> value
+        );
+        this.registerBehavior(
+                BlockBehaviors.IS_LIQUID,
+                false,
+                (behavior, value) -> value
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_PASS_THROUGH,
+                (behavior, block) -> false,
+                (behavior, value) -> block -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_BOUNDING_BOX,
+                (behavior, block) -> new SimpleAxisAlignedBB(Vector3i.ZERO, Vector3i.ONE),
+                (behavior, value) -> block -> value.getBoundingBox(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_BE_SILK_TOUCHED,
+                (behavior, block) -> true,
+                (behavior, value) -> block -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_BE_USED_IN_COMMANDS,
+                (behavior, block) -> true,
+                (behavior, value) -> block -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_CONTAIN_LIQUID,
+                (behavior, block) -> false,
+                (behavior, value) -> block -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_SPAWN_ON,
+                (behavior, block) -> true,
+                (behavior, value) -> block -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_BE_USED,
+                (behavior, block) -> false,
+                (behavior, value) -> block -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_FRICTION,
+                (behavior, block) -> 0.2f,
+                (behavior, value) -> block -> value.getProperty(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_HARDNESS,
+                (behavior, block) -> 1,
+                (behavior, value) -> block -> value.getProperty(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_BURN_ODDS,
+                (behavior, block) -> 0,
+                (behavior, value) -> block -> value.getProperty(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_FLAME_ODDS,
+                (behavior, block) -> 0,
+                (behavior, value) -> block -> value.getProperty(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_GRAVITY,
+                (behavior, block) -> 0.02f,
+                (behavior, value) -> block -> value.getProperty(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_THICKNESS,
+                (behavior, block) -> 0,
+                (behavior, value) -> block -> value.getProperty(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_DESTROY_SPEED,
+                (behavior, block) -> 0,
+                (behavior, value) -> block -> value.getProperty(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_EXPERIENCE_DROP,
+                (behavior, block, randomGenerator) -> 0,
+                (behavior, value) -> (block, randomGenerator) -> value.getExperience(behavior, block, randomGenerator)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_BLOCK_ENTITY,
+                (behavior, block) -> Optional.empty(),
+                (behavior, value) -> block -> value.getProperty(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.MAY_PICK,
+                (behavior, block) -> true,
+                (behavior, value) -> block -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.MAY_PLACE,
+                (behavior, block, direction) -> true,
+                (behavior, value) -> (block, direction) -> value.mayPlace(behavior, block, direction)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.MAY_PLACE_ON,
+                (behavior, block) -> true,
+                (behavior, value) -> block -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_DESTROY,
+                (behavior, block, entity) -> {
+                },
+                (behavior, value) -> (block, entity) -> value.execute(behavior, block, entity)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_NEIGHBOUR_CHANGED,
+                (behavior, block, neighbor) -> {
+                },
+                (behavior, value) -> (block, neighbor) -> value.onNeighborChanged(behavior, block, neighbor)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_FALL_ON,
+                (behavior, block, entity) -> {
+                },
+                (behavior, value) -> (block, entity) -> value.onFallOn(behavior, block, entity)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_LIGHTNING_HIT,
+                (behavior, block) -> {
+                },
+                (behavior, value) -> (block) -> value.execute(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_PLACE,
+                (behavior, block, player, pos, face, clickPos) -> true,
+                (behavior, value) -> (block, player, pos, face, clickPos) -> value.execute(behavior, block, player, pos, face, clickPos)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_PROJECTILE_HIT,
+                (behavior, block, entity) -> {
+                },
+                (behavior, value) -> (block, entity) -> value.execute(behavior, block, entity)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_REDSTONE_UPDATE,
+                (behavior, block) -> {
+                },
+                (behavior, value) -> (block) -> value.execute(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_REMOVE,
+                (behavior, block) -> {
+                },
+                (behavior, value) -> (block) -> value.execute(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_RANDOM_TICK,
+                (behavior, block, randomGenerator) -> {
+                },
+                (behavior, value) -> (block, randomGenerator) -> value.onTick(behavior, block, randomGenerator)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_RANDOM_TICK,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_TICK,
+                (behavior, block, randomGenerator) -> {
+                },
+                (behavior, value) -> (block, randomGenerator) -> value.onTick(behavior, block, randomGenerator)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.USE,
+                (behavior, block, player, direction) -> false,
+                (behavior, value) -> (block, player, direction) -> value.use(behavior, block, player, direction)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_STAND_ON,
+                (behavior, block, entity) -> {
+                },
+                (behavior, value) -> (block, entity) -> value.execute(behavior, block, entity)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_STEP_ON,
+                (behavior, block, entity) -> {
+                },
+                (behavior, value) -> (block, entity) -> value.execute(behavior, block, entity)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_STEP_OFF,
+                (behavior, block, entity) -> {
+                },
+                (behavior, value) -> (block, entity) -> value.execute(behavior, block, entity)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_MATERIAL,
+                null,
+                (behavior, value) -> null
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_SILK_TOUCH_RESOURCE,
+                (behavior, block, randomGenerator, bonusLevel) -> null,
+                (behavior, value) -> (block, randomGenerator, bonusLevel) -> value.getResource(behavior, block, randomGenerator, bonusLevel)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_RESOURCE_ITEM,
+                (behavior, block, randomGenerator, bonusLevel) -> null,
+                (behavior, value) -> (block, randomGenerator, bonusLevel) -> value.getResource(behavior, block, randomGenerator, bonusLevel)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_RESOURCE_COUNT,
+                (behavior, block, randomGenerator, bonusLevel) -> 0,
+                (behavior, value) -> (block, randomGenerator, bonusLevel) -> value.getResourceCount(behavior, block, randomGenerator, bonusLevel)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.USES_WATERLOGGING,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.IS_TOP_SOLID,
+                true,
+                (behavior, value) -> true
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.IS_STAIRS,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.IS_SLAB,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.IS_REPLACEABLE,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.IS_SUPER_HOT,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.IS_FLAMMABLE,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_COLOR,
+                (behavior, block) -> null,
+                (behavior, value) -> (block) -> value.execute(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_LIGHT,
+                0,
+                (behavior, value) -> 0
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.IS_ALWAYS_DESTROYABLE,
+                true,
+                (behavior, value) -> true
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_TICK_DELAY,
+                0,
+                (behavior, value) -> 0
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_SURVIVE,
+                (behavior, block) -> true,
+                (behavior, value) -> (block) -> value.canSurvive(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CHECK_ALIVE,
+                (behavior, block) -> {
+                },
+                (behavior, value) -> (block) -> value.execute(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.IS_FLOODABLE,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_INSTATICK,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_SLIDE,
+                (behavior, block) -> false,
+                (behavior, value) -> (block) -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.IS_FREE_TO_FALL,
+                (behavior, block) -> false,
+                (behavior, value) -> (block) -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.START_FALLING,
+                (behavior, block) -> {
+                },
+                (behavior, value) -> (block) -> value.execute(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_LIQUID_HEIGHT,
+                (behavior, block) -> 0,
+                (behavior, value) -> (block) -> value.getProperty(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_RESISTANCE,
+                0f,
+                (behavior, value) -> 0f
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.ON_ENTITY_COLLIDE,
+                (behavior, block, entity) -> {
+                },
+                (behavior, value) -> (block, entity) -> value.execute(behavior, block, entity)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_FILTERED_LIGHT,
+                1,
+                (behavior, value) -> 1
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.CAN_DAMAGE_ITEM,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.GET_MAP_COLOR,
+                (behavior, block) -> null,
+                (behavior, value) -> (block) -> value.getMapColor(behavior, block)
+        );
+
+        this.registerBehavior(
+                BlockBehaviors.IS_BREAKABLE,
+                (behavior, block, item) -> true,
+                (behavior, value) -> (block, item) -> value.canBreak(behavior, block, item)
+        );
     }
 }

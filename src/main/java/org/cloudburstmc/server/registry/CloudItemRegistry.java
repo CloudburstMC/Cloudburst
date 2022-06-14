@@ -5,21 +5,15 @@ import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.item.ItemIds;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemType;
-import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.behavior.ItemBehavior;
 import org.cloudburstmc.api.item.data.BannerData;
 import org.cloudburstmc.api.item.data.Damageable;
@@ -37,13 +31,11 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
 
-import javax.annotation.Nonnull;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -681,7 +673,107 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     }
 
     private void registerVanillaBehaviors() {
+        this.registerBehavior(
+                ItemBehaviors.GET_MAX_STACK_SIZE,
+                (behavior) -> 64,
+                (behavior, value) -> () -> value.get(behavior)
+        );
 
+        this.registerBehavior(
+                ItemBehaviors.GET_MAX_DURABILITY,
+                (behavior) -> 0,
+                (behavior, value) -> () -> value.get(behavior)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.MINE_BLOCK,
+                (behavior, item, block, owner) -> item,
+                (behavior, value) -> (item, block, owner) -> value.mineBlock(behavior, item, block, owner)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.ON_DAMAGE,
+                (behavior, item, damage, owner) -> item,
+                (behavior, value) -> (item, damage, owner) -> value.onDamage(behavior, item, damage, owner)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.CAN_DESTROY,
+                (behavior, block) -> true,
+                (behavior, value) -> (block) -> value.test(behavior, block)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.GET_DESTROY_SPEED,
+                (behavior, item, block) -> 1,
+                (behavior, value) -> (item, block) -> value.getDestroySpeed(behavior, item, block)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.GET_DESTROY_SPEED_BONUS,
+                (behavior, item) -> 0,
+                (behavior, value) -> (item) -> value.get(behavior, item)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.CAN_DESTROY_IN_CREATIVE,
+                false,
+                (behavior, value) -> false
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.GET_DAMAGE_CHANCE,
+                (behavior, unbreaking) -> 0,
+                (behavior, value) -> (unbreaking) -> value.getDamageChance(behavior, unbreaking)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.CAN_BE_USED,
+                (behavior, item) -> false,
+                (behavior, value) -> (item) -> value.get(behavior, item)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.USE_ON,
+                (behavior, item, entity, blockPos, face, clickPos) -> item,
+                (behavior, value) -> (item, entity, blockPos, face, clickPos) -> value.useOn(behavior, item, entity, blockPos, face, clickPos)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.GET_FUEL_DURATION,
+                0f,
+                (behavior, value) -> 0f
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.GET_ATTACH_DAMAGE,
+                (behavior) -> 0f,
+                (behavior, value) -> () -> value.get(behavior)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.IS_TOOL,
+                (behavior, item) -> false,
+                (behavior, value) -> (item) -> value.get(behavior, item)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.CAN_BE_PLACED,
+                (behavior, item) -> false,
+                (behavior, value) -> (item) -> value.get(behavior, item)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.CAN_BE_PLACED_ON,
+                (behavior, item, block) -> true,
+                (behavior, value) -> (item, block) -> value.get(behavior, item, block)
+        );
+
+        this.registerBehavior(
+                ItemBehaviors.GET_BLOCK,
+                (behavior, item) -> Optional.empty(),
+                (behavior, value) -> (item) -> value.get(behavior, item)
+        );
     }
 
     public void registerCreativeItem(ItemStack item) {

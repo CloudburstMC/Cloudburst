@@ -17,20 +17,23 @@ public class DefaultBlockBehaviours {
             .overwrite(GET_BOUNDING_BOX, ((behavior, state) -> new SimpleAxisAlignedBB(Vector3i.ZERO, Vector3i.ONE)));
 
 
-
+//    public static final EntityBlockBehavior ON_PROJECTILE_HIT = (behavior, block, entity) -> {
+//    };
 //
+//    public static final ComplexBlockBehavior ON_LIGHTNING_HIT = (behavior, block) -> {
+//    };
 //
-//    public static final EntityBlockBehavior ON_PROJECTILE_HIT = (behavior, block, entity) -> {};
+//    public static final ComplexBlockBehavior ON_REDSTONE_UPDATE = (behavior, block) -> {
+//    };
 //
-//    public static final ComplexBlockBehavior ON_LIGHTNING_HIT = (behavior, block) -> {};
+//    public static final EntityBlockBehavior ON_STAND_ON = (behavior, block, entity) -> {
+//    };
 //
-//    public static final ComplexBlockBehavior ON_REDSTONE_UPDATE = (behavior, block) -> {};
+//    public static final EntityBlockBehavior ON_STEP_OFF = (behavior, block, entity) -> {
+//    };
 //
-//    public static final EntityBlockBehavior ON_STAND_ON = (behavior, block, entity) -> {};
-//
-//    public static final EntityBlockBehavior ON_STEP_OFF = (behavior, block, entity) -> {};
-//
-//    public static final EntityBlockBehavior ON_STEP_ON = (behavior, block, entity) -> {};
+//    public static final EntityBlockBehavior ON_STEP_ON = (behavior, block, entity) -> {
+//    };
 //
 //    public static final PlayerBlockBehavior ON_DESTROY = (behavior, block, player) -> {
 //        // TODO
