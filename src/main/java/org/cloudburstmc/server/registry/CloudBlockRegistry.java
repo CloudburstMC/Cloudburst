@@ -14,6 +14,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.material.MaterialTypes;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.BlockRegistry;
@@ -856,7 +857,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
 
         this.registerBehavior(
                 BlockBehaviors.GET_MATERIAL,
-                null,
+                MaterialTypes.AIR,
                 (behavior, value) -> null
         );
 
