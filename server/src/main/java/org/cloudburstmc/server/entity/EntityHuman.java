@@ -146,7 +146,7 @@ public class EntityHuman extends EntityCreature implements Human {
                 skinTag.listenForString("GeometryName", skin::geometryName);
                 skinTag.listenForString("SkinResourcePatch", skin::skinResourcePatch);
                 skinTag.listenForByteArray("GeometryData", bytes -> skin.geometryData(new String(bytes, UTF_8)));
-                skinTag.listenForByteArray("AnimationData", bytes -> skin.animationData(new String(bytes, UTF_8)));
+                skinTag.listenForByteArray("SkinAnimationData", bytes -> skin.animationData(new String(bytes, UTF_8)));
                 skinTag.listenForBoolean("PremiumSkin", skin::premium);
                 skinTag.listenForBoolean("PersonaSkin", skin::persona);
                 skinTag.listenForBoolean("CapeOnClassicSkin", skin::capeOnClassic);
@@ -188,7 +188,7 @@ public class EntityHuman extends EntityCreature implements Human {
                     .putInt("CapeImageHeight", nbtSkin.getCapeData().getHeight())
                     .putByteArray("SkinResourcePatch", nbtSkin.getSkinResourcePatch().getBytes(UTF_8))
                     .putByteArray("GeometryData", nbtSkin.getGeometryData().getBytes(UTF_8))
-                    .putByteArray("AnimationData", nbtSkin.getAnimationData().getBytes(UTF_8))
+                    .putByteArray("SkinAnimationData", nbtSkin.getAnimationData().getBytes(UTF_8))
                     .putBoolean("PremiumSkin", nbtSkin.isPremium())
                     .putBoolean("PersonaSkin", nbtSkin.isPersona())
                     .putBoolean("CapeOnClassicSkin", nbtSkin.isCapeOnClassic());
@@ -204,7 +204,7 @@ public class EntityHuman extends EntityCreature implements Human {
                             .putByteArray("Image", animation.getImage().getImage())
                             .build());
                 }
-                skinTag.putList("AnimationImageData", NbtType.COMPOUND, animationsTag);
+                skinTag.putList("AnimatedImageData", NbtType.COMPOUND, animationsTag);
             }
             tag.putCompound("Skin", skinTag.build());
         }

@@ -82,7 +82,7 @@ public abstract class EntityProjectile extends BaseEntity implements Projectile 
 
             if (this.fireTicks > 0) {
                 EntityCombustByEntityEvent event = new EntityCombustByEntityEvent(this, entity, 5);
-                this.server.getEventManager().fire(ev);
+                this.server.getEventManager().fire(event);
                 if (!event.isCancelled()) {
                     entity.setOnFire(event.getDuration());
                 }
