@@ -26,6 +26,8 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<BooleanBlockBehavior, BooleanBlockBehavior.Executor> CAN_SPAWN_ON = DataKey.behavior(Identifier.fromString("can_spawn_on"), BooleanBlockBehavior.class, BooleanBlockBehavior.Executor.class);
 
+    public static final BehaviorKey<BooleanBlockBehavior, BooleanBlockBehavior.Executor> CAN_BE_USED = DataKey.behavior(Identifier.fromString("can_be_used"), BooleanBlockBehavior.class, BooleanBlockBehavior.Executor.class);
+
     public static final BehaviorKey<FloatBlockBehavior, FloatBlockBehavior.Executor> GET_FRICTION = DataKey.behavior(Identifier.fromString("get_friction"), FloatBlockBehavior.class, FloatBlockBehavior.Executor.class);
 
     public static final BehaviorKey<FloatBlockBehavior, FloatBlockBehavior.Executor> GET_HARDNESS = DataKey.behavior(Identifier.fromString("get_hardness"), FloatBlockBehavior.class, FloatBlockBehavior.Executor.class);
@@ -64,7 +66,7 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<ComplexBlockBehavior, ComplexBlockBehavior.Executor> ON_LIGHTNING_HIT = DataKey.behavior(Identifier.fromString("on_lightning_hit"), ComplexBlockBehavior.class, ComplexBlockBehavior.Executor.class);
 
-    public static final BehaviorKey<ComplexBlockBehavior, ComplexBlockBehavior.Executor> ON_PLACE = DataKey.behavior(Identifier.fromString("on_place"), ComplexBlockBehavior.class, ComplexBlockBehavior.Executor.class);
+    public static final BehaviorKey<PlaceBlockBehavior, PlaceBlockBehavior.Executor> ON_PLACE = DataKey.behavior(Identifier.fromString("on_place"), PlaceBlockBehavior.class, PlaceBlockBehavior.Executor.class);
 
     public static final BehaviorKey<EntityBlockBehavior, EntityBlockBehavior.Executor> ON_PROJECTILE_HIT = DataKey.behavior(Identifier.fromString("on_projectile_hit"), EntityBlockBehavior.class, EntityBlockBehavior.Executor.class);
 
@@ -78,7 +80,7 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<TickBlockBehavior, TickBlockBehavior.Executor> ON_TICK = DataKey.behavior(Identifier.fromString("on_tick"), TickBlockBehavior.class, TickBlockBehavior.Executor.class);
 
-    public static final BehaviorKey<UseBlockBehavior, BooleanBlockBehavior.Executor> USE = DataKey.behavior(Identifier.fromString("use"), UseBlockBehavior.class, BooleanBlockBehavior.Executor.class);
+    public static final BehaviorKey<UseBlockBehavior, UseBlockBehavior.Executor> USE = DataKey.behavior(Identifier.fromString("use"), UseBlockBehavior.class, UseBlockBehavior.Executor.class);
 
     public static final BehaviorKey<EntityBlockBehavior, EntityBlockBehavior.Executor> ON_STAND_ON = DataKey.behavior(Identifier.fromString("on_stand_on"), EntityBlockBehavior.class, EntityBlockBehavior.Executor.class);
 
@@ -99,6 +101,8 @@ public final class BlockBehaviors {
     public static final BehaviorKey<Boolean, Boolean> IS_SOLID = DataKey.behavior(Identifier.fromString("is_solid"), Boolean.class);
 
     public static final BehaviorKey<Boolean, Boolean> IS_LIQUID = DataKey.behavior(Identifier.fromString("is_liquid"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> USES_WATERLOGGING = DataKey.behavior(Identifier.fromString("uses_waterlogging"), Boolean.class);
 
     public static final BehaviorKey<Boolean, Boolean> IS_TOP_SOLID = DataKey.behavior(Identifier.fromString("is_top_solid"), Boolean.class);
 
@@ -146,7 +150,7 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<MapColorBehavior, MapColorBehavior.Executor> GET_MAP_COLOR = DataKey.behavior(Identifier.fromString("get_map_color"), MapColorBehavior.class, MapColorBehavior.Executor.class);
 
-    public static final BehaviorKey<BooleanBlockBehavior, BooleanBlockBehavior.Executor> CAN_PASS_THROUGH = DataKey.behavior(Identifier.fromString("can_pass_through"), BooleanBlockBehavior.class, BooleanBlockBehavior.Executor.class);
+    public static final BehaviorKey<BooleanBlockStateBehavior, BooleanBlockStateBehavior.Executor> CAN_PASS_THROUGH = DataKey.behavior(Identifier.fromString("can_pass_through"), BooleanBlockStateBehavior.class, BooleanBlockStateBehavior.Executor.class);
 
     public static final BehaviorKey<CanBreakBlockBehavior, CanBreakBlockBehavior.Executor> IS_BREAKABLE = DataKey.behavior(Identifier.fromString("is_breakable"), CanBreakBlockBehavior.class, CanBreakBlockBehavior.Executor.class);
 

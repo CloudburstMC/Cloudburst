@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.item;
 
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.behavior.BooleanBlockBehavior;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.data.DataKey;
@@ -8,6 +9,8 @@ import org.cloudburstmc.api.item.behavior.*;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.behavior.FloatBehavior;
 import org.cloudburstmc.api.util.behavior.IntBehavior;
+
+import java.util.Optional;
 
 @UtilityClass
 public class ItemBehaviors {
@@ -30,6 +33,7 @@ public class ItemBehaviors {
 
     public static final BehaviorKey<DamageChanceBehavior, DamageChanceBehavior.Executor> GET_DAMAGE_CHANCE = DataKey.behavior(Identifier.fromString("get_damage_chance"), DamageChanceBehavior.class, DamageChanceBehavior.Executor.class);
 
+    public static final BehaviorKey<BooleanItemBehavior, BooleanItemBehavior.Executor> CAN_BE_USED = DataKey.behavior(Identifier.fromString("can_be_used"), BooleanItemBehavior.class, BooleanItemBehavior.Executor.class);
     public static final BehaviorKey<UseOnBehavior, UseOnBehavior.Executor> USE_ON = DataKey.behavior(Identifier.fromString("use_on"), UseOnBehavior.class, UseOnBehavior.Executor.class);
 
     public static final BehaviorKey<Float, Float> GET_FUEL_DURATION = DataKey.behavior(Identifier.fromString("get_fuel_duration"), Float.class);
@@ -37,5 +41,11 @@ public class ItemBehaviors {
     public static final BehaviorKey<FloatBehavior, FloatBehavior.Executor> GET_ATTACH_DAMAGE = DataKey.behavior(Identifier.fromString("get_attack_damage"), FloatBehavior.class, FloatBehavior.Executor.class);
 
     public static final BehaviorKey<BooleanItemBehavior, BooleanItemBehavior.Executor> IS_TOOL = DataKey.behavior(Identifier.fromString("is_tool"), BooleanItemBehavior.class, BooleanItemBehavior.Executor.class);
+
+    public static final BehaviorKey<BooleanItemBehavior, BooleanItemBehavior.Executor> CAN_BE_PLACED = DataKey.behavior(Identifier.fromString("can_be_placed"), BooleanItemBehavior.class, BooleanItemBehavior.Executor.class);
+
+    public static final BehaviorKey<CanBePlacedOnBehavior, CanBePlacedOnBehavior.Executor> CAN_BE_PLACED_ON = DataKey.behavior(Identifier.fromString("can_be_placed_on"), CanBePlacedOnBehavior.class, CanBePlacedOnBehavior.Executor.class);
+
+    public static final BehaviorKey<GetItemBehavior<Optional<BlockState>>, GetItemBehavior.Executor<Optional<BlockState>>> GET_BLOCK = DataKey.behavior(Identifier.fromString("get_block"), GetItemBehavior.class, GetItemBehavior.Executor.class);
 
 }
