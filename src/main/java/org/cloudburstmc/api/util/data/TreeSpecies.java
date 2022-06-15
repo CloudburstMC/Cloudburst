@@ -8,5 +8,7 @@ public enum TreeSpecies {
     ACACIA,
     DARK_OAK,
     CRIMSON,
-    WARPED
+    WARPED,
+
+    MANGROVE,
 }
