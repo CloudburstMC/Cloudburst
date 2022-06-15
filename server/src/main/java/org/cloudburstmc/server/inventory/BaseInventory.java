@@ -9,7 +9,6 @@ import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lombok.val;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;

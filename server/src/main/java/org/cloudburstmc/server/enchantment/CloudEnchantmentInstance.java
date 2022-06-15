@@ -10,7 +10,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.behavior.ItemBehavior;
-import org.cloudburstmc.server.item.behavior.ItemArmorBehavior;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
 
 import java.util.HashSet;

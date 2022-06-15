@@ -77,7 +77,6 @@ import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.LoginChainData;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
@@ -1756,7 +1755,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
 
         for (String msg : message.split("\n")) {
-            if (!msg.trim().isEmpty() && msg.length() <= 255 && this.messageCounter-- > 0) {
+            if (!msg.trim().isEmpty() && msg.length() < 512 && this.messageCounter-- > 0) {
                 PlayerChatEvent chatEvent = new PlayerChatEvent(this, msg, "chat.type.text",
                         //TODO this is way to hacky
                         new HashSet<>(this.getServer().getOnlinePlayers().values()));
@@ -2485,7 +2484,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
                 case LAVA:
                     BlockState state = this.getLevel().getBlockState(this.getPosition().add(0, -1, 0).toInt());
-                    if (state.getType() == BlockTypes.MAGMA) {
+                    if (state.getType() == BlockTypes.MAGMA) { //TODO: MAGMA should have its own DamageCause
                         message = "death.attack.magma";
                         break;
                     }
@@ -2787,7 +2786,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
      * @return DummyBossBar object
      * @see DummyBossBar#setText(String) Set BossBar text
      * @see DummyBossBar#setLength(float) Set BossBar length
-     * @see DummyBossBar#setColor(BlockColor) Set BossBar color
+     * @see DummyBossBar#setColor(DummyBossBar.BossBarColor) Set BossBar color
      */
     public DummyBossBar getDummyBossBar(long bossBarId) {
         return this.dummyBossBars.getOrDefault(bossBarId, null);

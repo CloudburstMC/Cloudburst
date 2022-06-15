@@ -116,7 +116,7 @@ public class ReedsBlockBehavior extends FloodableBlockBehavior {
 
         if (downType == BlockTypes.REEDS) {
             return placeBlock(block, CloudBlockRegistry.get().getBlock(BlockTypes.REEDS));
-        } else if (downType == BlockTypes.GRASS || downType == BlockTypes.DIRT || downType == BlockTypes.SAND) {
+        } else if (downType == BlockTypes.GRASS || downType == BlockTypes.DIRT || downType == BlockTypes.SAND || downType == BlockTypes.PODZOL || downType == BlockTypes.MYCELIUM) {
             for (Direction direction : Plane.HORIZONTAL) {
                 var sideType = down.getSideState(direction).getType();
 

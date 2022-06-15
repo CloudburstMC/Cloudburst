@@ -47,6 +47,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.item.data.MapItem;
+import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
@@ -123,8 +124,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     public boolean handle(PlayerSkinPacket packet) {
         SerializedSkin skin = packet.getSkin();
 
-
         if (!skin.isValid()) {
+            log.debug("{}: PlayerSkinPacket with invalid skin", player.getName());
             return true;
         }
 
@@ -165,12 +166,14 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             yaw += 360;
         }
 
-        if (newPos.distanceSquared(currentPos) < 0.01 && yaw == player.getYaw() && pitch == player.getPitch()) {
+        float distance = newPos.distanceSquared(currentPos);
+
+        if (distance == 0 && yaw == player.getYaw() && pitch == player.getPitch()) {
             return true;
         }
 
-        if (currentPos.distance(newPos) > 50) {
-            log.debug("packet too far REVERTING");
+        if (distance > 100) {
+            log.debug("{}: MovePlayerPacket too far REVERTING", player.getName());
             player.sendPosition(currentPos, yaw, pitch, MovePlayerPacket.Mode.RESPAWN);
             return true;
         }
@@ -183,7 +186,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
 
         if (player.getForceMovement() != null && (newPos.distanceSquared(player.getForceMovement()) > 0.1 || revert)) {
-            log.debug("packet forceMovement {} REVERTING {}", player.getForceMovement(), newPos);
+            log.debug("{}: MovePlayerPacket forceMovement {} REVERTING {}", player.getName(), player.getForceMovement(), newPos);
             player.sendPosition(player.getForceMovement(), yaw, pitch, MovePlayerPacket.Mode.RESPAWN);
         } else {
             player.setRotation(yaw, pitch);
@@ -204,7 +207,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     public boolean handle(AdventureSettingsPacket packet) {
         Set<AdventureSetting> flags = packet.getSettings();
         if (!player.getServer().getAllowFlight() && flags.contains(AdventureSetting.FLYING) && !player.getAdventureSettings().get(org.cloudburstmc.api.player.AdventureSetting.ALLOW_FLIGHT)) {
-            player.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on player server");
+            player.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on this server");
             return true;
         }
         PlayerToggleFlightEvent playerToggleFlightEvent = new PlayerToggleFlightEvent(player, flags.contains(AdventureSetting.FLYING));
@@ -220,11 +223,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(EmotePacket packet) {
         if (!player.isSpawned()) {
-            return false;
+            return true;
         }
         if (packet.getRuntimeEntityId() != player.getRuntimeId()) {
             log.warn(player.getName() + " sent EmotePacket with invalid entity id: " + packet.getRuntimeEntityId() + " != " + player.getRuntimeId());
-            return false;
+            return true;
         }
         for (CloudPlayer p : this.player.getViewers()) {
             p.sendPacket(packet);
@@ -324,6 +327,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 break;
             case ABORT_BREAK:
             case STOP_BREAK:
+                if (currentPos.distanceSquared(blockPos.toFloat()) > 100) {
+                    break;
+                }
                 LevelEventPacket levelEvent = new LevelEventPacket();
                 levelEvent.setType(LevelEventType.BLOCK_STOP_BREAK);
                 levelEvent.setPosition(blockPos.toFloat());
@@ -384,6 +390,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 break;
             case START_SPRINT:
                 PlayerToggleSprintEvent playerToggleSprintEvent = new PlayerToggleSprintEvent(player, true);
+                if (player.getFoodData().getLevel() <= 6) {
+                    playerToggleSprintEvent.setCancelled(true);
+                }
                 player.getServer().getEventManager().fire(playerToggleSprintEvent);
                 if (playerToggleSprintEvent.isCancelled()) {
                     player.sendFlags(player);
@@ -564,6 +573,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Override
     public boolean handle(BlockPickRequestPacket packet) {
         Vector3i pickPos = packet.getBlockPosition();
+        if (pickPos.distanceSquared(player.getPosition().toInt()) > 1000) {
+            log.debug("{}: Block pick request for a block too far away", player.getName());
+            return true;
+        }
+
         Block block = player.getLevel().getBlock(pickPos.getX(), pickPos.getY(), pickPos.getZ());
         ItemStack serverItem = block.getState().getBehavior().toItem(block);
 
@@ -840,20 +854,33 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     public boolean handle(MapInfoRequestPacket packet) {
         ItemStack mapItem = null;
 
-        for (ItemStack item1 : player.getInventory().getContents().values()) {
-            if (item1.getType() != ItemTypes.MAP) {
-                continue;
+        ItemStack offHandItem = player.getInventory().getOffHandItem();
+        if (offHandItem.getType() == ItemTypes.MAP) {
+            var data = offHandItem.getMetadata(MapItem.class);
+
+            if (data != null) {
+                if (data.getId() == packet.getUniqueMapId()) {
+                    mapItem = offHandItem;
+                }
             }
+        }
 
-            var data = item1.getMetadata(MapItem.class);
+        if (mapItem == null) {
+            for (ItemStack item1 : player.getInventory().getContents().values()) {
+                if (item1.getType() != ItemTypes.MAP) {
+                    continue;
+                }
 
-            if (data == null) {
-                continue;
-            }
+                var data = item1.getMetadata(MapItem.class);
 
-            if (data.getId() == packet.getUniqueMapId()) {
-                mapItem = item1;
-                break;
+                if (data == null) {
+                    continue;
+                }
+
+                if (data.getId() == packet.getUniqueMapId()) {
+                    mapItem = item1;
+                    break;
+                }
             }
         }
 
@@ -1049,16 +1076,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             return true;
                         }
 
-                        player.getInventory().sendContents(player);
-                        target = player.getLevel().getBlock(blockVector);
-                        BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockVector);
-
-                        player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-
+                        //player.getInventory().sendContents(player);
                         player.getInventory().sendHeldItem(player);
 
-                        if (blockEntity != null && blockEntity.isSpawnable()) {
-                            blockEntity.spawnTo(player);
+                        if (blockVector.distanceSquared(player.getPosition().toInt()) < 10000) {
+                            player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{player.getLevel().getBlock(blockVector)}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+
+                            BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockVector);
+                            if (blockEntity != null && blockEntity.isSpawnable()) {
+                                blockEntity.spawnTo(player);
+                            }
                         }
 
                         return true;
@@ -1352,6 +1379,23 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
             player.getServer().broadcastMessage(playerJoinEvent.getJoinMessage());
         }
+        return true;
+    }
+
+    @Override
+    public boolean handle(SetDifficultyPacket packet) {
+        if (!player.spawned || !player.hasPermission("nukkit.command.difficulty")) {
+            return true;
+        }
+
+        Difficulty difficulty = Difficulty.values()[packet.getDifficulty()];
+        player.getServer().getConfig().setDifficulty(difficulty);
+
+        SetDifficultyPacket setDifficultyPacket = new SetDifficultyPacket();
+        setDifficultyPacket.setDifficulty(difficulty.ordinal());
+        CloudServer.broadcastPacket((Set<CloudPlayer>) player.getServer().getOnlinePlayers().values(), setDifficultyPacket);
+
+        CommandUtils.broadcastCommandMessage(player, new TranslationContainer("%commands.difficulty.success", String.valueOf(difficulty)));
         return true;
     }
 }
