@@ -39,7 +39,6 @@ import org.cloudburstmc.server.utils.TextFormat;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -76,11 +75,11 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     public CloudRecipeRegistry(ItemRegistry registry) {
         this.itemRegistry = (CloudItemRegistry) registry;
-        try {
-            loadFromFile(Thread.currentThread().getContextClassLoader().getResource("data/recipes.json").toURI());
-        } catch (URISyntaxException | NullPointerException e) {
-            throw new RegistryException("Unable to load recipes.json", e);
-        }
+//        try {
+//            loadFromFile(Thread.currentThread().getContextClassLoader().getResource("data/recipes.json").toURI());
+//        } catch (URISyntaxException | NullPointerException e) {
+//            throw new RegistryException("Unable to load recipes.json", e);
+//        }
 
     }
 

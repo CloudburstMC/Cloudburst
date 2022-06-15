@@ -110,6 +110,7 @@ public class MultiBlockSerializers {
             .add(BedrockStateTags.TAG_NEW_LOG_TYPE, TreeSpecies.DARK_OAK.name().toLowerCase(), LOG2)
             .add(BedrockStateTags.TAG_NEW_LOG_TYPE, TreeSpecies.WARPED.name().toLowerCase(), WARPED_STEM, true)
             .add(BedrockStateTags.TAG_NEW_LOG_TYPE, TreeSpecies.CRIMSON.name().toLowerCase(), CRIMSON_STEM, true)
+            .add(BedrockStateTags.TAG_NEW_LOG_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(), MANGROVE_LOG, true)
             .add(
                     STRIPPED_OAK_LOG,
                     Builder.combine(BedrockStateTags.TAG_OLD_LOG_TYPE, TreeSpecies.OAK.name().toLowerCase(), true),
@@ -150,12 +151,25 @@ public class MultiBlockSerializers {
                     Builder.combine(BedrockStateTags.TAG_NEW_LOG_TYPE, TreeSpecies.WARPED.name().toLowerCase(), true),
                     Builder.combine(BedrockStateTags.TAG_STRIPPED_BIT, true, true)
             )
+            .add(
+                    STRIPPED_MANGROVE_LOG,
+                    Builder.combine(BedrockStateTags.TAG_NEW_LOG_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(), true),
+                    Builder.combine(BedrockStateTags.TAG_STRIPPED_BIT, true, true)
+            )
             .buildSerializer();
 
     public static final MultiBlockSerializer LEAVES = builder()
             .add(BedrockStateTags.TAG_OLD_LEAF_TYPE, BlockIds.LEAVES)
             .add(BedrockStateTags.TAG_NEW_LEAF_TYPE, LEAVES2)
             .buildSerializer();
+
+//    public static final MultiBlockSerializer SAPLING = builder()
+//            .add(
+//                    MANGROVE_PROPAGULE,
+//                    Builder.combine(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(Locale.ROOT), true)
+//            )
+//            .defaultId(BlockIds.SAPLING)
+//            .buildSerializer();
 
 //    public static final MultiBlockSerializer SAPLING = builder()
 //            .add(BedrockStateTags.TAG_SAPLING_TYPE, TreeSpecies.CRIMSON.name().toLowerCase(), CRIMSON_FUNGUS, true)
@@ -206,6 +220,7 @@ public class MultiBlockSerializers {
     public static final MultiBlockSerializer PLANKS = builder()
             .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.WARPED.name().toLowerCase(), WARPED_PLANKS, true)
             .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.CRIMSON.name().toLowerCase(), CRIMSON_PLANKS, true)
+            .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(), MANGROVE_PLANKS, true)
             .defaultId(BlockIds.OAK_PLANKS)
             .buildSerializer();
 
@@ -217,7 +232,8 @@ public class MultiBlockSerializers {
             ACACIA_STAIRS,
             DARK_OAK_STAIRS,
             CRIMSON_STAIRS,
-            WARPED_STAIRS
+            WARPED_STAIRS,
+            MANGROVE_STAIRS
     );
 
     public static final MultiBlockSerializer WOOD_BUTTON = buildTreeSpecies(BedrockStateTags.TAG_WOOD_TYPE,
@@ -228,7 +244,8 @@ public class MultiBlockSerializers {
             ACACIA_BUTTON,
             DARK_OAK_BUTTON,
             CRIMSON_BUTTON,
-            WARPED_BUTTON
+            WARPED_BUTTON,
+            MANGROVE_BUTTON
     );
 
     public static final MultiBlockSerializer WOOD_DOOR = buildTreeSpecies(BedrockStateTags.TAG_WOOD_TYPE,
@@ -239,7 +256,8 @@ public class MultiBlockSerializers {
             ACACIA_DOOR,
             DARK_OAK_DOOR,
             CRIMSON_DOOR,
-            WARPED_DOOR
+            WARPED_DOOR,
+            MANGROVE_DOOR
     );
 
     public static final MultiBlockSerializer WOOD_FENCE_GATE = buildTreeSpecies(BedrockStateTags.TAG_WOOD_TYPE,
@@ -250,7 +268,8 @@ public class MultiBlockSerializers {
             ACACIA_FENCE_GATE,
             DARK_OAK_FENCE_GATE,
             CRIMSON_FENCE_GATE,
-            WARPED_FENCE_GATE
+            WARPED_FENCE_GATE,
+            MANGROVE_FENCE_GATE
     );
 
     public static final MultiBlockSerializer WOOD_PRESSURE_PLATE = buildTreeSpecies(BedrockStateTags.TAG_WOOD_TYPE,
@@ -261,7 +280,8 @@ public class MultiBlockSerializers {
             ACACIA_PRESSURE_PLATE,
             DARK_OAK_PRESSURE_PLATE,
             CRIMSON_PRESSURE_PLATE,
-            WARPED_PRESSURE_PLATE
+            WARPED_PRESSURE_PLATE,
+            MANGROVE_PRESSURE_PLATE
     );
 
     public static final MultiBlockSerializer WOOD_STANDING_SIGN = buildTreeSpecies(BedrockStateTags.TAG_WOOD_TYPE,
@@ -272,7 +292,8 @@ public class MultiBlockSerializers {
             ACACIA_STANDING_SIGN,
             DARK_OAK_STANDING_SIGN,
             CRIMSON_STANDING_SIGN,
-            WARPED_STANDING_SIGN
+            WARPED_STANDING_SIGN,
+            MANGROVE_STANDING_SIGN
     );
 
     public static final MultiBlockSerializer WOOD_TRAPDOOR = buildTreeSpecies(BedrockStateTags.TAG_WOOD_TYPE,
@@ -283,7 +304,8 @@ public class MultiBlockSerializers {
             ACACIA_TRAPDOOR,
             DARK_OAK_TRAPDOOR,
             CRIMSON_TRAPDOOR,
-            WARPED_TRAPDOOR
+            WARPED_TRAPDOOR,
+            MANGROVE_TRAPDOOR
     );
 
     public static final MultiBlockSerializer WOOD_WALL_SIGN = buildTreeSpecies(BedrockStateTags.TAG_WOOD_TYPE,
@@ -294,12 +316,14 @@ public class MultiBlockSerializers {
             ACACIA_WALL_SIGN,
             DARK_OAK_WALL_SIGN,
             CRIMSON_WALL_SIGN,
-            WARPED_WALL_SIGN
+            WARPED_WALL_SIGN,
+            MANGROVE_WALL_SIGN
     );
 
     public static final MultiBlockSerializer WOOD_FENCE = builder()
             .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.WARPED.name().toLowerCase(), WARPED_FENCE, true)
             .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.CRIMSON.name().toLowerCase(), CRIMSON_FENCE, true)
+            .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(), MANGROVE_FENCE, true)
             .defaultId(BlockIds.FENCE)
             .buildSerializer();
 
@@ -315,6 +339,16 @@ public class MultiBlockSerializers {
                     Builder.combine(BedrockStateTags.TAG_STRIPPED_BIT, false, true)
             )
             .add(
+                    MANGROVE_WOOD,
+                    Builder.combine(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(), true),
+                    Builder.combine(BedrockStateTags.TAG_STRIPPED_BIT, false, false)
+            )
+            .add(
+                    MANGROVE_WOOD,
+                    Builder.combine(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(), true),
+                    Builder.combine(BedrockStateTags.TAG_STRIPPED_BIT, true, false)
+            )
+            .add(
                     STRIPPED_CRIMSON_HYPHAE,
                     Builder.combine(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.CRIMSON.name().toLowerCase(), true),
                     Builder.combine(BedrockStateTags.TAG_STRIPPED_BIT, true, true)
@@ -324,6 +358,11 @@ public class MultiBlockSerializers {
                     Builder.combine(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.WARPED.name().toLowerCase(), true),
                     Builder.combine(BedrockStateTags.TAG_STRIPPED_BIT, true, true)
             )
+//            .add(
+//                    STRIPPED_MANGROVE_WOOD,
+//                    Builder.combine(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(), true),
+//                    Builder.combine(BedrockStateTags.TAG_STRIPPED_BIT, true, false)
+//            )
             .defaultId(BlockIds.WOOD)
             .buildSerializer();
 
@@ -331,6 +370,7 @@ public class MultiBlockSerializers {
             .removeTrait("slab_slot")
             .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.WARPED.name().toLowerCase(), WARPED_SLAB, true)
             .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.CRIMSON.name().toLowerCase(), CRIMSON_SLAB, true)
+            .add(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(), MANGROVE_SLAB, true)
             .add(DOUBLE_WOODEN_SLAB, Builder.combine("slab_slot"))
             .add(
                     CRIMSON_DOUBLE_SLAB,
@@ -340,6 +380,11 @@ public class MultiBlockSerializers {
             .add(
                     WARPED_DOUBLE_SLAB,
                     Builder.combine(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.WARPED.name().toLowerCase(), true),
+                    Builder.combine("slab_slot")
+            )
+            .add(
+                    MANGROVE_DOUBLE_SLAB,
+                    Builder.combine(BedrockStateTags.TAG_WOOD_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(), true),
                     Builder.combine("slab_slot")
             )
             .baseSerializer(NoopBlockSerializer.INSTANCE)

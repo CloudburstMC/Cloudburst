@@ -121,6 +121,12 @@ public class DefaultItemSerializer implements ItemSerializer {
         }
 
         ItemType type = ItemTypes.byId(id);
+
+        if (type == null) {
+            System.out.println("unregistered id: " + id);
+            return;
+        }
+
         builder.id(id);
         builder.itemType(type);
         builder.amount(amount, false);

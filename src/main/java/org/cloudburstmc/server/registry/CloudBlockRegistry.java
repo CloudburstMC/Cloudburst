@@ -322,7 +322,7 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(DIRT, new BlockBehaviorDirt()); //3
         this.registerVanilla(COBBLESTONE, new BlockBehaviorCobblestone()); //4
         this.registerVanilla(PLANKS, new BlockBehaviorPlanks(), MultiBlockSerializers.PLANKS); //5
-        this.registerVanilla(SAPLING, new BlockBehaviorSapling()); //6
+        this.registerVanilla(SAPLING, new BlockBehaviorSapling()/*, MultiBlockSerializers.SAPLING*/); //6
         this.registerVanilla(BEDROCK, new BlockBehaviorBedrock()); //7
         this.registerVanilla(FLOWING_WATER, new BlockBehaviorWater(), FluidBlockSerializer.INSTANCE); //8
         this.registerVanilla(WATER, new BlockBehaviorWater(), FluidBlockSerializer.INSTANCE); //9
@@ -496,7 +496,8 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(MAGMA, new BlockBehaviorMagma()); //213
         this.registerVanilla(MANGROVE_LEAVES);
         this.registerVanilla(MANGROVE_PROPAGULE);
-        this.registerVanilla(MANGROVE_PROPAGULE_HANGING);
+        this.registerVanilla(MANGROVE_ROOTS);
+        this.registerVanilla(MUDDY_MANGROVE_ROOTS);
         this.registerVanilla(NETHER_WART_BLOCK, new BlockNetherWartBlockBehavior(), MultiBlockSerializers.WART_BLOCK); //214
         this.registerVanilla(BONE_BLOCK, new BlockBehaviorBone()); //216
         this.registerVanilla(STRUCTURE_VOID, NoopBlockBehavior.INSTANCE);

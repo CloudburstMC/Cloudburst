@@ -49,6 +49,7 @@ public class BedrockStateTags {
     public static final String TAG_FLOWER_TYPE = "flower_type";
     public static final String TAG_GROUND_SIGN_DIRECTION = "ground_sign_direction";
     public static final String TAG_GROWTH = "growth";
+    public static final String TAG_PROPAGULE_STAGE = "propagule_stage";
     public static final String TAG_HANGING = "hanging";
     public static final String TAG_HEAD_PIECE_BIT = "head_piece_bit";
     public static final String TAG_HEIGHT = "height";
