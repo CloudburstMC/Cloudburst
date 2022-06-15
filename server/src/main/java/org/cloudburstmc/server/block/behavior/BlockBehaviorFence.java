@@ -33,21 +33,16 @@ public abstract class BlockBehaviorFence extends BlockBehaviorTransparent {
 
     @Override
     public BlockColor getColor(Block block) {
-        switch (block.getState().ensureTrait(BlockTraits.TREE_SPECIES)) {
-            default:
-            case OAK:
-                return BlockColor.WOOD_BLOCK_COLOR;
-            case SPRUCE:
-                return BlockColor.SPRUCE_BLOCK_COLOR;
-            case BIRCH:
-                return BlockColor.SAND_BLOCK_COLOR;
-            case JUNGLE:
-                return BlockColor.DIRT_BLOCK_COLOR;
-            case ACACIA:
-                return BlockColor.ORANGE_BLOCK_COLOR;
-            case DARK_OAK:
-                return BlockColor.BROWN_BLOCK_COLOR;
-        }
+        return switch (block.getState().ensureTrait(BlockTraits.TREE_SPECIES)) {
+            case OAK -> BlockColor.WOOD_BLOCK_COLOR;
+            case SPRUCE -> BlockColor.SPRUCE_BLOCK_COLOR;
+            case BIRCH -> BlockColor.SAND_BLOCK_COLOR;
+            case JUNGLE -> BlockColor.DIRT_BLOCK_COLOR;
+            case ACACIA -> BlockColor.ORANGE_BLOCK_COLOR;
+            case DARK_OAK -> BlockColor.BROWN_BLOCK_COLOR;
+            case MANGROVE -> BlockColor.RED_BLOCK_COLOR; //TODO: ?
+            default -> BlockColor.WOOD_BLOCK_COLOR;
+        };
     }
 
     @Override

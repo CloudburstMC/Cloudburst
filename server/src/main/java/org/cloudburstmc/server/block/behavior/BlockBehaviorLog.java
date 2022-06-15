@@ -62,17 +62,14 @@ public class BlockBehaviorLog extends BlockBehaviorSolid {
 
     @Override
     public BlockColor getColor(Block block) {
-        switch (block.getState().ensureTrait(BlockTraits.TREE_SPECIES)) {
-            default:
-            case OAK:
-                return BlockColor.WOOD_BLOCK_COLOR;
-            case SPRUCE:
-                return BlockColor.SPRUCE_BLOCK_COLOR;
-            case BIRCH:
-                return BlockColor.SAND_BLOCK_COLOR;
-            case JUNGLE:
-                return BlockColor.DIRT_BLOCK_COLOR;
-        }
+        return switch (block.getState().ensureTrait(BlockTraits.TREE_SPECIES)) {
+            case OAK -> BlockColor.WOOD_BLOCK_COLOR;
+            case SPRUCE -> BlockColor.SPRUCE_BLOCK_COLOR;
+            case BIRCH -> BlockColor.SAND_BLOCK_COLOR;
+            case JUNGLE -> BlockColor.DIRT_BLOCK_COLOR;
+            case MANGROVE -> BlockColor.RED_BLOCK_COLOR; //TODO ?
+            default -> BlockColor.WOOD_BLOCK_COLOR;
+        };
     }
 
     @Override
