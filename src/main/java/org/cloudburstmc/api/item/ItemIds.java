@@ -397,9 +397,20 @@ public final class ItemIds {
 
     public static final Identifier MANGROVE_BOAT = Identifier.fromString("minecraft:mangrove_boat");
 
+    public static final Identifier OAK_CHEST_BOAT = Identifier.fromString("minecraft:oak_chest_boat");
+    public static final Identifier SPRUCE_CHEST_BOAT = Identifier.fromString("minecraft:spruce_chest_boat");
+    public static final Identifier BIRCH_CHEST_BOAT = Identifier.fromString("minecraft:birch_chest_boat");
+    public static final Identifier JUNGLE_CHEST_BOAT = Identifier.fromString("minecraft:jungle_chest_boat");
+    public static final Identifier ACACIA_CHEST_BOAT = Identifier.fromString("minecraft:acacia_chest_boat");
+    public static final Identifier DARK_OAK_CHEST_BOAT = Identifier.fromString("minecraft:dark_oak_chest_boat");
     public static final Identifier MANGROVE_CHEST_BOAT = Identifier.fromString("minecraft:mangrove_chest_boat");
 
     public static final Identifier MANGROVE_DOOR = Identifier.fromString("minecraft:mangrove_door");
 
     public static final Identifier MANGROVE_SIGN = Identifier.fromString("minecraft:mangrove_sign");
+
+    public static final Identifier RECORD_5 = Identifier.fromString("music_disc_5");
+    public static final Identifier DISC_FRAGMENT_5 = Identifier.fromString("disc_fragment_5");
+    public static final Identifier RECOVERY_COMPASS = Identifier.fromString("recovery_compass");
+    public static final Identifier ECHO_CHARD = Identifier.fromString("echo_shard");
 }

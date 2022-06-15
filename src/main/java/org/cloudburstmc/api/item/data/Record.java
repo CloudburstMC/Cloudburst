@@ -15,5 +15,7 @@ public enum Record implements NonSerializable {
     WARD,
     ELEVEN,
     WAIT,
-    PIGSTEP
+    PIGSTEP,
+
+    FIVE
 }
