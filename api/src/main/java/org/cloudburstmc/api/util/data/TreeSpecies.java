@@ -9,6 +9,5 @@ public enum TreeSpecies {
     DARK_OAK,
     CRIMSON,
     WARPED,
-
     MANGROVE,
 }

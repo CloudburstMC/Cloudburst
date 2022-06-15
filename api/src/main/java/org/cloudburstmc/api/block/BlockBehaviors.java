@@ -50,7 +50,7 @@ public final class BlockBehaviors {
 
 //    public static final BehaviorKey<BasicBlockBehavior<BlockState>, BasicBlockBehavior.Executor<BlockState>> GET_STRIPPED_BLOCK = DataKey.behavior(Identifier.fromString("get_stripped_block"), BasicBlockBehavior.class, BasicBlockBehavior.Executor.class);
 
-    public static final BehaviorKey<Optional<BlockEntityType<?>>, Optional<BlockEntityType<?>>> GET_BLOCK_ENTITY = DataKey.behavior(Identifier.fromString("get_block_entity"), Optional.class, Optional.class);
+    public static final BehaviorKey<GenericBlockBehavior<Optional<BlockEntityType<?>>>, GenericBlockBehavior.Executor<Optional<BlockEntityType<?>>>> GET_BLOCK_ENTITY = DataKey.behavior(Identifier.fromString("get_block_entity"), GenericBlockBehavior.class, GenericBlockBehavior.Executor.class);
 
     public static final BehaviorKey<BooleanBlockBehavior, BooleanBlockBehavior.Executor> MAY_PICK = DataKey.behavior(Identifier.fromString("may_pick"), BooleanBlockBehavior.class, BooleanBlockBehavior.Executor.class);
 
