@@ -442,9 +442,39 @@ public final class BlockIds {
     public static final Identifier MAGENTA_CANDLE_CAKE = Identifier.fromString("magenta_candle_cake");
     public static final Identifier MAGENTA_GLAZED_TERRACOTTA = Identifier.fromString("magenta_glazed_terracotta");
     public static final Identifier MAGMA = Identifier.fromString("magma");
+
+    public static final Identifier MANGROVE_BUTTON = Identifier.fromString("mangrove_button");
+
+    public static final Identifier MANGROVE_DOOR = Identifier.fromString("mangrove_door");
+
+    public static final Identifier MANGROVE_DOUBLE_SLAB = Identifier.fromString("mangrove_double_slab");
+
+    public static final Identifier MANGROVE_FENCE = Identifier.fromString("mangrove_fence");
+
+    public static final Identifier MANGROVE_FENCE_GATE = Identifier.fromString("mangrove_fence_gate");
     public static final Identifier MANGROVE_LEAVES = Identifier.fromString("mangrove_leaves");
+
+    public static final Identifier MANGROVE_LOG = Identifier.fromString("mangrove_log");
+
+    public static final Identifier MANGROVE_PLANKS = Identifier.fromString("mangrove_planks");
+
+    public static final Identifier MANGROVE_PRESSURE_PLATE = Identifier.fromString("mangrove_pressure_plate");
     public static final Identifier MANGROVE_PROPAGULE = Identifier.fromString("mangrove_propagule");
     public static final Identifier MANGROVE_PROPAGULE_HANGING = Identifier.fromString("mangrove_propagule_hanging");
+
+    public static final Identifier MANGROVE_ROOTS = Identifier.fromString("mangrove_roots");
+
+    public static final Identifier MANGROVE_SLAB = Identifier.fromString("mangrove_slab");
+
+    public static final Identifier MANGROVE_STAIRS = Identifier.fromString("mangrove_stairs");
+
+    public static final Identifier MANGROVE_STANDING_SIGN = Identifier.fromString("mangrove_standing_sign");
+
+    public static final Identifier MANGROVE_TRAPDOOR = Identifier.fromString("mangrove_trapdoor");
+
+    public static final Identifier MANGROVE_WALL_SIGN = Identifier.fromString("mangrove_wall_sign");
+
+    public static final Identifier MANGROVE_WOOD = Identifier.fromString("mangrove_wood");
     public static final Identifier MEDIUM_AMETHYST_BUD = Identifier.fromString("medium_amethyst_bud");
     public static final Identifier MELON_BLOCK = Identifier.fromString("melon_block");
     public static final Identifier MELON_STEM = Identifier.fromString("melon_stem");
@@ -457,6 +487,8 @@ public final class BlockIds {
     public static final Identifier MOSS_CARPET = Identifier.fromString("moss_carpet");
     public static final Identifier MOVING_BLOCK = Identifier.fromString("moving_block");
     public static final Identifier MUD = Identifier.fromString("mud");
+
+    public static final Identifier MUDDY_MANGROVE_ROOTS = Identifier.fromString("muddy_mangrove_roots");
     public static final Identifier MUD_BRICKS = Identifier.fromString("mud_bricks");
     public static final Identifier MUD_BRICK_DOUBLE_SLAB = Identifier.fromString("mud_brick_double_slab");
     public static final Identifier MUD_BRICK_SLAB = Identifier.fromString("mud_brick_slab");
@@ -639,6 +671,8 @@ public final class BlockIds {
     public static final Identifier STRIPPED_CRIMSON_STEM = Identifier.fromString("stripped_crimson_stem");
     public static final Identifier STRIPPED_DARK_OAK_LOG = Identifier.fromString("stripped_dark_oak_log");
     public static final Identifier STRIPPED_JUNGLE_LOG = Identifier.fromString("stripped_jungle_log");
+    public static final Identifier STRIPPED_MANGROVE_LOG = Identifier.fromString("stripped_mangrove_log");
+    public static final Identifier STRIPPED_MANGROVE_WOOD = Identifier.fromString("stripped_mangrove_wood");
     public static final Identifier STRIPPED_OAK_LOG = Identifier.fromString("stripped_oak_log");
     public static final Identifier STRIPPED_SPRUCE_LOG = Identifier.fromString("stripped_spruce_log");
     public static final Identifier STRIPPED_WARPED_HYPHAE = Identifier.fromString("stripped_warped_hyphae");
