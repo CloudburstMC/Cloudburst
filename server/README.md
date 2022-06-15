@@ -22,9 +22,9 @@ Links
 * __[News](https://cloudburstmc.org)__
 * __[Forums](https://cloudburstmc.org/forums)__
 * __[Discord](https://discord.gg/5PzMkyK)__
-* __[Download](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/)__
-* __[Plugins](https://cloudburstmc.org/resources/categories/nukkit-plugins.1)__
-* __[Wiki](https://cloudburstmc.org/wiki/nukkit)__
+* __[Download](https://ci.opencollab.dev/job/NukkitX/job/Server/job/bleeding/)__
+* __[Plugins](https://cloudburstmc.org/resources/categories/cloudburst-plugins.19/)__
+* __[Wiki](https://cloudburstmc.org/wiki/cloudburst)__
 
 Build JAR file
 -------------

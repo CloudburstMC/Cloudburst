@@ -4,6 +4,7 @@ import com.nukkitx.math.vector.Vector3f;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.math.NukkitMath;
 
 @Log4j2
 public enum EnumLevel {
@@ -49,12 +50,12 @@ public enum EnumLevel {
             CloudLevel level;
             if (current.getLevel() == OVERWORLD.level) {
                 x = mRound(current.getFloorX() >> 3, 128);
-                y = mRound(current.getFloorY(), 32);
+                y = NukkitMath.clamp(mRound(current.getFloorY(), 32), 70, 128 - 10);
                 z = mRound(current.getFloorZ() >> 3, 128);
                 level = NETHER.level;
             } else if (current.getLevel() == NETHER.level) {
                 x = mRound(current.getFloorX() << 3, 1024);
-                y = mRound(current.getFloorY(), 32);
+                y = NukkitMath.clamp(mRound(current.getFloorY(), 32), 70, 256 - 10);
                 z = mRound(current.getFloorZ() << 3, 1024);
                 level = OVERWORLD.level;
             } else {

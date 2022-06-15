@@ -20,7 +20,7 @@ public class BlockBehaviorDeadBush extends FloodableBlockBehavior {
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
         var down = block.down().getState().getType();
         if (down == BlockTypes.SAND || down == BlockTypes.HARDENED_CLAY || down == BlockTypes.STAINED_HARDENED_CLAY ||
-                down == BlockTypes.DIRT || down == BlockTypes.PODZOL) {
+                down == BlockTypes.DIRT || down == BlockTypes.PODZOL || down == BlockTypes.MYCELIUM) {
             placeBlock(block, item);
             return true;
         }

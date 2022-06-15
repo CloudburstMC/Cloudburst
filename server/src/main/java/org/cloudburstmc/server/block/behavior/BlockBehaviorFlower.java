@@ -22,8 +22,7 @@ public class BlockBehaviorFlower extends FloodableBlockBehavior {
 
     @Override
     public boolean place(ItemStack item, Block block, Block target, Direction face, Vector3f clickPos, Player player) {
-        var down = block.down().getState().getType();
-        if (down == GRASS || down == DIRT || down == FARMLAND || down == PODZOL) {
+        if (block.down().getState().inCategory(BlockCategory.GROUND)) {
             placeBlock(block, item.getBehavior().getBlock(item));
             return true;
         }

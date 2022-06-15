@@ -36,8 +36,7 @@ public class BlockBehaviorTallGrass extends FloodableBlockBehavior {
         if (itemBlock.getType() == target.getState().getType() && itemBlock.ensureTrait(BlockTraits.TALL_GRASS_TYPE) == block.getState().ensureTrait(BlockTraits.TALL_GRASS_TYPE)) {
             return false;
         }
-        var down = block.down().getState().getType();
-        if (down == GRASS || down == DIRT || down == PODZOL) {
+        if (block.down().getState().inCategory(BlockCategory.GROUND)) {
             placeBlock(block, itemBlock);
             return true;
         }
