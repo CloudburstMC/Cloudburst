@@ -9,11 +9,11 @@ import org.cloudburstmc.api.util.behavior.Behavior;
 
 public interface UseOnBehavior {
 
-    boolean useOn(Behavior<Executor> behavior, ItemStack itemStack, Entity entity, Vector3i blockPosition, Direction face, Vector3f clickPosition);
+    ItemStack useOn(Behavior<Executor> behavior, ItemStack itemStack, Entity entity, Vector3i blockPosition, Direction face, Vector3f clickPosition);
 
     @FunctionalInterface
     interface Executor {
 
-        boolean execute(ItemStack itemStack, Entity entity, Vector3i blockPosition, Direction face, Vector3f clickPosition);
+        ItemStack execute(ItemStack itemStack, Entity entity, Vector3i blockPosition, Direction face, Vector3f clickPosition);
     }
 }
