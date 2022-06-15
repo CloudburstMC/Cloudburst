@@ -287,7 +287,6 @@ public class BlockStates {
     public static final BlockState WOODEN_STAIRS = BlockTypes.WOODEN_STAIRS.getDefaultState();
     public static final BlockState WOODEN_TRAPDOOR = BlockTypes.WOODEN_TRAPDOOR.getDefaultState();
     public static final BlockState WOOL = BlockTypes.WOOL.getDefaultState();
-    public static final BlockState MANGROVE_LEAVES = BlockTypes.MANGROVE_LEAVES.getDefaultState();
     public static final BlockState MANGROVE_PROPAGULE = BlockTypes.MANGROVE_PROPAGULE.getDefaultState();
     public static final BlockState MANGROVE_ROOTS = BlockTypes.MANGROVE_ROOTS.getDefaultState();
     public static final BlockState MUDDY_MANGROVE_ROOTS = BlockTypes.MUDDY_MANGROVE_ROOTS.getDefaultState();

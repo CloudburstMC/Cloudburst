@@ -2,11 +2,6 @@ package org.cloudburstmc.api.item;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.util.Identifiers;
-import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.api.util.data.TreeSpecies;
-
-import java.util.IdentityHashMap;
-import java.util.Map;
 
 @UtilityClass
 public class ItemTypes {
@@ -257,7 +252,7 @@ public class ItemTypes {
 
     public static final ItemType LAPIS_LAZULI = ItemType.of(ItemIds.LAPIS_LAZULI);
 
-    public static final ItemType DISC_FRAGMENT_5 = IntItem.builder().id(ItemIds.DISC_FRAGMENT_5).build();
-    public static final ItemType RECOVERY_COMPASS = IntItem.builder().id(ItemIds.RECOVERY_COMPASS).build();
-    public static final ItemType ECHO_CHARD = IntItem.builder().id(ItemIds.ECHO_CHARD).build();
+    public static final ItemType DISC_FRAGMENT_5 = ItemType.of(ItemIds.DISC_FRAGMENT_5);
+    public static final ItemType RECOVERY_COMPASS = ItemType.of(ItemIds.RECOVERY_COMPASS);
+    public static final ItemType ECHO_CHARD = ItemType.of(ItemIds.ECHO_CHARD);
 }
