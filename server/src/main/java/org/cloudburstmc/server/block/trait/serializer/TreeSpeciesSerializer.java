@@ -49,7 +49,6 @@ public class TreeSpeciesSerializer implements TraitSerializer<TreeSpecies> {
             species = (TreeSpecies) traits.get(BlockTraits.TREE_SPECIES_NETHER);
         }
 
-//        System.out.println(species.name());
         int index = species.ordinal() < 4 ? 0 : 1;
 
         if (type == BlockTypes.LOG) {

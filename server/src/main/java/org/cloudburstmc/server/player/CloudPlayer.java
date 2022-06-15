@@ -40,7 +40,6 @@ import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.crafting.CraftingGrid;
-import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -61,7 +60,6 @@ import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
@@ -80,7 +78,6 @@ import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.LoginChainData;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
-import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
@@ -1761,7 +1758,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         for (String msg : message.split("\n")) {
             if (!msg.trim().isEmpty() && msg.length() <= 255 && this.messageCounter-- > 0) {
-                PlayerChatEvent chatEvent = new PlayerChatEvent(this, msg);
+                PlayerChatEvent chatEvent = new PlayerChatEvent(this, msg, "chat.type.text",
+                        //TODO this is way to hacky
+                        new HashSet<>(this.getServer().getOnlinePlayers().values()));
                 this.server.getEventManager().fire(chatEvent);
                 if (!chatEvent.isCancelled()) {
                     this.server.broadcastMessage(this.getServer().getLanguage().translate(chatEvent.getFormat(), chatEvent.getPlayer().getDisplayName(), chatEvent.getMessage()), chatEvent.getRecipients());
@@ -2789,7 +2788,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
      * @return DummyBossBar object
      * @see DummyBossBar#setText(String) Set BossBar text
      * @see DummyBossBar#setLength(float) Set BossBar length
-     * @see DummyBossBar#setColor(BlockColor) Set BossBar color
+     * @see DummyBossBar#setColor(org.cloudburstmc.server.utils.DummyBossBar.BossBarColor) Set BossBar color
      */
     public DummyBossBar getDummyBossBar(long bossBarId) {
         return this.dummyBossBars.getOrDefault(bossBarId, null);

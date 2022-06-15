@@ -161,6 +161,10 @@ public class MultiBlockSerializers {
     public static final MultiBlockSerializer LEAVES = builder()
             .add(BedrockStateTags.TAG_OLD_LEAF_TYPE, BlockIds.LEAVES)
             .add(BedrockStateTags.TAG_NEW_LEAF_TYPE, LEAVES2)
+            .add(
+                    MANGROVE_LEAVES,
+                    Builder.combine(BedrockStateTags.TAG_NEW_LEAF_TYPE, TreeSpecies.MANGROVE.name().toLowerCase(), true)
+            )
             .buildSerializer();
 
 //    public static final MultiBlockSerializer SAPLING = builder()

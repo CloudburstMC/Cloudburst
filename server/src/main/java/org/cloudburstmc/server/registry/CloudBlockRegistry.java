@@ -624,6 +624,12 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(PEARLESCENT_FROGLIGHT);
         this.registerVanilla(VERDANT_FROGLIGHT);
         this.registerVanilla(OCHRE_FROGLIGHT);
+        this.registerVanilla(MANGROVE_ROOTS);
+        this.registerVanilla(MUDDY_MANGROVE_ROOTS);
+        this.registerVanilla(MANGROVE_PROPAGULE);
+        this.registerVanilla(REINFORCED_DEEPSLATE);
+        this.registerVanilla(GLOW_FRAME);
+        this.registerVanilla(STRIPPED_MANGROVE_WOOD);
     }
 
     private void registerVanillaBehaviors() {
@@ -732,7 +738,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerBehavior(
                 BlockBehaviors.GET_BLOCK_ENTITY,
                 (behavior, block) -> Optional.empty(),
-                (behavior, value) -> block -> value.getProperty(behavior, block)
+                (behavior, value) -> block -> value.execute(behavior, block)
         );
 
         this.registerBehavior(
