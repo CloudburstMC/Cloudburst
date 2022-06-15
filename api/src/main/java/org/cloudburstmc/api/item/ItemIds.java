@@ -394,4 +394,12 @@ public final class ItemIds {
     public static final Identifier RAW_IRON = Identifier.fromString("minecraft:raw_iron");
     public static final Identifier COPPER_INGOT = Identifier.fromString("minecraft:copper_ingot");
     public static final Identifier SPYGLASS = Identifier.fromString("minecraft:spyglass");
+
+    public static final Identifier MANGROVE_BOAT = Identifier.fromString("minecraft:mangrove_boat");
+
+    public static final Identifier MANGROVE_CHEST_BOAT = Identifier.fromString("minecraft:mangrove_chest_boat");
+
+    public static final Identifier MANGROVE_DOOR = Identifier.fromString("minecraft:mangrove_door");
+
+    public static final Identifier MANGROVE_SIGN = Identifier.fromString("minecraft:mangrove_sign");
 }

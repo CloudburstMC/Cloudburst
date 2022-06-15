@@ -196,10 +196,10 @@ public final class BlockIds {
     public static final Identifier DISPENSER = Identifier.fromString("dispenser");
     public static final Identifier DOUBLE_CUT_COPPER_SLAB = Identifier.fromString("double_cut_copper_slab");
     public static final Identifier DOUBLE_PLANT = Identifier.fromString("double_plant");
-    public static final Identifier DOUBLE_STONE_SLAB = Identifier.fromString("double_stone_slab");
-    public static final Identifier DOUBLE_STONE_SLAB2 = Identifier.fromString("double_stone_slab2");
-    public static final Identifier DOUBLE_STONE_SLAB3 = Identifier.fromString("double_stone_slab3");
-    public static final Identifier DOUBLE_STONE_SLAB4 = Identifier.fromString("double_stone_slab4");
+    public static final Identifier DOUBLE_STONE_SLAB = Identifier.fromString("double_stone_block_slab");
+    public static final Identifier DOUBLE_STONE_SLAB2 = Identifier.fromString("double_stone_block_slab2");
+    public static final Identifier DOUBLE_STONE_SLAB3 = Identifier.fromString("double_stone_block_slab3");
+    public static final Identifier DOUBLE_STONE_SLAB4 = Identifier.fromString("double_stone_block_slab4");
     public static final Identifier DOUBLE_WOODEN_SLAB = Identifier.fromString("double_wooden_slab");
     public static final Identifier DRAGON_EGG = Identifier.fromString("dragon_egg");
     public static final Identifier DRIED_KELP_BLOCK = Identifier.fromString("dried_kelp_block");
@@ -460,7 +460,6 @@ public final class BlockIds {
 
     public static final Identifier MANGROVE_PRESSURE_PLATE = Identifier.fromString("mangrove_pressure_plate");
     public static final Identifier MANGROVE_PROPAGULE = Identifier.fromString("mangrove_propagule");
-    public static final Identifier MANGROVE_PROPAGULE_HANGING = Identifier.fromString("mangrove_propagule_hanging");
 
     public static final Identifier MANGROVE_ROOTS = Identifier.fromString("mangrove_roots");
 
@@ -660,10 +659,10 @@ public final class BlockIds {
     public static final Identifier STONE_BRICK_STAIRS = Identifier.fromString("stone_brick_stairs");
     public static final Identifier STONE_BUTTON = Identifier.fromString("stone_button");
     public static final Identifier STONE_PRESSURE_PLATE = Identifier.fromString("stone_pressure_plate");
-    public static final Identifier STONE_SLAB = Identifier.fromString("stone_slab");
-    public static final Identifier STONE_SLAB2 = Identifier.fromString("stone_slab2");
-    public static final Identifier STONE_SLAB3 = Identifier.fromString("stone_slab3");
-    public static final Identifier STONE_SLAB4 = Identifier.fromString("stone_slab4");
+    public static final Identifier STONE_SLAB = Identifier.fromString("stone_block_slab");
+    public static final Identifier STONE_SLAB2 = Identifier.fromString("stone_block_slab2");
+    public static final Identifier STONE_SLAB3 = Identifier.fromString("stone_block_slab3");
+    public static final Identifier STONE_SLAB4 = Identifier.fromString("stone_block_slab4");
     public static final Identifier STONE_STAIRS = Identifier.fromString("stone_stairs");
     public static final Identifier STRIPPED_ACACIA_LOG = Identifier.fromString("stripped_acacia_log");
     public static final Identifier STRIPPED_BIRCH_LOG = Identifier.fromString("stripped_birch_log");
