@@ -660,6 +660,7 @@ public class CloudBlockRegistry implements Registry {
         this.registerVanilla(PEARLESCENT_FROGLIGHT);
         this.registerVanilla(VERDANT_FROGLIGHT);
         this.registerVanilla(OCHRE_FROGLIGHT);
+        this.registerVanilla(STRIPPED_MANGROVE_WOOD);
     }
 
     private void loadBlockAttributes() {

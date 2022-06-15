@@ -560,6 +560,11 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.RAW_GOLD);
         registerVanilla(ItemTypes.RAW_IRON);
         registerVanilla(ItemTypes.SPYGLASS);
+
+        registerVanilla(ItemTypes.CHEST_BOAT, TreeSpeciesSerializer.CHEST_BOAT);
+        registerVanilla(ItemTypes.DISC_FRAGMENT_5);
+        registerVanilla(ItemTypes.RECOVERY_COMPASS);
+        registerVanilla(ItemTypes.ECHO_CHARD);
     }
 
     private void registerType(ItemType type, Identifier id) {
@@ -588,6 +593,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.SIGN, ItemIds.DARK_OAK_SIGN);
         registerType(ItemTypes.SIGN, ItemIds.CRIMSON_SIGN);
         registerType(ItemTypes.SIGN, ItemIds.WARPED_SIGN);
+        registerType(ItemTypes.SIGN, ItemIds.MANGROVE_SIGN);
 
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.SPRUCE_DOOR);
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.BIRCH_DOOR);
@@ -596,6 +602,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.DARK_OAK_DOOR);
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.CRIMSON_DOOR);
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.WARPED_DOOR);
+        registerType(ItemTypes.WOODEN_DOOR, ItemIds.MANGROVE_DOOR);
 
         registerType(ItemTypes.RECORD, ItemIds.RECORD_CAT);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_BLOCKS);
@@ -609,6 +616,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.RECORD, ItemIds.RECORD_11);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WAIT);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_PIGSTEP);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_5);
 
         registerType(ItemTypes.COAL, ItemIds.CHARCOAL);
 
@@ -638,6 +646,15 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.BOAT, ItemIds.JUNGLE_BOAT);
         registerType(ItemTypes.BOAT, ItemIds.ACACIA_BOAT);
         registerType(ItemTypes.BOAT, ItemIds.DARK_OAK_BOAT);
+        registerType(ItemTypes.BOAT, ItemIds.MANGROVE_BOAT);
+
+        registerType(ItemTypes.CHEST_BOAT, ItemIds.OAK_CHEST_BOAT);
+        registerType(ItemTypes.CHEST_BOAT, ItemIds.SPRUCE_CHEST_BOAT);
+        registerType(ItemTypes.CHEST_BOAT, ItemIds.BIRCH_CHEST_BOAT);
+        registerType(ItemTypes.CHEST_BOAT, ItemIds.JUNGLE_CHEST_BOAT);
+        registerType(ItemTypes.CHEST_BOAT, ItemIds.ACACIA_CHEST_BOAT);
+        registerType(ItemTypes.CHEST_BOAT, ItemIds.DARK_OAK_CHEST_BOAT);
+        registerType(ItemTypes.CHEST_BOAT, ItemIds.MANGROVE_CHEST_BOAT);
 
         registerType(ItemTypes.BANNER_PATTERN, ItemIds.CREEPER_BANNER_PATTERN);
         registerType(ItemTypes.BANNER_PATTERN, ItemIds.SKULL_BANNER_PATTERN);
