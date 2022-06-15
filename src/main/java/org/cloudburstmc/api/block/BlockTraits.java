@@ -60,6 +60,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<FluidType> FLUID_TYPE = EnumBlockTrait.of("fluid_type", FluidType.class);
     public static final IntegerBlockTrait FILL_LEVEL = IntegerBlockTrait.from("fill_level", 7);
     public static final IntegerBlockTrait GROWTH = IntegerBlockTrait.from("growth", 8);
+    public static final IntegerBlockTrait PROPAGULE_STAGE = IntegerBlockTrait.from("propagule_stage", 5);
     public static final IntegerBlockTrait HEIGHT = IntegerBlockTrait.from("height", 8);
     public static final IntegerBlockTrait HONEY_LEVEL = IntegerBlockTrait.from("honey_level", 6);
     public static final IntegerBlockTrait HUGE_MUSHROOM_BITS = IntegerBlockTrait.from("huge_mushroom_bits", 16);
@@ -90,7 +91,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<StructureVoidType> STRUCTURE_VOID_TYPE = EnumBlockTrait.of("structure_void_type", StructureVoidType.class);
     public static final EnumBlockTrait<TallGrassType> TALL_GRASS_TYPE = EnumBlockTrait.of("tall_grass_type", TallGrassType.class);
     public static final EnumBlockTrait<TreeSpecies> TREE_SPECIES = EnumBlockTrait.of("tree_species", TreeSpecies.class, TreeSpecies.OAK);
-    public static final EnumBlockTrait<TreeSpecies> TREE_SPECIES_OVERWORLD = EnumBlockTrait.of("tree_species", TreeSpecies.class, TreeSpecies.OAK, TreeSpecies.SPRUCE, TreeSpecies.BIRCH, TreeSpecies.JUNGLE, TreeSpecies.ACACIA, TreeSpecies.DARK_OAK);
+    public static final EnumBlockTrait<TreeSpecies> TREE_SPECIES_OVERWORLD = EnumBlockTrait.of("tree_species", TreeSpecies.class, TreeSpecies.OAK, TreeSpecies.SPRUCE, TreeSpecies.BIRCH, TreeSpecies.JUNGLE, TreeSpecies.ACACIA, TreeSpecies.DARK_OAK, TreeSpecies.MANGROVE);
     public static final EnumBlockTrait<TreeSpecies> TREE_SPECIES_NETHER = EnumBlockTrait.of("tree_species", TreeSpecies.class, TreeSpecies.CRIMSON, TreeSpecies.WARPED);
     public static final EnumBlockTrait<TurtleEggCount> TURTLE_EGG_COUNT = EnumBlockTrait.of("turtle_egg_count", TurtleEggCount.class);
     public static final IntegerBlockTrait TWISTING_VINES_AGE = IntegerBlockTrait.from("twisting_vines_age", 26);
@@ -117,6 +118,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<LeverDirection> LEVER_DIRECTION = EnumBlockTrait.of("lever_direction", LeverDirection.class);
 
     public static final BooleanBlockTrait IS_ACTIVE = BooleanBlockTrait.of("is_active", "active");
+    public static final BooleanBlockTrait CAN_SUMMON = BooleanBlockTrait.of("can_summon");
     public static final BooleanBlockTrait IS_ALLOWED_UNDERWATER = BooleanBlockTrait.of("is_allowed_underwater", "allow_underwater_bit");
     public static final BooleanBlockTrait IS_ATTACHED = BooleanBlockTrait.of("is_attached", "attached_bit");
     public static final BooleanBlockTrait IS_BLOOMING = BooleanBlockTrait.of("is_blooming", "bloom");

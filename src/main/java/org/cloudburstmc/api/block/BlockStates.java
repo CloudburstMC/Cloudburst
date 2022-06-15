@@ -289,7 +289,8 @@ public class BlockStates {
     public static final BlockState WOOL = BlockTypes.WOOL.getDefaultState();
     public static final BlockState MANGROVE_LEAVES = BlockTypes.MANGROVE_LEAVES.getDefaultState();
     public static final BlockState MANGROVE_PROPAGULE = BlockTypes.MANGROVE_PROPAGULE.getDefaultState();
-    public static final BlockState MANGROVE_PROPAGULE_HANGING = BlockTypes.MANGROVE_PROPAGULE_HANGING.getDefaultState();
+    public static final BlockState MANGROVE_ROOTS = BlockTypes.MANGROVE_ROOTS.getDefaultState();
+    public static final BlockState MUDDY_MANGROVE_ROOTS = BlockTypes.MUDDY_MANGROVE_ROOTS.getDefaultState();
     public static final BlockState MUD = BlockTypes.MUD.getDefaultState();
     public static final BlockState MUD_BRICK_DOUBLE_SLAB = BlockTypes.MUD_BRICK_DOUBLE_SLAB.getDefaultState();
     public static final BlockState MUD_BRICK_SLAB = BlockTypes.MUD_BRICK_SLAB.getDefaultState();
