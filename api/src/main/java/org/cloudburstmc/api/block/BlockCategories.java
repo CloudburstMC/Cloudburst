@@ -442,6 +442,13 @@ public class BlockCategories {
                 DETECTOR_RAIL
         );
 
+        categorize(BlockCategory.GROUND,
+                GRASS,
+                DIRT,
+                FARMLAND,
+                PODZOL,
+                MYCELIUM
+        );
 
         inherit(BlockCategory.TRANSPARENT,
                 BlockCategory.STAIRS,
