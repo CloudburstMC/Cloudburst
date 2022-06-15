@@ -98,6 +98,8 @@ public class ItemTypes {
     public static final ItemType REDSTONE = IntItem.builder().id(ItemIds.REDSTONE).maxStackSize(64).blockType(BlockTypes.REDSTONE_WIRE).build();
     public static final ItemType SNOWBALL = IntItem.builder().id(ItemIds.SNOWBALL).maxStackSize(16).build();
     public static final ItemType BOAT = IntItem.builder().id(ItemIds.BOAT).maxStackSize(1).fuelTime((short) 1200).build();
+
+    public static final ItemType CHEST_BOAT = IntItem.builder().id(ItemIds.BOAT).maxStackSize(1).fuelTime((short) 1200).build();
     public static final ItemType LEATHER = IntItem.builder().id(ItemIds.LEATHER).maxStackSize(64).build();
     public static final ItemType KELP = IntItem.builder().id(ItemIds.KELP).maxStackSize(64).blockType(BlockTypes.KELP).build();
     public static final ItemType BRICK = IntItem.builder().id(ItemIds.BRICK).maxStackSize(64).build();
@@ -257,6 +259,10 @@ public class ItemTypes {
     public static final ItemType RAW_IRON = IntItem.builder().id(ItemIds.RAW_IRON).build();
     public static final ItemType SPYGLASS = IntItem.builder().id(ItemIds.SPYGLASS).build();
     public static final ItemType COPPER_INGOT = IntItem.builder().id(ItemIds.COPPER_INGOT).build();
+
+    public static final ItemType DISC_FRAGMENT_5 = IntItem.builder().id(ItemIds.DISC_FRAGMENT_5).build();
+    public static final ItemType RECOVERY_COMPASS = IntItem.builder().id(ItemIds.RECOVERY_COMPASS).build();
+    public static final ItemType ECHO_CHARD = IntItem.builder().id(ItemIds.ECHO_CHARD).build();
 
     public static final class IntItem implements ItemType {
         private final Identifier id;
