@@ -18,9 +18,11 @@ public class TreeSpeciesSerializer extends DefaultItemSerializer {
 
     private static final Map<Class<?>, Object> DEFAULT_VALUES;
 
-    public static final TreeSpeciesSerializer DOOR = new TreeSpeciesSerializer(ItemIds.WOODEN_DOOR, ItemIds.SPRUCE_DOOR, ItemIds.BIRCH_DOOR, ItemIds.JUNGLE_DOOR, ItemIds.ACACIA_DOOR, ItemIds.DARK_OAK_DOOR, ItemIds.CRIMSON_DOOR, ItemIds.WARPED_DOOR);
-    public static final TreeSpeciesSerializer SIGN = new TreeSpeciesSerializer(ItemIds.SIGN, ItemIds.SPRUCE_SIGN, ItemIds.BIRCH_SIGN, ItemIds.JUNGLE_SIGN, ItemIds.ACACIA_SIGN, ItemIds.DARK_OAK_SIGN, ItemIds.CRIMSON_SIGN, ItemIds.WARPED_SIGN);
-    public static final TreeSpeciesSerializer BOAT = new TreeSpeciesSerializer(ItemIds.OAK_BOAT, ItemIds.SPRUCE_BOAT, ItemIds.BIRCH_BOAT, ItemIds.JUNGLE_BOAT, ItemIds.ACACIA_BOAT, ItemIds.DARK_OAK_BOAT, ItemIds.BOAT, ItemIds.BOAT);
+    public static final TreeSpeciesSerializer DOOR = new TreeSpeciesSerializer(ItemIds.WOODEN_DOOR, ItemIds.SPRUCE_DOOR, ItemIds.BIRCH_DOOR, ItemIds.JUNGLE_DOOR, ItemIds.ACACIA_DOOR, ItemIds.DARK_OAK_DOOR, ItemIds.CRIMSON_DOOR, ItemIds.WARPED_DOOR, ItemIds.MANGROVE_DOOR);
+    public static final TreeSpeciesSerializer SIGN = new TreeSpeciesSerializer(ItemIds.SIGN, ItemIds.SPRUCE_SIGN, ItemIds.BIRCH_SIGN, ItemIds.JUNGLE_SIGN, ItemIds.ACACIA_SIGN, ItemIds.DARK_OAK_SIGN, ItemIds.CRIMSON_SIGN, ItemIds.WARPED_SIGN, ItemIds.MANGROVE_SIGN);
+    public static final TreeSpeciesSerializer BOAT = new TreeSpeciesSerializer(ItemIds.OAK_BOAT, ItemIds.SPRUCE_BOAT, ItemIds.BIRCH_BOAT, ItemIds.JUNGLE_BOAT, ItemIds.ACACIA_BOAT, ItemIds.DARK_OAK_BOAT, ItemIds.BOAT, ItemIds.BOAT, ItemIds.MANGROVE_BOAT);
+
+    public static final TreeSpeciesSerializer CHEST_BOAT = new TreeSpeciesSerializer(ItemIds.OAK_CHEST_BOAT, ItemIds.SPRUCE_CHEST_BOAT, ItemIds.BIRCH_CHEST_BOAT, ItemIds.JUNGLE_CHEST_BOAT, ItemIds.ACACIA_CHEST_BOAT, ItemIds.DARK_OAK_CHEST_BOAT, ItemIds.OAK_CHEST_BOAT, ItemIds.OAK_CHEST_BOAT, ItemIds.MANGROVE_CHEST_BOAT);
 
     private final Identifier[] identifiers;
     private final Reference2ObjectMap<Identifier, TreeSpecies> dataMap = new Reference2ObjectOpenHashMap<>();

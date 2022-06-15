@@ -5,11 +5,9 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 public class PunchBlockParticle extends Particle {
