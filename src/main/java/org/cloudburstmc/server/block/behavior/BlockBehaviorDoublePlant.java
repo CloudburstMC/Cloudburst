@@ -53,7 +53,7 @@ public class BlockBehaviorDoublePlant extends FloodableBlockBehavior {
         BlockState down = block.down().getState();
         Block up = block.up();
 
-        if (up.getState().getType() == AIR && (down.getType() == GRASS || down.getType() == DIRT || down.getType() == PODZOL || down.getType() == FARMLAND)) {
+        if (up.getState().getType() == AIR && down.inCategory(BlockCategory.GROUND)) {
             placeBlock(block, item, false); // If we update the bottom half, it will drop the item because there isn't a flower block above
             placeBlock(up, item.getBehavior().getBlock(item).withTrait(BlockTraits.IS_UPPER_BLOCK, true));
             return true;

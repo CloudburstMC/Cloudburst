@@ -21,7 +21,9 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
     @Override
     public int onUpdate(Block block, int type) {
         if (type == CloudLevel.BLOCK_UPDATE_NORMAL || type == CloudLevel.BLOCK_UPDATE_REDSTONE || type == CloudLevel.BLOCK_UPDATE_SCHEDULED) {
-            super.onUpdate(block, type);
+            if (super.onUpdate(block, type) == CloudLevel.BLOCK_UPDATE_NORMAL) {
+                return 0; // Already broken
+            }
 
             var level = (CloudLevel) block.getLevel();
             boolean wasPowered = isActive(block.getState());
@@ -164,5 +166,4 @@ public class BlockBehaviorRailActivator extends BlockBehaviorRail {
                 CloudItemRegistry.get().getItem(ACTIVATOR_RAIL)
         };
     }
-
 }

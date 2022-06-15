@@ -4,7 +4,6 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -26,7 +25,7 @@ public class DummyBossBar {
 
     private String text;
     private float length;
-    private BlockColor color;
+    private BossBarColor color;
 
     private DummyBossBar(Builder builder) {
         this.player = builder.player;
@@ -37,12 +36,13 @@ public class DummyBossBar {
     }
 
     public static class Builder {
+
         private final CloudPlayer player;
         private final long bossBarId;
 
         private String text = "";
         private float length = 100;
-        private BlockColor color = null;
+        private BossBarColor color = null;
 
         public Builder(CloudPlayer player) {
             this.player = player;
@@ -59,15 +59,11 @@ public class DummyBossBar {
             return this;
         }
 
-        public Builder color(BlockColor color) {
+        public Builder color(BossBarColor color) {
             this.color = color;
             return this;
         }
 
-        /* public Builder color(int red, int green, int blue) {
-             return color(new BlockColor(red, green, blue));
-         }
- */
         public DummyBossBar build() {
             return new DummyBossBar(this);
         }
@@ -105,27 +101,14 @@ public class DummyBossBar {
         }
     }
 
-    /**
-     * Color is not working in the current version. We are keep waiting for client support.
-     *
-     * @param color the boss bar color
-     */
-    public void setColor(BlockColor color) {
+    public void setColor(BossBarColor color) {
         if (this.color == null || !this.color.equals(color)) {
             this.color = color;
             this.sendSetBossBarTexture();
         }
     }
 
-    /*public void setColor(int red, int green, int blue) {
-        this.setColor(new BlockColor(red, green, blue));
-    }*/
-
-    public int getMixedColor() {
-        return this.color.getRGB();//(this.color.getRed() << 16 | this.color.getGreen() << 8 | this.color.getBlue()) & 0xffffff;
-    }
-
-    public BlockColor getColor() {
+    public BossBarColor getColor() {
         return this.color;
     }
 
@@ -180,7 +163,7 @@ public class DummyBossBar {
         pk.setBossUniqueEntityId(this.bossBarId);
         pk.setPlayerUniqueEntityId(this.player.getUniqueId());
         pk.setAction(BossEventPacket.Action.UPDATE_STYLE);
-        pk.setColor(this.getMixedColor());
+        pk.setColor(color.ordinal());
         player.sendPacket(pk);
     }
 
@@ -250,4 +233,14 @@ public class DummyBossBar {
         removeBossEntity();
     }
 
+    public enum BossBarColor {
+
+        PINK,
+        BLUE,
+        RED,
+        GREEN,
+        YELLOW,
+        PURPLE,
+        WHITE
+    }
 }

@@ -114,6 +114,7 @@ public class EnchantCommand extends Command {
             case "silk_touch":
                 return 16;
             case "durability":
+            case "unbreaking":
                 return 17;
             case "fortune":
                 return 18;
@@ -139,9 +140,9 @@ public class EnchantCommand extends Command {
                 return 28;
             case "impaling":
                 return 29;
-            case "loyality":
-                return 30;
             case "riptide":
+                return 30;
+            case "loyalty":
                 return 31;
             case "channeling":
                 return 32;

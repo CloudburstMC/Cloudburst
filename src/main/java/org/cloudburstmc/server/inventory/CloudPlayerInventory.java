@@ -70,7 +70,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     }
 
     private boolean isHotbarSlot(int slot) {
-        return slot >= 0 && slot <= this.getHotbarSize();
+        return slot >= 0 && slot < this.getHotbarSize();
     }
 
     private PlayerCursorInventory getCursor() {
