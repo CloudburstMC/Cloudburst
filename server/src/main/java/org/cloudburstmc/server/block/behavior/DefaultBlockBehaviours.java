@@ -1,13 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
 import com.nukkitx.math.vector.Vector3i;
-import org.cloudburstmc.api.block.BlockBehaviors;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.behavior.*;
-import org.cloudburstmc.api.item.ItemKeys;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.behavior.BehaviorBuilder;
 
@@ -18,24 +11,29 @@ public class DefaultBlockBehaviours {
     public static final BehaviorBuilder BLOCK_BEHAVIOR_BASE = BehaviorBuilder.create()
             .overwrite(IS_SOLID, true)
             .overwrite(IS_LIQUID, false)
+            .overwrite(USES_WATERLOGGING, false)
+            .overwrite(CAN_BE_USED, ((behavior, block) -> false))
             .overwrite(CAN_PASS_THROUGH, (behavior, block) -> false)
             .overwrite(GET_BOUNDING_BOX, ((behavior, state) -> new SimpleAxisAlignedBB(Vector3i.ZERO, Vector3i.ONE)));
 
 
-
+//    public static final EntityBlockBehavior ON_PROJECTILE_HIT = (behavior, block, entity) -> {
+//    };
 //
+//    public static final ComplexBlockBehavior ON_LIGHTNING_HIT = (behavior, block) -> {
+//    };
 //
-//    public static final EntityBlockBehavior ON_PROJECTILE_HIT = (behavior, block, entity) -> {};
+//    public static final ComplexBlockBehavior ON_REDSTONE_UPDATE = (behavior, block) -> {
+//    };
 //
-//    public static final ComplexBlockBehavior ON_LIGHTNING_HIT = (behavior, block) -> {};
+//    public static final EntityBlockBehavior ON_STAND_ON = (behavior, block, entity) -> {
+//    };
 //
-//    public static final ComplexBlockBehavior ON_REDSTONE_UPDATE = (behavior, block) -> {};
+//    public static final EntityBlockBehavior ON_STEP_OFF = (behavior, block, entity) -> {
+//    };
 //
-//    public static final EntityBlockBehavior ON_STAND_ON = (behavior, block, entity) -> {};
-//
-//    public static final EntityBlockBehavior ON_STEP_OFF = (behavior, block, entity) -> {};
-//
-//    public static final EntityBlockBehavior ON_STEP_ON = (behavior, block, entity) -> {};
+//    public static final EntityBlockBehavior ON_STEP_ON = (behavior, block, entity) -> {
+//    };
 //
 //    public static final PlayerBlockBehavior ON_DESTROY = (behavior, block, player) -> {
 //        // TODO
