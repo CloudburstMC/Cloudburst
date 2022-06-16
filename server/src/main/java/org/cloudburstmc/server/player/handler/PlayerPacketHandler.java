@@ -17,6 +17,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
@@ -31,6 +32,7 @@ import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.crafting.CraftingGrid;
+import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -59,6 +61,7 @@ import org.cloudburstmc.server.entity.vehicle.EntityBoat;
 import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
+import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
@@ -69,6 +72,7 @@ import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.network.protocol.types.InventoryTransactionUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import javax.inject.Inject;
@@ -752,20 +756,19 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public boolean handle(CraftingEventPacket packet) {
-//        TODO Recipe Implementation (version 0.x.x)
-//        CraftingRecipe recipe = (CraftingRecipe) CloudRecipeRegistry.get().getRecipe(packet.getUuid());
-//        if (recipe != null) {
-//            CraftItemStackTransaction transaction = new CraftItemStackTransaction(player, recipe);
-//            transaction.setPrimaryOutput(NetworkUtils.itemStackFromNetwork(packet.getOutputs().remove(0)));
-//            if (packet.getOutputs().size() >= 1) {
-//                int slot = 0;
-//                for (ItemData data : packet.getOutputs()) {
-//                    transaction.setExtraOutput(slot++, NetworkUtils.itemStackFromNetwork(data));
-//                }
-//            }
-//            player.getInventoryManager().setTransaction(transaction);
-//            return true;
-//        }
+        CraftingRecipe recipe = (CraftingRecipe) CloudRecipeRegistry.get().getRecipe(packet.getUuid());
+        if (recipe != null) {
+            CraftItemStackTransaction transaction = new CraftItemStackTransaction(player, recipe);
+            transaction.setPrimaryOutput(ItemUtils.fromNetwork(packet.getOutputs().remove(0)));
+            if (packet.getOutputs().size() >= 1) {
+                int slot = 0;
+                for (ItemData data : packet.getOutputs()) {
+                    transaction.setExtraOutput(slot++, ItemUtils.fromNetwork(data));
+                }
+            }
+            player.getInventoryManager().setTransaction(transaction);
+            return true;
+        }
         log.warn("Received invalid recipe UUID({}) in CraftingEventPacket", packet.getUuid());
         return true;
     }

@@ -99,28 +99,26 @@ public class ShapelessRecipe implements CraftingRecipe {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public boolean matchItems(ItemStack[][] input, ItemStack[][] output) {
-        return false;
-//        TODO Recipe Implementation (version 0.x.x)
-//        List haveInputs = new ArrayList<>();
-//        for (ItemStack[] items : input) {
-//            haveInputs.addAll(Arrays.asList(items));
-//        }
-//        haveInputs.sort(CloudRecipeRegistry.recipeComparator);
-//
-//        List<ItemStack> needInputs = this.getIngredientList();
-//
-//        if (!this.matchItemList(haveInputs, needInputs)) {
-//            return false;
-//        }
-//
-//        List haveOutputs = new ArrayList<>();
-//        for (ItemStack[] items : output) {
-//            haveOutputs.addAll(Arrays.asList(items));
-//        }
-//        haveOutputs.sort(CloudRecipeRegistry.recipeComparator);
-//        List<ItemStack> needOutputs = this.getExtraResults();
-//
-//        return this.matchItemList(haveOutputs, needOutputs);
+        List haveInputs = new ArrayList<>();
+        for (ItemStack[] items : input) {
+            haveInputs.addAll(Arrays.asList(items));
+        }
+        haveInputs.sort(CloudRecipeRegistry.recipeComparator);
+
+        List<ItemStack> needInputs = this.getIngredientList();
+
+        if (!this.matchItemList(haveInputs, needInputs)) {
+            return false;
+        }
+
+        List haveOutputs = new ArrayList<>();
+        for (ItemStack[] items : output) {
+            haveOutputs.addAll(Arrays.asList(items));
+        }
+        haveOutputs.sort(CloudRecipeRegistry.recipeComparator);
+        List<ItemStack> needOutputs = this.getExtraResults();
+
+        return this.matchItemList(haveOutputs, needOutputs);
     }
 
 
