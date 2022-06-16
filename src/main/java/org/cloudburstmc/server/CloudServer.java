@@ -28,6 +28,7 @@ import org.cloudburstmc.api.permission.Permissible;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.ItemRegistry;
+import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
@@ -193,8 +194,7 @@ public class CloudServer implements Server {
     private final CloudBlockRegistry blockRegistry = new CloudBlockRegistry(itemRegistry);
     private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
 
-    //    TODO Recipe Implementation (version 0.x.x)
-//    private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
+    private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
     private final EntityRegistry entityRegistry = EntityRegistry.get();
     private final BiomeRegistry biomeRegistry = BiomeRegistry.get();
     private final CommandRegistry commandRegistry = CommandRegistry.get();
@@ -500,8 +500,7 @@ public class CloudServer implements Server {
             this.blockRegistry.close();
             this.enchantmentRegistry.close();
             this.itemRegistry.close();
-            //    TODO Recipe Implementation (version 0.x.x)
-//            this.recipeRegistry.close();
+            this.recipeRegistry.close();
             this.entityRegistry.close();
             this.biomeRegistry.close();
             this.gameRuleRegistry.close();
@@ -1223,10 +1222,9 @@ public class CloudServer implements Server {
         return ImmutableMap.copyOf(playerList);
     }
 
-    //    TODO Recipe Implementation (version 0.x.x)
-//    public void addRecipe(Recipe recipe) {
-//        this.recipeRegistry.register(recipe);
-//    }
+    public void addRecipe(Recipe recipe) {
+        this.recipeRegistry.register(recipe);
+    }
 
     public Optional<Player> getPlayer(UUID uuid) {
         Preconditions.checkNotNull(uuid, "uuid");
@@ -1842,10 +1840,9 @@ public class CloudServer implements Server {
         return itemRegistry;
     }
 
-    //    TODO Recipe Implementation (version 0.x.x)
-//    public RecipeRegistry getRecipeRegistry() {
-//        return recipeRegistry;
-//    }
+    public RecipeRegistry getRecipeRegistry() {
+        return recipeRegistry;
+    }
 
     public GeneratorRegistry getGeneratorRegistry() {
         return this.generatorRegistry;

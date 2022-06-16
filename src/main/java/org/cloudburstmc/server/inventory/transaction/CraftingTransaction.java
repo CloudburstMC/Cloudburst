@@ -143,10 +143,9 @@ public class CraftingTransaction extends InventoryTransaction {
     public boolean canExecute() {
         ItemStack[][] inputs = reindexInputs();
 
-//        TODO Recipe Implementation (version 0.x.x)
-//        if (recipe == null) {
-//            recipe = (CraftingRecipe) CloudRecipeRegistry.get().matchRecipe(inputs, this.primaryOutput, this.secondaryOutputs, null);
-//        }
+        if (recipe == null) {
+            recipe = (CraftingRecipe) CloudRecipeRegistry.get().matchRecipe(inputs, this.primaryOutput, this.secondaryOutputs, null);
+        }
 
         return this.recipe != null && super.canExecute();
     }

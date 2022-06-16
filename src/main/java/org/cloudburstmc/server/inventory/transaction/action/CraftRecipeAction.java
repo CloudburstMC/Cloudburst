@@ -33,39 +33,36 @@ public class CraftRecipeAction extends ItemStackAction {
 
     @Override
     public boolean isValid(CloudPlayer player) {
-//        TODO Recipe Implementation (version 0.x.x)
-        return false;
-//
-//        if (this.getTransaction() == null || !(this.getTransaction() instanceof CraftItemStackTransaction))
-//            return false;
-//        CraftItemStackTransaction transaction = ((CraftItemStackTransaction) getTransaction());
-//        CraftingRecipe recipe = transaction.getRecipe();
-//        CraftingGrid inv = transaction.getCraftingGrid();
-//
-//        if (CloudRecipeRegistry.get().getRecipeNetId(recipe.getId()) != this.recipeId) {
-//            log.warn("Crafting recipe miss-match: {} =/= {}", this.recipeId, CloudRecipeRegistry.get().getRecipeNetId(recipe.getId()));
-//            return false;
-//        }
-//
-//        int size = inv.getCraftingGridSize();
-//
-//        ItemStack[][] inputs = new ItemStack[size][size];
-//        ItemStack[][] extraOutputs = new ItemStack[size][size];
-//
-//        for (int r = 0; r < size; r++) {
-//            for (int c = 0; c < size; c++) {
-//                int slot = (size * r) + c;
-//                if (transaction.getExtraOutputs().size() <= slot || transaction.getExtraOutputs().get(slot) == null)
-//                    transaction.getExtraOutputs().add(slot, ItemStack.AIR);
-//                extraOutputs[r][c] = transaction.getExtraOutputs().get(slot);
-//                inputs[r][c] = inv.getItem(slot);
-//            }
-//        }
-//
-//        ItemStack item = recipe.getResult();
-//        int maxStackSize = this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute();
-//        return recipe.matchItems(inputs, extraOutputs) && inv.setItem(CloudCraftingGrid.CRAFTING_RESULT_SLOT,
-//                recipe.getResult().withCount(maxStackSize));
+        if (this.getTransaction() == null || !(this.getTransaction() instanceof CraftItemStackTransaction))
+            return false;
+        CraftItemStackTransaction transaction = ((CraftItemStackTransaction) getTransaction());
+        CraftingRecipe recipe = transaction.getRecipe();
+        CraftingGrid inv = transaction.getCraftingGrid();
+
+        if (CloudRecipeRegistry.get().getRecipeNetId(recipe.getId()) != this.recipeId) {
+            log.warn("Crafting recipe miss-match: {} =/= {}", this.recipeId, CloudRecipeRegistry.get().getRecipeNetId(recipe.getId()));
+            return false;
+        }
+
+        int size = inv.getCraftingGridSize();
+
+        ItemStack[][] inputs = new ItemStack[size][size];
+        ItemStack[][] extraOutputs = new ItemStack[size][size];
+
+        for (int r = 0; r < size; r++) {
+            for (int c = 0; c < size; c++) {
+                int slot = (size * r) + c;
+                if (transaction.getExtraOutputs().size() <= slot || transaction.getExtraOutputs().get(slot) == null)
+                    transaction.getExtraOutputs().add(slot, ItemStack.AIR);
+                extraOutputs[r][c] = transaction.getExtraOutputs().get(slot);
+                inputs[r][c] = inv.getItem(slot);
+            }
+        }
+
+        ItemStack item = recipe.getResult();
+        int maxStackSize = this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute();
+        return recipe.matchItems(inputs, extraOutputs) && inv.setItem(CloudCraftingGrid.CRAFTING_RESULT_SLOT,
+                recipe.getResult().withCount(maxStackSize));
     }
 
     @Override

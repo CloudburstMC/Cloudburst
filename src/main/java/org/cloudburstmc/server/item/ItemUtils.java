@@ -11,7 +11,10 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.item.*;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -52,7 +55,7 @@ public class ItemUtils {
             NbtMapBuilder blockTag = NbtMap.builder();
             BlockState blockState = item.get(ItemKeys.BLOCK_STATE);
 
-            log.info(item.getType() + " - " + blockState + " - " + BlockPalette.INSTANCE.getIdentifier(blockState));
+//            log.info(item.getType() + " - " + blockState + " - " + BlockPalette.INSTANCE.getIdentifier(blockState));
             blockTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(blockState).toString());
             blockTag.putShort("Damage", (short) 0);
 
@@ -128,7 +131,7 @@ public class ItemUtils {
         ItemStackBuilder builder = ItemStack.builder();
         if(amount > 0) {
             ItemType type = CloudItemRegistry.get().getType(id, damage);
-            log.info(id + " - " + damage + " > " + type + " - " + type.getId());
+//            log.info(id + " - " + damage + " > " + type + " - " + type.getId());
             builder.itemType(type);
             builder.amount(amount);
 
@@ -152,6 +155,16 @@ public class ItemUtils {
                 .netId(0)
                 .usingNetId(false)
                 .build();
+    }
+
+    public static List<ItemData> toNetwork(Collection<ItemStack> item) {
+        List<ItemData> data = new ArrayList<>();
+
+        for (ItemStack itemStack : item) {
+            data.add(toNetwork(itemStack));
+        }
+
+        return data;
     }
 
     public static ItemData toNetworkNetId(ItemStack item) {
@@ -240,50 +253,49 @@ public class ItemUtils {
         return item == null || item == ItemStack.AIR;
     }
 
-//    TODO Recipe Implementation (version 0.x.x)
-//    public static ItemStack fromJson(Map<String, Object> data) {
-//        String nbt = (String) data.get("nbt_b64");
-//
-//        byte[] nbtBytes = null;
-//        if (nbt != null) {
-//            nbtBytes = Base64.getDecoder().decode(nbt);
-//        } else if ((nbt = (String) data.getOrDefault("nbt_hex", null)) != null) { // Support old format for backwards compat
-//            nbtBytes = Utils.parseHexBinary(nbt);
-//        }
-//
-//        NbtMap tag;
-//        if (nbtBytes != null) {
-//            try (NBTInputStream stream = NbtUtils.createReaderLE(new ByteArrayInputStream(nbtBytes))) {
-//                tag = (NbtMap) stream.readTag();
-//            } catch (IOException e) {
-//                throw new IllegalStateException("Unable to decode tag", e);
-//            }
-//        } else {
-//            tag = NbtMap.EMPTY;
-//        }
-//
-//        Identifier id;
-//        if (data.containsKey("id")) {
-//
-//            try {
-//                id = registry.fromLegacy(Utils.toInt(data.get("id")), Utils.toInt(data.getOrDefault("damage", 0)));  //try prior format first
-//            } catch (NumberFormatException | ClassCastException e) {
-//                id = Identifier.fromString(data.get("id").toString());
-//            }
-//        } else {
-//            id = registry.fromLegacy(Utils.toInt(data.get("legacyId")), Utils.toInt(data.getOrDefault("damage", 0)));
-//        }
-//
-//        if (id == null) {
-//            throw new IllegalStateException("Unable to decode item JSON");
-//        }
-//        int blockRuntimeId = -1;
-//        if (data.containsKey("blockRuntimeId")) {
-//            blockRuntimeId = Utils.toInt(data.get("blockRuntimeId"));
-//        }
-//
-//        return deserializeItem(id, (short) Utils.toInt(data.getOrDefault("damage", 0)), Utils.toInt(data.getOrDefault("count", 1)), tag, blockRuntimeId);
-//    }
+    public static ItemStack fromJson(Map<String, Object> data) {
+        String nbt = (String) data.get("nbt_b64");
+
+        byte[] nbtBytes = null;
+        if (nbt != null) {
+            nbtBytes = Base64.getDecoder().decode(nbt);
+        } else if ((nbt = (String) data.getOrDefault("nbt_hex", null)) != null) { // Support old format for backwards compat
+            nbtBytes = Utils.parseHexBinary(nbt);
+        }
+
+        NbtMap tag;
+        if (nbtBytes != null) {
+            try (NBTInputStream stream = NbtUtils.createReaderLE(new ByteArrayInputStream(nbtBytes))) {
+                tag = (NbtMap) stream.readTag();
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to decode tag", e);
+            }
+        } else {
+            tag = NbtMap.EMPTY;
+        }
+
+        Identifier id;
+        if (data.containsKey("id")) {
+
+            try {
+                id = registry.fromLegacy(Utils.toInt(data.get("id")), Utils.toInt(data.getOrDefault("damage", 0)));  //try prior format first
+            } catch (NumberFormatException | ClassCastException e) {
+                id = Identifier.fromString(data.get("id").toString());
+            }
+        } else {
+            id = registry.fromLegacy(Utils.toInt(data.get("legacyId")), Utils.toInt(data.getOrDefault("damage", 0)));
+        }
+
+        if (id == null) {
+            throw new IllegalStateException("Unable to decode item JSON");
+        }
+        int blockRuntimeId = -1;
+        if (data.containsKey("blockRuntimeId")) {
+            blockRuntimeId = Utils.toInt(data.get("blockRuntimeId"));
+        }
+
+        return deserializeItem(id, (short) Utils.toInt(data.getOrDefault("damage", 0)), Utils.toInt(data.getOrDefault("count", 1)), tag/*, blockRuntimeId*/);
+    }
 
     // -- Used by recipes and crafting
     public static int getItemHash(ItemStack item) {
