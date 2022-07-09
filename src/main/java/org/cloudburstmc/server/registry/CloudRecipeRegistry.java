@@ -210,7 +210,6 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                     for (Map.Entry<String, Map<String, Object>> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("input"), new TypeReference<Map<String, Map<String, Object>>>() {
                     }).entrySet()) {
                         ingredients.put(item.getKey().charAt(0), ItemUtils.fromJson(item.getValue()));
-
                     }
                     this.register(new ShapedRecipe(id, recipe.get("priority").asInt(), primary, shape, ingredients, outputs, block));
                     break;
@@ -256,6 +255,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
             this.register(new ContainerRecipe(id, input, reagent, output));
         }
 
+        rebuildPacket();
         log.info("Loaded {} recipes.", recipeMap.size());
     }
 

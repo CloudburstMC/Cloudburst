@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.serializer;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
@@ -11,6 +11,7 @@ import org.cloudburstmc.api.util.data.DyeColor;
 
 import java.util.Map;
 
+@Log4j2
 public class BannerSerializer extends DefaultItemSerializer {
 
     private static final Map<Class<?>, Object> DEFAULT_VALUES;
@@ -28,11 +29,10 @@ public class BannerSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void deserialize(Identifier id, ItemStackBuilder builder, NbtMap tag) {
-        //TODO ???
-//        nbtBuilder.putCompound("tag", tagBuilder.putInt("Base", meta).build());
+    public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
+        builder.data(ItemKeys.COLOR, DyeColor.getByWoolData(meta));
 
-        super.deserialize(id, builder, tag);
+        super.deserialize(id, meta, builder, tag);
     }
 
     @Override

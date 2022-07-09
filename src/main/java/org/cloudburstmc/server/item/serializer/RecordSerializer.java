@@ -25,55 +25,29 @@ public class RecordSerializer extends DefaultItemSerializer {
         Identifier id;
         Record value = item.get(ItemKeys.RECORD_TYPE);
 
-        switch (value) {
-            default:
-            case CAT:
-                id = ItemIds.RECORD_CAT;
-                break;
-            case FAR:
-                id = ItemIds.RECORD_FAR;
-                break;
-            case MALL:
-                id = ItemIds.RECORD_MALL;
-                break;
-            case STAL:
-                id = ItemIds.RECORD_STAL;
-                break;
-            case WAIT:
-                id = ItemIds.RECORD_WAIT;
-                break;
-            case WARD:
-                id = ItemIds.RECORD_WARD;
-                break;
-            case CHIRP:
-                id = ItemIds.RECORD_CHIRP;
-                break;
-            case STRAD:
-                id = ItemIds.RECORD_STRAD;
-                break;
-            case BLOCKS:
-                id = ItemIds.RECORD_BLOCKS;
-                break;
-            case ELEVEN:
-                id = ItemIds.RECORD_11;
-                break;
-            case MELLOHI:
-                id = ItemIds.RECORD_MELLOHI;
-                break;
-            case THIRTEEN:
-                id = ItemIds.RECORD_13;
-                break;
-            case PIGSTEP:
-                id = ItemIds.RECORD_PIGSTEP;
-                break;
-        }
+        id = switch (value) {
+            case FAR -> ItemIds.RECORD_FAR;
+            case MALL -> ItemIds.RECORD_MALL;
+            case STAL -> ItemIds.RECORD_STAL;
+            case WAIT -> ItemIds.RECORD_WAIT;
+            case WARD -> ItemIds.RECORD_WARD;
+            case CHIRP -> ItemIds.RECORD_CHIRP;
+            case STRAD -> ItemIds.RECORD_STRAD;
+            case BLOCKS -> ItemIds.RECORD_BLOCKS;
+            case ELEVEN -> ItemIds.RECORD_11;
+            case MELLOHI -> ItemIds.RECORD_MELLOHI;
+            case THIRTEEN -> ItemIds.RECORD_13;
+            case PIGSTEP -> ItemIds.RECORD_PIGSTEP;
+            case FIVE -> ItemIds.RECORD_5;
+            default -> ItemIds.RECORD_CAT;
+        };
 
         itemTag.putString(NAME_TAG, id.toString());
     }
 
     @Override
-    public void deserialize(Identifier id, ItemStackBuilder builder, NbtMap tag) {
-        super.deserialize(id, builder, tag);
+    public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
+        super.deserialize(id, meta, builder, tag);
         if (id == ItemIds.RECORD_13) {
             builder.data(ItemKeys.RECORD_TYPE, Record.THIRTEEN);
             return;
@@ -137,6 +111,10 @@ public class RecordSerializer extends DefaultItemSerializer {
         if (id == ItemIds.RECORD_PIGSTEP) {
             builder.data(ItemKeys.RECORD_TYPE, Record.PIGSTEP);
             return;
+        }
+
+        if (id == ItemIds.RECORD_5) {
+            builder.data(ItemKeys.RECORD_TYPE, Record.FIVE);
         }
 
         builder.data(ItemKeys.RECORD_TYPE, Record.THIRTEEN);

@@ -56,6 +56,8 @@ public class BlockPalette {
     private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, BlockState> identifier2stateMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<BlockState, Identifier> state2identifierMap = new Reference2ReferenceOpenHashMap<>();
+
+    private final Reference2ObjectMap<BlockType, ReferenceSet<Identifier>> type2identifierMap = new Reference2ObjectOpenHashMap<>();
     private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
     private final SortedMap<String, Set<NbtMap>> sortedPalette = new Object2ReferenceRBTreeMap<>();
     //private final Reference2ReferenceMap<Identifier, BlockState> stateMap = new Reference2ReferenceOpenHashMap<>();
@@ -67,6 +69,7 @@ public class BlockPalette {
 
         this.defaultStateMap.put(type.getId(), type.getDefaultState());
 
+        var typeIdentifiers = new ReferenceOpenHashSet<Identifier>();
         type.getStates().forEach(state -> {
             List<NbtMap> tags = (List<NbtMap>) serialize(type, serializer, state.getTraits());
             for (NbtMap nbt : tags) {
@@ -99,9 +102,12 @@ public class BlockPalette {
                 state2identifierMap.putIfAbsent(state, id);
                 stateSerializedMap.put(state, nbt);
                 serializedStateMap.put(nbt, state);
+
+                typeIdentifiers.add(id);
             }
         });
 
+        type2identifierMap.put(type, typeIdentifiers);
     }
 
     public void generateRuntimeIds() {
@@ -145,6 +151,16 @@ public class BlockPalette {
 
     public BlockType getType(Identifier id) {
         return typeMap.get(id);
+    }
+
+    public Set<Identifier> getTypeIdentifiers(BlockType type) {
+        var identifiers = type2identifierMap.get(type);
+
+        if (identifiers == null) {
+            return Collections.emptySet();
+        }
+
+        return identifiers;
     }
 
     public BlockState getState(Identifier id) {

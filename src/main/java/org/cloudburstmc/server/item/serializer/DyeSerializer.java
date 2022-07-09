@@ -41,7 +41,6 @@ public class DyeSerializer extends DefaultItemSerializer {
             case LIGHT_BLUE -> ItemIds.LIGHT_BLUE_DYE;
             case MAGENTA -> ItemIds.MAGENTA_DYE;
             case ORANGE -> ItemIds.ORANGE_DYE;
-            case WHITE -> ItemIds.BONE_MEAL;
             default -> ItemIds.BONE_MEAL;
         };
 
@@ -49,8 +48,8 @@ public class DyeSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void deserialize(Identifier id, ItemStackBuilder builder, NbtMap tag) {
-        super.deserialize(id, builder, tag);
+    public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
+        super.deserialize(id, meta, builder, tag);
 
         if (id == ItemIds.INK_SAC || id == ItemIds.BLACK_DYE) {
             builder.data(ItemKeys.COLOR, DyeColor.BLACK);
