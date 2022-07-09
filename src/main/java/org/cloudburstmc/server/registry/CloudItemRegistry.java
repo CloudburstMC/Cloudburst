@@ -12,20 +12,16 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.data.BehaviorKey;
-import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.behavior.ItemBehavior;
-import org.cloudburstmc.api.item.data.BannerData;
-import org.cloudburstmc.api.item.data.Damageable;
-import org.cloudburstmc.api.item.data.MapItem;
-import org.cloudburstmc.api.item.data.WrittenBook;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.behavior.Behavior;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
-import org.cloudburstmc.api.util.data.FireworkData;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.serializer.*;
@@ -45,7 +41,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
-    private final Reference2ObjectMap<Class<?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
+    private final Reference2ObjectMap<DataKey<?, ?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
     private int hardcodedBlockingId;
     private final ItemPalette itemPalette = new ItemPalette(this);
 
@@ -73,10 +69,10 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         return INSTANCE;
     }
 
-    public synchronized <T> void registerDataSerializer(Class<T> metadataClass, ItemDataSerializer<T> serializer) {
-        Preconditions.checkNotNull(metadataClass, "metadataClass");
+    public synchronized <T> void registerDataSerializer(DataKey<T, T> dataKey, ItemDataSerializer<T> serializer) {
+        Preconditions.checkNotNull(dataKey, "dataKey");
         Preconditions.checkNotNull(serializer, "serializer");
-        this.dataSerializers.put(metadataClass, serializer);
+        this.dataSerializers.put(dataKey, serializer);
     }
 
     @Override
@@ -156,8 +152,9 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         return serializers.getOrDefault(type, DefaultItemSerializer.INSTANCE);
     }
 
-    public ItemDataSerializer<?> getSerializer(Class<?> metaClass) {
-        return dataSerializers.get(metaClass);
+    public <T> ItemDataSerializer<T> getSerializer(DataKey<T, T> dataKey) {
+        //noinspection unchecked
+        return (ItemDataSerializer<T>) dataSerializers.get(dataKey);
     }
 
     public ItemType getType(Identifier id) {
@@ -212,12 +209,13 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
 
     @Override
     public ItemType getType(Identifier runtimeId, int data) {
+        var blockType = BlockPalette.INSTANCE.getType(runtimeId);
+
+        if (blockType != null) {
+            return blockType;
+        }
+
         return typeMap.getOrDefault(runtimeId, BlockTypes.AIR);
-//
-//        log.info(runtimeId);
-//        log.info(typeMap.get(runtimeId));
-//        return getType(runtimeId);
-////        return null;
     }
 
     @Override
@@ -546,6 +544,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WARD);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_11);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WAIT);
+        registerType(ItemTypes.RECORD, ItemIds.RECORD_5);
 
         registerType(ItemTypes.COAL, ItemIds.CHARCOAL);
 
@@ -664,12 +663,13 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     }
 
     private void registerVanillaDataSerializers() {
-        this.registerDataSerializer(BannerData.class, new BannerDataSerializer());
-        this.registerDataSerializer(Damageable.class, new DamageableSerializer());
-        this.registerDataSerializer(FireworkData.class, new FireworkSerializer());
-        this.registerDataSerializer(MapItem.class, new MapSerializer());
-        this.registerDataSerializer(WrittenBook.class, new WrittenBookSerializer());
-        this.registerDataSerializer(EntityType.class, new EntityTypeSerializer());
+        this.registerDataSerializer(ItemKeys.BANNER_DATA, new BannerDataSerializer());
+        this.registerDataSerializer(ItemKeys.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));
+        this.registerDataSerializer(ItemKeys.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));
+        this.registerDataSerializer(ItemKeys.FIREWORK_DATA, new FireworkSerializer());
+        this.registerDataSerializer(ItemKeys.MAP_DATA, new MapSerializer());
+        this.registerDataSerializer(ItemKeys.BOOK_DATA, new WrittenBookSerializer());
+//        this.registerDataSerializer(EntityType.class, new EntityTypeSerializer());
     }
 
     private void registerVanillaBehaviors() {

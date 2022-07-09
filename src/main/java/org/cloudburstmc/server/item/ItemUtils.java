@@ -62,9 +62,14 @@ public class ItemUtils {
             nbtTag.put("Block", blockTag.build());
         }
 
-        // FIXME: Blocks can be mapped to multiple identifiers.
         if (item.get(ItemKeys.CAN_DESTROY) != null) {
-            List<String> blocks = item.get(ItemKeys.CAN_DESTROY).stream().map(blockType -> blockType.getId().toString()).toList();
+            List<String> blocks = item.get(ItemKeys.CAN_DESTROY)
+                    .stream()
+                    .map(BlockPalette.INSTANCE::getTypeIdentifiers)
+                    .flatMap(Collection::stream)
+                    .map(Identifier::toString)
+                    .toList();
+
             nbtTag.putList("CanDestroy", NbtType.STRING, blocks);
         }
 
@@ -129,21 +134,22 @@ public class ItemUtils {
 
     public static ItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag) {
         ItemStackBuilder builder = ItemStack.builder();
-        if(amount > 0) {
+        if (amount > 0) {
             ItemType type = CloudItemRegistry.get().getType(id, damage);
+
 //            log.info(id + " - " + damage + " > " + type + " - " + type.getId());
             builder.itemType(type);
             builder.amount(amount);
 
-            if(type instanceof BlockType) {
+            if (type instanceof BlockType) {
                 BlockState blockState = BlockStateMetaMappings.getStateFromMeta(id, damage);
 
-                if(blockState != null) {
+                if (blockState != null) {
                     builder.data(ItemKeys.BLOCK_STATE, blockState);
                 }
             }
 
-            registry.getSerializer(type).deserialize(id, builder, tag);
+            registry.getSerializer(type).deserialize(id, damage, builder, tag);
         } else {
             builder.itemType(BlockTypes.AIR);
         }
@@ -276,12 +282,12 @@ public class ItemUtils {
 
         Identifier id;
         if (data.containsKey("id")) {
-
-            try {
-                id = registry.fromLegacy(Utils.toInt(data.get("id")), Utils.toInt(data.getOrDefault("damage", 0)));  //try prior format first
-            } catch (NumberFormatException | ClassCastException e) {
-                id = Identifier.fromString(data.get("id").toString());
-            }
+//            try {
+//                id = registry.fromLegacy(Utils.toInt(data.get("id")), Utils.toInt(data.getOrDefault("damage", 0)));  //try prior format first
+//            } catch (NumberFormatException | ClassCastException e) {
+//                id = Identifier.fromString(data.get("id").toString());
+//            }
+            id = Identifier.fromString(data.get("id").toString());
         } else {
             id = registry.fromLegacy(Utils.toInt(data.get("legacyId")), Utils.toInt(data.getOrDefault("damage", 0)));
         }

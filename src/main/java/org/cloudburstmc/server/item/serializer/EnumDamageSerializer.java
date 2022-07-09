@@ -3,6 +3,7 @@ package org.cloudburstmc.server.item.serializer;
 import com.google.common.base.Preconditions;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
@@ -11,14 +12,17 @@ import org.cloudburstmc.api.util.data.DyeColor;
 
 import java.util.Map;
 
-public class EnumDamageSerializer extends DefaultItemSerializer {
+public class EnumDamageSerializer<T extends Enum<T>> extends DefaultItemSerializer {
 
-    public static final EnumDamageSerializer DYE_COLOR = new EnumDamageSerializer(DyeColor.class);
+    public static final EnumDamageSerializer<DyeColor> DYE_COLOR = new EnumDamageSerializer<>(ItemKeys.COLOR, DyeColor.class);
 
-    private final Class<? extends Enum<?>> enumClass;
-    private final Enum<?>[] values;
+    private final DataKey<T, T> dataKey;
 
-    public EnumDamageSerializer(Class<? extends Enum<?>> enumClass) {
+    private final Class<T> enumClass;
+    private final T[] values;
+
+    public EnumDamageSerializer(DataKey<T, T> dataKey, Class<T> enumClass) {
+        this.dataKey = dataKey;
         this.enumClass = enumClass;
         this.values = enumClass.getEnumConstants();
 
@@ -28,16 +32,16 @@ public class EnumDamageSerializer extends DefaultItemSerializer {
     @Override
     public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
-        //TODO sometime
-//        var val = item.get(ItemKeys.COLOR);
-//        itemTag.
-//        itemTag.putShort("Damage", (short) (val == null ? 0 : val));
+
+        var val = item.get(this.dataKey);
+        itemTag.putShort("Damage", (short) (val == null ? 0 : val.ordinal()));
     }
 
     @Override
-    public void deserialize(Identifier id, ItemStackBuilder builder, NbtMap tag) {
-        super.deserialize(id, builder, tag);
-//        builder.data(ItemKeys.COLOR, values[meta % values.length]);
+    public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
+        super.deserialize(id, meta, builder, tag);
+
+        builder.data(this.dataKey, values[meta % values.length]);
     }
 
     @Override
