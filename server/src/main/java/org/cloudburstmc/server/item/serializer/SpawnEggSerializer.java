@@ -160,8 +160,8 @@ public class SpawnEggSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void deserialize(Identifier id, ItemStackBuilder builder, NbtMap tag) {
-        super.deserialize(id, builder, tag);
+    public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
+        super.deserialize(id, meta, builder, tag);
     }
 
     @Override

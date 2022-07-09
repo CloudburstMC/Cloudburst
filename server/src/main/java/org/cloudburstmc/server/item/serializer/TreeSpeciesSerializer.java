@@ -49,8 +49,8 @@ public class TreeSpeciesSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void deserialize(Identifier id, ItemStackBuilder builder, NbtMap tag) {
-        super.deserialize(id, builder, tag);
+    public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
+        super.deserialize(id, meta, builder, tag);
         builder.data(ItemKeys.TREE_SPECIES, dataMap.getOrDefault(id, TreeSpecies.OAK));
     }
 
