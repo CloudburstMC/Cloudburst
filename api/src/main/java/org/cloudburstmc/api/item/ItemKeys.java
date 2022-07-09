@@ -1,6 +1,5 @@
 package org.cloudburstmc.api.item;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.data.DataKey;
@@ -10,10 +9,8 @@ import org.cloudburstmc.api.data.SimpleDataKey;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.item.data.Bucket;
-import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.item.data.Record;
-import org.cloudburstmc.api.item.data.WrittenBook;
+import org.cloudburstmc.api.item.data.*;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.api.util.data.FireworkData;
@@ -50,8 +47,10 @@ public final class ItemKeys {
     public static final SimpleDataKey<EntityType<?>> SPAWN_EGG_TYPE = DataKey.simple(Identifier.fromString("spawn_egg_type"), EntityType.class);
 
     public static final SimpleDataKey<TreeSpecies> TREE_SPECIES = DataKey.simple(Identifier.fromString("tree_species"), TreeSpecies.class);
-    
+
     public static final SimpleDataKey<WrittenBook> BOOK_DATA = DataKey.simple(Identifier.fromString("book_data"), WrittenBook.class);
 
     public static final SimpleDataKey<MapItem> MAP_DATA = DataKey.simple(Identifier.fromString("map_data"), MapItem.class);
+
+    public static final SimpleDataKey<BannerData> BANNER_DATA = DataKey.simple(Identifier.fromString("banner_data"), BannerData.class);
 }
