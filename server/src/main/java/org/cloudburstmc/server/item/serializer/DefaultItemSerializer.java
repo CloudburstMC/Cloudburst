@@ -4,28 +4,18 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
-import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.NonSerializable;
-import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Log4j2
 public class DefaultItemSerializer implements ItemSerializer {
@@ -73,14 +63,14 @@ public class DefaultItemSerializer implements ItemSerializer {
     }
 
     @Override
-    public void deserialize(Identifier id, ItemStackBuilder builder, NbtMap tag) {
+    public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
         if (tag.isEmpty()) {
             return;
         }
 
         if (tag.containsKey("display", NbtType.COMPOUND)) {
             NbtMap display = tag.getCompound("display");
-            if(display.containsKey("Name", NbtType.STRING)) {
+            if (display.containsKey("Name", NbtType.STRING)) {
                 builder.data(ItemKeys.CUSTOM_NAME, display.getString("Name"));
             }
 
