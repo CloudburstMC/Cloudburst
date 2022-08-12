@@ -42,4 +42,9 @@ public final class ListDataKey<T> implements DataKey<List<T>, List<T>> {
     public Function<List<T>, List<T>> getMutableFunction() {
         return ArrayList::new;
     }
+
+    @Override
+    public List<T> getDefaultValue() {
+        return ImmutableList.of();
+    }
 }
