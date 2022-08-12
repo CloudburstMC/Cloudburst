@@ -6,6 +6,7 @@ import com.dosse.upnp.UPnP;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Stage;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
@@ -13,6 +14,7 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.spotify.futures.CompletableFutures;
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.api.Server;
@@ -220,6 +222,9 @@ public class CloudServer implements Server {
 
     private final Set<String> ignoredPackets = new HashSet<>();
 
+    @Getter
+    private final Injector injector;
+
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.dat$", Pattern.CASE_INSENSITIVE);
 
     public CloudServer(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
@@ -227,7 +232,7 @@ public class CloudServer implements Server {
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
 
-        var injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
+        this.injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
 
         this.filePath = Bootstrap.PATH;
         this.dataPath = dataPath;

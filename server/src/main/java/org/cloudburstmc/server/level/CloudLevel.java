@@ -56,8 +56,6 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.api.registry.BlockRegistry;
-import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
@@ -226,11 +224,12 @@ public class CloudLevel implements Level {
     private Generator generator;
 
     @Inject
-    BlockRegistry blockRegistry;
+    CloudBlockRegistry blockRegistry;
 
     @Inject
-    ItemRegistry itemRegistry;
+    CloudItemRegistry itemRegistry;
 
+    @Inject
     CloudLevel(CloudServer server, String id, LevelProvider levelProvider, LevelData levelData) {
         this.id = id;
         //this.blockMetadata = new BlockMetadataStore(this);

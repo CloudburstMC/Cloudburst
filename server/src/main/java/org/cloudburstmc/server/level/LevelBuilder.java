@@ -2,9 +2,11 @@ package org.cloudburstmc.server.level;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.inject.Injector;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.inject.LevelModule;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.LevelProviderFactory;
 import org.cloudburstmc.server.registry.StorageRegistry;
@@ -95,7 +97,8 @@ public class LevelBuilder {
 
         // Combine futures
         return providerFuture.thenApply(levelProvider -> {
-            CloudLevel level = new CloudLevel(this.server, id, levelProvider, levelData);
+            Injector injector = server.getInjector().createChildInjector(new LevelModule(id, levelProvider, levelData));
+            CloudLevel level = injector.getInstance(CloudLevel.class);
             this.server.getLevelManager().register(level);
             level.init();
             level.setTickRate(this.server.getBaseTickRate());
