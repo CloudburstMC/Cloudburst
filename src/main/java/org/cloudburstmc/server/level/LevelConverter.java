@@ -1,7 +1,9 @@
 package org.cloudburstmc.server.level;
 
+import com.google.inject.Injector;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.inject.LevelModule;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.generator.impl.VoidGenerator;
 import org.cloudburstmc.server.level.provider.LevelProvider;
@@ -23,7 +25,9 @@ public class LevelConverter {
         data.setName("converting");
         data.setGenerator(VoidGenerator.ID);
         data.setRandomSeed(0L);
-        this.fakeLevel = new CloudLevel(CloudServer.getInstance(), "converting", newLevelProvider, data);
+        Injector injector = CloudServer.getInstance().getInjector()
+                .createChildInjector(new LevelModule("converting", newLevelProvider, data));
+        this.fakeLevel = injector.getInstance(CloudLevel.class);
     }
 
     public CompletableFuture<Void> perform() {
