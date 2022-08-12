@@ -5,6 +5,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
+import com.nukkitx.protocol.bedrock.data.GameType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
@@ -254,14 +255,16 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setUsername(this.getName());
         packet.setUniqueEntityId(this.getUniqueId());
         packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.setPlatformChatId("");
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(ItemUtils.toNetwork(this.getInventory().getItemInHand()));
-        packet.setPlatformChatId("");
-        packet.setDeviceId("");
+        packet.setHand(this.getInventory().getItemInHand().getNetworkData());
         packet.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
         packet.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
+        packet.setDeviceId("");
+        packet.setGameType(GameType.SURVIVAL); // TODO
+        // TODO: Set ability layers
         this.getData().putAllIn(packet.getMetadata());
         return packet;
     }

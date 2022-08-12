@@ -646,6 +646,7 @@ public abstract class BaseEntity implements Entity {
         addEntity.setPosition(this.getPosition());
         addEntity.setRotation(Vector3f.from(this.pitch, this.yaw, this.yaw));
         addEntity.setMotion(this.getMotion());
+        addEntity.setBodyRotation(this.yaw);
         this.data.putAllIn(addEntity.getMetadata());
 
         for (int i = 0; i < this.passengers.size(); i++) {
