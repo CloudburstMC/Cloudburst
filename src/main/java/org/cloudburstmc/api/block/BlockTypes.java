@@ -339,7 +339,7 @@ public class BlockTypes {
     public static final BlockType OCHRE_FROGLIGHT = BlockType.of(BlockIds.OCHRE_FROGLIGHT, BlockTraits.AXIS);
     public static final BlockType MANGROVE_PROPAGULE = BlockType.of(BlockIds.MANGROVE_PROPAGULE, BlockTraits.IS_HANGING, BlockTraits.PROPAGULE_STAGE);
     public static final BlockType MANGROVE_ROOTS = BlockType.of(BlockIds.MANGROVE_ROOTS);
-    public static final BlockType MUDDY_MANGROVE_ROOTS = BlockType.of(BlockIds.MUDDY_MANGROVE_ROOTS);
+    public static final BlockType MUDDY_MANGROVE_ROOTS = BlockType.of(BlockIds.MUDDY_MANGROVE_ROOTS, BlockTraits.AXIS);
     public static final BlockType STRIPPED_MANGROVE_WOOD = BlockType.of(BlockIds.STRIPPED_MANGROVE_WOOD, BlockTraits.AXIS); //TODO: check
     public static final BlockType MUD = BlockType.of(BlockIds.MUD);
     public static final BlockType MUD_BRICK_DOUBLE_SLAB = BlockType.of(BlockIds.MUD_BRICK_DOUBLE_SLAB, BlockTraits.IS_TOP_SLOT);
