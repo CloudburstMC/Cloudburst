@@ -6,6 +6,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NBTInputStream;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
@@ -183,6 +184,9 @@ public class ItemPalette {
 
                 if (item.has("block_state_b64")) {
                     NbtMap blockState = decodeNbt(item.get("block_state_b64").asText());
+                    NbtMapBuilder builder = blockState.toBuilder();
+                    builder.remove("name_hash");
+                    blockState = builder.build();
 
                     BlockState state = CloudBlockRegistry.REGISTRY.getBlock(blockState);
                     if (state != null) {
