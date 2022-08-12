@@ -31,15 +31,15 @@ public class CloudburstPrivateModule extends PrivateModule {
         this.bindAndExpose(ConsoleCommandSender.class);
 //        this.bindAndExpose(ServerScheduler.class);
 
-        this.bind(BiomeRegistry.class).toInstance(BiomeRegistry.get());
-        this.bind(BlockEntityRegistry.class).toInstance(BlockEntityRegistry.get());
-        this.bind(CloudBlockRegistry.class).toInstance(CloudBlockRegistry.REGISTRY);
-        this.bind(CommandRegistry.class).toInstance(CommandRegistry.get());
-        this.bind(EntityRegistry.class).toInstance(EntityRegistry.get());
-        this.bind(CloudGameRuleRegistry.class).toInstance(CloudGameRuleRegistry.get());
-        this.bind(GeneratorRegistry.class).toInstance(GeneratorRegistry.get());
-        this.bind(CloudItemRegistry.class).toInstance(CloudItemRegistry.get());
-        this.bind(StorageRegistry.class).toInstance(StorageRegistry.get());
+        this.bindAndExpose(BiomeRegistry.class).toInstance(BiomeRegistry.get());
+        this.bindAndExpose(BlockEntityRegistry.class).toInstance(BlockEntityRegistry.get());
+        this.bindAndExpose(CloudBlockRegistry.class).toInstance(CloudBlockRegistry.REGISTRY);
+        this.bindAndExpose(CommandRegistry.class).toInstance(CommandRegistry.get());
+        this.bindAndExpose(EntityRegistry.class).toInstance(EntityRegistry.get());
+        this.bindAndExpose(CloudGameRuleRegistry.class).toInstance(CloudGameRuleRegistry.get());
+        this.bindAndExpose(GeneratorRegistry.class).toInstance(GeneratorRegistry.get());
+        this.bindAndExpose(CloudItemRegistry.class).toInstance(CloudItemRegistry.get());
+        this.bindAndExpose(StorageRegistry.class).toInstance(StorageRegistry.get());
     }
 
     private <T> AnnotatedBindingBuilder<T> bindAndExpose(final Class<T> type) {
