@@ -44,4 +44,9 @@ public final class MapDataKey<K, V> implements DataKey<Map<K, V>, Map<K, V>> {
     public Function<Map<K, V>, Map<K, V>> getMutableFunction() {
         return HashMap::new;
     }
+
+    @Override
+    public Map<K, V> getDefaultValue() {
+        return ImmutableMap.of();
+    }
 }

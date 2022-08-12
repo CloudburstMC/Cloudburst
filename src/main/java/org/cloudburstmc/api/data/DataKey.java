@@ -49,4 +49,8 @@ public sealed interface DataKey<T, M> permits BehaviorKey, ListDataKey, SimpleDa
     Function<M, T> getImmutableFunction();
 
     Function<T, M> getMutableFunction();
+
+    default T getDefaultValue() {
+        return null;
+    }
 }

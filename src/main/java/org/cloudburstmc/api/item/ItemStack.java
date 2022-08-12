@@ -105,7 +105,9 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T get(DataKey<T, ?> key) {
-        return (T) metadata.get(key);
+        checkNotNull(key, "key");
+        Object data = metadata.get(key);
+        return data == null ? key.getDefaultValue() : (T) data;
     }
 
     public Optional<BlockState> getBlockState() {
