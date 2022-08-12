@@ -230,7 +230,13 @@ public class CloudLevel implements Level {
     CloudItemRegistry itemRegistry;
 
     @Inject
-    CloudLevel(CloudServer server, String id, LevelProvider levelProvider, LevelData levelData) {
+    EntityRegistry entityRegistry;
+
+    @Inject
+    GeneratorRegistry generatorRegistry;
+
+    @Inject
+    CloudLevel(CloudServer server, String id, LevelProvider levelProvider, LevelData levelData, GeneratorRegistry generatorRegistry) {
         this.id = id;
         //this.blockMetadata = new BlockMetadataStore(this);
         this.server = server;
@@ -271,7 +277,7 @@ public class CloudLevel implements Level {
         log.info(this.server.getLanguage().translate("cloudburst.level.preparing",
                 TextFormat.GREEN + getId() + TextFormat.WHITE));
 
-        this.generator = GeneratorRegistry.get().getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
+        this.generator = generatorRegistry.getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
 
         if (this.levelData.getRainTime() <= 0) {
             setRainTime(ThreadLocalRandom.current().nextInt(168000) + 12000);
@@ -295,7 +301,7 @@ public class CloudLevel implements Level {
     }
 
     public void reloadGenerator() {
-        this.generator = GeneratorRegistry.get().getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
+        this.generator = this.generatorRegistry.getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
     }
 
     public int getTickRate() {
@@ -749,7 +755,7 @@ public class CloudLevel implements Level {
                 vector = vector.add(0, 1, 0);
 
             Location location = Location.from(vector, this);
-            LightningBolt bolt = EntityRegistry.get().newEntity(EntityTypes.LIGHTNING_BOLT, location);
+            LightningBolt bolt = this.entityRegistry.newEntity(EntityTypes.LIGHTNING_BOLT, location);
             bolt.setPosition(vector);
             LightningStrikeEvent ev = new LightningStrikeEvent(this, bolt);
             getServer().getEventManager().fire(ev);
@@ -1547,7 +1553,7 @@ public class CloudLevel implements Level {
         }
 
 
-        DroppedItem droppedItem = EntityRegistry.get().newEntity(EntityTypes.ITEM, Location.from(source, this));
+        DroppedItem droppedItem = this.entityRegistry.newEntity(EntityTypes.ITEM, Location.from(source, this));
         droppedItem.setPosition(source);
         droppedItem.setMotion(motion);
         droppedItem.setHealth(5);
@@ -1703,8 +1709,7 @@ public class CloudLevel implements Level {
 
         BehaviorCollection itemBehaviors = this.itemRegistry.getBehaviors(item.getType());
         itemBehaviors.get(USE_ON).execute(item, player, target.getPosition(), null, null);
-//        itemBehaviors.useOn(item, target.getState());
-        if (CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
+        if (itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
             item = ItemStack.AIR;
         }
 
@@ -1740,7 +1745,7 @@ public class CloudLevel implements Level {
     public void dropExpOrb(Vector3f source, int exp, Vector3f motion, int delay) {
         Random rand = ThreadLocalRandom.current();
         for (int split : ExperienceOrb.splitIntoOrbSizes(exp)) {
-            ExperienceOrb experienceOrb = EntityRegistry.get().newEntity(EntityTypes.XP_ORB, Location.from(source, this));
+            ExperienceOrb experienceOrb = this.entityRegistry.newEntity(EntityTypes.XP_ORB, Location.from(source, this));
             experienceOrb.setPickupDelay(delay);
             experienceOrb.setExperience(split);
             experienceOrb.setRotation(rand.nextFloat() * 360f, 0);
@@ -1794,7 +1799,7 @@ public class CloudLevel implements Level {
                 targetBehaviors.get(ON_TICK).execute(target, new Random());
 
                 if ((!player.isSneaking() || player.getInventory().getItemInHand() == ItemStack.AIR) && targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, player, face)) { //TODO: update the item from the behavior
-                    if (CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
+                    if (this.itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
                         item = ItemStack.AIR;
                     }
                     return item;
@@ -1815,7 +1820,7 @@ public class CloudLevel implements Level {
                 return null;
             }
         } else if (targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, null, face)) {
-            if (CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
+            if (this.itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
                 item = ItemStack.AIR; //TODO: update the item from the behavior
             }
             return item;
