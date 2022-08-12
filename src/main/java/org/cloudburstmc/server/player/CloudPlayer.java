@@ -1546,7 +1546,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setPlayerGameType(GameType.from(this.getGamemode().getVanillaId()));
         startGamePacket.setPlayerPosition(pos);
         startGamePacket.setRotation(Vector2f.from(this.getYaw(), this.getPitch()));
-        startGamePacket.setSeed(-1);
+        startGamePacket.setSeed(-1L);
         startGamePacket.setDimensionId(0);
         startGamePacket.setTrustingPlayers(false);
         startGamePacket.setLevelGameType(GameType.from(this.getGamemode().getVanillaId()));
@@ -1579,8 +1579,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setPlayerMovementSettings(settings);
         startGamePacket.setServerEngine("");
         startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
-        //TODO Add the correct UUID if it's necessary
         startGamePacket.setWorldTemplateId(new UUID(0, 0));
+        startGamePacket.setWorldEditor(false);
+        startGamePacket.setChatRestrictionLevel(ChatRestrictionLevel.NONE);
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();

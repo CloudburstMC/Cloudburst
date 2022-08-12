@@ -131,7 +131,9 @@ public class BlockPalette {
         }
 
         for (int i = 0; i < vanillaPalette.size(); i++) {
-            NbtMap nbt = vanillaPalette.get(i);
+            NbtMapBuilder builder = vanillaPalette.get(i).toBuilder();
+            builder.remove("name_hash"); // Temporary workaround - Added in 1.19.20
+            NbtMap nbt = builder.build();
 
             BlockState state = serializedStateMap.get(nbt);
 
