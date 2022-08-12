@@ -16,9 +16,6 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.cloudburstmc.api.enchantment.Enchantment;
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
-import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
@@ -38,7 +35,6 @@ import org.cloudburstmc.server.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -259,7 +255,7 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(this.getInventory().getItemInHand().getNetworkData());
+        packet.setHand(ItemUtils.toNetwork(this.getInventory().getItemInHand()));
         packet.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
         packet.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         packet.setDeviceId("");
