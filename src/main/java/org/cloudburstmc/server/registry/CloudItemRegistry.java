@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.data.DataKey;
@@ -25,6 +26,7 @@ import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
+import org.cloudburstmc.server.registry.behavior.CloudBehaviorCollection;
 import org.cloudburstmc.server.registry.behavior.proxy.BehaviorProxies;
 
 import java.lang.reflect.InvocationTargetException;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
 public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry, Registry {
     private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(); // Needs to be initialized afterwards
 
+    private final Reference2ReferenceMap<ItemType, BehaviorCollection> behaviorMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<DataKey<?, ?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
@@ -93,8 +96,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
 
     @Override
     public BehaviorCollection getBehaviors(ItemType type) {
-        //TODO Implementation
-        return null;
+        return behaviorMap.get(type);
     }
 
     @Override
@@ -112,7 +114,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         Objects.requireNonNull(behavior, "behavior");
         checkClosed();
 
-        if (identifiers == null || identifiers.length <= 0) {
+        if (identifiers == null || identifiers.length == 0) {
             identifiers = new Identifier[]{type.getId()};
         }
 
@@ -151,7 +153,31 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
             this.serializers.put(type, serializer);
         }
 
+        CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
+//        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
+
+        collection.bake();
+
+        synchronized (this.behaviorMap) {
+            if (this.behaviorMap.putIfAbsent(type, collection) != null) {
+                throw new RegistryException(type + " is already registered");
+            }
+        }
+
         this.registerType(type, type.getId());
+    }
+
+    protected void registerBlock(BlockType type) {
+        CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
+//        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
+
+        collection.bake();
+
+        synchronized (this.behaviorMap) {
+            if (this.behaviorMap.putIfAbsent(type, collection) != null) {
+                throw new RegistryException(type + " is already registered");
+            }
+        }
     }
 
     public ItemSerializer getSerializer(ItemType type) {
