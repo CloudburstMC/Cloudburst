@@ -100,13 +100,16 @@ public class BehaviorProxies {
             mv.visitCode();
             Label label0 = new Label();
             mv.visitLabel(label0);
-            mv.visitLineNumber(8, label0);
+            mv.visitLineNumber(9, label0);
             mv.visitVarInsn(ALOAD, 0);
             mv.visitMethodInsn(INVOKESPECIAL, TYPE_OBJECT.getInternalName(), "<init>", "()V", false);
-            mv.visitInsn(RETURN);
             Label label1 = new Label();
             mv.visitLabel(label1);
-            mv.visitLocalVariable("this", proxyType.getDescriptor(), null, label0, label1, 0);
+            mv.visitLineNumber(10, label1);
+            mv.visitInsn(RETURN);
+            Label label2 = new Label();
+            mv.visitLabel(label2);
+            mv.visitLocalVariable("this", proxyType.getDescriptor(), null, label0, label2, 0);
             mv.visitMaxs(1, 1);
             mv.visitEnd();
         }
@@ -119,10 +122,10 @@ public class BehaviorProxies {
             mv.visitCode();
             Label label0 = new Label();
             mv.visitLabel(label0);
-            mv.visitLineNumber(11, label0);
+            mv.visitLineNumber(13, label0);
             mv.visitVarInsn(ALOAD, 2);
             mv.visitVarInsn(ALOAD, 1);
-            mv.visitInvokeDynamicInsn(behaviorAsmMethod.getName(), Type.getMethodType(executorType, behaviorType, TYPE_CONTEXT).getDescriptor(),
+            mv.visitInvokeDynamicInsn(executorAsmMethod.getName(), Type.getMethodType(executorType, behaviorType, TYPE_CONTEXT).getDescriptor(),
                     new Handle(
                             H_INVOKESTATIC,
                             TYPE_LAMBDA_METAFACTORY.getInternalName(),
@@ -155,7 +158,7 @@ public class BehaviorProxies {
             mv.visitCode();
             Label label0 = new Label();
             mv.visitLabel(label0);
-            mv.visitLineNumber(8, label0);
+            mv.visitLineNumber(14, label0);
             mv.visitVarInsn(ALOAD, 0);
             mv.visitVarInsn(ALOAD, 1);
             mv.visitTypeInsn(CHECKCAST, TYPE_CONTEXT.getInternalName());
