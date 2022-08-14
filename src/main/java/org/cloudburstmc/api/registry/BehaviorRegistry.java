@@ -1,14 +1,13 @@
 package org.cloudburstmc.api.registry;
 
 import org.cloudburstmc.api.data.BehaviorKey;
-import org.cloudburstmc.api.util.behavior.Behavior;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
-
-import java.util.function.BiFunction;
 
 public interface BehaviorRegistry<T> {
 
-    <F, E> void registerBehavior(BehaviorKey<F, E> key, F defaultBehavior, BiFunction<Behavior<E>, F, E> executorFactory);
+    <F> void registerBehavior(BehaviorKey<F, F> key, F defaultBehavior);
+
+    <F, E> void registerContextBehavior(BehaviorKey<F, E> key, F defaultBehavior);
 
     <F> F getDefaultBehavior(BehaviorKey<F, ?> key);
 
