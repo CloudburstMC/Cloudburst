@@ -133,6 +133,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         checkNotNull(serializer, "serializer");
         checkClosed();
 
+        this.itemRegistry.registerBlock(type);
+
         CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
 //        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
 
