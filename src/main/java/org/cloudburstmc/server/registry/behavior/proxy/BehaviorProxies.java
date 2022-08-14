@@ -3,15 +3,12 @@ package org.cloudburstmc.server.registry.behavior.proxy;
 import org.cloudburstmc.api.util.behavior.Behavior;
 import org.objectweb.asm.*;
 
-import java.io.IOException;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
@@ -196,12 +193,6 @@ public class BehaviorProxies {
             mv.visitEnd();
         }
         cw.visitEnd();
-
-        try {
-            Files.write(Paths.get(proxyName + ".class"), cw.toByteArray());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         Class<?> clazz = MethodHandles.lookup().defineClass(cw.toByteArray());
         return (BiFunction<Behavior<E>, F, E>) clazz.getConstructor().newInstance();
