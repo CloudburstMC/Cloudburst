@@ -34,6 +34,7 @@ open module org.cloudburstmc.server {
     requires org.apache.logging.log4j.core;
     requires org.jline.reader;
     requires org.objectweb.asm;
+    requires org.objectweb.asm.commons;
     requires org.slf4j;
     requires static org.checkerframework.checker.qual;
     requires block.state.updater;
@@ -155,4 +156,5 @@ open module org.cloudburstmc.server {
     exports org.cloudburstmc.server.timings;
     exports org.cloudburstmc.server.utils;
     exports org.cloudburstmc.server.utils.bugreport;
+    exports org.cloudburstmc.server.registry.behavior.proxy;
 }

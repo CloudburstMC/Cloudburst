@@ -17,8 +17,7 @@ public abstract class CloudBehaviorRegistry<T> implements BehaviorRegistry<T>, R
 
     protected final Map<BehaviorKey<?, ?>, Data<?, ?>> behaviors = new HashMap<>();
 
-    @Override
-    public <F, E> void registerBehavior(BehaviorKey<F, E> key, F defaultBehavior, BiFunction<Behavior<E>, F, E> executorFactory) {
+    protected final <F, E> void registerBehaviorInternal(BehaviorKey<F, E> key, F defaultBehavior, BiFunction<Behavior<E>, F, E> executorFactory) {
         checkNotNull(key, "key");
         checkArgument(key.getType().isInstance(defaultBehavior), "defaultBehavior is not instance of %", key.getType());
         checkNotNull(executorFactory, "executorFactory");
