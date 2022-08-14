@@ -3,7 +3,6 @@ package org.cloudburstmc.server.item.behavior;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.cloudburstmc.api.block.BlockBehaviors;
-import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemBehaviors;
@@ -73,5 +72,9 @@ public class DefaultItemBehaviors {
         return itemStack.toBuilder()
                 .data(ItemKeys.DAMAGE, damageValue)
                 .build();
+    };
+
+    public static final UseOnBehavior USE_ON = (behavior, itemStack, entity, blockPosition, face, clickPosition) -> {
+        return itemStack;
     };
 }

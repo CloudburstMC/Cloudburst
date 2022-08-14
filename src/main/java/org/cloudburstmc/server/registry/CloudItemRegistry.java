@@ -19,20 +19,20 @@ import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.behavior.Behavior;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
+import org.cloudburstmc.server.registry.behavior.proxy.BehaviorProxies;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -76,13 +76,19 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     }
 
     @Override
-    public <F, E> void registerBehavior(BehaviorKey<F, E> key, F defaultBehavior, BiFunction<Behavior<E>, F, E> executorFactory) {
-        super.registerBehavior(key, defaultBehavior, executorFactory);
+    public <F> void registerBehavior(BehaviorKey<F, F> key, F defaultBehavior) {
+        this.registerBehaviorInternal(key, defaultBehavior, (context, behavior) -> behavior);
     }
 
 
-    <F, E> void registerBehavior0(BehaviorKey<F, E> key, F defaultBehavior, BiFunction<Behavior<E>, F, E> executorFactory) {
-        super.registerBehavior(key, defaultBehavior, executorFactory);
+    @Override
+    public <F, E> void registerContextBehavior(BehaviorKey<F, E> key, F defaultBehavior) {
+        try {
+            this.registerBehaviorInternal(key, defaultBehavior, BehaviorProxies.createExecutorProxy(key.getType(), key.getExecutorType()));
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException |
+                 InstantiationException e) {
+            throw new IllegalArgumentException("Unable to create behavior proxy for " + key, e);
+        }
     }
 
     @Override
@@ -673,107 +679,23 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     }
 
     private void registerVanillaBehaviors() {
-        this.registerBehavior(
-                ItemBehaviors.GET_MAX_STACK_SIZE,
-                (behavior) -> 64,
-                (behavior, value) -> () -> value.get(behavior)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.GET_MAX_DURABILITY,
-                (behavior) -> 0,
-                (behavior, value) -> () -> value.get(behavior)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.MINE_BLOCK,
-                (behavior, item, block, owner) -> item,
-                (behavior, value) -> (item, block, owner) -> value.mineBlock(behavior, item, block, owner)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.ON_DAMAGE,
-                (behavior, item, damage, owner) -> item,
-                (behavior, value) -> (item, damage, owner) -> value.onDamage(behavior, item, damage, owner)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.CAN_DESTROY,
-                (behavior, block) -> true,
-                (behavior, value) -> (block) -> value.test(behavior, block)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.GET_DESTROY_SPEED,
-                (behavior, item, block) -> 1,
-                (behavior, value) -> (item, block) -> value.getDestroySpeed(behavior, item, block)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.GET_DESTROY_SPEED_BONUS,
-                (behavior, item) -> 0,
-                (behavior, value) -> (item) -> value.get(behavior, item)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.CAN_DESTROY_IN_CREATIVE,
-                false,
-                (behavior, value) -> false
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.GET_DAMAGE_CHANCE,
-                (behavior, unbreaking) -> 0,
-                (behavior, value) -> (unbreaking) -> value.getDamageChance(behavior, unbreaking)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.CAN_BE_USED,
-                (behavior, item) -> false,
-                (behavior, value) -> (item) -> value.get(behavior, item)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.USE_ON,
-                (behavior, item, entity, blockPos, face, clickPos) -> item,
-                (behavior, value) -> (item, entity, blockPos, face, clickPos) -> value.useOn(behavior, item, entity, blockPos, face, clickPos)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.GET_FUEL_DURATION,
-                0f,
-                (behavior, value) -> 0f
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.GET_ATTACH_DAMAGE,
-                (behavior) -> 0f,
-                (behavior, value) -> () -> value.get(behavior)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.IS_TOOL,
-                (behavior, item) -> false,
-                (behavior, value) -> (item) -> value.get(behavior, item)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.CAN_BE_PLACED,
-                (behavior, item) -> false,
-                (behavior, value) -> (item) -> value.get(behavior, item)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.CAN_BE_PLACED_ON,
-                (behavior, item, block) -> true,
-                (behavior, value) -> (item, block) -> value.get(behavior, item, block)
-        );
-
-        this.registerBehavior(
-                ItemBehaviors.GET_BLOCK,
-                (behavior, item) -> Optional.empty(),
-                (behavior, value) -> (item) -> value.get(behavior, item)
-        );
+        this.registerContextBehavior(ItemBehaviors.GET_MAX_STACK_SIZE, (behavior) -> 64);
+        this.registerContextBehavior(ItemBehaviors.GET_MAX_DURABILITY, (behavior) -> 0);
+        this.registerContextBehavior(ItemBehaviors.MINE_BLOCK, (behavior, item, block, owner) -> item);
+        this.registerContextBehavior(ItemBehaviors.ON_DAMAGE, (behavior, item, damage, owner) -> item);
+        this.registerContextBehavior(ItemBehaviors.CAN_DESTROY, (behavior, block) -> true);
+        this.registerContextBehavior(ItemBehaviors.GET_DESTROY_SPEED, (behavior, item, block) -> 1);
+        this.registerContextBehavior(ItemBehaviors.GET_DESTROY_SPEED_BONUS, (behavior, item) -> 0);
+        this.registerBehavior(ItemBehaviors.CAN_DESTROY_IN_CREATIVE, false);
+        this.registerContextBehavior(ItemBehaviors.GET_DAMAGE_CHANCE, (behavior, unbreaking) -> 0);
+        this.registerContextBehavior(ItemBehaviors.CAN_BE_USED, (behavior, item) -> false);
+        this.registerContextBehavior(ItemBehaviors.USE_ON, (behavior, item, entity, blockPos, face, clickPos) -> item);
+        this.registerBehavior(ItemBehaviors.GET_FUEL_DURATION, 0f);
+        this.registerContextBehavior(ItemBehaviors.GET_ATTACH_DAMAGE, (behavior) -> 0f);
+        this.registerContextBehavior(ItemBehaviors.IS_TOOL, (behavior, item) -> false);
+        this.registerContextBehavior(ItemBehaviors.CAN_BE_PLACED, (behavior, item) -> false);
+        this.registerContextBehavior(ItemBehaviors.CAN_BE_PLACED_ON, (behavior, item, block) -> true);
+        this.registerContextBehavior(ItemBehaviors.GET_BLOCK, (behavior, item) -> Optional.empty());
     }
 
     public void registerCreativeItem(ItemStack item) {
