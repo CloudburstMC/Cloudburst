@@ -9,7 +9,7 @@ open module org.cloudburstmc.server {
     requires com.nukkitx.network.common;
     requires com.nukkitx.network.raknet;
     requires com.nukkitx.protocol.bedrock.common;
-    requires com.nukkitx.protocol.bedrock.v503;
+    requires com.nukkitx.protocol.bedrock.v544;
     requires com.nukkitx.protocol.common;
     requires common;
     requires static lombok;
