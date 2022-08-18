@@ -104,6 +104,7 @@ public class PlayerFood {
             float newSfl = sfl - amount;
             if (newSfl < 0) newSfl = 0;
             this.setFoodSaturationLevel(newSfl);
+            this.sendFoodLevel();
         } else {
             this.setLevel(foodLevel - amount);
         }
@@ -177,7 +178,12 @@ public class PlayerFood {
         if (this.getPlayer().hasEffect(EffectTypes.SATURATION)) return;
         this.foodExpLevel += use;
         if (this.foodExpLevel > 4) {
-            this.useHunger(1);
+            if (!this.getPlayer().isFoodEnabled()) {
+                // Hack to get around the client reducing food despite us not sending the attribute
+                this.sendFoodLevel();
+            } else {
+                this.useHunger(1);
+            }
             this.foodExpLevel = 0;
         }
     }

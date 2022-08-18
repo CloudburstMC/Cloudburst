@@ -64,6 +64,7 @@ import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permission;
@@ -1317,25 +1318,23 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             this.speed = Vector3f.ZERO;
         }
 
-        if (!revert && (this.isFoodEnabled() || this.getServer().getDifficulty() == Difficulty.PEACEFUL)) {
+        if (!revert) {
             if ((this.isSurvival() || this.isAdventure())/* && !this.getRiddingOn() instanceof Entity*/) {
 
                 //UpdateFoodExpLevel
-                if (distance >= 0.05) {
-                    double jump = 0;
-                    double swimming = this.isInsideOfWater() ? 0.015 * distance : 0;
-                    if (swimming != 0) distance = 0;
-                    if (this.isSprinting()) {  //Running
-                        if (this.inAirTicks == 3 && swimming == 0) {
-                            jump = 0.7;
-                        }
-                        this.getFoodData().updateFoodExpLevel(0.06 * distance + jump + swimming);
-                    } else {
-                        if (this.inAirTicks == 3 && swimming == 0) {
-                            jump = 0.2;
-                        }
-                        this.getFoodData().updateFoodExpLevel(0.01 * distance + jump + swimming);
+                double jump = 0;
+                double swimming = this.isInsideOfWater() ? 0.01 * distance : 0;
+                if (swimming != 0) distance = 0;
+                if (this.isSprinting()) {  //Running
+                    if (this.inAirTicks == 3 && swimming == 0) {
+                        jump = 0.2;
                     }
+                    this.getFoodData().updateFoodExpLevel(0.1 * distance + jump + swimming);
+                } else {
+                    if (this.inAirTicks == 3 && swimming == 0) {
+                        jump = 0.05;
+                    }
+                    this.getFoodData().updateFoodExpLevel(jump + swimming);
                 }
             }
         }
@@ -1409,14 +1408,24 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                 this.entityBaseTick(tickDiff);
 
                 if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getLevel().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
-                    if (this.getHealth() < this.getMaxHealth() && this.ticksLived % 20 == 0) {
-                        this.heal(1);
+                    if (this.getHealth() < this.getMaxHealth() && !this.server.isHardcore() && this.level.getGameRules().contains(GameRules.NATURAL_REGENERATION)) {
+                        if (this.getServer().getDifficulty().equals(Difficulty.EASY)) {
+                            if (this.ticksLived % 20 == 0) {
+                                this.heal(1);
+                            }
+                            PlayerFood foodData = this.getFoodData();
+                            if (foodData.getLevel() < 20 && this.ticksLived % 10 == 0) {
+                                foodData.addFoodLevel(1, 0);
+                            }
+                        }
                     }
 
-                    PlayerFood foodData = this.getFoodData();
-
-                    if (foodData.getLevel() < 20 && this.ticksLived % 10 == 0) {
-                        foodData.addFoodLevel(1, 0);
+                    if (this.ticksLived % 80 == 0 && this.getFoodData().getLevel() >= 18) {
+                        this.heal(1);
+                        if (!this.getServer().getDifficulty().equals(Difficulty.EASY) &&
+                        !this.getServer().getDifficulty().equals(Difficulty.PEACEFUL)) {
+                            this.getFoodData().updateFoodExpLevel(0.6);
+                        }
                     }
                 }
 
@@ -2281,7 +2290,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                 if (source instanceof EntityDamageByEntityEvent) {
                     Entity damager = ((EntityDamageByEntityEvent) source).getDamager();
                     if (damager instanceof CloudPlayer) {
-                        ((CloudPlayer) damager).getFoodData().updateFoodExpLevel(0.3);
+                        ((CloudPlayer) damager).getFoodData().updateFoodExpLevel(0.1);
                     }
                 }
                 EntityEventPacket packet = new EntityEventPacket();
@@ -2289,6 +2298,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                 packet.setType(EntityEventType.HURT);
                 this.sendPacket(packet);
             }
+            this.getFoodData().updateFoodExpLevel(0.1);
             return true;
         } else {
             return false;
