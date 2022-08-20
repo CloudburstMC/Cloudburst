@@ -1214,7 +1214,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                             var result = this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.USE_ON).execute(serverItem, target, null, null, null);
 //                            var result = behavior.useOn(serverItem, target);
-                            if (result != null && serverItem.get(ItemKeys.DAMAGE) >= this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.GET_MAX_DURABILITY).execute()) {
+                            if (result != null && serverItem.get(ItemKeys.DAMAGE) >= this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute()) {
                                 player.getInventory().setItemInHand(ItemStack.AIR);
                             } else {
                                 player.getInventory().setItemInHand(serverItem);

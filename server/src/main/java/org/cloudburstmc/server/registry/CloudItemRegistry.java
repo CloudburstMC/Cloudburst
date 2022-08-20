@@ -706,7 +706,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
 
     private void registerVanillaBehaviors() {
         this.registerContextBehavior(ItemBehaviors.GET_MAX_STACK_SIZE, (behavior) -> 64);
-        this.registerContextBehavior(ItemBehaviors.GET_MAX_DURABILITY, (behavior) -> 0);
+        this.registerContextBehavior(ItemBehaviors.GET_MAX_DAMAGE, (behavior) -> 0);
         this.registerContextBehavior(ItemBehaviors.MINE_BLOCK, (behavior, item, block, owner) -> item);
         this.registerContextBehavior(ItemBehaviors.ON_DAMAGE, (behavior, item, damage, owner) -> item);
         this.registerContextBehavior(ItemBehaviors.CAN_DESTROY, (behavior, block) -> true);
