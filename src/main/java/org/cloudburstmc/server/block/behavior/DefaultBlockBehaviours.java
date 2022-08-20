@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.behavior;
 
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
@@ -8,8 +9,11 @@ import org.cloudburstmc.api.block.behavior.*;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.Randoms;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.api.util.behavior.BehaviorBuilder;
+
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
 
 public class DefaultBlockBehaviours {
 
@@ -32,7 +36,41 @@ public class DefaultBlockBehaviours {
     };
 
     public static final PlayerBlockBehavior ON_DESTROY = (behavior, block, player) -> {
-        // TODO
+        // TODO: Fire block destroy level event.
+        block.set(BlockStates.AIR);
+    };
+
+    public static final PlayerBlockBehavior POST_DESTROY = (behavior, block, player) -> {
+        behavior.get(BlockBehaviors.GET_RESOURCE).execute(block, ThreadLocalRandom.current(), 0);
+    };
+
+    public static final SpawnResourcesBlockBehavior SPAWN_RESOURCES = (behavior, block, random, tool, bonusLootLevel) -> {
+        int resourceCount = behavior.get(BlockBehaviors.GET_RESOURCE_COUNT).execute(block, random, bonusLootLevel);
+        if (resourceCount < 1) {
+            return;
+        }
+
+        for (int i = 0; i < resourceCount; i++) {
+            if (!Randoms.chanceFloatGreaterThan(random, 0)) {
+                ItemStack itemStack = behavior.get(BlockBehaviors.GET_RESOURCE).execute(block, random, bonusLootLevel);
+                if (itemStack != ItemStack.AIR) {
+                    behavior.get(BlockBehaviors.DROP_RESOURCE).execute(block, itemStack);
+                }
+            }
+        }
+    };
+
+    public static final DropResourceBlockBehavior DROP_RESOURCE = (behavior, block, itemStack) -> {
+        // TODO: Check if game rule DO_TILE_DROPS is disabled?
+        RandomGenerator random = ThreadLocalRandom.current(); // TODO: Use Level RNG
+
+        Vector3f dropPos = block.getPosition().toFloat().add(
+                (random.nextFloat() * 0.7f) + 0.15f,
+                (random.nextFloat() * 0.7f) + 0.15f,
+                (random.nextFloat() * 0.7f) + 0.15f
+        );
+
+        return block.getLevel().dropItem(dropPos, itemStack, null, 10);
     };
 
     public static final PlayerBlockBehavior ON_REMOVE = (behavior, block, player) -> {
@@ -67,12 +105,4 @@ public class DefaultBlockBehaviours {
                 behavior.get(BlockBehaviors.IS_REPLACEABLE) &&
                 behavior.get(BlockBehaviors.MAY_PLACE_ON).execute(block);
     };
-
-    public static final BehaviorBuilder BLOCK_BEHAVIOR_BASE = BehaviorBuilder.create()
-            .overwrite(BlockBehaviors.IS_SOLID, true)
-            .overwrite(BlockBehaviors.IS_LIQUID, false)
-            .overwrite(BlockBehaviors.USES_WATERLOGGING, false)
-            .overwrite(BlockBehaviors.CAN_BE_USED, ((behavior, block) -> false))
-            .overwrite(BlockBehaviors.CAN_PASS_THROUGH, (behavior, block) -> false)
-            .overwrite(BlockBehaviors.GET_BOUNDING_BOX, GET_BOUNDING_BOX);
 }

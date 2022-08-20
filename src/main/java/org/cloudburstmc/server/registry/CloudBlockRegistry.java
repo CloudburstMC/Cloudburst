@@ -668,8 +668,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerContextBehavior(BlockBehaviors.MAY_PICK, (behavior, block) -> true);
         this.registerContextBehavior(BlockBehaviors.MAY_PLACE, (behavior, block, direction) -> true);
         this.registerContextBehavior(BlockBehaviors.MAY_PLACE_ON, (behavior, block) -> true);
-        this.registerContextBehavior(BlockBehaviors.ON_DESTROY, (behavior, block, entity) -> {
-        });
+        this.registerContextBehavior(BlockBehaviors.ON_DESTROY, DefaultBlockBehaviours.ON_DESTROY);
+        this.registerContextBehavior(BlockBehaviors.POST_DESTROY, DefaultBlockBehaviours.POST_DESTROY);
         this.registerContextBehavior(BlockBehaviors.ON_NEIGHBOUR_CHANGED, (behavior, block, neighbor) -> {
         });
         this.registerContextBehavior(BlockBehaviors.ON_FALL_ON, (behavior, block, entity) -> {
@@ -697,8 +697,10 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         });
         this.registerBehavior(BlockBehaviors.GET_MATERIAL, MaterialTypes.AIR);
         this.registerContextBehavior(BlockBehaviors.GET_SILK_TOUCH_RESOURCE, (behavior, block, randomGenerator, bonusLevel) -> null);
-        this.registerContextBehavior(BlockBehaviors.GET_RESOURCE_ITEM, (behavior, block, randomGenerator, bonusLevel) -> null);
-        this.registerContextBehavior(BlockBehaviors.GET_RESOURCE_COUNT, (behavior, block, randomGenerator, bonusLevel) -> 0);
+        this.registerContextBehavior(BlockBehaviors.DROP_RESOURCE, DefaultBlockBehaviours.DROP_RESOURCE);
+        this.registerContextBehavior(BlockBehaviors.SPAWN_RESOURCES, DefaultBlockBehaviours.SPAWN_RESOURCES);
+        this.registerContextBehavior(BlockBehaviors.GET_RESOURCE, DefaultBlockBehaviours.GET_RESOURCE);
+        this.registerContextBehavior(BlockBehaviors.GET_RESOURCE_COUNT, DefaultBlockBehaviours.GET_RESOURCE_COUNT);
         this.registerBehavior(BlockBehaviors.USES_WATERLOGGING, false);
         this.registerBehavior(BlockBehaviors.IS_TOP_SOLID, true);
         this.registerBehavior(BlockBehaviors.IS_STAIRS, false);
@@ -727,5 +729,6 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerBehavior(BlockBehaviors.CAN_DAMAGE_ITEM, false);
         this.registerContextBehavior(BlockBehaviors.GET_MAP_COLOR, (behavior, block) -> null);
         this.registerContextBehavior(BlockBehaviors.IS_BREAKABLE, (behavior, block, item) -> true);
+        this.registerBehavior(BlockBehaviors.GET_TRANSLUCENCY, 0f);
     }
 }
