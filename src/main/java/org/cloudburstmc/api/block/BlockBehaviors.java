@@ -58,7 +58,9 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<BooleanBlockBehavior, BooleanBlockBehavior.Executor> MAY_PLACE_ON = DataKey.behavior(Identifier.fromString("may_place_on"), BooleanBlockBehavior.class, BooleanBlockBehavior.Executor.class);
 
-    public static final BehaviorKey<EntityBlockBehavior, EntityBlockBehavior.Executor> ON_DESTROY = DataKey.behavior(Identifier.fromString("on_destroy"), EntityBlockBehavior.class, EntityBlockBehavior.Executor.class);
+    public static final BehaviorKey<PlayerBlockBehavior, PlayerBlockBehavior.Executor> ON_DESTROY = DataKey.behavior(Identifier.fromString("on_destroy"), PlayerBlockBehavior.class, PlayerBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<PlayerBlockBehavior, PlayerBlockBehavior.Executor> POST_DESTROY = DataKey.behavior(Identifier.fromString("post_destroy"), PlayerBlockBehavior.class, PlayerBlockBehavior.Executor.class);
 
     public static final BehaviorKey<NeighborBlockBehavior, NeighborBlockBehavior.Executor> ON_NEIGHBOUR_CHANGED = DataKey.behavior(Identifier.fromString("on_neighbour_changed"), NeighborBlockBehavior.class, NeighborBlockBehavior.Executor.class);
 
@@ -92,7 +94,11 @@ public final class BlockBehaviors {
 
     public static final BehaviorKey<ResourceBlockBehavior, ResourceBlockBehavior.Executor> GET_SILK_TOUCH_RESOURCE = DataKey.behavior(Identifier.fromString("get_silk_touch_resource"), ResourceBlockBehavior.class, ResourceBlockBehavior.Executor.class);
 
-    public static final BehaviorKey<ResourceBlockBehavior, ResourceBlockBehavior.Executor> GET_RESOURCE_ITEM = DataKey.behavior(Identifier.fromString("get_resource_item"), ResourceBlockBehavior.class, ResourceBlockBehavior.Executor.class);
+    public static final BehaviorKey<DropResourceBlockBehavior, DropResourceBlockBehavior.Executor> DROP_RESOURCE = DataKey.behavior(Identifier.fromString("drop_resource"), DropResourceBlockBehavior.class, DropResourceBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<SpawnResourcesBlockBehavior, SpawnResourcesBlockBehavior.Executor> SPAWN_RESOURCES = DataKey.behavior(Identifier.fromString("spawn_resources"), SpawnResourcesBlockBehavior.class, SpawnResourcesBlockBehavior.Executor.class);
+
+    public static final BehaviorKey<ResourceBlockBehavior, ResourceBlockBehavior.Executor> GET_RESOURCE = DataKey.behavior(Identifier.fromString("get_resource"), ResourceBlockBehavior.class, ResourceBlockBehavior.Executor.class);
 
     public static final BehaviorKey<ResourceCountBlockBehavior, ResourceCountBlockBehavior.Executor> GET_RESOURCE_COUNT = DataKey.behavior(Identifier.fromString("get_resource_count"), ResourceCountBlockBehavior.class, ResourceCountBlockBehavior.Executor.class);
 
