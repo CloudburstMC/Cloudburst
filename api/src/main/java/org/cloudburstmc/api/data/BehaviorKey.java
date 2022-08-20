@@ -44,4 +44,9 @@ public final class BehaviorKey<F, E> implements DataKey<F, E> {
     public Function<F, E> getMutableFunction() {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public String toString() {
+        return id.toString();
+    }
 }

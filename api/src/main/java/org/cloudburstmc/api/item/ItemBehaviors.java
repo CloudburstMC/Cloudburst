@@ -17,7 +17,8 @@ public class ItemBehaviors {
 
     public static final BehaviorKey<IntBehavior, IntBehavior.Executor> GET_MAX_STACK_SIZE = DataKey.behavior(Identifier.fromString("get_max_stack_size"), IntBehavior.class, IntBehavior.Executor.class);
 
-    public static final BehaviorKey<IntBehavior, IntBehavior.Executor> GET_MAX_DURABILITY = DataKey.behavior(Identifier.fromString("get_max_durability"), IntBehavior.class, IntBehavior.Executor.class);
+    public static final BehaviorKey<Boolean, Boolean> IS_DAMAGEABLE = DataKey.behavior(Identifier.fromString("is_damageable"), Boolean.class);
+    public static final BehaviorKey<IntBehavior, IntBehavior.Executor> GET_MAX_DAMAGE = DataKey.behavior(Identifier.fromString("get_max_damage"), IntBehavior.class, IntBehavior.Executor.class);
 
     public static final BehaviorKey<MineBlockBehavior, MineBlockBehavior.Executor> MINE_BLOCK = DataKey.behavior(Identifier.fromString("mine_block"), MineBlockBehavior.class, MineBlockBehavior.Executor.class);
 
@@ -47,5 +48,13 @@ public class ItemBehaviors {
     public static final BehaviorKey<CanBePlacedOnBehavior, CanBePlacedOnBehavior.Executor> CAN_BE_PLACED_ON = DataKey.behavior(Identifier.fromString("can_be_placed_on"), CanBePlacedOnBehavior.class, CanBePlacedOnBehavior.Executor.class);
 
     public static final BehaviorKey<GetItemBehavior<Optional<BlockState>>, GetItemBehavior.Executor<Optional<BlockState>>> GET_BLOCK = DataKey.behavior(Identifier.fromString("get_block"), GetItemBehavior.class, GetItemBehavior.Executor.class);
+
+    public static final BehaviorKey<Boolean, Boolean> ALLOW_OFFHAND = DataKey.behavior(Identifier.fromString("allow_offhand"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> CAN_BE_CHARGED = DataKey.behavior(Identifier.fromString("can_be_charged"), Boolean.class);
+
+    public static final BehaviorKey<Boolean, Boolean> CAN_BE_DEPLETED = DataKey.behavior(Identifier.fromString("can_be_depleted"), Boolean.class);
+
+    public static final BehaviorKey<Integer, Integer> GET_ATTACK_DAMAGE = DataKey.behavior(Identifier.fromString("get_attack_damage"), Integer.class);
 
 }
