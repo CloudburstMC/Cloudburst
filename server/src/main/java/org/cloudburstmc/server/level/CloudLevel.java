@@ -1608,7 +1608,7 @@ public class CloudLevel implements Level {
                 ItemStack itemStack = targetBehaviors.get(GET_SILK_TOUCH_RESOURCE).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
                 eventDrops = new ItemStack[]{itemStack};
             } else {
-                ItemStack itemStack = targetBehaviors.get(GET_RESOURCE_ITEM).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
+                ItemStack itemStack = targetBehaviors.get(GET_RESOURCE).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
                 int count = targetBehaviors.get(GET_RESOURCE_COUNT).execute(target, new Random(), 0);
                 eventDrops = new ItemStack[count];
                 Arrays.fill(eventDrops, itemStack);
@@ -1643,7 +1643,7 @@ public class CloudLevel implements Level {
             ItemStack itemStack = targetBehaviors.get(GET_SILK_TOUCH_RESOURCE).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
             drops = new ItemStack[]{itemStack};
         } else {
-            ItemStack itemStack = targetBehaviors.get(GET_RESOURCE_ITEM).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
+            ItemStack itemStack = targetBehaviors.get(GET_RESOURCE).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
             int count = targetBehaviors.get(GET_RESOURCE_COUNT).execute(target, new Random(), 0);
             drops = new ItemStack[count];
             Arrays.fill(drops, itemStack);
@@ -1673,10 +1673,12 @@ public class CloudLevel implements Level {
         }
 
         targetBehaviors.get(ON_DESTROY).execute(target, player);
+        targetBehaviors.get(POST_DESTROY).execute(target, player);
 
         BehaviorCollection itemBehaviors = this.itemRegistry.getBehaviors(item.getType());
         itemBehaviors.get(USE_ON).execute(item, player, target.getPosition(), null, null);
-        if (itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
+        if (itemBehaviors.get(ItemBehaviors.IS_TOOL).execute(item) &&
+                item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
             item = ItemStack.AIR;
         }
 
