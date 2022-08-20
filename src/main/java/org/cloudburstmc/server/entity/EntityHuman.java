@@ -352,7 +352,7 @@ public class EntityHuman extends EntityCreature implements Human {
                             .data(ItemKeys.DAMAGE, damage - 1)
                             .build();
 
-                    int maxDurability = this.server.getItemRegistry().getBehavior(armor.getType(), ItemBehaviors.GET_MAX_DURABILITY).execute();
+                    int maxDurability = this.server.getItemRegistry().getBehavior(armor.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute();
                     if (damage + 1 >= maxDurability) {
                         getInventory().setArmorItem(slot, ItemStack.AIR);
                     } else {

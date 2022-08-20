@@ -42,7 +42,7 @@ public class DefaultItemBehaviors {
     };
 
     public static final DamageItemBehavior ON_DAMAGE = (behavior, itemStack, damage, owner) -> {
-        if (damage <= 0 || ItemUtils.isNull(itemStack) || behavior.get(ItemBehaviors.GET_MAX_DURABILITY).execute() < 0 ||
+        if (damage <= 0 || ItemUtils.isNull(itemStack) || behavior.get(ItemBehaviors.GET_MAX_DAMAGE).execute() < 0 ||
                 !owner.isAlive() || itemStack.get(ItemKeys.UNBREAKABLE) != Boolean.TRUE) {
             if (damage < 0) {
                 log.debug("Tried to damage {} with a negative value of {}", itemStack, damage);
@@ -64,7 +64,7 @@ public class DefaultItemBehaviors {
 
         damageValue += damage;
 
-        if (damageValue >= behavior.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
+        if (damageValue >= behavior.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
             // TODO: Make the break sound
             return ItemStack.AIR;
         }
