@@ -109,46 +109,12 @@ import static org.cloudburstmc.api.item.ItemBehaviors.*;
 @Log4j2
 public class CloudLevel implements Level {
 
-    private static final int levelIdCounter = 1;
-    private static final int chunkLoaderCounter = 1;
-    public static int COMPRESSION_LEVEL = 8;
-
     public static final int DIMENSION_OVERWORLD = 0;
     public static final int DIMENSION_NETHER = 1;
     public static final int DIMENSION_THE_END = 2;
 
     // Lower values use less memory
     public static final int MAX_BLOCK_CACHE = 512;
-
-    // The blocks that can randomly tick
-    private static final Set<Identifier> randomTickBlocks = Collections.newSetFromMap(new IdentityHashMap<>());
-
-    static {
-        randomTickBlocks.add(BlockIds.GRASS);
-        randomTickBlocks.add(BlockIds.FARMLAND);
-        randomTickBlocks.add(BlockIds.MYCELIUM);
-        randomTickBlocks.add(BlockIds.SAPLING);
-        randomTickBlocks.add(BlockIds.LEAVES);
-        randomTickBlocks.add(BlockIds.LEAVES2);
-        randomTickBlocks.add(BlockIds.SNOW_LAYER);
-        randomTickBlocks.add(BlockIds.ICE);
-        randomTickBlocks.add(BlockIds.FLOWING_LAVA);
-        randomTickBlocks.add(BlockIds.LAVA);
-        randomTickBlocks.add(BlockIds.CACTUS);
-        randomTickBlocks.add(BlockIds.BEETROOT);
-        randomTickBlocks.add(BlockIds.CARROTS);
-        randomTickBlocks.add(BlockIds.POTATOES);
-        randomTickBlocks.add(BlockIds.MELON_STEM);
-        randomTickBlocks.add(BlockIds.PUMPKIN_STEM);
-        randomTickBlocks.add(BlockIds.WHEAT);
-        randomTickBlocks.add(BlockIds.REEDS);
-        randomTickBlocks.add(BlockIds.RED_MUSHROOM);
-        randomTickBlocks.add(BlockIds.BROWN_MUSHROOM);
-        randomTickBlocks.add(BlockIds.NETHER_WART_BLOCK);
-        randomTickBlocks.add(BlockIds.FIRE);
-        randomTickBlocks.add(BlockIds.LIT_REDSTONE_ORE);
-        randomTickBlocks.add(BlockIds.COCOA);
-    }
 
     private final Set<BlockEntity> blockEntities = Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -971,13 +937,14 @@ public class CloudLevel implements Level {
                                 int z = lcg >>> 16 & 0x0f;
 
                                 BlockState state = section.getBlock(x, y, z, 0);
-                                if (randomTickBlocks.contains(state.getType().getId())) {
+                                BehaviorCollection behaviors = this.blockRegistry.getBehaviors(state.getType());
+                                if (behaviors.get(CAN_RANDOM_TICK)) {
                                     Block block = new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
                                             state,
                                             section.getBlock(x, y, z, 1)
                                     });
 
-                                    block.getBehaviors().get(BlockBehaviors.ON_RANDOM_TICK)
+                                    behaviors.get(BlockBehaviors.ON_RANDOM_TICK)
                                             .execute(block, ThreadLocalRandom.current());
                                 }
                             }
@@ -1709,7 +1676,7 @@ public class CloudLevel implements Level {
 
         BehaviorCollection itemBehaviors = this.itemRegistry.getBehaviors(item.getType());
         itemBehaviors.get(USE_ON).execute(item, player, target.getPosition(), null, null);
-        if (itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
+        if (itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
             item = ItemStack.AIR;
         }
 
@@ -1799,7 +1766,7 @@ public class CloudLevel implements Level {
                 targetBehaviors.get(ON_TICK).execute(target, new Random());
 
                 if ((!player.isSneaking() || player.getInventory().getItemInHand() == ItemStack.AIR) && targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, player, face)) { //TODO: update the item from the behavior
-                    if (this.itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
+                    if (this.itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
                         item = ItemStack.AIR;
                     }
                     return item;
@@ -1820,7 +1787,8 @@ public class CloudLevel implements Level {
                 return null;
             }
         } else if (targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, null, face)) {
-            if (this.itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DURABILITY).execute()) {
+            if (this.itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) &&
+                    item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
                 item = ItemStack.AIR; //TODO: update the item from the behavior
             }
             return item;
