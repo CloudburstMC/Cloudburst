@@ -5,6 +5,7 @@ import co.aikar.timings.Timings;
 import com.dosse.upnp.UPnP;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
 import com.google.inject.Stage;
 import com.nukkitx.nbt.*;
@@ -769,6 +770,10 @@ public class CloudServer implements Server {
         this.sendFullPlayerListData((CloudPlayer) player);
     }
 
+    public Set<UUID> getUniquePlayers(){
+        return ImmutableSet.copyOf(this.uniquePlayers);
+    }
+
     public void onPlayerLogin(Player player) {
         if (this.sendUsageTicker > 0) {
             this.uniquePlayers.add(player.getServerId());
@@ -1501,6 +1506,8 @@ public class CloudServer implements Server {
                 break;
             }
         }
+
+        this.uniquePlayers.remove(player.getServerId());
     }
 
     public Set<CloudLevel> getLevels() {
