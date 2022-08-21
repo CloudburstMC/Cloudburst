@@ -49,7 +49,7 @@ public class Watchdog extends Thread {
     @Override
     public void run() {
         while (this.running) {
-            long current = server.getNextTick();
+            long current = server.getNextTickTimeMillis();
             if (current != 0) {
                 long diff = System.currentTimeMillis() - current;
                 if (!responding && diff > time * 2) {
