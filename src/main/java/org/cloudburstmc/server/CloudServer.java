@@ -13,6 +13,7 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.spotify.futures.CompletableFutures;
 import io.netty.buffer.ByteBuf;
+import io.netty.util.internal.ThreadLocalRandom;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.api.Server;
@@ -1753,21 +1754,24 @@ public class CloudServer implements Server {
 
         for (String name : worldConfigs.keySet()) {
             final ServerConfig.World config = worldConfigs.get(name);
-            //fallback to level name if no seed is set
+            //Auto-Generate Seed if it isn't set
             Object seedObj = config.getSeed();
             long seed;
+            if(seedObj == null) {
+                seedObj = ThreadLocalRandom.current().nextLong();
+            }
             if (seedObj instanceof Number) {
                 seed = ((Number) seedObj).longValue();
             } else if (seedObj instanceof String) {
                 if (seedObj == name) {
-                    log.warn("World \"{}\" does not have a seed! Using a the name as the seed", name);
+                    log.warn("World \"{}\" is using its own name as its seed", name);
                 }
 
                 //this internally generates an MD5 hash of the seed string
                 UUID uuid = UUID.nameUUIDFromBytes(((String) seedObj).getBytes(StandardCharsets.UTF_8));
                 seed = uuid.getMostSignificantBits() ^ uuid.getLeastSignificantBits();
             } else {
-                throw new IllegalStateException("Seed for world \"" + name + "\" is invalid: " + (seedObj == null ? "null" : seedObj.getClass().getCanonicalName()));
+                throw new IllegalStateException("Seed for world \"" + name + "\" is invalid: Expected a Number or String but got " + (seedObj == null ? "null" : seedObj.getClass().getCanonicalName()));
             }
 
             Identifier generator = Identifier.fromString(config.getGenerator());

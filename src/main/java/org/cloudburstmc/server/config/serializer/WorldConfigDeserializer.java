@@ -30,8 +30,8 @@ public class WorldConfigDeserializer extends StdDeserializer<Map<String, ServerC
             result.put(
                     k,
                     ServerConfig.World.builder()
-                            //current behavior: use world name as seed when not specified
-                            .seed(v.getSeed() == null ? k : v.getSeed())
+                            //Leave seed as null to be auto-generated later if the seed is not specified
+                            .seed(v.getSeed())
                             .generator(v.getGenerator())
                             .options(v.getOptions())
                             .build()
