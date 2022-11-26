@@ -10,7 +10,7 @@ open module org.cloudburstmc.api {
     requires static javax.inject;
     requires java.desktop;
     requires static lombok;
-    requires com.nukkitx.math;
+    requires org.cloudburstmc.math.immutable;
     requires org.slf4j;
 
     exports org.cloudburstmc.api;

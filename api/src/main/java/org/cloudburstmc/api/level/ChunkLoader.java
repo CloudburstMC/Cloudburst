@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.level;
 
-import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.math.vector.Vector3f;
 
 /**
  * author: MagicDroidX

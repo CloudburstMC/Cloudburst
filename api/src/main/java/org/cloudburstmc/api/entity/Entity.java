@@ -1,7 +1,5 @@
 package org.cloudburstmc.api.entity;
 
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector3f;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
@@ -20,6 +18,8 @@ import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.MountType;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
 
 import java.util.List;
 import java.util.Map;
