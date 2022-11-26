@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.event.entity;
 
-import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.math.vector.Vector3f;
 
 import java.util.List;
 

@@ -1,10 +1,10 @@
 package org.cloudburstmc.api.util;
 
 import com.google.common.collect.Iterators;
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector3i;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.util.data.CardinalDirection;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.Iterator;
 import java.util.Random;

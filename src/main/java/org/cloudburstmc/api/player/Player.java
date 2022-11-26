@@ -1,6 +1,5 @@
 package org.cloudburstmc.api.player;
 
-import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.crafting.CraftingGrid;
@@ -13,6 +12,7 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.util.data.CardinalDirection;
+import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.OptionalLong;
 import java.util.UUID;

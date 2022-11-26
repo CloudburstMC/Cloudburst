@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.util;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 
 /**
  * author: MagicDroidX

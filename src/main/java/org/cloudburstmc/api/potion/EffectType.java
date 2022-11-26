@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.potion;
 
-import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.HashMap;
 

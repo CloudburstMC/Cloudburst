@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.util;
 
-import com.nukkitx.math.GenericMath;
+import org.cloudburstmc.math.GenericMath;
 
 import java.util.random.RandomGenerator;
 

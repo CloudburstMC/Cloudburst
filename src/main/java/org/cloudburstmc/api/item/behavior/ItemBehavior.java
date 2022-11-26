@@ -1,10 +1,7 @@
 package org.cloudburstmc.api.item.behavior;
 
-import com.nukkitx.math.vector.Vector3f;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
@@ -14,6 +11,7 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector3f;
 
 public interface ItemBehavior {
     boolean canBeActivated();
