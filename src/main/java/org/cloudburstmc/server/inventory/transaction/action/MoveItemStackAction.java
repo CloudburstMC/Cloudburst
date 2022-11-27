@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.ItemRegistry;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
 import org.cloudburstmc.server.inventory.BaseInventory;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -25,7 +25,7 @@ public class MoveItemStackAction extends ItemStackAction {
 
     private final int count;
 
-    public MoveItemStackAction(int id, int count, StackRequestSlotInfoData source, StackRequestSlotInfoData target) {
+    public MoveItemStackAction(int id, int count, ItemStackRequestSlotData source, ItemStackRequestSlotData target) {
         super(id, source, target);
         this.count = count;
     }
@@ -98,12 +98,12 @@ public class MoveItemStackAction extends ItemStackAction {
     }
 
     @Override
-    protected List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer player) {
-        List<ItemStackResponsePacket.ContainerEntry> containers = new ArrayList<>();
+    protected List<ItemStackResponseContainer> getContainers(CloudPlayer player) {
+        List<ItemStackResponseContainer> containers = new ArrayList<>();
         if (getSourceData().getContainer() != ContainerSlotType.CREATIVE_OUTPUT) {
-            containers.add(new ItemStackResponsePacket.ContainerEntry(getSourceData().getContainer(), List.of(NetworkUtils.itemStackToNetwork(getSourceData(), getSourceInventory(player)))));
+            containers.add(new ItemStackResponseContainer(getSourceData().getContainer(), List.of(NetworkUtils.itemStackToNetwork(getSourceData(), getSourceInventory(player)))));
         }
-        containers.add(new ItemStackResponsePacket.ContainerEntry(getTargetData().getContainer(), List.of(NetworkUtils.itemStackToNetwork(getTargetData(), getTargetInventory(player)))));
+        containers.add(new ItemStackResponseContainer(getTargetData().getContainer(), List.of(NetworkUtils.itemStackToNetwork(getTargetData(), getTargetInventory(player)))));
         return containers;
     }
 }

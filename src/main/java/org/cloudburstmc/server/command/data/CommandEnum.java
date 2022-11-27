@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.command.data;
 
-import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
 import lombok.ToString;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 
 import java.util.ArrayList;
 import java.util.List;

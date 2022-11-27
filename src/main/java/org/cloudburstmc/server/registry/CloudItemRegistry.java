@@ -2,9 +2,6 @@ package org.cloudburstmc.server.registry;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
@@ -21,6 +18,9 @@ import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -286,7 +286,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         }
     }
 
-    public List<StartGamePacket.ItemEntry> getItemEntries() {
+    public List<ItemDefinition> getItemEntries() {
         return itemPalette.getItemPalette();
     }
 

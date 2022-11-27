@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Explosive;
@@ -8,10 +7,11 @@ import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.Explosion;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 
 /**
  * Created by PetteriM1

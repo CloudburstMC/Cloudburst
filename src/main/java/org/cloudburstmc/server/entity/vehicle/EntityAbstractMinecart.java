@@ -1,11 +1,9 @@
 package org.cloudburstmc.server.entity.vehicle;
 
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import org.cloudburstmc.api.block.*;
-import org.cloudburstmc.api.block.trait.BlockTrait;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -18,6 +16,10 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.api.util.data.RailDirection;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -28,7 +30,8 @@ import org.cloudburstmc.server.utils.Rail;
 import java.util.Iterator;
 import java.util.Objects;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.CUSTOM_DISPLAY;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.DISPLAY_OFFSET;
 
 /**
  * Created by: larryTheCoder on 2017/6/26.
@@ -699,7 +702,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
      * @return integer
      */
     public int getDisplayOffset() {
-        return this.data.getInt(DISPLAY_OFFSET);
+        return this.data.get(DISPLAY_OFFSET);
     }
 
     /**
@@ -708,17 +711,17 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
      * @param offset The offset
      */
     public void setDisplayBlockOffset(int offset) {
-        this.data.setInt(DISPLAY_OFFSET, offset);
+        this.data.set(DISPLAY_OFFSET, offset);
     }
 
     public BlockState getDisplayBlock() {
-        int runtimeId = this.data.getInt(DISPLAY_ITEM);
+        int runtimeId = this.data.get(DISPLAY_ITEM);
         return CloudBlockRegistry.REGISTRY.getBlock(runtimeId);
     }
 
     public void setDisplayBlock(BlockState blockState) {
         int runtimeId = CloudBlockRegistry.REGISTRY.getRuntimeId(blockState);
-        this.data.setInt(DISPLAY_ITEM, runtimeId);
+        this.data.set(DISPLAY_ITEM, runtimeId);
     }
 
     public boolean hasDisplay() {

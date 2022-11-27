@@ -1,9 +1,5 @@
 package org.cloudburstmc.server.network.protocol.types;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
-import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.inventory.Inventory;
@@ -11,6 +7,10 @@ import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventorySource;
+import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.server.inventory.CloudAnvilInventory;
 import org.cloudburstmc.server.inventory.CloudBeaconInventory;
 import org.cloudburstmc.server.inventory.CloudEnchantInventory;

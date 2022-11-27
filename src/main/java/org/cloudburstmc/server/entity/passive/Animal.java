@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.passive;
 
-import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.entity.EntityAgeable;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.ItemKeys;
@@ -8,9 +7,10 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.EntityCreature;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.BABY;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 
 /**
  * author: MagicDroidX

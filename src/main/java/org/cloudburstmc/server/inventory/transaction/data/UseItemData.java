@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.inventory.transaction.data;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import lombok.ToString;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 
 /**
  * @author CreeperFace

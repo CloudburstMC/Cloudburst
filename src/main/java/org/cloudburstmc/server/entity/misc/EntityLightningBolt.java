@@ -1,22 +1,17 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
-import org.cloudburstmc.api.event.block.BlockIgniteEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.AxisAlignedBB;
-import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 

@@ -1,11 +1,5 @@
 package org.cloudburstmc.server.level.provider.anvil;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.nbt.NbtUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +9,12 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NBTInputStream;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.chunk.*;
 import org.cloudburstmc.server.level.provider.LegacyBlockConverter;

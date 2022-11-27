@@ -5,7 +5,7 @@ import org.cloudburstmc.api.entity.Smiteable;
 import org.cloudburstmc.api.entity.hostile.ZombiePigman;
 import org.cloudburstmc.api.level.Location;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 
 /**
  * @author PikyCZ

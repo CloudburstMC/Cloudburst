@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.command.data;
 
-import com.nukkitx.protocol.bedrock.data.command.CommandParamData;
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import lombok.NonNull;
 import lombok.ToString;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.PluginCommand;
@@ -70,7 +70,7 @@ public class CommandData {
         this.aliases.getValues().remove(alias);
     }
 
-    public com.nukkitx.protocol.bedrock.data.command.CommandData toNetwork() {
+    public org.cloudburstmc.protocol.bedrock.data.command.CommandData toNetwork() {
         String description = CloudServer.getInstance().getLanguage().translate(this.description);
 
         CommandParamData[][] overloadData = new CommandParamData[this.overloads.size()][];
@@ -84,7 +84,7 @@ public class CommandData {
             overloadData[i] = params;
         }
 
-        return new com.nukkitx.protocol.bedrock.data.command.CommandData(this.getRegisteredName(), description, Collections.emptyList(),
+        return new org.cloudburstmc.protocol.bedrock.data.command.CommandData(this.getRegisteredName(), description, Collections.emptySet(),
                 (byte) 0, this.aliases.toNetwork(), overloadData);
     }
 

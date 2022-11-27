@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.item.data.serializer;
 
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.Page;
 import org.cloudburstmc.api.item.data.WrittenBook;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.utils.PageContent;
 
 import java.util.ArrayList;

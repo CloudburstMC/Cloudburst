@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.crafting;
 
-import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.CraftingData;
 import org.cloudburstmc.server.item.ItemUtils;
 
 import javax.annotation.concurrent.Immutable;

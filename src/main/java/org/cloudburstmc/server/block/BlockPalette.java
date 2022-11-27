@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
-import com.nukkitx.nbt.*;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
@@ -15,6 +14,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 

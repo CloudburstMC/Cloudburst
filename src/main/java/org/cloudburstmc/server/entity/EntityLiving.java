@@ -2,16 +2,6 @@ package org.cloudburstmc.server.entity;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockType;
@@ -26,6 +16,16 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.math.BlockRayTrace;
@@ -35,9 +35,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.BREATHING;
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BREATHING;
 
 /**
  * author: MagicDroidX
@@ -365,10 +365,10 @@ public abstract class EntityLiving extends BaseEntity implements Damageable, Liv
     }
 
     public int getAirTicks() {
-        return this.data.getShort(EntityData.AIR_SUPPLY);
+        return this.data.get(EntityDataTypes.AIR_SUPPLY);
     }
 
     public void setAirTicks(int ticks) {
-        this.data.setShort(EntityData.AIR_SUPPLY, ticks);
+        this.data.set(EntityDataTypes.AIR_SUPPLY, (short) ticks);
     }
 }

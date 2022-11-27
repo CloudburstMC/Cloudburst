@@ -1,21 +1,5 @@
 package org.cloudburstmc.server.entity;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.GameType;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.data.skin.AnimatedTextureType;
-import com.nukkitx.protocol.bedrock.data.skin.AnimationData;
-import com.nukkitx.protocol.bedrock.data.skin.ImageData;
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
@@ -27,6 +11,22 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.data.skin.AnimatedTextureType;
+import org.cloudburstmc.protocol.bedrock.data.skin.AnimationData;
+import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
+import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -38,8 +38,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.HAS_GRAVITY;
 
 /**
  * author: MagicDroidX
@@ -256,7 +256,7 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
         packet.setHand(ItemUtils.toNetwork(this.getInventory().getItemInHand()));
-        packet.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
+        packet.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
         packet.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         packet.setDeviceId("");
         packet.setGameType(GameType.SURVIVAL); // TODO

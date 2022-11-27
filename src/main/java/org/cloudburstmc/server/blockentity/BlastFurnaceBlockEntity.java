@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlastFurnace;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.math.vector.Vector3i;
 
 public class BlastFurnaceBlockEntity extends FurnaceBlockEntity implements BlastFurnace {
 

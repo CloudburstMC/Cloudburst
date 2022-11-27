@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.item.data.serializer;
 
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.BannerData;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.List;

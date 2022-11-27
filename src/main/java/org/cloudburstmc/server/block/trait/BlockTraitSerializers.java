@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.block.trait;
 
-import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.experimental.UtilityClass;
@@ -10,6 +9,7 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Axis;
 import org.cloudburstmc.api.util.data.*;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.trait.serializer.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;

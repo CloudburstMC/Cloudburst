@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.utils;
 
-import com.nukkitx.nbt.NbtMap;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.cloudburstmc.api.item.data.Page;
+import org.cloudburstmc.nbt.NbtMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

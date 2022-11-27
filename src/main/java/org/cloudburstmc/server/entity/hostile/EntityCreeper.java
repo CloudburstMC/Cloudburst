@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.entity.hostile;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.Creeper;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
@@ -10,10 +8,12 @@ import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.POWERED;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.POWERED;
 
 /**
  * @author Box.

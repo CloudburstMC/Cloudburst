@@ -1,9 +1,5 @@
 package org.cloudburstmc.server.player;
 
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.crafting.CraftingGrid;
@@ -29,6 +25,10 @@ import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.api.util.data.MountType;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.CloudServer;
 
 import javax.annotation.Nullable;
