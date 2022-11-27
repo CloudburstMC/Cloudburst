@@ -1,27 +1,23 @@
 package org.cloudburstmc.server.level.particle;
 
 import com.google.common.base.Strings;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.data.skin.ImageData;
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
-import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlags;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.SCALE;
 
 /**
  * Created on 2015/11/21 by xtypr.

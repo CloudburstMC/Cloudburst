@@ -1,10 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.entity.EntityArmorChangeEvent;
@@ -13,6 +9,10 @@ import org.cloudburstmc.api.event.player.PlayerItemHeldEvent;
 import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;

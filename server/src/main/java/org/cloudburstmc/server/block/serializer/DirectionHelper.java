@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.block.serializer;
 
 import com.google.common.base.Preconditions;
-import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.math.NukkitMath;
 
 import javax.annotation.Nonnull;

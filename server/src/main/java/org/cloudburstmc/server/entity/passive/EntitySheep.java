@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.entity.passive;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.entity.EntityType;
@@ -13,11 +11,13 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.COLOR;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.SHEARED;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.COLOR;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SHEARED;
 
 /**
  * Author: BeYkeRYkt Nukkit Project
@@ -118,15 +118,15 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     public DyeColor getColor() {
-        return DyeColor.getByWoolData(this.data.getByte(COLOR));
+        return DyeColor.getByWoolData(this.data.get(COLOR));
     }
 
     public void setColor(DyeColor color) {
-        this.data.setByte(COLOR, color.getWoolData());
+        this.data.set(COLOR, (byte) color.getWoolData());
     }
 
     private void setColor(int color) {
-        this.data.setByte(COLOR, color);
+        this.data.set(COLOR, (byte) color);
     }
 
     private int randomColor() {

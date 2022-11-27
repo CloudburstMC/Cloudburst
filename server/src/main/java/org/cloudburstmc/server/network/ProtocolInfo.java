@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.network;
 
-import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.v544.Bedrock_v544;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.codec.v544.Bedrock_v544;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
@@ -16,20 +16,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Log4j2
 @ParametersAreNonnullByDefault
 public final class ProtocolInfo {
-    private static final Set<BedrockPacketCodec> PACKET_CODECS = ConcurrentHashMap.newKeySet();
-    private static final Set<BedrockPacketCodec> UNMODIFIABLE_PACKET_CODECS = Collections.unmodifiableSet(PACKET_CODECS);
+    private static final Set<BedrockCodec> PACKET_CODECS = ConcurrentHashMap.newKeySet();
+    private static final Set<BedrockCodec> UNMODIFIABLE_PACKET_CODECS = Collections.unmodifiableSet(PACKET_CODECS);
 
-    private static BedrockPacketCodec DEFAULT_PACKET_CODEC;
+    private static BedrockCodec DEFAULT_PACKET_CODEC;
 
     static {
-        setDefaultPacketCodec(Bedrock_v544.V544_CODEC);
+        setDefaultPacketCodec(Bedrock_v544.CODEC);
     }
 
-    public static BedrockPacketCodec getDefaultPacketCodec() {
+    public static BedrockCodec getDefaultPacketCodec() {
         return DEFAULT_PACKET_CODEC;
     }
 
-    public static void setDefaultPacketCodec(BedrockPacketCodec packetCodec) {
+    public static void setDefaultPacketCodec(BedrockCodec packetCodec) {
         DEFAULT_PACKET_CODEC = checkNotNull(packetCodec, "packetCodec");
         PACKET_CODECS.add(DEFAULT_PACKET_CODEC);
     }
@@ -43,8 +43,8 @@ public final class ProtocolInfo {
     }
 
     @Nullable
-    public static BedrockPacketCodec getPacketCodec(@Nonnegative int protocolVersion) {
-        for (BedrockPacketCodec packetCodec : PACKET_CODECS) {
+    public static BedrockCodec getPacketCodec(@Nonnegative int protocolVersion) {
+        for (BedrockCodec packetCodec : PACKET_CODECS) {
             if (packetCodec.getProtocolVersion() == protocolVersion) {
                 return packetCodec;
             }
@@ -52,11 +52,11 @@ public final class ProtocolInfo {
         return null;
     }
 
-    public static void addPacketCodec(BedrockPacketCodec packetCodec) {
+    public static void addPacketCodec(BedrockCodec packetCodec) {
         PACKET_CODECS.add(checkNotNull(packetCodec, "packetCodec"));
     }
 
-    public static Set<BedrockPacketCodec> getPacketCodecs() {
+    public static Set<BedrockCodec> getPacketCodecs() {
         return UNMODIFIABLE_PACKET_CODECS;
     }
 }

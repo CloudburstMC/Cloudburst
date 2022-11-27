@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.pack;
 
 import com.google.common.base.Preconditions;
-import com.nukkitx.protocol.bedrock.packet.ResourcePackStackPacket;
-import com.nukkitx.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.pack.Pack;
 import org.cloudburstmc.api.pack.PackManifest;
@@ -11,6 +9,8 @@ import org.cloudburstmc.api.pack.ResourcePack;
 import org.cloudburstmc.api.pack.loader.PackLoader;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.registry.ResourcePackRegistry;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.pack.loader.DirectoryPackLoader;
 import org.cloudburstmc.server.pack.loader.ZipPackLoader;

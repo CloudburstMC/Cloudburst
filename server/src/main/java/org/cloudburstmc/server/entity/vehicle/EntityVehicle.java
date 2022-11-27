@@ -12,7 +12,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.HURT_DIRECTION;
 
 /**
  * author: MagicDroidX
@@ -25,27 +25,27 @@ public abstract class EntityVehicle extends BaseEntity implements Vehicle, Inter
     }
 
     public int getRollingAmplitude() {
-        return this.data.getInt(HURT_TIME);
+        return this.data.get(HURT_TIME);
     }
 
     public void setRollingAmplitude(int time) {
-        this.data.setInt(HURT_TIME, time);
+        this.data.set(HURT_TIME, time);
     }
 
     public int getRollingDirection() {
-        return this.data.getInt(HURT_DIRECTION);
+        return this.data.get(HURT_DIRECTION);
     }
 
     public void setRollingDirection(int direction) {
-        this.data.setInt(HURT_DIRECTION, direction);
+        this.data.set(HURT_DIRECTION, direction);
     }
 
     public int getDamage() {
-        return this.data.getInt(HEALTH); // false data name (should be DATA_DAMAGE_TAKEN)
+        return this.data.get(HEALTH); // false data name (should be DATA_DAMAGE_TAKEN)
     }
 
     public void setDamage(int damage) {
-        this.data.setInt(HEALTH, damage);
+        this.data.set(HEALTH, damage);
     }
 
     @Override

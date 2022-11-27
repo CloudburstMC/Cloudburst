@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
 import org.cloudburstmc.server.inventory.BaseInventory;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -13,7 +13,7 @@ import java.util.List;
 public class ConsumeItemAction extends ItemStackAction {
     private final int count;
 
-    public ConsumeItemAction(int reqId, int count, @NonNull StackRequestSlotInfoData sourceData) {
+    public ConsumeItemAction(int reqId, int count, @NonNull ItemStackRequestSlotData sourceData) {
         super(reqId, sourceData, null);
         this.count = count;
     }
@@ -40,8 +40,8 @@ public class ConsumeItemAction extends ItemStackAction {
     }
 
     @Override
-    protected List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer player) {
-        return List.of(new ItemStackResponsePacket.ContainerEntry(getSourceData().getContainer(),
+    protected List<ItemStackResponseContainer> getContainers(CloudPlayer player) {
+        return List.of(new ItemStackResponseContainer(getSourceData().getContainer(),
                 List.of(NetworkUtils.itemStackToNetwork(getSourceData(),
                         getSourceInventory(player)))));
     }

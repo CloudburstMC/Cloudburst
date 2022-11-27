@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.vehicle;
 
-import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -10,6 +9,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 public class EntityHopperMinecart extends EntityAbstractMinecart implements HopperMinecart {

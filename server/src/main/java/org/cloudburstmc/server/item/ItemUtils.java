@@ -2,8 +2,6 @@ package org.cloudburstmc.server.item;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.nukkitx.nbt.*;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import lombok.experimental.UtilityClass;
@@ -16,6 +14,8 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;

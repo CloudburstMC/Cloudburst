@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.network.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -43,7 +43,7 @@ public class ItemStackNetManager {
         }
 
 //        ItemStackResponsePacket.Response response = new ItemStackResponsePacket.Response(
-//                ItemStackResponsePacket.ResponseStatus.OK,
+//                ItemStackResponseStatus.OK,
 //                request.getRequestId(),
 //
 //        );

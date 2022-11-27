@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.math;
 
-import com.nukkitx.math.vector.Vector3f;
 import net.daporkchop.lib.random.impl.AbstractFastPRandom;
+import org.cloudburstmc.math.vector.Vector3f;
 
 import java.util.concurrent.atomic.AtomicLong;
 

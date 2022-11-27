@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.item.serializer;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.hostile.*;
@@ -11,6 +9,8 @@ import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import java.util.Map;
 

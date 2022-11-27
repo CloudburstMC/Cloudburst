@@ -1,12 +1,5 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.packet.AddItemEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -19,6 +12,13 @@ import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.packet.AddItemEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -28,11 +28,11 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import javax.annotation.Nonnull;
 
-import static com.nukkitx.network.util.Preconditions.checkArgument;
-import static com.nukkitx.network.util.Preconditions.checkNotNull;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.OWNER_EID;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
 import static org.cloudburstmc.api.block.BlockTypes.WATER;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNER_EID;
 
 /**
  * @author MagicDroidX
@@ -97,7 +97,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         tag.listenForShort("Health", this::setHealth);
         tag.listenForShort("PickupDelay", this::setPickupDelay);
         tag.listenForShort("Age", v -> this.age = v);
-        tag.listenForLong("OwnerID", v -> this.data.setLong(OWNER_EID, v));
+        tag.listenForLong("OwnerID", v -> this.data.set(OWNER_EID, v));
         tag.listenForCompound("Item", itemTag -> this.item = ItemUtils.deserializeItem(itemTag));
     }
 
@@ -108,7 +108,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         tag.putShort("Health", (short) this.getHealth());
         tag.putShort("PickupDelay", (short) this.pickupDelay);
         tag.putShort("Age", (short) this.age);
-        tag.putLong("OwnerID", this.data.getLong(OWNER_EID));
+        tag.putLong("OwnerID", this.data.get(OWNER_EID));
         tag.putCompound("Item", ItemUtils.serializeItem(this.item));
     }
 

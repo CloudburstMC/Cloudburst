@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.util.LoginChainData;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
+import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.server.Bootstrap;
 
 import java.io.IOException;

@@ -1,12 +1,14 @@
 package org.cloudburstmc.server.inventory.transaction;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -18,8 +20,8 @@ import java.util.List;
 public class ItemStackTransaction extends InventoryTransaction {
     @Getter
     @Setter
-    private ItemStackResponsePacket.ResponseStatus responseStatus = ItemStackResponsePacket.ResponseStatus.OK;
-    private final Object2ReferenceMap<ContainerSlotType, List<ItemStackResponsePacket.ItemEntry>> containers = new Object2ReferenceOpenHashMap<>();
+    private ItemStackResponseStatus responseStatus = ItemStackResponseStatus.OK;
+    private final Object2ReferenceMap<ContainerSlotType, List<ItemStackResponseSlot>> containers = new Object2ReferenceOpenHashMap<>();
 
     public ItemStackTransaction(CloudPlayer source) {
         super(source, new ArrayList<>(), true);
@@ -46,18 +48,18 @@ public class ItemStackTransaction extends InventoryTransaction {
         return true;
     }
 
-    public void addContaiers(Collection<ItemStackResponsePacket.ContainerEntry> containers) {
-        for (ItemStackResponsePacket.ContainerEntry entry : containers) {
-            List<ItemStackResponsePacket.ItemEntry> list = this.containers.computeIfAbsent(entry.getContainer(), x -> new ArrayList<>());
-            list.addAll(entry.getItems());
+    public void addContainers(Collection<ItemStackResponseContainer> containers) {
+        for (ItemStackResponseContainer container : containers) {
+            List<ItemStackResponseSlot> list = this.containers.computeIfAbsent(container.getContainer(), x -> new ArrayList<>());
+            list.addAll(container.getItems());
         }
 
     }
 
-    public List<ItemStackResponsePacket.ContainerEntry> getContainerEntries() {
-        List<ItemStackResponsePacket.ContainerEntry> result = new ArrayList<>();
+    public List<ItemStackResponseContainer> getContainerEntries() {
+        List<ItemStackResponseContainer> result = new ArrayList<>();
         for (ContainerSlotType container : containers.keySet()) {
-            result.add(new ItemStackResponsePacket.ContainerEntry(container, containers.get(container)));
+            result.add(new ItemStackResponseContainer(container, containers.get(container)));
         }
         return result;
     }

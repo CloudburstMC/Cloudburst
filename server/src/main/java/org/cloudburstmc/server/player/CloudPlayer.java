@@ -7,24 +7,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.BedrockSession;
-import com.nukkitx.protocol.bedrock.data.*;
-import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.handler.BatchHandler;
-import com.nukkitx.protocol.bedrock.packet.*;
-import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.bytes.ByteOpenHashSet;
 import it.unimi.dsi.fastutil.bytes.ByteSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -78,6 +60,21 @@ import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.LoginChainData;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
+import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
@@ -125,9 +122,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongConsumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.BED_POSITION;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.INTERACTIVE_TAG;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BED_POSITION;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.INTERACT_TEXT;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
 
 /**
  * @author MagicDroidX &amp; Box
@@ -245,7 +242,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         super(EntityTypes.PLAYER, Location.from(CloudServer.getInstance().getDefaultLevel()));
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
-        session.setBatchHandler(new Handler());
+        session.setPacketHandler(new Handler());
         this.perm = new PermissibleBase(this);
         this.server = CloudServer.getInstance();
         this.lastBreak = -1;
@@ -502,7 +499,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         packet.setHand(ItemUtils.toNetwork(this.getInventory().getItemInHand()));
         packet.setPlatformChatId("");
         packet.setDeviceId("");
-        packet.getAdventureSettings().setCommandPermission((this.isOp() ? CommandPermission.OPERATOR : CommandPermission.NORMAL));
+        packet.getAdventureSettings().setCommandPermission((this.isOp() ? CommandPermission.ADMIN : CommandPermission.ANY));
         packet.getAdventureSettings().setPlayerPermission((this.isOp() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER));
         this.getData().putAllIn(packet.getMetadata());
         return packet;
@@ -711,7 +708,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     public InetSocketAddress getSocketAddress() {
-        return this.session.getAddress();
+        return (InetSocketAddress) this.session.getSocketAddress();
     }
 
     public int getPort() {
@@ -751,7 +748,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public void setButtonText(String text) {
         if (!text.equals(buttonText)) {
             this.buttonText = text;
-            this.data.setString(INTERACTIVE_TAG, this.buttonText);
+            this.data.set(INTERACT_TEXT, this.buttonText);
         }
     }
 
@@ -860,7 +857,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     public long getPing() {
-        return this.session.getLatency();
+        return -1; // FIXME: Needs to be added to the protocol lib & RakNet
     }
 
     public boolean sleepOn(Vector3i pos) {
@@ -885,7 +882,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.sleeping = pos.clone();
         this.teleport(Location.from(pos.toFloat().add(0.5, 0.5, 0.5), this.getYaw(), this.getPitch(), this.getLevel()), null);
 
-        this.data.setVector3i(BED_POSITION, pos);
+        this.data.set(BED_POSITION, pos);
         //this.data.setBoolean(CAN_START_SLEEP, true); todo what did this change to?
 
         this.setSpawn(Location.from(pos.toFloat(), this.getLevel()));
@@ -900,7 +897,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             this.server.getEventManager().fire(new PlayerBedLeaveEvent(this, this.getLevel().getBlock(this.sleeping)));
 
             this.sleeping = null;
-            this.data.setVector3i(BED_POSITION, Vector3i.ZERO);
+            this.data.set(BED_POSITION, Vector3i.ZERO);
             //this.data.setBoolean(CAN_START_SLEEP, false); // TODO what did this change to?
 
 
@@ -1563,7 +1560,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
         startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default level name
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
-        startGamePacket.setItemEntries(CloudItemRegistry.get().getItemEntries());
+        startGamePacket.setItemDefinitions(CloudItemRegistry.get().getItemEntries());
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setDefaultPlayerPermission(PlayerPermission.MEMBER);
@@ -1572,11 +1569,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setPremiumWorldTemplateId("");
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(true);
-        SyncedPlayerMovementSettings settings = new SyncedPlayerMovementSettings();
-        settings.setMovementMode(AuthoritativeMovementMode.CLIENT);
-        settings.setRewindHistorySize(0);
-        settings.setServerAuthoritativeBlockBreaking(false);
-        startGamePacket.setPlayerMovementSettings(settings);
+        startGamePacket.setRewindHistorySize(0);
+        startGamePacket.setServerAuthoritativeBlockBreaking(false);
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setServerEngine("");
         startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
         startGamePacket.setWorldTemplateId(new UUID(0, 0));
@@ -1633,7 +1628,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         try (Timing ignore = Timings.playerNetworkReceiveTimer.startTiming()) {
             BedrockPacket packet;
             while ((packet = this.inboundQueue.poll()) != null) {
-                packetHandler.handle(packet);
+                packetHandler.handlePacket(packet);
             }
         }
 
@@ -2086,9 +2081,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
             super.close();
 
-            if (!this.session.isClosed()) {
+//            if (!this.session.isClosed()) { // TODO: Add method to protocol lib
                 this.session.disconnect(notify ? reason : "");
-            }
+//            }
 
             if (this.loggedIn) {
                 this.server.removeOnlinePlayer(this);
@@ -3378,13 +3373,12 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         return "Player(name=" + getName() + ")";
     }
 
-    private class Handler implements BatchHandler {
+    private class Handler implements BedrockPacketHandler {
 
         @Override
-        public void handle(BedrockSession session, ByteBuf buffer, Collection<BedrockPacket> packets) {
-            for (BedrockPacket packet : packets) {
-                CloudPlayer.this.handleDataPacket(packet);
-            }
+        public PacketSignal handlePacket(BedrockPacket packet) {
+            CloudPlayer.this.handleDataPacket(packet);
+            return PacketSignal.HANDLED;
         }
     }
 

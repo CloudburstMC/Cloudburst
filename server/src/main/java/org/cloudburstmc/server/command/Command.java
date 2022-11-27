@@ -118,15 +118,15 @@ public abstract class Command {
     }
 
     /**
-     * Generates the {@link com.nukkitx.protocol.bedrock.data.command.CommandData CommandData} used
-     * in {@link com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket AvailableCommandsPacket} which
+     * Generates the {@link org.cloudburstmc.protocol.bedrock.data.command.CommandData CommandData} used
+     * in {@link org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket AvailableCommandsPacket} which
      * sends the Command data to a client. If the player does not have permission to use this Command,
      * <code>null</code> will be returned.
      *
      * @param player Player to have command packet sent
      * @return CommandData|null
      */
-    public com.nukkitx.protocol.bedrock.data.command.CommandData toNetwork(CloudPlayer player) {
+    public org.cloudburstmc.protocol.bedrock.data.command.CommandData toNetwork(CloudPlayer player) {
         if (!this.testPermission(player)) {
             return null;
         }

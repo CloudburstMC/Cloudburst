@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.block.serializer;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -9,6 +7,8 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.data.SlabSlot;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
 
 import java.util.List;

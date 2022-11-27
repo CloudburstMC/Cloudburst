@@ -1,8 +1,5 @@
 package org.cloudburstmc.server.level.biome;
 
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtUtils;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
@@ -10,6 +7,9 @@ import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.NBTInputStream;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.Bootstrap;
 
 import java.io.InputStream;

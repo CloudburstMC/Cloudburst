@@ -1,14 +1,8 @@
 package org.cloudburstmc.server.entity.vehicle;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.Boat;
@@ -23,6 +17,10 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.api.util.data.TreeSpecies;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
@@ -32,7 +30,7 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayList;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
 /**
  * Created by yescallop on 2016/2/13.
@@ -64,12 +62,12 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     public int getWoodType() {
-        return this.data.getInt(VARIANT);
+        return this.data.get(VARIANT);
     }
 
     @Override
     public void setWoodType(TreeSpecies woodType) {
-        this.data.setInt(VARIANT, woodType.ordinal());
+        this.data.set(VARIANT, woodType.ordinal());
     }
 
     @Override
@@ -328,9 +326,9 @@ public class EntityBoat extends EntityVehicle implements Boat {
     public void onMount(Entity passenger) {
         super.onMount(passenger);
 
-        ((BaseEntity) passenger).getData().setByte(RIDER_ROTATION_LOCKED, 1);
-        ((BaseEntity) passenger).getData().setFloat(RIDER_MAX_ROTATION, 90);
-        ((BaseEntity) passenger).getData().setFloat(RIDER_MIN_ROTATION, -90);
+        ((BaseEntity) passenger).getData().set(SEAT_LOCK_RIDER_ROTATION, true);
+        ((BaseEntity) passenger).getData().set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
+        ((BaseEntity) passenger).getData().set(SEAT_ROTATION_OFFSET_DEGREES, -90f);
 
         //            if(entity instanceof Player && mode == SetEntityLinkPacket.TYPE_RIDE){ //TODO: controlling?
 //                entity.setDataProperty(new ByteEntityData(DATA_FLAG_WASD_CONTROLLED))
@@ -368,10 +366,10 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     public void onPaddle(AnimatePacket.Action animation, float value) {
-        EntityData data = animation == AnimatePacket.Action.ROW_RIGHT ? ROW_TIME_RIGHT : ROW_TIME_LEFT;
+        EntityDataType<Float> data = animation == AnimatePacket.Action.ROW_RIGHT ? ROW_TIME_RIGHT : ROW_TIME_LEFT;
 
-        if (this.data.getFloat(data) != value) {
-            this.data.setFloat(data, value);
+        if (this.data.get(data) != value) {
+            this.data.set(data, value);
         }
     }
 

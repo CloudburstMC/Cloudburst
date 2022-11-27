@@ -7,15 +7,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.collect.ImmutableSet;
-import com.nukkitx.math.vector.Vector2i;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.math.vector.Vector4i;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.GameRuleData;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.*;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
@@ -62,6 +53,14 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.math.vector.Vector2i;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.math.vector.Vector4i;
+import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlock;
@@ -824,8 +823,8 @@ public class CloudLevel implements Level {
             updateBlockPacket2.getFlags().addAll(flags);
 
             try {
-                updateBlockPacket.setRuntimeId(BlockPalette.INSTANCE.getRuntimeId(block.getState())); //TODO: send layers separately
-                updateBlockPacket2.setRuntimeId(BlockPalette.INSTANCE.getRuntimeId(block.getExtra()));
+                updateBlockPacket.setDefinition(BlockPalette.INSTANCE.getRuntimeId(block.getState())); //TODO: send layers separately
+                updateBlockPacket2.setDefinition(BlockPalette.INSTANCE.getRuntimeId(block.getExtra()));
             } catch (RegistryException e) {
                 throw new IllegalStateException("Unable to create BlockUpdatePacket at " +
                         block.getPosition() + " in " + getName(), e);
@@ -2402,11 +2401,11 @@ public class CloudLevel implements Level {
         // These numbers are from Minecraft
 
         if (raining) {
-            packet.setType(LevelEventType.START_RAINING);
+            packet.setType(LevelEvent.START_RAINING);
             packet.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
             setRainTime(ThreadLocalRandom.current().nextInt(12000) + 12000);
         } else {
-            packet.setType(LevelEventType.STOP_RAINING);
+            packet.setType(LevelEvent.STOP_RAINING);
             setRainTime(ThreadLocalRandom.current().nextInt(168000) + 12000);
         }
         packet.setPosition(Vector3f.ZERO);
@@ -2445,11 +2444,11 @@ public class CloudLevel implements Level {
         LevelEventPacket packet = new LevelEventPacket();
         // These numbers are from Minecraft
         if (thundering) {
-            packet.setType(LevelEventType.START_THUNDERSTORM);
+            packet.setType(LevelEvent.START_THUNDERSTORM);
             packet.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
             setThunderTime(ThreadLocalRandom.current().nextInt(12000) + 3600);
         } else {
-            packet.setType(LevelEventType.STOP_THUNDERSTORM);
+            packet.setType(LevelEvent.STOP_THUNDERSTORM);
             setThunderTime(ThreadLocalRandom.current().nextInt(168000) + 12000);
         }
         packet.setPosition(Vector3f.ZERO);
@@ -2477,20 +2476,20 @@ public class CloudLevel implements Level {
 
         LevelEventPacket rainEvent = new LevelEventPacket();
         if (this.isRaining()) {
-            rainEvent.setType(LevelEventType.START_RAINING);
+            rainEvent.setType(LevelEvent.START_RAINING);
             rainEvent.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
         } else {
-            rainEvent.setType(LevelEventType.STOP_RAINING);
+            rainEvent.setType(LevelEvent.STOP_RAINING);
         }
         rainEvent.setPosition(Vector3f.ZERO);
         CloudServer.broadcastPacket(players, rainEvent);
 
         LevelEventPacket thunderEvent = new LevelEventPacket();
         if (this.isThundering()) {
-            thunderEvent.setType(LevelEventType.START_THUNDERSTORM);
+            thunderEvent.setType(LevelEvent.START_THUNDERSTORM);
             thunderEvent.setData(ThreadLocalRandom.current().nextInt(50000) + 10000);
         } else {
-            thunderEvent.setType(LevelEventType.STOP_THUNDERSTORM);
+            thunderEvent.setType(LevelEvent.STOP_THUNDERSTORM);
         }
         thunderEvent.setPosition(Vector3f.ZERO);
         CloudServer.broadcastPacket(players, thunderEvent);

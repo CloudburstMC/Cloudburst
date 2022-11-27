@@ -1,17 +1,17 @@
 package org.cloudburstmc.server.inventory;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.inventory.ContainerInventory;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;

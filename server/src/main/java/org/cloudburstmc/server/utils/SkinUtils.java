@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.nukkitx.protocol.bedrock.data.skin.*;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.player.skin.data.ImageData;
 import org.cloudburstmc.api.player.skin.data.PersonaPiece;
 import org.cloudburstmc.api.player.skin.data.PersonaPieceTint;
 import org.cloudburstmc.api.player.skin.data.SkinAnimation;
+import org.cloudburstmc.protocol.bedrock.data.skin.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -52,8 +52,8 @@ public class SkinUtils {
                 .fullSkinId(skin.getFullSkinId())
                 .playFabId(skin.getPlayFabId())
                 .skinResourcePatch(skin.getSkinResourcePatch())
-                .skinData(com.nukkitx.protocol.bedrock.data.skin.ImageData.of(skin.getSkinData().getWidth(), skin.getSkinData().getHeight(), skin.getSkinData().getImage()))
-                .capeData(com.nukkitx.protocol.bedrock.data.skin.ImageData.of(skin.getCapeData().getWidth(), skin.getCapeData().getHeight(), skin.getCapeData().getImage()))
+                .skinData(org.cloudburstmc.protocol.bedrock.data.skin.ImageData.of(skin.getSkinData().getWidth(), skin.getSkinData().getHeight(), skin.getSkinData().getImage()))
+                .capeData(org.cloudburstmc.protocol.bedrock.data.skin.ImageData.of(skin.getCapeData().getWidth(), skin.getCapeData().getHeight(), skin.getCapeData().getImage()))
                 .geometryData(skin.getGeometryData())
                 .animationData(skin.getAnimationData())
                 .premium(skin.isPremium())
@@ -67,7 +67,7 @@ public class SkinUtils {
         List<PersonaPieceData> personas = new ArrayList<>();
         List<PersonaPieceTintData> tints = new ArrayList<>();
 
-        skin.getAnimations().forEach(animation -> animations.add(new AnimationData(com.nukkitx.protocol.bedrock.data.skin.ImageData.of(animation.getImage().getWidth(), animation.getImage().getHeight(), animation.getImage().getImage()), AnimatedTextureType.values()[animation.getType()], animation.getFrames(), AnimationExpressionType.values()[animation.getExpression()])));
+        skin.getAnimations().forEach(animation -> animations.add(new AnimationData(org.cloudburstmc.protocol.bedrock.data.skin.ImageData.of(animation.getImage().getWidth(), animation.getImage().getHeight(), animation.getImage().getImage()), AnimatedTextureType.values()[animation.getType()], animation.getFrames(), AnimationExpressionType.values()[animation.getExpression()])));
         skin.getPersonaPieces().forEach(piece -> personas.add(new PersonaPieceData(piece.getId(), piece.getType(), piece.getPackId(), piece.isDefault(), piece.getProductId())));
         skin.getTintColors().forEach(color -> tints.add(new PersonaPieceTintData(color.getPieceType(), color.getColors())));
 

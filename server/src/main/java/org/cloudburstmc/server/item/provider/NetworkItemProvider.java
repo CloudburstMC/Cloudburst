@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.item.provider;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 
 import java.util.HashSet;
 import java.util.Set;

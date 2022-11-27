@@ -1,8 +1,5 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Explosive;
@@ -11,11 +8,14 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityExplosionPrimeEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.Explosion;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.FUSE_LENGTH;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.IGNITED;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.IGNITED;
 
 /**
  * @author MagicDroidX
@@ -72,7 +72,7 @@ public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, Explosive 
         super.initEntity();
 
         this.data.setFlag(IGNITED, true);
-        this.data.setInt(FUSE_LENGTH, fuse);
+        this.data.set(FUSE_TIME, fuse);
 
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.FIZZ);
     }
@@ -110,7 +110,7 @@ public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, Explosive 
         }
 
         if (fuse <= 5 || fuse % 5 == 0) {
-            this.data.setInt(FUSE_LENGTH, fuse);
+            this.data.set(FUSE_TIME, fuse);
 
             this.data.update();
         }
@@ -165,11 +165,11 @@ public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, Explosive 
 
     @Override
     public int getFuse() {
-        return this.data.getInt(FUSE_LENGTH);
+        return this.data.get(FUSE_TIME);
     }
 
     @Override
     public void setFuse(int fuse) {
-        this.data.setInt(FUSE_LENGTH, fuse);
+        this.data.set(FUSE_TIME, fuse);
     }
 }

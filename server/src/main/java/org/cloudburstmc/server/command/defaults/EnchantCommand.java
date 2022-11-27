@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.command.defaults;
 
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;

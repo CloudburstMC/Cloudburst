@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.inventory;
 
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.server.blockentity.ChestBlockEntity;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;

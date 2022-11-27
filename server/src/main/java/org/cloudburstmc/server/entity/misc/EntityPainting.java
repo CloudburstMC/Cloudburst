@@ -1,9 +1,5 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.packet.AddPaintingPacket;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.Painting;
@@ -13,6 +9,10 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.server.entity.HangingEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 

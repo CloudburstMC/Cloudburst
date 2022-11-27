@@ -1,23 +1,23 @@
 package org.cloudburstmc.server.network.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.PlaceStackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.TakeStackRequestActionData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.PlaceAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TakeAction;
 
 public class ItemStackRequestActionHandler {
 
-    public void handleAction(StackRequestActionData action) {
+    public void handleAction(ItemStackRequestAction action) {
         switch (action.getType()) {
-            case TAKE -> handle((TakeStackRequestActionData) action);
-            case PLACE -> handle((PlaceStackRequestActionData) action);
+            case TAKE -> handle((TakeAction) action);
+            case PLACE -> handle((PlaceAction) action);
         }
     }
 
-    private void handle(TakeStackRequestActionData action) {
+    private void handle(TakeAction action) {
 
     }
 
-    private void handle(PlaceStackRequestActionData action) {
+    private void handle(PlaceAction action) {
 
     }
 

@@ -1,16 +1,9 @@
 open module org.cloudburstmc.server {
     requires org.cloudburstmc.api;
+    requires org.cloudburstmc.math.immutable;
     requires it.unimi.dsi.fastutil;
     requires com.fasterxml.jackson.databind;
     requires java.management;
-    requires com.nukkitx.math;
-    requires com.nukkitx.natives;
-    requires com.nukkitx.nbt;
-    requires com.nukkitx.network.common;
-    requires com.nukkitx.network.raknet;
-    requires com.nukkitx.protocol.bedrock.common;
-    requires com.nukkitx.protocol.bedrock.v544;
-    requires com.nukkitx.protocol.common;
     requires common;
     requires static lombok;
     requires static javax.inject;
@@ -44,6 +37,9 @@ open module org.cloudburstmc.server {
     requires natives;
     requires jdk.unsupported;
     requires java.desktop;
+    requires bedrock.codec;
+    requires nbt;
+    requires bedrock.connection;
 
     exports co.aikar.timings;
     exports org.cloudburstmc.server;

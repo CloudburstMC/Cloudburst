@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.entity.passive;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Ownable;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.OWNER_EID;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.SITTING;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.TAMED;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNER_EID;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SITTING;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.TAMED;
 
 /**
  * Author: BeYkeRYkt
@@ -48,12 +48,12 @@ public abstract class EntityTameable extends Animal implements Ownable {
 
     @Override
     public long getOwnerId() {
-        return this.data.getLong(OWNER_EID);
+        return this.data.get(OWNER_EID);
     }
 
     @Override
     public void setOwnerId(long id) {
-        this.data.setLong(OWNER_EID, id);
+        this.data.set(OWNER_EID, id);
     }
 
     @Override

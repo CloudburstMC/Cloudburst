@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.registry;
 
 import com.nukkitx.blockstateupdater.BlockStateUpdaters;
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.nbt.NbtUtils;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.nbt.NBTInputStream;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

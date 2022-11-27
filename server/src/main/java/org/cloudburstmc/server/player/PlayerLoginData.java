@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.player;
 
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.player.PlayerCreationEvent;
 import org.cloudburstmc.server.network.BedrockInterface;

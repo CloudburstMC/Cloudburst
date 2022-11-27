@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.command.defaults;
 
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.ServerException;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;

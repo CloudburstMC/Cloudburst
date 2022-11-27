@@ -4,13 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
@@ -20,6 +13,13 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.NBTInputStream;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtUtils;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -36,7 +36,7 @@ public class ItemPalette {
     private final static BiMap<Integer, Identifier> legacyIdMap = HashBiMap.create();
     private final static Reference2ObjectMap<Identifier, Int2ReferenceMap<Identifier>> metaMap = new Reference2ObjectOpenHashMap<>();
     private final CloudItemRegistry itemRegistry;
-    private final static Reference2ReferenceMap<Identifier, StartGamePacket.ItemEntry> itemEntries = new Reference2ReferenceOpenHashMap<>();
+    private final static Reference2ReferenceMap<Identifier, ItemDefinition> itemEntries = new Reference2ReferenceOpenHashMap<>();
     private final static Reference2IntMap<Identifier> idRuntimeMap = new Reference2IntOpenHashMap<>();
     private final static Int2ReferenceMap<Identifier> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
 
@@ -72,7 +72,7 @@ public class ItemPalette {
             for (JsonNode item : json) {
                 Identifier id = Identifier.fromString(item.get("name").asText());
                 int runtime = item.get("id").intValue();
-                itemEntries.put(id, new StartGamePacket.ItemEntry(id.toString(), (short) runtime));
+                itemEntries.put(id, new ItemDefinition(id.toString(), (short) runtime, false));
                 runtimeIdMap.put(runtime, id);
                 idRuntimeMap.put(id, runtime);
             }
@@ -97,7 +97,7 @@ public class ItemPalette {
             runtimeIdMap.put(runtimeId, identifier);
             idRuntimeMap.putIfAbsent(identifier, runtimeId);
 
-            itemEntries.put(identifier, new StartGamePacket.ItemEntry(identifier.toString(), (short) runtimeId));
+            itemEntries.put(identifier, new ItemDefinition(identifier.toString(), runtimeId, false));
             return runtimeId;
         }
         return -1;
@@ -141,7 +141,7 @@ public class ItemPalette {
         return creativeContentPacket;
     }
 
-    public List<StartGamePacket.ItemEntry> getItemPalette() {
+    public List<ItemDefinition> getItemPalette() {
         return ImmutableList.copyOf(itemEntries.values());
     }
 
@@ -158,7 +158,7 @@ public class ItemPalette {
 
         this.creativeItems.add(ItemData.builder()
                 .usingNetId(false)
-                .id(getRuntimeId(item.getType().getId()))
+                .definition(getRuntimeId(item.getType().getId()))
                 .damage(damage)
                 .blockRuntimeId(brid)
                 .build());
@@ -180,7 +180,7 @@ public class ItemPalette {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
             for (JsonNode item : json.get("items")) {
                 ItemData.Builder itemData = ItemData.builder();
-                itemData.id(getRuntimeId(Identifier.fromString(item.get("id").asText())));
+                itemData.definition(getRuntimeId(Identifier.fromString(item.get("id").asText())));
 
                 if (item.has("block_state_b64")) {
                     NbtMap blockState = decodeNbt(item.get("block_state_b64").asText());
@@ -190,11 +190,11 @@ public class ItemPalette {
 
                     BlockState state = CloudBlockRegistry.REGISTRY.getBlock(blockState);
                     if (state != null) {
-                        itemData.blockRuntimeId(CloudBlockRegistry.REGISTRY.getRuntimeId(state));
+                        itemData.blockDefinition(CloudBlockRegistry.REGISTRY.getRuntimeId(state));
                     }
                 }
                 if (item.has("blockRuntimeId")) {
-                    itemData.blockRuntimeId(item.get("blockRuntimeId").asInt());
+                    itemData.blockDefinition(item.get("blockRuntimeId").asInt());
                 }
 
                 if (item.has("damage")) {

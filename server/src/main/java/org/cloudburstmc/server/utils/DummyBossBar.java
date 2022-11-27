@@ -1,15 +1,15 @@
 package org.cloudburstmc.server.utils;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.*;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
 /**
  * DummyBossBar
@@ -119,13 +119,12 @@ public class DummyBossBar {
         pkAdd.setRuntimeEntityId(bossBarId);
         pkAdd.setPosition(Vector3f.from(player.getX(), -10, player.getZ()));
         pkAdd.setMotion(Vector3f.ZERO);
-        pkAdd.getMetadata()
-                // Default Metadata tags
-                .putShort(AIR_SUPPLY, 400)
-                .putShort(MAX_AIR_SUPPLY, 400)
-                .putLong(LEASH_HOLDER_EID, -1)
-                .putString(NAMETAG, text) // Set the entity name
-                .putFloat(SCALE, 0); // And make it invisible
+        // Default Metadata tags
+        pkAdd.getMetadata().put(AIR_SUPPLY, (short) 400);
+        pkAdd.getMetadata().put(AIR_SUPPLY_MAX, (short) 400);
+        pkAdd.getMetadata().put(LEASH_HOLDER, -1L);
+        pkAdd.getMetadata().put(NAME, text); // Set the entity name
+        pkAdd.getMetadata().put(SCALE, 0); // And make it invisible
 
         this.player.sendPacket(pkAdd);
     }
@@ -201,7 +200,7 @@ public class DummyBossBar {
     private void updateBossEntityNameTag() {
         SetEntityDataPacket pk = new SetEntityDataPacket();
         pk.setRuntimeEntityId(this.bossBarId);
-        pk.getMetadata().putString(NAMETAG, this.text);
+        pk.getMetadata().put(NAME, this.text);
         player.sendPacket(pk);
     }
 

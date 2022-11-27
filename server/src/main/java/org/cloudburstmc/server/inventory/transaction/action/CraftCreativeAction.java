@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.ItemRegistry;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
 import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -46,7 +46,7 @@ public class CraftCreativeAction extends ItemStackAction {
     }
 
     @Override
-    protected List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer source) {
+    protected List<ItemStackResponseContainer> getContainers(CloudPlayer source) {
         return new ArrayList<>();
     }
 }

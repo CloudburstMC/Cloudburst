@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.command.defaults;
 
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.event.player.PlayerKickEvent;
+import org.cloudburstmc.nbt.NBTInputStream;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtUtils;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;

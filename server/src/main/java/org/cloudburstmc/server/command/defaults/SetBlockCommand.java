@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.command.defaults;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;

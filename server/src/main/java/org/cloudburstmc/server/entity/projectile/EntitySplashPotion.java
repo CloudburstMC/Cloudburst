@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.entity.projectile;
 
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.SplashPotion;
 import org.cloudburstmc.api.event.potion.PotionCollideEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.PotionType;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.particle.Particle;
 import org.cloudburstmc.server.level.particle.SpellParticle;
 import org.cloudburstmc.server.potion.CloudEffect;
@@ -14,7 +14,7 @@ import org.cloudburstmc.server.potion.CloudPotion;
 
 import java.util.Set;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.POTION_AUX_VALUE;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.AUX_VALUE_DATA;
 
 /**
  * @author xtypr
@@ -151,11 +151,11 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
     }
 
     public short getPotionId() {
-        return this.data.getShort(POTION_AUX_VALUE);
+        return this.data.get(AUX_VALUE_DATA);
     }
 
     public void setPotionId(int potionId) {
-        this.data.setShort(POTION_AUX_VALUE, potionId);
+        this.data.set(AUX_VALUE_DATA, (short) potionId);
     }
 
     @Override

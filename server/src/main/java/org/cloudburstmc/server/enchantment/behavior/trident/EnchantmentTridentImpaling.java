@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.enchantment.behavior.trident;
 
-import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 public class EnchantmentTridentImpaling extends EnchantmentTrident {

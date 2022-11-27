@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.inventory.transaction;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.Recipe;
@@ -9,6 +7,8 @@ import org.cloudburstmc.api.event.inventory.CraftItemEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;

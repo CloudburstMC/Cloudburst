@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.entity.vehicle;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -15,12 +13,14 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.api.util.data.MountType;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.Explosion;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.FUSE_LENGTH;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.CHARGED;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.CHARGED;
 
 /**
  * Author: Adam Matthew [larryTheCoder]
@@ -44,7 +44,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
         this.setDisplayBlock(BlockStates.TNT);
         this.setDisplay(true);
-        this.data.setInt(FUSE_LENGTH, 80);
+        this.data.set(FUSE_TIME, 80);
         this.data.setFlag(CHARGED, false);
     }
 
@@ -52,7 +52,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     public boolean onUpdate(int currentTick) {
         this.timing.startTiming();
 
-        int fuse = this.data.getInt(FUSE_LENGTH);
+        int fuse = this.data.get(FUSE_TIME);
 
         if (fuse < 80) {
             int tickDiff = currentTick - lastUpdate;
@@ -60,7 +60,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
             lastUpdate = currentTick;
 
             if (fuse <= 5 || fuse % 5 == 0) {
-                this.data.setInt(FUSE_LENGTH, fuse);
+                this.data.set(FUSE_TIME, fuse);
             }
 
             fuse -= tickDiff;
@@ -82,7 +82,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     @Override
     public void activate(int x, int y, int z, boolean flag) {
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.IGNITE);
-        this.data.setInt(FUSE_LENGTH, 79);
+        this.data.set(FUSE_TIME, 79);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
         boolean interact = super.onInteract(player, item, clickedPos);
         if (item.getType() == ItemTypes.FLINT_AND_STEEL || item.getType() == ItemTypes.FIREBALL) {
             this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.IGNITE);
-            this.data.setInt(FUSE_LENGTH, 79);
+            this.data.set(FUSE_TIME, 79);
             return true;
         }
 

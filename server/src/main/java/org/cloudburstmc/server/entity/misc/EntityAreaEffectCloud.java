@@ -1,8 +1,5 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
@@ -11,6 +8,10 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.network.NetworkUtils;
@@ -21,9 +22,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.NO_AI;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.NO_AI;
 
 public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud {
     private static final String TAG_DURATION = "Duration";
@@ -58,22 +59,22 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
 
     @Override
     public int getWaitTime() {
-        return this.data.getInt(AREA_EFFECT_CLOUD_WAITING);
+        return this.data.get(AREA_EFFECT_CLOUD_WAITING);
     }
 
     @Override
     public void setWaitTime(int waitTime) {
-        this.data.setInt(AREA_EFFECT_CLOUD_WAITING, waitTime);
+        this.data.set(AREA_EFFECT_CLOUD_WAITING, waitTime);
     }
 
     @Override
     public short getPotionId() {
-        return this.data.getShort(POTION_AUX_VALUE);
+        return this.data.get(AUX_VALUE_DATA);
     }
 
     @Override
     public void setPotionId(int potionId) {
-        this.data.setShort(POTION_AUX_VALUE, potionId & 0xFFFF);
+        this.data.set(AUX_VALUE_DATA, (short) (potionId & 0xFFFF));
         this.recalculatePotionColor();
     }
 
@@ -111,12 +112,12 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
 
     @Override
     public int getPotionColor() {
-        return this.data.getInt(EFFECT_COLOR);
+        return this.data.get(EFFECT_COLOR);
     }
 
     @Override
     public void setPotionColor(int argp) {
-        this.data.setInt(EFFECT_COLOR, argp);
+        this.data.set(EFFECT_COLOR, argp);
     }
 
     @Override
@@ -126,72 +127,72 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
 
     @Override
     public int getPickupCount() {
-        return this.data.getInt(AREA_EFFECT_CLOUD_COUNT);
+        return this.data.get(AREA_EFFECT_CLOUD_PICKUP_COUNT);
     }
 
     @Override
     public void setPickupCount(int pickupCount) {
-        this.data.setInt(AREA_EFFECT_CLOUD_COUNT, pickupCount);
+        this.data.set(AREA_EFFECT_CLOUD_PICKUP_COUNT, pickupCount);
     }
 
     @Override
     public float getRadiusChangeOnPickup() {
-        return this.data.getFloat(AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP);
+        return this.data.get(AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP);
     }
 
     @Override
     public void setRadiusChangeOnPickup(float radiusChangeOnPickup) {
-        this.data.setFloat(AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, radiusChangeOnPickup);
+        this.data.set(AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, radiusChangeOnPickup);
     }
 
     @Override
     public float getRadiusPerTick() {
-        return this.data.getFloat(AREA_EFFECT_CLOUD_CHANGE_RATE);
+        return this.data.get(AREA_EFFECT_CLOUD_CHANGE_RATE);
     }
 
     @Override
     public void setRadiusPerTick(float radiusPerTick) {
-        this.data.setFloat(AREA_EFFECT_CLOUD_CHANGE_RATE, radiusPerTick);
+        this.data.set(AREA_EFFECT_CLOUD_CHANGE_RATE, radiusPerTick);
     }
 
     @Override
     public long getSpawnTime() {
-        return this.data.getLong(AREA_EFFECT_CLOUD_SPAWN_TIME);
+        return this.data.get(AREA_EFFECT_CLOUD_SPAWN_TIME);
     }
 
     @Override
-    public void setSpawnTime(long spawnTime) {
-        this.data.setLong(AREA_EFFECT_CLOUD_SPAWN_TIME, spawnTime);
+    public void setSpawnTime(int spawnTime) {
+        this.data.set(AREA_EFFECT_CLOUD_SPAWN_TIME, spawnTime);
     }
 
     @Override
     public int getDuration() {
-        return this.data.getInt(AREA_EFFECT_CLOUD_DURATION);
+        return this.data.get(AREA_EFFECT_CLOUD_DURATION);
     }
 
     @Override
     public void setDuration(int duration) {
-        this.data.setInt(AREA_EFFECT_CLOUD_DURATION, duration);
+        this.data.set(AREA_EFFECT_CLOUD_DURATION, duration);
     }
 
     @Override
     public float getRadius() {
-        return this.data.getFloat(AREA_EFFECT_CLOUD_RADIUS);
+        return this.data.get(AREA_EFFECT_CLOUD_RADIUS);
     }
 
     @Override
     public void setRadius(float radius) {
-        this.data.setFloat(AREA_EFFECT_CLOUD_RADIUS, radius);
+        this.data.set(AREA_EFFECT_CLOUD_RADIUS, radius);
     }
 
     @Override
-    public int getParticleId() {
-        return this.data.getInt(AREA_EFFECT_CLOUD_PARTICLE_ID);
+    public ParticleType getParticleId() {
+        return this.data.get(AREA_EFFECT_CLOUD_PARTICLE);
     }
 
     @Override
-    public void setParticleId(int particleId) {
-        this.data.setInt(AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
+    public void setParticleId(ParticleType particleId) {
+        this.data.set(AREA_EFFECT_CLOUD_PARTICLE, particleId);
     }
 
     @Override
@@ -200,9 +201,9 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
         this.invulnerable = true;
         this.data.setFlag(FIRE_IMMUNE, true);
         this.data.setFlag(NO_AI, true);
-        this.data.setShort(AREA_EFFECT_CLOUD_PARTICLE_ID, 32);
-        this.data.setLong(AREA_EFFECT_CLOUD_SPAWN_TIME, this.level.getCurrentTick());
-        this.data.setInt(AREA_EFFECT_CLOUD_COUNT, 0);
+        this.data.set(AREA_EFFECT_CLOUD_PARTICLE, ParticleType.MOB_SPELL_AMBIENT);
+        this.data.set(AREA_EFFECT_CLOUD_SPAWN_TIME, (int) this.level.getCurrentTick());
+        this.data.set(AREA_EFFECT_CLOUD_PICKUP_COUNT, 0);
         this.setDuration(600);
         this.initialRadius = 3f;
         this.setRadius(this.initialRadius);
@@ -335,8 +336,8 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
         float height = getHeight();
         boundingBox.setBounds(getX() - radius, getY() - height, getZ() - radius,
                 getX() + radius, getY() + height, getZ() + radius);
-        this.data.setFloat(BOUNDING_BOX_HEIGHT, height);
-        this.data.setFloat(BOUNDING_BOX_WIDTH, radius);
+        this.data.set(HEIGHT, height);
+        this.data.set(WIDTH, radius);
 
         this.timing.stopTiming();
 

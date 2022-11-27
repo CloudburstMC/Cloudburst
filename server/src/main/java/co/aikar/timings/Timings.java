@@ -23,13 +23,13 @@
  */
 package co.aikar.timings;
 
-import com.nukkitx.protocol.bedrock.BedrockPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.scheduler.PluginTask;

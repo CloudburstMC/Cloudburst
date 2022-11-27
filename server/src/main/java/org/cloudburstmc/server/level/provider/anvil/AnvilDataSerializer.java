@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.level.provider.anvil;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.*;
 import org.cloudburstmc.api.level.gamerule.GameRule;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.LevelData;
 import org.cloudburstmc.server.level.provider.LevelDataSerializer;

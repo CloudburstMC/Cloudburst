@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.item.provider;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 
 import java.util.HashSet;
 import java.util.Set;

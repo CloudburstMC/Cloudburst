@@ -1,17 +1,19 @@
 package org.cloudburstmc.server.player.manager;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
 import org.cloudburstmc.server.inventory.*;
 import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
+import org.cloudburstmc.server.inventory.transaction.action.CraftCreativeAction;
+import org.cloudburstmc.server.inventory.transaction.action.CraftRecipeAction;
 import org.cloudburstmc.server.inventory.transaction.action.*;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -19,7 +21,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import static com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType.*;
+import static org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType.*;
 
 @Log4j2
 @Getter
@@ -57,35 +59,35 @@ public class PlayerInventoryManager {
             this.transaction = new ItemStackTransaction(player);
         }
 
-        for (StackRequestActionData action : request.getActions()) {
-            StackRequestSlotInfoData source;
-            StackRequestSlotInfoData target;
+        for (ItemStackRequestAction action : request.getActions()) {
+            ItemStackRequestSlotData source;
+            ItemStackRequestSlotData target;
             switch (action.getType()) {
                 case TAKE:
-                    source = ((TakeStackRequestActionData) action).getSource();
-                    target = ((TakeStackRequestActionData) action).getDestination();
+                    source = ((TakeAction) action).getSource();
+                    target = ((TakeAction) action).getDestination();
 
                     this.transaction.addAction(new MoveItemStackAction(
                             request.getRequestId(),
-                            ((TakeStackRequestActionData) action).getCount(),
+                            ((TakeAction) action).getCount(),
                             source,
                             target
                     ));
                     continue;
                 case PLACE:
-                    source = ((PlaceStackRequestActionData) action).getSource();
-                    target = ((PlaceStackRequestActionData) action).getDestination();
+                    source = ((PlaceAction) action).getSource();
+                    target = ((PlaceAction) action).getDestination();
 
                     this.transaction.addAction(new MoveItemStackAction(
                             request.getRequestId(),
-                            ((PlaceStackRequestActionData) action).getCount(),
+                            ((PlaceAction) action).getCount(),
                             source,
                             target
                     ));
                     continue;
                 case SWAP:
-                    source = ((SwapStackRequestActionData) action).getSource();
-                    target = ((SwapStackRequestActionData) action).getDestination();
+                    source = ((SwapAction) action).getSource();
+                    target = ((SwapAction) action).getDestination();
 
                     this.transaction.addAction(new SwapItemStackAction(
                             request.getRequestId(),
@@ -94,34 +96,34 @@ public class PlayerInventoryManager {
                     ));
                     continue;
                 case DROP:
-                    source = ((DropStackRequestActionData) action).getSource();
+                    source = ((DropAction) action).getSource();
 
                     this.transaction.addAction(new DropItemStackAction(
                             request.getRequestId(),
-                            ((DropStackRequestActionData) action).getCount(),
-                            ((DropStackRequestActionData) action).isRandomly(),
+                            ((DropAction) action).getCount(),
+                            ((DropAction) action).isRandomly(),
                             source,
                             null
                     ));
                     continue;
                 case DESTROY:
-                    source = ((DestroyStackRequestActionData) action).getSource();
+                    source = ((DestroyAction) action).getSource();
 
                     this.transaction.addAction(
                             new ConsumeItemAction(
                                     request.getRequestId(),
-                                    ((DestroyStackRequestActionData) action).getCount(),
+                                    ((DestroyAction) action).getCount(),
                                     source
                             )
                     );
                     continue;
                 case CONSUME:
-                    source = ((ConsumeStackRequestActionData) action).getSource();
+                    source = ((ConsumeAction) action).getSource();
 
                     this.transaction.addAction(
                             new ConsumeItemAction(
                                     request.getRequestId(),
-                                    ((ConsumeStackRequestActionData) action).getCount(),
+                                    ((ConsumeAction) action).getCount(),
                                     source
                             )
                     );
@@ -132,14 +134,14 @@ public class PlayerInventoryManager {
                     continue;
                 case CRAFT_RECIPE:
                     this.transaction.addAction(new CraftRecipeAction(request.getRequestId(),
-                            ((CraftRecipeStackRequestActionData) action).getRecipeNetworkId()));
+                            ((CraftRecipeAction) action).getRecipeNetworkId()));
                     continue;
                 case CRAFT_RESULTS_DEPRECATED:
                     // Don't use depreciated actions!
                     continue;
                 case CRAFT_CREATIVE:
                     this.transaction.addAction(new CraftCreativeAction(request.getRequestId(),
-                            ((CraftCreativeStackRequestActionData) action).getCreativeItemNetworkId()));
+                            ((CraftCreativeAction) action).getCreativeItemNetworkId()));
                     continue;
                 default:
                     log.warn("Received unknown ItemStackRequestAction type: {}", action.getType());

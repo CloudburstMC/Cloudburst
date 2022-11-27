@@ -1,12 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
 import com.google.common.collect.Lists;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -20,6 +14,12 @@ import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.crafting.BrewingRecipe;
 import org.cloudburstmc.server.inventory.CloudBrewingInventory;
 import org.cloudburstmc.server.inventory.ContainerRecipe;

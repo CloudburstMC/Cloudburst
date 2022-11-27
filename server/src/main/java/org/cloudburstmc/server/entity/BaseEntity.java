@@ -4,18 +4,6 @@ import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import co.aikar.timings.TimingsHistory;
 import com.google.common.collect.Iterables;
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.packet.*;
 import com.spotify.futures.CompletableFutures;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
@@ -44,6 +32,17 @@ import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.api.util.data.MountType;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -63,9 +62,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.*;
 import static org.cloudburstmc.api.block.BlockTypes.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
 
 /**
  * @author MagicDroidX
@@ -180,13 +179,13 @@ public abstract class BaseEntity implements Entity {
 
     protected void initEntity() {
         this.data.setFlag(HAS_COLLISION, true);
-        this.data.setShort(AIR_SUPPLY, 400);
-        this.data.setShort(MAX_AIR_SUPPLY, 400);
-        this.data.setLong(LEASH_HOLDER_EID, -1);
-        this.data.setFloat(SCALE, 1f);
-        this.data.setFloat(BOUNDING_BOX_HEIGHT, this.getHeight());
-        this.data.setFloat(BOUNDING_BOX_WIDTH, this.getWidth());
-        this.data.setInt(HEALTH, (int) this.getHealth());
+        this.data.set(AIR_SUPPLY, (short) 400);
+        this.data.set(AIR_SUPPLY_MAX, (short) 400);
+        this.data.set(LEASH_HOLDER, -1L);
+        this.data.set(SCALE, 1f);
+        this.data.set(HEIGHT, this.getHeight());
+        this.data.set(WIDTH, this.getWidth());
+        this.data.set(STRUCTURAL_INTEGRITY, (int) this.getHealth());
 
         this.scheduleUpdate();
     }
@@ -302,7 +301,7 @@ public abstract class BaseEntity implements Entity {
 
         tag.putFloat("FallDistance", this.fallDistance);
         tag.putShort("Fire", (short) this.fireTicks);
-        tag.putShort("Air", this.data.getShort(AIR_SUPPLY));
+        tag.putShort("Air", this.data.get(AIR_SUPPLY));
         tag.putBoolean("OnGround", this.onGround);
         tag.putBoolean("Invulnerable", this.invulnerable);
         tag.putFloat("Scale", this.scale);
@@ -326,11 +325,11 @@ public abstract class BaseEntity implements Entity {
     }
 
     public String getNameTag() {
-        return this.data.getString(NAMETAG);
+        return this.data.get(NAME);
     }
 
     public void setNameTag(String name) {
-        this.data.setString(NAMETAG, name);
+        this.data.set(NAME, name);
     }
 
     public boolean isNameTagVisible() {
@@ -346,11 +345,11 @@ public abstract class BaseEntity implements Entity {
     }
 
     public boolean isNameTagAlwaysVisible() {
-        return this.data.getByte(NAMETAG_ALWAYS_SHOW) == 1;
+        return this.data.get(NAMETAG_ALWAYS_SHOW) == 1;
     }
 
     public void setNameTagAlwaysVisible(boolean value) {
-        this.data.setByte(NAMETAG_ALWAYS_SHOW, value ? 1 : 0);
+        this.data.set(NAMETAG_ALWAYS_SHOW, (byte) (value ? 1 : 0));
     }
 
     public void setNameTagAlwaysVisible() {
@@ -358,11 +357,11 @@ public abstract class BaseEntity implements Entity {
     }
 
     public String getScoreTag() {
-        return this.data.getString(SCORE_TAG);
+        return this.data.get(SCORE);
     }
 
     public void setScoreTag(String score) {
-        this.data.setString(SCORE_TAG, score);
+        this.data.set(SCORE, score);
     }
 
     public boolean isImmobile() {
@@ -407,16 +406,16 @@ public abstract class BaseEntity implements Entity {
 
     public void setScale(float scale) {
         this.scale = scale;
-        this.data.setFloat(SCALE, this.scale);
+        this.data.set(SCALE, this.scale);
         this.recalculateBoundingBox();
     }
 
     public short getAir() {
-        return this.data.getShort(AIR_SUPPLY);
+        return this.data.get(AIR_SUPPLY);
     }
 
     public void setAir(short air) {
-        this.data.setShort(AIR_SUPPLY, air);
+        this.data.set(AIR_SUPPLY, air);
     }
 
     public boolean isInvulnerable() {
@@ -527,8 +526,8 @@ public abstract class BaseEntity implements Entity {
         this.boundingBox.setBounds(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
                 this.position.getX() + radius, this.position.getY() + height, this.position.getZ() + radius);
 
-        this.data.setFloat(BOUNDING_BOX_HEIGHT, this.getHeight());
-        this.data.setFloat(BOUNDING_BOX_WIDTH, this.getWidth());
+        this.data.set(HEIGHT, this.getHeight());
+        this.data.set(WIDTH, this.getWidth());
     }
 
     protected void recalculateEffectColor() {
@@ -553,11 +552,11 @@ public abstract class BaseEntity implements Entity {
             int g = (color[1] / count) & 0xff;
             int b = (color[2] / count) & 0xff;
 
-            this.data.setInt(EFFECT_COLOR, (r << 16) + (g << 8) + b);
-            this.data.setByte(EFFECT_AMBIENT, ambient ? 1 : 0);
+            this.data.set(EFFECT_COLOR, (r << 16) + (g << 8) + b);
+            this.data.set(EFFECT_AMBIENCE, (byte) (ambient ? 1 : 0));
         } else {
-            this.data.setInt(EFFECT_COLOR, 0);
-            this.data.setByte(EFFECT_AMBIENT, 0);
+            this.data.set(EFFECT_COLOR, 0);
+            this.data.set(EFFECT_AMBIENCE, (byte) 0);
         }
     }
 
@@ -644,7 +643,8 @@ public abstract class BaseEntity implements Entity {
         addEntity.setUniqueEntityId(this.getUniqueId());
         addEntity.setRuntimeEntityId(this.getUniqueId());
         addEntity.setPosition(this.getPosition());
-        addEntity.setRotation(Vector3f.from(this.pitch, this.yaw, this.yaw));
+        addEntity.setRotation(Vector2f.from(this.pitch, this.yaw));
+        addEntity.setHeadRotation(this.yaw);
         addEntity.setMotion(this.getMotion());
         addEntity.setBodyRotation(this.getYaw());
         this.data.putAllIn(addEntity.getMetadata());
@@ -700,11 +700,11 @@ public abstract class BaseEntity implements Entity {
         CloudServer.broadcastPacket(this.getViewers(), packet);
     }
 
-    public void sendData(CloudPlayer player, EntityData... data) {
+    public void sendData(CloudPlayer player, EntityDataType<?>... data) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
 
-        for (EntityData entityData : data) {
+        for (EntityDataType<?> entityData : data) {
             packet.getMetadata().put(entityData, this.data.get(entityData));
         }
 
@@ -788,7 +788,7 @@ public abstract class BaseEntity implements Entity {
             this.health = this.getMaxHealth();
         }
 
-        this.data.setInt(HEALTH, (int) this.health);
+        this.data.set(STRUCTURAL_INTEGRITY, (int) this.health);
     }
 
     public boolean isAlive() {
@@ -1207,11 +1207,11 @@ public abstract class BaseEntity implements Entity {
     }
 
     public Vector3f getSeatPosition() {
-        return this.data.getVector3f(RIDER_SEAT_POSITION);
+        return this.data.get(SEAT_OFFSET);
     }
 
     public void setSeatPosition(Vector3f pos) {
-        this.data.setVector3f(RIDER_SEAT_POSITION, pos);
+        this.data.set(SEAT_OFFSET, pos);
     }
 
     public Vector3f getMountedOffset(Entity entity) {
@@ -1948,14 +1948,14 @@ public abstract class BaseEntity implements Entity {
     @Override
     public Entity getOwner() {
         if (this.data.contains(OWNER_EID)) {
-            return this.level.getEntity(this.data.getLong(OWNER_EID));
+            return this.level.getEntity(this.data.get(OWNER_EID));
         }
         return null;
     }
 
     @Override
     public void setOwner(@Nullable Entity entity) {
-        this.data.setLong(OWNER_EID, entity == null ? -1 : entity.getUniqueId());
+        this.data.set(OWNER_EID, entity == null ? -1 : entity.getUniqueId());
     }
 
     @Override
