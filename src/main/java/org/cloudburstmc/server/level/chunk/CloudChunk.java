@@ -608,10 +608,7 @@ public final class CloudChunk implements Chunk, Closeable {
                     }
                 }
 
-                byte[] data = new byte[buffer.readableBytes()];
-                buffer.readBytes(data);
-
-                packet.setData(data);
+                packet.setData(buffer);
 
                 this.cached = new SoftReference<>(packet);
 

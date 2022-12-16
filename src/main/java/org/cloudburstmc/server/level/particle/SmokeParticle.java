@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.particle;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 
 /**
  * Created on 2015/11/21 by xtypr.
@@ -19,6 +19,6 @@ public class SmokeParticle extends GenericParticle {
     }
 
     public SmokeParticle(Vector3f pos, int scale) {
-        super(pos, LevelEventType.PARTICLE_SMOKE, scale);
+        super(pos, ParticleType.SMOKE, scale);
     }
 }

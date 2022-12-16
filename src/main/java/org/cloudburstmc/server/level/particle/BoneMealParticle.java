@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.particle;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 
@@ -24,7 +24,7 @@ public class BoneMealParticle extends Particle {
     @Override
     public BedrockPacket[] encode() {
         LevelEventPacket packet = new LevelEventPacket();
-        packet.setType(LevelEventType.PARTICLE_CROP_GROWTH);
+        packet.setType(ParticleType.FOOD); // TODO: Not sure if this is right
         packet.setPosition(this.getPosition());
 
         return new BedrockPacket[]{packet};

@@ -259,7 +259,7 @@
         <dependency>
             <groupId>org.cloudburstmc</groupId>
             <artifactId>nbt</artifactId>
-            <version>3.0.0.Final</version>
+            <version>3.0.1.Final</version>
         </dependency>
         <dependency>
             <groupId>org.cloudburstmc</groupId>

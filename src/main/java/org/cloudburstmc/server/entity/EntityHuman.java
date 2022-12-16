@@ -39,7 +39,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.HAS_GRAVITY;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
 
 /**
  * author: MagicDroidX

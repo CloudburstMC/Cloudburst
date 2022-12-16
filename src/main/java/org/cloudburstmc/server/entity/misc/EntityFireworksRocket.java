@@ -13,6 +13,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
@@ -169,7 +170,7 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
         this.firework = ItemStack.builder(ItemTypes.FIREWORKS)
                 .data(ItemKeys.FIREWORK_DATA, data)
                 .build();
-        this.data.setTag(DISPLAY_ITEM, ItemUtils.serializeItem(this.firework));
+        this.data.set(EntityDataTypes.DISPLAY_FIREWORK, ItemUtils.serializeItem(this.firework));
     }
 
     @Override

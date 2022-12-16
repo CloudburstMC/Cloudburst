@@ -1,6 +1,10 @@
 open module org.cloudburstmc.server {
     requires org.cloudburstmc.api;
     requires org.cloudburstmc.math.immutable;
+    requires org.cloudburstmc.protocol.common;
+    requires org.cloudburstmc.protocol.bedrock.codec;
+    requires org.cloudburstmc.protocol.bedrock.connection;
+    requires org.cloudburstmc.nbt;
     requires it.unimi.dsi.fastutil;
     requires com.fasterxml.jackson.databind;
     requires java.management;
@@ -8,6 +12,7 @@ open module org.cloudburstmc.server {
     requires static lombok;
     requires static javax.inject;
     requires static jsr305;
+    requires static org.checkerframework.checker.qual;
     requires io.netty.buffer;
     requires io.netty.common;
     requires io.netty.transport;
@@ -29,7 +34,6 @@ open module org.cloudburstmc.server {
     requires org.objectweb.asm;
     requires org.objectweb.asm.commons;
     requires org.slf4j;
-    requires static org.checkerframework.checker.qual;
     requires block.state.updater;
     requires noise;
     requires random;
@@ -37,9 +41,7 @@ open module org.cloudburstmc.server {
     requires natives;
     requires jdk.unsupported;
     requires java.desktop;
-    requires bedrock.codec;
-    requires nbt;
-    requires bedrock.connection;
+    requires netty.transport.raknet;
 
     exports co.aikar.timings;
     exports org.cloudburstmc.server;

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.particle;
 
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -23,7 +23,7 @@ public class DestroyBlockParticle extends Particle {
     @Override
     public BedrockPacket[] encode() {
         LevelEventPacket packet = new LevelEventPacket();
-        packet.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
+        packet.setType(ParticleType.ICON_CRACK);
         packet.setPosition(this.getPosition());
         packet.setData(this.data);
 

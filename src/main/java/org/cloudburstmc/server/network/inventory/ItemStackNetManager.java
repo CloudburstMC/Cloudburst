@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.network.inventory;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemStackRequest;
-import org.cloudburstmc.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -32,7 +32,7 @@ public class ItemStackNetManager {
 
     }
 
-    private void handleRequestData(ItemStackRequest request, List<ItemStackResponsePacket.Response> response) {
+    private void handleRequestData(ItemStackRequest request, List<ItemStackResponse> response) {
         if (!NetIds.isValid(request.getRequestId())) {
             return;
         }
@@ -47,14 +47,14 @@ public class ItemStackNetManager {
 //                request.getRequestId(),
 //
 //        );
-        for (StackRequestActionData action : request.getActions()) {
+        for (ItemStackRequestAction action : request.getActions()) {
             if (!isRequestActionAllowed(action)) {
                 break;
             }
         }
     }
 
-    private boolean isRequestActionAllowed(StackRequestActionData action) {
+    private boolean isRequestActionAllowed(ItemStackRequestAction action) {
         switch (action.getType()) {
             case TAKE:
             case PLACE:

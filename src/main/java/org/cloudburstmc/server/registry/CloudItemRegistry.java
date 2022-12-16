@@ -741,7 +741,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         int rid = itemPalette.getRuntimeId(item.getType().getId());
 
         for (int i = 0; i < itemPalette.getCreativeItems().size(); i++) {
-            if (rid == itemPalette.getCreativeItems().get(i).getId()) {
+            if (rid == itemPalette.getCreativeItems().get(i).getDefinition().getRuntimeId()) {
                 return i;
             }
         }

@@ -1,88 +1,65 @@
 package org.cloudburstmc.server.network;
 
-import com.nukkitx.network.util.DisconnectReason;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.DatagramPacket;
-import lombok.RequiredArgsConstructor;
+import io.netty.channel.Channel;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.event.server.QueryRegenerateEvent;
+import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
+import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
-import org.cloudburstmc.protocol.bedrock.BedrockServer;
-import org.cloudburstmc.protocol.bedrock.BedrockServerEventHandler;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.handler.LoginPacketHandler;
 import org.cloudburstmc.server.utils.Utils;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Queue;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 @Log4j2
 @ParametersAreNonnullByDefault
-public class BedrockInterface implements AdvancedSourceInterface, BedrockServerEventHandler {
+public class BedrockInterface implements AdvancedSourceInterface {
 
     private final CloudServer server;
 
-    private final BedrockServer bedrock;
+    private final List<Channel> channels = new ArrayList<>();
     private final BedrockPong advertisement = new BedrockPong();
-    private final Queue<NukkitSessionListener> disconnectQueue = new ConcurrentLinkedQueue<>();
 
     public BedrockInterface(CloudServer server) throws Exception {
         this.server = server;
 
-        InetSocketAddress bindAddress = new InetSocketAddress(this.server.getIp(), this.server.getPort());
+        ServerBootstrap bootstrap = new ServerBootstrap()
+                .channelFactory(RakChannelFactory.server(NioDatagramChannel.class)) // TODO: Epoll, KQueue and IO Uring support
+                .childHandler(new BedrockServerInitializer() {
+                    @Override
+                    protected void initSession(BedrockServerSession session) {
+                        session.setLogging(false);
+                        session.setPacketHandler(new LoginPacketHandler(session, server, BedrockInterface.this));
+                    }
+                })
+                .localAddress(this.server.getIp(), this.server.getPort());
 
-        this.bedrock = new BedrockServer(bindAddress, Runtime.getRuntime().availableProcessors());
-        this.bedrock.setHandler(this);
-        try {
-            this.bedrock.bind().join();
-        } catch (CompletionException e) {
-            if (e.getCause() instanceof Exception) {
-                throw (Exception) e.getCause();
-            }
-            throw e;
-        }
-    }
-
-    @Override
-    public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
-        return true; // TODO: 29/01/2020 Add an event?
-    }
-
-    @Nullable
-    @Override
-    public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        return advertisement;
-    }
-
-    @Override
-    public void onSessionCreation(BedrockServerSession session) {
-        session.setLogging(false);
-        session.setPacketHandler(new LoginPacketHandler(session, server, this));
+        this.channels.add(bootstrap.bind()
+                .awaitUninterruptibly()
+                .channel());
     }
 
     @Override
     public void blockAddress(InetAddress address) {
-        this.bedrock.getRakNet().block(address);
     }
 
     @Override
     public void blockAddress(InetAddress address, long timeout, TimeUnit unit) {
-        this.bedrock.getRakNet().block(address, timeout, unit);
     }
 
     @Override
     public void unblockAddress(InetAddress address) {
-        this.bedrock.getRakNet().unblock(address);
     }
 
     @Override
@@ -92,12 +69,6 @@ public class BedrockInterface implements AdvancedSourceInterface, BedrockServerE
 
     @Override
     public void sendRawPacket(InetSocketAddress socketAddress, ByteBuf payload) {
-        this.bedrock.getRakNet().send(socketAddress, payload);
-    }
-
-    @Override
-    public void onUnhandledDatagram(ChannelHandlerContext ctx, DatagramPacket packet) {
-        this.server.handlePacket(packet.sender(), packet.content());
     }
 
     @Override
@@ -108,56 +79,56 @@ public class BedrockInterface implements AdvancedSourceInterface, BedrockServerE
         String subMotd = names.length > 1 ? Utils.rtrim(names[1].replace(";", "\\;"), '\\') : "";
         String gm = this.server.getDefaultGamemode().getName();
 
-        this.advertisement.setEdition("MCPE");
-        this.advertisement.setMotd(motd);
-        this.advertisement.setSubMotd(subMotd.trim().isEmpty() ? "Cloudburst" : subMotd);
-        this.advertisement.setPlayerCount(info.getPlayerCount());
-        this.advertisement.setMaximumPlayerCount(info.getMaxPlayerCount());
-        this.advertisement.setVersion("1");
-        this.advertisement.setProtocolVersion(0);
-        this.advertisement.setGameType(gm.substring(0, 1).toUpperCase() + gm.substring(1));
-        this.advertisement.setNintendoLimited(false);
-        this.advertisement.setIpv4Port(this.server.getPort());
-        this.advertisement.setIpv6Port(this.server.getPort());
+        this.advertisement.edition("MCPE")
+                .motd(motd)
+                .subMotd(subMotd.trim().isEmpty() ? "Cloudburst" : subMotd)
+                .playerCount(info.getPlayerCount())
+                .maximumPlayerCount(info.getMaxPlayerCount())
+                .version("")
+                .protocolVersion(0)
+                .gameType(gm.substring(0, 1).toUpperCase() + gm.substring(1))
+                .nintendoLimited(false);
+
+        for (Channel channel : this.channels) {
+            channel.config().setOption(RakChannelOption.RAK_ADVERTISEMENT, this.advertisement.toByteBuf());
+        }
     }
 
     @Override
     public boolean process() {
-        NukkitSessionListener listener;
-        while ((listener = disconnectQueue.poll()) != null) {
-            listener.player.close(listener.player.getLeaveMessage(), listener.disconnectReason, false);
-        }
+//        NukkitSessionListener listener;
+//        while ((listener = disconnectQueue.poll()) != null) {
+//            listener.player.close(listener.player.getLeaveMessage(), listener.disconnectReason, false);
+//        }
         return true;
     }
 
     @Override
     public void shutdown() {
-        this.bedrock.close();
+        for (Channel channel : this.channels) {
+            channel.close().awaitUninterruptibly();
+        }
     }
 
     @Override
     public void emergencyShutdown() {
-        this.bedrock.close();
+        this.shutdown();
     }
-
-    public NukkitSessionListener initDisconnectHandler(CloudPlayer player) {
-        return new NukkitSessionListener(player);
-    }
-
-    @RequiredArgsConstructor
-    private class NukkitSessionListener implements Consumer<DisconnectReason> {
-        private final CloudPlayer player;
-        private String disconnectReason = null;
-
-        @Override
-        public void accept(DisconnectReason disconnectReason) {
-            if (disconnectReason == DisconnectReason.TIMED_OUT) {
-                this.disconnectReason = "Timed out";
-            } else {
-                this.disconnectReason = "Disconnected from Server";
-            }
-            // Queue for disconnect on main thread.
-            BedrockInterface.this.disconnectQueue.add(this);
-        }
-    }
+//
+//    @RequiredArgsConstructor
+//    private class NukkitSessionListener implements Consumer<DisconnectReason> {
+//        private final CloudPlayer player;
+//        private String disconnectReason = null;
+//
+//        @Override
+//        public void accept(DisconnectReason disconnectReason) {
+//            if (disconnectReason == DisconnectReason.TIMED_OUT) {
+//                this.disconnectReason = "Timed out";
+//            } else {
+//                this.disconnectReason = "Disconnected from Server";
+//            }
+//            // Queue for disconnect on main thread.
+//            BedrockInterface.this.disconnectQueue.add(this);
+//        }
+//    }
 }

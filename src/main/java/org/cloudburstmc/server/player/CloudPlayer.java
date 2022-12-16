@@ -114,6 +114,7 @@ import org.cloudburstmc.server.utils.TextFormat;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -703,16 +704,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         return this.loginChainData.getClientUUID();
     }
 
-    public String getAddress() {
-        return this.getSocketAddress().getAddress().getHostAddress();
-    }
-
-    public InetSocketAddress getSocketAddress() {
-        return (InetSocketAddress) this.session.getSocketAddress();
-    }
-
-    public int getPort() {
-        return this.getSocketAddress().getPort();
+    public SocketAddress getSocketAddress() {
+        return this.session.getSocketAddress();
     }
 
     public boolean isSleeping() {
@@ -1603,8 +1596,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         log.info(this.getServer().getLanguage().translate("cloudburst.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,
-                this.getAddress(),
-                this.getPort(),
+                this.getSocketAddress(),
                 this.getUniqueId(),
                 this.getLevel().getName(),
                 NukkitMath.round(pos.getX(), 4),
@@ -2099,8 +2091,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             this.spawned = false;
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     TextFormat.AQUA + (this.getName() == null ? "" : this.getName()) + TextFormat.WHITE,
-                    this.getAddress(),
-                    this.getPort(),
+                    this.getSocketAddress(),
                     reason));
             this.windows.clear();
             this.hasSpawned.clear();

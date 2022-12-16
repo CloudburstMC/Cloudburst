@@ -2,14 +2,9 @@ package org.cloudburstmc.server.command.data;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.ToString;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParam;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.protocol.bedrock.data.command.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 
 @ToString
 public class CommandParameter {
@@ -100,9 +95,22 @@ public class CommandParameter {
     }
 
     protected CommandParamData toNetwork() {
-        return new CommandParamData(this.name, this.optional,
-                this.enumData != null ? new CommandEnumData(this.name, this.enumData.getValues().toArray(new String[0]), false) : null,
-                PARAM_MAPPINGS.get(this.type), this.postFix, Collections.emptyList());
+        CommandParamData data = new CommandParamData();
+        data.setName(this.name);
+        data.setOptional(this.optional);
+        data.setEnumData(this.enumData != null ? new CommandEnumData(this.name, toNetwork(this.enumData.getValues()), false) : null);
+        data.setType(PARAM_MAPPINGS.get(this.type));
+        data.setPostfix(this.postFix);
+
+        return data;
+    }
+
+    private static LinkedHashMap<String, Set<CommandEnumConstraint>> toNetwork(List<String> values) {
+        LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
+        for (String value : values) {
+            map.put(value, Collections.emptySet());
+        }
+        return map;
     }
 
     protected static CommandParamType fromString(String param) {

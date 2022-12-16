@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.particle;
 
 import org.cloudburstmc.api.util.data.BlockColor;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 
@@ -40,7 +40,7 @@ public class SpellParticle extends Particle {
     @Override
     public BedrockPacket[] encode() {
         LevelEventPacket packet = new LevelEventPacket();
-        packet.setType(LevelEventType.PARTICLE_SPLASH);
+        packet.setType(ParticleType.WATER_SPLASH);
         packet.setPosition(getPosition());
         packet.setData(this.data);
 

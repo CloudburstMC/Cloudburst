@@ -13,6 +13,7 @@ import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.HURT_DIRECTION;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.STRUCTURAL_INTEGRITY;
 
 /**
  * author: MagicDroidX
@@ -41,11 +42,11 @@ public abstract class EntityVehicle extends BaseEntity implements Vehicle, Inter
     }
 
     public int getDamage() {
-        return this.data.get(HEALTH); // false data name (should be DATA_DAMAGE_TAKEN)
+        return this.data.get(STRUCTURAL_INTEGRITY); // false data name (should be DATA_DAMAGE_TAKEN)
     }
 
     public void setDamage(int damage) {
-        this.data.set(HEALTH, damage);
+        this.data.set(STRUCTURAL_INTEGRITY, damage);
     }
 
     @Override
