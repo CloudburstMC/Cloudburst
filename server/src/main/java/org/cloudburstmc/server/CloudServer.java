@@ -74,6 +74,7 @@ import org.iq80.leveldb.Options;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -201,7 +202,7 @@ public class CloudServer implements Server {
     private final BiomeRegistry biomeRegistry = BiomeRegistry.get();
     private final CommandRegistry commandRegistry = CommandRegistry.get();
 
-    private final Map<InetSocketAddress, CloudPlayer> players = new HashMap<>();
+    private final Map<SocketAddress, CloudPlayer> players = new HashMap<>();
 
     private final Map<UUID, CloudPlayer> playerList = new HashMap<>();
     private final LevelData defaultLevelData = new LevelData();
@@ -781,7 +782,7 @@ public class CloudServer implements Server {
         }
     }
 
-    public void addPlayer(InetSocketAddress socketAddress, Player player) {
+    public void addPlayer(SocketAddress socketAddress, Player player) {
         this.players.put(socketAddress, (CloudPlayer) player);
     }
 
@@ -1500,7 +1501,7 @@ public class CloudServer implements Server {
             return;
         }
 
-        for (InetSocketAddress socketAddress : new ArrayList<>(this.players.keySet())) {
+        for (SocketAddress socketAddress : new ArrayList<>(this.players.keySet())) {
             CloudPlayer p = this.players.get(socketAddress);
             if (player == p) {
                 this.players.remove(socketAddress);
@@ -1588,12 +1589,12 @@ public class CloudServer implements Server {
     public void setBanned(Player who, boolean banned, boolean byIP) {
         if (banned) {
             if (byIP)
-                this.banByIP.addBan(((CloudPlayer) who).getAddress());
+                this.banByIP.addBan(((InetSocketAddress) ((CloudPlayer) who).getSocketAddress()).getAddress().getHostAddress());
             else
                 this.banByName.addBan(who.getName().toLowerCase());
         } else {
             this.banByName.remove(who.getName());
-            this.banByIP.remove(((CloudPlayer) who).getAddress());
+            this.banByIP.remove(((InetSocketAddress) ((CloudPlayer) who).getSocketAddress()).getAddress().getHostAddress());
         }
     }
 

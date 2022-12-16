@@ -4,7 +4,7 @@ import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.network.SourceInterface;
 
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 /**
  * author: MagicDroidX
@@ -16,13 +16,13 @@ public class PlayerCreationEvent extends Event {
 
     private final Long clientId;
 
-    private final InetSocketAddress socketAddress;
+    private final SocketAddress socketAddress;
 
     private Class<? extends Player> baseClass;
 
     private Class<? extends Player> playerClass;
 
-    public PlayerCreationEvent(SourceInterface interfaz, Class<? extends Player> baseClass, Class<? extends Player> playerClass, Long clientId, InetSocketAddress socketAddress) {
+    public PlayerCreationEvent(SourceInterface interfaz, Class<? extends Player> baseClass, Class<? extends Player> playerClass, Long clientId, SocketAddress socketAddress) {
         this.interfaz = interfaz;
         this.clientId = clientId;
         this.socketAddress = socketAddress;
@@ -35,15 +35,7 @@ public class PlayerCreationEvent extends Event {
         return interfaz;
     }
 
-    public String getAddress() {
-        return this.socketAddress.getAddress().toString();
-    }
-
-    public int getPort() {
-        return this.socketAddress.getPort();
-    }
-
-    public InetSocketAddress getSocketAddress() {
+    public SocketAddress getSocketAddress() {
         return socketAddress;
     }
 

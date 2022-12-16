@@ -18,8 +18,10 @@ import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -30,8 +32,7 @@ import org.cloudburstmc.server.utils.Rail;
 import java.util.Iterator;
 import java.util.Objects;
 
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.CUSTOM_DISPLAY;
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.DISPLAY_OFFSET;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
 /**
  * Created by: larryTheCoder on 2017/6/26.
@@ -140,7 +141,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             }
             this.setDisplayBlock(registry.getBlock(id, meta));
 
-            this.setDisplayBlockOffset(tag.getInt("DisplayOffset"));
+//            this.setDisplayBlockOffset(tag.getInt("DisplayOffset"));
         }
     }
 
@@ -157,7 +158,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
                     .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(blockState)) //TODO: check
                     .build());
 
-            tag.putInt("DisplayOffset", this.getDisplayOffset());
+//            tag.putInt("DisplayOffset", this.getDisplayOffset());
         }
     }
 
@@ -701,7 +702,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
      *
      * @return integer
      */
-    public int getDisplayOffset() {
+    public Vector3i getDisplayOffset() {
         return this.data.get(DISPLAY_OFFSET);
     }
 
@@ -710,26 +711,26 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
      *
      * @param offset The offset
      */
-    public void setDisplayBlockOffset(int offset) {
+    public void setDisplayBlockOffset(Vector3i offset) {
         this.data.set(DISPLAY_OFFSET, offset);
     }
 
     public BlockState getDisplayBlock() {
-        int runtimeId = this.data.get(DISPLAY_ITEM);
-        return CloudBlockRegistry.REGISTRY.getBlock(runtimeId);
+        BlockDefinition definition = this.data.get(DISPLAY_BLOCK_STATE);
+        return CloudBlockRegistry.REGISTRY.getBlock(definition);
     }
 
     public void setDisplayBlock(BlockState blockState) {
         int runtimeId = CloudBlockRegistry.REGISTRY.getRuntimeId(blockState);
-        this.data.set(DISPLAY_ITEM, runtimeId);
+        this.data.set(DISPLAY_BLOCK_STATE, runtimeId);
     }
 
     public boolean hasDisplay() {
-        return this.data.getBoolean(CUSTOM_DISPLAY);
+        return this.data.get(CUSTOM_DISPLAY) != 0;
     }
 
     public void setDisplay(boolean display) {
-        this.data.setBoolean(CUSTOM_DISPLAY, true);
+        this.data.set(CUSTOM_DISPLAY, (byte) (display ? 1 : 0));
     }
 
     /**

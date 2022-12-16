@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.command.data;
 
 import lombok.ToString;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author CreeperFace
@@ -32,7 +32,7 @@ public class CommandEnum {
         return name.hashCode();
     }
 
-    protected CommandEnumData toNetwork() {
+    public CommandEnumData toNetwork() {
         String[] aliases;
         if (values.size() > 0) {
             List<String> aliasList = new ArrayList<>(values);
@@ -41,6 +41,14 @@ public class CommandEnum {
         } else {
             aliases = new String[]{this.name};
         }
-        return new CommandEnumData(this.name + "Aliases", aliases, false);
+        return new CommandEnumData(this.name + "Aliases", toNetwork(aliases), false);
+    }
+
+    private static LinkedHashMap<String, Set<CommandEnumConstraint>> toNetwork(String[] values) {
+        LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
+        for (String value : values) {
+            map.put(value, Collections.emptySet());
+        }
+        return map;
     }
 }

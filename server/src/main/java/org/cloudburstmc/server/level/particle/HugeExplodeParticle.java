@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.particle;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 
 /**
  * Created on 2015/11/21 by xtypr.
@@ -9,6 +9,6 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
  */
 public class HugeExplodeParticle extends GenericParticle {
     public HugeExplodeParticle(Vector3f pos) {
-        super(pos, LevelEventType.PARTICLE_HUGE_EXPLODE);
+        super(pos, ParticleType.HUGE_EXPLOSION);
     }
 }

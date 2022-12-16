@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.particle;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 
 /**
  * Created on 2015/11/21 by xtypr.
@@ -13,6 +13,6 @@ public class HeartParticle extends GenericParticle {
     }
 
     public HeartParticle(Vector3f pos, int scale) {
-        super(pos, LevelEventType.PARTICLE_HEART, scale);
+        super(pos, ParticleType.HEART, scale);
     }
 }
