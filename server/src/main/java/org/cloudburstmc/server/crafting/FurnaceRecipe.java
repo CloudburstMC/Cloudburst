@@ -47,7 +47,7 @@ public class FurnaceRecipe implements CraftingRecipe {
 
     @Override
     public RecipeType getType() {
-        return ItemUtils.toNetwork(ingredient).getDamage() >= 0 ? RecipeType.FURNACE_DATA : RecipeType.FURNACE;
+        return RecipeType.FURNACE;
     }
 
     @Override
