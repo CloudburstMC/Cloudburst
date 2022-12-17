@@ -3,6 +3,7 @@ package org.cloudburstmc.server.network;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.event.server.QueryRegenerateEvent;
@@ -36,6 +37,7 @@ public class BedrockInterface implements AdvancedSourceInterface {
 
         ServerBootstrap bootstrap = new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(NioDatagramChannel.class)) // TODO: Epoll, KQueue and IO Uring support
+                .group(new NioEventLoopGroup())
                 .childHandler(new BedrockServerInitializer() {
                     @Override
                     protected void initSession(BedrockServerSession session) {
