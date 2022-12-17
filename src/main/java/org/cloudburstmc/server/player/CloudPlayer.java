@@ -75,6 +75,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
+import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
@@ -106,7 +107,6 @@ import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.player.manager.PlayerInventoryManager;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.ClientChainData;
 import org.cloudburstmc.server.utils.DummyBossBar;
@@ -649,7 +649,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     public void sendCommandData() {
-        this.sendPacket(CommandRegistry.get().createPacketFor(this));
+//        this.sendPacket(CommandRegistry.get().createPacketFor(this));
     }
 
     public void removeAchievement(String achievementId) {
@@ -1570,6 +1570,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setWorldTemplateId(new UUID(0, 0));
         startGamePacket.setWorldEditor(false);
         startGamePacket.setChatRestrictionLevel(ChatRestrictionLevel.NONE);
+        startGamePacket.setSpawnBiomeType(SpawnBiomeType.DEFAULT);
+        startGamePacket.setCustomBiomeName("");
+        startGamePacket.setEducationProductionId("");
+        startGamePacket.setForceExperimentalGameplay(OptionalBoolean.empty());
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
@@ -1596,6 +1600,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         log.info(this.getServer().getLanguage().translate("cloudburst.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,
+                "",
                 this.getSocketAddress(),
                 this.getUniqueId(),
                 this.getLevel().getName(),

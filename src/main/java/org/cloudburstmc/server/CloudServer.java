@@ -559,7 +559,7 @@ public class CloudServer implements Server {
         try {
             this.network.registerInterface(new BedrockInterface(this));
         } catch (Exception e) {
-            log.fatal("**** FAILED TO BIND TO " + getIp() + ":" + getPort() + "!");
+            log.fatal("**** FAILED TO BIND TO " + getIp() + ":" + getPort() + "!", e);
             log.fatal("Perhaps a server is already running on that port?");
             this.forceShutdown();
         }

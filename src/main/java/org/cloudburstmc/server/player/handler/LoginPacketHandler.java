@@ -5,9 +5,8 @@ import org.cloudburstmc.api.event.player.PlayerAsyncPreLoginEvent;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacketHandler;
-import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
+import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.player.PlayerPreLoginEvent;
@@ -43,7 +42,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public PacketSignal handle(LoginPacket packet) {
+    public PacketSignal handle(RequestNetworkSettingsPacket packet) {
         int protocolVersion = packet.getProtocolVersion();
         BedrockCodec codec = ProtocolInfo.getPacketCodec(protocolVersion);
 
@@ -59,6 +58,18 @@ public class LoginPacketHandler implements BedrockPacketHandler {
         }
         session.setCodec(codec);
 
+        NetworkSettingsPacket networkSettings = new NetworkSettingsPacket();
+        networkSettings.setCompressionThreshold(1);
+        networkSettings.setCompressionAlgorithm(PacketCompressionAlgorithm.ZLIB);
+
+        session.sendPacketImmediately(networkSettings);
+        session.setCompression(PacketCompressionAlgorithm.ZLIB);
+
+        return PacketSignal.HANDLED;
+    }
+
+    @Override
+    public PacketSignal handle(LoginPacket packet) {
         this.loginData.setChainData(ClientChainData.read(packet));
 
         if (!this.loginData.getChainData().isXboxAuthed() && this.server.getConfig().isXboxAuth()) {

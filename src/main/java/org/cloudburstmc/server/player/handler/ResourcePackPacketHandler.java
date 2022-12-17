@@ -3,7 +3,6 @@ package org.cloudburstmc.server.player.handler;
 import io.netty.buffer.Unpooled;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.pack.Pack;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
 import org.cloudburstmc.protocol.bedrock.packet.*;
@@ -12,8 +11,6 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.PlayerLoginData;
-
-import java.util.function.Consumer;
 
 /**
  * @author Extollite
@@ -65,9 +62,9 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                 if (loginData.getPreLoginEventTask().isFinished()) {
                     try {
                         CloudPlayer player = loginData.initializePlayer();
-                        for (Consumer<Player> task : loginData.getLoginTasks()) {
-                            task.accept(player);
-                        }
+//                        for (Consumer<Player> task : loginData.getLoginTasks()) {
+//                            task.accept(player);
+//                        }
                     } catch (Exception e) {
                         log.debug("Exception in Player initialization: {}", e.getMessage());
                         e.printStackTrace();
