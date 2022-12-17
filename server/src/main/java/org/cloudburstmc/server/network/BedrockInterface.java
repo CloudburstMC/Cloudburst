@@ -86,7 +86,7 @@ public class BedrockInterface implements AdvancedSourceInterface {
                 .subMotd(subMotd.trim().isEmpty() ? "Cloudburst" : subMotd)
                 .playerCount(info.getPlayerCount())
                 .maximumPlayerCount(info.getMaxPlayerCount())
-                .version("")
+                .version("1")
                 .protocolVersion(0)
                 .gameType(gm.substring(0, 1).toUpperCase() + gm.substring(1))
                 .nintendoLimited(false);

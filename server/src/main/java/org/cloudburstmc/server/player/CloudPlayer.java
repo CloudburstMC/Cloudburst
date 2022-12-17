@@ -2078,9 +2078,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
             super.close();
 
-//            if (!this.session.isClosed()) { // TODO: Add method to protocol lib
+            if (this.session.getPeer().isConnected()) {
                 this.session.disconnect(notify ? reason : "");
-//            }
+            }
 
             if (this.loggedIn) {
                 this.server.removeOnlinePlayer(this);
@@ -2097,6 +2097,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     TextFormat.AQUA + (this.getName() == null ? "" : this.getName()) + TextFormat.WHITE,
                     this.getSocketAddress(),
+                    "",
                     reason));
             this.windows.clear();
             this.hasSpawned.clear();
@@ -3370,6 +3371,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     private class Handler implements BedrockPacketHandler {
+
+        @Override
+        public void onDisconnect(String reason) {
+            CloudPlayer.this.close("", reason);
+        }
 
         @Override
         public PacketSignal handlePacket(BedrockPacket packet) {
