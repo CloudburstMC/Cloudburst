@@ -53,12 +53,15 @@ public class Bootstrap {
     public final static String API_VERSION = "2.0.0";
 
     public final static Path PATH = Paths.get(System.getProperty("user.dir"));
-    public static final JsonMapper JSON_MAPPER = new JsonMapper();
-    public static final YAMLMapper YAML_MAPPER = new YAMLMapper();
-    public static final YAMLMapper KEBAB_CASE_YAML_MAPPER = (YAMLMapper) new YAMLMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
-    public static final JavaPropsMapper JAVA_PROPS_MAPPER = (JavaPropsMapper) new JavaPropsMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);
+    public static final JsonMapper JSON_MAPPER = JsonMapper.builder()
+            .build();
+    public static final YAMLMapper YAML_MAPPER = YAMLMapper.builder()
+            .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+            .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+            .build();
+    public static final JavaPropsMapper JAVA_PROPS_MAPPER = JavaPropsMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
+            .build();
     public static final long START_TIME = System.currentTimeMillis();
     public static boolean ANSI = true;
     public static boolean TITLE = false;
@@ -74,12 +77,8 @@ public class Bootstrap {
         SimpleModule module = new SimpleModule("Cloudburst", new Version(0, 0, 1, null, null, null));
         module.addDeserializer(BlockState.class, BLOCKSTATE_DESERIALIZER);
 
-        YAML_MAPPER.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
-                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-
         YAML_MAPPER.registerModule(module);
         JSON_MAPPER.registerModule(module);
-        KEBAB_CASE_YAML_MAPPER.registerModule(module);
         JAVA_PROPS_MAPPER.registerModule(module);
 
         // Force Mapped ByteBuffers for LevelDB till fixed.

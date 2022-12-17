@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.particle;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 
@@ -23,7 +23,7 @@ public class MobSpawnParticle extends Particle {
     @Override
     public BedrockPacket[] encode() {
         LevelEventPacket packet = new LevelEventPacket();
-        packet.setType(LevelEventType.PARTICLE_GENERIC_SPAWN);
+        packet.setType(LevelEvent.PARTICLE_GENERIC_SPAWN);
         packet.setPosition(getPosition());
         packet.setData((this.width & 0xff) + ((this.height & 0xff) << 8));
 

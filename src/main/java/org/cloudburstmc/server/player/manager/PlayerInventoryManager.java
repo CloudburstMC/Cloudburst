@@ -134,14 +134,14 @@ public class PlayerInventoryManager {
                     continue;
                 case CRAFT_RECIPE:
                     this.transaction.addAction(new CraftRecipeAction(request.getRequestId(),
-                            ((CraftRecipeAction) action).getRecipeNetworkId()));
+                            ((org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftRecipeAction) action).getRecipeNetworkId()));
                     continue;
                 case CRAFT_RESULTS_DEPRECATED:
                     // Don't use depreciated actions!
                     continue;
                 case CRAFT_CREATIVE:
                     this.transaction.addAction(new CraftCreativeAction(request.getRequestId(),
-                            ((CraftCreativeAction) action).getCreativeItemNetworkId()));
+                            ((org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftCreativeAction) action).getCreativeItemNetworkId()));
                     continue;
                 default:
                     log.warn("Received unknown ItemStackRequestAction type: {}", action.getType());

@@ -22,6 +22,7 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.ANVIL;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BLOCK;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VARIANT;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 
@@ -97,7 +98,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
             return;
         }
 
-        this.data.set(VARIANT, registry.getRuntimeId(id, meta));
+        this.data.set(BLOCK, registry.getDefinition(id, meta));
     }
 
     @Override
@@ -186,8 +187,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
 
     @Override
     public void setBlock(BlockState blockState) {
-        int runtimeId = CloudBlockRegistry.REGISTRY.getRuntimeId(blockState);
-        this.data.set(VARIANT, runtimeId);
+        this.data.set(BLOCK, CloudBlockRegistry.REGISTRY.getDefinition(blockState));
     }
 
     @Override

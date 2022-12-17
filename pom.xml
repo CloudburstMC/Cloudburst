@@ -205,12 +205,12 @@
             <version>3.0.0.Beta1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.nukkitx</groupId>
+            <groupId>org.cloudburstmc</groupId>
             <artifactId>block-state-updater</artifactId>
             <version>1.19.20-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
-                    <groupId>com.nukkitx</groupId>
+                    <groupId>org.cloudburstmc</groupId>
                     <artifactId>nbt</artifactId>
                 </exclusion>
             </exclusions>

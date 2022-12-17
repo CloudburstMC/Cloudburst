@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.registry;
 
-import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,7 @@ public class BlockRegistryTest {
         CloudBlockRegistry.REGISTRY.close(); // init
 
         Map<NbtMap, BlockState> serverPalette = BlockPalette.INSTANCE.getSerializedPalette();
-        Map<Integer, BlockState> runtimeIdMap = BlockPalette.INSTANCE.getRuntimeMap();
+        Map<Integer, CloudBlockDefinition> runtimeMap = BlockPalette.INSTANCE.getRuntimeMap();
 
        // Assertions.assertTrue(runtimeIdMap.size() == vanillaPalette.size(), "Palettes are not the same size");
 

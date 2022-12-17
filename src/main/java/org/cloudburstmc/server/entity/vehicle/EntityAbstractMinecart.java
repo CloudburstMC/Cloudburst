@@ -21,7 +21,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
+import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -716,13 +716,13 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     public BlockState getDisplayBlock() {
-        BlockDefinition definition = this.data.get(DISPLAY_BLOCK_STATE);
-        return CloudBlockRegistry.REGISTRY.getBlock(definition);
+        CloudBlockDefinition definition = (CloudBlockDefinition) this.data.get(DISPLAY_BLOCK_STATE);
+        return definition.getCloudState();
     }
 
     public void setDisplayBlock(BlockState blockState) {
-        int runtimeId = CloudBlockRegistry.REGISTRY.getRuntimeId(blockState);
-        this.data.set(DISPLAY_BLOCK_STATE, runtimeId);
+        CloudBlockDefinition definition = CloudBlockRegistry.REGISTRY.getDefinition(blockState);
+        this.data.set(DISPLAY_BLOCK_STATE, definition);
     }
 
     public boolean hasDisplay() {

@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.config;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.*;
 import org.cloudburstmc.server.Bootstrap;
@@ -20,12 +22,13 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
 public class CloudburstYaml {
 
     public static CloudburstYaml fromFile(Path file) {
         final CloudburstYaml yaml = new CloudburstYaml();
         try (InputStream stream = Files.newInputStream(file)) {
-            CloudburstYaml mapped = Bootstrap.KEBAB_CASE_YAML_MAPPER.readerForUpdating(yaml).readValue(stream);
+            CloudburstYaml mapped = Bootstrap.YAML_MAPPER.readerForUpdating(yaml).readValue(stream);
             //fix: when writing commandAlias in yaml but have no item, mapper will treat it as null
             if (mapped.getAliases() == null) {
                 mapped = new CloudburstYaml(
@@ -91,7 +94,7 @@ public class CloudburstYaml {
     private Map<String, ServerConfig.World> worlds = new HashMap<>();
 
     public ObjectNode getRootNode() {
-        return Bootstrap.KEBAB_CASE_YAML_MAPPER.valueToTree(this);
+        return Bootstrap.YAML_MAPPER.valueToTree(this);
     }
 
 }

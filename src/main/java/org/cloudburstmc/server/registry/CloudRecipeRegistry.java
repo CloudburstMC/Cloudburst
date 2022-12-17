@@ -416,7 +416,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                     case SHAPELESS:
                         packet.getCraftingData().add(CraftingData.fromShapeless(
                                 recipe.getId().toString(),
-                                ItemUtils.toNetwork(((ShapelessRecipe) recipe).getIngredientList()),
+                                ItemUtils.toDescriptors(((ShapelessRecipe) recipe).getIngredientList()),
                                 ItemUtils.toNetwork(((ShapelessRecipe) recipe).getAllResults()),
                                 entry.getKey(),
                                 recipe.getBlock().getName(),
@@ -426,7 +426,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                     case SHULKER_BOX:
                         packet.getCraftingData().add(CraftingData.fromShulkerBox(
                                 recipe.getId().toString(),
-                                ItemUtils.toNetwork(((ShapelessRecipe) recipe).getIngredientList()),
+                                ItemUtils.toDescriptors(((ShapelessRecipe) recipe).getIngredientList()),
                                 ItemUtils.toNetwork(((ShapelessRecipe) recipe).getAllResults()),
                                 entry.getKey(),
                                 recipe.getBlock().getName(),
@@ -438,7 +438,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                                 recipe.getId().toString(),
                                 ((ShapedRecipe) recipe).getWidth(),
                                 ((ShapedRecipe) recipe).getHeight(),
-                                ItemUtils.toNetwork(((ShapedRecipe) recipe).getIngredientList()),
+                                ItemUtils.toDescriptors(((ShapedRecipe) recipe).getIngredientList()),
                                 ItemUtils.toNetwork(((ShapedRecipe) recipe).getAllResults()),
                                 entry.getKey(),
                                 recipe.getBlock().getName(),
@@ -451,7 +451,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                         ItemData outputData = ItemUtils.toNetwork(recipe.getResult());
 
                         packet.getCraftingData().add(CraftingData.fromFurnace(
-                                inputData.getId(),
+                                inputData.getDefinition().getRuntimeId(),
                                 outputData,
                                 recipe.getBlock().getName(),
                                 netIdMap.getOrDefault(recipe.getId(), 0)));
@@ -462,7 +462,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                         outputData = ItemUtils.toNetwork(recipe.getResult());
 
                         packet.getCraftingData().add(CraftingData.fromFurnaceData(
-                                ItemUtils.toNetwork(((FurnaceRecipe) recipe).getInput()).getId(),
+                                ItemUtils.toNetwork(((FurnaceRecipe) recipe).getInput()).getDefinition().getRuntimeId(),
                                 inputData.getDamage(),
                                 outputData,
                                 recipe.getBlock().getName(),
@@ -480,11 +480,11 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                         outputData = ItemUtils.toNetwork(recipe.getResult());
 
                         packet.getPotionMixData().add(new PotionMixData(
-                                inputData.getId(),
+                                inputData.getDefinition().getRuntimeId(),
                                 inputData.getDamage(),
-                                reagentData.getId(),
+                                reagentData.getDefinition().getRuntimeId(),
                                 reagentData.getDamage(),
-                                outputData.getId(),
+                                outputData.getDefinition().getRuntimeId(),
                                 outputData.getDamage()));
                         break;
                     case CONTAINER:
@@ -494,9 +494,9 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                         outputData = ItemUtils.toNetwork(recipe.getResult());
 
                         packet.getContainerMixData().add(new ContainerMixData(
-                                inputData.getId(),
-                                reagentData.getId(),
-                                outputData.getId()));
+                                inputData.getDefinition().getRuntimeId(),
+                                reagentData.getDefinition().getRuntimeId(),
+                                outputData.getDefinition().getRuntimeId()));
                         break;
                     default:
                         break;

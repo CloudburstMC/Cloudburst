@@ -15,12 +15,12 @@ public class PunchBlockParticle extends Particle {
     protected final int data;
 
     public PunchBlockParticle(Vector3f pos, BlockState state, Direction face) {
-        this(pos, state.getType().getId(), BlockPalette.INSTANCE.getRuntimeId(state), face);
+        this(pos, state.getType().getId(), BlockPalette.INSTANCE.getDefinition(state).getRuntimeId(), face);
     }
 
     public PunchBlockParticle(Vector3f pos, Identifier blockId, int blockDamage, Direction face) {
         super(pos);
-        this.data = CloudBlockRegistry.REGISTRY.getRuntimeId(blockId, blockDamage) | (face.getIndex() << 24);
+        this.data = CloudBlockRegistry.REGISTRY.getDefinition(blockId, blockDamage).getRuntimeId() | (face.getIndex() << 24);
     }
 
     @Override

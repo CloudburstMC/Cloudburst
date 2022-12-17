@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.config;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.player.GameMode;
@@ -9,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * the universal public facing facade for the server's config
- * so you dont have to care about where the config actually lies
+ * The universal public facing facade for the server's config
+ * so you don't have to care about where the config actually lies
  */
 public class ServerConfig {
     @Data
@@ -18,6 +20,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class Network {
         @Builder.Default
         private int compressionLevel = 7;
@@ -33,6 +36,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class ChunkTicking {
 
         @Builder.Default
@@ -54,6 +58,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class ChunkGeneration {
 
         @Builder.Default
@@ -69,6 +74,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class Debug {
 
         @Builder.Default
@@ -90,6 +96,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class LevelSettings {
 
         @Builder.Default
@@ -120,6 +127,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class ChunkSending {
 
         @Builder.Default
@@ -141,6 +149,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class Player {
 
         @Builder.Default
@@ -156,6 +165,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class Settings {
 
         @Builder.Default
@@ -186,6 +196,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class SpawnLimits {
 
         @Builder.Default
@@ -207,6 +218,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class TicksPer {
 
         @Builder.Default
@@ -228,6 +240,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class Timings {
 
         @Builder.Default
@@ -258,6 +271,7 @@ public class ServerConfig {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class World {
 
         @Builder.Default

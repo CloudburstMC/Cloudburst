@@ -6,9 +6,11 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -17,6 +19,7 @@ import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
+import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
@@ -37,8 +40,7 @@ public class ItemPalette {
     private final static Reference2ObjectMap<Identifier, Int2ReferenceMap<Identifier>> metaMap = new Reference2ObjectOpenHashMap<>();
     private final CloudItemRegistry itemRegistry;
     private final static Reference2ReferenceMap<Identifier, ItemDefinition> itemEntries = new Reference2ReferenceOpenHashMap<>();
-    private final static Reference2IntMap<Identifier> idRuntimeMap = new Reference2IntOpenHashMap<>();
-    private final static Int2ReferenceMap<Identifier> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
+    private final static Int2ReferenceMap<ItemDefinition> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
 
     static {
         try (InputStream in = RegistryUtils.getOrAssertResource("data/legacy_item_ids.json")) {
@@ -72,9 +74,9 @@ public class ItemPalette {
             for (JsonNode item : json) {
                 Identifier id = Identifier.fromString(item.get("name").asText());
                 int runtime = item.get("id").intValue();
-                itemEntries.put(id, new ItemDefinition(id.toString(), (short) runtime, false));
-                runtimeIdMap.put(runtime, id);
-                idRuntimeMap.put(id, runtime);
+                ItemDefinition definition = new ItemDefinition(id.toString(), (short) runtime, false);
+                itemEntries.put(id, definition);
+                runtimeIdMap.put(runtime, definition);
             }
         } catch (IOException e) {
             throw new RegistryException("Unable to load vanilla runtime mapping", e);
@@ -87,33 +89,31 @@ public class ItemPalette {
 
     public ItemPalette(CloudItemRegistry registry) {
         this.itemRegistry = registry;
-        idRuntimeMap.put(BlockIds.AIR, 0);
-        runtimeIdMap.put(0, BlockIds.AIR);
+        runtimeIdMap.put(0, ItemDefinition.AIR);
     }
 
     public int addItem(Identifier identifier) {
         if (!itemEntries.containsKey(identifier)) {
             int runtimeId = runtimeIdAllocator.getAndIncrement();
-            runtimeIdMap.put(runtimeId, identifier);
-            idRuntimeMap.putIfAbsent(identifier, runtimeId);
+            ItemDefinition definition = new ItemDefinition(identifier.toString(), runtimeId, false);
+            runtimeIdMap.put(runtimeId, definition);
 
-            itemEntries.put(identifier, new ItemDefinition(identifier.toString(), runtimeId, false));
+            itemEntries.put(identifier, definition);
             return runtimeId;
         }
         return -1;
     }
 
-    public int getRuntimeId(Identifier id) {
-        return getRuntimeId(id, 0);
+    public ItemDefinition getDefinition(Identifier id) {
+        return getDefinition(id, 0);
     }
 
-    public int getRuntimeId(Identifier id, int meta) {
+    public ItemDefinition getDefinition(Identifier id, int meta) {
         if ((meta & 0x7FFF) == 0x7FFF) meta = 0;
         if (metaMap.containsKey(id)) {
             id = metaMap.get(id).get(meta);
         }
-        int rid = idRuntimeMap.getOrDefault(id, Integer.MAX_VALUE);
-        return rid;
+        return itemEntries.get(id);
     }
 
     public Identifier getIdByRuntime(int runtimeId) {
@@ -121,7 +121,8 @@ public class ItemPalette {
     }
 
     public Identifier getIdByRuntime(int runtimeId, int meta) {
-        Identifier id = runtimeIdMap.get(runtimeId);
+        ItemDefinition definition = runtimeIdMap.get(runtimeId);
+        Identifier id = Identifier.fromString(definition.getIdentifier());
         if (metaMap.containsKey(id)) {
             id = metaMap.get(id).get(meta);
         }
@@ -145,22 +146,23 @@ public class ItemPalette {
         return ImmutableList.copyOf(itemEntries.values());
     }
 
-    public ImmutableList<Identifier> getItemIds() {
+    public ImmutableList<ItemDefinition> getItemDefinitions() {
         return ImmutableList.copyOf(runtimeIdMap.values());
     }
 
     public void addCreativeItem(ItemStack item) {
-        int damage = 0, brid = 0;
+        int damage = 0;
+        BlockDefinition blockDefinition = null;
 
         if (item.isBlock()) {
-//            brid = CloudBlockRegistry.get().getRuntimeId(item.getBlockState());
+            blockDefinition = CloudBlockRegistry.REGISTRY.getDefinition(item.getBlockState().get());
         }
 
         this.creativeItems.add(ItemData.builder()
                 .usingNetId(false)
-                .definition(getRuntimeId(item.getType().getId()))
+                .definition(getDefinition(item.getType().getId()))
                 .damage(damage)
-                .blockRuntimeId(brid)
+                .blockDefinition(blockDefinition)
                 .build());
     }
 
@@ -180,7 +182,7 @@ public class ItemPalette {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
             for (JsonNode item : json.get("items")) {
                 ItemData.Builder itemData = ItemData.builder();
-                itemData.definition(getRuntimeId(Identifier.fromString(item.get("id").asText())));
+                itemData.definition(getDefinition(Identifier.fromString(item.get("id").asText())));
 
                 if (item.has("block_state_b64")) {
                     NbtMap blockState = decodeNbt(item.get("block_state_b64").asText());
@@ -190,11 +192,11 @@ public class ItemPalette {
 
                     BlockState state = CloudBlockRegistry.REGISTRY.getBlock(blockState);
                     if (state != null) {
-                        itemData.blockDefinition(CloudBlockRegistry.REGISTRY.getRuntimeId(state));
+                        itemData.blockDefinition(CloudBlockRegistry.REGISTRY.getDefinition(state));
                     }
                 }
                 if (item.has("blockRuntimeId")) {
-                    itemData.blockDefinition(item.get("blockRuntimeId").asInt());
+                    itemData.blockDefinition(CloudBlockRegistry.REGISTRY.getDefinition(item.get("blockRuntimeId").asInt()));
                 }
 
                 if (item.has("damage")) {

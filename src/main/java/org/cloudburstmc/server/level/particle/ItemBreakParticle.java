@@ -13,6 +13,6 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 public class ItemBreakParticle extends GenericParticle {
 
     public ItemBreakParticle(Vector3f pos, ItemStack item) {
-        super(pos, ParticleType.ICON_CRACK, (CloudItemRegistry.get().getRuntimeId(item.getType().getId()) << 16) | ItemUtils.toNetwork(item).getDamage());
+        super(pos, ParticleType.ICON_CRACK, (CloudItemRegistry.get().getDefinition(item.getType().getId()).getRuntimeId() << 16) | ItemUtils.toNetwork(item).getDamage());
     }
 }

@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.block.util;
 
-import com.nukkitx.blockstateupdater.BlockStateUpdaterBase;
-import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
@@ -13,6 +11,8 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdaterBase;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.block.BlockPalette;
 

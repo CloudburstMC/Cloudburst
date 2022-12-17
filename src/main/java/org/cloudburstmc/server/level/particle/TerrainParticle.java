@@ -11,6 +11,6 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
  */
 public class TerrainParticle extends GenericParticle {
     public TerrainParticle(Vector3f pos, BlockState blockState) {
-        super(pos, ParticleType.TERRAIN, CloudBlockRegistry.REGISTRY.getRuntimeId(blockState));
+        super(pos, ParticleType.TERRAIN, CloudBlockRegistry.REGISTRY.getDefinition(blockState).getRuntimeId());
     }
 }
