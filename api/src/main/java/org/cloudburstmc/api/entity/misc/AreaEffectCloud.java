@@ -36,7 +36,7 @@ public interface AreaEffectCloud extends Entity {
 
     long getSpawnTime();
 
-    void setSpawnTime(long spawnTime);
+    void setSpawnTime(int spawnTime);
 
     int getDuration();
 
