@@ -57,12 +57,12 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
             this.registerVanillaIdentifiers();
             this.registerVanillaDataSerializers();
 
-            for (Identifier id : itemPalette.getItemIds()) {
-                if (itemPalette.getRuntimeId(id) == Integer.MAX_VALUE) {
-                    System.out.println("Unimplemented item found: " + id.getName());
-                    registerType(ItemTypes.UNKNOWN, id);
-                }
-            }
+//            for (ItemDefinition definition : itemPalette.getItemDefinitions()) {
+//                if (itemPalette.getDefinition(definition) == Integer.MAX_VALUE) {
+//                    System.out.println("Unimplemented item found: " + definition.getName());
+//                    registerType(ItemTypes.UNKNOWN, definition);
+//                }
+//            }
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
@@ -255,21 +255,23 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         return null;
     }
 
-    public int getRuntimeId(Identifier identifier) throws RegistryException {
-        return getRuntimeId(identifier, 0);
+    public ItemDefinition getDefinition(Identifier identifier) throws RegistryException {
+        return getDefinition(identifier, 0);
     }
 
-    public int getRuntimeId(Identifier identifier, int meta) throws RegistryException {
-        int runtimeId = itemPalette.getRuntimeId(identifier, meta);
-        if (runtimeId == Integer.MAX_VALUE) {
+    public ItemDefinition getDefinition(Identifier identifier, int meta) throws RegistryException {
+        ItemDefinition definition = itemPalette.getDefinition(identifier, meta);
+        if (definition == null) {
             throw new RegistryException(identifier + " is not a registered item");
         }
-        return runtimeId;
+        return definition;
     }
 
     @Override
     public ImmutableList<Identifier> getItems() {
-        return itemPalette.getItemIds();
+        return ImmutableList.copyOf(itemPalette.getItemDefinitions().stream()
+                .map(itemDefinition -> Identifier.fromString(itemDefinition.getIdentifier()))
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -738,7 +740,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     }
 
     public int getCreativeItemIndex(ItemStack item) {
-        int rid = itemPalette.getRuntimeId(item.getType().getId());
+        int rid = itemPalette.getDefinition(item.getType().getId()).getRuntimeId();
 
         for (int i = 0; i < itemPalette.getCreativeItems().size(); i++) {
             if (rid == itemPalette.getCreativeItems().get(i).getDefinition().getRuntimeId()) {

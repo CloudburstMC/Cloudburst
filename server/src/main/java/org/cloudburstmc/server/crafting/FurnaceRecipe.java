@@ -80,9 +80,9 @@ public class FurnaceRecipe implements CraftingRecipe {
         ItemData outputData = ItemUtils.toNetwork(output);
 
         if (ingredientData.getDamage() >= 0) {
-            return CraftingData.fromFurnaceData(ingredientData.getId(), ingredientData.getDamage(), outputData, block.getName(), netId);
+            return CraftingData.fromFurnaceData(ingredientData.getDefinition().getRuntimeId(), ingredientData.getDamage(), outputData, block.getName(), netId);
         } else {
-            return CraftingData.fromFurnace(ingredientData.getId(), outputData, block.getName(), netId);
+            return CraftingData.fromFurnace(ingredientData.getDefinition().getRuntimeId(), outputData, block.getName(), netId);
         }
     }
 

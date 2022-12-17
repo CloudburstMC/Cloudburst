@@ -15,8 +15,11 @@ import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -173,6 +176,20 @@ public class ItemUtils {
         return data;
     }
 
+    public static List<ItemDescriptorWithCount> toDescriptors(Collection<ItemStack> item) {
+        List<ItemDescriptorWithCount> data = new ArrayList<>();
+
+        for (ItemStack itemStack : item) {
+            data.add(toDescriptor(itemStack));
+        }
+
+        return data;
+    }
+
+    public static ItemDescriptorWithCount toDescriptor(ItemStack item) {
+        return ItemDescriptorWithCount.fromItem(toNetwork(item));
+    }
+
     public static ItemData toNetworkNetId(ItemStack item) {
         int netId = NET_ID_CACHE.getAndIncrement();
         WeakReference<ItemStack> reference = new WeakReference<>(item);
@@ -186,7 +203,7 @@ public class ItemUtils {
 
     private static ItemData.Builder toNetworkBuilder(ItemStack item) {
         Identifier identifier = item.getType().getId();
-        int runtimeId = registry.getRuntimeId(identifier);
+        ItemDefinition definition = registry.getDefinition(identifier);
 
         String[] canPlace = new String[0];
         if (item.get(ItemKeys.CAN_PLACE_ON) != null) {
@@ -197,17 +214,17 @@ public class ItemUtils {
             canPlace = item.get(ItemKeys.CAN_DESTROY).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
         }
 
-        int blockRuntimeId = item.getBlockState().map(CloudBlockRegistry.REGISTRY::getRuntimeId).orElse(0);
+        CloudBlockDefinition blockDefinition = item.getBlockState().map(CloudBlockRegistry.REGISTRY::getDefinition).orElse(null);
         NbtMap tag = ItemUtils.getSerializedTag(item);
 
         return ItemData.builder()
-                .id(runtimeId)
+                .definition(definition)
                 .damage(0)
                 .count(item.getCount())
                 .tag(tag.isEmpty() ? null : tag)
                 .canPlace(canPlace)
                 .canBreak(canBreak)
-                .blockRuntimeId(blockRuntimeId);
+                .blockDefinition(blockDefinition);
     }
 
     public static ItemStack fromNetwork(ItemData data) {
@@ -223,7 +240,7 @@ public class ItemUtils {
             }
         }
 
-        Identifier id = registry.getIdentifier(data.getId());
+        Identifier id = Identifier.fromString(data.getDefinition().getIdentifier());
         NbtMap tag = data.getTag();
         if (tag == null) {
             tag = NbtMap.EMPTY;

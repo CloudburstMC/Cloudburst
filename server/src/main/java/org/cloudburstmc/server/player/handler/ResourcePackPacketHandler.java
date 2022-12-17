@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.player.handler;
 
+import io.netty.buffer.Unpooled;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.pack.Pack;
 import org.cloudburstmc.api.player.Player;
@@ -93,7 +94,7 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
         dataPacket.setPackId(packet.getPackId());
         dataPacket.setPackVersion(packet.getPackVersion());
         dataPacket.setChunkIndex(packet.getChunkIndex());
-        dataPacket.setData(resourcePack.getChunk(RESOURCE_PACK_CHUNK_SIZE * packet.getChunkIndex(), RESOURCE_PACK_CHUNK_SIZE));
+        dataPacket.setData(Unpooled.wrappedBuffer(resourcePack.getChunk(RESOURCE_PACK_CHUNK_SIZE * packet.getChunkIndex(), RESOURCE_PACK_CHUNK_SIZE)));
         dataPacket.setProgress((long) RESOURCE_PACK_CHUNK_SIZE * packet.getChunkIndex());
         session.sendPacket(dataPacket);
         return PacketSignal.HANDLED;

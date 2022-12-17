@@ -823,8 +823,8 @@ public class CloudLevel implements Level {
             updateBlockPacket2.getFlags().addAll(flags);
 
             try {
-                updateBlockPacket.setDefinition(BlockPalette.INSTANCE.getRuntimeId(block.getState())); //TODO: send layers separately
-                updateBlockPacket2.setDefinition(BlockPalette.INSTANCE.getRuntimeId(block.getExtra()));
+                updateBlockPacket.setDefinition(BlockPalette.INSTANCE.getDefinition(block.getState())); //TODO: send layers separately
+                updateBlockPacket2.setDefinition(BlockPalette.INSTANCE.getDefinition(block.getExtra()));
             } catch (RegistryException e) {
                 throw new IllegalStateException("Unable to create BlockUpdatePacket at " +
                         block.getPosition() + " in " + getName(), e);

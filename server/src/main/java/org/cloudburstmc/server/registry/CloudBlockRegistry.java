@@ -3,7 +3,6 @@ package org.cloudburstmc.server.registry;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.blockstateupdater.BlockStateUpdaters;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
@@ -18,11 +17,13 @@ import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.behavior.DefaultBlockBehaviours;
 import org.cloudburstmc.server.block.serializer.*;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
@@ -156,11 +157,25 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         return VANILLA_LEGACY_IDS.containsKey(id);
     }
 
-    public int getRuntimeId(BlockState blockState) {
-        return this.palette.getRuntimeId(blockState);
+    @Override
+    public int getRuntimeId(BlockState state) {
+        return getDefinition(state).getRuntimeId();
     }
 
-    public int getRuntimeId(Identifier identifier, int meta) {
+    public CloudBlockDefinition getDefinition(int runtimeId) {
+        return this.palette.getDefinition(runtimeId);
+    }
+
+    public CloudBlockDefinition getDefinition(BlockState blockState) {
+        return this.palette.getDefinition(blockState);
+    }
+
+    @Override
+    public int getRuntimeId(Identifier id, int meta) {
+        return getDefinition(id, meta).getRuntimeId();
+    }
+
+    public CloudBlockDefinition getDefinition(Identifier identifier, int meta) {
         NbtMap tag = NbtMap.builder()
                 .putString("name", identifier.toString())
                 .putShort("val", (short) meta)
@@ -169,11 +184,11 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
 
         tag = BlockStateUpdaters.updateBlockState(tag, 0);
 
-        return palette.getRuntimeId(palette.getBlockState(tag));
+        return palette.getDefinition(palette.getBlockState(tag));
     }
 
-    public int getRuntimeId(int id, int meta) {
-        return getRuntimeId(VANILLA_LEGACY_IDS.inverse().get(id), meta);
+    public CloudBlockDefinition getDefinition(int id, int meta) {
+        return getDefinition(VANILLA_LEGACY_IDS.inverse().get(id), meta);
     }
 
     public BlockState getBlock(BlockType type) {
@@ -189,11 +204,11 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
     }
 
     public BlockState getBlock(Identifier identifier, int meta) {
-        return getBlock(getRuntimeId(identifier, meta));
+        return getDefinition(identifier, meta).getCloudState();
     }
 
     public BlockState getBlock(int id, int meta) {
-        return getBlock(getRuntimeId(id, meta));
+        return getDefinition(id, meta).getCloudState();
     }
 
     public BlockState getBlock(int runtimeId) {

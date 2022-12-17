@@ -19,7 +19,7 @@ public class CloudburstYamlMappingTest {
     @SneakyThrows
     void parsingWorks() {
         final InputStream stream = getClass().getClassLoader().getResourceAsStream("config/cloudburst.yml");
-        final CloudburstYaml yml = Bootstrap.KEBAB_CASE_YAML_MAPPER.readValue(stream, CloudburstYaml.class);
+        final CloudburstYaml yml = Bootstrap.YAML_MAPPER.readValue(stream, CloudburstYaml.class);
 
         assertEquals(
                 ServerConfig.Settings.builder()

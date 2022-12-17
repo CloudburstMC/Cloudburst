@@ -186,13 +186,13 @@ public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud
     }
 
     @Override
-    public ParticleType getParticleId() {
-        return this.data.get(AREA_EFFECT_CLOUD_PARTICLE);
+    public int getParticleId() {
+        return this.data.get(AREA_EFFECT_CLOUD_PARTICLE).ordinal();
     }
 
     @Override
-    public void setParticleId(ParticleType particleId) {
-        this.data.set(AREA_EFFECT_CLOUD_PARTICLE, particleId);
+    public void setParticleId(int particleId) {
+        this.data.set(AREA_EFFECT_CLOUD_PARTICLE, ParticleType.values()[particleId]);
     }
 
     @Override

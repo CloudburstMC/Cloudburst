@@ -42,6 +42,7 @@ open module org.cloudburstmc.server {
     requires jdk.unsupported;
     requires java.desktop;
     requires netty.transport.raknet;
+    requires com.nukkitx.natives;
 
     exports co.aikar.timings;
     exports org.cloudburstmc.server;
