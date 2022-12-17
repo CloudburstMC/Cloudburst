@@ -77,7 +77,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
     public CloudRecipeRegistry(ItemRegistry registry) {
         this.itemRegistry = (CloudItemRegistry) registry;
         try {
-            loadFromFile(Thread.currentThread().getContextClassLoader().getResource("data/recipes.json").toURI());
+            loadFromFile(Thread.currentThread().getContextClassLoader().getResource("old_recipes.json").toURI());
         } catch (URISyntaxException | NullPointerException e) {
             throw new RegistryException("Unable to load recipes.json", e);
         }
