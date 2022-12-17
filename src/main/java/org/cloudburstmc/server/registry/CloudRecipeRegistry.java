@@ -90,7 +90,8 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
             throw new RegistryException("Registry already closed!");
         }
         this.closed = true;
-        log.info("Loaded {}{}{} recipies.", TextFormat.GREEN, recipeMap.size(), TextFormat.RESET);
+        rebuildPacket();
+        log.info("Loaded {}{}{} recipes.", TextFormat.GREEN, recipeMap.size(), TextFormat.RESET);
     }
 
     @Override
@@ -254,8 +255,6 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
             Identifier id = Identifier.fromString(UNLABELED_CONTAINER_PREFIX + (++unlabeled));
             this.register(new ContainerRecipe(id, input, reagent, output));
         }
-
-        rebuildPacket();
         log.info("Loaded {} recipes.", recipeMap.size());
     }
 
