@@ -10,13 +10,8 @@ import org.cloudburstmc.protocol.bedrock.data.defintions.BlockDefinition;
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class CloudBlockDefinition extends BlockDefinition {
+public class CloudBlockDefinition implements BlockDefinition {
     BlockState cloudState;
     NbtMap state;
     int runtimeId;
-
-    @Override
-    public String getIdentifier() {
-        return cloudState.getType().getId().toString();
-    }
 }
