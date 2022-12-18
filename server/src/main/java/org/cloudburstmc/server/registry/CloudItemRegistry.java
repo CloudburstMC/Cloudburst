@@ -21,7 +21,9 @@ import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.serializer.*;
@@ -38,7 +40,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry, Registry {
+public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry, Registry, DefinitionRegistry<CloudItemDefinition> {
     private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(); // Needs to be initialized afterwards
 
     private final Reference2ReferenceMap<ItemType, BehaviorCollection> behaviorMap = new Reference2ReferenceOpenHashMap<>();
@@ -255,12 +257,22 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         return null;
     }
 
-    public ItemDefinition getDefinition(Identifier identifier) throws RegistryException {
+    @Override
+    public CloudItemDefinition getDefinition(int runtimeId) {
+        return itemPalette.getDefinition(runtimeId);
+    }
+
+    @Override
+    public boolean isRegistered(CloudItemDefinition definition) {
+        return itemPalette.getDefinition(definition.getRuntimeId()) == definition;
+    }
+
+    public CloudItemDefinition getDefinition(Identifier identifier) throws RegistryException {
         return getDefinition(identifier, 0);
     }
 
-    public ItemDefinition getDefinition(Identifier identifier, int meta) throws RegistryException {
-        ItemDefinition definition = itemPalette.getDefinition(identifier, meta);
+    public CloudItemDefinition getDefinition(Identifier identifier, int meta) throws RegistryException {
+        CloudItemDefinition definition = itemPalette.getDefinition(identifier, meta);
         if (definition == null) {
             throw new RegistryException(identifier + " is not a registered item");
         }

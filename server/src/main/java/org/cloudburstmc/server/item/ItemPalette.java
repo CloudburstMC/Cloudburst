@@ -15,6 +15,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -39,8 +40,8 @@ public class ItemPalette {
     private final static BiMap<Integer, Identifier> legacyIdMap = HashBiMap.create();
     private final static Reference2ObjectMap<Identifier, Int2ReferenceMap<Identifier>> metaMap = new Reference2ObjectOpenHashMap<>();
     private final CloudItemRegistry itemRegistry;
-    private final static Reference2ReferenceMap<Identifier, ItemDefinition> itemEntries = new Reference2ReferenceOpenHashMap<>();
-    private final static Int2ReferenceMap<ItemDefinition> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
+    private final static Reference2ReferenceMap<Identifier, CloudItemDefinition> itemEntries = new Reference2ReferenceOpenHashMap<>();
+    private final static Int2ReferenceMap<CloudItemDefinition> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
 
     static {
         try (InputStream in = RegistryUtils.getOrAssertResource("data/legacy_item_ids.json")) {
@@ -74,7 +75,7 @@ public class ItemPalette {
             for (JsonNode item : json) {
                 Identifier id = Identifier.fromString(item.get("name").asText());
                 int runtime = item.get("id").intValue();
-                ItemDefinition definition = new ItemDefinition(id.toString(), (short) runtime, false);
+                CloudItemDefinition definition = new CloudItemDefinition(id, runtime, false);
                 itemEntries.put(id, definition);
                 runtimeIdMap.put(runtime, definition);
             }
@@ -89,13 +90,13 @@ public class ItemPalette {
 
     public ItemPalette(CloudItemRegistry registry) {
         this.itemRegistry = registry;
-        runtimeIdMap.put(0, ItemDefinition.AIR);
+        runtimeIdMap.put(0, new CloudItemDefinition(Identifiers.AIR, 0, false));
     }
 
     public int addItem(Identifier identifier) {
         if (!itemEntries.containsKey(identifier)) {
             int runtimeId = runtimeIdAllocator.getAndIncrement();
-            ItemDefinition definition = new ItemDefinition(identifier.toString(), runtimeId, false);
+            CloudItemDefinition definition = new CloudItemDefinition(identifier, runtimeId, false);
             runtimeIdMap.put(runtimeId, definition);
 
             itemEntries.put(identifier, definition);
@@ -104,11 +105,15 @@ public class ItemPalette {
         return -1;
     }
 
-    public ItemDefinition getDefinition(Identifier id) {
+    public CloudItemDefinition getDefinition(int runtimeId) {
+        return runtimeIdMap.get(runtimeId);
+    }
+
+    public CloudItemDefinition getDefinition(Identifier id) {
         return getDefinition(id, 0);
     }
 
-    public ItemDefinition getDefinition(Identifier id, int meta) {
+    public CloudItemDefinition getDefinition(Identifier id, int meta) {
         if ((meta & 0x7FFF) == 0x7FFF) meta = 0;
         if (metaMap.containsKey(id)) {
             id = metaMap.get(id).get(meta);

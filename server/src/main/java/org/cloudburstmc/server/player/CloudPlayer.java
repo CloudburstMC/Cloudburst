@@ -74,11 +74,13 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.blockentity.EnderChestBlockEntity;
 import org.cloudburstmc.server.blockentity.SignBlockEntity;
 import org.cloudburstmc.server.entity.BaseEntity;
@@ -1574,6 +1576,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setCustomBiomeName("");
         startGamePacket.setEducationProductionId("");
         startGamePacket.setForceExperimentalGameplay(OptionalBoolean.empty());
+        //noinspection unchecked,rawtypes
+        session.getPeer().getCodecHelper().setItemDefinitions((DefinitionRegistry) CloudItemRegistry.get());
+        //noinspection unchecked,rawtypes
+        session.getPeer().getCodecHelper().setBlockDefinitions((DefinitionRegistry) BlockPalette.INSTANCE);
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();

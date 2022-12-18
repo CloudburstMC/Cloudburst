@@ -15,6 +15,7 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 import static net.daporkchop.lib.common.math.PMath.mix32;
 
 @Log4j2
-public class BlockPalette {
+public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
 
     public static final BlockPalette INSTANCE = new BlockPalette();
 
@@ -195,12 +196,18 @@ public class BlockPalette {
         return definition.getCloudState();
     }
 
+    @Override
     public CloudBlockDefinition getDefinition(int runtimeId) {
         CloudBlockDefinition definition = this.runtimeDefinitionMap.get(runtimeId);
         if (definition == null) {
             throw new IllegalArgumentException("Invalid runtime ID: " + runtimeId);
         }
         return definition;
+    }
+
+    @Override
+    public boolean isRegistered(CloudBlockDefinition definition) {
+        return this.runtimeDefinitionMap.get(definition.getRuntimeId()) == definition;
     }
 
     @Nullable
