@@ -46,7 +46,7 @@ public class SyncedEntityData {
     }
 
     public boolean getFlag(EntityFlag flag) {
-        return flags.add(flag);
+        return flags.contains(flag);
     }
 
     public void setFlag(EntityFlag flag, boolean value) {
