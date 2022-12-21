@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class ItemStack implements DataStore, Comparable<ItemStack> {
 
-    public static final ItemStack AIR = ItemStack.builder(BlockTypes.AIR).build();
+    public static final ItemStack EMPTY = ItemStack.builder(BlockTypes.AIR).build();
 
     private final ItemType type;
     private final int count;
