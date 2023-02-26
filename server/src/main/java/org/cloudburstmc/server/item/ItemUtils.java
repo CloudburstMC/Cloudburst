@@ -113,7 +113,7 @@ public class ItemUtils {
 
     public static ItemStack deserializeItem(NbtMap tag) {
         if (!tag.containsKey("Name", NbtType.STRING) || !tag.containsKey("Count", NbtType.BYTE)) {
-            return ItemStack.AIR;
+            return ItemStack.EMPTY;
         }
 
         ItemStackBuilder builder = ItemUtils.deserializeItem(
@@ -273,7 +273,7 @@ public class ItemUtils {
     }
 
     public static boolean isNull(ItemStack item) {
-        return item == null || item == ItemStack.AIR;
+        return item == null || item == ItemStack.EMPTY;
     }
 
     public static ItemStack fromJson(Map<String, Object> data) {

@@ -141,7 +141,7 @@ public class ShapedRecipe implements CraftingRecipe {
     public ItemStack getIngredient(int x, int y) {
         ItemStack item = this.ingredients.get(this.shape[y].charAt(x));
 
-        return item != null ? item : ItemStack.AIR;
+        return item != null ? item : ItemStack.EMPTY;
     }
 
     public String[] getShape() {
@@ -195,7 +195,7 @@ public class ShapedRecipe implements CraftingRecipe {
         List<ItemStack> needItems = this.getExtraResults();
 
         for (ItemStack haveItem : new ArrayList<>(haveItems)) {
-            if (haveItem == ItemStack.AIR) {
+            if (haveItem == ItemStack.EMPTY) {
                 haveItems.remove(haveItem);
                 continue;
             }

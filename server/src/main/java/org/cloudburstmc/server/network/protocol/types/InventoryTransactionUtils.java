@@ -191,7 +191,7 @@ public class InventoryTransactionUtils {
                             slot = 2;
                             anvil.clear(0);
                             ItemStack material = anvil.getItem(1);
-                            if (material != ItemStack.AIR) {
+                            if (material != ItemStack.EMPTY) {
                                 anvil.setItem(1, material.decreaseCount());
                             }
                             anvil.setItem(2, oldItem);

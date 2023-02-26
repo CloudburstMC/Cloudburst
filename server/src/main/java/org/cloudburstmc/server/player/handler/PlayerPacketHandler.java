@@ -45,8 +45,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryActionData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
@@ -63,7 +61,6 @@ import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.Sound;
@@ -612,7 +609,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
 
             for (int slot = 0; slot < player.getInventory().getHotbarSize(); slot++) {
-                if (player.getInventory().getItem(slot) == ItemStack.AIR) {
+                if (player.getInventory().getItem(slot) == ItemStack.EMPTY) {
                     if (!itemExists && player.isCreative()) {
                         player.getInventory().setHeldItemSlot(slot);
                         player.getInventory().setItemInHand(pickEvent.getItem());
@@ -631,7 +628,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.getInventory().setItemInHand(pickEvent.getItem());
                 if (!player.getInventory().isFull()) {
                     for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
-                        if (player.getInventory().getItem(slot) == ItemStack.AIR) {
+                        if (player.getInventory().getItem(slot) == ItemStack.EMPTY) {
                             player.getInventory().setItem(slot, itemInHand);
                             break;
                         }
@@ -833,7 +830,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!itemFrameDropItemEvent.isCancelled()) {
             if (itemDrop.getType() != AIR) {
                 player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
-                itemFrame.setItem(ItemStack.AIR);
+                itemFrame.setItem(ItemStack.EMPTY);
                 itemFrame.setItemRotation(0);
                 player.getLevel().addSound(player.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
             }
@@ -910,15 +907,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(ItemStackRequestPacket packet) {
-        ItemStackResponsePacket pk = new ItemStackResponsePacket();
-        for (ItemStackRequest request : packet.getRequests()) {
-            player.getInventoryManager().handle(request);
-            ItemStackTransaction tx = player.getInventoryManager().getTransaction();
-            tx.execute();
-            pk.getEntries().add(new ItemStackResponse(tx.getResponseStatus(), request.getRequestId(), tx.getContainerEntries()));
-            player.getInventoryManager().setTransaction(null);
-        }
-        player.sendPacket(pk);
+        this.player.getItemStackNetManager().handlePacket(packet);
         return PacketSignal.HANDLED;
     }
 
@@ -1151,7 +1140,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 //                            var behavior = serverItem.getBehavior();
 //                            var result = behavior.useOn(serverItem, target);
                             var result = this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.USE_ON).execute(serverItem, target, null, null, null);
-                            serverItem = Objects.requireNonNullElse(result, ItemStack.AIR);
+                            serverItem = Objects.requireNonNullElse(result, ItemStack.EMPTY);
 
                             player.getInventory().setItemInHand(serverItem);
                         }
@@ -1216,7 +1205,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             var result = this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.USE_ON).execute(serverItem, target, null, null, null);
 //                            var result = behavior.useOn(serverItem, target);
                             if (result != null && serverItem.get(ItemKeys.DAMAGE) >= this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute()) {
-                                player.getInventory().setItemInHand(ItemStack.AIR);
+                                player.getInventory().setItemInHand(ItemStack.EMPTY);
                             } else {
                                 player.getInventory().setItemInHand(serverItem);
                             }

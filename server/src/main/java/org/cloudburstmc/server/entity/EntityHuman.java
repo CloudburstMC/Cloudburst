@@ -173,7 +173,7 @@ public class EntityHuman extends EntityCreature implements Human {
         super.saveAdditionalData(tag);
 
         if (this.skin != null) {
-            SerializedSkin nbtSkin = SkinUtils.fromSkin(skin);
+            SerializedSkin nbtSkin = SkinUtils.toSerialized(skin);
             NbtMapBuilder skinTag = NbtMap.builder()
                     .putByteArray("Data", nbtSkin.getSkinData().getImage())
                     .putInt("SkinImageWidth", nbtSkin.getSkinData().getWidth())
@@ -224,7 +224,7 @@ public class EntityHuman extends EntityCreature implements Human {
             if (this instanceof CloudPlayer)
                 this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), ((CloudPlayer) this).getDisplayName(), ((CloudPlayer) this).getSerializedSkin(), ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
             else
-                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), SkinUtils.fromSkin(this.skin), new CloudPlayer[]{player});
+                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), SkinUtils.toSerialized(this.skin), new CloudPlayer[]{player});
 
             player.sendPacket(createAddEntityPacket());
 
@@ -354,7 +354,7 @@ public class EntityHuman extends EntityCreature implements Human {
 
                     int maxDurability = this.server.getItemRegistry().getBehavior(armor.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute();
                     if (damage + 1 >= maxDurability) {
-                        getInventory().setArmorItem(slot, ItemStack.AIR);
+                        getInventory().setArmorItem(slot, ItemStack.EMPTY);
                     } else {
                         getInventory().setArmorItem(slot, armor, true);
                     }

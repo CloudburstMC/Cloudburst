@@ -66,7 +66,7 @@ public class DefaultItemBehaviors {
 
         if (damageValue >= behavior.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
             // TODO: Make the break sound
-            return ItemStack.AIR;
+            return ItemStack.EMPTY;
         }
 
         return itemStack.toBuilder()

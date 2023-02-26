@@ -7,7 +7,7 @@ import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
-import org.cloudburstmc.server.inventory.BaseInventory;
+import org.cloudburstmc.server.inventory.CloudInventory;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -32,13 +32,13 @@ public class MoveItemStackAction extends ItemStackAction {
 
     @Override
     public boolean isValid(CloudPlayer player) {
-        BaseInventory inv = getSourceInventory(player);
+        CloudInventory inv = getSourceInventory(player);
 
-        if (player.isCreative() && getSourceData().getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
+        if (player.isCreative() && getSourceData().getContainer() == ContainerSlotType.CREATED_OUTPUT) {
             return true;
         }
 
-        BaseInventory targetInv = getTargetInventory(player);
+        CloudInventory targetInv = getTargetInventory(player);
         return inv.getItem(getSourceSlot()).isSimilarMetadata(getSourceItem()) &&
                 inv.getItem(getSourceSlot()).getCount() >= this.count
                 && (targetInv.getItem(getTargetSlot()).getType() == BlockTypes.AIR ||
@@ -47,8 +47,8 @@ public class MoveItemStackAction extends ItemStackAction {
 
     @Override
     public boolean execute(CloudPlayer player) {
-        BaseInventory inv = getSourceInventory(player);
-        BaseInventory targetInv = getTargetInventory(player);
+        CloudInventory inv = getSourceInventory(player);
+        CloudInventory targetInv = getTargetInventory(player);
 
         ItemStack original = inv.getItem(getSourceSlot());
         ItemStack old = targetInv.getItem(getTargetSlot());
@@ -57,12 +57,12 @@ public class MoveItemStackAction extends ItemStackAction {
         if (original.getCount() > count) {
             take = original.withCount(count);
             original = original.withCount(original.getCount() - count);
-        } else if (player.isCreative() && getSourceData().getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
+        } else if (player.isCreative() && getSourceData().getContainer() == ContainerSlotType.CREATED_OUTPUT) {
             take = original.withCount(count);
-            original = ItemStack.AIR;
+            original = ItemStack.EMPTY;
         } else {
             take = original;
-            original = ItemStack.AIR;
+            original = ItemStack.EMPTY;
         }
 
         if (old.getType() != BlockTypes.AIR) {
@@ -100,7 +100,7 @@ public class MoveItemStackAction extends ItemStackAction {
     @Override
     protected List<ItemStackResponseContainer> getContainers(CloudPlayer player) {
         List<ItemStackResponseContainer> containers = new ArrayList<>();
-        if (getSourceData().getContainer() != ContainerSlotType.CREATIVE_OUTPUT) {
+        if (getSourceData().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
             containers.add(new ItemStackResponseContainer(getSourceData().getContainer(), List.of(NetworkUtils.itemStackToNetwork(getSourceData(), getSourceInventory(player)))));
         }
         containers.add(new ItemStackResponseContainer(getTargetData().getContainer(), List.of(NetworkUtils.itemStackToNetwork(getTargetData(), getTargetInventory(player)))));

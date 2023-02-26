@@ -4,7 +4,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
-import org.cloudburstmc.server.inventory.BaseInventory;
+import org.cloudburstmc.server.inventory.CloudInventory;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -20,17 +20,17 @@ public class ConsumeItemAction extends ItemStackAction {
 
     @Override
     public boolean isValid(CloudPlayer player) {
-        BaseInventory inv = getSourceInventory(player);
+        CloudInventory inv = getSourceInventory(player);
         return inv.getItem(getSourceSlot()).isSimilarMetadata(getSourceItem())
                 && inv.getItem(getSourceSlot()).getCount() >= count;
     }
 
     @Override
     public boolean execute(CloudPlayer player) {
-        BaseInventory inv = getSourceInventory(player);
+        CloudInventory inv = getSourceInventory(player);
         ItemStack item = inv.getItem(getSourceSlot());
 
-        ItemStack replace = ItemStack.AIR;
+        ItemStack replace = ItemStack.EMPTY;
 
         if (item.getCount() > count) {
             replace = (ItemStack) item.withCount(item.getCount() - count);

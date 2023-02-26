@@ -53,7 +53,7 @@ public class CraftRecipeAction extends ItemStackAction {
             for (int c = 0; c < size; c++) {
                 int slot = (size * r) + c;
                 if (transaction.getExtraOutputs().size() <= slot || transaction.getExtraOutputs().get(slot) == null)
-                    transaction.getExtraOutputs().add(slot, ItemStack.AIR);
+                    transaction.getExtraOutputs().add(slot, ItemStack.EMPTY);
                 extraOutputs[r][c] = transaction.getExtraOutputs().get(slot);
                 inputs[r][c] = inv.getItem(slot);
             }

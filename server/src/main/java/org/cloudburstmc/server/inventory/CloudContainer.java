@@ -26,7 +26,7 @@ import static org.cloudburstmc.api.block.BlockTypes.AIR;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class CloudContainer extends BaseInventory implements ContainerInventory {
+public abstract class CloudContainer extends CloudInventory implements ContainerInventory {
     public CloudContainer(InventoryHolder holder, InventoryType type) {
         super(holder, type);
     }

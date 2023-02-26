@@ -142,7 +142,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                 if (fuel.getType() == ItemTypes.BUCKET && fuel.get(ItemKeys.BUCKET_DATA) == Bucket.LAVA) {
                     fuel = fuel.toBuilder().amount(1).data(ItemKeys.BUCKET_DATA, Bucket.EMPTY).build();
                 } else {
-                    fuel = ItemStack.AIR;
+                    fuel = ItemStack.EMPTY;
                 }
             } else {
                 fuel = fuel.decreaseCount();
@@ -168,7 +168,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         BlockType blockType = state.getType();
         FurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
         boolean canSmelt = smelt != null && raw.getCount() > 0 &&
-                (product == ItemStack.AIR || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().getBehavior(product.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute()));
+                (product == ItemStack.EMPTY || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().getBehavior(product.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute()));
 
         if (
                 burnTime <= 0 && canSmelt
@@ -190,7 +190,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                     if (!ev.isCancelled()) {
                         this.inventory.setResult(ev.getResult());
                         if (raw.getCount() <= 1) {
-                            raw = ItemStack.AIR;
+                            raw = ItemStack.EMPTY;
                         } else {
                             raw = raw.decreaseCount();
                         }

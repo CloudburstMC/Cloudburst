@@ -1,58 +1,106 @@
 package org.cloudburstmc.server.network.inventory;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.TextProcessingEventOrigin;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
+import org.cloudburstmc.protocol.bedrock.packet.ItemStackRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
+import org.cloudburstmc.server.inventory.screen.InventoryScreen;
+import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 @Log4j2
+@RequiredArgsConstructor
 public class ItemStackNetManager {
 
+    private final CloudPlayer player;
     private final Queue<ItemStackRequest> requests = new ArrayDeque<>();
-    private final Deque<Object> screenStack = new ArrayDeque<>();
+    private final Deque<InventoryScreen> screenStack = new ArrayDeque<>();
     private TextFilterState textFilterState;
     private long textFilterRequestTick;
     private long textFilterRequestTimeout;
     private boolean currentRequestIsCrafting;
+    private ItemStackRequestActionHandler handler;
 
-    public void handleRequestBatch(Object requestBatch) {
-
-    }
-
-    private void queueRequests(Object requestBatch) {
-
+    public void handlePacket(ItemStackRequestPacket packet) {
+        for (ItemStackRequest request : packet.getRequests()) {
+            this.requests.offer(request);
+        }
+        processQueue();
     }
 
     private void processQueue() {
+        List<ItemStackResponse> responses = new ArrayList<>();
+        if (!this.requests.isEmpty()) {
+            ItemStackRequest request;
+            while (this.textFilterState != TextFilterState.WAITING && (request = this.requests.poll()) != null) {
+                if (tryFilterText(request)) {
+                    break;
+                }
 
+                handleRequest(request, responses);
+            }
+        }
+
+        if (!responses.isEmpty()) {
+            ItemStackResponsePacket packet = new ItemStackResponsePacket();
+            packet.getEntries().addAll(responses);
+            this.player.sendPacket(packet);
+        }
+
+        if (this.requests.isEmpty()) {
+            if (this.textFilterState != TextFilterState.NONE) {
+                this.textFilterState = TextFilterState.NONE;
+            }
+
+            // TODO: Container close callback
+        }
     }
 
-    private void handleRequestData(ItemStackRequest request, List<ItemStackResponse> response) {
-        if (!NetIds.isValid(request.getRequestId())) {
+    private boolean tryFilterText(ItemStackRequest request) {
+        if (this.textFilterState == TextFilterState.WAITING) {
+            log.debug("Already filtering text for {} {}", player.getName(), request);
+        } else if (this.textFilterState != TextFilterState.TIMED_OUT && request.getFilterStrings().length != 0) {
+            this.filterStrings(request.getRequestId(), request.getFilterStrings(), request.getTextProcessingEventOrigin());
+            return this.textFilterState == TextFilterState.WAITING;
+        } else if (request.getFilterStrings().length != 0) {
+            this.handler.addFilteredStrings(request.getRequestId(), request.getFilterStrings());
+        }
+        return false;
+    }
+
+    private void filterStrings(int requestId, String[] strings, TextProcessingEventOrigin eventOrigin) {
+        // TODO: Expose API for this at some point.
+        this.handler.addFilteredStrings(requestId, strings);
+    }
+
+    private void handleRequest(ItemStackRequest request, List<ItemStackResponse> responses) {
+        if (this.textFilterState == TextFilterState.WAITING || !NetIds.isValid(request.getRequestId())) {
             return;
         }
 
-        Object screen = screenStack.getLast();
+        InventoryScreen screen = this.screenStack.peekLast();
         if (screen == null) {
             return;
         }
 
-//        ItemStackResponsePacket.Response response = new ItemStackResponsePacket.Response(
-//                ItemStackResponseStatus.OK,
-//                request.getRequestId(),
-//
-//        );
+        this.handler.beginRequest(request, screen);
+
         for (ItemStackRequestAction action : request.getActions()) {
             if (!isRequestActionAllowed(action)) {
                 break;
             }
+
+            handler.handleAction(action);
         }
+
+        responses.add(this.handler.endRequest());
     }
+
 
     private boolean isRequestActionAllowed(ItemStackRequestAction action) {
         switch (action.getType()) {
@@ -104,5 +152,9 @@ public class ItemStackNetManager {
                 }
                 break;
         }
+    }
+
+    public void onContainerScreenOpen() {
+
     }
 }

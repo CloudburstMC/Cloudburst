@@ -99,7 +99,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public int getAnalogOutput() {
-        return this.getItem() == null || this.getItem() == ItemStack.AIR ? 0 : this.getItemRotation() % 8 + 1;
+        return this.getItem() == null || this.getItem() == ItemStack.EMPTY ? 0 : this.getItemRotation() % 8 + 1;
     }
 
     @Override

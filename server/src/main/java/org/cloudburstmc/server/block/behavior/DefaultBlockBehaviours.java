@@ -53,7 +53,7 @@ public class DefaultBlockBehaviours {
         for (int i = 0; i < resourceCount; i++) {
             if (!Randoms.chanceFloatGreaterThan(random, 0)) {
                 ItemStack itemStack = behavior.get(BlockBehaviors.GET_RESOURCE).execute(block, random, bonusLootLevel);
-                if (itemStack != ItemStack.AIR) {
+                if (itemStack != ItemStack.EMPTY) {
                     behavior.get(BlockBehaviors.DROP_RESOURCE).execute(block, itemStack);
                 }
             }

@@ -18,7 +18,7 @@ public class DropItemAction extends InventoryAction {
      * check.
      */
     public boolean isValid(CloudPlayer source) {
-        return this.sourceItem == ItemStack.AIR;
+        return this.sourceItem == ItemStack.EMPTY;
     }
 
     @Override

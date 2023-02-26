@@ -35,7 +35,7 @@ import static org.cloudburstmc.api.item.ItemBehaviors.GET_MAX_STACK_SIZE;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class BaseInventory implements Inventory {
+public abstract class CloudInventory implements Inventory {
 
     protected final InventoryType type;
 
@@ -56,19 +56,19 @@ public abstract class BaseInventory implements Inventory {
     @Inject
     ItemRegistry itemRegistry;
 
-    public BaseInventory(InventoryHolder holder, InventoryType type) {
+    public CloudInventory(InventoryHolder holder, InventoryType type) {
         this(holder, type, new HashMap<>());
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents) {
+    public CloudInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents) {
         this(holder, type, contents, null);
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents, Integer overrideSize) {
+    public CloudInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents, Integer overrideSize) {
         this(holder, type, contents, overrideSize, null);
     }
 
-    public BaseInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents, Integer overrideSize, String overrideTitle) {
+    public CloudInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents, Integer overrideSize, String overrideTitle) {
         this.holder = holder;
 
         this.type = type;
@@ -119,7 +119,7 @@ public abstract class BaseInventory implements Inventory {
     @Override
     @NonNull
     public ItemStack getItem(int index) {
-        return this.slots.getOrDefault(index, ItemStack.AIR);
+        return this.slots.getOrDefault(index, ItemStack.EMPTY);
     }
 
     @Override
@@ -242,7 +242,7 @@ public abstract class BaseInventory implements Inventory {
     @Override
     public int firstEmpty() {
         for (int i = 0; i < this.size; ++i) {
-            if (this.getItem(i) == ItemStack.AIR) {
+            if (this.getItem(i) == ItemStack.EMPTY) {
                 return i;
             }
         }
@@ -253,7 +253,7 @@ public abstract class BaseInventory implements Inventory {
     @Override
     public int firstNonEmpty() {
         for (int i = 0; i < this.size; ++i) {
-            if (this.getItem(i) != ItemStack.AIR) {
+            if (this.getItem(i) != ItemStack.EMPTY) {
                 return i;
             }
         }
@@ -332,7 +332,7 @@ public abstract class BaseInventory implements Inventory {
 
         List<ItemStack> itemSlots = new ArrayList<>(slots.length);
         for (ItemStack slot : slots) {
-            if (slot != ItemStack.AIR) {
+            if (slot != ItemStack.EMPTY) {
                 itemSlots.add(slot);
             }
         }
@@ -341,7 +341,7 @@ public abstract class BaseInventory implements Inventory {
 
         for (int i = 0; i < this.getSize(); ++i) {
             ItemStack item = this.getItem(i);
-            if (item == ItemStack.AIR) {
+            if (item == ItemStack.EMPTY) {
                 emptySlots.add(i);
             }
 
@@ -436,14 +436,14 @@ public abstract class BaseInventory implements Inventory {
     public ItemStack[] removeItem(ItemStack... slots) {
         List<ItemStack> itemSlots = new ArrayList<>();
         for (ItemStack slot : slots) {
-            if (slot != ItemStack.AIR) {
+            if (slot != ItemStack.EMPTY) {
                 itemSlots.add(slot);
             }
         }
 
         for (int i = 0; i < this.size; ++i) {
             ItemStack item = this.getItem(i);
-            if (item == ItemStack.AIR) {
+            if (item == ItemStack.EMPTY) {
                 continue;
             }
 
@@ -471,7 +471,7 @@ public abstract class BaseInventory implements Inventory {
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            ItemStack item = ItemStack.AIR;
+            ItemStack item = ItemStack.EMPTY;
             ItemStack old = this.slots.get(index);
             InventoryHolder holder = this.getHolder();
             if (holder instanceof BaseEntity) {
@@ -487,7 +487,7 @@ public abstract class BaseInventory implements Inventory {
                 ((BlockEntity) holder).setDirty();
             }
 
-            if (item != ItemStack.AIR) {
+            if (item != ItemStack.EMPTY) {
                 this.slots.put(index, item);
             } else {
                 this.slots.remove(index);
@@ -608,7 +608,7 @@ public abstract class BaseInventory implements Inventory {
         int space = (this.getSize() - this.slots.size()) * maxStackSize;
 
         for (ItemStack slot : this.getContents().values()) {
-            if (slot == null || slot == ItemStack.AIR) {
+            if (slot == null || slot == ItemStack.EMPTY) {
                 space += maxStackSize;
                 continue;
             }
@@ -643,7 +643,7 @@ public abstract class BaseInventory implements Inventory {
 
         for (Int2ObjectMap.Entry<ItemStack> slot : this.slots.int2ObjectEntrySet()) {
             ItemStack item = slot.getValue();
-            if (item != ItemStack.AIR) {
+            if (item != ItemStack.EMPTY) {
                 inventoryItems.add(ItemUtils.serializeItem(item, slot.getIntKey()));
             }
         }

@@ -3,7 +3,7 @@ package org.cloudburstmc.server.inventory.transaction.action;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
-import org.cloudburstmc.server.inventory.BaseInventory;
+import org.cloudburstmc.server.inventory.CloudInventory;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -21,14 +21,14 @@ public class DropItemStackAction extends ItemStackAction {
 
     @Override
     public boolean isValid(CloudPlayer player) {
-        BaseInventory inv = getSourceInventory(player);
+        CloudInventory inv = getSourceInventory(player);
         return inv.getItem(getSourceSlot()).isSimilarMetadata(getSourceItem()) &&
                 inv.getItem(getSourceSlot()).getCount() >= count;
     }
 
     @Override
     public boolean execute(CloudPlayer player) {
-        BaseInventory inv = getSourceInventory(player);
+        CloudInventory inv = getSourceInventory(player);
         ItemStack drop;
 
         if (getSourceItem().getCount() > count) {
@@ -39,7 +39,7 @@ public class DropItemStackAction extends ItemStackAction {
             }
         } else {
             drop = getSourceItem();
-            if (!inv.setItem(getSourceSlot(), ItemStack.AIR, true)) {
+            if (!inv.setItem(getSourceSlot(), ItemStack.EMPTY, true)) {
                 return false;
             }
         }
