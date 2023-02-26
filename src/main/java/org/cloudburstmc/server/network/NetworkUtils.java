@@ -17,7 +17,7 @@ import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
-import org.cloudburstmc.server.inventory.BaseInventory;
+import org.cloudburstmc.server.inventory.CloudInventory;
 
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -156,7 +156,7 @@ public class NetworkUtils {
         return inventoryTypeMap.get(type);
     }
 
-    public static ItemStackResponseSlot itemStackToNetwork(ItemStackRequestSlotData data, BaseInventory inv) {
+    public static ItemStackResponseSlot itemStackToNetwork(ItemStackRequestSlotData data, CloudInventory inv) {
         ItemStack item = inv.getItem(data.getSlot());
         Integer damage = item.get(ItemKeys.DAMAGE);
         String customName = item.get(ItemKeys.CUSTOM_NAME);

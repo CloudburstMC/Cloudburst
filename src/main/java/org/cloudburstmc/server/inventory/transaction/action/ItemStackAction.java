@@ -7,7 +7,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus;
-import org.cloudburstmc.server.inventory.BaseInventory;
+import org.cloudburstmc.server.inventory.CloudInventory;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -24,8 +24,8 @@ public abstract class ItemStackAction extends InventoryAction {
     private ItemStackTransaction transaction;
 
     public ItemStackAction(int reqId, @Nullable ItemStackRequestSlotData sourceData, @Nullable ItemStackRequestSlotData targetData) {
-        super(sourceData != null ? ItemUtils.getFromNetworkId(sourceData.getStackNetworkId()).orElse(ItemStack.AIR) : ItemStack.AIR,
-                targetData != null ? ItemUtils.getFromNetworkId(targetData.getStackNetworkId()).orElse(ItemStack.AIR) : ItemStack.AIR);
+        super(sourceData != null ? ItemUtils.getFromNetworkId(sourceData.getStackNetworkId()).orElse(ItemStack.EMPTY) : ItemStack.EMPTY,
+                targetData != null ? ItemUtils.getFromNetworkId(targetData.getStackNetworkId()).orElse(ItemStack.EMPTY) : ItemStack.EMPTY);
         this.requestId = reqId;
         this.sourceData = sourceData;
         this.targetData = targetData;
@@ -64,7 +64,7 @@ public abstract class ItemStackAction extends InventoryAction {
     }
 
     @Nullable
-    protected BaseInventory getSourceInventory(CloudPlayer source) {
+    protected CloudInventory getSourceInventory(CloudPlayer source) {
         if (sourceData != null) {
             return source.getInventoryManager().getInventoryByType(sourceData.getContainer());
         }
@@ -72,7 +72,7 @@ public abstract class ItemStackAction extends InventoryAction {
     }
 
     @Nullable
-    protected BaseInventory getTargetInventory(CloudPlayer source) {
+    protected CloudInventory getTargetInventory(CloudPlayer source) {
         if (targetData != null) {
             return source.getInventoryManager().getInventoryByType(targetData.getContainer());
         }

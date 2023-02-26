@@ -18,7 +18,6 @@ import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
@@ -702,7 +701,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
      *
      * @return integer
      */
-    public Vector3i getDisplayOffset() {
+    public int getDisplayOffset() {
         return this.data.get(DISPLAY_OFFSET);
     }
 
@@ -711,7 +710,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
      *
      * @param offset The offset
      */
-    public void setDisplayBlockOffset(Vector3i offset) {
+    public void setDisplayBlockOffset(int offset) {
         this.data.set(DISPLAY_OFFSET, offset);
     }
 

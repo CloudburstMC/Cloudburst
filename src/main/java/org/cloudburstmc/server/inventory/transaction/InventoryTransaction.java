@@ -83,7 +83,7 @@ public class InventoryTransaction {
 
     protected boolean matchItems(List<ItemStack> needItems, List<ItemStack> haveItems) {
         for (InventoryAction action : this.actions) {
-            if (action.getTargetItem() != ItemStack.AIR) {
+            if (action.getTargetItem() != ItemStack.EMPTY) {
                 needItems.add(action.getTargetItem());
             }
 
@@ -91,7 +91,7 @@ public class InventoryTransaction {
                 return false;
             }
 
-            if (action.getSourceItem() != ItemStack.AIR) {
+            if (action.getSourceItem() != ItemStack.EMPTY) {
                 haveItems.add(action.getSourceItem());
             }
         }

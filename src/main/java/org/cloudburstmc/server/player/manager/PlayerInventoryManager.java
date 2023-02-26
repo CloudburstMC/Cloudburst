@@ -3,6 +3,7 @@ package org.cloudburstmc.server.player.manager;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
@@ -10,6 +11,8 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemSt
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
 import org.cloudburstmc.server.inventory.*;
+import org.cloudburstmc.server.inventory.screen.HudInventoryScreen;
+import org.cloudburstmc.server.inventory.screen.InventoryScreen;
 import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
 import org.cloudburstmc.server.inventory.transaction.action.CraftCreativeAction;
@@ -19,6 +22,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringJoiner;
 
 import static org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType.*;
@@ -27,10 +31,14 @@ import static org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request
 @Getter
 public class PlayerInventoryManager {
     private final CloudPlayer player;
-    private final CloudPlayerInventory playerInventory;
+    private final CloudPlayerInventory inventory;
     private final PlayerCursorInventory cursor;
+    private final CloudArmorInventory armor;
+    private final CloudHandInventory hand;
     private final CloudEnderChestInventory enderChest;
     private final CloudCraftingGrid craftingGrid;
+    private final HudInventoryScreen defaultScreen;
+    private InventoryScreen currentScreen;
     @Setter
     private ItemStackTransaction transaction;
     @Setter
@@ -38,14 +46,37 @@ public class PlayerInventoryManager {
 
     public PlayerInventoryManager(CloudPlayer player) {
         this.player = player;
-        this.playerInventory = new CloudPlayerInventory(player);
+        this.inventory = new CloudPlayerInventory(player);
         this.cursor = new PlayerCursorInventory(player);
+        this.armor = new CloudArmorInventory(player);
+        this.hand = new CloudHandInventory(player);
         this.enderChest = new CloudEnderChestInventory(player);
         this.craftingGrid = new CloudCraftingGrid(player);
+        this.defaultScreen = new HudInventoryScreen(player);
         transaction = null;
         viewingBlock = null;
     }
 
+    public void closeScreen() {
+        if (currentScreen != null) {
+            currentScreen.close();
+            currentScreen = null;
+        }
+    }
+
+    public void openScreen(@NonNull InventoryScreen screen) {
+        Objects.requireNonNull(screen, "screen");
+        if (this.currentScreen != null) {
+            this.currentScreen.close();
+        }
+        this.currentScreen = screen;
+        this.currentScreen.setup();
+    }
+
+    @NonNull
+    public InventoryScreen getScreen() {
+        return currentScreen == null ? defaultScreen : currentScreen;
+    }
 
     public void handle(ItemStackRequest request) {
         if (isCraftingRequest(request)) {
@@ -160,10 +191,10 @@ public class PlayerInventoryManager {
         ));
     }
 
-    public BaseInventory getInventoryByType(ContainerSlotType type) {
+    public CloudInventory getInventoryByType(ContainerSlotType type) {
         return switch (type) {
-            case HOTBAR, HOTBAR_AND_INVENTORY, INVENTORY, OFFHAND -> playerInventory;
-            case CRAFTING_INPUT, CRAFTING_OUTPUT, CREATIVE_OUTPUT -> craftingGrid;
+            case HOTBAR, HOTBAR_AND_INVENTORY, INVENTORY, OFFHAND -> inventory;
+            case CRAFTING_INPUT, CRAFTING_OUTPUT, CREATED_OUTPUT -> craftingGrid;
             case CURSOR -> cursor;
             default -> null;
         };
@@ -180,7 +211,7 @@ public class PlayerInventoryManager {
         StringJoiner str = new StringJoiner("\n");
         str.add("Player Inventories [" + player.getName() + ":");
         str.add("Main Inventory: ");
-        for (Map.Entry<Integer, ItemStack> entry : playerInventory.getContents().entrySet()) {
+        for (Map.Entry<Integer, ItemStack> entry : inventory.getContents().entrySet()) {
             str.add("  " + entry.getKey() + ": " + entry.getValue());
         }
         str.add("===============");

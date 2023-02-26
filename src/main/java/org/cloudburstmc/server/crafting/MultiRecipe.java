@@ -27,7 +27,7 @@ public class MultiRecipe implements CraftingRecipe {
 
     @Override
     public ItemStack getResult() {
-        return ItemStack.AIR;
+        return ItemStack.EMPTY;
     }
 
     @Override

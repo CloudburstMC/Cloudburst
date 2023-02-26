@@ -11,6 +11,7 @@ import it.unimi.dsi.fastutil.bytes.ByteOpenHashSet;
 import it.unimi.dsi.fastutil.bytes.ByteSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
@@ -104,6 +105,7 @@ import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
 import org.cloudburstmc.server.permission.PermissibleBase;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
@@ -236,6 +238,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public FishingHook fishing = null;
 
     private final PlayerChunkManager chunkManager = new PlayerChunkManager(this);
+    @Getter
+    private final ItemStackNetManager itemStackNetManager = new ItemStackNetManager(this);
 
     public int packetsRecieved;
 
@@ -2303,7 +2307,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             return false;
         }
 
-        if (item == ItemStack.AIR) {
+        if (item == ItemStack.EMPTY) {
             log.debug(this.getName() + " attempted to drop a null item (" + item + ")");
             return true;
         }
@@ -2911,7 +2915,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
     @Override
     public CloudPlayerInventory getInventory() {
-        return invManager.getPlayerInventory();
+        return invManager.getInventory();
     }
 
     @Override

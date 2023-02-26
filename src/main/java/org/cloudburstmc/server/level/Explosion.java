@@ -189,7 +189,7 @@ public class Explosion {
             }
         }
 
-        ItemStack air = ItemStack.AIR;
+        ItemStack air = ItemStack.EMPTY;
 
 //        TODO For now no explosions
 //        //Iterator iter = this.affectedBlocks.entrySet().iterator();

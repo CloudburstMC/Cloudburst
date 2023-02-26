@@ -299,7 +299,7 @@ public final class ClientChainData implements LoginChainData {
 
     public SerializedSkin getSerializedSkin() {
         if (this.serializedSkin == null) {
-            this.serializedSkin = SkinUtils.fromSkin(this.skin);
+            this.serializedSkin = SkinUtils.toSerialized(this.skin);
         }
         return this.serializedSkin;
     }
@@ -307,7 +307,7 @@ public final class ClientChainData implements LoginChainData {
     @Override
     public void setSkin(Skin skin) {
         this.skin = skin;
-        this.serializedSkin = SkinUtils.fromSkin(skin);
+        this.serializedSkin = SkinUtils.toSerialized(skin);
     }
 
     public void setSkin(SerializedSkin skin) {

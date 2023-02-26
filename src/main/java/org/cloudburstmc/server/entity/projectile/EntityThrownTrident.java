@@ -62,7 +62,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
         super.initEntity();
 
         this.damage = 8;
-        this.trident = ItemStack.AIR;
+        this.trident = ItemStack.EMPTY;
         closeOnCollide = false;
     }
 
@@ -82,7 +82,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
 
     @Override
     public ItemStack getTrident() {
-        return this.trident != null ? this.trident : ItemStack.AIR;
+        return this.trident != null ? this.trident : ItemStack.EMPTY;
     }
 
     @Override

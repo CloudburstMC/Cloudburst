@@ -6,7 +6,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 /**
  * @author CreeperFace
  */
-public class PlayerCursorInventory extends BaseInventory {
+public class PlayerCursorInventory extends CloudInventory {
 
     public PlayerCursorInventory(CloudPlayer player) {
         super(player, InventoryType.UI);

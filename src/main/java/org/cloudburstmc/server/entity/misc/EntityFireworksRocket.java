@@ -9,7 +9,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -49,7 +48,7 @@ public class EntityFireworksRocket extends BaseEntity implements FireworksRocket
         this.setMotion(Vector3f.from(rand.nextGaussian() * 0.001, 0.05, rand.nextGaussian() * 0.001));
 
         this.data.set(DISPLAY_FIREWORK, NbtMap.EMPTY);
-        this.data.set(DISPLAY_OFFSET, Vector3i.ZERO);
+        this.data.set(DISPLAY_OFFSET, 0);
         this.data.set(CUSTOM_DISPLAY, (byte) 1);
     }
 

@@ -5,7 +5,7 @@ import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.CraftingData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.FurnaceRecipeData;
 import org.cloudburstmc.server.item.ItemUtils;
 
 import javax.annotation.concurrent.Immutable;
@@ -75,14 +75,14 @@ public class FurnaceRecipe implements CraftingRecipe {
         return 0;
     }
 
-    public CraftingData toNetwork(int netId) {
+    public FurnaceRecipeData toNetwork() {
         ItemData ingredientData = ItemUtils.toNetwork(ingredient);
         ItemData outputData = ItemUtils.toNetwork(output);
 
         if (ingredientData.getDamage() >= 0) {
-            return CraftingData.fromFurnaceData(ingredientData.getDefinition().getRuntimeId(), ingredientData.getDamage(), outputData, block.getName(), netId);
+            return FurnaceRecipeData.of(ingredientData.getDefinition().getRuntimeId(), ingredientData.getDamage(), outputData, block.getName());
         } else {
-            return CraftingData.fromFurnace(ingredientData.getDefinition().getRuntimeId(), outputData, block.getName(), netId);
+            return FurnaceRecipeData.of(ingredientData.getDefinition().getRuntimeId(), outputData, block.getName());
         }
     }
 

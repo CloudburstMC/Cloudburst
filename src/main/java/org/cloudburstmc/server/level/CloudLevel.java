@@ -1504,7 +1504,7 @@ public class CloudLevel implements Level {
     public DroppedItem dropItem(Vector3f source, ItemStack item, Vector3f motion, boolean dropAround, int delay) {
         checkNotNull(source, "source");
         checkNotNull(item, "item");
-        checkArgument(item != ItemStack.AIR, "invalid item");
+        checkArgument(item != ItemStack.EMPTY, "invalid item");
 
         if (motion == null) {
             if (dropAround) {
@@ -1564,7 +1564,7 @@ public class CloudLevel implements Level {
         int dropExp = targetBehaviors.get(BlockBehaviors.GET_EXPERIENCE_DROP).execute(target.getState(), new Random()); // TODO: Use global level RNG
 
         if (item == null) {
-            item = ItemStack.AIR;
+            item = ItemStack.EMPTY;
         }
 
         boolean isSilkTouch = item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.SILK_TOUCH) != null;
@@ -1678,7 +1678,7 @@ public class CloudLevel implements Level {
         itemBehaviors.get(USE_ON).execute(item, player, target.getPosition(), null, null);
         if (itemBehaviors.get(ItemBehaviors.IS_TOOL).execute(item) &&
                 item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
-            item = ItemStack.AIR;
+            item = ItemStack.EMPTY;
         }
 
         if (this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
@@ -1766,9 +1766,9 @@ public class CloudLevel implements Level {
             if (!ev.isCancelled()) {
                 targetBehaviors.get(ON_TICK).execute(target, new Random());
 
-                if ((!player.isSneaking() || player.getInventory().getItemInHand() == ItemStack.AIR) && targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, player, face)) { //TODO: update the item from the behavior
+                if ((!player.isSneaking() || player.getInventory().getItemInHand() == ItemStack.EMPTY) && targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, player, face)) { //TODO: update the item from the behavior
                     if (this.itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
-                        item = ItemStack.AIR;
+                        item = ItemStack.EMPTY;
                     }
                     return item;
                 }
@@ -1779,7 +1779,7 @@ public class CloudLevel implements Level {
                     //                            item = ItemStack.AIR;
                     //                            return item;
                     //                        }
-                    item = Objects.requireNonNullElse(result, ItemStack.AIR);
+                    item = Objects.requireNonNullElse(result, ItemStack.EMPTY);
                 }
             } else {
                 if (item.getType() == ItemTypes.BUCKET && item.get(ItemKeys.BUCKET_DATA) == Bucket.WATER) {
@@ -1790,7 +1790,7 @@ public class CloudLevel implements Level {
         } else if (targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, null, face)) {
             if (this.itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) &&
                     item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
-                item = ItemStack.AIR; //TODO: update the item from the behavior
+                item = ItemStack.EMPTY; //TODO: update the item from the behavior
             }
             return item;
         }
@@ -1899,7 +1899,7 @@ public class CloudLevel implements Level {
 //        }
 
         if (item.getCount() <= 0) {
-            item = ItemStack.AIR;
+            item = ItemStack.EMPTY;
         }
         return item;
     }

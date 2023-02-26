@@ -21,9 +21,9 @@ public class CraftingTransferMaterialAction extends InventoryAction {
     @Override
     public void onAddToTransaction(InventoryTransaction transaction) {
         if (transaction instanceof CraftingTransaction) {
-            if (this.sourceItem == ItemStack.AIR) {
+            if (this.sourceItem == ItemStack.EMPTY) {
                 ((CraftingTransaction) transaction).setInput(this.slot, this.targetItem);
-            } else if (this.targetItem == ItemStack.AIR) {
+            } else if (this.targetItem == ItemStack.EMPTY) {
                 ((CraftingTransaction) transaction).setExtraOutput(this.slot, this.sourceItem);
             } else {
                 throw new RuntimeException("Invalid " + getClass().getName() + ", either source or target item must be air, got source: " + this.sourceItem + ", target: " + this.targetItem);

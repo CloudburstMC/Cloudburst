@@ -85,7 +85,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
 
     @Override
     public ItemStack getHotbarSlot(int slot) {
-        if (!isHotbarSlot(slot)) return ItemStack.AIR;
+        if (!isHotbarSlot(slot)) return ItemStack.EMPTY;
         return super.getItem(slot);
     }
 
@@ -111,7 +111,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
 
     @Override
     public void clearCursor() {
-        getCursor().setItem(0, ItemStack.AIR, true);
+        getCursor().setItem(0, ItemStack.EMPTY, true);
     }
 
     @Override
@@ -193,7 +193,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            ItemStack item = ItemStack.AIR;
+            ItemStack item = ItemStack.EMPTY;
             ItemStack old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
@@ -221,7 +221,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
                 item = ev.getNewItem();
             }
 
-            if (item != ItemStack.AIR) {
+            if (item != ItemStack.EMPTY) {
                 this.slots.put(index, item);
             } else {
                 this.slots.remove(index);

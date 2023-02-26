@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory.transaction.action;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
-import org.cloudburstmc.server.inventory.BaseInventory;
+import org.cloudburstmc.server.inventory.CloudInventory;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -16,8 +16,8 @@ public class SwapItemStackAction extends ItemStackAction {
 
     @Override
     public boolean isValid(CloudPlayer player) {
-        BaseInventory inv = getSourceInventory(player);
-        BaseInventory targetInv = getTargetInventory(player);
+        CloudInventory inv = getSourceInventory(player);
+        CloudInventory targetInv = getTargetInventory(player);
 
         return inv.getItem(getSourceSlot()).isMergeable(getSourceItem()) &&
                 targetInv.getItem(getTargetSlot()).isMergeable(getTargetItem());
@@ -25,8 +25,8 @@ public class SwapItemStackAction extends ItemStackAction {
 
     @Override
     public boolean execute(CloudPlayer player) {
-        BaseInventory inv = player.getInventoryManager().getInventoryByType(getSourceData().getContainer());
-        BaseInventory targetInv = player.getInventoryManager().getInventoryByType(getTargetData().getContainer());
+        CloudInventory inv = player.getInventoryManager().getInventoryByType(getSourceData().getContainer());
+        CloudInventory targetInv = player.getInventoryManager().getInventoryByType(getTargetData().getContainer());
 
         if (!targetInv.setItem(getTargetSlot(), sourceItem, true)) {
             return false;

@@ -36,7 +36,7 @@ public class CraftCreativeAction extends ItemStackAction {
         ItemStack item = CloudItemRegistry.get().getCreativeItemByIndex(creativeItemNetId - 1);
         int maxStackSize = this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute();
         item = item.withCount(maxStackSize);
-        return item != ItemStack.AIR &&
+        return item != ItemStack.EMPTY &&
                 source.getCraftingInventory().setItem(CloudCraftingGrid.CRAFTING_RESULT_SLOT, item, false);
     }
 

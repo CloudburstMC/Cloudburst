@@ -22,7 +22,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.*;
 
-public class CloudCreatureInventory extends BaseInventory implements CreatureInventory {
+public class CloudCreatureInventory extends CloudInventory implements CreatureInventory {
 
     private int heldItemIndex = 0;
     private Int2ObjectMap<ItemStack> armorSlots = new Int2ObjectOpenHashMap<>(4);
@@ -104,14 +104,14 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
 
     @Override
     public ItemStack getArmorItem(int index) {
-        return this.armorSlots.get(index) == null ? ItemStack.AIR : this.armorSlots.get(index);
+        return this.armorSlots.get(index) == null ? ItemStack.EMPTY : this.armorSlots.get(index);
     }
 
     @Override
     public boolean setArmorItem(int index, ItemStack item, boolean ignoreArmorEvents) {
         if (index < 0 || index >= 3) {
             return false;
-        } else if (item == ItemStack.AIR || item.getCount() <= 0) {
+        } else if (item == ItemStack.EMPTY || item.getCount() <= 0) {
             return this.armorSlots.remove(index) != null;
         }
 
@@ -138,7 +138,7 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
     @NonNull
     @Override
     public ItemStack getOffHandItem() {
-        return this.offHand == null ? ItemStack.AIR : this.offHand;
+        return this.offHand == null ? ItemStack.EMPTY : this.offHand;
     }
 
     @Override
@@ -238,10 +238,10 @@ public class CloudCreatureInventory extends BaseInventory implements CreatureInv
 
         for (int i = 0; i < 4; ++i) {
             if (items[i] == null) {
-                items[i] = ItemStack.AIR;
+                items[i] = ItemStack.EMPTY;
             }
 
-            if (items[i] == ItemStack.AIR) {
+            if (items[i] == ItemStack.EMPTY) {
                 this.armorSlots.remove(i);
             } else {
                 this.armorSlots.put(i, (ItemStack) items[i]);

@@ -46,7 +46,7 @@ public class SkinUtils {
         return newSkin;
     }
 
-    public static SerializedSkin fromSkin(Skin skin) {
+    public static SerializedSkin toSerialized(Skin skin) {
         SerializedSkin.Builder builder = SerializedSkin.builder();
         builder.skinId(skin.getSkinId())
                 .fullSkinId(skin.getFullSkinId())

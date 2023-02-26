@@ -143,7 +143,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             for (int slot : slots) {
                 ItemStack item = inv.getItem(slot);
 
-                if (item == ItemStack.AIR) {
+                if (item == ItemStack.EMPTY) {
                     continue;
                 }
 
@@ -186,7 +186,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             DroppedItem itemEntity = (DroppedItem) entity;
             ItemStack item = itemEntity.getItem();
 
-            if (item == ItemStack.AIR) {
+            if (item == ItemStack.EMPTY) {
                 continue;
             }
 
@@ -256,7 +256,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             for (int i = 0; i < this.inventory.getSize(); i++) {
                 ItemStack item = this.inventory.getItem(i);
 
-                if (item == ItemStack.AIR) {
+                if (item == ItemStack.EMPTY) {
                     continue;
                 }
 
@@ -270,7 +270,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                     ItemStack target = inv.getItem(slot);
 
 
-                    if (target != ItemStack.AIR && (!target.equals(item) ||
+                    if (target != ItemStack.EMPTY && (!target.equals(item) ||
                             target.getCount() >= CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute())) {
                         continue;
                     }
@@ -284,7 +284,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                         return false;
                     }
 
-                    if (target == ItemStack.AIR) {
+                    if (target == ItemStack.EMPTY) {
                         inv.setItem(slot, item);
                     } else {
                         inv.incrementCount(slot);

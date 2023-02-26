@@ -27,8 +27,11 @@ import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.ContainerMixData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.CraftingData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.FurnaceRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.crafting.*;
@@ -413,7 +416,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                 Recipe recipe = recipeMap.get(entry.getValue());
                 switch (recipe.getType()) {
                     case SHAPELESS:
-                        packet.getCraftingData().add(CraftingData.fromShapeless(
+                        packet.getCraftingData().add(ShapelessRecipeData.shapeless(
                                 recipe.getId().toString(),
                                 ItemUtils.toDescriptors(((ShapelessRecipe) recipe).getIngredientList()),
                                 ItemUtils.toNetwork(((ShapelessRecipe) recipe).getAllResults()),
@@ -423,7 +426,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                                 netIdMap.getOrDefault(recipe.getId(), 0)));
                         break;
                     case SHULKER_BOX:
-                        packet.getCraftingData().add(CraftingData.fromShulkerBox(
+                        packet.getCraftingData().add(ShapelessRecipeData.shulkerBox(
                                 recipe.getId().toString(),
                                 ItemUtils.toDescriptors(((ShapelessRecipe) recipe).getIngredientList()),
                                 ItemUtils.toNetwork(((ShapelessRecipe) recipe).getAllResults()),
@@ -433,7 +436,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                                 netIdMap.getOrDefault(recipe.getId(), 0)));
                         break;
                     case SHAPED:
-                        packet.getCraftingData().add(CraftingData.fromShaped(
+                        packet.getCraftingData().add(ShapedRecipeData.shaped(
                                 recipe.getId().toString(),
                                 ((ShapedRecipe) recipe).getWidth(),
                                 ((ShapedRecipe) recipe).getHeight(),
@@ -449,26 +452,24 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                         ItemData inputData = ItemUtils.toNetwork(((FurnaceRecipe) recipe).getInput());
                         ItemData outputData = ItemUtils.toNetwork(recipe.getResult());
 
-                        packet.getCraftingData().add(CraftingData.fromFurnace(
+                        packet.getCraftingData().add(FurnaceRecipeData.of(
                                 inputData.getDefinition().getRuntimeId(),
                                 outputData,
-                                recipe.getBlock().getName(),
-                                netIdMap.getOrDefault(recipe.getId(), 0)));
+                                recipe.getBlock().getName()));
                         break;
                     case FURNACE_DATA:
                         assert recipe instanceof FurnaceRecipe;
                         inputData = ItemUtils.toNetwork(((FurnaceRecipe) recipe).getInput());
                         outputData = ItemUtils.toNetwork(recipe.getResult());
 
-                        packet.getCraftingData().add(CraftingData.fromFurnaceData(
+                        packet.getCraftingData().add(FurnaceRecipeData.of(
                                 ItemUtils.toNetwork(((FurnaceRecipe) recipe).getInput()).getDefinition().getRuntimeId(),
                                 inputData.getDamage(),
                                 outputData,
-                                recipe.getBlock().getName(),
-                                netIdMap.getOrDefault(recipe.getId(), 0)));
+                                recipe.getBlock().getName()));
                         break;
                     case MULTI:
-                        packet.getCraftingData().add(CraftingData.fromMulti(
+                        packet.getCraftingData().add(MultiRecipeData.of(
                                 ((MultiRecipe) recipe).getUuid(),
                                 netIdMap.getOrDefault(recipe.getId(), 0)));
                         break;

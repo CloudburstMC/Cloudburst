@@ -84,7 +84,7 @@ public class GiveCommand extends Command {
         }
 
         if (player != null) {
-            if (stack == ItemStack.AIR) {
+            if (stack == ItemStack.EMPTY) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.give.item.invalid", args[1]));
                 return true;
             }

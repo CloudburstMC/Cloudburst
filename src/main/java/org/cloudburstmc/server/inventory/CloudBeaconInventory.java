@@ -9,7 +9,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 /**
  * author: Rover656
  */
-public class CloudBeaconInventory extends BaseInventory implements BeaconInventory {
+public class CloudBeaconInventory extends CloudInventory implements BeaconInventory {
 
     public CloudBeaconInventory(CloudPlayer player) {
         super(player, InventoryType.BEACON);
@@ -25,7 +25,7 @@ public class CloudBeaconInventory extends BaseInventory implements BeaconInvento
         super.onClose(who);
 
         //Drop item in slot
-        if (this.getItem(0) != ItemStack.AIR) {
+        if (this.getItem(0) != ItemStack.EMPTY) {
             this.getHolder().getLevel().dropItem(this.getHolder().getPosition(), this.getItem(0));
             this.clear(0);
         }
