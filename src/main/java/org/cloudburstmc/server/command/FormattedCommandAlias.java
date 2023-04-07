@@ -33,7 +33,12 @@ public class FormattedCommandAlias extends Command {
             try {
                 commands.add(buildCommand(formatString, args));
             } catch (Exception e) {
-                handleError(sender, e);
+                if (e instanceof IllegalArgumentException) {
+                    sender.sendMessage(TextFormat.RED + e.getMessage());
+                } else {
+                    sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.exception"));
+                    log.throwing(Level.ERROR, e);
+                }
                 return false;
             }
         }
@@ -43,15 +48,6 @@ public class FormattedCommandAlias extends Command {
         }
 
         return result;
-    }
-
-    private void handleError(CommandSender sender, Exception e) {
-        if (e instanceof IllegalArgumentException) {
-            sender.sendMessage(TextFormat.RED + e.getMessage());
-        } else {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.exception"));
-            log.throwing(Level.ERROR, e);
-        }
     }
 
     private String buildCommand(String formatString, String[] args) {
