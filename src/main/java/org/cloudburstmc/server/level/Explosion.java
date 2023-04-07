@@ -36,13 +36,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
 import static org.cloudburstmc.api.block.BlockTypes.WATER;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
-@Log4j2
 public class Explosion {
-
     private final int rays = 16; //Rays
     private final CloudLevel level;
     private final Vector3f source;
@@ -52,31 +46,18 @@ public class Explosion {
     private List<Block> affectedBlockStates = new ArrayList<>();
     private final double stepLen = 0.3d;
 
-    private final Object what;
+    private final Explosive what;
 
-    public Explosion(CloudLevel level, Vector3f center, double size, Entity what) {
+    public Explosion(CloudLevel level, Vector3f center, double size, Explosive what) {
         this.level = level;
         this.source = center;
         this.size = Math.max(size, 0);
         this.what = what;
     }
 
-    /**
-     * @return bool
-     * @deprecated
-     */
-    public boolean explode() {
-        if (explodeA()) {
-            return explodeB();
-        }
-        return false;
-    }
-
-    /**
-     * @return bool
-     */
     public boolean explodeA() {
-        if (what instanceof Explosive) {
+        if (what.hashCode() ==0) {
+        } else {
             Vector3f pos = ((Entity) what).getPosition();
             var b = this.level.getBlockState(pos.getFloorX(), pos.getFloorY(), pos.getFloorZ()).getType();
             if (b == WATER || b == FLOWING_WATER) {

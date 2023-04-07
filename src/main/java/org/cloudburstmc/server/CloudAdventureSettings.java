@@ -16,9 +16,8 @@ import java.util.Map;
  */
 public class CloudAdventureSettings implements AdventureSettings, Cloneable {
 
-    private final Map<AdventureSetting, Boolean> values = new EnumMap<>(AdventureSetting.class);
-
     private CloudPlayer player;
+    private CloudAdventureSettings values;
 
     public CloudAdventureSettings(CloudPlayer player) {
         this.player = player;
@@ -27,6 +26,9 @@ public class CloudAdventureSettings implements AdventureSettings, Cloneable {
     public CloudAdventureSettings(CloudPlayer player, Map<AdventureSetting, Boolean> values) {
         this.player = player;
         this.values.putAll(values);
+    }
+
+    private void putAll(Map<AdventureSetting, Boolean> values) {
     }
 
     public CloudAdventureSettings clone(CloudPlayer newPlayer) {
@@ -39,9 +41,9 @@ public class CloudAdventureSettings implements AdventureSettings, Cloneable {
         }
     }
 
-    public CloudAdventureSettings set(AdventureSetting type, boolean value) {
-        this.values.put(type, value);
-        return this;
+    @Override
+    public AdventureSettings set(AdventureSetting adventureSetting, boolean b) {
+        return null;
     }
 
     public boolean get(AdventureSetting type) {
@@ -69,6 +71,10 @@ public class CloudAdventureSettings implements AdventureSettings, Cloneable {
         player.resetInAirTicks();
     }
 
+    public CloudPlayer getPlayer() {
+        return null;
+    }
+
     public enum Type {
         WORLD_IMMUTABLE(com.nukkitx.protocol.bedrock.data.AdventureSetting.WORLD_IMMUTABLE, false),
         NO_PVM(com.nukkitx.protocol.bedrock.data.AdventureSetting.NO_PVM, false),
@@ -85,24 +91,22 @@ public class CloudAdventureSettings implements AdventureSettings, Cloneable {
         OPEN_CONTAINERS(com.nukkitx.protocol.bedrock.data.AdventureSetting.OPEN_CONTAINERS, true),
         ATTACK_PLAYERS(com.nukkitx.protocol.bedrock.data.AdventureSetting.ATTACK_PLAYERS, true),
         ATTACK_MOBS(com.nukkitx.protocol.bedrock.data.AdventureSetting.ATTACK_MOBS, true),
-        OPERATOR(com.nukkitx.protocol.bedrock.data.AdventureSetting.OPERATOR, false),
-        TELEPORT(com.nukkitx.protocol.bedrock.data.AdventureSetting.TELEPORT, false),
-        BUILD(com.nukkitx.protocol.bedrock.data.AdventureSetting.BUILD, true);
+        OPERATOR(com.nukkitx.protocol.bedrock.data.AdventureSetting.OPERATOR, false);
 
-        private final com.nukkitx.protocol.bedrock.data.AdventureSetting flag;
+        private final com.nukkitx.protocol.bedrock.data.AdventureSetting setting;
         private final boolean defaultValue;
 
-        Type(com.nukkitx.protocol.bedrock.data.AdventureSetting flag, boolean defaultValue) {
-            this.flag = flag;
+        Type(com.nukkitx.protocol.bedrock.data.AdventureSetting setting, boolean defaultValue) {
+            this.setting = setting;
             this.defaultValue = defaultValue;
         }
 
         public com.nukkitx.protocol.bedrock.data.AdventureSetting getSetting() {
-            return flag;
+            return setting;
         }
 
         public boolean getDefaultValue() {
-            return this.defaultValue;
+            return defaultValue;
         }
     }
 }

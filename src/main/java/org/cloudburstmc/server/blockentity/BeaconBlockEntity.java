@@ -58,75 +58,77 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
 
     @Override
     public boolean onUpdate() {
-        //Only apply effects every 4 secs
         if (currentTick++ % 80 != 0) {
             return true;
         }
 
+        updateBeacon();
+
+        return true;
+    }
+
+    private void updateBeacon() {
         int oldPowerLevel = this.powerLevel;
-        //Get the power level based on the pyramid
         this.powerLevel = calculatePowerLevel();
         int newPowerLevel = this.powerLevel;
 
-        //Skip beacons that do not have a pyramid or sky access
         if (newPowerLevel < 1 || !hasSkyAccess()) {
             if (oldPowerLevel > 0) {
                 this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_DEACTIVATE);
             }
-            return true;
+            return;
         } else if (oldPowerLevel < 1) {
             this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_ACTIVATE);
         } else {
             this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_AMBIENT);
         }
 
-        //Get all players in game
+        applyBeaconEffects();
+    }
+
+    private void applyBeaconEffects() {
         Map<Long, CloudPlayer> players = this.getLevel().getPlayers();
 
-        //Calculate vars for beacon power
         int range = 10 + this.powerLevel * 10;
         int duration = 9 + this.powerLevel * 2;
 
         for (Map.Entry<Long, CloudPlayer> entry : players.entrySet()) {
             CloudPlayer p = entry.getValue();
 
-            //If the player is in range
             if (p.getPosition().distance(this.getPosition().toFloat()) < range) {
-                CloudEffect e;
-
-                if (getPrimaryEffect() != null) {
-                    //Apply the primary power
-                    e = new CloudEffect(getPrimaryEffect())
-                            .setDuration(duration * 20)
-                            .setVisible(false);
-
-                    //If secondary is selected as the primary too, apply 2 amplification
-                    if (getSecondaryEffect() == getPrimaryEffect()) {
-                        e.setAmplifier(1);
-                    } else {
-                        e.setAmplifier(0);
-                    }
-
-                    //Add the effect
-                    p.addEffect(e);
-                }
-
-                //If we have a secondary power as regen, apply it
-                if (getSecondaryEffect() == EffectTypes.REGENERATION) {
-                    //Get the regen effect
-                    e = new CloudEffect(EffectTypes.REGENERATION)
-                            .setDuration(duration * 20)
-                            .setAmplifier(0)
-                            .setVisible(false);
-
-                    //Add effect
-                    p.addEffect(e);
-                }
+                applyPrimaryEffect(p, duration);
+                applySecondaryEffect(p, duration);
             }
         }
-
-        return true;
     }
+
+    private void applyPrimaryEffect(CloudPlayer player, int duration) {
+        if (getPrimaryEffect() != null) {
+            CloudEffect effect = new CloudEffect(getPrimaryEffect())
+                    .setDuration(duration * 20)
+                    .setVisible(false);
+
+            if (getSecondaryEffect() == getPrimaryEffect()) {
+                effect.setAmplifier(1);
+            } else {
+                effect.setAmplifier(0);
+            }
+
+            player.addEffect(effect);
+        }
+    }
+
+    private void applySecondaryEffect(CloudPlayer player, int duration) {
+        if (getSecondaryEffect() == EffectTypes.REGENERATION) {
+            CloudEffect effect = new CloudEffect(EffectTypes.REGENERATION)
+                    .setDuration(duration * 20)
+                    .setAmplifier(0)
+                    .setVisible(false);
+
+            player.addEffect(effect);
+        }
+    }
+
 
     private static final int POWER_LEVEL_MAX = 4;
 
