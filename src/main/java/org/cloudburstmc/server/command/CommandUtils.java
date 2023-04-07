@@ -28,11 +28,7 @@ public class CommandUtils {
         }
 
         try {
-            return Optional.of(Vector3f.from(
-                    getPosition(args[0], relative.getX()),
-                    getPosition(args[1], relative.getY()),
-                    getPosition(args[2], relative.getZ())
-            ));
+            return CoordinateParser.parseVector3f(args, relative);
         } catch (IllegalArgumentException e) {
             // ignore
         }
