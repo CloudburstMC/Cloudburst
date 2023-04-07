@@ -34,14 +34,14 @@ import java.util.Map;
 
 public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingStand {
 
-    public static final short MAX_COOK_TIME = 400;
-    public static final List<ItemType> ingredients = Lists.newArrayList(
+    public static final short MAX_BREW_TIME = 400;
+    public static final List<ItemType> BREW_INGREDIENTS = Lists.newArrayList(
             ItemTypes.NETHER_WART, ItemTypes.GOLD_NUGGET, ItemTypes.GHAST_TEAR, ItemTypes.GLOWSTONE_DUST, ItemTypes.REDSTONE, ItemTypes.GUNPOWDER, ItemTypes.MAGMA_CREAM, ItemTypes.BLAZE_POWDER,
             ItemTypes.GOLDEN_CARROT, ItemTypes.SPIDER_EYE, ItemTypes.FERMENTED_SPIDER_EYE, ItemTypes.SPECKLED_MELON, ItemTypes.SUGAR, ItemTypes.FISH, ItemTypes.RABBIT_FOOT, ItemTypes.PUFFERFISH,
             ItemTypes.TURTLE_SHELL_PIECE, ItemTypes.PHANTOM_MEMBRANE, ItemTypes.DRAGON_BREATH
     );
     protected final CloudBrewingInventory inventory = new CloudBrewingInventory(this);
-    public short cookTime = MAX_COOK_TIME;
+    public short cookTime = MAX_BREW_TIME;
     public short fuelTotal;
     public short fuelAmount;
 
@@ -53,12 +53,12 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
-            for (NbtMap itemTag : tags) {
-                ItemStack item = ItemUtils.deserializeItem(itemTag);
-                this.inventory.setItem(itemTag.getByte("Slot"), item);
-            }
-        });
+        List<NbtMap> itemsTag = tag.getList("Items", NbtType.COMPOUND);
+        for (NbtMap itemTag : itemsTag) {
+            ItemStack item = ItemUtils.deserializeItem(itemTag);
+            byte slot = itemTag.getByte("Slot");
+            this.inventory.setItem(slot, item);
+        }
 
         tag.listenForShort("CookTime", this::setCookTime);
         tag.listenForShort("FuelAmount", this::setFuelAmount);
@@ -112,16 +112,18 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         return inventory;
     }
 
+
     protected boolean checkIngredient(ItemStack ingredient) {
-        return ingredients.contains(ingredient.getType());
+        return BREW_INGREDIENTS.contains(ingredient.getType());
     }
+
 
     public short getCookTime() {
         return cookTime;
     }
 
     public void setCookTime(int cookTime) {
-        if (cookTime < MAX_COOK_TIME) {
+        if (cookTime < MAX_BREW_TIME) {
             this.scheduleUpdate();
         }
         this.cookTime = (short) cookTime;
@@ -144,7 +146,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         boolean ret = false;
 
         ItemStack ingredient = this.inventory.getIngredient();
-        boolean canBrew = false;
+        //boolean canBrew = false;
 
         ItemStack fuel = this.getInventory().getFuel();
         if (this.fuelAmount <= 0 && fuel.getType() == ItemTypes.BLAZE_POWDER && fuel.getAmount() > 0) {
@@ -155,24 +157,9 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             this.sendFuel();
         }
 
-        if (this.fuelAmount > 0) {
-            for (int i = 1; i <= 3; i++) {
-                if (this.inventory.getItem(i).getType() == ItemTypes.POTION) {
-                    canBrew = true;
-                }
-            }
 
-            if (this.cookTime <= MAX_COOK_TIME && canBrew && ingredient.getAmount() > 0) {
-                if (!this.checkIngredient(ingredient)) {
-                    canBrew = false;
-                }
-            } else {
-                canBrew = false;
-            }
-        }
-
-        if (canBrew) {
-            if (this.cookTime == MAX_COOK_TIME) {
+        if (canBrew(ingredient)) {
+            if (this.cookTime == MAX_BREW_TIME) {
                 this.sendBrewTime();
                 BrewStartEvent e = new BrewStartEvent(this);
                 this.server.getEventManager().fire(e);
@@ -211,12 +198,12 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
                     this.sendFuel();
                 }
 
-                this.cookTime = MAX_COOK_TIME;
+                this.cookTime = MAX_BREW_TIME;
             }
 
             ret = true;
         } else {
-            this.cookTime = MAX_COOK_TIME;
+            this.cookTime = MAX_BREW_TIME;
         }
 
         //this.sendBrewTime();
@@ -226,7 +213,25 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
         return ret;
     }
+    public boolean canBrew( ItemStack ingredient) {
+        boolean flag = false;
+        if (this.fuelAmount > 0) {
+            for (int i = 1; i <= 3; i++) {
+                if (this.inventory.getItem(i).getType() == ItemTypes.POTION) {
+                    flag = true;
+                }
+            }
 
+            if (this.cookTime <= MAX_BREW_TIME && flag && ingredient.getAmount() > 0) {
+                if (!this.checkIngredient(ingredient)) {
+                    flag = false;
+                }
+            } else {
+                flag = false;
+            }
+        }
+        return flag;
+    }
     public void sendFuel() {
         for (CloudPlayer p : this.inventory.getViewers()) {
             int windowId = p.getWindowId(this.inventory);
