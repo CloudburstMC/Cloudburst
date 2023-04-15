@@ -280,7 +280,7 @@ public class EntityHuman extends EntityCreature implements Human {
         if (!this.closed) {
             if (!(this instanceof CloudPlayer) || ((CloudPlayer) this).loggedIn) {
                 for (CloudPlayer viewer : this.getInventory().getViewers()) {
-                    viewer.removeWindow(this.getInventory());
+                    viewer.getInventoryManager().closeScreen(this.getInventory());
                 }
             }
 

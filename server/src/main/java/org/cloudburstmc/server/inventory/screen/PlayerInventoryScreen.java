@@ -5,7 +5,7 @@ import org.cloudburstmc.server.inventory.view.SimpleInventoryView;
 import org.cloudburstmc.server.inventory.view.UIInventoryView;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class PlayerInventoryScreen extends InventoryScreen {
+public class PlayerInventoryScreen extends CloudInventoryScreen {
     public PlayerInventoryScreen(CloudPlayer player) {
         super(player);
     }

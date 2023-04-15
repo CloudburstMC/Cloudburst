@@ -6,7 +6,7 @@ import org.cloudburstmc.server.inventory.view.SimpleInventoryView;
 import org.cloudburstmc.server.inventory.view.UIInventoryView;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class AnvilInventoryScreen extends InventoryScreen {
+public class AnvilInventoryScreen extends CloudInventoryScreen {
 
     private final AnvilInventory inventory;
 

@@ -2,13 +2,14 @@ package org.cloudburstmc.server.network.inventory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.TextProcessingEventOrigin;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.ItemStackRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
-import org.cloudburstmc.server.inventory.screen.InventoryScreen;
+import org.cloudburstmc.server.inventory.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.*;
@@ -19,12 +20,12 @@ public class ItemStackNetManager {
 
     private final CloudPlayer player;
     private final Queue<ItemStackRequest> requests = new ArrayDeque<>();
-    private final Deque<InventoryScreen> screenStack = new ArrayDeque<>();
+    private final Deque<CloudInventoryScreen> screenStack = new ArrayDeque<>();
     private TextFilterState textFilterState;
     private long textFilterRequestTick;
     private long textFilterRequestTimeout;
     private boolean currentRequestIsCrafting;
-    private ItemStackRequestActionHandler handler;
+    private ItemStackRequestActionHandler handler = new ItemStackRequestActionHandler();
 
     public void handlePacket(ItemStackRequestPacket packet) {
         for (ItemStackRequest request : packet.getRequests()) {
@@ -83,8 +84,9 @@ public class ItemStackNetManager {
             return;
         }
 
-        InventoryScreen screen = this.screenStack.peekLast();
+        CloudInventoryScreen screen = this.screenStack.peekLast();
         if (screen == null) {
+            log.debug("Received request {} with no open screen", request.getRequestId());
             return;
         }
 
@@ -134,8 +136,24 @@ public class ItemStackNetManager {
         }
     }
 
-    private void getScreenStack() {
+    public void pushScreen(CloudInventoryScreen screen) {
+        this.screenStack.addLast(screen);
+    }
 
+    public CloudInventoryScreen popScreen() {
+        return this.screenStack.removeLast();
+    }
+
+    public CloudInventoryScreen getScreen() {
+        return this.screenStack.peekLast();
+    }
+
+    public Set<Inventory> getAllInventories() {
+        Set<Inventory> inventories = new HashSet<>();
+        for (CloudInventoryScreen screen : this.screenStack) {
+
+        }
+        return inventories;
     }
 
     public void tick() {

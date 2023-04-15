@@ -2,7 +2,7 @@ package org.cloudburstmc.server.inventory.screen;
 
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class HudInventoryScreen extends InventoryScreen {
+public class HudInventoryScreen extends CloudInventoryScreen {
     public HudInventoryScreen(CloudPlayer player) {
         super(player);
     }

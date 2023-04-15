@@ -5,15 +5,10 @@ import co.aikar.timings.Timings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.base.Strings;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import it.unimi.dsi.fastutil.bytes.ByteOpenHashSet;
-import it.unimi.dsi.fastutil.bytes.ByteSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
@@ -39,7 +34,6 @@ import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
 import org.cloudburstmc.api.event.player.*;
-import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -72,7 +66,6 @@ import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
@@ -95,7 +88,6 @@ import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.inventory.CloudEnderChestInventory;
 import org.cloudburstmc.server.inventory.CloudPlayerInventory;
 import org.cloudburstmc.server.inventory.PlayerCursorInventory;
-import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
@@ -120,7 +112,6 @@ import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -151,12 +142,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public boolean loggedIn = false;
     public long lastBreak;
     public Vector3f speed = null;
-
-    protected final BiMap<Inventory, Byte> windows = HashBiMap.create();
-    protected final BiMap<Byte, Inventory> windowIndex = windows.inverse();
-    protected final ByteSet permanentWindows = new ByteOpenHashSet();
-    protected byte windowCnt = 4;
-
     protected final PlayerData playerData = new PlayerData();
 
     protected int messageCounter = 2;
@@ -164,6 +149,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     private String clientSecret;
     protected Vector3f forceMovement = null;
 
+    @Getter
+    private final ItemStackNetManager itemStackNetManager = new ItemStackNetManager(this);
     private final PlayerInventoryManager invManager = new PlayerInventoryManager(this);
 
     public long creationTime = 0;
@@ -238,8 +225,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public FishingHook fishing = null;
 
     private final PlayerChunkManager chunkManager = new PlayerChunkManager(this);
-    @Getter
-    private final ItemStackNetManager itemStackNetManager = new ItemStackNetManager(this);
 
     public int packetsRecieved;
 
@@ -641,13 +626,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         if (player.isOnline()) {
             player.spawnTo(this);
         }
-    }
-
-    @Override
-    protected void initEntity() {
-        super.initEntity();
-
-        this.addDefaultWindows();
     }
 
     public boolean isPlayer() {
@@ -2073,7 +2051,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
             this.hiddenPlayers.clear();
 
-            this.removeAllWindows(true);
+            this.invManager.closeScreen();
 
             this.getChunkManager().getLoadedChunks().forEach((LongConsumer) chunkKey -> {
                 int chunkX = CloudChunk.fromKeyX(chunkKey);
@@ -2109,7 +2087,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                     this.getSocketAddress(),
                     "",
                     reason));
-            this.windows.clear();
             this.hasSpawned.clear();
             this.spawnLocation = null;
 
@@ -2835,85 +2812,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     @Override
-    public byte getWindowId(Inventory inventory) {
-        if (this.windows.containsKey(inventory)) {
-            return this.windows.get(inventory);
-        }
-
-        return -1;
-    }
-
-    public Inventory getWindowById(int id) {
-        return this.windowIndex.get((byte) id);
-    }
-
-    public byte addWindow(Inventory inventory, Byte forceId, boolean isPermanent) {
-        if (this.windows.containsKey(inventory)) {
-            return this.windows.get(inventory);
-        }
-        byte cnt;
-        if (forceId == null) {
-            this.windowCnt = cnt = (byte) Math.max(4, ++this.windowCnt % 99);
-        } else {
-            cnt = forceId;
-        }
-
-        this.windows.forcePut(inventory, cnt);
-
-        if (isPermanent) {
-            this.permanentWindows.add(cnt);
-        }
-
-        if (inventory.open(this)) {
-            return cnt;
-        } else {
-            this.removeWindow(inventory);
-
-            return -1;
-        }
-    }
-
-    public Optional<Inventory> getTopWindow() {
-        for (Entry<Inventory, Byte> entry : this.windows.entrySet()) {
-            if (!this.permanentWindows.contains((byte) entry.getValue())) {
-                return Optional.of(entry.getKey());
-            }
-        }
-        return Optional.empty();
-    }
-
-    public void removeWindow(Inventory inventory) {
-        inventory.close(this);
-        if (!this.permanentWindows.contains(this.getWindowId(inventory)))
-            this.windows.remove(inventory);
-    }
-
-    public Inventory removeWindowById(byte id) {
-        Inventory inventory = this.windowIndex.remove(id);
-        if (inventory != null)
-            inventory.close(this);
-        return inventory;
-    }
-
-    public void sendAllInventories() {
-        for (Inventory inv : this.windows.keySet()) {
-            inv.sendContents(this);
-
-            if (inv instanceof CloudPlayerInventory) {
-                ((CloudPlayerInventory) inv).sendArmorContents(this);
-            }
-        }
-    }
-
-    protected void addDefaultWindows() {
-        this.addWindow(this.getInventory(), (byte) ContainerId.INVENTORY, true);
-        this.addWindow(this.getCraftingInventory(), (byte) ContainerId.NONE);
-        this.addWindow(this.getCursorInventory(), (byte) ContainerId.UI, true); // Is this needed?
-
-        //TODO: more windows
-    }
-
-    @Override
     public CloudPlayerInventory getInventory() {
         return invManager.getInventory();
     }
@@ -2930,49 +2828,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public PlayerInventoryManager getInventoryManager() {
         return invManager;
     }
-
-
-    @Nullable
-    public CraftItemStackTransaction getCraftingTransaction() {
-        return invManager.getCraftingTransaction();
-    }
-
-    public void setCraftingTransaction(@Nullable CraftItemStackTransaction craftingTransaction) {
-        this.invManager.setTransaction(craftingTransaction);
-    }
-
-    public void removeAllWindows() {
-        removeAllWindows(false);
-    }
-
-    public void removeAllWindows(boolean permanent) {
-        for (Entry<Byte, Inventory> entry : new ArrayList<>(this.windowIndex.entrySet())) {
-            if (!permanent && this.permanentWindows.contains((byte) entry.getKey())) {
-                continue;
-            }
-            this.removeWindow(entry.getValue());
-        }
-    }
-
-/*    @Override
-    public void setMetadata(String metadataKey, MetadataValue newMetadataValue) {
-        this.server.getPlayerMetadata().setMetadata(this, metadataKey, newMetadataValue);
-    }
-
-    @Override
-    public List<MetadataValue> getMetadata(String metadataKey) {
-        return this.server.getPlayerMetadata().getMetadata(this, metadataKey);
-    }
-
-    @Override
-    public boolean hasMetadata(String metadataKey) {
-        return this.server.getPlayerMetadata().hasMetadata(this, metadataKey);
-    }
-
-    @Override
-    public void removeMetadata(String metadataKey, PluginContainer owningPlugin) {
-        this.server.getPlayerMetadata().removeMetadata(this, metadataKey, owningPlugin);
-    }*/
 
     protected boolean checkTeleportPosition() {
         if (this.teleportPosition != null) {
@@ -3015,7 +2870,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         //TODO Remove it! A hack to solve the client-side teleporting bug! (inside into the block)
         if (super.teleport(to.getY() == to.getFloorY() ? to.add(0, 0.00001, 0) : to, null)) { // null to prevent fire of duplicate EntityTeleportEvent
-            this.removeAllWindows();
+            this.invManager.closeScreen();
 
             this.teleportPosition = this.getPosition();
             this.getChunkManager().queueNewChunks(this.teleportPosition);
