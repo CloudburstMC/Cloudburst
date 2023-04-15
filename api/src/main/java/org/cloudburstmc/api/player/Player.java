@@ -5,7 +5,6 @@ import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.entity.Creature;
 import org.cloudburstmc.api.inventory.ContainerInventory;
-import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.level.Level;
@@ -135,20 +134,6 @@ public interface Player extends Creature, InventoryHolder {
     boolean isSpawned();
 
     GameMode getGamemode();
-
-    byte getWindowId(Inventory inventory);
-
-    default byte addWindow(Inventory window) {
-        return addWindow(window, null, false);
-    }
-
-    default byte addWindow(Inventory window, Byte forceId) {
-        return addWindow(window, forceId, false);
-    }
-
-    byte addWindow(Inventory window, Byte forceId, boolean isPermanent);
-
-    void removeWindow(Inventory inventory);
 
     String getDisplayName();
 

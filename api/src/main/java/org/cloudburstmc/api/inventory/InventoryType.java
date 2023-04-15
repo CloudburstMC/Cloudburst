@@ -8,7 +8,9 @@ public enum InventoryType {
     CHEST(27, "Chest"),
     ENDER_CHEST(27, "Ender Chest"),
     DOUBLE_CHEST(27 + 27, "Double Chest"),
-    PLAYER(41, "Player"), //36 CONTAINER, 4 ARMOR, 1 OFFHAND
+    PLAYER(41, "Player"), //36 CONTAINER
+    ARMOR(4, "Armor"),
+    HAND(1, "Hand"),
     FURNACE(3, "Furnace"),
     CRAFTING(5, "Crafting"), //4 CRAFTING slots, 1 RESULT
     WORKBENCH(10, "Crafting"), //9 CRAFTING slots, 1 RESULT
