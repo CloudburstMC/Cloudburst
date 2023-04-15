@@ -15,22 +15,17 @@ import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.crafting.CraftingGrid;
-import org.cloudburstmc.api.crafting.CraftingRecipe;
-import org.cloudburstmc.api.enchantment.Enchantment;
-import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.block.ItemFrameDropItemEvent;
 import org.cloudburstmc.api.event.block.LecternPageChangeEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.player.*;
-import org.cloudburstmc.api.item.*;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.util.Direction;
@@ -44,32 +39,25 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryActionData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.entity.vehicle.EntityBoat;
 import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
-import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
-import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
-import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
+import org.cloudburstmc.server.inventory.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
 import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.network.protocol.types.InventoryTransactionUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
 
 import javax.inject.Inject;
@@ -736,10 +724,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        if (player.getWindowById(packet.getId()) != null) {
-            player.getServer().getEventManager().fire(new InventoryCloseEvent(player.getWindowById(packet.getId()), player));
-            if (packet.getId() == ContainerId.INVENTORY) player.closeInventory(player);
-            player.removeWindow(player.getWindowById(packet.getId()));
+        CloudInventoryScreen screen = this.player.getInventoryManager().closeScreen();
+        if (screen != null) {
+            // TODO: Expose InventoryScreen to API
+//            player.getServer().getEventManager().fire(new InventoryCloseEvent(screen, player));
         }
 
         if (packet.getId() == -1) {
@@ -754,20 +742,20 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(CraftingEventPacket packet) {
-        CraftingRecipe recipe = (CraftingRecipe) CloudRecipeRegistry.get().getRecipe(packet.getUuid());
-        if (recipe != null) {
-            CraftItemStackTransaction transaction = new CraftItemStackTransaction(player, recipe);
-            transaction.setPrimaryOutput(ItemUtils.fromNetwork(packet.getOutputs().remove(0)));
-            if (packet.getOutputs().size() >= 1) {
-                int slot = 0;
-                for (ItemData data : packet.getOutputs()) {
-                    transaction.setExtraOutput(slot++, ItemUtils.fromNetwork(data));
-                }
-            }
-            player.getInventoryManager().setTransaction(transaction);
-            return PacketSignal.HANDLED;
-        }
-        log.warn("Received invalid recipe UUID({}) in CraftingEventPacket", packet.getUuid());
+//        CraftingRecipe recipe = (CraftingRecipe) CloudRecipeRegistry.get().getRecipe(packet.getUuid());
+//        if (recipe != null) {
+//            CraftItemStackTransaction transaction = new CraftItemStackTransaction(player, recipe);
+//            transaction.setPrimaryOutput(ItemUtils.fromNetwork(packet.getOutputs().remove(0)));
+//            if (packet.getOutputs().size() >= 1) {
+//                int slot = 0;
+//                for (ItemData data : packet.getOutputs()) {
+//                    transaction.setExtraOutput(slot++, ItemUtils.fromNetwork(data));
+//                }
+//            }
+//            player.getInventoryManager().setTransaction(transaction);
+//            return PacketSignal.HANDLED;
+//        }
+//        log.warn("Received invalid recipe UUID({}) in CraftingEventPacket", packet.getUuid());
         return PacketSignal.HANDLED;
     }
 
@@ -913,346 +901,311 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(InventoryTransactionPacket packet) {
-        if (player.isSpectator()) {
-            player.sendAllInventories();
+        if (player.isSpectator() || !player.spawned || !player.isAlive()) {
+            player.getInventoryManager().sendAllInventories();
             return PacketSignal.HANDLED;
         }
 
-        List<InventoryAction> actions = new ArrayList<>();
-        for (InventoryActionData inventoryActionData : packet.getActions()) {
-            InventoryAction a = InventoryTransactionUtils.createInventoryAction(player, inventoryActionData);
-
-            if (a == null) {
-                log.debug("Unmatched inventory action from " + player.getName() + ": " + inventoryActionData);
-                player.sendAllInventories();
-                return PacketSignal.HANDLED;
-            }
-
-            actions.add(a);
-        }
-
-        if (InventoryTransactionUtils.containsCraftingPart(packet)) {
-            if (player.getCraftingTransaction() == null) {
-                //player.setCraftingTransaction(new CraftingTransaction(player, actions)); // TODO - remove old crafting code
-            } else {
-                for (InventoryAction action : actions) {
-                    player.getCraftingTransaction().addAction(action);
-                }
-            }
-
-            if (player.getCraftingTransaction().getPrimaryOutput() != null) {
-                //we get the actions for player in several packets, so we can't execute it until we get the result
-
-                player.getCraftingTransaction().execute();
-                player.setCraftingTransaction(null);
-            }
-
-            return PacketSignal.HANDLED;
-        } else if (player.getCraftingTransaction() != null) {
-            log.debug("Got unexpected normal inventory action with incomplete crafting transaction from " + player.getName() + ", refusing to execute crafting");
-            player.setCraftingTransaction(null);
-        }
-
-        switch (packet.getTransactionType()) {
-            case NORMAL:
-                InventoryTransaction transaction = new InventoryTransaction(player, actions);
-
-                if (!transaction.execute()) {
-                    log.debug("Failed to execute inventory transaction from " + player.getName() + " with actions: " + packet.getActions());
-                    return PacketSignal.HANDLED;
-                }
-                //TODO: fix achievement for getting iron from furnace
-                return PacketSignal.HANDLED;
-            case INVENTORY_MISMATCH:
-                if (packet.getActions().size() > 0) {
-                    log.debug("Expected 0 actions for mismatch, got " + packet.getActions().size() + ", " + packet.getActions());
-                }
-                player.sendAllInventories();
-
-                return PacketSignal.HANDLED;
-            case ITEM_USE:
-
-                Vector3i blockVector = packet.getBlockPosition();
-                Direction face = Direction.fromIndex(packet.getBlockFace());
-
-                switch (packet.getActionType()) {
-                    case InventoryTransactionUtils.USE_ITEM_ACTION_CLICK_BLOCK:
-                        // Remove if client bug is ever fixed
-                        boolean spamBug = (lastRightClickPos != null && System.currentTimeMillis() - lastRightClickTime < 100.0 && blockVector.distanceSquared(lastRightClickPos) < 0.00001);
-                        lastRightClickPos = blockVector;
-                        lastRightClickTime = System.currentTimeMillis();
-                        if (spamBug) {
-                            return PacketSignal.HANDLED;
-                        }
-
-                        player.setUsingItem(false);
-
-                        if (player.canInteract(blockVector.toFloat().add(0.5, 0.5, 0.5), player.isCreative() ? 13 : 7)) {
-                            ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
-                            if (player.isCreative()) {
-                                ItemStack i = player.getInventory().getItemInHand();
-                                if (player.getLevel().useItemOn(blockVector, i, face,
-                                        packet.getClickPosition(), player) != null) {
-                                    return PacketSignal.HANDLED;
-                                }
-                            } else if (player.getInventory().getItemInHand().equals(clientHand)) {
-                                ItemStack serverHand = player.getInventory().getItemInHand();
-                                ItemStack oldItem = serverHand;
-                                //TODO: Implement adventure mode checks
-                                if ((serverHand = player.getLevel().useItemOn(blockVector, serverHand, face,
-                                        packet.getClickPosition(), player)) != null) {
-                                    if (!serverHand.equals(oldItem) ||
-                                            serverHand.getCount() != oldItem.getCount()) {
-                                        player.getInventory().setItemInHand(serverHand);
-                                        player.getInventory().sendHeldItem(player.getViewers());
-                                    }
-                                    return PacketSignal.HANDLED;
-                                }
-                            }
-                        }
-
-                        player.getInventory().sendHeldItem(player);
-
-                        if (blockVector.distanceSquared(player.getPosition().toInt()) > 10000) {
-                            return PacketSignal.HANDLED;
-                        }
-
-                        Block target = player.getLevel().getBlock(blockVector);
-                        Block blockState = target.getSide(face);
-
-                        player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{target, blockState}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-                        return PacketSignal.HANDLED;
-                    case InventoryTransactionUtils.USE_ITEM_ACTION_BREAK_BLOCK:
-                        if (!player.spawned || !player.isAlive()) {
-                            return PacketSignal.HANDLED;
-                        }
-
-                        player.getCraftingInventory().resetCraftingGrid();
-
-                        ItemStack i = player.getInventory().getItemInHand();
-
-                        ItemStack oldItem = i;
-
-                        if (player.canInteract(blockVector.toFloat().add(0.5, 0.5, 0.5), player.isCreative() ? 13 : 7) &&
-                                (i = player.getLevel().useBreakOn(blockVector, face, i, player, true)) != null) {
-                            if (player.isSurvival() || player.isAdventure()) {
-                                player.getFoodData().updateFoodExpLevel(0.025);
-                                if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
-                                    player.getInventory().setItemInHand(i);
-                                    player.getInventory().sendHeldItem(player.getViewers());
-                                }
-                            }
-                            return PacketSignal.HANDLED;
-                        }
-
-                        player.getInventory().sendContents(player);
-                        target = player.getLevel().getBlock(blockVector);
-                        BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockVector);
-
-                        player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-
-                        player.getInventory().sendHeldItem(player);
-
-                        if (blockEntity != null && blockEntity.isSpawnable()) {
-                            blockEntity.spawnTo(player);
-                        }
-
-                        return PacketSignal.HANDLED;
-                    case InventoryTransactionUtils.USE_ITEM_ACTION_CLICK_AIR:
-                        Vector3f directionVector = player.getDirectionVector();
-
-                        ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
-                        ItemStack serverItem;
-
-                        if (player.isCreative()) {
-                            serverItem = player.getInventory().getItemInHand();
-                        } else if (!player.getInventory().getItemInHand().equals(clientHand)) {
-                            player.getInventory().sendHeldItem(player);
-                            return PacketSignal.HANDLED;
-                        } else {
-                            serverItem = player.getInventory().getItemInHand();
-                        }
-
-                        PlayerInteractEvent interactEvent = new PlayerInteractEvent(player, serverItem, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
-
-                        player.getServer().getEventManager().fire(interactEvent);
-
-                        if (interactEvent.isCancelled()) {
-                            player.getInventory().sendHeldItem(player);
-                            return PacketSignal.HANDLED;
-                        }
-                                                
-//                        if (serverItem.getBehavior().onClickAir(serverItem, directionVector, player)) {
-//                            if (player.getGamemode().isSurvival()) {
-//                                player.getInventory().setItemInHand(serverItem);
+//        switch (packet.getTransactionType()) {
+//            case NORMAL:
+//                InventoryTransaction transaction = new InventoryTransaction(player, actions);
+//
+//                if (!transaction.execute()) {
+//                    log.debug("Failed to execute inventory transaction from " + player.getName() + " with actions: " + packet.getActions());
+//                    return PacketSignal.HANDLED;
+//                }
+//                //TODO: fix achievement for getting iron from furnace
+//                return PacketSignal.HANDLED;
+//            case INVENTORY_MISMATCH:
+//                if (packet.getActions().size() > 0) {
+//                    log.debug("Expected 0 actions for mismatch, got " + packet.getActions().size() + ", " + packet.getActions());
+//                }
+//                player.sendAllInventories();
+//
+//                return PacketSignal.HANDLED;
+//            case ITEM_USE:
+//
+//                Vector3i blockVector = packet.getBlockPosition();
+//                Direction face = Direction.fromIndex(packet.getBlockFace());
+//
+//                switch (packet.getActionType()) {
+//                    case InventoryTransactionUtils.USE_ITEM_ACTION_CLICK_BLOCK:
+//                        // Remove if client bug is ever fixed
+//                        boolean spamBug = (lastRightClickPos != null && System.currentTimeMillis() - lastRightClickTime < 100.0 && blockVector.distanceSquared(lastRightClickPos) < 0.00001);
+//                        lastRightClickPos = blockVector;
+//                        lastRightClickTime = System.currentTimeMillis();
+//                        if (spamBug) {
+//                            return PacketSignal.HANDLED;
+//                        }
+//
+//                        player.setUsingItem(false);
+//
+//                        if (player.canInteract(blockVector.toFloat().add(0.5, 0.5, 0.5), player.isCreative() ? 13 : 7)) {
+//                            ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
+//                            if (player.isCreative()) {
+//                                ItemStack i = player.getInventory().getItemInHand();
+//                                if (player.getLevel().useItemOn(blockVector, i, face,
+//                                        packet.getClickPosition(), player) != null) {
+//                                    return PacketSignal.HANDLED;
+//                                }
+//                            } else if (player.getInventory().getItemInHand().equals(clientHand)) {
+//                                ItemStack serverHand = player.getInventory().getItemInHand();
+//                                ItemStack oldItem = serverHand;
+//                                //TODO: Implement adventure mode checks
+//                                if ((serverHand = player.getLevel().useItemOn(blockVector, serverHand, face,
+//                                        packet.getClickPosition(), player)) != null) {
+//                                    if (!serverHand.equals(oldItem) ||
+//                                            serverHand.getCount() != oldItem.getCount()) {
+//                                        player.getInventory().setItemInHand(serverHand);
+//                                        player.getInventory().sendHeldItem(player.getViewers());
+//                                    }
+//                                    return PacketSignal.HANDLED;
+//                                }
+//                            }
+//                        }
+//
+//                        player.getInventory().sendHeldItem(player);
+//
+//                        if (blockVector.distanceSquared(player.getPosition().toInt()) > 10000) {
+//                            return PacketSignal.HANDLED;
+//                        }
+//
+//                        Block target = player.getLevel().getBlock(blockVector);
+//                        Block blockState = target.getSide(face);
+//
+//                        player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{target, blockState}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+//                        return PacketSignal.HANDLED;
+//                    case InventoryTransactionUtils.USE_ITEM_ACTION_BREAK_BLOCK:
+//                        if (!player.spawned || !player.isAlive()) {
+//                            return PacketSignal.HANDLED;
+//                        }
+//
+//                        player.getCraftingInventory().resetCraftingGrid();
+//
+//                        ItemStack i = player.getInventory().getItemInHand();
+//
+//                        ItemStack oldItem = i;
+//
+//                        if (player.canInteract(blockVector.toFloat().add(0.5, 0.5, 0.5), player.isCreative() ? 13 : 7) &&
+//                                (i = player.getLevel().useBreakOn(blockVector, face, i, player, true)) != null) {
+//                            if (player.isSurvival() || player.isAdventure()) {
+//                                player.getFoodData().updateFoodExpLevel(0.025);
+//                                if (!i.equals(oldItem) || i.getCount() != oldItem.getCount()) {
+//                                    player.getInventory().setItemInHand(i);
+//                                    player.getInventory().sendHeldItem(player.getViewers());
+//                                }
+//                            }
+//                            return PacketSignal.HANDLED;
+//                        }
+//
+//                        player.getInventory().sendContents(player);
+//                        target = player.getLevel().getBlock(blockVector);
+//                        BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockVector);
+//
+//                        player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
+//
+//                        player.getInventory().sendHeldItem(player);
+//
+//                        if (blockEntity != null && blockEntity.isSpawnable()) {
+//                            blockEntity.spawnTo(player);
+//                        }
+//
+//                        return PacketSignal.HANDLED;
+//                    case InventoryTransactionUtils.USE_ITEM_ACTION_CLICK_AIR:
+//                        Vector3f directionVector = player.getDirectionVector();
+//
+//                        ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
+//                        ItemStack serverItem;
+//
+//                        if (player.isCreative()) {
+//                            serverItem = player.getInventory().getItemInHand();
+//                        } else if (!player.getInventory().getItemInHand().equals(clientHand)) {
+//                            player.getInventory().sendHeldItem(player);
+//                            return PacketSignal.HANDLED;
+//                        } else {
+//                            serverItem = player.getInventory().getItemInHand();
+//                        }
+//
+//                        PlayerInteractEvent interactEvent = new PlayerInteractEvent(player, serverItem, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
+//
+//                        player.getServer().getEventManager().fire(interactEvent);
+//
+//                        if (interactEvent.isCancelled()) {
+//                            player.getInventory().sendHeldItem(player);
+//                            return PacketSignal.HANDLED;
+//                        }
+//
+////                        if (serverItem.getBehavior().onClickAir(serverItem, directionVector, player)) {
+////                            if (player.getGamemode().isSurvival()) {
+////                                player.getInventory().setItemInHand(serverItem);
+////                            }
+////
+////                            if (!player.isUsingItem()) {
+////                                player.setUsingItem(true);
+////                                return PacketSignal.HANDLED;
+////                            }
+////
+////                            // Used item
+////                            int ticksUsed = player.getServer().getTick() - player.getStartActionTick();
+////                            player.setUsingItem(false);
+////
+//////                            var result = serverItem.getBehavior().onUse(serverItem, ticksUsed, player);
+////                            boolean result = this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.USE_ON).execute(serverItem, player, target.getPosition(), null, player.getPosition());
+////
+////                            if (!result) {
+////                                player.getInventory().setItemInHand(serverItem);
+////                            } else {
+////                                player.getInventory().sendContents(player);
+////                            }
+////                        }
+//
+//                        return PacketSignal.HANDLED;
+//                    default:
+//                        //unknown
+//                        break;
+//                }
+//                break;
+//            case ITEM_USE_ON_ENTITY:
+//
+//                Entity target = player.getLevel().getEntity(packet.getRuntimeEntityId());
+//                if (target == null) {
+//                    return PacketSignal.HANDLED;
+//                }
+//
+//                ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
+//
+//                if (!clientHand.isMergeable(player.getInventory().getItemInHand())) {
+//                    player.getInventory().sendHeldItem(player);
+//                }
+//
+//                ItemStack serverItem = player.getInventory().getItemInHand();
+//
+//                switch (packet.getActionType()) {
+//                    case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
+//                        PlayerInteractEntityEvent playerInteractEntityEvent = new PlayerInteractEntityEvent(player, target, serverItem, packet.getClickPosition());
+//                        if (player.isSpectator()) playerInteractEntityEvent.setCancelled();
+//                        player.getServer().getEventManager().fire(playerInteractEntityEvent);
+//
+//                        if (playerInteractEntityEvent.isCancelled()) {
+//                            break;
+//                        }
+//                        if (target.onInteract(player, serverItem, packet.getClickPosition()) && player.isSurvival()) {
+////                            var behavior = serverItem.getBehavior();
+////                            var result = behavior.useOn(serverItem, target);
+//                            var result = this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.USE_ON).execute(serverItem, target, null, null, null);
+//                            serverItem = Objects.requireNonNullElse(result, ItemStack.EMPTY);
+//
+//                            player.getInventory().setItemInHand(serverItem);
+//                        }
+//                        break;
+//                    case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
+//                        float itemDamage = globalRegistry.getRegistry(ItemStack.class).getBehavior(serverItem, ItemBehaviors.GET_ATTACH_DAMAGE).execute();
+////                        TODO Move this into the function above?
+////                        for (Enchantment enchantment : serverItem.get(ItemKeys.ENCHANTMENTS).values()) {
+////                            itemDamage += enchantment.getBehavior().getDamageBonus(enchantment, target);
+////                        }
+//
+//                        Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
+//                        damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
+//
+//                        if (!player.canInteract(target.getPosition(), player.isCreative() ? 8 : 5)) {
+//                            break;
+//                        } else if (target instanceof CloudPlayer) {
+//                            if (((CloudPlayer) target).getGamemode() != GameMode.SURVIVAL) {
+//                                break;
+//                            } else if (!player.getServer().getConfig().isPVP()) {
+//                                break;
+//                            }
+//                        }
+//
+//                        int knockback = 0;
+//
+//                        Enchantment enchKnockback = player.getInventory().getItemInHand().get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.KNOCKBACK);
+//                        if (enchKnockback != null) {
+//                            knockback = enchKnockback.level();
+//                        }
+//
+//                        EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(player, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage);
+//                        if (player.isSpectator()) entityDamageByEntityEvent.setCancelled();
+//                        if ((target instanceof CloudPlayer) && !player.getLevel().getGameRules().get(GameRules.PVP)) {
+//                            entityDamageByEntityEvent.setCancelled();
+//                        }
+//
+//                        if (!target.attack(entityDamageByEntityEvent)) {
+//                            if (this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.IS_TOOL).execute(serverItem) && player.isSurvival()) {
+//                                player.getInventory().sendContents(player);
+//                            }
+//                            break;
+//                        }
+//
+//                        if (!entityDamageByEntityEvent.isCancelled()) {
+//                            if (knockback > 0) {
+//                                if (target instanceof EntityLiving) {
+//                                    Vector3f diff = target.getPosition().sub(player.getPosition());
+//                                    ((EntityLiving) target).knockBack(player, knockback * 2, diff.getX(), diff.getZ());
+//                                }
+//
+//                                player.setSprinting(false);
 //                            }
 //
-//                            if (!player.isUsingItem()) {
-//                                player.setUsingItem(true);
-//                                return PacketSignal.HANDLED;
+//                            for (Enchantment enchantment : serverItem.get(ItemKeys.ENCHANTMENTS).values()) {
+////                                enchantment.getBehavior().doPostAttack(enchantment, player, target);
 //                            }
+//                        }
 //
-//                            // Used item
-//                            int ticksUsed = player.getServer().getTick() - player.getStartActionTick();
-//                            player.setUsingItem(false);
+//                        if (this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.IS_TOOL).execute(serverItem) && (player.isSurvival() || player.isAdventure())) {
 //
-////                            var result = serverItem.getBehavior().onUse(serverItem, ticksUsed, player);
-//                            boolean result = this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.USE_ON).execute(serverItem, player, target.getPosition(), null, player.getPosition());
-//
-//                            if (!result) {
+//                            var result = this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.USE_ON).execute(serverItem, target, null, null, null);
+////                            var result = behavior.useOn(serverItem, target);
+//                            if (result != null && serverItem.get(ItemKeys.DAMAGE) >= this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute()) {
+//                                player.getInventory().setItemInHand(ItemStack.EMPTY);
+//                            } else {
 //                                player.getInventory().setItemInHand(serverItem);
+//                            }
+//                        }
+//                        return PacketSignal.HANDLED;
+//                    default:
+//                        break; //unknown
+//                }
+//
+//                break;
+//            case ITEM_RELEASE:
+//                if (player.isSpectator()) {
+//                    player.sendAllInventories();
+//                    return PacketSignal.HANDLED;
+//                }
+//
+//                try {
+//                    switch (packet.getActionType()) {
+//                        case InventoryTransactionUtils.RELEASE_ITEM_ACTION_RELEASE:
+//                            if (player.isUsingItem()) {
+//                                serverItem = player.getInventory().getItemInHand();
+//
+//                                int ticksUsed = player.getServer().getTick() - player.getStartActionTick();
+////                                var result = serverItem.getBehavior().onRelease(serverItem, ticksUsed, player);
+////                                if (result != null) {
+////                                    player.getInventory().setItemInHand(result);
+////                                }
+//
+//                                player.setUsingItem(false);
 //                            } else {
 //                                player.getInventory().sendContents(player);
 //                            }
-//                        }
-
-                        return PacketSignal.HANDLED;
-                    default:
-                        //unknown
-                        break;
-                }
-                break;
-            case ITEM_USE_ON_ENTITY:
-
-                Entity target = player.getLevel().getEntity(packet.getRuntimeEntityId());
-                if (target == null) {
-                    return PacketSignal.HANDLED;
-                }
-
-                ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
-
-                if (!clientHand.isMergeable(player.getInventory().getItemInHand())) {
-                    player.getInventory().sendHeldItem(player);
-                }
-
-                ItemStack serverItem = player.getInventory().getItemInHand();
-
-                switch (packet.getActionType()) {
-                    case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
-                        PlayerInteractEntityEvent playerInteractEntityEvent = new PlayerInteractEntityEvent(player, target, serverItem, packet.getClickPosition());
-                        if (player.isSpectator()) playerInteractEntityEvent.setCancelled();
-                        player.getServer().getEventManager().fire(playerInteractEntityEvent);
-
-                        if (playerInteractEntityEvent.isCancelled()) {
-                            break;
-                        }
-                        if (target.onInteract(player, serverItem, packet.getClickPosition()) && player.isSurvival()) {
-//                            var behavior = serverItem.getBehavior();
-//                            var result = behavior.useOn(serverItem, target);
-                            var result = this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.USE_ON).execute(serverItem, target, null, null, null);
-                            serverItem = Objects.requireNonNullElse(result, ItemStack.EMPTY);
-
-                            player.getInventory().setItemInHand(serverItem);
-                        }
-                        break;
-                    case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_ATTACK:
-                        float itemDamage = globalRegistry.getRegistry(ItemStack.class).getBehavior(serverItem, ItemBehaviors.GET_ATTACH_DAMAGE).execute();
-//                        TODO Move this into the function above?
-//                        for (Enchantment enchantment : serverItem.get(ItemKeys.ENCHANTMENTS).values()) {
-//                            itemDamage += enchantment.getBehavior().getDamageBonus(enchantment, target);
-//                        }
-
-                        Map<EntityDamageEvent.DamageModifier, Float> damage = new EnumMap<>(EntityDamageEvent.DamageModifier.class);
-                        damage.put(EntityDamageEvent.DamageModifier.BASE, itemDamage);
-
-                        if (!player.canInteract(target.getPosition(), player.isCreative() ? 8 : 5)) {
-                            break;
-                        } else if (target instanceof CloudPlayer) {
-                            if (((CloudPlayer) target).getGamemode() != GameMode.SURVIVAL) {
-                                break;
-                            } else if (!player.getServer().getConfig().isPVP()) {
-                                break;
-                            }
-                        }
-
-                        int knockback = 0;
-
-                        Enchantment enchKnockback = player.getInventory().getItemInHand().get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.KNOCKBACK);
-                        if (enchKnockback != null) {
-                            knockback = enchKnockback.level();
-                        }
-
-                        EntityDamageByEntityEvent entityDamageByEntityEvent = new EntityDamageByEntityEvent(player, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage);
-                        if (player.isSpectator()) entityDamageByEntityEvent.setCancelled();
-                        if ((target instanceof CloudPlayer) && !player.getLevel().getGameRules().get(GameRules.PVP)) {
-                            entityDamageByEntityEvent.setCancelled();
-                        }
-
-                        if (!target.attack(entityDamageByEntityEvent)) {
-                            if (this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.IS_TOOL).execute(serverItem) && player.isSurvival()) {
-                                player.getInventory().sendContents(player);
-                            }
-                            break;
-                        }
-
-                        if (!entityDamageByEntityEvent.isCancelled()) {
-                            if (knockback > 0) {
-                                if (target instanceof EntityLiving) {
-                                    Vector3f diff = target.getPosition().sub(player.getPosition());
-                                    ((EntityLiving) target).knockBack(player, knockback * 2, diff.getX(), diff.getZ());
-                                }
-
-                                player.setSprinting(false);
-                            }
-
-                            for (Enchantment enchantment : serverItem.get(ItemKeys.ENCHANTMENTS).values()) {
-//                                enchantment.getBehavior().doPostAttack(enchantment, player, target);
-                            }
-                        }
-
-                        if (this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.IS_TOOL).execute(serverItem) && (player.isSurvival() || player.isAdventure())) {
-
-                            var result = this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.USE_ON).execute(serverItem, target, null, null, null);
-//                            var result = behavior.useOn(serverItem, target);
-                            if (result != null && serverItem.get(ItemKeys.DAMAGE) >= this.globalRegistry.getRegistry(ItemType.class).getBehavior(serverItem.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute()) {
-                                player.getInventory().setItemInHand(ItemStack.EMPTY);
-                            } else {
-                                player.getInventory().setItemInHand(serverItem);
-                            }
-                        }
-                        return PacketSignal.HANDLED;
-                    default:
-                        break; //unknown
-                }
-
-                break;
-            case ITEM_RELEASE:
-                if (player.isSpectator()) {
-                    player.sendAllInventories();
-                    return PacketSignal.HANDLED;
-                }
-
-                try {
-                    switch (packet.getActionType()) {
-                        case InventoryTransactionUtils.RELEASE_ITEM_ACTION_RELEASE:
-                            if (player.isUsingItem()) {
-                                serverItem = player.getInventory().getItemInHand();
-
-                                int ticksUsed = player.getServer().getTick() - player.getStartActionTick();
-//                                var result = serverItem.getBehavior().onRelease(serverItem, ticksUsed, player);
-//                                if (result != null) {
-//                                    player.getInventory().setItemInHand(result);
-//                                }
-
-                                player.setUsingItem(false);
-                            } else {
-                                player.getInventory().sendContents(player);
-                            }
-                            return PacketSignal.HANDLED;
-                        case InventoryTransactionUtils.RELEASE_ITEM_ACTION_CONSUME:
-                            log.debug("Unexpected release item action consume from {}", player::getName);
-                            return PacketSignal.HANDLED;
-                        default:
-                            break;
-                    }
-                } finally {
-                    player.setUsingItem(false);
-                }
-                break;
-            default:
-                player.getInventory().sendContents(player);
-                break;
-        }
+//                            return PacketSignal.HANDLED;
+//                        case InventoryTransactionUtils.RELEASE_ITEM_ACTION_CONSUME:
+//                            log.debug("Unexpected release item action consume from {}", player::getName);
+//                            return PacketSignal.HANDLED;
+//                        default:
+//                            break;
+//                    }
+//                } finally {
+//                    player.setUsingItem(false);
+//                }
+//                break;
+//            default:
+//                player.getInventory().sendContents(player);
+//                break;
+//        }
         return PacketSignal.HANDLED;
     }
 

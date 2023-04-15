@@ -1,15 +1,18 @@
 package org.cloudburstmc.server.network.inventory;
 
+import lombok.extern.slf4j.Slf4j;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
-import org.cloudburstmc.server.inventory.screen.InventoryScreen;
+import org.cloudburstmc.server.inventory.screen.CloudInventoryScreen;
 
+@Slf4j
 public class ItemStackRequestActionHandler {
 
 
-    private InventoryScreen screen;
+    private CloudInventoryScreen screen;
 
     public void handleAction(ItemStackRequestAction action) {
         switch (action.getType()) {
@@ -24,7 +27,20 @@ public class ItemStackRequestActionHandler {
     }
 
     protected void handleTake(TakeAction action) {
+        ItemStack sourceItem = getAndVerifySlot(action.getSource());
+        if (sourceItem == ItemStack.EMPTY) {
+            throw new IllegalArgumentException("Source item stack is empty");
+        }
 
+        ItemStack targetItem = getAndVerifySlot(action.getDestination());
+
+        ItemStack newSourceItem = sourceItem.decreaseCount(action.getCount());
+        ItemStack newTargetItem = targetItem.increaseCount(action.getCount());
+
+        this.screen.setSlot(action.getSource().getContainer(), action.getSource().getSlot(), newSourceItem);
+        log.info("Source: " + newSourceItem);
+        this.screen.setSlot(action.getDestination().getContainer(), action.getDestination().getSlot(), newTargetItem);
+        log.info("Target: " + newTargetItem);
     }
 
     protected void handlePlace(PlaceAction action) {
@@ -51,7 +67,7 @@ public class ItemStackRequestActionHandler {
 
     }
 
-    public void beginRequest(ItemStackRequest request, InventoryScreen screen) {
+    public void beginRequest(ItemStackRequest request, CloudInventoryScreen screen) {
         this.screen = screen;
     }
 
@@ -62,5 +78,15 @@ public class ItemStackRequestActionHandler {
     }
 
     public void addFilteredStrings(int requestId, String[] filterStrings) {
+    }
+
+    private ItemStack getAndVerifySlot(ItemStackRequestSlotData slot) {
+        ItemStack clientSide = NetworkItemStack.getItemStack(slot.getStackNetworkId());
+        ItemStack serverSide = this.screen.getSlot(slot.getContainer(), slot.getSlot());
+
+        if (clientSide.equals(serverSide)) {
+            throw new IllegalArgumentException("Client-side and server-side item stacks do not match");
+        }
+        return serverSide;
     }
 }
